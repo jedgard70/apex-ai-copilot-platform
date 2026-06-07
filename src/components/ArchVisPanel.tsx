@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Copy, Eraser, ImagePlus, Layers, Save, Sparkles } from 'lucide-react'
+import { Copy, Download, Eraser, ImagePlus, Layers, Save, Sparkles, Wand2 } from 'lucide-react'
 import { formatSize, IntakeFile } from '../lib/fileIntake'
 
 type ArchVisPanelProps = {
@@ -18,6 +18,15 @@ type EditPlanResponse = {
     provider: string
     status: string
   }[]
+}
+
+type GeneratedImageResponse = {
+  providerStatus?: string
+  message?: string
+  image?: string
+  imageUrl?: string
+  revisedPrompt?: string
+  model?: string
 }
 
 function defaultEditInstruction(file: IntakeFile) {
@@ -61,6 +70,8 @@ export function ArchVisPanel({ source, output, conversationContext, onClear }: A
   const [editInstruction, setEditInstruction] = useState(() => defaultEditInstruction(source))
   const [editPlan, setEditPlan] = useState<EditPlanResponse | null>(null)
   const [editLoading, setEditLoading] = useState(false)
+  const [imageLoading, setImageLoading] = useState(false)
+  const [generatedImage, setGeneratedImage] = useState<GeneratedImageResponse | null>(null)
 
   const sourceMeta = useMemo(() => {
     const parts = [source.file.type || 'unknown type', formatSize(source.file.size)]
@@ -118,6 +129,46 @@ export function ArchVisPanel({ source, output, conversationContext, onClear }: A
     }
   }
 
+  async function generateImage() {
+    setImageLoading(true)
+    setGeneratedImage(null)
+    try {
+      const response = await fetch('/api/copilot/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: renderBrief || output,
+          sourceImageDataUrl: source.dataUrl,
+          mode: source.dataUrl ? 'image-edit-plan' : 'text-to-image',
+          file: {
+            name: source.file.name,
+            type: source.file.type,
+            size: source.file.size,
+            dimensions: source.dimensions,
+          },
+        }),
+      })
+      const data = await response.json().catch(() => ({
+        providerStatus: 'not-connected',
+        message: 'Image connector returned a non-JSON response.',
+      }))
+      setGeneratedImage(data)
+    } finally {
+      setImageLoading(false)
+    }
+  }
+
+  function downloadGeneratedImage() {
+    const image = generatedImage?.image || generatedImage?.imageUrl
+    if (!image) return
+    const link = document.createElement('a')
+    link.href = image
+    link.download = `apex-archvis-${Date.now()}.png`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+  }
+
   return (
     <section className="archvis-panel" aria-label="ArchVis output">
       <div className="archvis-heading">
@@ -147,9 +198,40 @@ export function ArchVisPanel({ source, output, conversationContext, onClear }: A
         <button onClick={copyPrompt} type="button"><Copy size={16} /> {copied ? 'Copied' : 'Copy prompt'}</button>
         <button onClick={saveBriefing} type="button"><Save size={16} /> {saved ? 'Saved' : 'Save briefing'}</button>
         <button onClick={() => setVariations(buildVariations(source, output))} type="button"><Sparkles size={16} /> Generate variations</button>
+        <button onClick={generateImage} type="button" disabled={imageLoading}><Wand2 size={16} /> {imageLoading ? 'Generating...' : 'Generate image'}</button>
         <button onClick={() => setEditOpen(value => !value)} type="button"><ImagePlus size={16} /> Prepare image edit</button>
         <button onClick={() => setRenderBrief(buildRenderBrief(source, output))} type="button"><Layers size={16} /> Prepare render brief</button>
       </div>
+
+      {generatedImage && (
+        <div className="archvis-generated">
+          <div>
+            <h3>Generated image</h3>
+            <p>{generatedImage.message}</p>
+            {generatedImage.model && <small>Model: {generatedImage.model}</small>}
+          </div>
+          {(generatedImage.image || generatedImage.imageUrl) ? (
+            <>
+              <img src={generatedImage.image || generatedImage.imageUrl} alt="Generated ArchVis result" />
+              <div className="archvis-actions">
+                <button onClick={downloadGeneratedImage} type="button"><Download size={16} /> Download image</button>
+                <button onClick={copyPrompt} type="button"><Copy size={16} /> Copy prompt</button>
+              </div>
+              {generatedImage.revisedPrompt && (
+                <div className="archvis-output">
+                  <h3>Provider revised prompt</h3>
+                  <pre>{generatedImage.revisedPrompt}</pre>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="provider-error">
+              <strong>Provider status: {generatedImage.providerStatus || 'not-connected'}</strong>
+              <span>No generated image was returned. No fake image was created.</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {variations.length > 0 && (
         <div className="archvis-output">

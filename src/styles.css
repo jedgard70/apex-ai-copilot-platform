@@ -372,7 +372,8 @@ input {
 }
 
 .archvis-output,
-.archvis-edit {
+.archvis-edit,
+.archvis-generated {
   margin-top: 14px;
   padding: 14px;
   border: 1px solid #edf1f6;
@@ -380,8 +381,20 @@ input {
   background: #f7f9fc;
 }
 
+.archvis-generated img {
+  display: block;
+  width: 100%;
+  max-height: 520px;
+  object-fit: contain;
+  margin-top: 12px;
+  border: 1px solid #e2e8f2;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
 .archvis-output pre,
-.archvis-output p {
+.archvis-output p,
+.archvis-generated p {
   margin: 10px 0 0;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -395,6 +408,32 @@ input {
   margin-top: 10px;
   color: #64708b;
   overflow-wrap: anywhere;
+}
+
+.archvis-generated small {
+  display: block;
+  margin-top: 8px;
+  color: #64708b;
+}
+
+.provider-error {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid rgba(215, 25, 42, 0.22);
+  border-radius: 12px;
+  background: rgba(215, 25, 42, 0.05);
+}
+
+.provider-error strong {
+  color: #07183f;
+}
+
+.provider-error span {
+  color: #64708b;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .connector-list {
@@ -418,6 +457,11 @@ input {
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 14px;
+}
+
+.archvis-actions button:disabled {
+  cursor: wait;
+  opacity: 0.65;
 }
 
 .archvis-edit textarea {
