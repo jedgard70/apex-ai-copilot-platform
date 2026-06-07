@@ -1,0 +1,330 @@
+import React, { useMemo, useRef, useState } from 'react'
+import { createRoot } from 'react-dom/client'
+import {
+  ArrowUp,
+  Bot,
+  Building2,
+  File as FileIcon,
+  ImageIcon,
+  Paperclip,
+  Sparkles,
+  Upload,
+} from 'lucide-react'
+import { ArchVisPanel } from './components/ArchVisPanel'
+import { classifyFile, formatSize, IntakeFile, isVisionReady, readFileAsDataUrl, readImageDimensions } from './lib/fileIntake'
+import { selectTool, tools } from './lib/toolRegistry'
+import './styles.css'
+
+type Message = {
+  id: string
+  role: 'user' | 'assistant'
+  text: string
+  attachment?: IntakeFile
+}
+
+type ArchVisOutput = {
+  source: IntakeFile
+  output: string
+  conversationContext: string[]
+}
+
+function id() {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+}
+
+function timestampForFileName() {
+  const now = new Date()
+  const pad = (value: number) => String(value).padStart(2, '0')
+  return [
+    now.getFullYear(),
+    pad(now.getMonth() + 1),
+    pad(now.getDate()),
+    '-',
+    pad(now.getHours()),
+    pad(now.getMinutes()),
+    pad(now.getSeconds()),
+  ].join('')
+}
+
+function isDebugEnabled() {
+  try {
+    return localStorage.getItem('apex_debug') === 'true' || import.meta.env.VITE_APEX_DEBUG === 'true'
+  } catch {
+    return import.meta.env.VITE_APEX_DEBUG === 'true'
+  }
+}
+
+function isArchVisIntent(text: string, attachment?: IntakeFile) {
+  if (attachment?.kind === 'image' && !text.trim()) return true
+  if (attachment?.kind !== 'image') return false
+  return /\b(gerar prompt de render|gere um prompt de render|prompt de render|crie uma planta humanizada|criar planta humanizada|planta humanizada|renderizar|renderize|melhorar imagem|editar imagem|trocar materiais|adicionar paisagismo|criar fachada|criar imagem de venda|render prompt|humanize|image edit|edit image|render)\b/i.test(text)
+}
+
+function App() {
+  const fileInput = useRef<HTMLInputElement | null>(null)
+  const [input, setInput] = useState('')
+  const [activeFile, setActiveFile] = useState<IntakeFile | undefined>()
+  const [archVisOutput, setArchVisOutput] = useState<ArchVisOutput | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: id(),
+      role: 'assistant',
+      text: 'I am Apex AI Copilot. Upload a file, paste a screenshot, or tell me what you need.',
+    },
+  ])
+
+  const activeTool = useMemo(() => selectTool(input, activeFile?.file.name), [input, activeFile])
+  const debugEnabled = useMemo(() => isDebugEnabled(), [])
+
+  async function askCopilot(text = input, attachment = activeFile) {
+    const clean = text.trim()
+    if ((!clean && !attachment) || loading) return
+    const userText = clean || (attachment ? `Uploaded ${attachment.file.name}` : '')
+    const modelText = clean || (attachment
+      ? 'User uploaded this file. Analyze it as project context and continue naturally in a short conversational reply. Do not write a report, heading, observations list, or capabilities list.'
+      : '')
+    const userMessage: Message = { id: id(), role: 'user', text: userText, attachment }
+    const shouldOpenArchVis = isArchVisIntent(clean || modelText, attachment)
+    setMessages(prev => [...prev, userMessage])
+    setInput('')
+    setLoading(true)
+    try {
+      const response = await fetch('/api/copilot/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: modelText,
+          language: navigator.language || 'en',
+          messages: [
+            ...messages.map(message => ({
+              role: message.role,
+              text: message.text,
+            })),
+            {
+              role: userMessage.role,
+              text: modelText,
+            },
+          ],
+          file: attachment
+            ? {
+                name: attachment.file.name,
+                type: attachment.file.type,
+                size: attachment.file.size,
+                kind: attachment.kind,
+                dataUrl: attachment.kind === 'image' ? attachment.dataUrl : undefined,
+              }
+            : null,
+        }),
+      })
+      const data = await response.json().catch(() => ({}))
+      const reply = data.reply || data.error || 'Apex AI Copilot could not complete the response.'
+      setMessages(prev => [...prev, { id: id(), role: 'assistant', text: reply }])
+      if (shouldOpenArchVis && attachment?.kind === 'image') {
+        setArchVisOutput({
+          source: attachment,
+          output: reply,
+          conversationContext: [...messages, userMessage, { id: id(), role: 'assistant', text: reply }]
+            .slice(-8)
+            .map(message => `${message.role}: ${message.text}`),
+        })
+      }
+    } catch {
+      setMessages(prev => [
+        ...prev,
+        {
+          id: id(),
+          role: 'assistant',
+          text: 'I could not reach the local Copilot runtime. Start the server with npm start after npm run build.',
+        },
+      ])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleFile(file: File) {
+    const kind = classifyFile(file)
+    const dataUrl = kind === 'image' ? await readFileAsDataUrl(file) : undefined
+    const previewUrl = kind === 'image' || kind === 'pdf' ? URL.createObjectURL(file) : undefined
+    const intake: IntakeFile = {
+      file,
+      kind,
+      previewUrl,
+      url: previewUrl,
+      dataUrl,
+      dimensions: dataUrl ? await readImageDimensions(dataUrl).catch(() => undefined) : undefined,
+    }
+    setActiveFile(intake)
+    await askCopilot('', intake)
+  }
+
+  async function handlePaste(event: React.ClipboardEvent<HTMLElement>) {
+    const items = Array.from(event.clipboardData?.items || [])
+    const imageItem = items.find(item => item.kind === 'file' && /^image\/(png|jpeg|webp)$/i.test(item.type))
+    if (!imageItem) return
+
+    const blob = imageItem.getAsFile()
+    if (!blob) return
+
+    event.preventDefault()
+    const extension = imageItem.type === 'image/jpeg' ? 'jpg' : imageItem.type.split('/')[1] || 'png'
+    const file = new File([blob], `pasted-screenshot-${timestampForFileName()}.${extension}`, {
+      type: imageItem.type,
+      lastModified: Date.now(),
+    })
+    await handleFile(file)
+  }
+
+  async function handleDrop(event: React.DragEvent<HTMLElement>) {
+    event.preventDefault()
+    const file = event.dataTransfer.files?.[0]
+    if (file) await handleFile(file)
+  }
+
+  return (
+    <main className="app" onPaste={handlePaste} onDragOver={event => event.preventDefault()} onDrop={handleDrop}>
+      <header className="topbar">
+        <div className="brand">
+          <div className="brand-mark"><Sparkles size={22} /></div>
+          <div>
+            <strong>APEX AI COPILOT</strong>
+            <span>Full intelligence copilot platform</span>
+          </div>
+        </div>
+      </header>
+
+      <section className="workspace">
+        <section className="chat-shell" aria-label="Apex AI Copilot chat">
+          <div className="chat-header">
+            <div>
+              <h1>What are we building today?</h1>
+              <p>Upload a file, paste a screenshot, or tell Apex AI Copilot what you need.</p>
+              <span className="clean-note">Apex AI Copilot can help with design, construction, code, data, writing, video, negotiation and business workflows.</span>
+            </div>
+            <button className="upload-button" onClick={() => fileInput.current?.click()}>
+              <Upload size={18} /> Upload any file
+            </button>
+            <input
+              ref={fileInput}
+              type="file"
+              accept="*/*"
+              hidden
+              onChange={event => {
+                const file = event.target.files?.[0]
+                if (file) handleFile(file)
+                event.currentTarget.value = ''
+              }}
+            />
+          </div>
+
+          <div className="messages">
+            {messages.map(message => (
+              <article key={message.id} className={`message ${message.role}`}>
+                <div className="avatar">{message.role === 'assistant' ? <Bot size={18} /> : <Building2 size={18} />}</div>
+                <div className="bubble">
+                  <p>{message.text}</p>
+                  {message.attachment && (
+                    <div className="attachment-chip">
+                      <Paperclip size={15} />
+                      {message.attachment.file.name}
+                      <span>{message.attachment.kind} · {formatSize(message.attachment.file.size)}</span>
+                    </div>
+                  )}
+                </div>
+              </article>
+            ))}
+            {loading && (
+              <article className="message assistant">
+                <div className="avatar"><Bot size={18} /></div>
+                <div className="bubble typing">Apex AI Copilot is thinking...</div>
+              </article>
+            )}
+          </div>
+
+          {archVisOutput && (
+            <ArchVisPanel
+              source={archVisOutput.source}
+              output={archVisOutput.output}
+              conversationContext={archVisOutput.conversationContext}
+              onClear={() => setArchVisOutput(null)}
+            />
+          )}
+
+          <div className="composer">
+            {activeFile && (
+              <div className="composer-file">
+                <Paperclip size={16} />
+                <span>{activeFile.file.name}</span>
+                <small>{activeFile.kind} · {formatSize(activeFile.file.size)}</small>
+              </div>
+            )}
+            <div className="input-row">
+              <button className="icon-button" onClick={() => fileInput.current?.click()} aria-label="Attach file">
+                <Paperclip size={20} />
+              </button>
+              <input
+                value={input}
+                onChange={event => setInput(event.target.value)}
+                onKeyDown={event => {
+                  if (event.key === 'Enter') askCopilot()
+                }}
+                placeholder="Ask Apex AI Copilot what to build, analyze or generate..."
+              />
+              <button className="send-button" onClick={() => askCopilot()} aria-label="Send message" disabled={loading}>
+                <ArrowUp size={20} />
+              </button>
+            </div>
+            <div className="composer-hint">Paste screenshot or drop/upload any file</div>
+          </div>
+          {debugEnabled && (
+            <div className="debug-panel" aria-label="Debug mode">
+              Debug mode is enabled. Internal prompt and memory details remain server-side and are hidden from the end-user experience.
+            </div>
+          )}
+        </section>
+
+        <aside className="right-panel">
+          <div className="panel-section">
+            <h2>File preview</h2>
+            {!activeFile && (
+              <div className="empty-preview">
+                <FileIcon size={34} />
+                <span>No file uploaded yet</span>
+              </div>
+            )}
+            {activeFile?.kind === 'image' && activeFile.url && (
+              <div className="image-preview">
+                <img src={activeFile.url} alt={activeFile.file.name} />
+                <span><ImageIcon size={15} /> Image ready</span>
+              </div>
+            )}
+            {activeFile && activeFile.kind !== 'image' && (
+              <div className="file-preview">
+                <FileIcon size={38} />
+                <strong>{activeFile.file.name}</strong>
+                <span>{activeFile.kind} · {formatSize(activeFile.file.size)}</span>
+                <p>{isVisionReady(activeFile.kind) ? 'Ready to analyze.' : 'File accepted. I can use its details and guide the next step.'}</p>
+              </div>
+            )}
+          </div>
+
+          <div className="panel-section">
+            <h2>Available tools</h2>
+            <p className="panel-copy">Use them when they help. You can also ask anything directly in chat.</p>
+            <div className="tool-list">
+              {tools.map(tool => (
+                <div key={tool.id} className={`tool-row ${tool.id === activeTool.id ? 'active' : ''}`}>
+                  <strong>{tool.name}</strong>
+                  <span>{tool.role}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </aside>
+      </section>
+    </main>
+  )
+}
+
+createRoot(document.getElementById('root')!).render(<App />)
