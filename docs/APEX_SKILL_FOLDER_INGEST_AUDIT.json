@@ -1,0 +1,77 @@
+{
+  "sourceFolder": "D:\\AI Jedgard\\skill",
+  "targetRepo": "D:\\AI-constr\\apex-ai-copilot-platform",
+  "mode": "read-only source scan",
+  "totalFilesScanned": 192,
+  "extensionCounts": {
+    ".md": 75,
+    ".txt": 39,
+    ".pdf": 13,
+    ".py": 64,
+    ".js": 1
+  },
+  "categoriesCreated": [
+    "archvis",
+    "imagePrompts",
+    "videoPrompts",
+    "cinematic",
+    "interiors",
+    "bimCad",
+    "business",
+    "coding",
+    "writing",
+    "negotiation",
+    "data",
+    "platform"
+  ],
+  "highValueSourcesUsed": [
+    "humanizacao.md",
+    "humanize-floor-plan/SKILL.md",
+    "humanize-floor-plan/references/ai-prompts-and-resources.md",
+    "PROMPT PLANTA HUMANIZADA ING.pdf",
+    "PROMPT POS PLANTA HUMANIZADA PT.pdf",
+    "Prompts Arquitetonicos AI.pdf",
+    "30--Prompts--Profissionais--para--Arquitetura--e--Design--de--Interiores.pdf",
+    "guia_cinematografico.pdf",
+    "checklist_interior_futurista.pdf",
+    "Mood Board — Interiores Futuristas.pdf",
+    "PROMPT--PARA--TOPOGRAFIA--E--CASA--HOLOGRAMA.pdf",
+    "apex-global-orchestrator/**",
+    "skill APEXAICOPILOT/apex-copilot-construction-intelligence/**",
+    "mcp-builder/**",
+    "web-artifacts-builder/**",
+    "doc-coauthoring/**",
+    "internal-comms/**",
+    "xlsx/**",
+    "pptx/**"
+  ],
+  "generatedFiles": [
+    "src/lib/apexSkillKnowledge/index.ts",
+    "src/lib/apexSkillKnowledge/archvis.ts",
+    "src/lib/apexSkillKnowledge/imagePrompts.ts",
+    "src/lib/apexSkillKnowledge/videoPrompts.ts",
+    "src/lib/apexSkillKnowledge/cinematic.ts",
+    "src/lib/apexSkillKnowledge/interiors.ts",
+    "src/lib/apexSkillKnowledge/bimCad.ts",
+    "src/lib/apexSkillKnowledge/business.ts",
+    "src/lib/apexSkillKnowledge/coding.ts",
+    "src/lib/apexSkillKnowledge/writing.ts",
+    "src/lib/apexSkillKnowledge/negotiation.ts",
+    "src/lib/apexSkillKnowledge/data.ts",
+    "src/lib/apexSkillKnowledge/platform.ts",
+    "docs/APEX_SKILL_FOLDER_INGEST_AUDIT.md",
+    "docs/APEX_SKILL_FOLDER_INGEST_AUDIT.json"
+  ],
+  "skippedOrMetadataOnly": [
+    "PDFs were not copied or embedded; they were classified by source purpose.",
+    "Python helper scripts were classified as implementation references, not imported into runtime.",
+    "Duplicate prompt sources were collapsed into category-level knowledge.",
+    "anthropic=0.39.0.txt was treated as obsolete/dependency note."
+  ],
+  "runtimeIntegration": {
+    "archvis": "uses extracted prompt presets, preserve-layout rules, camera presets and negative prompts",
+    "copilotChat": "injects compact relevant local skill context by intent",
+    "preserveMode": "strict image-to-image only",
+    "creativeMode": "can use broader text-to-image and style/camera/technical presets"
+  }
+}

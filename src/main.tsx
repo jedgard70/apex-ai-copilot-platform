@@ -28,6 +28,49 @@ type ArchVisOutput = {
   conversationContext: string[]
 }
 
+function normalizeRevisionConstraint(text: string) {
+  const normalized = text.trim()
+  const lower = normalized.toLowerCase()
+  if (/(não|nao).*(jardim|paisag|garden).*(atr[aá]s|behind).*(su[ií]te|suite)/i.test(lower)) {
+    return 'Do not create garden, landscaping, patio, grass or exterior continuation behind the suite.'
+  }
+  if (/(lavanderia|laundry|service).*(canto direito|lado direito|right side|right corner)|não mude a lavanderia|nao mude a lavanderia/i.test(lower)) {
+    return 'Preserve laundry/service area on the right side as shown in the original plan.'
+  }
+  if (/(piscina|pool).*((não|nao).*(muda|mover|altera|change|move)|não muda|nao muda)/i.test(lower)) {
+    return 'Keep pool exactly in original location, size and proportion.'
+  }
+  if (/(piscina|pool).*(lugar errado|wrong place|wrong location|errado)/i.test(lower)) {
+    return 'Keep pool exactly in original location, size and proportion.'
+  }
+  if (/(mantenha|preserve|keep).*(banheiro|bathroom)/i.test(lower)) {
+    return 'Preserve the bathroom exactly as shown in the original plan.'
+  }
+  if (/(isso|isto).*(não|nao).*(existe|tem).*(planta|plan)/i.test(lower)) {
+    return `Do not add this element because it does not exist in the original plan: ${normalized}`
+  }
+  if (/(não|nao).*(existe|tem|crie|criar|invent).*/i.test(lower)) {
+    return `Do not invent this element or condition: ${normalized}`
+  }
+  if (/(fica|est[aá]|preserve|mantenha|manter|keep)/i.test(lower)) {
+    return `Preserve this correction from the owner: ${normalized}`
+  }
+  return `Apply this locked revision constraint: ${normalized}`
+}
+
+function isRevisionIntent(text: string) {
+  return /\b(não existe|nao existe|não crie|nao crie|não invente|nao invente|não tem|nao tem|não mude|nao mude|não muda|nao muda|mantenha|preserve|corrigir|correção|correcao|errado|está errado|esta errado|lugar errado|faltou|remove|remova|tira|retira|fica no|fica na|fica ao|corrige|refaz|refaça|regenera|ajuste|arrume|keep|do not|don't|wrong|atrás da suíte|atras da suite|lavanderia|piscina não|pool)\b/i.test(text)
+}
+
+function revisionChatLabel(text: string) {
+  const lower = text.toLowerCase()
+  if (/(não|nao).*(jardim|paisag).*(atr[aá]s).*(su[ií]te|suite)/i.test(lower)) return 'não criar jardim atrás da suíte'
+  if (/(lavanderia|laundry|service).*(canto direito|lado direito)|não mude a lavanderia|nao mude a lavanderia/i.test(lower)) return 'preservar a lavanderia no canto direito'
+  if (/(piscina|pool)/i.test(lower)) return 'manter a piscina no local, tamanho e proporção originais'
+  if (/(banheiro|bathroom)/i.test(lower)) return 'manter o banheiro como está na planta'
+  return text.trim()
+}
+
 function id() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
@@ -57,7 +100,7 @@ function isDebugEnabled() {
 function isArchVisIntent(text: string, attachment?: IntakeFile) {
   if (attachment?.kind === 'image' && !text.trim()) return true
   if (attachment?.kind !== 'image') return false
-  return /\b(gerar prompt de render|gere um prompt de render|prompt de render|crie uma planta humanizada|criar planta humanizada|planta humanizada|renderizar|renderize|melhorar imagem|editar imagem|trocar materiais|adicionar paisagismo|criar fachada|criar imagem de venda|render prompt|humanize|image edit|edit image|render)\b/i.test(text)
+  return /\b(gerar prompt de render|gere um prompt de render|prompt de render|crie uma planta humanizada|criar planta humanizada|planta humanizada|renderizar|renderize|renderize essa|renderizar essa|renderize esta|renderizar esta|área gourmet|area gourmet|refaz|refaça|regenera|regenerate|sem jardim|não crie|nao crie|deixa mais|usa madeira|melhorar imagem|editar imagem|trocar materiais|adicionar paisagismo|criar fachada|criar imagem de venda|humanize|image edit|edit image|render)\b/i.test(text)
 }
 
 function App() {
@@ -65,6 +108,7 @@ function App() {
   const [input, setInput] = useState('')
   const [activeFile, setActiveFile] = useState<IntakeFile | undefined>()
   const [archVisOutput, setArchVisOutput] = useState<ArchVisOutput | null>(null)
+  const [archVisRevisionConstraints, setArchVisRevisionConstraints] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -86,6 +130,22 @@ function App() {
       : '')
     const userMessage: Message = { id: id(), role: 'user', text: userText, attachment }
     const shouldOpenArchVis = isArchVisIntent(clean || modelText, attachment)
+    const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
+    if (shouldLockRevision) {
+      const constraint = normalizeRevisionConstraint(clean)
+      setMessages(prev => [
+        ...prev,
+        userMessage,
+        {
+          id: id(),
+          role: 'assistant',
+          text: `Entendi. Travei essa correção no ArchVis: ${revisionChatLabel(clean)}. Gere novamente pelo painel ao lado.`,
+        },
+      ])
+      setArchVisRevisionConstraints(prev => prev.includes(constraint) ? prev : [...prev, constraint])
+      setInput('')
+      return
+    }
     setMessages(prev => [...prev, userMessage])
     setInput('')
     setLoading(true)
@@ -119,8 +179,9 @@ function App() {
       })
       const data = await response.json().catch(() => ({}))
       const reply = data.reply || data.error || 'Apex AI Copilot could not complete the response.'
-      setMessages(prev => [...prev, { id: id(), role: 'assistant', text: reply }])
       if (shouldOpenArchVis && attachment?.kind === 'image') {
+        const studioMessage = 'Abri o ArchVis Studio ao lado com a imagem original, o prompt ajustável e a galeria de iterações. Você pode gerar, corrigir e regenerar sem reenviar o arquivo.'
+        setMessages(prev => [...prev, { id: id(), role: 'assistant', text: studioMessage }])
         setArchVisOutput({
           source: attachment,
           output: reply,
@@ -128,6 +189,8 @@ function App() {
             .slice(-8)
             .map(message => `${message.role}: ${message.text}`),
         })
+      } else {
+        setMessages(prev => [...prev, { id: id(), role: 'assistant', text: reply }])
       }
     } catch {
       setMessages(prev => [
@@ -194,7 +257,7 @@ function App() {
         </div>
       </header>
 
-      <section className="workspace">
+      <section className={`workspace ${archVisOutput ? 'studio-open' : ''}`}>
         <section className="chat-shell" aria-label="Apex AI Copilot chat">
           <div className="chat-header">
             <div>
@@ -242,15 +305,6 @@ function App() {
             )}
           </div>
 
-          {archVisOutput && (
-            <ArchVisPanel
-              source={archVisOutput.source}
-              output={archVisOutput.output}
-              conversationContext={archVisOutput.conversationContext}
-              onClear={() => setArchVisOutput(null)}
-            />
-          )}
-
           <div className="composer">
             {activeFile && (
               <div className="composer-file">
@@ -285,6 +339,19 @@ function App() {
         </section>
 
         <aside className="right-panel">
+          {archVisOutput && (
+            <ArchVisPanel
+              source={archVisOutput.source}
+              output={archVisOutput.output}
+              conversationContext={archVisOutput.conversationContext}
+              revisionConstraints={archVisRevisionConstraints}
+              onAddRevisionConstraint={constraint => setArchVisRevisionConstraints(prev => prev.includes(constraint) ? prev : [...prev, constraint])}
+              onRemoveRevisionConstraint={constraint => setArchVisRevisionConstraints(prev => prev.filter(item => item !== constraint))}
+              onClearRevisionConstraints={() => setArchVisRevisionConstraints([])}
+              onClear={() => setArchVisOutput(null)}
+            />
+          )}
+
           <div className="panel-section">
             <h2>File preview</h2>
             {!activeFile && (

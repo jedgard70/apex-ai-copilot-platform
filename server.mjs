@@ -80,6 +80,63 @@ function parseDataUrl(dataUrl) {
   }
 }
 
+function buildArchVisServerStylePrompt(promptStyle) {
+  const style = String(promptStyle || 'humanized-floor-plan')
+  const styles = {
+    'humanized-floor-plan': [
+      'Prompt style: Humanized floor plan.',
+      'Strict image-to-image, top-down orthographic, preserve layout, walls, openings, room positions, labels where possible, no geometry change, no extra rooms, no invented gardens, high realism.',
+    ].join('\n'),
+    'photorealistic-facade': 'Prompt style: Photorealistic facade. Minimalist residence, realistic facade, accurate shadows, refined materials, urban or residential architecture, premium real estate presentation.',
+    'interior-design': 'Prompt style: Interior design. Use coherent room function, furniture, materials, palette, lighting and realistic construction detail.',
+    'futuristic-interior': 'Prompt style: Futuristic interior. Include budget/room intent, polished concrete, porcelain, dark matte walls, metal, leather, teak/freijo wood, LED linear lighting 4000-6500K, indirect lighting and minimal objects.',
+    'cinematic-real-estate': 'Prompt style: Cinematic real estate. Include eye-level, low angle, high angle, bird eye/top-down, 3/4 angle, dolly in/out, orbit, flyover, top reveal, wide angle or telephoto camera language.',
+    'technical-bim-mep': 'Prompt style: Technical BIM/MEP. Clean documentation style, BIM/MEP comparison, wireframe/hologram architecture, precise systems, readable technical overlays.',
+    'topographic-hologram': 'Prompt style: Topographic hologram. Topographic terrain, GIS/neon linework, holographic contours, site levels and technical depth.',
+    'masterplan-overlay': 'Prompt style: Masterplan overlay. Site planning, zones, circulation, roads, access logic, landscape areas and clean 3D text placement where useful.',
+    'video-camera-movement': 'Prompt style: Video / camera movement. Shot sequence, dolly in/out, orbit, flyover, top reveal and cinematic presentation language.',
+  }
+  return styles[style] || styles['humanized-floor-plan']
+}
+
+function buildLocalSkillContext(userText, file) {
+  const text = `${userText || ''} ${file?.name || ''} ${file?.kind || ''}`.toLowerCase()
+  const contexts = []
+  if (/(archvis|render|humaniz|planta|floor plan|fachada|facade|imagem|image)/.test(text)) {
+    contexts.push('ArchVis: use prompt anatomy subject/style/details/materials/lighting/camera. Preserve mode is strict image-to-image, top-down orthographic, no geometry change, no extra rooms, no invented gardens, no boundary expansion. Creative redesign must be labeled as creative concept.')
+    contexts.push('Image prompts: use style presets such as humanized floor plan, photorealistic facade, minimalist residence, sustainable/coastal/brutalist/futuristic, technical BIM/MEP, topographic hologram and masterplan overlay. Build negative prompts for changed geometry, altered walls, missing/extra rooms, moved pool/road, invented garden, cropped plan and perspective distortion.')
+  }
+  if (/(video|directcut|timelapse|roteiro|shot|camera|cinematic|cinema)/.test(text)) {
+    contexts.push('Video/DirectCut: produce script, shot list, timeline prompt, voiceover, reveal/orbit/flyover/dolly/top-reveal movement and real estate sales pacing.')
+    contexts.push('Cinematic camera: eye-level, low angle, high angle, bird-eye/top-down, front/side/rear/3-4 angle, dolly in/out, orbit, flyover, top reveal, wide angle and telephoto.')
+  }
+  if (/(interior|sala|quarto|cozinha|futurista|furniture|material|palette)/.test(text)) {
+    contexts.push('Interior/futuristic: ask or infer budget, rooms, palette, polished concrete, porcelain, dark matte walls, metal, leather, teak/freijo wood, LED linear 4000-6500K, indirect lighting and minimal objects.')
+  }
+  if (/(ifc|rvt|dwg|dxf|skp|bim|cad|3d|viewer|clash)/.test(text)) {
+    contexts.push('BIM/CAD: do not fake parsing or viewers. IFC requires real viewer; RVT/DWG/DXF/SKP require conversion/import strategy. Use metadata honestly and guide the next technical step.')
+  }
+  if (/(venda|cliente|crm|proposal|proposta|business|marketing|or[cç]amento|budget)/.test(text)) {
+    contexts.push('Business/sales: produce positioning, client pitch, proposal outline, buyer profile, value proposition, recommended visuals and next commercial action directly.')
+  }
+  if (/(code|c[oó]digo|react|typescript|mcp|api|server|platform)/.test(text)) {
+    contexts.push('Coding/platform: prefer small scoped changes, keep secrets server-side, separate protocol/validation/execution/evaluation, and produce code directly when requested.')
+  }
+  if (/(write|escreva|texto|copy|document|doc|humaniz)/.test(text)) {
+    contexts.push('Writing: produce the requested artifact directly, match user language/tone and avoid generic boilerplate unless asked.')
+  }
+  if (/(negocia|counteroffer|proposta comercial|deal)/.test(text)) {
+    contexts.push('Negotiation: clarify goal/leverage/constraints only when needed; otherwise produce scripts, counteroffers, email drafts and options.')
+  }
+  if (/(data|dados|sql|planilha|xlsx|csv|analytics|metric)/.test(text)) {
+    contexts.push('Data: do not invent data values; state missing data clearly; produce analysis structure, SQL, spreadsheet logic or metric reasoning.')
+  }
+  if (!contexts.length) {
+    contexts.push('Platform: Apex AI Copilot is a command-first full AI assistant. Chat is primary; modules and connectors are optional execution paths.')
+  }
+  return contexts.slice(0, 4).join('\n')
+}
+
 function buildToolSummary(tools) {
   return tools.map(tool => `- ${tool.name}: ${tool.role}`).join('\n')
 }
@@ -104,7 +161,7 @@ function detectLanguage(userText, conversation, preferredLanguage = '') {
       .slice(-3)
       .map(item => String(item.text || '')),
   ].join(' ')
-  const portuguesePattern = /\b(o que|vc|você|voce|sabe|fazer|fa[cç]a|crie|criar|gere|gerar|liste|lista|habilidades|capacidades|para mim|planta|projeto|quero|posso|opcoes|opções|mostre|portugu[eê]s|render|or[cç]amento|an[uú]ncio|cliente|contrato|programar|componente|traduza|traduzir)\b/i
+  const portuguesePattern = /\b(o que|vc|você|voce|sabe|fazer|fa[cç]a|crie|criar|gere|gerar|liste|lista|habilidades|capacidades|para mim|me ajude|ajude|planta|projeto|quero|posso|opcoes|opções|mostre|portugu[eê]s|render|or[cç]amento|an[uú]ncio|cliente|contrato|programar|componente|c[oó]digo|traduza|traduzir)\b/i
   const englishSwitchPattern = /\b(answer in english|speak english|in english|english please)\b/i
   const hiddenUploadMessage = /^user uploaded this file\./i.test(String(userText || '').trim())
   if (englishSwitchPattern.test(userText)) return 'English'
@@ -308,6 +365,9 @@ async function handleChat(req, res) {
       'Production memory summary:',
       runtime.memorySummary.join('\n'),
       '',
+      'Relevant local skill knowledge:',
+      buildLocalSkillContext(userText, file),
+      '',
       buildFileContext(file),
       '',
       'If image content is supplied, analyze visible image content directly. If not, do not pretend to see pixels or file internals.',
@@ -465,10 +525,23 @@ async function handleGenerateImage(req, res) {
     const mode = String(body.mode || 'text-to-image')
     const file = body.file || {}
     const sourceImage = parseDataUrl(body.sourceImageDataUrl)
+    const negativePrompt = String(body.negativePrompt || '').trim()
+    const lockBoundaries = body.lockBoundaries === true
+    const preserveLabels = body.preserveLabels !== false
+    const noInventedAreas = body.noInventedAreas !== false
+    const referenceMode = String(body.referenceMode || 'original')
+    const revisionConstraints = Array.isArray(body.revisionConstraints)
+      ? body.revisionConstraints.map(item => String(item).slice(0, 600)).filter(Boolean).slice(0, 20)
+      : []
+    const promptStyle = String(body.promptStyle || 'humanized-floor-plan')
+    const cameraPreset = String(body.cameraPreset || 'auto')
+    const strength = Math.max(30, Math.min(100, Number(body.strength || 85)))
+    const outputCount = Math.max(1, Math.min(4, Number(body.outputCount || 1)))
     const maxSourceBytes = Number(process.env.OPENAI_IMAGE_SOURCE_MAX_BYTES || 8 * 1024 * 1024)
     const model = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1'
     const size = process.env.OPENAI_IMAGE_SIZE || '1024x1024'
     const quality = process.env.OPENAI_IMAGE_QUALITY || 'medium'
+    const requiresSourceImage = mode === 'preserve-layout' || mode === 'image-edit-plan' || mode === 'image-variation-plan'
 
     if (!prompt) {
       return json(res, 400, {
@@ -484,20 +557,75 @@ async function handleGenerateImage(req, res) {
       })
     }
 
+    if (requiresSourceImage && !sourceImage) {
+      return json(res, 400, {
+        providerStatus: 'not-connected',
+        message: 'A source image is required for layout-preserving ArchVis generation. Upload or paste the plan first.',
+      })
+    }
+
+    const fidelityRules = mode === 'preserve-layout'
+      ? [
+          'STRICT FIDELITY MODE:',
+          'Use the uploaded image as the strict reference/base image.',
+          'Transform this exact uploaded architectural floor plan into a high-quality humanized floor plan visualization.',
+          'Preserve the original geometry, walls, room positions, labels where possible, pool location, garage location, road/access, lot shape, proportions and top-down camera.',
+          'Do not redesign the plan.',
+          'Do not add/remove rooms.',
+          'Do not change layout.',
+          'Do not crop important parts.',
+          'Do not create a perspective 3D house, exterior facade, or random architecture.',
+          preserveLabels ? 'Preserve labels where possible and avoid misspelled labels.' : '',
+          'Only improve materials, floor textures, furniture, landscaping, shadows, water, lighting and presentation quality.',
+          'The output should look like a humanized/rendered version of the same uploaded top-down floor plan.',
+        ].filter(Boolean).join('\n')
+      : 'Creative variation mode: use the uploaded plan as source context, but allow more visual interpretation while keeping the project recognizable.'
+
+    const boundaryRules = mode === 'preserve-layout' && (lockBoundaries || noInventedAreas)
+      ? [
+          'STRICT BOUNDARY LOCK:',
+          lockBoundaries ? 'Preserve exact lot boundary.' : '',
+          lockBoundaries ? 'Preserve exact building footprint.' : '',
+          lockBoundaries ? 'Preserve exact exterior/service areas.' : '',
+          noInventedAreas ? 'Do not extend garden/landscaping beyond the original garden/patio areas.' : '',
+          noInventedAreas ? 'Do not create garden behind sauna, lavanderia, suite, pool, garage, or any area where it is not shown in the source image.' : '',
+          noInventedAreas ? 'Do not fill blank/white/technical areas with invented landscaping.' : '',
+          noInventedAreas ? 'Do not infer missing spaces outside the drawing.' : '',
+          noInventedAreas ? 'Do not complete or continue any area beyond what is visible.' : '',
+          noInventedAreas ? 'Treat unknown/blank areas as unchanged neutral surfaces.' : '',
+          noInventedAreas ? 'Only enhance existing zones already present in the source image.' : '',
+          noInventedAreas ? 'If an area is unclear, keep it neutral rather than inventing details.' : '',
+          noInventedAreas ? 'No garden continuation, invented garden, extra landscaping, added patio, added deck, extended vegetation, filled blank area, new exterior area, invented service yard, changed backyard, added outdoor strip, or random plants outside original garden.' : '',
+        ].filter(Boolean).join('\n')
+      : ''
+
     const safePrompt = [
       prompt.slice(0, 8000),
       '',
+      revisionConstraints.length
+        ? ['User correction constraints from previous failed outputs:', ...revisionConstraints.map((constraint, index) => `${index + 1}. ${constraint}`)].join('\n')
+        : '',
+      '',
+      fidelityRules,
+      buildArchVisServerStylePrompt(promptStyle),
+      boundaryRules,
+      cameraPreset && cameraPreset !== 'auto' ? `Selected camera/movement preset: ${cameraPreset}.` : '',
+      negativePrompt ? `Negative prompt: ${negativePrompt.slice(0, 2000)}` : '',
+      '',
       'Apex ArchVis production intent: generate a polished, client-ready architectural visualization. Preserve the uploaded project logic where a source image is supplied. Do not add fake labels or unreadable text.',
+      `Reference mode: ${referenceMode}.`,
+      `Fidelity strength requested: ${strength}%.`,
       file?.name ? `Source file name: ${String(file.name).slice(0, 180)}` : '',
     ].filter(Boolean).join('\n')
 
     let response
-    if (sourceImage && (mode === 'image-edit-plan' || mode === 'image-variation-plan')) {
+    if (sourceImage && requiresSourceImage) {
       const form = new FormData()
       form.append('model', model)
       form.append('prompt', safePrompt)
       form.append('size', size)
       form.append('quality', quality)
+      form.append('n', String(outputCount))
       form.append('image', new Blob([sourceImage.buffer], { type: sourceImage.mimeType }), file?.name || 'source-image.png')
       response = await fetch('https://api.openai.com/v1/images/edits', {
         method: 'POST',
@@ -518,7 +646,7 @@ async function handleGenerateImage(req, res) {
           prompt: safePrompt,
           size,
           quality,
-          n: 1,
+          n: outputCount,
         }),
       })
     }
@@ -528,9 +656,19 @@ async function handleGenerateImage(req, res) {
       return json(res, response.status, {
         providerStatus: 'not-connected',
         message: scrubProviderError(data?.error?.message || `OpenAI image request failed with HTTP ${response.status}.`),
+        warning: sourceImage
+          ? 'The provider could not complete a layout-preserving image edit. No unrelated text-to-image fallback was used.'
+          : undefined,
       })
     }
 
+    const images = Array.isArray(data?.data)
+      ? data.data.map(item => ({
+          image: item?.b64_json ? `data:image/png;base64,${item.b64_json}` : undefined,
+          imageUrl: item?.url,
+          revisedPrompt: item?.revised_prompt,
+        })).filter(item => item.image || item.imageUrl)
+      : []
     const image = data?.data?.[0] || {}
     const b64 = image.b64_json
     const url = image.url
@@ -546,6 +684,7 @@ async function handleGenerateImage(req, res) {
       message: 'Image generated by the real OpenAI image connector.',
       image: b64 ? `data:image/png;base64,${b64}` : undefined,
       imageUrl: url,
+      images,
       revisedPrompt: image.revised_prompt,
       model: data?.model || model,
       mode,

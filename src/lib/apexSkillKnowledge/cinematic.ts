@@ -1,0 +1,25 @@
+export const cinematicKnowledge = {
+  category: 'Cinematic camera',
+  cameraPresets: [
+    'eye-level',
+    'low angle',
+    'high angle',
+    "bird's-eye / top-down",
+    'front view',
+    'side view',
+    'rear view',
+    '3/4 angle',
+    'dolly in',
+    'dolly out',
+    'orbit',
+    'flyover',
+    'top reveal',
+    'wide angle',
+    'telephoto',
+  ],
+  rules: [
+    'Use camera language only when it helps the requested output.',
+    'Top-down/bird eye is required for faithful floor plan humanization.',
+    'Orbit, dolly and flyover belong to video/storyboard outputs.',
+  ],
+}
