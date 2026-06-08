@@ -7,6 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = __dirname
 const dist = path.join(root, 'dist')
 const runtimeKnowledgePath = path.join(root, 'src', 'lib', 'runtimeKnowledge.json')
+const skillUpdateLogPath = path.join(root, 'docs', 'SKILL_UPDATE_LOG.md')
 
 loadEnvLocal()
 
@@ -26,6 +27,266 @@ function loadEnvLocal() {
 
 function loadRuntimeKnowledge() {
   return JSON.parse(fs.readFileSync(runtimeKnowledgePath, 'utf8'))
+}
+
+function saveRuntimeKnowledge(runtime) {
+  fs.writeFileSync(runtimeKnowledgePath, `${JSON.stringify(runtime, null, 2)}\n`, 'utf8')
+}
+
+function safeId(prefix = 'update') {
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+}
+
+function redactSensitiveText(value) {
+  return String(value || '')
+    .replace(/sk-[A-Za-z0-9_-]{20,}/g, '[redacted-openai-key]')
+    .replace(/\bghp_[A-Za-z0-9_]{20,}\b/g, '[redacted-github-token]')
+    .replace(/\bgithub_pat_[A-Za-z0-9_]{20,}\b/g, '[redacted-github-pat]')
+    .replace(/\b[A-Za-z0-9_-]*service[_-]?role[A-Za-z0-9_:\-."= ]{8,}/gi, '[redacted-service-role-reference]')
+    .replace(/\b(?:api[_-]?key|token|secret|password)\s*[:=]\s*["']?[^"'\s]{8,}/gi, '$1=[redacted-secret]')
+}
+
+function skillFileExtension(fileName = '') {
+  return String(fileName).toLowerCase().split('.').pop() || ''
+}
+
+function classifySkillUpdate(file, text) {
+  const name = String(file?.name || '')
+  const ext = skillFileExtension(name)
+  const lower = `${name}\n${text}`.toLowerCase()
+  if (/(password|api[_-]?key|secret|token|service[_-]?role|private key|BEGIN RSA PRIVATE KEY)/i.test(text)) {
+    return { category: 'obsolete-unsafe-ignore', targetDomain: 'security-review', riskLevel: 'high' }
+  }
+  if (/(deprecated|obsolete|superseded|não usar|nao usar|ignore this|old version)/i.test(lower)) {
+    return { category: 'obsolete-unsafe-ignore', targetDomain: 'historical-reference', riskLevel: 'medium' }
+  }
+  if (/(archvis|render|planta humanizada|humanized floor plan|facade|interior|prompt negativo|negative prompt)/i.test(lower)) {
+    return { category: 'archvis-skill', targetDomain: 'archvis', riskLevel: 'low' }
+  }
+  if (/(directcut|video|vídeo|roteiro|shot list|storyboard|reels|cinematic)/i.test(lower)) {
+    return { category: 'directcut-skill', targetDomain: 'directcut', riskLevel: 'low' }
+  }
+  if (/(bim|ifc|revit|rvt|dwg|dxf|skp|clash|viewer|3d)/i.test(lower)) {
+    return { category: 'bim-3d-skill', targetDomain: 'bim-3d', riskLevel: 'low' }
+  }
+  if (/(sql|data|analytics|dashboard|metric|csv|query)/i.test(lower)) {
+    return { category: 'data-sql', targetDomain: 'data-analysis', riskLevel: 'low' }
+  }
+  if (/(marketing|sales|crm|proposal|proposta|venda|copy|landing)/i.test(lower)) {
+    return { category: 'business-marketing', targetDomain: 'business-marketing', riskLevel: 'low' }
+  }
+  if (/(negotiation|negociação|negociacao|humanizer|humanizar texto|writing|copywriting)/i.test(lower)) {
+    return { category: 'writing-negotiation', targetDomain: 'writing-negotiation', riskLevel: 'low' }
+  }
+  if (['py', 'js', 'ts', 'tsx'].includes(ext) || /(react|typescript|javascript|python|component|api route|server)/i.test(lower)) {
+    return { category: 'code-platform-pattern', targetDomain: 'platform-code', riskLevel: 'medium' }
+  }
+  if (/(system prompt|prompt template|template|instruções|instrucoes|instructions)/i.test(lower)) {
+    return { category: 'prompt-template', targetDomain: 'prompt-systems', riskLevel: 'low' }
+  }
+  if (/(rule|regra|always|never|nunca|sempre|policy|hard rule)/i.test(lower)) {
+    return { category: 'global-rule', targetDomain: 'copilot-behavior', riskLevel: 'medium' }
+  }
+  return { category: 'project-memory', targetDomain: 'project-memory', riskLevel: 'low' }
+}
+
+function summarizeSkillUpdate(file, text, classification) {
+  const name = String(file?.name || 'uploaded file')
+  const preview = text
+    ? text.split(/\r?\n/).map(line => line.trim()).filter(Boolean).slice(0, 6)
+    : []
+  const metadataOnly = !text
+  const understood = [
+    metadataOnly
+      ? `Apex received ${name} as metadata-only content. It will not execute or unpack it in CP5.`
+      : `Apex read sanitized text from ${name} without executing it.`,
+    `Detected category: ${classification.category}.`,
+    `Recommended target domain: ${classification.targetDomain}.`,
+  ]
+  const additions = preview.length
+    ? preview.map(line => line.slice(0, 280))
+    : [`Store ${name} as a reference item for ${classification.targetDomain}; text extraction is not available yet for this file type.`]
+  const updates = classification.category === 'global-rule'
+    ? ['Potential behavior rule update after Owner approval.']
+    : [`Potential ${classification.targetDomain} knowledge update after Owner approval.`]
+  const ignored = []
+  if (metadataOnly) ignored.push('Binary/archive/PDF internals are not parsed in this checkpoint; only metadata is used.')
+  if (classification.category === 'obsolete-unsafe-ignore') ignored.push('Unsafe or obsolete content should not be promoted to global skill brain.')
+  return { understood, additions, updates, ignored }
+}
+
+function buildExportReference(domain, runtime) {
+  const tools = Array.isArray(runtime.tools) ? runtime.tools : []
+  const matchingTools = tools.filter(tool => {
+    const haystack = `${tool.id} ${tool.name} ${tool.role} ${(tool.trigger || []).join(' ')}`.toLowerCase()
+    return domain.toLowerCase().split(/[ /-]+/).some(part => part.length > 3 && haystack.includes(part))
+  })
+  const updates = Array.isArray(runtime.skillUpdates)
+    ? runtime.skillUpdates.filter(update => String(update.targetDomain || '').toLowerCase().includes(domain.toLowerCase().split(' ')[0] || ''))
+    : []
+  return [
+    `# ${domain}`,
+    '',
+    '## Runtime role',
+    matchingTools.length
+      ? matchingTools.map(tool => `- ${tool.name}: ${tool.role}`).join('\n')
+      : '- Use Apex AI Copilot behavior and active project context for this domain.',
+    '',
+    '## Approved updates',
+    updates.length
+      ? updates.map(update => `- ${update.summary}`).join('\n')
+      : '- No Owner-approved runtime updates for this exact domain yet.',
+    '',
+    '## Operating rule',
+    'Chat remains the primary interface. Tools and modules are optional execution paths after understanding the user request.',
+  ].join('\n')
+}
+
+function buildPortablePrompt(request, runtime) {
+  const languageLine = request.language === 'PT'
+    ? 'Responda em portugues por padrao, a menos que o usuario mude de idioma.'
+    : request.language === 'EN'
+      ? 'Answer in English by default unless the user switches language.'
+      : 'Answer in the user language. Support EN and PT naturally.'
+  const rules = Array.isArray(runtime.systemPrompt) ? runtime.systemPrompt.slice(0, 28) : []
+  return sanitizePortableText([
+    `# ${request.skillName}`,
+    '',
+    request.description,
+    '',
+    '## Core behavior',
+    '- You are Apex AI Copilot, a chat-first command-following AI assistant.',
+    '- Obey the user command first; route to tools only when useful.',
+    '- Use active file/project context when relevant.',
+    '- Do not fake file parsing, 3D viewers, renders, videos or external execution.',
+    '- Produce the requested output directly when the user asks to create, write, build, generate or prepare.',
+    `- ${languageLine}`,
+    '',
+    '## Included domains',
+    ...request.domains.map(domain => `- ${domain}`),
+    '',
+    '## Runtime rules summary',
+    ...rules.map(rule => `- ${rule}`),
+  ].join('\n'))
+}
+
+function sanitizePortableText(value) {
+  return redactSensitiveText(String(value || ''))
+    .replace(/\.env\.local/gi, '[local-env-file-redacted]')
+    .slice(0, 180000)
+}
+
+function makeJsonFile(pathName, value) {
+  return {
+    path: pathName,
+    type: 'json',
+    content: sanitizePortableText(JSON.stringify(value, null, 2)),
+  }
+}
+
+function buildSkillExportPack(request, runtime) {
+  const exportId = safeId('skill-export')
+  const createdAt = new Date().toISOString()
+  const skillName = String(request.skillName || 'Apex AI Copilot').slice(0, 120)
+  const description = String(request.description || 'Portable Apex AI Copilot knowledge pack.').slice(0, 500)
+  const domains = Array.isArray(request.domains) && request.domains.length ? request.domains.map(String) : ['Apex Copilot behavior']
+  const language = ['EN', 'PT', 'bilingual'].includes(request.language) ? request.language : 'bilingual'
+  const targetPlatform = String(request.targetPlatform || 'chatgpt')
+  const outputFormat = String(request.outputFormat || 'zip-compatible')
+  const baseRequest = { ...request, skillName, description, domains, language }
+  const mainPrompt = buildPortablePrompt(baseRequest, runtime)
+  const referenceFiles = domains.map(domain => ({
+    path: `references/${domain.toLowerCase().replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') || 'domain'}.md`,
+    type: 'markdown',
+    content: sanitizePortableText(buildExportReference(domain, runtime)),
+  }))
+  const toolRegistry = (Array.isArray(runtime.tools) ? runtime.tools : []).filter(tool => {
+    const haystack = `${tool.id} ${tool.name} ${tool.role} ${(tool.trigger || []).join(' ')}`.toLowerCase()
+    return domains.some(domain => domain.toLowerCase().split(/[ /-]+/).some(part => part.length > 3 && haystack.includes(part)))
+  })
+  const memoryIndex = {
+    skillName,
+    domains,
+    includedReferences: Array.isArray(request.includedReferences) ? request.includedReferences : [],
+    memorySummary: Array.isArray(runtime.memorySummary) ? runtime.memorySummary : [],
+    approvedSkillUpdates: Array.isArray(runtime.skillUpdates) ? runtime.skillUpdates.map(update => ({
+      updateId: update.updateId,
+      sourceFilename: update.sourceFilename,
+      summary: update.summary,
+      targetDomain: update.targetDomain,
+      category: update.category,
+      timestamp: update.timestamp,
+    })) : [],
+  }
+  let files = []
+  if (targetPlatform === 'chatgpt') {
+    files = [
+      { path: 'SKILL.md', type: 'markdown', content: mainPrompt },
+      { path: 'agents/openai.yaml', type: 'yaml', content: `name: ${skillName}\ndescription: ${description}\nmodel_behavior: chat-first command-following copilot\n` },
+      { path: 'README_IMPORT.md', type: 'markdown', content: `# Import ${skillName}\n\nUpload this folder as a ChatGPT-compatible skill package. Keep references attached as knowledge files.\n` },
+      ...referenceFiles,
+    ]
+  } else if (targetPlatform === 'gemini') {
+    files = [
+      { path: 'GEMINI_INSTRUCTIONS.md', type: 'markdown', content: mainPrompt },
+      { path: 'GEMINI_REFERENCE_INDEX.md', type: 'markdown', content: `# Gemini Reference Index\n\n${domains.map(domain => `- ${domain}`).join('\n')}\n\nImport as Gem instructions plus attached reference files.` },
+      { path: 'README_IMPORT.md', type: 'markdown', content: 'Create a Gemini Gem, paste GEMINI_INSTRUCTIONS.md, and attach the reference files.' },
+      ...referenceFiles,
+    ]
+  } else if (targetPlatform === 'claude') {
+    files = [
+      { path: 'CLAUDE_PROJECT_INSTRUCTIONS.md', type: 'markdown', content: mainPrompt },
+      { path: 'CLAUDE_PROJECT_KNOWLEDGE_INDEX.md', type: 'markdown', content: `# Claude Project Knowledge Index\n\n${domains.map(domain => `- ${domain}`).join('\n')}\n` },
+      { path: 'README_IMPORT.md', type: 'markdown', content: 'Create a Claude Project, paste the instructions, and add references as project knowledge.' },
+      ...referenceFiles,
+    ]
+  } else if (targetPlatform === 'api') {
+    files = [
+      { path: 'SYSTEM_PROMPT.md', type: 'markdown', content: mainPrompt },
+      makeJsonFile('TOOL_REGISTRY.json', toolRegistry),
+      makeJsonFile('MEMORY_INDEX.json', memoryIndex),
+      { path: 'RUNTIME_RULES.md', type: 'markdown', content: mainPrompt },
+    ]
+  } else if (targetPlatform === 'cursor-codex') {
+    files = [
+      { path: 'CODEX_AGENT_PROMPT.md', type: 'markdown', content: mainPrompt },
+      { path: 'REPO_RULES.md', type: 'markdown', content: '# Repo Rules\n\n- Work only in the active repo.\n- Do not expose secrets.\n- Do not fake connectors or generated outputs.\n- Build and verify before committing.\n' },
+      { path: 'IMPLEMENTATION_CHECKLIST.md', type: 'markdown', content: '# Implementation Checklist\n\n- Understand user command.\n- Preserve chat-first behavior.\n- Use file/project context.\n- Keep tools secondary.\n- Validate build.\n' },
+      ...referenceFiles,
+    ]
+  } else if (targetPlatform === 'generic-json') {
+    files = [
+      makeJsonFile('KNOWLEDGE_REGISTRY.json', { mainPrompt, memoryIndex, toolRegistry, references: referenceFiles }),
+    ]
+  } else {
+    files = [
+      { path: 'KNOWLEDGE_PACK.md', type: 'markdown', content: mainPrompt },
+      makeJsonFile('KNOWLEDGE_REGISTRY.json', { memoryIndex, toolRegistry }),
+      ...referenceFiles,
+    ]
+  }
+  return {
+    exportId,
+    createdAt,
+    skillName,
+    description,
+    targetPlatform,
+    outputFormat,
+    language,
+    domains,
+    files,
+    mainPrompt,
+    warnings: [
+      'Secrets, API keys and .env.local references are redacted.',
+      'This is a portable export package generated from Apex runtime knowledge only; unrelated local files are not included.',
+      outputFormat === 'zip-compatible' ? 'Browser download is a zip-compatible JSON bundle containing file paths and contents.' : 'Use the listed files according to the target platform.',
+    ],
+    importInstructions: [
+      'Review the generated prompt and references before uploading to another AI platform.',
+      'Do not paste private keys, API keys or customer-confidential files into third-party platforms.',
+      'Keep Apex Copilot chat-first and tool-aware; connectors remain optional execution paths.',
+    ],
+  }
 }
 
 function contentType(filePath) {
@@ -1113,6 +1374,161 @@ async function handleBimTourPlan(req, res) {
   }
 }
 
+async function handleAnalyzeSkillUpdate(req, res) {
+  try {
+    const body = await readJson(req)
+    const file = body.file || {}
+    const ext = skillFileExtension(file.name)
+    const supported = new Set(['txt', 'md', 'json', 'pdf', 'py', 'js', 'ts', 'tsx', 'zip'])
+    if (!supported.has(ext)) {
+      json(res, 400, { error: 'Unsupported skill update file type. Use TXT, MD, JSON, PDF, PY, JS, TS, TSX or ZIP.' })
+      return
+    }
+
+    const sanitizedText = redactSensitiveText(String(file.text || '')).slice(0, 120000)
+    const classification = classifySkillUpdate(file, sanitizedText)
+    const summaryParts = summarizeSkillUpdate(file, sanitizedText, classification)
+    const warnings = []
+    const conflicts = []
+    const duplicates = []
+
+    if (!sanitizedText) warnings.push('Readable text was not extracted. Apex will treat this as metadata/reference until a parser is connected.')
+    if (classification.riskLevel === 'high') warnings.push('Potential secrets, dangerous code or unsafe instructions were detected. Global update is blocked.')
+    if (/\b(eval|exec|child_process|subprocess|os\.system|Invoke-Expression|curl\s+.*\|\s*sh)\b/i.test(sanitizedText)) {
+      warnings.push('Executable or shell-like patterns detected. Apex will not execute uploaded code.')
+      conflicts.push('Code may be useful only as reference after manual review.')
+    }
+
+    const runtime = loadRuntimeKnowledge()
+    const existingUpdates = Array.isArray(runtime.skillUpdates) ? runtime.skillUpdates : []
+    if (existingUpdates.some(update => update.sourceFilename === file.name && update.summary === summaryParts.additions[0])) {
+      duplicates.push('A similar source filename and summary already exists in runtime knowledge.')
+    }
+
+    const recommendedTarget = classification.riskLevel === 'high'
+      ? 'project-memory'
+      : classification.category === 'project-memory'
+        ? 'project-memory'
+        : 'global-skill-update'
+
+    const timestamp = new Date().toISOString()
+    json(res, 200, {
+      analysis: {
+        updateId: safeId('skill-update'),
+        timestamp,
+        sourceFilename: String(file.name || 'uploaded-file'),
+        category: classification.category,
+        targetDomain: classification.targetDomain,
+        summary: `Skill update proposal from ${file.name || 'uploaded file'} for ${classification.targetDomain}.`,
+        understood: summaryParts.understood,
+        additions: summaryParts.additions,
+        updates: summaryParts.updates,
+        ignored: summaryParts.ignored,
+        warnings,
+        duplicates,
+        conflicts,
+        riskLevel: classification.riskLevel,
+        recommendedTarget,
+        sanitizedText,
+        rollbackNote: 'Remove this update entry from runtimeKnowledge.skillUpdates and revert the matching docs/SKILL_UPDATE_LOG.md entry.',
+      },
+    })
+  } catch (error) {
+    json(res, error.status || 500, { error: scrubProviderError(error.message || error) })
+  }
+}
+
+async function handleApplySkillUpdate(req, res) {
+  try {
+    const body = await readJson(req)
+    const analysis = body.analysis || {}
+    const approvalType = body.approvalType
+    const ownerApproved = body.ownerApproved === true
+    if (approvalType !== 'global-skill-update') {
+      json(res, 400, { error: 'This endpoint only applies global skill updates. Project memory is saved locally in the browser workspace.' })
+      return
+    }
+    if (!ownerApproved) {
+      json(res, 403, { error: 'Owner approval is required before applying a global skill update.' })
+      return
+    }
+    if (analysis.riskLevel === 'high') {
+      json(res, 409, { error: 'High-risk skill updates cannot be applied globally. Save as project memory or reject.' })
+      return
+    }
+
+    const timestamp = new Date().toISOString()
+    const editedContent = redactSensitiveText(String(body.editedContent || analysis.sanitizedText || '')).slice(0, 120000)
+    const runtime = loadRuntimeKnowledge()
+    const updateEntry = {
+      updateId: String(analysis.updateId || safeId('skill-update')),
+      timestamp,
+      sourceFilename: String(analysis.sourceFilename || 'uploaded-file'),
+      summary: String(analysis.summary || 'Global skill update approved by Owner.'),
+      targetDomain: String(analysis.targetDomain || 'general'),
+      category: String(analysis.category || 'project-memory'),
+      approvalType: 'global-skill-update',
+      content: editedContent,
+      warnings: Array.isArray(analysis.warnings) ? analysis.warnings : [],
+      rollbackNote: String(analysis.rollbackNote || 'Remove this update from runtimeKnowledge.skillUpdates.'),
+    }
+    runtime.skillUpdates = Array.isArray(runtime.skillUpdates) ? runtime.skillUpdates : []
+    runtime.skillUpdates.push(updateEntry)
+    runtime.memorySummary = Array.isArray(runtime.memorySummary) ? runtime.memorySummary : []
+    runtime.memorySummary.push(`Owner-approved skill update ${updateEntry.updateId}: ${updateEntry.summary}`)
+    saveRuntimeKnowledge(runtime)
+
+    fs.mkdirSync(path.dirname(skillUpdateLogPath), { recursive: true })
+    const logEntry = [
+      '',
+      `## ${timestamp} - ${updateEntry.updateId}`,
+      `- Source: ${updateEntry.sourceFilename}`,
+      `- Approval: global skill update`,
+      `- Domain: ${updateEntry.targetDomain}`,
+      `- Category: ${updateEntry.category}`,
+      `- Summary: ${updateEntry.summary}`,
+      `- Affected files: src/lib/runtimeKnowledge.json, docs/SKILL_UPDATE_LOG.md`,
+      `- Rollback: ${updateEntry.rollbackNote}`,
+    ].join('\n')
+    if (!fs.existsSync(skillUpdateLogPath)) {
+      fs.writeFileSync(skillUpdateLogPath, '# Apex AI Copilot Skill Update Log\n', 'utf8')
+    }
+    fs.appendFileSync(skillUpdateLogPath, `${logEntry}\n`, 'utf8')
+
+    json(res, 200, {
+      result: {
+        updateId: updateEntry.updateId,
+        timestamp,
+        approvalType: 'global-skill-update',
+        sourceFilename: updateEntry.sourceFilename,
+        summary: updateEntry.summary,
+        targetDomain: updateEntry.targetDomain,
+        affectedFiles: ['src/lib/runtimeKnowledge.json', 'docs/SKILL_UPDATE_LOG.md'],
+        rollbackNote: updateEntry.rollbackNote,
+        applied: true,
+      },
+    })
+  } catch (error) {
+    json(res, error.status || 500, { error: scrubProviderError(error.message || error) })
+  }
+}
+
+async function handleExportSkillPack(req, res) {
+  try {
+    const body = await readJson(req)
+    const runtime = loadRuntimeKnowledge()
+    const allowedTargets = new Set(['chatgpt', 'gemini', 'claude', 'api', 'cursor-codex', 'generic-md', 'generic-json', 'zip-bundle'])
+    if (!allowedTargets.has(String(body.targetPlatform || ''))) {
+      json(res, 400, { error: 'Unsupported export target.' })
+      return
+    }
+    const pack = buildSkillExportPack(body, runtime)
+    json(res, 200, { pack })
+  } catch (error) {
+    json(res, error.status || 500, { error: scrubProviderError(error.message || error) })
+  }
+}
+
 function serveStatic(req, res) {
   const url = new URL(req.url, 'http://localhost')
   const safePath = decodeURIComponent(url.pathname).replace(/^\/+/, '')
@@ -1158,6 +1574,18 @@ const server = http.createServer((req, res) => {
   }
   if (req.url === '/api/copilot/bim-tour-plan' && req.method === 'POST') {
     handleBimTourPlan(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/analyze-skill-update' && req.method === 'POST') {
+    handleAnalyzeSkillUpdate(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/apply-skill-update' && req.method === 'POST') {
+    handleApplySkillUpdate(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/export-skill-pack' && req.method === 'POST') {
+    handleExportSkillPack(req, res)
     return
   }
   serveStatic(req, res)

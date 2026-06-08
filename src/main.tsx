@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import {
   ArrowUp,
@@ -13,7 +13,24 @@ import {
 import { ArchVisPanel } from './components/ArchVisPanel'
 import { Bim3DPanel, BimArchVisOutput, BimTourOutput } from './components/Bim3DPanel'
 import { DirectCutInitialConfig, DirectCutPanel } from './components/DirectCutPanel'
+import { ProjectWorkspacePanel } from './components/ProjectWorkspacePanel'
+import { SkillExportPanel } from './components/SkillExportPanel'
+import { SkillUpdatePanel } from './components/SkillUpdatePanel'
 import { classifyFile, formatSize, IntakeFile, isVisionReady, readFileAsDataUrl, readImageDimensions } from './lib/fileIntake'
+import {
+  createProject,
+  exportProject,
+  importProject,
+  loadActiveProject,
+  loadProjects,
+  ProjectFileRecord,
+  ProjectWorkspace,
+  removeAllProjects,
+  setActiveProjectId,
+  upsertProject,
+} from './lib/projectWorkspace'
+import { isSkillUpdateIntent, ProjectMemoryUpdate, SkillUpdateApplyResult } from './lib/skillUpdateEngine'
+import { isSkillExportIntent } from './lib/skillExportFactory'
 import { selectTool, tools } from './lib/toolRegistry'
 import './styles.css'
 
@@ -205,17 +222,86 @@ function isBimStudioCommand(text: string) {
   return /\b(marque esse problema|isso est[aá] errado|criar tour|fazer anima[cç][aã]o|gerar passeio|roteiro 3d|mandar para directcut|enviar para directcut|mandar para archvis|enviar para archvis|add issue|save view|tour|animation|directcut|archvis)\b/i.test(text)
 }
 
+function isProjectWorkspaceCommand(text: string) {
+  return /\b(salvar projeto|novo projeto|exportar projeto|abrir projeto|renomear projeto|project workspace|save project|new project|export project|open project|rename project)\b/i.test(text)
+}
+
+function fileToRecord(file: IntakeFile): ProjectFileRecord {
+  return {
+    id: `${file.file.name}-${file.file.size}-${file.file.lastModified || 0}`,
+    name: file.file.name,
+    type: file.file.type,
+    size: file.file.size,
+    kind: file.kind,
+    dataUrl: file.kind === 'image' ? file.dataUrl : undefined,
+    dimensions: file.dimensions,
+    addedAt: new Date().toISOString(),
+  }
+}
+
+function recordToIntakeFile(record?: ProjectFileRecord): IntakeFile | undefined {
+  if (!record) return undefined
+  const file = record.dataUrl
+    ? dataUrlToFile(record.dataUrl, record.name, record.type)
+    : new File([''], record.name, { type: record.type || 'application/octet-stream' })
+  return {
+    file,
+    kind: record.kind as IntakeFile['kind'],
+    dataUrl: record.dataUrl,
+    previewUrl: record.dataUrl,
+    url: record.dataUrl,
+    dimensions: record.dimensions,
+  }
+}
+
+function dataUrlToFile(dataUrl: string, name: string, type: string) {
+  const [header, base64 = ''] = dataUrl.split(',')
+  const mime = type || header.match(/data:([^;]+)/)?.[1] || 'application/octet-stream'
+  const binary = atob(base64)
+  const bytes = new Uint8Array(binary.length)
+  for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index)
+  return new File([bytes], name, { type: mime })
+}
+
 function App() {
   const fileInput = useRef<HTMLInputElement | null>(null)
+  const initialProject = useMemo(() => loadActiveProject() || createProject('Apex Project'), [])
+  const initialAppState = initialProject.appState || {}
+  const restoredFile = recordToIntakeFile(initialProject.files.find(file => file.id === initialProject.activeFileId) || initialProject.files[initialProject.files.length - 1])
   const [input, setInput] = useState('')
-  const [activeFile, setActiveFile] = useState<IntakeFile | undefined>()
-  const [archVisOutput, setArchVisOutput] = useState<ArchVisOutput | null>(null)
-  const [directCutOutput, setDirectCutOutput] = useState<DirectCutOutput | null>(null)
-  const [bim3DOutput, setBim3DOutput] = useState<Bim3DOutput | null>(null)
+  const [projects, setProjects] = useState<ProjectWorkspace[]>(() => {
+    const existing = loadProjects()
+    return existing.length ? existing : [initialProject]
+  })
+  const [activeProject, setActiveProject] = useState<ProjectWorkspace>(initialProject)
+  const [workspaceSavedAt, setWorkspaceSavedAt] = useState('')
+  const [activeFile, setActiveFile] = useState<IntakeFile | undefined>(restoredFile)
+  const [archVisOutput, setArchVisOutput] = useState<ArchVisOutput | null>(() => {
+    const stored = initialAppState.archVisOutput as { output?: string; conversationContext?: string[] } | undefined
+    return stored && restoredFile?.kind === 'image'
+      ? { source: restoredFile, output: stored.output || '', conversationContext: stored.conversationContext || [] }
+      : null
+  })
+  const [directCutOutput, setDirectCutOutput] = useState<DirectCutOutput | null>(() => {
+    const stored = initialAppState.directCutOutput as Omit<DirectCutOutput, 'source'> | undefined
+    return stored ? { ...stored, source: restoredFile } : null
+  })
+  const [bim3DOutput, setBim3DOutput] = useState<Bim3DOutput | null>(() => {
+    const stored = initialAppState.bim3DActive as boolean | undefined
+    return stored && restoredFile?.kind === 'bim-cad' ? { source: restoredFile } : null
+  })
   const [bimCommand, setBimCommand] = useState<BimCommand | undefined>()
-  const [archVisRevisionConstraints, setArchVisRevisionConstraints] = useState<string[]>([])
+  const [workspaceOpenSignal, setWorkspaceOpenSignal] = useState('')
+  const [skillUpdateOpenSignal, setSkillUpdateOpenSignal] = useState('')
+  const [skillExportOpenSignal, setSkillExportOpenSignal] = useState('')
+  const [archVisRevisionConstraints, setArchVisRevisionConstraints] = useState<string[]>(initialProject.revisionConstraints || [])
   const [loading, setLoading] = useState(false)
-  const [messages, setMessages] = useState<Message[]>([
+  const [messages, setMessages] = useState<Message[]>(initialProject.chatMessages.length ? initialProject.chatMessages.map(message => ({
+    id: message.id,
+    role: message.role,
+    text: message.text,
+    attachment: message.attachmentFileId ? restoredFile : undefined,
+  })) : [
     {
       id: id(),
       role: 'assistant',
@@ -225,6 +311,76 @@ function App() {
 
   const activeTool = useMemo(() => selectTool(input, activeFile?.file.name), [input, activeFile])
   const debugEnabled = useMemo(() => isDebugEnabled(), [])
+  const projectSummary = useMemo(() => ({
+    files: activeProject.files.length,
+    chatMessages: messages.length,
+    archVisOutputs: archVisOutput ? Math.max(1, activeProject.archVisOutputs.length) : activeProject.archVisOutputs.length,
+    directCutPlans: directCutOutput ? Math.max(1, activeProject.directCutPlans.length) : activeProject.directCutPlans.length,
+    bim3dItems: bim3DOutput ? Math.max(1, activeProject.bim3dItems.length) : activeProject.bim3dItems.length,
+    tours: activeProject.tours.length,
+    projectMemory: activeProject.projectMemory.length,
+    skillUpdates: activeProject.skillUpdates.length,
+  }), [activeProject, archVisOutput, bim3DOutput, directCutOutput, messages.length])
+
+  function buildProjectSnapshot() {
+    const activeRecord = activeFile ? fileToRecord(activeFile) : undefined
+    const files = activeRecord
+      ? [
+          ...activeProject.files.filter(file => file.id !== activeRecord.id),
+          activeRecord,
+        ]
+      : activeProject.files
+    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : null
+    return {
+      ...activeProject,
+      language: navigator.language || activeProject.language,
+      files,
+      chatMessages: messages.map(message => ({
+        id: message.id,
+        role: message.role,
+        text: message.text,
+        attachmentFileId: message.attachment ? activeRecord?.id : undefined,
+      })),
+      revisionConstraints: archVisRevisionConstraints,
+      projectMemory: activeProject.projectMemory,
+      skillUpdates: activeProject.skillUpdates,
+      activeTool: activeTool.id,
+      activeFileId: activeRecord?.id || activeProject.activeFileId,
+      activeStudio,
+      archVisOutputs: archVisOutput
+        ? [{ output: archVisOutput.output, conversationContext: archVisOutput.conversationContext, updatedAt: new Date().toISOString() }]
+        : activeProject.archVisOutputs,
+      directCutPlans: directCutOutput
+        ? [{ ...directCutOutput, updatedAt: new Date().toISOString() }]
+        : activeProject.directCutPlans,
+      bim3dItems: bim3DOutput
+        ? [{ fileName: bim3DOutput.source.file.name, updatedAt: new Date().toISOString() }]
+        : activeProject.bim3dItems,
+      appState: {
+        archVisOutput: archVisOutput ? { output: archVisOutput.output, conversationContext: archVisOutput.conversationContext } : null,
+        directCutOutput: directCutOutput ? { ...directCutOutput, source: undefined } : null,
+        bim3DActive: Boolean(bim3DOutput),
+      },
+    }
+  }
+
+  function saveWorkspaceNow() {
+    const saved = upsertProject(buildProjectSnapshot())
+    setActiveProject(saved)
+    setProjects(loadProjects())
+    setWorkspaceSavedAt(new Date().toLocaleTimeString())
+  }
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const saved = upsertProject(buildProjectSnapshot())
+      setActiveProject(saved)
+      setProjects(loadProjects())
+      setWorkspaceSavedAt(new Date().toLocaleTimeString())
+    }, 650)
+    return () => window.clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, archVisRevisionConstraints, activeTool.id])
 
   async function askCopilot(text = input, attachment = activeFile) {
     const clean = text.trim()
@@ -238,6 +394,55 @@ function App() {
     const shouldOpenDirectCut = clean && isDirectCutIntent(clean)
     const shouldOpenBim3D = isBim3DIntent(clean || modelText, attachment)
     const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
+    const shouldOpenSkillExport = clean && isSkillExportIntent(clean)
+    if (shouldOpenSkillExport) {
+      setSkillExportOpenSignal(id())
+      setMessages(prev => [
+        ...prev,
+        userMessage,
+        {
+          id: id(),
+          role: 'assistant',
+          text: 'Abri o Skill Export Panel. Escolha a plataforma, os domínios e gere o preview antes de baixar ou copiar o prompt.',
+        },
+      ])
+      setInput('')
+      return
+    }
+    const shouldOpenSkillUpdate = clean && isSkillUpdateIntent(clean)
+    if (shouldOpenSkillUpdate) {
+      setSkillUpdateOpenSignal(id())
+      setMessages(prev => [
+        ...prev,
+        userMessage,
+        {
+          id: id(),
+          role: 'assistant',
+          text: attachment
+            ? 'Vou analisar esse arquivo primeiro e te mostrar exatamente o que eu recomendo adicionar antes de alterar minha skill.'
+            : 'Envie um TXT, MD, JSON, PDF, PY, JS, TS, TSX ou ZIP primeiro. Eu analiso e mostro o preview antes de alterar memória ou skill.',
+        },
+      ])
+      setInput('')
+      return
+    }
+    if (clean && isProjectWorkspaceCommand(clean)) {
+      const lower = clean.toLowerCase()
+      setWorkspaceOpenSignal(id())
+      if (/novo projeto|new project/i.test(lower)) {
+        createNewProject()
+      } else if (/exportar projeto|export project/i.test(lower)) {
+        exportWorkspaceProject()
+      } else if (/salvar projeto|save project/i.test(lower)) {
+        saveWorkspaceNow()
+      } else if (/renomear projeto|rename project/i.test(lower)) {
+        const nextName = clean.replace(/renomear projeto|rename project|para|to/gi, '').trim()
+        if (nextName) renameProject(nextName)
+      }
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Feito. Atualizei o Project Workspace e mantive o projeto ativo salvo localmente.' }])
+      setInput('')
+      return
+    }
     if (clean && bim3DOutput && isBimStudioCommand(clean)) {
       setMessages(prev => [
         ...prev,
@@ -459,6 +664,124 @@ function App() {
     ])
   }
 
+  function renameProject(name: string) {
+    const saved = upsertProject({ ...activeProject, name })
+    setActiveProject(saved)
+    setProjects(loadProjects())
+  }
+
+  function createNewProject() {
+    const project = createProject(`Apex Project ${projects.length + 1}`)
+    const saved = upsertProject(project)
+    setActiveProject(saved)
+    setProjects(loadProjects())
+    setActiveProjectId(saved.id)
+    setActiveFile(undefined)
+    setArchVisOutput(null)
+    setDirectCutOutput(null)
+    setBim3DOutput(null)
+    setArchVisRevisionConstraints([])
+    setMessages([{ id: id(), role: 'assistant', text: 'New Apex project started. Upload a file or tell me what we are building.' }])
+  }
+
+  function applyProject(project: ProjectWorkspace) {
+    setActiveProjectId(project.id)
+    setActiveProject(project)
+    const restored = recordToIntakeFile(project.files.find(file => file.id === project.activeFileId) || project.files[project.files.length - 1])
+    setActiveFile(restored)
+    setArchVisRevisionConstraints(project.revisionConstraints || [])
+    setMessages(project.chatMessages.length ? project.chatMessages.map(message => ({
+      id: message.id,
+      role: message.role,
+      text: message.text,
+      attachment: message.attachmentFileId ? restored : undefined,
+    })) : [{ id: id(), role: 'assistant', text: `Project "${project.name}" loaded.` }])
+    const state = project.appState || {}
+    const restoredArchVis = state.archVisOutput as { output?: string; conversationContext?: string[] } | null | undefined
+    setArchVisOutput(restoredArchVis && restored?.kind === 'image'
+      ? { source: restored, output: restoredArchVis.output || '', conversationContext: restoredArchVis.conversationContext || [] }
+      : null)
+    const restoredDirectCut = state.directCutOutput as Omit<DirectCutOutput, 'source'> | null | undefined
+    setDirectCutOutput(restoredDirectCut ? { ...restoredDirectCut, source: restored } : null)
+    setBim3DOutput(state.bim3DActive && restored?.kind === 'bim-cad' ? { source: restored } : null)
+  }
+
+  function switchProject(projectId: string) {
+    const project = loadProjects().find(item => item.id === projectId)
+    if (!project) return
+    setProjects(loadProjects())
+    applyProject(project)
+  }
+
+  function exportWorkspaceProject() {
+    const snapshot = buildProjectSnapshot()
+    const text = exportProject(snapshot)
+    const blob = new Blob([text], { type: 'application/json;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${snapshot.name.replace(/[^a-z0-9_-]+/gi, '-') || 'apex-project'}.json`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  }
+
+  function importWorkspaceProject(raw: string) {
+    const imported = importProject(raw)
+    setProjects(loadProjects())
+    applyProject(imported)
+  }
+
+  function clearLocalWorkspace() {
+    removeAllProjects()
+    const project = createProject('Apex Project')
+    upsertProject(project)
+    setProjects([project])
+    setActiveProject(project)
+    setActiveFile(undefined)
+    setArchVisOutput(null)
+    setDirectCutOutput(null)
+    setBim3DOutput(null)
+    setArchVisRevisionConstraints([])
+    setMessages([{ id: id(), role: 'assistant', text: 'Local workspace cleared. New Apex project ready.' }])
+  }
+
+  function approveProjectMemory(update: ProjectMemoryUpdate) {
+    const saved = upsertProject({
+      ...activeProject,
+      projectMemory: [...activeProject.projectMemory, update],
+      skillUpdates: [...activeProject.skillUpdates, update],
+    })
+    setActiveProject(saved)
+    setProjects(loadProjects())
+    setMessages(prev => [
+      ...prev,
+      {
+        id: id(),
+        role: 'assistant',
+        text: `Aprovado como memória do projeto. Salvei "${update.sourceFilename}" no Project Workspace local, sem alterar a skill global.`,
+      },
+    ])
+  }
+
+  function handleGlobalSkillApplied(result: SkillUpdateApplyResult) {
+    const saved = upsertProject({
+      ...activeProject,
+      skillUpdates: [...activeProject.skillUpdates, result],
+    })
+    setActiveProject(saved)
+    setProjects(loadProjects())
+    setMessages(prev => [
+      ...prev,
+      {
+        id: id(),
+        role: 'assistant',
+        text: `Aprovado pelo Owner e aplicado como update global. Registrei ${result.updateId} no log de skill update.`,
+      },
+    ])
+  }
+
   return (
     <main className="app" onPaste={handlePaste} onDragOver={event => event.preventDefault()} onDrop={handleDrop}>
       <header className="topbar">
@@ -553,6 +876,34 @@ function App() {
         </section>
 
         <aside className="right-panel">
+          <ProjectWorkspacePanel
+            project={activeProject}
+            projects={projects}
+            summary={projectSummary}
+            onRename={renameProject}
+            onNewProject={createNewProject}
+            onSwitchProject={switchProject}
+            onSaveNow={saveWorkspaceNow}
+            onExport={exportWorkspaceProject}
+            onImport={importWorkspaceProject}
+            onClear={clearLocalWorkspace}
+            openSignal={workspaceOpenSignal}
+          />
+          {workspaceSavedAt && <div className="project-save-indicator">Project autosaved at {workspaceSavedAt}</div>}
+
+          <SkillUpdatePanel
+            source={activeFile}
+            openSignal={skillUpdateOpenSignal}
+            onApproveProjectMemory={approveProjectMemory}
+            onAppliedGlobal={handleGlobalSkillApplied}
+            onClose={() => setSkillUpdateOpenSignal('')}
+          />
+
+          <SkillExportPanel
+            openSignal={skillExportOpenSignal}
+            onClose={() => setSkillExportOpenSignal('')}
+          />
+
           {archVisOutput && (
             <ArchVisPanel
               source={archVisOutput.source}
