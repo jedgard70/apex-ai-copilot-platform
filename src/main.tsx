@@ -11,7 +11,7 @@ import {
   Upload,
 } from 'lucide-react'
 import { ArchVisPanel } from './components/ArchVisPanel'
-import { DirectCutPanel } from './components/DirectCutPanel'
+import { DirectCutInitialConfig, DirectCutPanel } from './components/DirectCutPanel'
 import { classifyFile, formatSize, IntakeFile, isVisionReady, readFileAsDataUrl, readImageDimensions } from './lib/fileIntake'
 import { selectTool, tools } from './lib/toolRegistry'
 import './styles.css'
@@ -33,6 +33,7 @@ type DirectCutOutput = {
   source?: IntakeFile
   goal: string
   conversationContext: string[]
+  initialConfig?: DirectCutInitialConfig
 }
 
 function normalizeRevisionConstraint(text: string) {
@@ -111,7 +112,63 @@ function isArchVisIntent(text: string, attachment?: IntakeFile) {
 }
 
 function isDirectCutIntent(text: string) {
-  return /\b(video|v[ií]deo|directcut|roteiro|reels|apresenta[cç][aã]o|tour|anima[cç][aã]o|v[ií]deo de venda|video de venda|timelapse|shot list|storyboard|cinematic|cinem[aá]tico)\b/i.test(text)
+  return /\b(video|v[ií]deo|directcut|roteiro|reels|apresenta[cç][aã]o|tour|anima[cç][aã]o|v[ií]deo de venda|video de venda|timelapse|shot list|storyboard|cinematic|cinem[aá]tico|transformar imagem em v[ií]deo|imagem em v[ií]deo|image to video|adicionar voz|add voice|mudar luz|alterar luz|relight|melhorar v[ií]deo|improve video|clip editor|editar v[ií]deo|3d scenes|movimento de c[aâ]mera|camera movement)\b/i.test(text)
+}
+
+function inferDirectCutConfig(text: string, attachment?: IntakeFile): DirectCutInitialConfig {
+  const lower = text.toLowerCase()
+  const config: DirectCutInitialConfig = {
+    videoMode: attachment?.kind === 'image' ? 'image-to-video' : 'generate-videos',
+    duration: '15s',
+    aspectRatio: '16:9',
+    audio: 'on',
+    voice: 'narrator',
+    style: 'professional-real-estate',
+    lighting: 'keep-original',
+    cameraMovement: 'dolly-in',
+  }
+
+  if (/(reels|short|story|stories|tiktok|instagram|vertical|9:16)/i.test(lower)) {
+    config.videoMode = 'social-media-short'
+    config.aspectRatio = '9:16'
+    config.style = 'social-media'
+    config.cameraMovement = 'dolly-in'
+  }
+  if (/(venda|sales|comercial|cliente|real estate|imobili[aá]rio)/i.test(lower)) {
+    config.videoMode = config.videoMode === 'social-media-short' ? 'social-media-short' : 'real-estate-sales-video'
+    config.style = config.style === 'social-media' ? 'social-media' : 'professional-real-estate'
+  }
+  if (/(transformar imagem em v[ií]deo|imagem em v[ií]deo|image to video|a partir dessa imagem|a partir da imagem)/i.test(lower)) {
+    config.videoMode = 'image-to-video'
+  }
+  if (/(alterar luz|mudar luz|relight|reiluminar|transfer light|transferir luz)/i.test(lower)) {
+    config.videoMode = 'relight-video'
+    config.lighting = /transfer/i.test(lower) ? 'transfer-light' : 'relight'
+  }
+  if (/(adicionar voz|add voice|narra[cç][aã]o|narrador|voiceover)/i.test(lower)) {
+    config.videoMode = 'add-voice'
+    config.audio = 'on'
+    config.voice = 'narrator'
+  }
+  if (/(tour|walkthrough|caminhada|3d scenes|movimento de c[aâ]mera|camera movement)/i.test(lower)) {
+    config.videoMode = '3d-scenes-camera-movement'
+    config.cameraMovement = 'walkthrough'
+    config.style = 'cinematic'
+  }
+  if (/(cinematic|cinem[aá]tico|efeito cinematogr[aá]fico)/i.test(lower)) {
+    config.videoMode = 'cinematic-effect'
+    config.style = 'cinematic'
+    config.cameraMovement = 'orbit'
+  }
+  if (/(mudar luz|noite|night)/i.test(lower)) config.lighting = 'night'
+  if (/(daylight|dia|luz natural)/i.test(lower)) config.lighting = 'daylight'
+  if (/(warm|quente|aconchegante)/i.test(lower)) config.lighting = 'warm'
+  if (/(bim|t[eé]cnico|technical)/i.test(lower)) {
+    config.videoMode = 'technical-walkthrough'
+    config.style = 'technical-bim'
+    config.cameraMovement = 'top-reveal'
+  }
+  return config
 }
 
 function asksExplicit3D(text: string) {
@@ -180,6 +237,7 @@ function App() {
         source: attachment,
         goal: clean,
         conversationContext: context,
+        initialConfig: inferDirectCutConfig(clean, attachment),
       })
       setInput('')
       return
@@ -397,6 +455,7 @@ function App() {
               source={directCutOutput.source}
               goal={directCutOutput.goal}
               conversationContext={directCutOutput.conversationContext}
+              initialConfig={directCutOutput.initialConfig}
               onClear={() => setDirectCutOutput(null)}
             />
           )}

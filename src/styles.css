@@ -996,7 +996,7 @@ input {
 
 .directcut-layout {
   display: grid;
-  grid-template-columns: minmax(210px, 0.58fr) minmax(330px, 1fr);
+  grid-template-columns: minmax(250px, 0.62fr) minmax(360px, 1fr);
   gap: 14px;
 }
 
@@ -1051,6 +1051,47 @@ input {
   background: #0d1733;
 }
 
+.directcut-reference-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.directcut-reference-tile {
+  display: grid;
+  gap: 5px;
+  justify-items: start;
+  min-height: 84px;
+  border: 1px solid rgba(150, 164, 195, 0.18);
+  border-radius: 12px;
+  padding: 10px;
+  color: #eaf0ff;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.025));
+  cursor: pointer;
+  text-align: left;
+}
+
+.directcut-reference-tile.active {
+  border-color: rgba(109, 168, 255, 0.6);
+  box-shadow: inset 3px 0 0 #6da8ff;
+}
+
+.directcut-reference-tile span {
+  color: #f5f8ff;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.directcut-reference-tile small {
+  color: #8fa2cf;
+  font-size: 11px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .directcut-controls label {
   display: grid;
   gap: 7px;
@@ -1059,8 +1100,15 @@ input {
   font-size: 13px;
 }
 
+.directcut-select-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
 .directcut-controls select,
-.video-constraints-panel input {
+.video-constraints-panel input,
+.directcut-editor-label textarea {
   min-height: 40px;
   border: 1px solid rgba(150, 164, 195, 0.22);
   border-radius: 11px;
@@ -1068,6 +1116,11 @@ input {
   color: #eaf0ff;
   background: #111f3e;
   font: inherit;
+}
+
+.directcut-controls select:disabled {
+  color: #8fa2cf;
+  opacity: 1;
 }
 
 .directcut-primary,
@@ -1095,8 +1148,69 @@ input {
 .directcut-preview {
   display: grid;
   place-items: center;
-  min-height: 180px;
+  min-height: 190px;
   text-align: center;
+  background:
+    radial-gradient(circle at 50% 15%, rgba(109, 168, 255, 0.18), transparent 46%),
+    rgba(255, 255, 255, 0.045);
+}
+
+.directcut-preview-icon {
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  border-radius: 22px;
+  color: #f5f8ff;
+  background: linear-gradient(135deg, rgba(215, 25, 42, 0.9), rgba(109, 168, 255, 0.8));
+  box-shadow: 0 20px 42px rgba(0, 0, 0, 0.24);
+}
+
+.directcut-plan-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: start;
+}
+
+.directcut-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  border: 1px solid rgba(109, 168, 255, 0.28);
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: #cfe7ff;
+  background: rgba(109, 168, 255, 0.12);
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.directcut-editor-label {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+  color: #eaf0ff;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.directcut-editor-label span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.directcut-editor-label textarea {
+  width: 100%;
+  min-height: 112px;
+  padding: 12px;
+  line-height: 1.48;
+  resize: vertical;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .directcut-plan pre {
@@ -1120,6 +1234,12 @@ input {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.directcut-actions button:nth-child(1),
+.directcut-actions button:nth-child(3) {
+  border-color: rgba(109, 168, 255, 0.32);
+  background: rgba(109, 168, 255, 0.12);
 }
 
 .video-constraints-panel {
@@ -1327,6 +1447,9 @@ input {
   }
 
   .video-constraints-panel div,
+  .directcut-select-grid,
+  .directcut-reference-grid,
+  .directcut-plan-head,
   .directcut-gallery-list button {
     grid-template-columns: 1fr;
   }
