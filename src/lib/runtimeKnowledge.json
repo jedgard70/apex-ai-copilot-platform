@@ -39,146 +39,311 @@
     "Do not mention external software such as Revit, ArchiCAD, Solibri, Twinmotion or Blender until Apex has opened the internal studio/import flow, identified a limitation, generated a report and produced correction instructions, unless the user explicitly asks how to do it outside Apex.",
     "For images, use actual image content when supplied. For non-image files, be honest about metadata-only understanding until a parser/viewer exists.",
     "If file content is unavailable or a viewer/parser failed, say exactly what you can and cannot know, then guide the next step naturally.",
-    "Never format the response as a static card/report template unless the user explicitly asks for that format."
+    "Never format the response as a static card/report template unless the user explicitly asks for that format.",
+    "For Windows maintenance and local machine care, default to read-only diagnostics first. Do not clean, delete, move, disable, stop services, edit registry or alter startup items without explicit Owner approval.",
+    "When the user says the computer is slow, inspect OS/uptime, CPU, RAM, disk, pagefile, top processes, startup programs, scheduled tasks, Defender status and suspicious AppData/Public/Startup persistence before recommending cleanup.",
+    "For suspicious Windows startup entries, prefer reversible quarantine over direct deletion, explain the target path, whether the target exists, signature/hash if available, and recommend reboot plus Defender Offline Scan when appropriate.",
+    "For Windows cleanup, separate Audit Only, Safe Quarantine and Cleanup/Repair. Destructive cleanup requires explicit Owner approval every time.",
+    "When writing PowerShell or automation scripts, start with read-only diagnostics, explain risk, and require approval before Remove-Item, Move-Item, Stop-Process, Disable-ScheduledTask, service changes or registry edits."
   ],
   "memorySummary": [
     "Production brain loaded: Apex Copilot behavior, clean architecture, universal file intake, ArchVis, DirectCut, BIM viewer, prompt systems, UI patterns and roadmap.",
     "Clean rebuild sequence: Copilot core, universal intake, ArchVis, BIM/3D viewer, DirectCut, project workspace, operational modules.",
     "Reuse: registry, memory routing, chat endpoint pattern, attachment vision path.",
-    "Rewrite: card-first dashboards, fake viewers, metadata-only image replies, old branch patches."
+    "Rewrite: card-first dashboards, fake viewers, metadata-only image replies, old branch patches.",
+    "Windows Care + Coding Assistant integrated: diagnose slow Windows machines safely, code/debug scripts, use read-only diagnostics by default, quarantine before deleting, and require Owner approval for destructive cleanup."
   ],
   "tools": [
     {
       "id": "file-intake",
       "name": "Universal File Intake",
       "role": "Accept any file, preview what is safe, and pass context to Copilot.",
-      "trigger": ["upload", "file", "pdf", "image", "unknown"],
+      "trigger": [
+        "upload",
+        "file",
+        "pdf",
+        "image",
+        "unknown"
+      ],
       "status": "ready-shell"
     },
     {
       "id": "archvis",
       "name": "ArchVis / Humanizacao",
       "role": "Turn plans, images and sketches into render/humanization direction.",
-      "trigger": ["render", "plan", "planta", "image", "facade", "interior"],
+      "trigger": [
+        "render",
+        "plan",
+        "planta",
+        "image",
+        "facade",
+        "interior"
+      ],
       "status": "ready-shell"
     },
     {
       "id": "directcut",
       "name": "DirectCut / Video",
       "role": "Create scripts, shot lists and construction video plans.",
-      "trigger": ["video", "timelapse", "reel", "tour", "directcut"],
+      "trigger": [
+        "video",
+        "timelapse",
+        "reel",
+        "tour",
+        "directcut"
+      ],
       "status": "ready-shell"
     },
     {
       "id": "bim-viewer",
       "name": "BIM / 3D Viewer",
       "role": "Open Apex internal BIM / 3D Studio or internal import/conversion workflow.",
-      "trigger": ["ifc", "glb", "gltf", "obj", "stl", "fbx", "rvt", "dwg", "dxf", "skp", "bim", "clash"],
+      "trigger": [
+        "ifc",
+        "glb",
+        "gltf",
+        "obj",
+        "stl",
+        "fbx",
+        "rvt",
+        "dwg",
+        "dxf",
+        "skp",
+        "bim",
+        "clash"
+      ],
       "status": "planned"
     },
     {
       "id": "budget",
       "name": "Budget / Quantity",
       "role": "Prepare quantity, budget and proposal workflows from project context.",
-      "trigger": ["budget", "estimate", "orcamento", "quantity", "takeoff"],
+      "trigger": [
+        "budget",
+        "estimate",
+        "orcamento",
+        "quantity",
+        "takeoff"
+      ],
       "status": "planned"
     },
     {
       "id": "contracts",
       "name": "Contracts / Permits",
       "role": "Review contracts, permits, compliance and legal-document workflow context.",
-      "trigger": ["contract", "permit", "legal", "compliance", "contrato"],
+      "trigger": [
+        "contract",
+        "permit",
+        "legal",
+        "compliance",
+        "contrato"
+      ],
       "status": "planned"
     },
     {
       "id": "field",
       "name": "Field Operations",
       "role": "Route RDO, quality, progress, crew and material workflows.",
-      "trigger": ["field", "jobsite", "rdo", "obra", "quality"],
+      "trigger": [
+        "field",
+        "jobsite",
+        "rdo",
+        "obra",
+        "quality"
+      ],
       "status": "planned"
     },
     {
       "id": "marketing",
       "name": "Marketing / Website",
       "role": "Build portfolio, sales page, social and project storytelling outputs.",
-      "trigger": ["marketing", "website", "portfolio", "social", "sales"],
+      "trigger": [
+        "marketing",
+        "website",
+        "portfolio",
+        "social",
+        "sales"
+      ],
       "status": "planned"
     },
     {
       "id": "platform-build",
       "name": "Platform Build Support",
       "role": "Help code, design and rebuild the Apex AI Copilot platform itself.",
-      "trigger": ["code", "build", "platform", "component", "api"],
+      "trigger": [
+        "code",
+        "build",
+        "platform",
+        "component",
+        "api"
+      ],
       "status": "ready-shell"
     },
     {
       "id": "coding-support",
       "name": "Code GPT / Coding Assistant",
       "role": "Write, debug, review and explain code across frontend, backend, APIs and automation.",
-      "trigger": ["code", "programar", "programacao", "debug", "typescript", "react", "api", "script"],
+      "trigger": [
+        "code",
+        "programar",
+        "programacao",
+        "debug",
+        "typescript",
+        "react",
+        "api",
+        "script"
+      ],
       "status": "ready-shell"
     },
     {
       "id": "data-analysis",
       "name": "SQL Expert / Data Analyst",
       "role": "Analyze datasets, write SQL, interpret metrics and build decision-ready data narratives.",
-      "trigger": ["sql", "data", "dados", "analise", "analytics", "dashboard", "metric"],
+      "trigger": [
+        "sql",
+        "data",
+        "dados",
+        "analise",
+        "analytics",
+        "dashboard",
+        "metric"
+      ],
       "status": "ready-shell"
     },
     {
       "id": "academic-research",
       "name": "Academic Assistant / Research",
       "role": "Support research outlines, summaries, study plans, paper structure and evidence organization.",
-      "trigger": ["research", "pesquisa", "academic", "paper", "scholar", "estudo"],
+      "trigger": [
+        "research",
+        "pesquisa",
+        "academic",
+        "paper",
+        "scholar",
+        "estudo"
+      ],
       "status": "ready-shell"
     },
     {
       "id": "visual-design",
       "name": "DesignerGPT / Visual Designer",
       "role": "Create design direction, logos, visual systems, image prompts and brand concepts.",
-      "trigger": ["design", "logo", "visual", "brand", "marca", "identidade"],
+      "trigger": [
+        "design",
+        "logo",
+        "visual",
+        "brand",
+        "marca",
+        "identidade"
+      ],
       "status": "ready-shell"
     },
     {
       "id": "negotiation",
       "name": "The Negotiator",
       "role": "Prepare negotiation strategy, scripts, objections, positioning and closing language.",
-      "trigger": ["negociar", "negociacao", "negotiation", "proposal", "proposta", "closing"],
+      "trigger": [
+        "negociar",
+        "negociacao",
+        "negotiation",
+        "proposal",
+        "proposta",
+        "closing"
+      ],
       "status": "ready-shell"
     },
     {
       "id": "tech-support",
       "name": "Tech Support Advisor",
       "role": "Diagnose technical issues, explain fixes and guide operational troubleshooting.",
-      "trigger": ["erro", "bug", "suporte", "support", "troubleshoot", "config"],
+      "trigger": [
+        "erro",
+        "bug",
+        "suporte",
+        "support",
+        "troubleshoot",
+        "config"
+      ],
       "status": "ready-shell"
     },
     {
       "id": "writing-humanizer",
       "name": "Professional Writing Coach / AI Humanizer",
       "role": "Write, rewrite, humanize, translate and polish professional content.",
-      "trigger": ["write", "escreva", "texto", "humanizar", "copy", "email", "contrato"],
+      "trigger": [
+        "write",
+        "escreva",
+        "texto",
+        "humanizar",
+        "copy",
+        "email",
+        "contrato"
+      ],
       "status": "ready-shell"
     },
     {
       "id": "interior-design",
       "name": "Interior / Room Design",
       "role": "Plan rooms, finishes, furniture, lighting, style direction and interior prompts.",
-      "trigger": ["interior", "room", "ambiente", "decoracao", "mobiliario", "furniture"],
+      "trigger": [
+        "interior",
+        "room",
+        "ambiente",
+        "decoracao",
+        "mobiliario",
+        "furniture"
+      ],
       "status": "ready-shell"
     },
     {
       "id": "website-design",
       "name": "Website AI Designer",
       "role": "Create landing pages, portfolios, website copy, sections and conversion flows.",
-      "trigger": ["landing", "website", "site", "portfolio", "web", "pagina"],
+      "trigger": [
+        "landing",
+        "website",
+        "site",
+        "portfolio",
+        "web",
+        "pagina"
+      ],
       "status": "ready-shell"
     },
     {
       "id": "exploration",
       "name": "Exploration / General Reasoning",
       "role": "Think through open-ended questions, strategy, planning, decisions and general knowledge tasks.",
-      "trigger": ["explore", "pensar", "ideia", "estrategia", "strategy", "geral"],
+      "trigger": [
+        "explore",
+        "pensar",
+        "ideia",
+        "estrategia",
+        "strategy",
+        "geral"
+      ],
+      "status": "ready-shell"
+    },
+    {
+      "id": "windows-care-coding",
+      "name": "Windows Care + Coding Assistant",
+      "role": "Diagnose slow Windows machines, inspect startup/processes safely, create PowerShell automation and coding support with approval-gated cleanup.",
+      "trigger": [
+        "windows",
+        "pc lento",
+        "computador lento",
+        "limpeza",
+        "startup",
+        "powershell",
+        "defender",
+        "malware",
+        "virus",
+        "processos",
+        "cpu",
+        "ram",
+        "disco",
+        "coding",
+        "script"
+      ],
       "status": "ready-shell"
     }
   ]

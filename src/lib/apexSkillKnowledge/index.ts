@@ -9,6 +9,7 @@ import { interiorsKnowledge } from './interiors'
 import { negotiationKnowledge } from './negotiation'
 import { platformKnowledge } from './platform'
 import { videoPromptKnowledge } from './videoPrompts'
+import { windowsCareKnowledge } from './windowsCare'
 import { writingKnowledge } from './writing'
 
 export const apexSkillKnowledge = {
@@ -24,6 +25,7 @@ export const apexSkillKnowledge = {
   negotiation: negotiationKnowledge,
   data: dataKnowledge,
   platform: platformKnowledge,
+  windowsCare: windowsCareKnowledge,
 }
 
 export type ApexSkillKnowledgeDomain = keyof typeof apexSkillKnowledge
@@ -37,6 +39,7 @@ export function selectApexSkillKnowledge(input: string, fileName = ''): ApexSkil
   if (/(ifc|rvt|dwg|dxf|skp|bim|cad|3d|viewer|clash)/.test(text)) domains.add('bimCad')
   if (/(venda|cliente|crm|proposal|proposta|business|marketing|or[cç]amento|budget)/.test(text)) domains.add('business')
   if (/(code|c[oó]digo|react|typescript|mcp|api|server|platform)/.test(text)) domains.add('coding').add('platform')
+  if (/(windows|computador|pc lento|lento|limpeza|startup|inicializa[cç][aã]o|powershell|defender|malware|v[ií]rus|processo|task scheduler|scheduled task|appdata|temp|disco|ram|cpu)/.test(text)) domains.add('windowsCare').add('coding')
   if (/(write|escreva|texto|copy|document|doc|humaniz)/.test(text)) domains.add('writing')
   if (/(negocia|counteroffer|proposta comercial|deal)/.test(text)) domains.add('negotiation')
   if (/(data|dados|sql|planilha|xlsx|csv|analytics|metric)/.test(text)) domains.add('data')
