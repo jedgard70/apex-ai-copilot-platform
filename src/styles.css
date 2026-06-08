@@ -1553,13 +1553,243 @@ input {
   gap: 8px;
 }
 
+.contracts-studio {
+  display: grid;
+  gap: 16px;
+  border: 1px solid rgba(150, 164, 195, 0.2);
+  border-radius: 18px;
+  padding: 16px;
+  color: #eef4ff;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(215, 25, 42, 0.16), transparent 32%),
+    radial-gradient(circle at 94% 10%, rgba(90, 211, 255, 0.12), transparent 34%),
+    linear-gradient(180deg, rgba(18, 23, 45, 0.98), rgba(8, 10, 22, 0.99)),
+    #080a16;
+  box-shadow: 0 30px 90px rgba(7, 24, 63, 0.24);
+}
+
+.contracts-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: start;
+}
+
+.contracts-heading span,
+.contracts-card > span,
+.contracts-status-grid span,
+.contracts-section-head span,
+.contracts-scope-block span,
+.contracts-check-item span {
+  color: #8fa2cf;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.contracts-heading h2,
+.contracts-card strong,
+.contracts-status-grid strong {
+  margin: 2px 0;
+  color: #f5f8ff;
+}
+
+.contracts-heading p,
+.contracts-card p,
+.contracts-card li,
+.contracts-source small,
+.contracts-message,
+.contracts-check-item small {
+  color: #aebce0;
+  line-height: 1.45;
+}
+
+.contracts-studio .ghost-action,
+.contracts-card button,
+.contracts-actions button,
+.contracts-mini-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid rgba(150, 164, 195, 0.22);
+  border-radius: 10px;
+  padding: 9px 10px;
+  color: #eaf0ff;
+  background: rgba(255, 255, 255, 0.07);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.contracts-studio button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.contracts-layout {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.78fr) minmax(0, 1.45fr);
+  gap: 14px;
+}
+
+.contracts-controls,
+.contracts-main {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.contracts-card {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(150, 164, 195, 0.18);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.contracts-card label {
+  display: grid;
+  gap: 6px;
+  color: #eaf0ff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.contracts-card input,
+.contracts-card select,
+.contracts-table input,
+.contracts-table select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(150, 164, 195, 0.22);
+  border-radius: 10px;
+  padding: 9px;
+  color: #eaf0ff;
+  background: #111f3e;
+  font: inherit;
+}
+
+.contracts-two,
+.contracts-status-grid,
+.contracts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.contracts-source {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid rgba(150, 164, 195, 0.14);
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.contracts-source div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.contracts-source span {
+  color: #f5f8ff;
+  overflow-wrap: anywhere;
+  font-weight: 800;
+}
+
+.contracts-primary,
+.contracts-actions button:first-child {
+  background: linear-gradient(135deg, #d7192a, #6d7cff);
+  border-color: transparent;
+}
+
+.contracts-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.contracts-table-wrap {
+  overflow-x: auto;
+}
+
+.contracts-table {
+  width: 100%;
+  min-width: 1120px;
+  border-collapse: collapse;
+  color: #eaf0ff;
+}
+
+.contracts-table th,
+.contracts-table td {
+  border-bottom: 1px solid rgba(150, 164, 195, 0.13);
+  padding: 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.contracts-table th {
+  color: #8fa2cf;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.contracts-mini-actions {
+  display: inline-flex;
+  gap: 5px;
+}
+
+.contracts-mini-actions button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+}
+
+.contracts-check-item,
+.contracts-scope-block {
+  display: grid;
+  gap: 5px;
+  border: 1px solid rgba(150, 164, 195, 0.14);
+  border-radius: 11px;
+  padding: 9px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.contracts-draft {
+  max-height: 300px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  border: 1px solid rgba(150, 164, 195, 0.14);
+  border-radius: 12px;
+  padding: 12px;
+  color: #eaf0ff;
+  background: rgba(0, 0, 0, 0.22);
+  line-height: 1.45;
+}
+
+.contracts-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 @media (max-width: 1180px) {
   .bim3d-workspace-grid,
   .bim3d-analysis-grid,
   .bim3d-tour-grid,
   .budget-layout,
   .budget-estimate-head,
-  .budget-scope-grid {
+  .budget-scope-grid,
+  .contracts-layout,
+  .contracts-status-grid,
+  .contracts-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1572,7 +1802,8 @@ input {
   .bim3d-form-grid,
   .bim3d-tour-add,
   .budget-two,
-  .budget-inline-add {
+  .budget-inline-add,
+  .contracts-two {
     grid-template-columns: 1fr;
   }
 

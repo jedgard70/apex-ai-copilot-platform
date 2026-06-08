@@ -1513,6 +1513,199 @@ async function handleBudgetPlan(req, res) {
   }
 }
 
+function contractsRisk(id, clause, issue, severity, evidence, recommendation, ownerAction) {
+  return {
+    id,
+    clause,
+    issue,
+    severity,
+    evidence,
+    recommendation,
+    ownerAction,
+    status: 'Open',
+  }
+}
+
+function permitItem(id, category, requirement, evidence) {
+  return {
+    id,
+    category,
+    requirement,
+    evidence,
+    status: 'Open',
+  }
+}
+
+async function handleContractsPlan(req, res) {
+  try {
+    const body = await readJson(req)
+    const context = body.context || {}
+    const source = body.source || null
+    const action = String(body.action || 'draft')
+    const goal = String(body.goal || '')
+    const documentType = String(context.documentType || 'Contract')
+    const location = String(context.location || '')
+    const jurisdictionStatus = location ? 'ASSUMPTION' : 'UNKNOWN'
+    const detectedDocumentType = source ? documentType : documentType
+    const highRiskEvidence = 'NEEDS LAWYER REVIEW'
+
+    const riskItems = [
+      contractsRisk(
+        'risk-scope',
+        'Scope of services',
+        'Scope may be too broad or not tied to deliverables and acceptance criteria.',
+        'High',
+        source ? 'ASSUMPTION' : 'UNKNOWN',
+        'Define included services, excluded services, deliverables, acceptance criteria and change-order trigger.',
+        'Confirm exact scope and attach drawings/proposal/budget reference.'
+      ),
+      contractsRisk(
+        'risk-payment',
+        'Payment schedule',
+        'Payment milestones may not protect cash flow or delivery risk.',
+        'Medium',
+        'ASSUMPTION',
+        'Tie payments to mobilization, procurement, execution milestone and final delivery.',
+        'Confirm deposit amount, milestone dates, late-payment consequences and retainage if any.'
+      ),
+      contractsRisk(
+        'risk-change-orders',
+        'Change orders',
+        'Missing change-order process can create unpaid extra work.',
+        'High',
+        'ASSUMPTION',
+        'Require written approval for scope, price and schedule impact before extra work starts.',
+        'Add a simple change-order approval clause.'
+      ),
+      contractsRisk(
+        'risk-lawyer',
+        'Jurisdiction-specific enforceability',
+        'Local legal enforceability cannot be confirmed without lawyer/local authority review.',
+        'High',
+        highRiskEvidence,
+        'Send final draft to qualified lawyer for jurisdiction-specific review.',
+        location ? `Confirm local rules for ${location}.` : 'Add jurisdiction/location before finalizing.'
+      ),
+    ]
+
+    const permitCategories = [
+      'zoning / land use',
+      'building permit',
+      'fire safety',
+      'accessibility',
+      'environmental',
+      'HOA / condominium',
+      'utility connections',
+      'occupancy / habite-se',
+      'engineering responsibility / ART/RRT equivalent',
+      'local authority documents',
+      'insurance / bonds if applicable',
+    ]
+    const permitChecklist = permitCategories.map((category, index) => permitItem(
+      `permit-${index + 1}`,
+      category,
+      location
+        ? `General checklist item for ${category}; confirm exact requirement with local authority for ${location}.`
+        : `General checklist item for ${category}; jurisdiction is unknown.`,
+      location ? 'ASSUMPTION' : 'UNKNOWN'
+    ))
+
+    const projectName = String(context.projectName || 'the project')
+    const parties = String(context.parties || 'Owner / Client / Contractor')
+    const mode = String(context.reviewMode || 'Draft')
+    const sourceCopy = source ? `Uploaded source: ${source.name}.` : 'No uploaded legal document; draft is based on typed context only.'
+    const documentSummary = [
+      `${mode} support for ${documentType} related to ${projectName}.`,
+      sourceCopy,
+      location ? `Jurisdiction/location provided: ${location}.` : 'Jurisdiction/location not provided.',
+      'This is planning/legal support, not licensed legal approval.',
+    ].join(' ')
+
+    const scopeDraft = {
+      servicesIncluded: [
+        'Project services described in approved proposal/scope.',
+        'Coordination, delivery review and client communication as agreed.',
+        'Documented deliverables listed in the contract/proposal.',
+      ],
+      materialsSpecs: [
+        'Materials/specs must reference approved drawings, budget or memorial descritivo.',
+        'Substitutions require written approval before procurement.',
+      ],
+      exclusions: [
+        'Permit fees, taxes, third-party approvals and hidden conditions unless expressly included.',
+        'Additional scope not documented in writing.',
+      ],
+      ownerSuppliedItems: [
+        'Owner/client supplied items must be listed with deadlines and responsibility for defects/delays.',
+      ],
+      qualityStandards: [
+        'Work should follow approved drawings, applicable codes and agreed finish standard.',
+      ],
+      deliverables: [
+        'Approved proposal/scope, schedule note, payment milestones and acceptance criteria.',
+      ],
+      changeOrderRules: [
+        'Any change in scope, cost or time requires written change-order approval before execution.',
+      ],
+      acceptanceCriteria: [
+        'Delivery is accepted after review against agreed scope, punch-list closure and documented handover.',
+      ],
+    }
+
+    const contractDraft = [
+      'SIMPLE SERVICE AGREEMENT DRAFT',
+      '',
+      `Project: ${projectName}`,
+      `Parties: ${parties}`,
+      `Location/Jurisdiction: ${location || 'UNKNOWN - confirm before final use'}`,
+      '',
+      '1. Scope. The service provider will perform the services described in the attached proposal, drawings, budget and/or memorial descritivo.',
+      '2. Exclusions. Permit fees, taxes, authority charges, hidden conditions and third-party approvals are excluded unless expressly written into the scope.',
+      '3. Payment. Payment milestones must be confirmed in writing before work starts.',
+      '4. Changes. Any change in scope, price or schedule requires written approval before execution.',
+      '5. Deliverables and acceptance. Final acceptance occurs after delivery review, punch-list closure and documented approval.',
+      '6. Legal review. This draft must be reviewed by a qualified lawyer before signature.',
+    ].join('\n')
+
+    const pendingQuestions = [
+      'What is the exact jurisdiction/location?',
+      'Who are the legal parties and signatories?',
+      'Which drawings, budget and memorial descritivo are attached as contract exhibits?',
+      'What payment milestones, deadlines and penalties should apply?',
+      'Which permits/approvals are required by local authority?',
+    ]
+    if (action === 'permits') pendingQuestions.unshift('Confirm property type, zoning, project size and authority having jurisdiction.')
+
+    json(res, 200, {
+      plan: {
+        providerStatus: source || goal ? 'review-draft' : 'planning-only',
+        documentSummary,
+        detectedDocumentType,
+        jurisdictionStatus,
+        riskItems,
+        permitChecklist,
+        scopeDraft,
+        contractDraft,
+        clientFacingSummary: [
+          `Prepared a ${documentType} draft/review for ${projectName}.`,
+          'The next step is to confirm scope, price, schedule, permits and signatories before sending a client-facing version.',
+        ].join(' '),
+        lawyerReviewSummary: [
+          'Lawyer review requested for jurisdiction-specific enforceability, liability, termination, dispute resolution, licensing/permit obligations and consumer/business compliance.',
+          `Evidence status: ${jurisdictionStatus}. High-risk legal clauses are marked NEEDS LAWYER REVIEW.`,
+        ].join(' '),
+        pendingQuestions,
+        message: 'Contracts Studio generated a planning/review draft. This is not legal approval and no permit database is connected.',
+      },
+    })
+  } catch (error) {
+    json(res, error.status || 500, {
+      error: scrubProviderError(error.message || error),
+      providerStatus: 'planning-only',
+    })
+  }
+}
+
 async function handleAnalyzeSkillUpdate(req, res) {
   try {
     const body = await readJson(req)
@@ -1717,6 +1910,10 @@ const server = http.createServer((req, res) => {
   }
   if (req.url === '/api/copilot/budget-plan' && req.method === 'POST') {
     handleBudgetPlan(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/contracts-plan' && req.method === 'POST') {
+    handleContractsPlan(req, res)
     return
   }
   if (req.url === '/api/copilot/analyze-skill-update' && req.method === 'POST') {

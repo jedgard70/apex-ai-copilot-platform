@@ -13,6 +13,7 @@ import {
 import { ArchVisPanel } from './components/ArchVisPanel'
 import { Bim3DPanel, BimArchVisOutput, BimTourOutput } from './components/Bim3DPanel'
 import { BudgetPanel } from './components/BudgetPanel'
+import { ContractsPanel } from './components/ContractsPanel'
 import { DirectCutInitialConfig, DirectCutPanel } from './components/DirectCutPanel'
 import { ProjectWorkspacePanel } from './components/ProjectWorkspacePanel'
 import { SkillExportPanel } from './components/SkillExportPanel'
@@ -33,6 +34,7 @@ import {
 import { isSkillUpdateIntent, ProjectMemoryUpdate, SkillUpdateApplyResult } from './lib/skillUpdateEngine'
 import { isSkillExportIntent } from './lib/skillExportFactory'
 import { BudgetPlan } from './lib/budgetKnowledge'
+import { ContractsPlan } from './lib/contractsKnowledge'
 import { selectTool, tools } from './lib/toolRegistry'
 import './styles.css'
 
@@ -61,6 +63,12 @@ type Bim3DOutput = {
 }
 
 type BudgetOutput = {
+  source?: IntakeFile
+  goal: string
+  conversationContext: string[]
+}
+
+type ContractsOutput = {
   source?: IntakeFile
   goal: string
   conversationContext: string[]
@@ -152,6 +160,10 @@ function isDirectCutIntent(text: string) {
 
 function isBudgetIntent(text: string) {
   return /\b(or[cç]amento|orcamento|quantitativo|estimativa|materiais|proposta|quanto custa|custo de obra|memorial de compra|budget|estimate|quantity|takeoff|materials|proposal|construction cost)\b/i.test(text)
+}
+
+function isContractsIntent(text: string) {
+  return /\b(contrato|contrato simples|revisar contrato|jur[ií]dico|juridico|cl[aá]usula|clausula|proposta jur[ií]dica|memorial|memorial descritivo|alvar[aá]|licen[cç]a|permits|permit|compliance|endossos|endosso|art|rrt|habite-se|scope agreement|addendum|lawyer|legal|contract)\b/i.test(text)
 }
 
 function fileExtension(fileName: string) {
@@ -306,6 +318,10 @@ function App() {
     const stored = initialAppState.budgetOutput as Omit<BudgetOutput, 'source'> | undefined
     return stored ? { ...stored, source: restoredFile } : null
   })
+  const [contractsOutput, setContractsOutput] = useState<ContractsOutput | null>(() => {
+    const stored = initialAppState.contractsOutput as Omit<ContractsOutput, 'source'> | undefined
+    return stored ? { ...stored, source: restoredFile } : null
+  })
   const [bimCommand, setBimCommand] = useState<BimCommand | undefined>()
   const [workspaceOpenSignal, setWorkspaceOpenSignal] = useState('')
   const [skillUpdateOpenSignal, setSkillUpdateOpenSignal] = useState('')
@@ -349,7 +365,7 @@ function App() {
           activeRecord,
         ]
       : activeProject.files
-    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : null
+    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : null
     return {
       ...activeProject,
       language: navigator.language || activeProject.language,
@@ -385,6 +401,7 @@ function App() {
         directCutOutput: directCutOutput ? { ...directCutOutput, source: undefined } : null,
         bim3DActive: Boolean(bim3DOutput),
         budgetOutput: budgetOutput ? { ...budgetOutput, source: undefined } : null,
+        contractsOutput: contractsOutput ? { ...contractsOutput, source: undefined } : null,
       },
     }
   }
@@ -405,7 +422,7 @@ function App() {
     }, 650)
     return () => window.clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, budgetOutput, archVisRevisionConstraints, activeTool.id])
+  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, budgetOutput, contractsOutput, archVisRevisionConstraints, activeTool.id])
 
   async function askCopilot(text = input, attachment = activeFile) {
     const clean = text.trim()
@@ -417,6 +434,7 @@ function App() {
     const userMessage: Message = { id: id(), role: 'user', text: userText, attachment }
     const shouldOpenArchVis = isArchVisIntent(clean || modelText, attachment)
     const shouldOpenDirectCut = clean && isDirectCutIntent(clean)
+    const shouldOpenContracts = clean && isContractsIntent(clean)
     const shouldOpenBudget = clean && isBudgetIntent(clean)
     const shouldOpenBim3D = isBim3DIntent(clean || modelText, attachment)
     const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
@@ -520,6 +538,27 @@ function App() {
         goal: clean,
         conversationContext: context,
         initialConfig: inferDirectCutConfig(clean, attachment),
+      })
+      setInput('')
+      return
+    }
+    if (shouldOpenContracts) {
+      const context = [...messages, userMessage]
+        .slice(-8)
+        .map(message => `${message.role}: ${message.text}`)
+      setMessages(prev => [
+        ...prev,
+        userMessage,
+        {
+          id: id(),
+          role: 'assistant',
+          text: 'Abri o Contracts / Permits Studio ao lado. Vou preparar rascunho, checklist ou revisão com evidência por item, sem fingir aprovação jurídica.',
+        },
+      ])
+      setContractsOutput({
+        source: attachment,
+        goal: clean,
+        conversationContext: context,
       })
       setInput('')
       return
@@ -732,6 +771,7 @@ function App() {
     setDirectCutOutput(null)
     setBim3DOutput(null)
     setBudgetOutput(null)
+    setContractsOutput(null)
     setArchVisRevisionConstraints([])
     setMessages([{ id: id(), role: 'assistant', text: 'New Apex project started. Upload a file or tell me what we are building.' }])
   }
@@ -758,6 +798,8 @@ function App() {
     setBim3DOutput(state.bim3DActive && restored?.kind === 'bim-cad' ? { source: restored } : null)
     const restoredBudget = state.budgetOutput as Omit<BudgetOutput, 'source'> | null | undefined
     setBudgetOutput(restoredBudget ? { ...restoredBudget, source: restored } : null)
+    const restoredContracts = state.contractsOutput as Omit<ContractsOutput, 'source'> | null | undefined
+    setContractsOutput(restoredContracts ? { ...restoredContracts, source: restored } : null)
   }
 
   function switchProject(projectId: string) {
@@ -798,6 +840,7 @@ function App() {
     setDirectCutOutput(null)
     setBim3DOutput(null)
     setBudgetOutput(null)
+    setContractsOutput(null)
     setArchVisRevisionConstraints([])
     setMessages([{ id: id(), role: 'assistant', text: 'Local workspace cleared. New Apex project ready.' }])
   }
@@ -861,6 +904,30 @@ function App() {
     ])
   }
 
+  function saveContractsToProject(plan: ContractsPlan) {
+    const saved = upsertProject({
+      ...activeProject,
+      exports: [
+        ...activeProject.exports,
+        {
+          type: 'contracts-permits-review',
+          timestamp: new Date().toISOString(),
+          plan,
+        },
+      ],
+    })
+    setActiveProject(saved)
+    setProjects(loadProjects())
+    setMessages(prev => [
+      ...prev,
+      {
+        id: id(),
+        role: 'assistant',
+        text: 'Salvei o relatório de Contracts / Permits no Project Workspace local.',
+      },
+    ])
+  }
+
   return (
     <main className="app" onPaste={handlePaste} onDragOver={event => event.preventDefault()} onDrop={handleDrop}>
       <header className="topbar">
@@ -873,7 +940,7 @@ function App() {
         </div>
       </header>
 
-      <section className={`workspace ${archVisOutput || directCutOutput || bim3DOutput || budgetOutput ? 'studio-open' : ''}`}>
+      <section className={`workspace ${archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput ? 'studio-open' : ''}`}>
         <section className="chat-shell" aria-label="Apex AI Copilot chat">
           <div className="chat-header">
             <div>
@@ -1048,6 +1115,31 @@ function App() {
                 ])
               }}
               onClear={() => setBudgetOutput(null)}
+            />
+          )}
+
+          {contractsOutput && (
+            <ContractsPanel
+              source={contractsOutput.source}
+              goal={contractsOutput.goal}
+              conversationContext={contractsOutput.conversationContext}
+              onSaveToProject={saveContractsToProject}
+              onSendToBudget={summary => {
+                setBudgetOutput({
+                  source: contractsOutput.source,
+                  goal: summary,
+                  conversationContext: [`assistant: ${summary}`],
+                })
+                setMessages(prev => [
+                  ...prev,
+                  {
+                    id: id(),
+                    role: 'assistant',
+                    text: 'Enviei o escopo jurídico/contratual para o Budget Studio como base de orçamento e proposta.',
+                  },
+                ])
+              }}
+              onClear={() => setContractsOutput(null)}
             />
           )}
 
