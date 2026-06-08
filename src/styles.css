@@ -1532,11 +1532,21 @@ input {
 }
 
 .project-note,
+.project-import-status,
 .project-save-indicator {
   margin: 0;
   color: #64708b;
   font-size: 12px;
   line-height: 1.45;
+}
+
+.project-import-status {
+  border: 1px solid #dbe5f1;
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: #f8fafc;
+  color: #07183f;
+  font-weight: 700;
 }
 
 .project-save-indicator {

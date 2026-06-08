@@ -37,6 +37,7 @@ export type ProjectWorkspace = {
   exports: unknown[]
   projectMemory: unknown[]
   skillUpdates: unknown[]
+  preferences: unknown[]
   activeTool?: string
   activeFileId?: string
   activeStudio?: 'archvis' | 'directcut' | 'bim3d' | null
@@ -87,6 +88,7 @@ export function createProject(name = 'Apex Project'): ProjectWorkspace {
     exports: [],
     projectMemory: [],
     skillUpdates: [],
+    preferences: [],
     activeStudio: null,
     appState: {},
   }
@@ -112,6 +114,7 @@ export function validateProjectWorkspace(value: unknown): ProjectWorkspace | nul
     exports: Array.isArray(candidate.exports) ? candidate.exports : [],
     projectMemory: Array.isArray(candidate.projectMemory) ? candidate.projectMemory : [],
     skillUpdates: Array.isArray(candidate.skillUpdates) ? candidate.skillUpdates : [],
+    preferences: Array.isArray(candidate.preferences) ? candidate.preferences : [],
     appState: candidate.appState && typeof candidate.appState === 'object' ? candidate.appState : {},
   }
 }
@@ -161,11 +164,30 @@ export function removeAllProjects() {
   localStorage.removeItem(ACTIVE_PROJECT_KEY)
 }
 
+function redactSecrets(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(redactSecrets)
+  if (!value || typeof value !== 'object') {
+    if (typeof value !== 'string') return value
+    return value
+      .replace(/sk-[A-Za-z0-9_-]{12,}/g, '[REDACTED_OPENAI_KEY]')
+      .replace(/ghp_[A-Za-z0-9_]{12,}/g, '[REDACTED_GITHUB_TOKEN]')
+      .replace(/github_pat_[A-Za-z0-9_]{12,}/g, '[REDACTED_GITHUB_TOKEN]')
+      .replace(/(api[_-]?key|token|secret|password)\s*[:=]\s*["']?[^"'\s,}]+/gi, '$1=[REDACTED]')
+      .replace(/\.env\.local/gi, '[REDACTED_ENV_FILE]')
+  }
+
+  return Object.fromEntries(Object.entries(value).map(([key, item]) => {
+    if (/(api[_-]?key|token|secret|password|env)/i.test(key)) return [key, '[REDACTED]']
+    return [key, redactSecrets(item)]
+  }))
+}
+
 export function exportProject(project: ProjectWorkspace) {
-  return JSON.stringify({
+  const safeProject = redactSecrets({
     ...project,
     updatedAt: now(),
-  }, null, 2)
+  })
+  return JSON.stringify(safeProject, null, 2)
 }
 
 export function importProject(raw: string) {

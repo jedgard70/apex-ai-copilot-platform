@@ -223,7 +223,7 @@ function isBimStudioCommand(text: string) {
 }
 
 function isProjectWorkspaceCommand(text: string) {
-  return /\b(salvar projeto|novo projeto|exportar projeto|abrir projeto|renomear projeto|project workspace|save project|new project|export project|open project|rename project)\b/i.test(text)
+  return /\b(salvar projeto|novo projeto|exportar projeto|importar projeto|abrir projeto|renomear projeto|project workspace|save project|new project|export project|import project|open project|rename project)\b/i.test(text)
 }
 
 function fileToRecord(file: IntakeFile): ProjectFileRecord {
@@ -317,10 +317,13 @@ function App() {
     archVisOutputs: archVisOutput ? Math.max(1, activeProject.archVisOutputs.length) : activeProject.archVisOutputs.length,
     directCutPlans: directCutOutput ? Math.max(1, activeProject.directCutPlans.length) : activeProject.directCutPlans.length,
     bim3dItems: bim3DOutput ? Math.max(1, activeProject.bim3dItems.length) : activeProject.bim3dItems.length,
+    generatedImages: activeProject.generatedImages.length,
     tours: activeProject.tours.length,
+    constraints: archVisRevisionConstraints.length,
     projectMemory: activeProject.projectMemory.length,
     skillUpdates: activeProject.skillUpdates.length,
-  }), [activeProject, archVisOutput, bim3DOutput, directCutOutput, messages.length])
+    preferences: activeProject.preferences.length,
+  }), [activeProject, archVisOutput, archVisRevisionConstraints.length, bim3DOutput, directCutOutput, messages.length])
 
   function buildProjectSnapshot() {
     const activeRecord = activeFile ? fileToRecord(activeFile) : undefined
@@ -344,6 +347,11 @@ function App() {
       revisionConstraints: archVisRevisionConstraints,
       projectMemory: activeProject.projectMemory,
       skillUpdates: activeProject.skillUpdates,
+      preferences: activeProject.preferences,
+      generatedImages: activeProject.generatedImages,
+      savedViews: activeProject.savedViews,
+      tours: activeProject.tours,
+      exports: activeProject.exports,
       activeTool: activeTool.id,
       activeFileId: activeRecord?.id || activeProject.activeFileId,
       activeStudio,
@@ -433,6 +441,10 @@ function App() {
         createNewProject()
       } else if (/exportar projeto|export project/i.test(lower)) {
         exportWorkspaceProject()
+      } else if (/importar projeto|import project/i.test(lower)) {
+        setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Project Workspace. Use Import JSON para carregar um arquivo de projeto local com segurança.' }])
+        setInput('')
+        return
       } else if (/salvar projeto|save project/i.test(lower)) {
         saveWorkspaceNow()
       } else if (/renomear projeto|rename project/i.test(lower)) {

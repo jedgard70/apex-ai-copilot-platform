@@ -8,7 +8,11 @@ type ProjectSummary = {
   archVisOutputs: number
   directCutPlans: number
   bim3dItems: number
+  generatedImages: number
   tours: number
+  constraints: number
+  skillUpdates: number
+  preferences: number
 }
 
 type ProjectWorkspacePanelProps = {
@@ -41,6 +45,7 @@ export function ProjectWorkspacePanel({
   const importInput = useRef<HTMLInputElement | null>(null)
   const [name, setName] = useState(project.name)
   const [open, setOpen] = useState(false)
+  const [importStatus, setImportStatus] = useState('')
 
   useEffect(() => {
     if (openSignal) setOpen(true)
@@ -54,7 +59,15 @@ export function ProjectWorkspacePanel({
     const file = event.target.files?.[0]
     if (!file) return
     const reader = new FileReader()
-    reader.onload = () => onImport(String(reader.result || ''))
+    reader.onload = () => {
+      try {
+        onImport(String(reader.result || ''))
+        setImportStatus(`Imported ${file.name}`)
+      } catch (error) {
+        setImportStatus(error instanceof Error ? error.message : 'Import failed. Check the project JSON.')
+      }
+    }
+    reader.onerror = () => setImportStatus('Import failed. The file could not be read.')
     reader.readAsText(file)
     event.currentTarget.value = ''
   }
@@ -104,7 +117,11 @@ export function ProjectWorkspacePanel({
             <div><strong>{summary.archVisOutputs}</strong><span>ArchVis</span></div>
             <div><strong>{summary.directCutPlans}</strong><span>DirectCut</span></div>
             <div><strong>{summary.bim3dItems}</strong><span>BIM/3D</span></div>
+            <div><strong>{summary.generatedImages}</strong><span>images</span></div>
             <div><strong>{summary.tours}</strong><span>tours</span></div>
+            <div><strong>{summary.constraints}</strong><span>constraints</span></div>
+            <div><strong>{summary.skillUpdates}</strong><span>skills</span></div>
+            <div><strong>{summary.preferences}</strong><span>prefs</span></div>
           </div>
 
           <div className="project-actions">
@@ -114,6 +131,7 @@ export function ProjectWorkspacePanel({
             <button type="button" onClick={onClear}><Trash2 size={15} /> Clear local</button>
           </div>
           <input ref={importInput} type="file" accept="application/json,.json" hidden onChange={handleImport} />
+          {importStatus && <p className="project-import-status">{importStatus}</p>}
 
           <p className="project-note">
             Local browser workspace. No database, Supabase or external storage is used in this checkpoint.
