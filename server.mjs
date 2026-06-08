@@ -1383,6 +1383,136 @@ async function handleBimTourPlan(req, res) {
   }
 }
 
+function parseArea(areaText = '') {
+  const match = String(areaText).replace(',', '.').match(/(\d+(?:\.\d+)?)/)
+  return match ? Number(match[1]) : 0
+}
+
+function budgetCurrencySymbol(currency) {
+  if (currency === 'BRL') return 'BRL'
+  if (currency === 'EUR') return 'EUR'
+  return 'USD'
+}
+
+function budgetItem(id, section, item, unit, quantity, unitPrice, confidence, source) {
+  const safeQuantity = Number(quantity || 0)
+  const safeUnitPrice = Number(unitPrice || 0)
+  return {
+    id,
+    section,
+    item,
+    unit,
+    quantity: safeQuantity,
+    unitPrice: safeUnitPrice,
+    subtotal: Number((safeQuantity * safeUnitPrice).toFixed(2)),
+    confidence,
+    source,
+  }
+}
+
+async function handleBudgetPlan(req, res) {
+  try {
+    const body = await readJson(req)
+    const assumptions = body.assumptions || {}
+    const source = body.source || null
+    const goal = String(body.goal || '')
+    const area = parseArea(assumptions.area)
+    const currency = budgetCurrencySymbol(assumptions.currency)
+    const hasArea = area > 0
+    const sourceKind = String(source?.kind || '')
+    const confidenceFromSource = sourceKind === 'bim-cad' ? 'UNKNOWN' : hasArea ? 'ESTIMATED' : 'UNKNOWN'
+    const baseArea = hasArea ? area : 100
+    const unitSystem = assumptions.unitSystem === 'imperial' ? 'imperial' : 'metric'
+    const areaUnit = unitSystem === 'imperial' ? 'sf' : 'm2'
+    const wallUnit = unitSystem === 'imperial' ? 'lf' : 'm2'
+    const standard = String(assumptions.standardLevel || 'medium')
+    const multiplier = standard === 'economical' ? 0.78 : standard === 'high-end' ? 1.35 : standard === 'luxury' ? 1.8 : 1
+
+    const estimateItems = [
+      budgetItem('budget-flooring', 'flooring', 'Flooring and base finish allowance', areaUnit, baseArea, 62 * multiplier, confidenceFromSource, hasArea ? 'user input' : 'assumption'),
+      budgetItem('budget-painting', 'painting', 'Interior/exterior painting allowance', wallUnit, Math.round(baseArea * 2.8), 14 * multiplier, hasArea ? 'ESTIMATED' : 'UNKNOWN', hasArea ? 'assumption' : 'assumption'),
+      budgetItem('budget-electrical', 'electrical', 'Electrical rough-in and fixture allowance', 'allowance', 1, Math.round(baseArea * 48 * multiplier), 'ESTIMATED', 'assumption'),
+      budgetItem('budget-plumbing', 'plumbing', 'Plumbing rough-in and fixture allowance', 'allowance', 1, Math.round(baseArea * 42 * multiplier), 'ESTIMATED', 'assumption'),
+      budgetItem('budget-finishes', 'finishes', 'General finish package allowance', 'allowance', 1, Math.round(baseArea * 95 * multiplier), 'ESTIMATED', 'assumption'),
+      budgetItem('budget-external', 'pool/gourmet/external areas', 'External areas, pool/gourmet/landscaping allowance', 'allowance', 1, Math.round(baseArea * 55 * multiplier), 'ESTIMATED', 'assumption'),
+    ]
+
+    const pendingQuestions = []
+    if (!hasArea) pendingQuestions.push('Confirm total built area or drawing scale before converting this into a proposal price.')
+    if (!assumptions.location) pendingQuestions.push('Confirm city/state/country to adapt labor, logistics and local pricing assumptions.')
+    pendingQuestions.push('Confirm material brands, finish level, structural scope and whether pool/gourmet/external areas are included.')
+    if (sourceKind === 'bim-cad') pendingQuestions.push('BIM quantities are not CONFIRMED until a parser/viewer extracts real quantities from the model.')
+
+    const scopeIncluded = Array.isArray(body.scopeIncluded) && body.scopeIncluded.length
+      ? body.scopeIncluded
+      : [
+          'Preliminary quantity structure',
+          'Budget allowance by section',
+          'Scope and exclusion draft',
+          'Proposal text draft',
+        ]
+    const scopeExcluded = Array.isArray(body.scopeExcluded) && body.scopeExcluded.length
+      ? body.scopeExcluded
+      : [
+          'Taxes, permit fees and authority charges',
+          'Final supplier quotes',
+          'Engineering stamps and third-party approvals',
+          'Hidden conditions not visible in the current file/context',
+        ]
+    const ownerSupplied = Array.isArray(body.ownerSupplied) ? body.ownerSupplied : []
+
+    const projectType = String(assumptions.projectType || 'construction project')
+    const location = assumptions.location ? ` in ${assumptions.location}` : ''
+    const areaCopy = hasArea ? `${area} ${areaUnit}` : 'area not confirmed'
+    const proposalDraft = [
+      `Preliminary proposal for ${projectType}${location}.`,
+      `Current basis: ${areaCopy}, ${standard} standard, ${currency} placeholder pricing.`,
+      'This draft is suitable for early decision-making only. It is not a final bid because quantities and unit prices require confirmed drawings, scale, local supplier pricing and technical review.',
+      '',
+      'Payment schedule draft: 20% mobilization, 30% after procurement confirmation, 30% at execution milestone, 20% at delivery and punch-list closeout.',
+      'Timeline note: final timeline depends on scope confirmation, permits, procurement lead time and site constraints.',
+    ].join('\n')
+
+    const knownSources = [
+      source ? `Source file: ${source.name} (${sourceKind || 'unknown kind'}).` : 'No source file; manual description/context only.',
+      goal ? `User goal: ${goal}` : 'No explicit goal text.',
+    ]
+
+    json(res, 200, {
+      plan: {
+        providerStatus: hasArea || source ? 'estimate-draft' : 'planning-only',
+        assumptions: {
+          projectType,
+          area: String(assumptions.area || ''),
+          location: String(assumptions.location || ''),
+          standardLevel: standard,
+          currency,
+          unitSystem,
+        },
+        estimateItems,
+        scopeIncluded,
+        scopeExcluded,
+        ownerSupplied,
+        pendingQuestions,
+        proposalDraft,
+        confidenceSummary: hasArea
+          ? 'Quantities are ESTIMATED from user-provided area and assumptions. Prices are placeholders until a real pricing database or supplier quote is connected.'
+          : 'No scale/area confirmed. Quantities are UNKNOWN or allowance-based assumptions only.',
+        message: [
+          'Budget Studio generated a preliminary estimate draft.',
+          ...knownSources,
+          'No SINAPI or live pricing database is connected in this checkpoint.',
+        ].join(' '),
+      },
+    })
+  } catch (error) {
+    json(res, error.status || 500, {
+      error: scrubProviderError(error.message || error),
+      providerStatus: 'planning-only',
+    })
+  }
+}
+
 async function handleAnalyzeSkillUpdate(req, res) {
   try {
     const body = await readJson(req)
@@ -1583,6 +1713,10 @@ const server = http.createServer((req, res) => {
   }
   if (req.url === '/api/copilot/bim-tour-plan' && req.method === 'POST') {
     handleBimTourPlan(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/budget-plan' && req.method === 'POST') {
+    handleBudgetPlan(req, res)
     return
   }
   if (req.url === '/api/copilot/analyze-skill-update' && req.method === 'POST') {

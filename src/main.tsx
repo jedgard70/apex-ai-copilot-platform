@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { ArchVisPanel } from './components/ArchVisPanel'
 import { Bim3DPanel, BimArchVisOutput, BimTourOutput } from './components/Bim3DPanel'
+import { BudgetPanel } from './components/BudgetPanel'
 import { DirectCutInitialConfig, DirectCutPanel } from './components/DirectCutPanel'
 import { ProjectWorkspacePanel } from './components/ProjectWorkspacePanel'
 import { SkillExportPanel } from './components/SkillExportPanel'
@@ -31,6 +32,7 @@ import {
 } from './lib/projectWorkspace'
 import { isSkillUpdateIntent, ProjectMemoryUpdate, SkillUpdateApplyResult } from './lib/skillUpdateEngine'
 import { isSkillExportIntent } from './lib/skillExportFactory'
+import { BudgetPlan } from './lib/budgetKnowledge'
 import { selectTool, tools } from './lib/toolRegistry'
 import './styles.css'
 
@@ -56,6 +58,12 @@ type DirectCutOutput = {
 
 type Bim3DOutput = {
   source: IntakeFile
+}
+
+type BudgetOutput = {
+  source?: IntakeFile
+  goal: string
+  conversationContext: string[]
 }
 
 type BimCommand = {
@@ -140,6 +148,10 @@ function isArchVisIntent(text: string, attachment?: IntakeFile) {
 
 function isDirectCutIntent(text: string) {
   return /\b(video|v[ií]deo|directcut|roteiro|reels|apresenta[cç][aã]o|tour|anima[cç][aã]o|v[ií]deo de venda|video de venda|timelapse|shot list|storyboard|cinematic|cinem[aá]tico|transformar imagem em v[ií]deo|imagem em v[ií]deo|image to video|adicionar voz|add voice|mudar luz|alterar luz|relight|melhorar v[ií]deo|improve video|clip editor|editar v[ií]deo|3d scenes|movimento de c[aâ]mera|camera movement)\b/i.test(text)
+}
+
+function isBudgetIntent(text: string) {
+  return /\b(or[cç]amento|orcamento|quantitativo|estimativa|materiais|proposta|quanto custa|custo de obra|memorial de compra|budget|estimate|quantity|takeoff|materials|proposal|construction cost)\b/i.test(text)
 }
 
 function fileExtension(fileName: string) {
@@ -290,6 +302,10 @@ function App() {
     const stored = initialAppState.bim3DActive as boolean | undefined
     return stored && restoredFile?.kind === 'bim-cad' ? { source: restoredFile } : null
   })
+  const [budgetOutput, setBudgetOutput] = useState<BudgetOutput | null>(() => {
+    const stored = initialAppState.budgetOutput as Omit<BudgetOutput, 'source'> | undefined
+    return stored ? { ...stored, source: restoredFile } : null
+  })
   const [bimCommand, setBimCommand] = useState<BimCommand | undefined>()
   const [workspaceOpenSignal, setWorkspaceOpenSignal] = useState('')
   const [skillUpdateOpenSignal, setSkillUpdateOpenSignal] = useState('')
@@ -333,7 +349,7 @@ function App() {
           activeRecord,
         ]
       : activeProject.files
-    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : null
+    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : null
     return {
       ...activeProject,
       language: navigator.language || activeProject.language,
@@ -368,6 +384,7 @@ function App() {
         archVisOutput: archVisOutput ? { output: archVisOutput.output, conversationContext: archVisOutput.conversationContext } : null,
         directCutOutput: directCutOutput ? { ...directCutOutput, source: undefined } : null,
         bim3DActive: Boolean(bim3DOutput),
+        budgetOutput: budgetOutput ? { ...budgetOutput, source: undefined } : null,
       },
     }
   }
@@ -388,7 +405,7 @@ function App() {
     }, 650)
     return () => window.clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, archVisRevisionConstraints, activeTool.id])
+  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, budgetOutput, archVisRevisionConstraints, activeTool.id])
 
   async function askCopilot(text = input, attachment = activeFile) {
     const clean = text.trim()
@@ -400,6 +417,7 @@ function App() {
     const userMessage: Message = { id: id(), role: 'user', text: userText, attachment }
     const shouldOpenArchVis = isArchVisIntent(clean || modelText, attachment)
     const shouldOpenDirectCut = clean && isDirectCutIntent(clean)
+    const shouldOpenBudget = clean && isBudgetIntent(clean)
     const shouldOpenBim3D = isBim3DIntent(clean || modelText, attachment)
     const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
     const shouldOpenSkillExport = clean && isSkillExportIntent(clean)
@@ -502,6 +520,27 @@ function App() {
         goal: clean,
         conversationContext: context,
         initialConfig: inferDirectCutConfig(clean, attachment),
+      })
+      setInput('')
+      return
+    }
+    if (shouldOpenBudget) {
+      const context = [...messages, userMessage]
+        .slice(-8)
+        .map(message => `${message.role}: ${message.text}`)
+      setMessages(prev => [
+        ...prev,
+        userMessage,
+        {
+          id: id(),
+          role: 'assistant',
+          text: 'Abri o Budget / Quantity Studio ao lado. Vou montar um orçamento preliminar com confiança e fonte por item, sem fingir precisão nem integração SINAPI.',
+        },
+      ])
+      setBudgetOutput({
+        source: attachment,
+        goal: clean,
+        conversationContext: context,
       })
       setInput('')
       return
@@ -692,6 +731,7 @@ function App() {
     setArchVisOutput(null)
     setDirectCutOutput(null)
     setBim3DOutput(null)
+    setBudgetOutput(null)
     setArchVisRevisionConstraints([])
     setMessages([{ id: id(), role: 'assistant', text: 'New Apex project started. Upload a file or tell me what we are building.' }])
   }
@@ -716,6 +756,8 @@ function App() {
     const restoredDirectCut = state.directCutOutput as Omit<DirectCutOutput, 'source'> | null | undefined
     setDirectCutOutput(restoredDirectCut ? { ...restoredDirectCut, source: restored } : null)
     setBim3DOutput(state.bim3DActive && restored?.kind === 'bim-cad' ? { source: restored } : null)
+    const restoredBudget = state.budgetOutput as Omit<BudgetOutput, 'source'> | null | undefined
+    setBudgetOutput(restoredBudget ? { ...restoredBudget, source: restored } : null)
   }
 
   function switchProject(projectId: string) {
@@ -755,6 +797,7 @@ function App() {
     setArchVisOutput(null)
     setDirectCutOutput(null)
     setBim3DOutput(null)
+    setBudgetOutput(null)
     setArchVisRevisionConstraints([])
     setMessages([{ id: id(), role: 'assistant', text: 'Local workspace cleared. New Apex project ready.' }])
   }
@@ -794,6 +837,30 @@ function App() {
     ])
   }
 
+  function saveBudgetToProject(plan: BudgetPlan) {
+    const saved = upsertProject({
+      ...activeProject,
+      exports: [
+        ...activeProject.exports,
+        {
+          type: 'budget-estimate',
+          timestamp: new Date().toISOString(),
+          plan,
+        },
+      ],
+    })
+    setActiveProject(saved)
+    setProjects(loadProjects())
+    setMessages(prev => [
+      ...prev,
+      {
+        id: id(),
+        role: 'assistant',
+        text: 'Salvei o orçamento preliminar no Project Workspace local como export de budget.',
+      },
+    ])
+  }
+
   return (
     <main className="app" onPaste={handlePaste} onDragOver={event => event.preventDefault()} onDrop={handleDrop}>
       <header className="topbar">
@@ -806,7 +873,7 @@ function App() {
         </div>
       </header>
 
-      <section className={`workspace ${archVisOutput || directCutOutput || bim3DOutput ? 'studio-open' : ''}`}>
+      <section className={`workspace ${archVisOutput || directCutOutput || bim3DOutput || budgetOutput ? 'studio-open' : ''}`}>
         <section className="chat-shell" aria-label="Apex AI Copilot chat">
           <div className="chat-header">
             <div>
@@ -946,6 +1013,41 @@ function App() {
               onSendTourToDirectCut={handleBimTourToDirectCut}
               onSendViewToArchVis={handleBimViewToArchVis}
               onClear={() => setBim3DOutput(null)}
+            />
+          )}
+
+          {budgetOutput && (
+            <BudgetPanel
+              source={budgetOutput.source}
+              goal={budgetOutput.goal}
+              conversationContext={budgetOutput.conversationContext}
+              onSaveToProject={saveBudgetToProject}
+              onSendToDirectCut={summary => {
+                setDirectCutOutput({
+                  source: budgetOutput.source,
+                  goal: summary,
+                  conversationContext: [`assistant: ${summary}`],
+                  initialConfig: {
+                    videoMode: 'construction-presentation',
+                    duration: '30s',
+                    aspectRatio: '16:9',
+                    audio: 'on',
+                    voice: 'narrator',
+                    style: 'professional-real-estate',
+                    lighting: 'daylight',
+                    cameraMovement: 'dolly-in',
+                  },
+                })
+                setMessages(prev => [
+                  ...prev,
+                  {
+                    id: id(),
+                    role: 'assistant',
+                    text: 'Enviei o resumo de orçamento para o DirectCut Studio como base de apresentação comercial.',
+                  },
+                ])
+              }}
+              onClear={() => setBudgetOutput(null)}
             />
           )}
 
