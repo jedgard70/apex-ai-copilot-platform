@@ -11,7 +11,7 @@ import {
   Upload,
 } from 'lucide-react'
 import { ArchVisPanel } from './components/ArchVisPanel'
-import { Bim3DPanel } from './components/Bim3DPanel'
+import { Bim3DPanel, BimArchVisOutput, BimTourOutput } from './components/Bim3DPanel'
 import { DirectCutInitialConfig, DirectCutPanel } from './components/DirectCutPanel'
 import { classifyFile, formatSize, IntakeFile, isVisionReady, readFileAsDataUrl, readImageDimensions } from './lib/fileIntake'
 import { selectTool, tools } from './lib/toolRegistry'
@@ -39,6 +39,11 @@ type DirectCutOutput = {
 
 type Bim3DOutput = {
   source: IntakeFile
+}
+
+type BimCommand = {
+  id: string
+  text: string
 }
 
 function normalizeRevisionConstraint(text: string) {
@@ -196,6 +201,10 @@ function asksExplicit3D(text: string) {
   return /\b(gerar 3d|gere 3d|3d|perspectiva|vista lateral|c[aâ]mera de lado|fachada|interior|ambiente real|walkthrough|eye-level|realistic room view|room render|render 3d)\b/i.test(text)
 }
 
+function isBimStudioCommand(text: string) {
+  return /\b(marque esse problema|isso est[aá] errado|criar tour|fazer anima[cç][aã]o|gerar passeio|roteiro 3d|mandar para directcut|enviar para directcut|mandar para archvis|enviar para archvis|add issue|save view|tour|animation|directcut|archvis)\b/i.test(text)
+}
+
 function App() {
   const fileInput = useRef<HTMLInputElement | null>(null)
   const [input, setInput] = useState('')
@@ -203,6 +212,7 @@ function App() {
   const [archVisOutput, setArchVisOutput] = useState<ArchVisOutput | null>(null)
   const [directCutOutput, setDirectCutOutput] = useState<DirectCutOutput | null>(null)
   const [bim3DOutput, setBim3DOutput] = useState<Bim3DOutput | null>(null)
+  const [bimCommand, setBimCommand] = useState<BimCommand | undefined>()
   const [archVisRevisionConstraints, setArchVisRevisionConstraints] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
@@ -228,6 +238,20 @@ function App() {
     const shouldOpenDirectCut = clean && isDirectCutIntent(clean)
     const shouldOpenBim3D = isBim3DIntent(clean || modelText, attachment)
     const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
+    if (clean && bim3DOutput && isBimStudioCommand(clean)) {
+      setMessages(prev => [
+        ...prev,
+        userMessage,
+        {
+          id: id(),
+          role: 'assistant',
+          text: 'Feito. Adicionei isso no BIM / 3D Studio e atualizei o tour/correções ao lado.',
+        },
+      ])
+      setBimCommand({ id: id(), text: clean })
+      setInput('')
+      return
+    }
     if (shouldLockRevision) {
       const constraint = normalizeRevisionConstraint(clean)
       setMessages(prev => [
@@ -378,6 +402,63 @@ function App() {
     if (file) await handleFile(file)
   }
 
+  function handleBimTourToDirectCut(payload: BimTourOutput) {
+    const goal = [
+      payload.tourTitle,
+      payload.objective,
+      '',
+      'Scene list:',
+      ...payload.orderedSteps,
+      '',
+      'Camera path:',
+      ...payload.cameraPath,
+      '',
+      'Narration:',
+      ...payload.narration,
+      '',
+      payload.exportNotes,
+    ].join('\n')
+    setDirectCutOutput({
+      source: bim3DOutput?.source,
+      goal,
+      conversationContext: [`assistant: ${goal}`],
+      initialConfig: {
+        videoMode: 'technical-walkthrough',
+        duration: '30s',
+        aspectRatio: '16:9',
+        audio: 'on',
+        voice: 'narrator',
+        style: 'technical-bim',
+        lighting: 'daylight',
+        cameraMovement: 'walkthrough',
+      },
+    })
+    setMessages(prev => [
+      ...prev,
+      {
+        id: id(),
+        role: 'assistant',
+        text: 'Feito. Enviei o tour BIM para o DirectCut Studio como roteiro técnico, camera path e storyboard planning-only.',
+      },
+    ])
+  }
+
+  function handleBimViewToArchVis(payload: BimArchVisOutput) {
+    setMessages(prev => [
+      ...prev,
+      {
+        id: id(),
+        role: 'assistant',
+        text: `Preparei o prompt ArchVis para a cena "${payload.sceneName}". ${payload.note}`,
+      },
+      {
+        id: id(),
+        role: 'assistant',
+        text: payload.prompt,
+      },
+    ])
+  }
+
   return (
     <main className="app" onPaste={handlePaste} onDragOver={event => event.preventDefault()} onDrop={handleDrop}>
       <header className="topbar">
@@ -498,6 +579,9 @@ function App() {
           {bim3DOutput && (
             <Bim3DPanel
               source={bim3DOutput.source}
+              externalCommand={bimCommand}
+              onSendTourToDirectCut={handleBimTourToDirectCut}
+              onSendViewToArchVis={handleBimViewToArchVis}
               onClear={() => setBim3DOutput(null)}
             />
           )}

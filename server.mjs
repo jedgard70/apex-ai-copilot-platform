@@ -1031,6 +1031,88 @@ async function handleBimPlan(req, res) {
   }
 }
 
+async function handleBimTourPlan(req, res) {
+  try {
+    const body = await readJson(req)
+    const modelMetadata = body.modelMetadata || {}
+    const corrections = Array.isArray(body.corrections) ? body.corrections.slice(0, 40) : []
+    const savedViews = Array.isArray(body.savedViews) ? body.savedViews.slice(0, 40) : []
+    const tourSteps = Array.isArray(body.tourSteps) ? body.tourSteps.slice(0, 40) : []
+    const animationSteps = Array.isArray(body.animationSteps) ? body.animationSteps.slice(0, 40) : []
+    const target = String(body.target || 'report')
+    const sourceName = String(modelMetadata.name || 'BIM model')
+    const steps = (tourSteps.length ? tourSteps : savedViews).map((step, index) => ({
+      index: index + 1,
+      name: String(step?.name || `Scene ${index + 1}`),
+      description: String(step?.description || 'Planning-only BIM scene.'),
+      cameraMode: String(step?.cameraMode || 'Orbit'),
+      purpose: String(step?.purpose || 'Presentation'),
+    }))
+    const orderedSteps = steps.length
+      ? steps.map(step => `${step.index}. ${step.name} - ${step.description}`)
+      : ['1. Model overview - Planning-only overview until Apex viewer/import connector loads geometry.']
+    const cameraPath = animationSteps.length
+      ? animationSteps.map((step, index) => `${index + 1}. ${step?.movementType || 'Orbit'} / ${step?.duration || '5s'} / ${step?.transition || 'Smooth'}`)
+      : steps.map(step => `${step.index}. ${step.cameraMode} camera for ${step.purpose}`)
+    const narration = steps.length
+      ? steps.map(step => `Scene ${step.index}: Present ${step.name}. ${step.description}`)
+      : ['Scene 1: Present the BIM model overview after Apex loads or converts the file.']
+    const storyboard = steps.length
+      ? steps.map(step => `Frame ${step.index}: ${step.cameraMode} view for ${step.purpose}.`)
+      : ['Frame 1: Internal Apex model overview, planning-only.']
+    const correctionSummary = corrections.map((item, index) => `${index + 1}. ${item?.evidenceLevel || 'ASSUMPTION'} - ${item?.title || 'Correction'}: ${item?.description || ''}`)
+
+    const exportBrief = [
+      `Target: ${target}`,
+      `Source model: ${sourceName}`,
+      `Format: ${modelMetadata.extension || 'UNKNOWN'}`,
+      `Support status: ${modelMetadata.supportStatus || 'unknown'}`,
+      `Provider status: ${modelMetadata.providerStatus || 'planning-only'}`,
+      '',
+      'Evidence rule: no BIM finding is invented. UNKNOWN remains UNKNOWN until parser/viewer/converter verifies it.',
+      '',
+      'Corrections:',
+      ...(correctionSummary.length ? correctionSummary : ['No user corrections recorded yet.']),
+      '',
+      'Tour steps:',
+      ...orderedSteps,
+      '',
+      'Camera path:',
+      ...cameraPath,
+      '',
+      'Known limitations:',
+      '- Planning-only until real BIM viewer/export connector is connected.',
+      '- No fake video, fake render or fake 3D model generated.',
+    ].join('\n')
+
+    return json(res, 200, {
+      providerStatus: 'planning-only',
+      message: 'BIM tour/export planner generated a planning-only package. No fake 3D/video/render output was created.',
+      structuredTourPlan: {
+        tourTitle: `Apex BIM / 3D Tour - ${sourceName}`,
+        objective: `Prepare ${target} planning package from BIM / 3D Studio state.`,
+        audience: target === 'directcut' ? 'video production / project presentation team' : 'technical reviewer / client / production team',
+        orderedSteps,
+        cameraPath,
+        narration,
+        storyboard,
+        durationEstimate: `${Math.max(10, orderedSteps.length * 6)}s planning estimate`,
+        exportNotes: exportBrief,
+      },
+      cameraPath,
+      narration,
+      storyboard,
+      exportBrief,
+      target,
+    })
+  } catch (error) {
+    return json(res, error.status || 500, {
+      providerStatus: 'planning-only',
+      message: scrubProviderError(error.message || 'Apex BIM tour planner failed.'),
+    })
+  }
+}
+
 function serveStatic(req, res) {
   const url = new URL(req.url, 'http://localhost')
   const safePath = decodeURIComponent(url.pathname).replace(/^\/+/, '')
@@ -1072,6 +1154,10 @@ const server = http.createServer((req, res) => {
   }
   if (req.url === '/api/copilot/bim-plan' && req.method === 'POST') {
     handleBimPlan(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/bim-tour-plan' && req.method === 'POST') {
+    handleBimTourPlan(req, res)
     return
   }
   serveStatic(req, res)
