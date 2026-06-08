@@ -44,14 +44,20 @@
     "When the user says the computer is slow, inspect OS/uptime, CPU, RAM, disk, pagefile, top processes, startup programs, scheduled tasks, Defender status and suspicious AppData/Public/Startup persistence before recommending cleanup.",
     "For suspicious Windows startup entries, prefer reversible quarantine over direct deletion, explain the target path, whether the target exists, signature/hash if available, and recommend reboot plus Defender Offline Scan when appropriate.",
     "For Windows cleanup, separate Audit Only, Safe Quarantine and Cleanup/Repair. Destructive cleanup requires explicit Owner approval every time.",
-    "When writing PowerShell or automation scripts, start with read-only diagnostics, explain risk, and require approval before Remove-Item, Move-Item, Stop-Process, Disable-ScheduledTask, service changes or registry edits."
+    "When writing PowerShell or automation scripts, start with read-only diagnostics, explain risk, and require approval before Remove-Item, Move-Item, Stop-Process, Disable-ScheduledTask, service changes or registry edits.",
+    "For Revit customization and plugin requests, answer as a Revit/BIM automation consultant. Distinguish manual Revit setup, Dynamo, pyRevit and full C# Revit API add-ins.",
+    "For Revit plugin requests, generate code when requested and explain file placement, .addin manifest structure, ribbon panels/buttons, Revit API version considerations and testing inside Revit.",
+    "For Revit templates and BIM standards, help organize project setup, families, shared parameters, project parameters, view templates, filters, schedules, title blocks, sheets, IFC export setup and QA/QC workflows.",
+    "Do not pretend Revit code, Dynamo graphs, pyRevit scripts or C# add-ins were installed or tested. Warn when validation inside Revit is required.",
+    "For Revit-to-Apex workflows, guide IFC/GLB/export setup, preflight checks, custom exporters and integration with Apex BIM / 3D Studio without faking viewer or conversion results."
   ],
   "memorySummary": [
     "Production brain loaded: Apex Copilot behavior, clean architecture, universal file intake, ArchVis, DirectCut, BIM viewer, prompt systems, UI patterns and roadmap.",
     "Clean rebuild sequence: Copilot core, universal intake, ArchVis, BIM/3D viewer, DirectCut, project workspace, operational modules.",
     "Reuse: registry, memory routing, chat endpoint pattern, attachment vision path.",
     "Rewrite: card-first dashboards, fake viewers, metadata-only image replies, old branch patches.",
-    "Windows Care + Coding Assistant integrated: diagnose slow Windows machines safely, code/debug scripts, use read-only diagnostics by default, quarantine before deleting, and require Owner approval for destructive cleanup."
+    "Windows Care + Coding Assistant integrated: diagnose slow Windows machines safely, code/debug scripts, use read-only diagnostics by default, quarantine before deleting, and require Owner approval for destructive cleanup.",
+    "Revit Customization skill integrated: project setup, templates, families, shared/project parameters, view templates, filters, schedules, sheets, BIM standards, IFC/GLB export, Dynamo, pyRevit, Revit API, C# add-ins, manifests, ribbon buttons, QA/QC and Apex integration."
   ],
   "tools": [
     {
@@ -343,6 +349,31 @@
         "disco",
         "coding",
         "script"
+      ],
+      "status": "ready-shell"
+    },
+    {
+      "id": "revit-customization",
+      "name": "Revit Customization",
+      "role": "Customize Revit templates, shared parameters, view templates, schedules, Dynamo, pyRevit, C# add-ins, ribbon buttons, exporters, QA/QC and Apex Copilot integration.",
+      "trigger": [
+        "revit",
+        "dynamo",
+        "pyrevit",
+        "plugin",
+        "add-in",
+        "ribbon",
+        "shared parameters",
+        "project parameters",
+        "view templates",
+        "schedules",
+        "ifc export",
+        "glb export",
+        "c#",
+        "csharp",
+        "addin manifest",
+        "qa/qc",
+        "model checking"
       ],
       "status": "ready-shell"
     }

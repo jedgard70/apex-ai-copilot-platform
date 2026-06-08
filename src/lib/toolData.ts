@@ -110,6 +110,12 @@ export const toolData: CopilotTool[] = [
     trigger: ['landing', 'website', 'site', 'portfolio', 'web', 'pagina'],
   },
   {
+    id: 'revit-customization',
+    name: 'Revit Customization',
+    role: 'Customize Revit templates, parameters, schedules, Dynamo, pyRevit scripts, C# add-ins, ribbon buttons, exporters and Apex integration.',
+    trigger: ['revit', 'dynamo', 'pyrevit', 'plugin', 'add-in', 'ribbon', 'shared parameters', 'template bim', 'ifc export', 'c#', 'csharp'],
+  },
+  {
     id: 'exploration',
     name: 'Exploration / General Reasoning',
     role: 'Think through open-ended questions, strategy, planning, decisions and general knowledge tasks.',

@@ -8,6 +8,7 @@ import { imagePromptKnowledge } from './imagePrompts'
 import { interiorsKnowledge } from './interiors'
 import { negotiationKnowledge } from './negotiation'
 import { platformKnowledge } from './platform'
+import { revitCustomizationKnowledge } from './revitCustomization'
 import { videoPromptKnowledge } from './videoPrompts'
 import { windowsCareKnowledge } from './windowsCare'
 import { writingKnowledge } from './writing'
@@ -26,6 +27,7 @@ export const apexSkillKnowledge = {
   data: dataKnowledge,
   platform: platformKnowledge,
   windowsCare: windowsCareKnowledge,
+  revitCustomization: revitCustomizationKnowledge,
 }
 
 export type ApexSkillKnowledgeDomain = keyof typeof apexSkillKnowledge
@@ -37,6 +39,7 @@ export function selectApexSkillKnowledge(input: string, fileName = ''): ApexSkil
   if (/(video|directcut|timelapse|roteiro|shot|camera|cinematic|cinema)/.test(text)) domains.add('videoPrompts').add('cinematic')
   if (/(interior|sala|quarto|cozinha|futurista|furniture|material|palette)/.test(text)) domains.add('interiors')
   if (/(ifc|rvt|dwg|dxf|skp|bim|cad|3d|viewer|clash)/.test(text)) domains.add('bimCad')
+  if (/(revit|dynamo|pyrevit|add-?in|plugin|c#|csharp|ribbon|shared parameter|shared parameters|par[aâ]metro|par[aâ]metros compartilhados|view template|template bim|fam[ií]lia|families|ifc export|exportar ifc|glb|manifest|externalcommand|iexternalcommand|iexternalapplication|sheets|pranchas|schedules|quantitativos|qa\/qc|model checking)/.test(text)) domains.add('revitCustomization').add('bimCad').add('coding')
   if (/(venda|cliente|crm|proposal|proposta|business|marketing|or[cç]amento|budget)/.test(text)) domains.add('business')
   if (/(code|c[oó]digo|react|typescript|mcp|api|server|platform)/.test(text)) domains.add('coding').add('platform')
   if (/(windows|computador|pc lento|lento|limpeza|startup|inicializa[cç][aã]o|powershell|defender|malware|v[ií]rus|processo|task scheduler|scheduled task|appdata|temp|disco|ram|cpu)/.test(text)) domains.add('windowsCare').add('coding')

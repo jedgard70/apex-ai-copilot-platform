@@ -19,6 +19,7 @@ export type ToolDomain =
   | 'writing-humanizer'
   | 'interior-design'
   | 'website-design'
+  | 'revit-customization'
   | 'exploration'
 
 export type CopilotTool = {
