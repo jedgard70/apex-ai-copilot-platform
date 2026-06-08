@@ -16,6 +16,7 @@ import { BudgetPanel } from './components/BudgetPanel'
 import { ContractsPanel } from './components/ContractsPanel'
 import { DirectCutInitialConfig, DirectCutPanel } from './components/DirectCutPanel'
 import { ProjectWorkspacePanel } from './components/ProjectWorkspacePanel'
+import { ResearchPanel } from './components/ResearchPanel'
 import { SkillExportPanel } from './components/SkillExportPanel'
 import { SkillUpdatePanel } from './components/SkillUpdatePanel'
 import { classifyFile, formatSize, IntakeFile, isVisionReady, readFileAsDataUrl, readImageDimensions } from './lib/fileIntake'
@@ -35,6 +36,7 @@ import { isSkillUpdateIntent, ProjectMemoryUpdate, SkillUpdateApplyResult } from
 import { isSkillExportIntent } from './lib/skillExportFactory'
 import { BudgetPlan } from './lib/budgetKnowledge'
 import { ContractsPlan } from './lib/contractsKnowledge'
+import { ResearchPlan } from './lib/researchKnowledge'
 import { selectTool, tools } from './lib/toolRegistry'
 import './styles.css'
 
@@ -70,6 +72,11 @@ type BudgetOutput = {
 
 type ContractsOutput = {
   source?: IntakeFile
+  goal: string
+  conversationContext: string[]
+}
+
+type ResearchOutput = {
   goal: string
   conversationContext: string[]
 }
@@ -164,6 +171,10 @@ function isBudgetIntent(text: string) {
 
 function isContractsIntent(text: string) {
   return /\b(contrato|contrato simples|revisar contrato|jur[ií]dico|juridico|cl[aá]usula|clausula|proposta jur[ií]dica|memorial|memorial descritivo|alvar[aá]|licen[cç]a|permits|permit|compliance|endossos|endosso|art|rrt|habite-se|scope agreement|addendum|lawyer|legal|contract)\b/i.test(text)
+}
+
+function isResearchIntent(text: string) {
+  return /\b(pesquisa de mercado|pesquisa na internet|faça uma pesquisa|faca uma pesquisa|concorrentes|pre[cç]o atualizado|sinapi|tabela sinapi|proposta comercial com pesquisa|estudo de mercado|market research|competitor|benchmark|pricing research|source check)\b/i.test(text)
 }
 
 function fileExtension(fileName: string) {
@@ -322,6 +333,10 @@ function App() {
     const stored = initialAppState.contractsOutput as Omit<ContractsOutput, 'source'> | undefined
     return stored ? { ...stored, source: restoredFile } : null
   })
+  const [researchOutput, setResearchOutput] = useState<ResearchOutput | null>(() => {
+    const stored = initialAppState.researchOutput as ResearchOutput | undefined
+    return stored || null
+  })
   const [bimCommand, setBimCommand] = useState<BimCommand | undefined>()
   const [workspaceOpenSignal, setWorkspaceOpenSignal] = useState('')
   const [skillUpdateOpenSignal, setSkillUpdateOpenSignal] = useState('')
@@ -365,7 +380,7 @@ function App() {
           activeRecord,
         ]
       : activeProject.files
-    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : null
+    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : null
     return {
       ...activeProject,
       language: navigator.language || activeProject.language,
@@ -402,6 +417,7 @@ function App() {
         bim3DActive: Boolean(bim3DOutput),
         budgetOutput: budgetOutput ? { ...budgetOutput, source: undefined } : null,
         contractsOutput: contractsOutput ? { ...contractsOutput, source: undefined } : null,
+        researchOutput,
       },
     }
   }
@@ -422,7 +438,7 @@ function App() {
     }, 650)
     return () => window.clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, budgetOutput, contractsOutput, archVisRevisionConstraints, activeTool.id])
+  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, budgetOutput, contractsOutput, researchOutput, archVisRevisionConstraints, activeTool.id])
 
   async function askCopilot(text = input, attachment = activeFile) {
     const clean = text.trim()
@@ -436,6 +452,7 @@ function App() {
     const shouldOpenDirectCut = clean && isDirectCutIntent(clean)
     const shouldOpenContracts = clean && isContractsIntent(clean)
     const shouldOpenBudget = clean && isBudgetIntent(clean)
+    const shouldOpenResearch = clean && isResearchIntent(clean)
     const shouldOpenBim3D = isBim3DIntent(clean || modelText, attachment)
     const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
     const shouldOpenSkillExport = clean && isSkillExportIntent(clean)
@@ -557,6 +574,26 @@ function App() {
       ])
       setContractsOutput({
         source: attachment,
+        goal: clean,
+        conversationContext: context,
+      })
+      setInput('')
+      return
+    }
+    if (shouldOpenResearch) {
+      const context = [...messages, userMessage]
+        .slice(-8)
+        .map(message => `${message.role}: ${message.text}`)
+      setMessages(prev => [
+        ...prev,
+        userMessage,
+        {
+          id: id(),
+          role: 'assistant',
+          text: 'Abri o Research / Market Intelligence Studio ao lado. Vou montar um plano com fontes e confiança, sem inventar web, SINAPI, preços ou dados atuais.',
+        },
+      ])
+      setResearchOutput({
         goal: clean,
         conversationContext: context,
       })
@@ -772,6 +809,7 @@ function App() {
     setBim3DOutput(null)
     setBudgetOutput(null)
     setContractsOutput(null)
+    setResearchOutput(null)
     setArchVisRevisionConstraints([])
     setMessages([{ id: id(), role: 'assistant', text: 'New Apex project started. Upload a file or tell me what we are building.' }])
   }
@@ -800,6 +838,8 @@ function App() {
     setBudgetOutput(restoredBudget ? { ...restoredBudget, source: restored } : null)
     const restoredContracts = state.contractsOutput as Omit<ContractsOutput, 'source'> | null | undefined
     setContractsOutput(restoredContracts ? { ...restoredContracts, source: restored } : null)
+    const restoredResearch = state.researchOutput as ResearchOutput | null | undefined
+    setResearchOutput(restoredResearch || null)
   }
 
   function switchProject(projectId: string) {
@@ -841,6 +881,7 @@ function App() {
     setBim3DOutput(null)
     setBudgetOutput(null)
     setContractsOutput(null)
+    setResearchOutput(null)
     setArchVisRevisionConstraints([])
     setMessages([{ id: id(), role: 'assistant', text: 'Local workspace cleared. New Apex project ready.' }])
   }
@@ -928,6 +969,30 @@ function App() {
     ])
   }
 
+  function saveResearchToProject(plan: ResearchPlan) {
+    const saved = upsertProject({
+      ...activeProject,
+      exports: [
+        ...activeProject.exports,
+        {
+          type: 'research-market-intelligence',
+          timestamp: new Date().toISOString(),
+          plan,
+        },
+      ],
+    })
+    setActiveProject(saved)
+    setProjects(loadProjects())
+    setMessages(prev => [
+      ...prev,
+      {
+        id: id(),
+        role: 'assistant',
+        text: 'Salvei o plano de pesquisa no Project Workspace local com as fontes e níveis de confiança.',
+      },
+    ])
+  }
+
   return (
     <main className="app" onPaste={handlePaste} onDragOver={event => event.preventDefault()} onDrop={handleDrop}>
       <header className="topbar">
@@ -940,7 +1005,7 @@ function App() {
         </div>
       </header>
 
-      <section className={`workspace ${archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput ? 'studio-open' : ''}`}>
+      <section className={`workspace ${archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput ? 'studio-open' : ''}`}>
         <section className="chat-shell" aria-label="Apex AI Copilot chat">
           <div className="chat-header">
             <div>
@@ -1140,6 +1205,15 @@ function App() {
                 ])
               }}
               onClear={() => setContractsOutput(null)}
+            />
+          )}
+
+          {researchOutput && (
+            <ResearchPanel
+              goal={researchOutput.goal}
+              conversationContext={researchOutput.conversationContext}
+              onSaveToProject={saveResearchToProject}
+              onClear={() => setResearchOutput(null)}
             />
           )}
 

@@ -116,6 +116,12 @@ export const toolData: CopilotTool[] = [
     trigger: ['revit', 'dynamo', 'pyrevit', 'plugin', 'add-in', 'ribbon', 'shared parameters', 'template bim', 'ifc export', 'c#', 'csharp'],
   },
   {
+    id: 'research-market-intelligence',
+    name: 'Research / Market Intelligence',
+    role: 'Prepare source-aware market research, competitor analysis, pricing/SINAPI checks and proposal intelligence without fake current data.',
+    trigger: ['pesquisa', 'market research', 'concorrentes', 'competitor', 'sinapi', 'preco atualizado', 'pricing research', 'benchmark'],
+  },
+  {
     id: 'exploration',
     name: 'Exploration / General Reasoning',
     role: 'Think through open-ended questions, strategy, planning, decisions and general knowledge tasks.',

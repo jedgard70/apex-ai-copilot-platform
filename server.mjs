@@ -1394,7 +1394,7 @@ function budgetCurrencySymbol(currency) {
   return 'USD'
 }
 
-function budgetItem(id, section, item, unit, quantity, unitPrice, confidence, source) {
+function budgetItem(id, section, item, unit, quantity, unitPrice, confidence, source, pricingSource = 'Placeholder assumptions', sourceDate = '', sourceConfidence = 'PLACEHOLDER') {
   const safeQuantity = Number(quantity || 0)
   const safeUnitPrice = Number(unitPrice || 0)
   return {
@@ -1407,6 +1407,9 @@ function budgetItem(id, section, item, unit, quantity, unitPrice, confidence, so
     subtotal: Number((safeQuantity * safeUnitPrice).toFixed(2)),
     confidence,
     source,
+    pricingSource,
+    sourceDate,
+    sourceConfidence,
   }
 }
 
@@ -1418,6 +1421,13 @@ async function handleBudgetPlan(req, res) {
     const goal = String(body.goal || '')
     const area = parseArea(assumptions.area)
     const currency = budgetCurrencySymbol(assumptions.currency)
+    const pricingSource = String(assumptions.pricingSource || 'Placeholder assumptions')
+    const sinapiStatus = String(assumptions.sinapiStatus || 'not-connected')
+    const sourceConfidence = pricingSource === 'User provided prices'
+      ? 'USER_PROVIDED'
+      : pricingSource === 'Uploaded SINAPI table'
+        ? 'USER_PROVIDED'
+        : 'PLACEHOLDER'
     const hasArea = area > 0
     const sourceKind = String(source?.kind || '')
     const confidenceFromSource = sourceKind === 'bim-cad' ? 'UNKNOWN' : hasArea ? 'ESTIMATED' : 'UNKNOWN'
@@ -1429,12 +1439,12 @@ async function handleBudgetPlan(req, res) {
     const multiplier = standard === 'economical' ? 0.78 : standard === 'high-end' ? 1.35 : standard === 'luxury' ? 1.8 : 1
 
     const estimateItems = [
-      budgetItem('budget-flooring', 'flooring', 'Flooring and base finish allowance', areaUnit, baseArea, 62 * multiplier, confidenceFromSource, hasArea ? 'user input' : 'assumption'),
-      budgetItem('budget-painting', 'painting', 'Interior/exterior painting allowance', wallUnit, Math.round(baseArea * 2.8), 14 * multiplier, hasArea ? 'ESTIMATED' : 'UNKNOWN', hasArea ? 'assumption' : 'assumption'),
-      budgetItem('budget-electrical', 'electrical', 'Electrical rough-in and fixture allowance', 'allowance', 1, Math.round(baseArea * 48 * multiplier), 'ESTIMATED', 'assumption'),
-      budgetItem('budget-plumbing', 'plumbing', 'Plumbing rough-in and fixture allowance', 'allowance', 1, Math.round(baseArea * 42 * multiplier), 'ESTIMATED', 'assumption'),
-      budgetItem('budget-finishes', 'finishes', 'General finish package allowance', 'allowance', 1, Math.round(baseArea * 95 * multiplier), 'ESTIMATED', 'assumption'),
-      budgetItem('budget-external', 'pool/gourmet/external areas', 'External areas, pool/gourmet/landscaping allowance', 'allowance', 1, Math.round(baseArea * 55 * multiplier), 'ESTIMATED', 'assumption'),
+      budgetItem('budget-flooring', 'flooring', 'Flooring and base finish allowance', areaUnit, baseArea, 62 * multiplier, confidenceFromSource, hasArea ? 'user input' : 'assumption', pricingSource, '', sourceConfidence),
+      budgetItem('budget-painting', 'painting', 'Interior/exterior painting allowance', wallUnit, Math.round(baseArea * 2.8), 14 * multiplier, hasArea ? 'ESTIMATED' : 'UNKNOWN', 'assumption', pricingSource, '', sourceConfidence),
+      budgetItem('budget-electrical', 'electrical', 'Electrical rough-in and fixture allowance', 'allowance', 1, Math.round(baseArea * 48 * multiplier), 'ESTIMATED', 'assumption', pricingSource, '', sourceConfidence),
+      budgetItem('budget-plumbing', 'plumbing', 'Plumbing rough-in and fixture allowance', 'allowance', 1, Math.round(baseArea * 42 * multiplier), 'ESTIMATED', 'assumption', pricingSource, '', sourceConfidence),
+      budgetItem('budget-finishes', 'finishes', 'General finish package allowance', 'allowance', 1, Math.round(baseArea * 95 * multiplier), 'ESTIMATED', 'assumption', pricingSource, '', sourceConfidence),
+      budgetItem('budget-external', 'pool/gourmet/external areas', 'External areas, pool/gourmet/landscaping allowance', 'allowance', 1, Math.round(baseArea * 55 * multiplier), 'ESTIMATED', 'assumption', pricingSource, '', sourceConfidence),
     ]
 
     const pendingQuestions = []
@@ -1488,6 +1498,8 @@ async function handleBudgetPlan(req, res) {
           standardLevel: standard,
           currency,
           unitSystem,
+          pricingSource,
+          sinapiStatus,
         },
         estimateItems,
         scopeIncluded,
@@ -1501,7 +1513,9 @@ async function handleBudgetPlan(req, res) {
         message: [
           'Budget Studio generated a preliminary estimate draft.',
           ...knownSources,
-          'No SINAPI or live pricing database is connected in this checkpoint.',
+          sinapiStatus === 'not-connected'
+            ? 'SINAPI source: not connected. No SINAPI or live pricing database is connected in this checkpoint.'
+            : `SINAPI source: ${sinapiStatus}. Use only cited user-uploaded/connected source values.`,
         ].join(' '),
       },
     })
@@ -1682,6 +1696,8 @@ async function handleContractsPlan(req, res) {
         documentSummary,
         detectedDocumentType,
         jurisdictionStatus,
+        sourceConfidence: 'NEEDS_WEB_VERIFICATION',
+        needsVerification: true,
         riskItems,
         permitChecklist,
         scopeDraft,
@@ -1703,6 +1719,120 @@ async function handleContractsPlan(req, res) {
       error: scrubProviderError(error.message || error),
       providerStatus: 'planning-only',
     })
+  }
+}
+
+async function handleResearchPlan(req, res) {
+  try {
+    const body = await readJson(req)
+    const researchType = String(body.researchType || 'Market research')
+    const query = String(body.query || '')
+    const region = String(body.region || '')
+    const freshness = String(body.freshness || 'Current source required')
+    const checked = new Date().toISOString()
+    const sinapiIntent = /sinapi|construction cost source|pricing|pre[cç]o|custo/i.test(`${researchType} ${query}`)
+    const sources = [
+      {
+        title: 'Live web connector',
+        sourceName: 'Not connected in local runtime',
+        url: '',
+        dateChecked: checked,
+        evidenceLevel: 'NEEDS_WEB_VERIFICATION',
+        note: 'Apex did not browse the web or verify current sources in this request.',
+      },
+    ]
+    if (sinapiIntent) {
+      sources.push({
+        title: 'SINAPI source',
+        sourceName: 'not-connected',
+        url: '',
+        dateChecked: checked,
+        evidenceLevel: 'NEEDS_WEB_VERIFICATION',
+        note: 'No SINAPI table/API is connected. Do not use any SINAPI value until a source is uploaded or connected.',
+      })
+    }
+    const findings = [
+      {
+        id: 'finding-source-status',
+        claim: 'Current market/pricing/legal data was not verified live.',
+        evidence: 'Local runtime has no configured web/source connector for this endpoint.',
+        confidence: 'NEEDS_WEB_VERIFICATION',
+        source: 'Apex local runtime status',
+        date: checked,
+      },
+      {
+        id: 'finding-research-plan',
+        claim: `Research plan needed for: ${query || researchType}.`,
+        evidence: 'User request and selected research type.',
+        confidence: 'USER_PROVIDED',
+        source: 'User prompt',
+        date: checked,
+      },
+      {
+        id: 'finding-assumption',
+        claim: region ? `Region context: ${region}.` : 'Region/location is not confirmed.',
+        evidence: region ? 'User-provided region field.' : 'Missing region field.',
+        confidence: region ? 'USER_PROVIDED' : 'NEEDS_WEB_VERIFICATION',
+        source: region ? 'User input' : 'missing input',
+        date: checked,
+      },
+    ]
+    const proposalBuilder = {
+      executiveSummary: `Apex prepared a source-aware ${researchType.toLowerCase()} plan for "${query || 'the requested topic'}". This is a research plan, not verified live market intelligence.`,
+      marketOpportunity: 'Define opportunity only after live web/source verification or user-provided evidence is attached.',
+      clientPainPoints: [
+        'Client needs credible current evidence before decisions.',
+        'Pricing, competitors and regulations must be sourced before proposal claims.',
+        'Apex should label assumptions separately from confirmed facts.',
+      ],
+      valueProposition: 'Apex can convert verified sources into a proposal, positioning, offer, pricing assumptions and next-step CTA.',
+      competitivePositioning: 'Needs competitor/source verification before making current-market claims.',
+      pricingAssumptions: sinapiIntent
+        ? ['SINAPI source is not connected.', 'Use placeholder pricing only until uploaded SINAPI table or live source is connected.']
+        : ['Pricing is not verified.', 'Use user-provided or placeholder assumptions until sources are connected.'],
+      recommendedOffer: 'Prepare a source-backed proposal after collecting web/source evidence, competitor examples, pricing basis and regional constraints.',
+      ctaNextStep: 'Connect web/source provider or upload source files, then rerun research with citations.',
+    }
+    json(res, 200, {
+      plan: {
+        providerStatus: 'web-not-connected',
+        researchType,
+        query,
+        region,
+        freshness,
+        sinapiStatus: sinapiIntent ? 'not-connected' : 'not-connected',
+        sources,
+        findings,
+        proposalBuilder,
+        pendingVerification: [
+          'Connect live web/source provider before claiming current market data.',
+          'Attach user-provided source files for pricing, competitor or regulatory claims.',
+          'For SINAPI, upload an official table or configure a real connector before using values.',
+        ],
+        message: 'Research Studio produced a connector-ready plan. No live web research, fake citations, fake SINAPI prices or current legal/regulatory claims were generated.',
+      },
+    })
+  } catch (error) {
+    json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'web-not-connected' })
+  }
+}
+
+async function handleSourceEvidence(req, res) {
+  try {
+    const body = await readJson(req)
+    const title = String(body.title || 'Source evidence request')
+    json(res, 200, {
+      evidence: {
+        title,
+        sourceName: 'not-connected',
+        url: '',
+        dateChecked: new Date().toISOString(),
+        evidenceLevel: 'NEEDS_WEB_VERIFICATION',
+        note: 'Source evidence connector is not configured. Provide a URL/source file or connect a web provider.',
+      },
+    })
+  } catch (error) {
+    json(res, error.status || 500, { error: scrubProviderError(error.message || error) })
   }
 }
 
@@ -1914,6 +2044,14 @@ const server = http.createServer((req, res) => {
   }
   if (req.url === '/api/copilot/contracts-plan' && req.method === 'POST') {
     handleContractsPlan(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/research-plan' && req.method === 'POST') {
+    handleResearchPlan(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/source-evidence' && req.method === 'POST') {
+    handleSourceEvidence(req, res)
     return
   }
   if (req.url === '/api/copilot/analyze-skill-update' && req.method === 'POST') {

@@ -52,6 +52,8 @@ export type ContractsPlan = {
   documentSummary: string
   detectedDocumentType: ContractDocumentType
   jurisdictionStatus: ContractEvidence
+  sourceConfidence: SourceConfidence
+  needsVerification: boolean
   riskItems: ContractRiskItem[]
   permitChecklist: PermitChecklistItem[]
   scopeDraft: {
@@ -114,6 +116,8 @@ export function emptyContractsPlan(context: ContractContext): ContractsPlan {
     documentSummary: 'No review generated yet.',
     detectedDocumentType: context.documentType,
     jurisdictionStatus: context.location ? 'ASSUMPTION' : 'UNKNOWN',
+    sourceConfidence: 'NEEDS_WEB_VERIFICATION',
+    needsVerification: true,
     riskItems: [],
     permitChecklist: [],
     scopeDraft: {
@@ -133,4 +137,5 @@ export function emptyContractsPlan(context: ContractContext): ContractsPlan {
     message: legalDisclaimer,
   }
 }
+import { SourceConfidence } from './sourceConfidence'
 

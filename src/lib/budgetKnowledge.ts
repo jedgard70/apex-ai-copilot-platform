@@ -1,8 +1,12 @@
+import { SourceConfidence } from './sourceConfidence'
+
 export type BudgetConfidence = 'CONFIRMED' | 'ESTIMATED' | 'UNKNOWN'
 export type BudgetSource = 'drawing' | 'user input' | 'BIM metadata' | 'assumption'
 export type BudgetStandard = 'economical' | 'medium' | 'high-end' | 'luxury'
 export type BudgetCurrency = 'USD' | 'BRL' | 'EUR'
 export type BudgetUnitSystem = 'metric' | 'imperial'
+export type PricingSource = 'Placeholder assumptions' | 'User provided prices' | 'Uploaded SINAPI table' | 'Future live SINAPI connector'
+export type SinapiStatus = 'not-connected' | 'user-uploaded-table' | 'connected-api'
 
 export type BudgetAssumptions = {
   projectType: string
@@ -11,6 +15,8 @@ export type BudgetAssumptions = {
   standardLevel: BudgetStandard
   currency: BudgetCurrency
   unitSystem: BudgetUnitSystem
+  pricingSource: PricingSource
+  sinapiStatus: SinapiStatus
 }
 
 export type BudgetEstimateItem = {
@@ -23,6 +29,9 @@ export type BudgetEstimateItem = {
   subtotal: number
   confidence: BudgetConfidence
   source: BudgetSource
+  pricingSource: PricingSource
+  sourceDate: string
+  sourceConfidence: SourceConfidence
 }
 
 export type BudgetPlan = {
@@ -65,6 +74,8 @@ export const defaultBudgetAssumptions: BudgetAssumptions = {
   standardLevel: 'medium',
   currency: 'USD',
   unitSystem: 'metric',
+  pricingSource: 'Placeholder assumptions',
+  sinapiStatus: 'not-connected',
 }
 
 export function budgetIntentKeywords() {
@@ -99,4 +110,3 @@ export function formatMoney(value: number, currency: BudgetCurrency) {
     maximumFractionDigits: 2,
   }).format(Number.isFinite(value) ? value : 0)
 }
-

@@ -20,6 +20,7 @@ export type ToolDomain =
   | 'interior-design'
   | 'website-design'
   | 'revit-customization'
+  | 'research-market-intelligence'
   | 'exploration'
 
 export type CopilotTool = {

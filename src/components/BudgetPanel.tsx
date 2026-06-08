@@ -22,11 +22,13 @@ import {
   BudgetSource,
   BudgetStandard,
   BudgetUnitSystem,
+  PricingSource,
   calculateSubtotal,
   defaultBudgetAssumptions,
   formatMoney,
   quantitySections,
 } from '../lib/budgetKnowledge'
+import { SourceConfidence } from '../lib/sourceConfidence'
 
 type BudgetPanelProps = {
   source?: IntakeFile
@@ -60,6 +62,9 @@ function emptyDraft(): DraftItem {
     unitPrice: 0,
     confidence: 'UNKNOWN',
     source: 'assumption',
+    pricingSource: 'Placeholder assumptions',
+    sourceDate: '',
+    sourceConfidence: 'PLACEHOLDER',
   }
 }
 
@@ -85,7 +90,7 @@ function planTotal(items: BudgetEstimateItem[]) {
 
 function planAsTable(plan: BudgetPlan) {
   return [
-    ['Section', 'Item', 'Unit', 'Quantity', 'Unit price', 'Subtotal', 'Confidence', 'Source'].join('\t'),
+    ['Section', 'Item', 'Unit', 'Quantity', 'Unit price', 'Subtotal', 'Confidence', 'Source', 'Pricing source', 'Source date', 'Source confidence'].join('\t'),
     ...plan.estimateItems.map(item => [
       item.section,
       item.item,
@@ -95,6 +100,9 @@ function planAsTable(plan: BudgetPlan) {
       item.subtotal,
       item.confidence,
       item.source,
+      item.pricingSource,
+      item.sourceDate,
+      item.sourceConfidence,
     ].join('\t')),
   ].join('\n')
 }
@@ -218,7 +226,7 @@ export function BudgetPanel({
   }
 
   function markConfirmed(index: number) {
-    updateItem(index, { confidence: 'CONFIRMED', source: 'user input' })
+    updateItem(index, { confidence: 'CONFIRMED', source: 'user input', sourceConfidence: 'USER_PROVIDED' })
   }
 
   function exportJson() {
@@ -297,6 +305,18 @@ export function BudgetPanel({
                 </select>
               </label>
             </div>
+            <label>
+              Pricing source
+              <select value={assumptions.pricingSource} onChange={event => updateAssumption('pricingSource', event.target.value as PricingSource)}>
+                <option value="Placeholder assumptions">Placeholder assumptions</option>
+                <option value="User provided prices">User provided prices</option>
+                <option value="Uploaded SINAPI table">Uploaded SINAPI table</option>
+                <option value="Future live SINAPI connector">Future live SINAPI connector</option>
+              </select>
+            </label>
+            <div className="budget-warning-inline">
+              SINAPI source: {assumptions.sinapiStatus}. Do not use SINAPI prices until a user-uploaded source or connector is active.
+            </div>
           </div>
 
           <div className="budget-card">
@@ -364,6 +384,31 @@ export function BudgetPanel({
                 <option value="assumption">assumption</option>
               </select>
             </label>
+            <div className="budget-two">
+              <label>
+                Pricing source
+                <select value={draftItem.pricingSource} onChange={event => setDraftItem(prev => ({ ...prev, pricingSource: event.target.value as PricingSource }))}>
+                  <option value="Placeholder assumptions">Placeholder assumptions</option>
+                  <option value="User provided prices">User provided prices</option>
+                  <option value="Uploaded SINAPI table">Uploaded SINAPI table</option>
+                  <option value="Future live SINAPI connector">Future live SINAPI connector</option>
+                </select>
+              </label>
+              <label>
+                Source confidence
+                <select value={draftItem.sourceConfidence} onChange={event => setDraftItem(prev => ({ ...prev, sourceConfidence: event.target.value as SourceConfidence }))}>
+                  <option value="CONFIRMED_SOURCE">CONFIRMED_SOURCE</option>
+                  <option value="USER_PROVIDED">USER_PROVIDED</option>
+                  <option value="ASSUMPTION">ASSUMPTION</option>
+                  <option value="PLACEHOLDER">PLACEHOLDER</option>
+                  <option value="NEEDS_WEB_VERIFICATION">NEEDS_WEB_VERIFICATION</option>
+                </select>
+              </label>
+            </div>
+            <label>
+              Source date
+              <input value={draftItem.sourceDate} placeholder="YYYY-MM-DD or uploaded source date" onChange={event => setDraftItem(prev => ({ ...prev, sourceDate: event.target.value }))} />
+            </label>
             <button type="button" onClick={addItem}><Plus size={15} /> Add item</button>
           </div>
         </aside>
@@ -374,6 +419,7 @@ export function BudgetPanel({
               <span>Provider status</span>
               <strong>{plan?.providerStatus || 'planning-only'}</strong>
               <p>{plan?.confidenceSummary || 'Generate a draft first. Prices are placeholders or user-provided assumptions until a pricing database is connected.'}</p>
+              <small>SINAPI source: {plan?.assumptions.sinapiStatus || assumptions.sinapiStatus}</small>
             </div>
             <div>
               <span>Total draft</span>
@@ -408,6 +454,8 @@ export function BudgetPanel({
                     <th>Subtotal</th>
                     <th>Confidence</th>
                     <th>Source</th>
+                    <th>Pricing source</th>
+                    <th>Source confidence</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -427,6 +475,8 @@ export function BudgetPanel({
                         </select>
                       </td>
                       <td>{item.source}</td>
+                      <td>{item.pricingSource || 'Placeholder assumptions'}<small>{item.sourceDate || 'no source date'}</small></td>
+                      <td>{item.sourceConfidence || 'PLACEHOLDER'}</td>
                       <td>
                         <div className="budget-mini-actions">
                           <button type="button" title="Mark confirmed" onClick={() => markConfirmed(index)}><CheckCircle2 size={14} /></button>
@@ -437,7 +487,7 @@ export function BudgetPanel({
                   ))}
                   {!currentItems.length && (
                     <tr>
-                      <td colSpan={8}>No estimate items yet. Generate a draft or add an item manually.</td>
+                      <td colSpan={10}>No estimate items yet. Generate a draft or add an item manually.</td>
                     </tr>
                   )}
                 </tbody>
@@ -522,4 +572,3 @@ function ScopeCard({ title, items, setItems }: { title: string; items: string[];
     </div>
   )
 }
-

@@ -240,7 +240,7 @@ export function ContractsPanel({ source, goal, conversationContext, onSendToBudg
             <div>
               <span>Jurisdiction status</span>
               <strong>{plan?.jurisdictionStatus || (context.location ? 'ASSUMPTION' : 'UNKNOWN')}</strong>
-              <p>Permit/legal requirements are general guidance until confirmed by jurisdiction source or lawyer review.</p>
+              <p>Source confidence: {plan?.sourceConfidence || 'NEEDS_WEB_VERIFICATION'}. Needs verification: {String(plan?.needsVerification ?? true)}.</p>
             </div>
           </div>
 
@@ -360,4 +360,3 @@ function ScopeBlock({ title, items }: { title: string; items: string[] }) {
     </div>
   )
 }
-
