@@ -5,6 +5,8 @@ export type SkillUpdateCategory =
   | 'archvis-skill'
   | 'directcut-skill'
   | 'bim-3d-skill'
+  | 'revit-skill'
+  | 'windows-coding-skill'
   | 'code-platform-pattern'
   | 'business-marketing'
   | 'writing-negotiation'

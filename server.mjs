@@ -66,6 +66,12 @@ function classifySkillUpdate(file, text) {
   if (/(directcut|video|vídeo|roteiro|shot list|storyboard|reels|cinematic)/i.test(lower)) {
     return { category: 'directcut-skill', targetDomain: 'directcut', riskLevel: 'low' }
   }
+  if (/(revit|dynamo|pyrevit|shared parameter|par[aâ]metro compartilhado|family|fam[ií]lia|view template|schedule|add-in|addin|ribbon|ifc export|glb export)/i.test(lower)) {
+    return { category: 'revit-skill', targetDomain: 'revit-customization', riskLevel: 'low' }
+  }
+  if (/(windows|powershell|diagn[oó]stico|diagnostic|cleanup|limpeza|quarantine|quarentena|startup|inicializa[cç][aã]o|malware|performance|pc lento|computador lento)/i.test(lower)) {
+    return { category: 'windows-coding-skill', targetDomain: 'windows-care-coding', riskLevel: 'medium' }
+  }
   if (/(bim|ifc|revit|rvt|dwg|dxf|skp|clash|viewer|3d)/i.test(lower)) {
     return { category: 'bim-3d-skill', targetDomain: 'bim-3d', riskLevel: 'low' }
   }
