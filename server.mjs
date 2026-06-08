@@ -114,7 +114,7 @@ function buildLocalSkillContext(userText, file) {
     contexts.push('Interior/futuristic: ask or infer budget, rooms, palette, polished concrete, porcelain, dark matte walls, metal, leather, teak/freijo wood, LED linear 4000-6500K, indirect lighting and minimal objects.')
   }
   if (/(ifc|rvt|dwg|dxf|skp|bim|cad|3d|viewer|clash)/.test(text)) {
-    contexts.push('BIM/CAD: do not fake parsing or viewers. IFC requires real viewer; RVT/DWG/DXF/SKP require conversion/import strategy. Use metadata honestly and guide the next technical step.')
+    contexts.push('BIM/CAD: Apex-internal first. Never tell the user to leave the platform as the main solution. IFC/GLB/GLTF/OBJ/STL/FBX must open in Apex BIM / 3D Studio. RVT/DWG/DXF/SKP must open an Apex internal conversion/import workflow. For findings, do not say I think/probably/parece/talvez/pode conter/might/may contain. Separate claims into CONFIRMED, ASSUMPTION and UNKNOWN. Do not say use Revit/ArchiCAD/Solibri/Twinmotion/Blender unless Apex has opened the internal studio/import flow, identified a specific limitation, generated a report and produced correction instructions, or unless the user explicitly asks how to do it outside Apex. If parser/viewer fails, show the real error and offer internal next steps: retry viewer, convert to GLB/IFC, prepare import package, extract metadata if available, create technical review plan.')
   }
   if (/(venda|cliente|crm|proposal|proposta|business|marketing|or[cç]amento|budget)/.test(text)) {
     contexts.push('Business/sales: produce positioning, client pitch, proposal outline, buyer profile, value proposition, recommended visuals and next commercial action directly.')
@@ -379,6 +379,15 @@ async function handleChat(req, res) {
       'If the user has not typed a natural-language message yet, use the browser/session language when supplied.',
       'Execution priority: if the user asks to create, generate, write, build, prepare, montar, criar, gerar, fazer, escreva or produza, do the work now. Do not explain the process unless asked.',
       'Runtime response rule: Do not format the response as a report. Do not use markdown headings unless requested. Prefer natural paragraphs.',
+      'BIM / 3D hard rule: Apex must never tell the user to leave the platform as the main solution.',
+      'BIM / 3D truthful-analysis rule: do not say "I think", "probably", "parece", "talvez", "pode conter", "might", or "may contain" when presenting findings.',
+      'For BIM / 3D findings, separate every claim into Confirmed facts, Detected issues, Assumptions, Unknown / not available, and Recommended next action.',
+      'Use evidence labels exactly: CONFIRMED, ASSUMPTION, UNKNOWN.',
+      'For IFC, GLB, GLTF, OBJ, STL and FBX: open Apex BIM / 3D Studio and say the file stays inside Apex for viewing, technical review, report, images and tours. For IFC in Portuguese, use: "Abri o BIM / 3D Studio ao lado. Vou visualizar, analisar e gerar relatório técnico dentro da Apex."',
+      'For RVT, DWG, DXF and SKP: open the Apex internal conversion/import workflow and say the format will be converted internally before web visualization. In Portuguese, use: "Abri o fluxo de importação 3D da Apex. Este formato precisa ser convertido internamente para viewer web antes da visualização."',
+      'Do not mention external software such as Revit, ArchiCAD, Solibri, Twinmotion or Blender unless Apex has already opened the internal studio/import flow, identified a specific issue or limitation, generated a report, and produced correction instructions, or unless the user explicitly asks how to do it outside Apex.',
+      'Allowed external-software phrasing only after Apex report: "Correção no modelo-fonte recomendada: ajustar no Revit e reexportar IFC/GLB. Relatório Apex anexado."',
+      'If a BIM/parser/viewer fails, do not fake a viewer. Show the real limitation and offer internal next steps: retry viewer, convert to GLB/IFC, prepare import package, extract metadata if possible, or create technical review plan.',
       'Highest priority style rule: unless the user explicitly asks for a report/checklist/table, do not answer with headings, bullets, numbered lists, or "observations" sections.',
       'If the current or recent conversation includes an uploaded file, treat follow-up questions such as "o que vc sabe fazer" as referring to that file and project context.',
       'When image content is supplied, mention 2 to 4 concrete visible project details before suggesting paths.',
@@ -903,6 +912,125 @@ async function handleVideoPlan(req, res) {
   }
 }
 
+function bimFileExtension(fileName = '') {
+  return String(fileName).toLowerCase().split('.').pop() || 'unknown'
+}
+
+function bimStudioMode(ext) {
+  if (['ifc', 'glb', 'gltf', 'obj', 'stl', 'fbx'].includes(ext)) return 'viewer'
+  if (['rvt', 'dwg', 'dxf', 'skp'].includes(ext)) return 'import'
+  return 'review'
+}
+
+function evidence(level, text) {
+  return { level, text }
+}
+
+async function handleBimPlan(req, res) {
+  try {
+    const body = await readJson(req)
+    const file = body.file || {}
+    const ext = bimFileExtension(file.name)
+    const mode = bimStudioMode(ext)
+    const label = ext === 'unknown' ? 'UNKNOWN' : ext.toUpperCase()
+    const providerStatus = mode === 'viewer' ? 'planning-only' : mode === 'import' ? 'import-required' : 'planning-only'
+    const supportedStatus = mode === 'viewer'
+      ? 'supported-web-viewer-format'
+      : mode === 'import'
+        ? 'internal-import-required'
+        : 'accepted-for-technical-review'
+    const viewerAction = mode === 'viewer'
+      ? 'Open inside Apex BIM / 3D Studio internal viewer workflow.'
+      : mode === 'import'
+        ? 'Open Apex internal conversion/import workflow before web visualization.'
+        : 'Open Apex internal technical review workflow.'
+    const limitation = mode === 'viewer'
+      ? 'Viewer/parser connector is not connected in this local foundation build, so geometry and model entities are not confirmed.'
+      : mode === 'import'
+        ? 'Internal converter is not connected in this local foundation build, so geometry, layers, blocks, families and views are not confirmed.'
+        : 'No parser/viewer is mapped for this format in this local foundation build.'
+
+    const confirmedFacts = [
+      evidence('CONFIRMED', `File name: ${file.name || 'unknown'}`),
+      evidence('CONFIRMED', `Extension: ${label}`),
+      evidence('CONFIRMED', `Browser MIME type: ${file.type || 'not provided by browser'}`),
+      evidence('CONFIRMED', `File size: ${file.size || 'unknown'}`),
+      evidence('CONFIRMED', `Format support status: ${supportedStatus}`),
+      evidence('CONFIRMED', `Viewer action: ${viewerAction}`),
+    ]
+    const detectedIssues = [
+      evidence('CONFIRMED', limitation),
+      evidence('CONFIRMED', 'No fake viewer, fake geometry, fake clash result or fake quantity was produced.'),
+    ]
+    const assumptions = [
+      evidence('ASSUMPTION', mode === 'viewer'
+        ? 'The uploaded file is intended for direct web visualization because its extension is supported by the Apex viewer workflow.'
+        : mode === 'import'
+          ? 'The uploaded file is intended for internal conversion/import because its extension is proprietary/CAD or requires conversion before web visualization.'
+          : 'The uploaded file needs technical review because this extension is not mapped to a direct viewer/import connector.'),
+      evidence('ASSUMPTION', 'After load/conversion, Apex can prepare orbit, walkthrough, section pass, flyover, saved views, tour path and animation path.'),
+    ]
+    const unknowns = [
+      evidence('UNKNOWN', 'Geometry, levels/layers, materials, quantities, clashes and cameras are not confirmed until parser/viewer/converter succeeds.'),
+      evidence('UNKNOWN', 'No BIM finding is presented as a fact unless detected by parser/viewer.'),
+    ]
+    const suggestedCorrections = mode === 'viewer'
+      ? [
+          evidence('CONFIRMED', 'Retry viewer inside Apex when the real loader/parser is connected.'),
+          evidence('ASSUMPTION', 'If parser/viewer fails, convert internally to GLB/IFC and repeat the opening in BIM / 3D Studio.'),
+          evidence('ASSUMPTION', 'Correction in source model recommended: adjust in Revit/authoring tool and re-export IFC/GLB. Apex report attached.'),
+        ]
+      : [
+          evidence('CONFIRMED', 'Prepare Apex import package with original file, extension, size and technical objective.'),
+          evidence('CONFIRMED', 'Convert internally to IFC or GLB before web visualization.'),
+          evidence('ASSUMPTION', 'Correction in source model recommended: adjust in Revit/authoring tool and re-export IFC/GLB. Apex report attached.'),
+        ]
+    const tourScript = [
+      evidence('ASSUMPTION', 'Start with full model overview after Apex load/conversion.'),
+      evidence('ASSUMPTION', 'Add orbit around full model.'),
+      evidence('ASSUMPTION', 'Add section box pass to reveal internal organization.'),
+      evidence('ASSUMPTION', 'Add walkthrough route for scale, circulation and construction review.'),
+      evidence('ASSUMPTION', 'Add final camera hold for presentation image/video export.'),
+    ]
+    const animationCameraPath = [
+      evidence('ASSUMPTION', 'Camera 01: full model orbit.'),
+      evidence('ASSUMPTION', 'Camera 02: flyover/top reveal.'),
+      evidence('ASSUMPTION', 'Camera 03: section box sweep.'),
+      evidence('ASSUMPTION', 'Camera 04: walkthrough entry path.'),
+    ]
+    const exportRecommendations = [
+      evidence('ASSUMPTION', 'Prepare Twinmotion-style scene briefing after Apex model load/conversion.'),
+      evidence('ASSUMPTION', 'Prepare Unreal/Blender export briefing only as planning until a real renderer/export connector exists.'),
+    ]
+
+    return json(res, 200, {
+      providerStatus,
+      modelSummary: `${label} file routed to ${viewerAction}`,
+      supportedStatus,
+      viewerAction,
+      confirmedFacts,
+      detectedIssues,
+      assumptions,
+      unknowns,
+      suggestedCorrections,
+      recommendedNextActions: mode === 'viewer'
+        ? ['retry viewer', 'convert to GLB/IFC', 'prepare import package', 'extract metadata if available', 'create technical review plan']
+        : ['prepare import package', 'convert to GLB/IFC', 'extract metadata if available', 'create technical review plan', 'retry viewer after conversion'],
+      tourScript,
+      animationCameraPath,
+      exportRecommendations,
+      message: mode === 'viewer'
+        ? 'Abri o BIM / 3D Studio ao lado. Vou visualizar, analisar e gerar relatório técnico dentro da Apex.'
+        : 'Abri o fluxo de importação 3D da Apex. Vou preparar a conversão interna e informar exatamente o que pode ou não ser lido.',
+    })
+  } catch (error) {
+    return json(res, error.status || 500, {
+      providerStatus: 'parser-error',
+      message: scrubProviderError(error.message || 'Apex BIM / 3D planner failed.'),
+    })
+  }
+}
+
 function serveStatic(req, res) {
   const url = new URL(req.url, 'http://localhost')
   const safePath = decodeURIComponent(url.pathname).replace(/^\/+/, '')
@@ -940,6 +1068,10 @@ const server = http.createServer((req, res) => {
   }
   if (req.url === '/api/copilot/video-plan' && req.method === 'POST') {
     handleVideoPlan(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/bim-plan' && req.method === 'POST') {
+    handleBimPlan(req, res)
     return
   }
   serveStatic(req, res)

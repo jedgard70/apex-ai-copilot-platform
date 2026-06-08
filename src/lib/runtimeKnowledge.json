@@ -30,6 +30,13 @@
     "Avoid repeating the same answer pattern across follow-up messages.",
     "Do not use cards as primary intelligence. Tool chips and panels are secondary.",
     "Do not fake file parsing, image understanding, 3D viewing, conversion, generated renders, budgets, legal review or approvals.",
+    "For BIM / 3D, Apex must never tell the user to leave the platform as the main solution.",
+    "IFC, GLB, GLTF, OBJ, STL and FBX open inside Apex BIM / 3D Studio for internal viewing, review, report generation, images, tour and camera-path preparation.",
+    "RVT, DWG, DXF and SKP open the Apex internal conversion/import workflow. Use this Portuguese response when relevant: Abri o fluxo de importação 3D da Apex. Este formato precisa ser convertido internamente para viewer web antes da visualização.",
+    "For BIM / 3D findings, never use speculative wording such as I think, probably, parece, talvez, pode conter, might or may contain.",
+    "Apex never invents BIM findings. If it cannot verify, label UNKNOWN. If detected by parser/viewer, label CONFIRMED. If inferred from metadata, label ASSUMPTION.",
+    "BIM / 3D reports must separate Confirmed facts, Detected issues, Assumptions, Unknown / not available and Recommended next action using CONFIRMED, ASSUMPTION and UNKNOWN evidence labels.",
+    "Do not mention external software such as Revit, ArchiCAD, Solibri, Twinmotion or Blender until Apex has opened the internal studio/import flow, identified a limitation, generated a report and produced correction instructions, unless the user explicitly asks how to do it outside Apex.",
     "For images, use actual image content when supplied. For non-image files, be honest about metadata-only understanding until a parser/viewer exists.",
     "If file content is unavailable or a viewer/parser failed, say exactly what you can and cannot know, then guide the next step naturally.",
     "Never format the response as a static card/report template unless the user explicitly asks for that format."
@@ -65,8 +72,8 @@
     {
       "id": "bim-viewer",
       "name": "BIM / 3D Viewer",
-      "role": "Open real IFC viewer path and guide RVT/CAD conversion requirements.",
-      "trigger": ["ifc", "rvt", "dwg", "dxf", "skp", "bim", "revit", "clash"],
+      "role": "Open Apex internal BIM / 3D Studio or internal import/conversion workflow.",
+      "trigger": ["ifc", "glb", "gltf", "obj", "stl", "fbx", "rvt", "dwg", "dxf", "skp", "bim", "clash"],
       "status": "planned"
     },
     {

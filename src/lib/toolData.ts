@@ -22,8 +22,8 @@ export const toolData: CopilotTool[] = [
   {
     id: 'bim-viewer',
     name: 'BIM / 3D Viewer',
-    role: 'Open real IFC viewer path and guide RVT/CAD conversion requirements.',
-    trigger: ['ifc', 'rvt', 'dwg', 'dxf', 'skp', 'bim', 'revit', 'clash'],
+    role: 'Open Apex internal BIM / 3D Studio or internal import/conversion workflow.',
+    trigger: ['ifc', 'glb', 'gltf', 'obj', 'stl', 'fbx', 'rvt', 'dwg', 'dxf', 'skp', 'bim', 'clash'],
   },
   {
     id: 'budget',

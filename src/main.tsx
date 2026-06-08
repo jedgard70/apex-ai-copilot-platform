@@ -11,6 +11,7 @@ import {
   Upload,
 } from 'lucide-react'
 import { ArchVisPanel } from './components/ArchVisPanel'
+import { Bim3DPanel } from './components/Bim3DPanel'
 import { DirectCutInitialConfig, DirectCutPanel } from './components/DirectCutPanel'
 import { classifyFile, formatSize, IntakeFile, isVisionReady, readFileAsDataUrl, readImageDimensions } from './lib/fileIntake'
 import { selectTool, tools } from './lib/toolRegistry'
@@ -34,6 +35,10 @@ type DirectCutOutput = {
   goal: string
   conversationContext: string[]
   initialConfig?: DirectCutInitialConfig
+}
+
+type Bim3DOutput = {
+  source: IntakeFile
 }
 
 function normalizeRevisionConstraint(text: string) {
@@ -115,6 +120,22 @@ function isDirectCutIntent(text: string) {
   return /\b(video|v[ií]deo|directcut|roteiro|reels|apresenta[cç][aã]o|tour|anima[cç][aã]o|v[ií]deo de venda|video de venda|timelapse|shot list|storyboard|cinematic|cinem[aá]tico|transformar imagem em v[ií]deo|imagem em v[ií]deo|image to video|adicionar voz|add voice|mudar luz|alterar luz|relight|melhorar v[ií]deo|improve video|clip editor|editar v[ií]deo|3d scenes|movimento de c[aâ]mera|camera movement)\b/i.test(text)
 }
 
+function fileExtension(fileName: string) {
+  return fileName.toLowerCase().split('.').pop() || ''
+}
+
+function isBim3DIntent(text: string, attachment?: IntakeFile) {
+  return attachment?.kind === 'bim-cad' || /\b(ifc|glb|gltf|obj|stl|fbx|rvt|dwg|dxf|skp|bim|cad|3d studio|viewer|visualizar modelo|clash|compatibiliza[cç][aã]o)\b/i.test(text)
+}
+
+function isInternalViewerFormat(fileName: string) {
+  return ['ifc', 'glb', 'gltf', 'obj', 'stl', 'fbx'].includes(fileExtension(fileName))
+}
+
+function isInternalImportFormat(fileName: string) {
+  return ['rvt', 'dwg', 'dxf', 'skp'].includes(fileExtension(fileName))
+}
+
 function inferDirectCutConfig(text: string, attachment?: IntakeFile): DirectCutInitialConfig {
   const lower = text.toLowerCase()
   const config: DirectCutInitialConfig = {
@@ -181,6 +202,7 @@ function App() {
   const [activeFile, setActiveFile] = useState<IntakeFile | undefined>()
   const [archVisOutput, setArchVisOutput] = useState<ArchVisOutput | null>(null)
   const [directCutOutput, setDirectCutOutput] = useState<DirectCutOutput | null>(null)
+  const [bim3DOutput, setBim3DOutput] = useState<Bim3DOutput | null>(null)
   const [archVisRevisionConstraints, setArchVisRevisionConstraints] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
@@ -204,6 +226,7 @@ function App() {
     const userMessage: Message = { id: id(), role: 'user', text: userText, attachment }
     const shouldOpenArchVis = isArchVisIntent(clean || modelText, attachment)
     const shouldOpenDirectCut = clean && isDirectCutIntent(clean)
+    const shouldOpenBim3D = isBim3DIntent(clean || modelText, attachment)
     const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
     if (shouldLockRevision) {
       const constraint = normalizeRevisionConstraint(clean)
@@ -239,6 +262,18 @@ function App() {
         conversationContext: context,
         initialConfig: inferDirectCutConfig(clean, attachment),
       })
+      setInput('')
+      return
+    }
+    if (shouldOpenBim3D && attachment?.kind === 'bim-cad') {
+      const fileName = attachment.file.name
+      const studioMessage = isInternalViewerFormat(fileName)
+        ? 'Abri o BIM / 3D Studio ao lado. Vou visualizar, analisar, gerar relatório técnico e preparar imagens/tour do modelo dentro da Apex.'
+        : isInternalImportFormat(fileName)
+          ? 'Abri o fluxo de importação 3D da Apex. Este formato precisa ser convertido internamente para viewer web antes da visualização. Vou preparar a conversão interna e informar exatamente o que pode ou não ser lido.'
+          : 'Abri o BIM / 3D Studio ao lado para revisar o arquivo e preparar o próximo fluxo interno.'
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: studioMessage }])
+      setBim3DOutput({ source: attachment })
       setInput('')
       return
     }
@@ -355,7 +390,7 @@ function App() {
         </div>
       </header>
 
-      <section className={`workspace ${archVisOutput || directCutOutput ? 'studio-open' : ''}`}>
+      <section className={`workspace ${archVisOutput || directCutOutput || bim3DOutput ? 'studio-open' : ''}`}>
         <section className="chat-shell" aria-label="Apex AI Copilot chat">
           <div className="chat-header">
             <div>
@@ -457,6 +492,13 @@ function App() {
               conversationContext={directCutOutput.conversationContext}
               initialConfig={directCutOutput.initialConfig}
               onClear={() => setDirectCutOutput(null)}
+            />
+          )}
+
+          {bim3DOutput && (
+            <Bim3DPanel
+              source={bim3DOutput.source}
+              onClear={() => setBim3DOutput(null)}
             />
           )}
 

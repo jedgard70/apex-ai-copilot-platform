@@ -576,6 +576,485 @@ input {
   font-weight: 700;
 }
 
+.bim3d-panel {
+  padding: 18px;
+  border: 1px solid rgba(7, 24, 63, 0.14);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(215, 25, 42, 0.1), transparent 30%),
+    linear-gradient(180deg, #ffffff, #f7f9fc);
+  box-shadow: 0 24px 70px rgba(7, 24, 63, 0.1);
+}
+
+.bim3d-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.bim3d-heading span {
+  color: #d7192a;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.bim3d-heading h2 {
+  margin: 4px 0 0;
+  color: #07183f;
+  font-size: 22px;
+  line-height: 1.15;
+}
+
+.bim3d-stage {
+  display: grid;
+  gap: 12px;
+}
+
+.bim3d-viewer-shell {
+  min-height: 250px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  gap: 9px;
+  padding: 22px;
+  border: 1px solid #dfe7f2;
+  border-radius: 16px;
+  color: #07183f;
+  background:
+    linear-gradient(135deg, rgba(7, 24, 63, 0.04), rgba(215, 25, 42, 0.05)),
+    repeating-linear-gradient(45deg, rgba(7, 24, 63, 0.035), rgba(7, 24, 63, 0.035) 1px, transparent 1px, transparent 14px),
+    #ffffff;
+}
+
+.bim3d-viewer-shell strong,
+.bim3d-viewer-shell span,
+.bim3d-viewer-shell p {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.bim3d-viewer-shell span {
+  color: #64708b;
+  font-size: 13px;
+}
+
+.bim3d-viewer-shell p {
+  max-width: 620px;
+  margin: 0;
+  color: #3f4b66;
+  line-height: 1.55;
+}
+
+.bim3d-error {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(215, 25, 42, 0.22);
+  border-radius: 14px;
+  color: #07183f;
+  background: rgba(215, 25, 42, 0.05);
+}
+
+.bim3d-error p {
+  margin: 4px 0 0;
+  color: #64708b;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.bim3d-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.bim3d-meta div {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #edf1f6;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.bim3d-meta span,
+.bim3d-meta strong {
+  display: block;
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.bim3d-meta span {
+  color: #64708b;
+  font-size: 12px;
+}
+
+.bim3d-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.bim3d-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #dfe5ee;
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: #07183f;
+  background: #ffffff;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.bim3d-evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.bim3d-evidence-grid div {
+  padding: 12px;
+  border: 1px solid #edf1f6;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.bim3d-evidence-grid span,
+.bim3d-report-head span {
+  color: #d7192a;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.bim3d-evidence-grid p {
+  margin: 7px 0 0;
+  color: #3f4b66;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.bim3d-report {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid #edf1f6;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.bim3d-report-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.bim3d-report-head h3 {
+  margin: 4px 0 0;
+  color: #07183f;
+}
+
+.bim3d-report-head button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #dfe5ee;
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: #ffffff;
+  background: #07183f;
+  cursor: pointer;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.bim3d-report pre {
+  max-height: 360px;
+  overflow: auto;
+  margin: 0;
+  padding: 12px;
+  border-radius: 12px;
+  color: #233154;
+  background: #f7f9fc;
+  border: 1px solid #edf1f6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+.bim3d-scene {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.bim3d-scene div {
+  padding: 12px;
+  border: 1px solid #edf1f6;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.bim3d-scene strong {
+  display: block;
+  margin-top: 8px;
+  color: #07183f;
+}
+
+.bim3d-scene p {
+  margin: 6px 0 0;
+  color: #64708b;
+  line-height: 1.45;
+}
+
+.bim3d-stage-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.bim3d-stage-status span {
+  display: inline-flex;
+  border: 1px solid rgba(7, 24, 63, 0.14);
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: #07183f;
+  background: rgba(255, 255, 255, 0.82);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.bim3d-error small {
+  display: block;
+  margin-top: 6px;
+  color: #8b1a25;
+  line-height: 1.4;
+}
+
+.bim3d-section-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.bim3d-section-head span {
+  color: #d7192a;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.bim3d-section-head strong {
+  color: #64708b;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: right;
+}
+
+.bim3d-controls-panel,
+.bim3d-tour-editor {
+  margin-top: 14px;
+  border: 1px solid #edf1f6;
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 12px;
+}
+
+.bim3d-control-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.bim3d-control-grid button {
+  display: grid;
+  gap: 5px;
+  justify-items: start;
+  min-height: 78px;
+  border: 1px solid #e3e8f1;
+  border-radius: 12px;
+  padding: 10px;
+  color: #07183f;
+  background: #f9fbfe;
+  cursor: pointer;
+  text-align: left;
+}
+
+.bim3d-control-grid button.active {
+  border-color: rgba(215, 25, 42, 0.38);
+  background: #ffffff;
+  box-shadow: inset 4px 0 0 #d7192a;
+}
+
+.bim3d-control-grid span {
+  color: #07183f;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.bim3d-control-grid small {
+  color: #64708b;
+  font-size: 11px;
+}
+
+.bim3d-analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.bim3d-analysis-card {
+  border: 1px solid #edf1f6;
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 12px;
+}
+
+.bim3d-analysis-card h3,
+.bim3d-tour-editor h3 {
+  margin: 0 0 10px;
+  color: #07183f;
+  font-size: 15px;
+}
+
+.bim3d-analysis-card ul,
+.bim3d-tour-editor ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bim3d-analysis-card li,
+.bim3d-tour-editor li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px;
+  align-items: start;
+  color: #233154;
+  line-height: 1.45;
+  font-size: 13px;
+}
+
+.bim3d-analysis-card p {
+  margin: 0;
+  color: #233154;
+  overflow-wrap: anywhere;
+}
+
+.evidence-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 4px 7px;
+  font-size: 10px;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.evidence-pill.confirmed {
+  color: #07572f;
+  background: rgba(38, 186, 104, 0.14);
+  border: 1px solid rgba(38, 186, 104, 0.24);
+}
+
+.evidence-pill.assumption {
+  color: #123f80;
+  background: rgba(109, 168, 255, 0.16);
+  border: 1px solid rgba(109, 168, 255, 0.26);
+}
+
+.evidence-pill.unknown {
+  color: #744400;
+  background: rgba(255, 178, 45, 0.18);
+  border: 1px solid rgba(255, 178, 45, 0.28);
+}
+
+.bim3d-tour-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.bim3d-tour-grid > div {
+  border: 1px solid #edf1f6;
+  border-radius: 12px;
+  padding: 12px;
+  background: #f9fbfe;
+}
+
+.bim3d-tour-grid p {
+  margin: 12px 0 0;
+  color: #64708b;
+  line-height: 1.45;
+  font-size: 13px;
+}
+
+.bim3d-tour-add {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.bim3d-tour-add input {
+  min-width: 0;
+  min-height: 40px;
+  border: 1px solid #dfe5ee;
+  border-radius: 11px;
+  padding: 0 10px;
+  color: #07183f;
+  background: #ffffff;
+  font: inherit;
+}
+
+.bim3d-tour-add button,
+.bim3d-export-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #dfe5ee;
+  border-radius: 11px;
+  padding: 10px 12px;
+  color: #07183f;
+  background: #ffffff;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.bim3d-export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.bim3d-export-actions button:first-child {
+  color: #ffffff;
+  background: #07183f;
+  border-color: #07183f;
+}
+
 .archvis-edit textarea {
   display: block;
   width: 100%;

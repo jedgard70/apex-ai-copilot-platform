@@ -14,7 +14,7 @@ export function classifyFile(file: File): IntakeFile['kind'] {
   const ext = file.name.toLowerCase().split('.').pop() || ''
   if (file.type.startsWith('image/') || ['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(ext)) return 'image'
   if (ext === 'pdf' || file.type === 'application/pdf') return 'pdf'
-  if (['ifc', 'rvt', 'dwg', 'dxf', 'skp', 'fbx', 'obj', 'glb', 'gltf'].includes(ext)) return 'bim-cad'
+  if (['ifc', 'rvt', 'dwg', 'dxf', 'skp', 'fbx', 'obj', 'stl', 'glb', 'gltf'].includes(ext)) return 'bim-cad'
   if (file.type.startsWith('video/') || ['mp4', 'mov', 'webm'].includes(ext)) return 'video'
   if (['xlsx', 'xls', 'csv'].includes(ext)) return 'spreadsheet'
   if (['doc', 'docx', 'txt', 'md', 'json'].includes(ext)) return 'document'
