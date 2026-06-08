@@ -533,6 +533,7 @@ async function handleGenerateImage(req, res) {
     const revisionConstraints = Array.isArray(body.revisionConstraints)
       ? body.revisionConstraints.map(item => String(item).slice(0, 600)).filter(Boolean).slice(0, 20)
       : []
+    const outputType = String(body.outputType || (mode === 'preserve-layout' ? 'humanized-floor-plan' : 'creative-concept'))
     const promptStyle = String(body.promptStyle || 'humanized-floor-plan')
     const cameraPreset = String(body.cameraPreset || 'auto')
     const strength = Math.max(30, Math.min(100, Number(body.strength || 85)))
@@ -569,6 +570,7 @@ async function handleGenerateImage(req, res) {
           'STRICT FIDELITY MODE:',
           'Use the uploaded image as the strict reference/base image.',
           'Transform this exact uploaded architectural floor plan into a high-quality humanized floor plan visualization.',
+          outputType === 'humanized-floor-plan' ? 'Keep strict top-down orthographic view. Do not convert into eye-level, side-view, room perspective, facade, or 3D interior camera. This is a floor plan humanization, not a perspective render.' : '',
           'Preserve the original geometry, walls, room positions, labels where possible, pool location, garage location, road/access, lot shape, proportions and top-down camera.',
           'Do not redesign the plan.',
           'Do not add/remove rooms.',
@@ -580,6 +582,23 @@ async function handleGenerateImage(req, res) {
           'The output should look like a humanized/rendered version of the same uploaded top-down floor plan.',
         ].filter(Boolean).join('\n')
       : 'Creative variation mode: use the uploaded plan as source context, but allow more visual interpretation while keeping the project recognizable.'
+
+    const outputTypeRules = {
+      'humanized-floor-plan': 'Output type: Humanized floor plan / Top-down. Force top-down orthographic floor plan humanization. No side camera, no eye-level view, no 3D perspective room render, no facade/interior camera.',
+      '3d-perspective': 'Output type: 3D perspective render. Perspective is allowed because the user explicitly requested 3D/perspective.',
+      'facade-render': 'Output type: Facade render. Exterior facade camera is allowed.',
+      'interior-render': 'Output type: Interior render. Interior camera is allowed.',
+      'creative-concept': 'Output type: Creative concept. Redesign may be imaginative and must not be presented as faithful plan.',
+    }
+
+    const autoFloorPlanConstraints = outputType === 'humanized-floor-plan'
+      ? [
+          'Preserve 1 bathroom and 1 laundry/service room, do not create two bathrooms.',
+          'Keep grass/green area only where it appears in the original plan.',
+          'Do not extend grass beyond the original left strip/half.',
+          'Keep all walls, openings and layout positions.',
+        ]
+      : []
 
     const boundaryRules = mode === 'preserve-layout' && (lockBoundaries || noInventedAreas)
       ? [
@@ -602,15 +621,21 @@ async function handleGenerateImage(req, res) {
     const safePrompt = [
       prompt.slice(0, 8000),
       '',
-      revisionConstraints.length
-        ? ['User correction constraints from previous failed outputs:', ...revisionConstraints.map((constraint, index) => `${index + 1}. ${constraint}`)].join('\n')
+      autoFloorPlanConstraints.length || revisionConstraints.length
+        ? ['User correction constraints from previous failed outputs:', ...[...autoFloorPlanConstraints, ...revisionConstraints].map((constraint, index) => `${index + 1}. ${constraint}`)].join('\n')
         : '',
       '',
+      outputTypeRules[outputType] || outputTypeRules['creative-concept'],
       fidelityRules,
       buildArchVisServerStylePrompt(promptStyle),
       boundaryRules,
       cameraPreset && cameraPreset !== 'auto' ? `Selected camera/movement preset: ${cameraPreset}.` : '',
-      negativePrompt ? `Negative prompt: ${negativePrompt.slice(0, 2000)}` : '',
+      negativePrompt ? `Negative prompt: ${[
+        negativePrompt.slice(0, 2000),
+        outputType === 'humanized-floor-plan'
+          ? 'eye-level view, side view, perspective room render, facade, interior photograph, camera inside room, 3D walkthrough, changed viewpoint'
+          : '',
+      ].filter(Boolean).join(', ')}` : '',
       '',
       'Apex ArchVis production intent: generate a polished, client-ready architectural visualization. Preserve the uploaded project logic where a source image is supplied. Do not add fake labels or unreadable text.',
       `Reference mode: ${referenceMode}.`,

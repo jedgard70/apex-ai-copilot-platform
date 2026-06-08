@@ -326,7 +326,21 @@ input {
 .archvis-output h3,
 .archvis-edit h3 {
   margin: 4px 0 0;
-  color: #07183f;
+  color: #f5f8ff;
+}
+
+.archvis-studio .ghost-action,
+.archvis-studio .archvis-actions button,
+.archvis-studio .archvis-edit button {
+  border-color: rgba(150, 164, 195, 0.22);
+  color: #eaf0ff;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.archvis-studio .archvis-actions button:first-child {
+  color: #ffffff;
+  background: #d7192a;
+  border-color: rgba(215, 25, 42, 0.9);
 }
 
 .ghost-action,
@@ -350,9 +364,9 @@ input {
   gap: 14px;
   align-items: center;
   padding: 12px;
-  border: 1px solid #edf1f6;
+  border: 1px solid rgba(150, 164, 195, 0.18);
   border-radius: 14px;
-  background: #fafbfe;
+  background: rgba(255, 255, 255, 0.045);
 }
 
 .archvis-source img {
@@ -360,8 +374,8 @@ input {
   height: 105px;
   object-fit: contain;
   border-radius: 12px;
-  background: #ffffff;
-  border: 1px solid #e2e8f2;
+  background: #0d1733;
+  border: 1px solid rgba(150, 164, 195, 0.2);
 }
 
 .archvis-source strong,
@@ -369,6 +383,10 @@ input {
   display: block;
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.archvis-source strong {
+  color: #f5f8ff;
 }
 
 .archvis-source span {
@@ -382,9 +400,9 @@ input {
 .archvis-generated {
   margin-top: 14px;
   padding: 14px;
-  border: 1px solid #edf1f6;
+  border: 1px solid rgba(150, 164, 195, 0.18);
   border-radius: 14px;
-  background: #f7f9fc;
+  background: rgba(255, 255, 255, 0.045);
 }
 
 .archvis-generated img {
@@ -406,7 +424,7 @@ input {
   overflow-wrap: anywhere;
   word-break: break-word;
   line-height: 1.55;
-  color: #233154;
+  color: #eaf0ff;
 }
 
 .archvis-output small {
@@ -474,7 +492,7 @@ input {
   display: grid;
   gap: 7px;
   margin-top: 12px;
-  color: #07183f;
+  color: #eaf0ff;
   font-weight: 800;
   font-size: 13px;
 }
@@ -482,11 +500,11 @@ input {
 .archvis-style-selector select {
   width: 100%;
   min-height: 42px;
-  border: 1px solid #dfe5ee;
+  border: 1px solid rgba(150, 164, 195, 0.22);
   border-radius: 12px;
   padding: 0 12px;
-  color: #07183f;
-  background: #ffffff;
+  color: #eaf0ff;
+  background: #111f3e;
   font: inherit;
 }
 
@@ -501,10 +519,10 @@ input {
   align-items: center;
   gap: 10px;
   padding: 11px 12px;
-  border: 1px solid #dfe5ee;
+  border: 1px solid rgba(150, 164, 195, 0.22);
   border-radius: 12px;
-  color: #233154;
-  background: #ffffff;
+  color: #eaf0ff;
+  background: rgba(255, 255, 255, 0.05);
   cursor: pointer;
   line-height: 1.35;
 }
@@ -525,8 +543,8 @@ input {
   padding: 10px 12px;
   border: 1px solid rgba(215, 25, 42, 0.24);
   border-radius: 12px;
-  color: #233154;
-  background: rgba(215, 25, 42, 0.05);
+  color: #ffd7dc;
+  background: rgba(215, 25, 42, 0.12);
   font-size: 13px;
   line-height: 1.45;
   overflow-wrap: anywhere;
@@ -661,10 +679,13 @@ input {
 
 .archvis-studio {
   padding: 18px;
-  border: 1px solid #e2e8f2;
+  border: 1px solid rgba(150, 164, 195, 0.2);
   border-radius: 18px;
-  background: #ffffff;
-  box-shadow: 0 24px 80px rgba(7, 24, 63, 0.08);
+  background:
+    linear-gradient(180deg, rgba(17, 31, 62, 0.98), rgba(8, 14, 32, 0.99)),
+    #081024;
+  box-shadow: 0 30px 90px rgba(7, 24, 63, 0.24);
+  color: #eaf0ff;
 }
 
 .archvis-studio-grid {
@@ -685,15 +706,15 @@ input {
 .archvis-current-preview,
 .archvis-gallery {
   padding: 12px;
-  border: 1px solid #edf1f6;
+  border: 1px solid rgba(150, 164, 195, 0.18);
   border-radius: 14px;
-  background: #f7f9fc;
+  background: rgba(255, 255, 255, 0.045);
 }
 
 .archvis-current-preview strong,
 .archvis-gallery-head strong {
   display: block;
-  color: #07183f;
+  color: #f5f8ff;
 }
 
 .archvis-current-preview img {
@@ -704,7 +725,7 @@ input {
   margin-top: 10px;
   border: 1px solid #e2e8f2;
   border-radius: 12px;
-  background: #ffffff;
+  background: #0d1733;
 }
 
 .archvis-current-preview p,
@@ -738,7 +759,7 @@ input {
   padding: 0;
   border: 2px solid transparent;
   border-radius: 10px;
-  background: #ffffff;
+  background: #0d1733;
   overflow: hidden;
   cursor: pointer;
 }
@@ -763,10 +784,10 @@ input {
   align-items: center;
   gap: 9px;
   padding: 10px 11px;
-  border: 1px solid #dfe5ee;
+  border: 1px solid rgba(150, 164, 195, 0.2);
   border-radius: 12px;
-  color: #233154;
-  background: #ffffff;
+  color: #eaf0ff;
+  background: rgba(255, 255, 255, 0.05);
   font-size: 13px;
   font-weight: 700;
 }
@@ -783,7 +804,7 @@ input {
   padding: 12px;
   border: 1px solid rgba(215, 25, 42, 0.24);
   border-radius: 14px;
-  background: rgba(215, 25, 42, 0.04);
+  background: rgba(215, 25, 42, 0.1);
 }
 
 .revision-head {
@@ -794,17 +815,17 @@ input {
 }
 
 .revision-head strong {
-  color: #07183f;
+  color: #f5f8ff;
 }
 
 .revision-head button,
 .revision-add-row button,
 .revision-constraints-panel li button {
-  border: 1px solid #dfe5ee;
+  border: 1px solid rgba(150, 164, 195, 0.22);
   border-radius: 10px;
   padding: 8px 10px;
-  color: #07183f;
-  background: #ffffff;
+  color: #eaf0ff;
+  background: rgba(255, 255, 255, 0.07);
   cursor: pointer;
   font-weight: 800;
   font-size: 12px;
@@ -825,20 +846,41 @@ input {
   list-style: none;
 }
 
+.auto-constraints {
+  display: grid;
+  gap: 7px;
+  padding: 10px;
+  border: 1px solid rgba(45, 156, 255, 0.22);
+  border-radius: 12px;
+  background: rgba(45, 156, 255, 0.08);
+}
+
+.auto-constraints strong {
+  color: #cfe7ff;
+  font-size: 13px;
+}
+
+.auto-constraints span {
+  color: #eaf0ff;
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
 .revision-constraints-panel li {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 8px;
   align-items: center;
   padding: 9px;
-  border: 1px solid #edf1f6;
+  border: 1px solid rgba(150, 164, 195, 0.16);
   border-radius: 11px;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .revision-constraints-panel li span,
 .revision-constraints-panel p {
-  color: #233154;
+  color: #eaf0ff;
   font-size: 13px;
   line-height: 1.45;
   overflow-wrap: anywhere;
@@ -853,10 +895,11 @@ input {
 .revision-add-row input {
   min-width: 0;
   height: 40px;
-  border: 1px solid #dfe5ee;
+  border: 1px solid rgba(150, 164, 195, 0.22);
   border-radius: 10px;
   padding: 0 10px;
-  color: #07183f;
+  color: #eaf0ff;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .archvis-range-grid {
@@ -868,7 +911,7 @@ input {
 .archvis-range-grid label {
   display: grid;
   gap: 7px;
-  color: #07183f;
+  color: #eaf0ff;
   font-size: 13px;
   font-weight: 800;
 }
@@ -880,10 +923,11 @@ input {
 
 .archvis-range-grid input[type="number"] {
   height: 38px;
-  border: 1px solid #dfe5ee;
+  border: 1px solid rgba(150, 164, 195, 0.22);
   border-radius: 10px;
   padding: 0 10px;
-  color: #07183f;
+  color: #eaf0ff;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .archvis-range-grid small {
@@ -893,7 +937,7 @@ input {
 .archvis-editor-label {
   display: grid;
   gap: 7px;
-  color: #07183f;
+  color: #eaf0ff;
   font-size: 13px;
   font-weight: 800;
 }
@@ -901,11 +945,11 @@ input {
 .archvis-editor-label textarea {
   width: 100%;
   min-height: 140px;
-  border: 1px solid #dfe5ee;
+  border: 1px solid rgba(150, 164, 195, 0.22);
   border-radius: 12px;
   padding: 12px;
-  color: #07183f;
-  background: #ffffff;
+  color: #eaf0ff;
+  background: rgba(255, 255, 255, 0.06);
   resize: vertical;
   font: inherit;
   line-height: 1.48;

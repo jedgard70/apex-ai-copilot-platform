@@ -103,6 +103,10 @@ function isArchVisIntent(text: string, attachment?: IntakeFile) {
   return /\b(gerar prompt de render|gere um prompt de render|prompt de render|crie uma planta humanizada|criar planta humanizada|planta humanizada|renderizar|renderize|renderize essa|renderizar essa|renderize esta|renderizar esta|área gourmet|area gourmet|refaz|refaça|regenera|regenerate|sem jardim|não crie|nao crie|deixa mais|usa madeira|melhorar imagem|editar imagem|trocar materiais|adicionar paisagismo|criar fachada|criar imagem de venda|humanize|image edit|edit image|render)\b/i.test(text)
 }
 
+function asksExplicit3D(text: string) {
+  return /\b(gerar 3d|gere 3d|3d|perspectiva|vista lateral|c[aâ]mera de lado|fachada|interior|ambiente real|walkthrough|eye-level|realistic room view|room render|render 3d)\b/i.test(text)
+}
+
 function App() {
   const fileInput = useRef<HTMLInputElement | null>(null)
   const [input, setInput] = useState('')
@@ -180,7 +184,9 @@ function App() {
       const data = await response.json().catch(() => ({}))
       const reply = data.reply || data.error || 'Apex AI Copilot could not complete the response.'
       if (shouldOpenArchVis && attachment?.kind === 'image') {
-        const studioMessage = 'Abri o ArchVis Studio ao lado com a imagem original, o prompt ajustável e a galeria de iterações. Você pode gerar, corrigir e regenerar sem reenviar o arquivo.'
+        const studioMessage = asksExplicit3D(clean)
+          ? 'Abri o ArchVis Studio ao lado para render 3D/perspectiva. Você pode ajustar câmera, prompt e gerar pelo painel.'
+          : 'Vou humanizar a planta baixa em vista superior. Se quiser render 3D em perspectiva, me peça 3D. Abri o ArchVis Studio ao lado com a imagem e o prompt ajustável.'
         setMessages(prev => [...prev, { id: id(), role: 'assistant', text: studioMessage }])
         setArchVisOutput({
           source: attachment,

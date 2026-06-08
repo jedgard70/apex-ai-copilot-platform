@@ -118,6 +118,7 @@ export const archvisPromptLibrary = {
 
 export const archvisCameraPresets = [
   'auto',
+  'Top-Down / Vista Superior 2D',
   'eye-level',
   'low angle',
   'high angle',

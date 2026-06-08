@@ -12,6 +12,7 @@ import { formatSize, IntakeFile } from '../lib/fileIntake'
 
 type GenerationMode = 'preserve-layout' | 'creative-redesign'
 type ReferenceMode = 'original' | 'selected-generation'
+type OutputType = 'humanized-floor-plan' | '3d-perspective' | 'facade-render' | 'interior-render' | 'creative-concept'
 
 type ArchVisPanelProps = {
   source: IntakeFile
@@ -60,6 +61,8 @@ function preservePlanPrompt(lockBoundaries: boolean, preserveLabels: boolean, no
   return [
     getArchVisStylePrompt('humanized-floor-plan'),
     'Transform this exact uploaded architectural floor plan into a high-quality humanized floor plan visualization.',
+    'Keep strict top-down orthographic view. This is a floor plan humanization, not a 3D perspective render.',
+    'Do not convert into eye-level, side-view, room perspective, facade, or 3D interior camera.',
     'Preserve the original geometry, walls, room positions, pool location, garage location, road/access, lot shape, proportions and top-down camera.',
     preserveLabels ? 'Preserve labels where possible and do not create misspelled labels.' : '',
     lockBoundaries ? 'Preserve exact lot boundary, building footprint, exterior/service areas and blank/technical zones.' : '',
@@ -78,12 +81,40 @@ function creativePrompt(style: ArchVisPromptStyle, cameraPreset: ArchVisCameraPr
   ].filter(Boolean).join('\n')
 }
 
+const defaultFloorPlanConstraints = [
+  'Preserve 1 bathroom and 1 laundry/service room, do not create two bathrooms.',
+  'Keep grass/green area only where it appears in the original plan.',
+  'Do not extend grass beyond the original left strip/half.',
+  'Keep all walls, openings and layout positions.',
+]
+
+function outputTypePrompt(outputType: OutputType) {
+  switch (outputType) {
+    case 'humanized-floor-plan':
+      return 'Output type: Humanized floor plan / Top-down. Keep strict top-down orthographic view. No side camera, no eye-level view, no facade, no interior photograph, no 3D perspective room render.'
+    case '3d-perspective':
+      return 'Output type: 3D perspective render. Perspective/eye-level or 3/4 camera is allowed because the user explicitly requested 3D/perspective.'
+    case 'facade-render':
+      return 'Output type: Facade render. Exterior/facade camera is allowed because the user explicitly selected facade.'
+    case 'interior-render':
+      return 'Output type: Interior render. Interior camera is allowed because the user explicitly selected interior.'
+    case 'creative-concept':
+      return 'Output type: Creative concept. Redesign and interpretation are allowed; do not present this as a faithful plan.'
+  }
+}
+
 function buildRevisionConstraintBlock(revisionConstraints: string[]) {
   if (!revisionConstraints.length) return ''
   return [
     'User correction constraints from previous failed outputs:',
     ...revisionConstraints.map((constraint, index) => `${index + 1}. ${constraint}`),
   ].join('\n')
+}
+
+function effectiveRevisionConstraints(outputType: OutputType, revisionConstraints: string[]) {
+  return outputType === 'humanized-floor-plan'
+    ? [...defaultFloorPlanConstraints, ...revisionConstraints]
+    : revisionConstraints
 }
 
 function mergeRevisionConstraintBlock(prompt: string, revisionConstraints: string[]) {
@@ -96,6 +127,7 @@ function mergeRevisionConstraintBlock(prompt: string, revisionConstraints: strin
 
 function buildInitialPrompt(
   mode: GenerationMode,
+  outputType: OutputType,
   style: ArchVisPromptStyle,
   camera: ArchVisCameraPreset,
   lock: boolean,
@@ -108,6 +140,7 @@ function buildInitialPrompt(
     ? preservePlanPrompt(lock, labels, noInvented)
     : creativePrompt(style, camera)
   return [
+    outputTypePrompt(outputType),
     base,
     buildRevisionConstraintBlock(revisionConstraints),
     copilotOutput ? `Copilot context:\n${copilotOutput}` : '',
@@ -125,15 +158,16 @@ export function ArchVisPanel({
   onClear,
 }: ArchVisPanelProps) {
   const [generationMode, setGenerationMode] = useState<GenerationMode>('preserve-layout')
+  const [outputType, setOutputType] = useState<OutputType>('humanized-floor-plan')
   const [promptStyle, setPromptStyle] = useState<ArchVisPromptStyle>('humanized-floor-plan')
-  const [cameraPreset, setCameraPreset] = useState<ArchVisCameraPreset>("bird's-eye / top-down")
+  const [cameraPreset, setCameraPreset] = useState<ArchVisCameraPreset>('Top-Down / Vista Superior 2D')
   const [referenceMode, setReferenceMode] = useState<ReferenceMode>('original')
   const [lockBoundaries, setLockBoundaries] = useState(true)
   const [preserveLabels, setPreserveLabels] = useState(true)
   const [noInventedAreas, setNoInventedAreas] = useState(true)
   const [strength, setStrength] = useState(85)
   const [outputCount, setOutputCount] = useState(1)
-  const [prompt, setPrompt] = useState(() => buildInitialPrompt('preserve-layout', 'humanized-floor-plan', "bird's-eye / top-down", true, true, true, output, revisionConstraints))
+  const [prompt, setPrompt] = useState(() => buildInitialPrompt('preserve-layout', 'humanized-floor-plan', 'humanized-floor-plan', 'Top-Down / Vista Superior 2D', true, true, true, output, effectiveRevisionConstraints('humanized-floor-plan', revisionConstraints)))
   const [negativePrompt, setNegativePrompt] = useState(() => getArchVisNegativePrompt('humanized-floor-plan', true))
   const [manualCorrection, setManualCorrection] = useState('')
   const [gallery, setGallery] = useState<GalleryItem[]>([])
@@ -156,14 +190,22 @@ export function ArchVisPanel({
   }, [source])
 
   useEffect(() => {
-    const nextPrompt = buildInitialPrompt(generationMode, promptStyle, cameraPreset, lockBoundaries, preserveLabels, noInventedAreas, output, revisionConstraints)
+    const constraints = effectiveRevisionConstraints(outputType, revisionConstraints)
+    const nextPrompt = buildInitialPrompt(generationMode, outputType, promptStyle, outputType === 'humanized-floor-plan' ? 'Top-Down / Vista Superior 2D' : cameraPreset, lockBoundaries, preserveLabels, noInventedAreas, output, constraints)
     setPrompt(nextPrompt)
-    setNegativePrompt(getArchVisNegativePrompt(generationMode === 'preserve-layout' ? 'humanized-floor-plan' : promptStyle, generationMode === 'preserve-layout' && lockBoundaries))
-  }, [generationMode, promptStyle, cameraPreset, lockBoundaries, preserveLabels, noInventedAreas, output])
+    const baseNegative = getArchVisNegativePrompt(generationMode === 'preserve-layout' ? 'humanized-floor-plan' : promptStyle, generationMode === 'preserve-layout' && lockBoundaries)
+    const floorPlanNegative = 'eye-level view, side view, perspective room render, facade, interior photograph, camera inside room, 3D walkthrough, changed viewpoint'
+    setNegativePrompt(outputType === 'humanized-floor-plan' ? `${baseNegative}, ${floorPlanNegative}` : baseNegative)
+    if (outputType === 'humanized-floor-plan') {
+      setCameraPreset('Top-Down / Vista Superior 2D')
+      setGenerationMode('preserve-layout')
+      setPromptStyle('humanized-floor-plan')
+    }
+  }, [generationMode, outputType, promptStyle, cameraPreset, lockBoundaries, preserveLabels, noInventedAreas, output])
 
   useEffect(() => {
-    setPrompt(value => mergeRevisionConstraintBlock(value, revisionConstraints))
-  }, [revisionConstraints])
+    setPrompt(value => mergeRevisionConstraintBlock(value, effectiveRevisionConstraints(outputType, revisionConstraints)))
+  }, [revisionConstraints, outputType])
 
   function addManualCorrection() {
     const correction = manualCorrection.trim()
@@ -229,12 +271,13 @@ export function ArchVisPanel({
           sourceImageDataUrl: activeReference,
           referenceMode,
           mode: generationMode,
+          outputType,
           promptStyle,
           cameraPreset,
           lockBoundaries,
           preserveLabels,
           noInventedAreas,
-          revisionConstraints,
+          revisionConstraints: effectiveRevisionConstraints(outputType, revisionConstraints),
           strength,
           outputCount,
           file: {
@@ -261,7 +304,7 @@ export function ArchVisPanel({
           imageDataUrl: image as string,
           prompt,
           negativePrompt,
-          revisionConstraints: [...revisionConstraints],
+          revisionConstraints: [...effectiveRevisionConstraints(outputType, revisionConstraints)],
           mode: generationMode,
           style: promptStyle,
           cameraPreset,
@@ -329,6 +372,17 @@ export function ArchVisPanel({
 
         <div className="archvis-controls">
           <label className="archvis-style-selector">
+            <span>Output type</span>
+            <select value={outputType} onChange={event => setOutputType(event.target.value as OutputType)}>
+              <option value="humanized-floor-plan">Humanized floor plan / Top-down</option>
+              <option value="3d-perspective">3D perspective render</option>
+              <option value="facade-render">Facade render</option>
+              <option value="interior-render">Interior render</option>
+              <option value="creative-concept">Creative concept</option>
+            </select>
+          </label>
+
+          <label className="archvis-style-selector">
             <span>Mode</span>
             <select value={generationMode} onChange={event => setGenerationMode(event.target.value as GenerationMode)}>
               <option value="preserve-layout">Preserve exact plan</option>
@@ -347,9 +401,14 @@ export function ArchVisPanel({
 
           <label className="archvis-style-selector">
             <span>Camera / movement preset</span>
-            <select value={cameraPreset} onChange={event => setCameraPreset(event.target.value as ArchVisCameraPreset)}>
+            <select
+              value={cameraPreset}
+              disabled={outputType === 'humanized-floor-plan'}
+              onChange={event => setCameraPreset(event.target.value as ArchVisCameraPreset)}
+            >
               {archvisCameraPresets.map(preset => <option key={preset} value={preset}>{preset}</option>)}
             </select>
+            {outputType === 'humanized-floor-plan' && <small>Locked to top-down for floor plan humanization.</small>}
           </label>
 
           <div className="archvis-checks">
@@ -363,6 +422,14 @@ export function ArchVisPanel({
               <strong>Revision constraints</strong>
               <button type="button" onClick={onClearRevisionConstraints} disabled={!revisionConstraints.length}>Clear corrections</button>
             </div>
+            {outputType === 'humanized-floor-plan' && (
+              <div className="auto-constraints">
+                <strong>Auto floor-plan constraints</strong>
+                {defaultFloorPlanConstraints.map(constraint => (
+                  <span key={constraint}>{constraint}</span>
+                ))}
+              </div>
+            )}
             {revisionConstraints.length ? (
               <ul>
                 {revisionConstraints.map(constraint => (
@@ -420,7 +487,7 @@ export function ArchVisPanel({
           </p>
 
           <div className="archvis-actions">
-            <button onClick={generateImage} type="button" disabled={imageLoading}><Wand2 size={16} /> {imageLoading ? 'Generating...' : 'Regenerate with corrections'}</button>
+            <button onClick={generateImage} type="button" disabled={imageLoading}><Wand2 size={16} /> {imageLoading ? 'Generating...' : outputType === 'humanized-floor-plan' ? 'Humanize floor plan' : 'Generate / Regenerate'}</button>
             <button onClick={() => setReferenceMode('selected-generation')} type="button" disabled={!selectedImage}><ImagePlus size={16} /> Use current generated image as new reference</button>
             <button onClick={() => setReferenceMode('original')} type="button"><RotateCcw size={16} /> Reuse original image as reference</button>
             <button onClick={copyPrompt} type="button"><Copy size={16} /> {copied ? 'Copied' : 'Copy prompt'}</button>
