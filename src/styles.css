@@ -957,6 +957,227 @@ input {
   overflow-wrap: anywhere;
 }
 
+.directcut-studio {
+  padding: 18px;
+  border: 1px solid rgba(150, 164, 195, 0.2);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(18, 23, 45, 0.98), rgba(8, 10, 22, 0.99)),
+    #080a16;
+  box-shadow: 0 30px 90px rgba(7, 24, 63, 0.24);
+  color: #eef4ff;
+}
+
+.directcut-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.directcut-heading span {
+  color: #6da8ff;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.directcut-heading h2 {
+  margin: 4px 0 0;
+  color: #f5f8ff;
+}
+
+.directcut-studio .ghost-action {
+  border-color: rgba(150, 164, 195, 0.22);
+  color: #eaf0ff;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.directcut-layout {
+  display: grid;
+  grid-template-columns: minmax(210px, 0.58fr) minmax(330px, 1fr);
+  gap: 14px;
+}
+
+.directcut-controls,
+.directcut-main {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.directcut-source,
+.directcut-preview,
+.directcut-plan,
+.directcut-gallery,
+.video-constraints-panel {
+  border: 1px solid rgba(150, 164, 195, 0.18);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.045);
+  padding: 12px;
+}
+
+.directcut-source strong,
+.directcut-preview strong,
+.directcut-gallery strong,
+.video-constraints-panel strong,
+.directcut-plan h3,
+.directcut-plan h4 {
+  color: #f5f8ff;
+}
+
+.directcut-source span,
+.directcut-preview span,
+.directcut-preview small,
+.directcut-gallery span,
+.directcut-gallery small,
+.directcut-plan p,
+.directcut-plan small,
+.video-constraints-panel p {
+  color: #aebce0;
+  line-height: 1.45;
+}
+
+.directcut-source img {
+  display: block;
+  width: 100%;
+  max-height: 180px;
+  object-fit: contain;
+  margin-top: 10px;
+  border: 1px solid rgba(150, 164, 195, 0.2);
+  border-radius: 12px;
+  background: #0d1733;
+}
+
+.directcut-controls label {
+  display: grid;
+  gap: 7px;
+  color: #eaf0ff;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.directcut-controls select,
+.video-constraints-panel input {
+  min-height: 40px;
+  border: 1px solid rgba(150, 164, 195, 0.22);
+  border-radius: 11px;
+  padding: 0 10px;
+  color: #eaf0ff;
+  background: #111f3e;
+  font: inherit;
+}
+
+.directcut-primary,
+.directcut-actions button,
+.video-constraints-panel button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(150, 164, 195, 0.22);
+  border-radius: 11px;
+  padding: 10px 12px;
+  color: #eaf0ff;
+  background: rgba(255, 255, 255, 0.07);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.directcut-primary {
+  color: #ffffff;
+  background: linear-gradient(135deg, #d7192a, #6d7cff);
+  border-color: transparent;
+}
+
+.directcut-preview {
+  display: grid;
+  place-items: center;
+  min-height: 180px;
+  text-align: center;
+}
+
+.directcut-plan pre {
+  max-width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  color: #eaf0ff;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(150, 164, 195, 0.14);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.directcut-plan ol {
+  color: #eaf0ff;
+  line-height: 1.5;
+}
+
+.directcut-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.video-constraints-panel {
+  display: grid;
+  gap: 8px;
+}
+
+.video-constraints-panel span {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+  color: #eaf0ff;
+  font-size: 13px;
+}
+
+.video-constraints-panel div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.directcut-gallery > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.directcut-gallery-list {
+  display: grid;
+  gap: 8px;
+}
+
+.directcut-gallery-list button {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 8px;
+  align-items: center;
+  text-align: left;
+  border: 1px solid rgba(150, 164, 195, 0.18);
+  border-radius: 12px;
+  padding: 10px;
+  color: #eaf0ff;
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+}
+
+.directcut-gallery-list button.active {
+  border-color: rgba(109, 168, 255, 0.85);
+  box-shadow: inset 4px 0 0 #6da8ff;
+}
+
+.directcut-gallery-list button small {
+  grid-column: 2;
+}
+
 .panel-section {
   border: 1px solid #e2e8f2;
   border-radius: 18px;
@@ -1075,6 +1296,10 @@ input {
   .archvis-studio-grid {
     grid-template-columns: 1fr;
   }
+
+  .directcut-layout {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 720px) {
@@ -1099,5 +1324,10 @@ input {
 
   .archvis-thumbs {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .video-constraints-panel div,
+  .directcut-gallery-list button {
+    grid-template-columns: 1fr;
   }
 }

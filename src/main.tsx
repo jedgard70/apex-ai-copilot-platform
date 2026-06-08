@@ -11,6 +11,7 @@ import {
   Upload,
 } from 'lucide-react'
 import { ArchVisPanel } from './components/ArchVisPanel'
+import { DirectCutPanel } from './components/DirectCutPanel'
 import { classifyFile, formatSize, IntakeFile, isVisionReady, readFileAsDataUrl, readImageDimensions } from './lib/fileIntake'
 import { selectTool, tools } from './lib/toolRegistry'
 import './styles.css'
@@ -25,6 +26,12 @@ type Message = {
 type ArchVisOutput = {
   source: IntakeFile
   output: string
+  conversationContext: string[]
+}
+
+type DirectCutOutput = {
+  source?: IntakeFile
+  goal: string
   conversationContext: string[]
 }
 
@@ -103,6 +110,10 @@ function isArchVisIntent(text: string, attachment?: IntakeFile) {
   return /\b(gerar prompt de render|gere um prompt de render|prompt de render|crie uma planta humanizada|criar planta humanizada|planta humanizada|renderizar|renderize|renderize essa|renderizar essa|renderize esta|renderizar esta|área gourmet|area gourmet|refaz|refaça|regenera|regenerate|sem jardim|não crie|nao crie|deixa mais|usa madeira|melhorar imagem|editar imagem|trocar materiais|adicionar paisagismo|criar fachada|criar imagem de venda|humanize|image edit|edit image|render)\b/i.test(text)
 }
 
+function isDirectCutIntent(text: string) {
+  return /\b(video|v[ií]deo|directcut|roteiro|reels|apresenta[cç][aã]o|tour|anima[cç][aã]o|v[ií]deo de venda|video de venda|timelapse|shot list|storyboard|cinematic|cinem[aá]tico)\b/i.test(text)
+}
+
 function asksExplicit3D(text: string) {
   return /\b(gerar 3d|gere 3d|3d|perspectiva|vista lateral|c[aâ]mera de lado|fachada|interior|ambiente real|walkthrough|eye-level|realistic room view|room render|render 3d)\b/i.test(text)
 }
@@ -112,6 +123,7 @@ function App() {
   const [input, setInput] = useState('')
   const [activeFile, setActiveFile] = useState<IntakeFile | undefined>()
   const [archVisOutput, setArchVisOutput] = useState<ArchVisOutput | null>(null)
+  const [directCutOutput, setDirectCutOutput] = useState<DirectCutOutput | null>(null)
   const [archVisRevisionConstraints, setArchVisRevisionConstraints] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
@@ -134,6 +146,7 @@ function App() {
       : '')
     const userMessage: Message = { id: id(), role: 'user', text: userText, attachment }
     const shouldOpenArchVis = isArchVisIntent(clean || modelText, attachment)
+    const shouldOpenDirectCut = clean && isDirectCutIntent(clean)
     const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
     if (shouldLockRevision) {
       const constraint = normalizeRevisionConstraint(clean)
@@ -147,6 +160,27 @@ function App() {
         },
       ])
       setArchVisRevisionConstraints(prev => prev.includes(constraint) ? prev : [...prev, constraint])
+      setInput('')
+      return
+    }
+    if (shouldOpenDirectCut) {
+      const context = [...messages, userMessage]
+        .slice(-8)
+        .map(message => `${message.role}: ${message.text}`)
+      setMessages(prev => [
+        ...prev,
+        userMessage,
+        {
+          id: id(),
+          role: 'assistant',
+          text: 'Abri o DirectCut Studio ao lado com o plano de vídeo, roteiro, shot list e prompt ajustável. Ainda não há conector de vídeo real, então vou trabalhar em modo planning-only.',
+        },
+      ])
+      setDirectCutOutput({
+        source: attachment,
+        goal: clean,
+        conversationContext: context,
+      })
       setInput('')
       return
     }
@@ -263,7 +297,7 @@ function App() {
         </div>
       </header>
 
-      <section className={`workspace ${archVisOutput ? 'studio-open' : ''}`}>
+      <section className={`workspace ${archVisOutput || directCutOutput ? 'studio-open' : ''}`}>
         <section className="chat-shell" aria-label="Apex AI Copilot chat">
           <div className="chat-header">
             <div>
@@ -355,6 +389,15 @@ function App() {
               onRemoveRevisionConstraint={constraint => setArchVisRevisionConstraints(prev => prev.filter(item => item !== constraint))}
               onClearRevisionConstraints={() => setArchVisRevisionConstraints([])}
               onClear={() => setArchVisOutput(null)}
+            />
+          )}
+
+          {directCutOutput && (
+            <DirectCutPanel
+              source={directCutOutput.source}
+              goal={directCutOutput.goal}
+              conversationContext={directCutOutput.conversationContext}
+              onClear={() => setDirectCutOutput(null)}
             />
           )}
 

@@ -722,6 +722,103 @@ async function handleGenerateImage(req, res) {
   }
 }
 
+async function handleVideoPlan(req, res) {
+  try {
+    const body = await readJson(req)
+    const goal = String(body.goal || 'Create a project video.').slice(0, 4000)
+    const file = body.file || null
+    const videoMode = String(body.videoMode || 'real-estate-sales-video')
+    const duration = String(body.duration || '15s')
+    const aspectRatio = String(body.aspectRatio || '16:9')
+    const voice = String(body.voice || 'narrator')
+    const style = String(body.style || 'professional-real-estate')
+    const lockedConstraints = Array.isArray(body.lockedConstraints)
+      ? body.lockedConstraints.map(item => String(item).slice(0, 400)).filter(Boolean).slice(0, 12)
+      : []
+    const sourceLine = file?.name
+      ? `Reference media: ${file.name} (${file.kind || file.type || 'unknown'}).`
+      : 'Reference media: none supplied.'
+    const constraintLine = lockedConstraints.length
+      ? `Locked constraints: ${lockedConstraints.join(' | ')}.`
+      : 'Locked constraints: none.'
+
+    const title = videoMode === 'social-media-short'
+      ? 'Short-form project reveal'
+      : videoMode === 'technical-walkthrough'
+        ? 'Technical construction walkthrough'
+        : 'Apex DirectCut project presentation'
+
+    const objective = [
+      `Create a ${duration} ${style.replace(/-/g, ' ')} video plan for: ${goal}`,
+      sourceLine,
+      constraintLine,
+    ].join(' ')
+
+    const sceneList = [
+      'Opening establishing shot: reveal the project context and strongest selling angle.',
+      'Context shot: show the plan, facade, render or construction material as the project anchor.',
+      'Value shot: highlight the main benefit, lifestyle, technical feature or delivery promise.',
+      'Detail shot: focus on materials, space organization, BIM/technical clarity or commercial differentiator.',
+      'Closing shot: call to action, project name, next step or premium final frame.',
+    ]
+
+    const cameraMovements = style === 'technical-bim'
+      ? ['clean top reveal', 'slow pan across technical areas', 'layer comparison', 'callout zoom', 'final overview']
+      : ['slow dolly in', 'soft orbit', 'top reveal', 'detail push-in', 'clean final hold']
+
+    const narrationScript = voice === 'none'
+      ? 'No narration selected. Use visual pacing, text-safe frames and music-driven cuts.'
+      : [
+          'Scene 1: This project is presented as a clear, high-value opportunity.',
+          'Scene 2: The layout and visual material reveal the strongest spatial and commercial qualities.',
+          'Scene 3: Materials, light, circulation and presentation details reinforce the project value.',
+          'Scene 4: The final frame invites the client to approve the next step or request a full presentation package.',
+        ].join('\n')
+
+    const videoPrompt = [
+      `Generate a ${duration} video plan in ${aspectRatio} for ${videoMode.replace(/-/g, ' ')}.`,
+      `Style: ${style.replace(/-/g, ' ')}.`,
+      `Voice: ${voice.replace(/-/g, ' ')}.`,
+      sourceLine,
+      constraintLine,
+      'Use cinematic but controlled movement. Keep the project readable. Do not invent unsupported details.',
+      `Goal: ${goal}`,
+    ].join('\n')
+
+    const negativePrompt = [
+      'fake generated video',
+      'unreadable text',
+      'warped architecture',
+      'random people',
+      'fast chaotic camera',
+      'low quality',
+      'wrong project context',
+      'distorted plan',
+      ...lockedConstraints.map(item => `violate constraint: ${item}`),
+    ].join(', ')
+
+    return json(res, 200, {
+      providerStatus: 'planning-only',
+      message: 'DirectCut video connector is not connected yet. This is a real planning output, not a generated video.',
+      title,
+      objective,
+      audience: videoMode.includes('sales') || videoMode.includes('social') ? 'prospective buyer / client' : 'project stakeholder / technical reviewer',
+      sceneList,
+      cameraMovements,
+      narrationScript,
+      videoPrompt,
+      negativePrompt,
+      recommendedAspectRatio: aspectRatio,
+      recommendedDuration: duration,
+    })
+  } catch (error) {
+    return json(res, error.status || 500, {
+      providerStatus: 'planning-only',
+      message: scrubProviderError(error.message || 'DirectCut planner failed.'),
+    })
+  }
+}
+
 function serveStatic(req, res) {
   const url = new URL(req.url, 'http://localhost')
   const safePath = decodeURIComponent(url.pathname).replace(/^\/+/, '')
@@ -755,6 +852,10 @@ const server = http.createServer((req, res) => {
   }
   if (req.url === '/api/copilot/generate-image' && req.method === 'POST') {
     handleGenerateImage(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/video-plan' && req.method === 'POST') {
+    handleVideoPlan(req, res)
     return
   }
   serveStatic(req, res)
