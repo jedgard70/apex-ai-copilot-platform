@@ -2,7 +2,7 @@
 
 Status: CP8C integrated into Apex AI Copilot runtime knowledge.
 
-Source note: the requested base document, `Venda EUA Edgard.pdf`, was not found in `D:\AI-constr` during this checkpoint. This document preserves the Owner-provided strategy from the CP8C brief so the market-entry vision is not lost. When the PDF is attached later, it should be compared against this file and merged through the Skill Update workflow.
+Source: `C:\Users\apexg\Downloads\Venda EUA Edgard .pdf`, extracted during the CP8C PDF update. The earlier CP8C brief was used as the first pass; this version preserves the PDF strategy so the original market-entry vision is not lost.
 
 ## Core Thesis
 
@@ -24,7 +24,24 @@ Apex should present itself as an offshore production partner for US and European
 
 The long-term direction is an AI BIM Operations Platform / SaaS for architecture, engineering and construction offices, powered by a scalable Brazil-based production team.
 
+The safest growth model is:
+
+1. Agency: premium offshore technical service in dollars/euros.
+2. Platform: internal automation, dashboards, AI workflows and document intelligence.
+3. SaaS: productize the repeated workflow after validation.
+
+Do not sell the full enterprise platform first. Sell a painful production workflow first.
+
 ## US Market Focus
+
+Best initial beachhead:
+
+- Residential Construction
+- Florida
+- Texas
+- Arizona
+- North Carolina
+- builders, architecture offices, BIM partners and PMs that accept remote production
 
 High-value roles and services:
 
@@ -126,6 +143,65 @@ Apex should avoid generic motivation. It should produce commercial execution out
 - proposal copy
 - target account criteria
 - production workflows
+
+## Product Strategy From PDF
+
+The Apex platform should not try to launch as a giant enterprise system immediately. The initial product should be narrow:
+
+- BIM upload
+- IFC/RVT import or conversion workflow
+- AI issue analysis
+- permit checklist and document package support
+- issue tracking
+- executive reporting
+- document intelligence
+- workflow approvals
+
+Avoid placing these in the first MVP:
+
+- crowdfunding
+- advanced ESG
+- full IoT
+- complex digital twin
+- reinforcement learning
+- advanced multi-agent autonomy
+- complex Monte Carlo
+- facility management 7D
+
+Recommended platform structure:
+
+- Platform Core
+- AI Orchestrator
+- BIM Intelligence
+- Workflow Engine
+- Executive Intelligence
+- Document Intelligence
+- Financial Intelligence
+- Integration Layer
+- Governance Layer
+
+Key risk:
+
+- overengineering before validation
+- scope too broad for MVP
+- enterprise-grade architecture before a paid workflow
+- years of build time without monetization
+
+The first specific problem to dominate should be something like reducing BIM/documentation rework in residential construction.
+
+## Strategic Positioning Examples
+
+Preferred offer language:
+
+> AI-assisted BIM coordination and permit workflow support for residential construction firms.
+
+Premium positioning:
+
+> Offshore BIM/CAD production partner for US/EU architecture, engineering and construction offices.
+
+Platform vision:
+
+> AI BIM Operations Platform for documentation, coordination, permits, reports and project delivery.
 
 ## Hard Rules
 
