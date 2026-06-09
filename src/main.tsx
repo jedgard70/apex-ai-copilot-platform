@@ -15,6 +15,7 @@ import { Bim3DPanel, BimArchVisOutput, BimTourOutput } from './components/Bim3DP
 import { BudgetPanel } from './components/BudgetPanel'
 import { ContractsPanel } from './components/ContractsPanel'
 import { DirectCutInitialConfig, DirectCutPanel } from './components/DirectCutPanel'
+import { ExportCenterPanel } from './components/ExportCenterPanel'
 import { FieldOpsPanel } from './components/FieldOpsPanel'
 import { ProjectWorkspacePanel } from './components/ProjectWorkspacePanel'
 import { ResearchPanel } from './components/ResearchPanel'
@@ -37,6 +38,7 @@ import { isSkillUpdateIntent, ProjectMemoryUpdate, SkillUpdateApplyResult } from
 import { isSkillExportIntent } from './lib/skillExportFactory'
 import { BudgetPlan } from './lib/budgetKnowledge'
 import { ContractsPlan } from './lib/contractsKnowledge'
+import { isExportIntent } from './lib/exportCenter'
 import { FieldOpsPlan } from './lib/fieldOpsKnowledge'
 import { ResearchPlan } from './lib/researchKnowledge'
 import { selectTool, tools } from './lib/toolRegistry'
@@ -358,6 +360,7 @@ function App() {
   const [workspaceOpenSignal, setWorkspaceOpenSignal] = useState('')
   const [skillUpdateOpenSignal, setSkillUpdateOpenSignal] = useState('')
   const [skillExportOpenSignal, setSkillExportOpenSignal] = useState('')
+  const [exportCenterOpen, setExportCenterOpen] = useState(false)
   const [archVisRevisionConstraints, setArchVisRevisionConstraints] = useState<string[]>(initialProject.revisionConstraints || [])
   const [loading, setLoading] = useState(false)
   const [messages, setMessages] = useState<Message[]>(initialProject.chatMessages.length ? initialProject.chatMessages.map(message => ({
@@ -475,6 +478,21 @@ function App() {
     const shouldOpenBim3D = isBim3DIntent(clean || modelText, attachment)
     const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
     const shouldOpenSkillExport = clean && isSkillExportIntent(clean)
+    const shouldOpenExportCenter = clean && isExportIntent(clean)
+    if (shouldOpenExportCenter) {
+      setExportCenterOpen(true)
+      setMessages(prev => [
+        ...prev,
+        userMessage,
+        {
+          id: id(),
+          role: 'assistant',
+          text: 'Abri o Export Center ao lado. Ele vai empacotar apenas dados que existem no Project Workspace local, com redaction de segredos e opção de excluir imagens/dataUrl.',
+        },
+      ])
+      setInput('')
+      return
+    }
     if (shouldOpenSkillExport) {
       setSkillExportOpenSignal(id())
       setMessages(prev => [
@@ -851,6 +869,7 @@ function App() {
     setContractsOutput(null)
     setResearchOutput(null)
     setFieldOpsOutput(null)
+    setExportCenterOpen(false)
     setArchVisRevisionConstraints([])
     setMessages([{ id: id(), role: 'assistant', text: 'New Apex project started. Upload a file or tell me what we are building.' }])
   }
@@ -1072,7 +1091,7 @@ function App() {
         </div>
       </header>
 
-      <section className={`workspace ${archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput ? 'studio-open' : ''}`}>
+      <section className={`workspace ${archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || exportCenterOpen ? 'studio-open' : ''}`}>
         <section className="chat-shell" aria-label="Apex AI Copilot chat">
           <div className="chat-header">
             <div>
@@ -1346,6 +1365,13 @@ function App() {
                 ])
               }}
               onClear={() => setFieldOpsOutput(null)}
+            />
+          )}
+
+          {exportCenterOpen && (
+            <ExportCenterPanel
+              project={buildProjectSnapshot()}
+              onClear={() => setExportCenterOpen(false)}
             />
           )}
 

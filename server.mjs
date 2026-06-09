@@ -2213,6 +2213,211 @@ async function handleSourceEvidence(req, res) {
   }
 }
 
+function exportSafeSlug(value = 'apex-export') {
+  return String(value || 'apex-export')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 80) || 'apex-export'
+}
+
+function exportRedact(value, summary = []) {
+  if (Array.isArray(value)) return value.map(item => exportRedact(item, summary))
+  if (!value || typeof value !== 'object') {
+    if (typeof value !== 'string') return value
+    let next = value
+    const patterns = [
+      [/sk-[A-Za-z0-9_-]{12,}/g, '[REDACTED_OPENAI_KEY]', 'OpenAI-style API key redacted'],
+      [/ghp_[A-Za-z0-9_]{12,}/g, '[REDACTED_GITHUB_TOKEN]', 'GitHub token redacted'],
+      [/github_pat_[A-Za-z0-9_]{12,}/g, '[REDACTED_GITHUB_TOKEN]', 'GitHub PAT redacted'],
+      [/(api[_-]?key|token|secret|password)\s*[:=]\s*["']?[^"'\s,}]+/gi, '$1=[REDACTED]', 'Generic secret assignment redacted'],
+      [/\.env\.local/gi, '[REDACTED_ENV_FILE]', '.env.local reference redacted'],
+    ]
+    for (const [pattern, replacement, note] of patterns) {
+      if (pattern.test(next)) {
+        next = next.replace(pattern, replacement)
+        if (!summary.includes(note)) summary.push(note)
+      }
+    }
+    return next
+  }
+  return Object.fromEntries(Object.entries(value).map(([key, item]) => {
+    if (/(api[_-]?key|token|secret|password|env)/i.test(key)) {
+      const note = `Sensitive field redacted: ${key}`
+      if (!summary.includes(note)) summary.push(note)
+      return [key, '[REDACTED]']
+    }
+    return [key, exportRedact(item, summary)]
+  }))
+}
+
+function exportStripImages(value, warnings = []) {
+  if (Array.isArray(value)) return value.map(item => exportStripImages(item, warnings))
+  if (!value || typeof value !== 'object') {
+    if (typeof value === 'string' && value.startsWith('data:image/')) {
+      if (!warnings.includes('Image/dataUrl assets excluded by request.')) warnings.push('Image/dataUrl assets excluded by request.')
+      return '[IMAGE_DATA_URL_EXCLUDED]'
+    }
+    return value
+  }
+  return Object.fromEntries(Object.entries(value).map(([key, item]) => {
+    if (/dataUrl|url/i.test(key) && typeof item === 'string' && item.startsWith('data:image/')) {
+      if (!warnings.includes('Image/dataUrl assets excluded by request.')) warnings.push('Image/dataUrl assets excluded by request.')
+      return [key, '[IMAGE_DATA_URL_EXCLUDED]']
+    }
+    return [key, exportStripImages(item, warnings)]
+  }))
+}
+
+function exportPickSections(project, scope, selectedSections, includeChat) {
+  const sectionSet = new Set(selectedSections || [])
+  const includeAll = scope === 'full-project'
+  const should = section => includeAll || scope === section || sectionSet.has(section)
+  const appState = project.appState || {}
+  const savedExports = Array.isArray(project.exports) ? project.exports : []
+  const byType = type => savedExports.filter(item => String(item?.type || '').includes(type))
+  const output = {
+    project: should('project') ? {
+      id: project.id,
+      name: project.name,
+      createdAt: project.createdAt,
+      updatedAt: project.updatedAt,
+      language: project.language,
+      activeTool: project.activeTool,
+      activeStudio: project.activeStudio,
+      files: project.files,
+      chatMessages: includeChat ? project.chatMessages : '[CHAT_EXCLUDED]',
+      revisionConstraints: project.revisionConstraints,
+      preferences: project.preferences,
+    } : undefined,
+    archvis: should('archvis') ? {
+      outputs: project.archVisOutputs,
+      generatedImages: project.generatedImages,
+      revisionConstraints: project.revisionConstraints,
+      activeState: appState.archVisOutput || null,
+    } : undefined,
+    directcut: should('directcut') ? {
+      plans: project.directCutPlans,
+      activeState: appState.directCutOutput || null,
+    } : undefined,
+    bim3d: should('bim-3d') || should('bim3d') ? {
+      items: project.bim3dItems,
+      savedViews: project.savedViews,
+      tours: project.tours,
+      activeState: appState.bim3DActive || null,
+    } : undefined,
+    budget: should('budget') ? {
+      exports: byType('budget'),
+      activeState: appState.budgetOutput || null,
+    } : undefined,
+    contracts: should('contracts-permits') || should('contracts') ? {
+      exports: byType('contracts'),
+      activeState: appState.contractsOutput || null,
+    } : undefined,
+    fieldops: should('fieldops-rdo') || should('fieldops') ? {
+      exports: byType('field-operations'),
+      activeState: appState.fieldOpsOutput || null,
+    } : undefined,
+    research: should('research-market') || should('research') ? {
+      exports: byType('research'),
+      activeState: appState.researchOutput || null,
+    } : undefined,
+    skills: should('skill-package') || should('skills') ? {
+      skillUpdates: project.skillUpdates,
+      projectMemory: project.projectMemory,
+    } : undefined,
+  }
+  return Object.fromEntries(Object.entries(output).filter(([, value]) => value !== undefined))
+}
+
+function exportToMarkdown(title, payload, warnings) {
+  const lines = [`# ${title}`, '', '## Warnings', ...(warnings.length ? warnings.map(item => `- ${item}`) : ['- None.']), '']
+  for (const [section, value] of Object.entries(payload)) {
+    lines.push(`## ${section}`, '', '```json', JSON.stringify(value, null, 2), '```', '')
+  }
+  return lines.join('\n')
+}
+
+function exportToText(title, payload, warnings) {
+  return [
+    title,
+    '',
+    'Warnings:',
+    ...(warnings.length ? warnings.map(item => `- ${item}`) : ['- None.']),
+    '',
+    JSON.stringify(payload, null, 2),
+  ].join('\n')
+}
+
+function exportToCsv(payload) {
+  const files = payload.project?.files || []
+  const exports = Object.entries(payload)
+    .flatMap(([section, value]) => Array.isArray(value?.exports) ? value.exports.map(item => ({ section, type: item.type || '', timestamp: item.timestamp || '' })) : [])
+  const rows = [
+    ['section', 'name_or_type', 'kind_or_timestamp', 'size'].join(','),
+    ...files.map(file => ['file', file.name, file.kind, file.size].map(value => `"${String(value || '').replace(/"/g, '""')}"`).join(',')),
+    ...exports.map(item => ['export', item.type, item.timestamp, ''].map(value => `"${String(value || '').replace(/"/g, '""')}"`).join(',')),
+  ]
+  return rows.join('\n')
+}
+
+async function handleExportPackage(req, res) {
+  try {
+    const body = await readJson(req)
+    const project = body.project || {}
+    const exportScope = String(body.exportScope || 'full-project')
+    const format = String(body.format || 'json')
+    const includeImages = Boolean(body.includeImages)
+    const includeChat = body.includeChat !== false
+    const selectedSections = Array.isArray(body.selectedSections) ? body.selectedSections.map(String) : []
+    const warnings = []
+    const redactionSummary = []
+    if (!project || typeof project !== 'object' || !project.name) {
+      return json(res, 400, { error: 'Valid project state is required for export.' })
+    }
+    let payload = exportPickSections(project, exportScope, selectedSections, includeChat)
+    if (!includeImages) payload = exportStripImages(payload, warnings)
+    payload = exportRedact(payload, redactionSummary)
+    if (!includeChat) warnings.push('Chat messages excluded by request.')
+    if (includeImages) warnings.push('Image/dataUrl assets may make this export large.')
+    warnings.push('Export includes only data/assets present in local project state. No external files were fetched.')
+    const base = `${exportSafeSlug(project.name)}-${exportSafeSlug(exportScope)}`
+    const title = `Apex Export - ${project.name} - ${exportScope}`
+    let files = []
+    if (format === 'markdown') {
+      const content = exportToMarkdown(title, payload, warnings)
+      files = [{ filename: `${base}.md`, mimeType: 'text/markdown;charset=utf-8', content, size: Buffer.byteLength(content, 'utf8') }]
+    } else if (format === 'txt') {
+      const content = exportToText(title, payload, warnings)
+      files = [{ filename: `${base}.txt`, mimeType: 'text/plain;charset=utf-8', content, size: Buffer.byteLength(content, 'utf8') }]
+    } else if (format === 'csv') {
+      const content = exportToCsv(payload)
+      files = [{ filename: `${base}.csv`, mimeType: 'text/csv;charset=utf-8', content, size: Buffer.byteLength(content, 'utf8') }]
+    } else if (format === 'zip-json') {
+      const bundle = {
+        manifest: { projectName: project.name, exportScope, createdAt: new Date().toISOString(), format, includeImages, includeChat },
+        files: {
+          'project-package.json': payload,
+          'README.md': exportToMarkdown(title, payload, warnings),
+        },
+      }
+      const content = JSON.stringify(bundle, null, 2)
+      files = [{ filename: `${base}.zip-compatible.json`, mimeType: 'application/json;charset=utf-8', content, size: Buffer.byteLength(content, 'utf8') }]
+    } else {
+      const content = JSON.stringify({ manifest: { projectName: project.name, exportScope, createdAt: new Date().toISOString(), includeImages, includeChat }, payload }, null, 2)
+      files = [{ filename: `${base}.json`, mimeType: 'application/json;charset=utf-8', content, size: Buffer.byteLength(content, 'utf8') }]
+    }
+    return json(res, 200, {
+      providerStatus: 'export-ready',
+      files,
+      warnings,
+      redactionSummary: redactionSummary.length ? redactionSummary : ['No secrets detected in exported project state.'],
+    })
+  } catch (error) {
+    return json(res, error.status || 500, { error: scrubProviderError(error.message || 'Export package failed.') })
+  }
+}
+
 async function handleAnalyzeSkillUpdate(req, res) {
   try {
     const body = await readJson(req)
@@ -2433,6 +2638,10 @@ const server = http.createServer((req, res) => {
   }
   if (req.url === '/api/copilot/source-evidence' && req.method === 'POST') {
     handleSourceEvidence(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/export-package' && req.method === 'POST') {
+    handleExportPackage(req, res)
     return
   }
   if (req.url === '/api/copilot/analyze-skill-update' && req.method === 'POST') {

@@ -134,6 +134,12 @@ export const toolData: CopilotTool[] = [
     trigger: ['github', 'repo', 'branch', 'pr', 'supabase', 'sql', 'vercel', 'deploy', 'backend', 'frontend', 'database', 'security', 'vulnerability', 'refactor', 'code review'],
   },
   {
+    id: 'export-center',
+    name: 'Export Center',
+    role: 'Package real project workspace outputs from all studios into redacted JSON, Markdown, TXT, CSV or ZIP-compatible bundles.',
+    trigger: ['exportar', 'export package', 'baixar pacote', 'client package', 'exportar projeto', 'exportar rdo', 'exportar orçamento'],
+  },
+  {
     id: 'exploration',
     name: 'Exploration / General Reasoning',
     role: 'Think through open-ended questions, strategy, planning, decisions and general knowledge tasks.',

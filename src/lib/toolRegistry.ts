@@ -23,6 +23,7 @@ export type ToolDomain =
   | 'research-market-intelligence'
   | 'international-market-strategy'
   | 'platform-engineering-devops'
+  | 'export-center'
   | 'exploration'
 
 export type CopilotTool = {
