@@ -13,6 +13,7 @@ import {
 import { ArchVisPanel } from './components/ArchVisPanel'
 import { AgentsPanel } from './components/AgentsPanel'
 import { AiCostDashboardPanel } from './components/AiCostDashboardPanel'
+import { AuthPanel } from './components/AuthPanel'
 import { Bim3DPanel, BimArchVisOutput, BimTourOutput } from './components/Bim3DPanel'
 import { BudgetPanel } from './components/BudgetPanel'
 import { ContractsPanel } from './components/ContractsPanel'
@@ -34,6 +35,7 @@ import { SaasAdminPanel } from './components/SaasAdminPanel'
 import { SkillExportPanel } from './components/SkillExportPanel'
 import { SkillUpdatePanel } from './components/SkillUpdatePanel'
 import { SupplyChainPanel } from './components/SupplyChainPanel'
+import { UserAccountPanel } from './components/UserAccountPanel'
 import { classifyFile, formatSize, IntakeFile, isVisionReady, readFileAsDataUrl, readImageDimensions } from './lib/fileIntake'
 import {
   createProject,
@@ -253,7 +255,11 @@ function isFieldOpsIntent(text: string, attachment?: IntakeFile) {
 }
 
 function isBusinessLayerIntent(text: string) {
-  return /\b(crm|lead|leads|cliente|clientes|client workspace|vendas|sales|proposta comercial|financeiro|finance|fatura|invoice|pagamento|payment|plano saas|saas plan|usu[aá]rio|usuarios|users|permiss[oõ]es|permissions|dashboard admin|admin dashboard|dashboard cliente|client dashboard|pipeline|follow-up|cobran[cç]a|contabilidade|contador|documentos cont[aá]beis|relat[oó]rio cont[aá]bil|imposto|nota fiscal|receita|despesa|contas a pagar|contas a receber|accounting|accountant|accounts receivable|accounts payable|tax|bookkeeping)\b/i.test(text)
+  return /\b(crm|lead|leads|cliente|clientes|client workspace|vendas|sales|proposta comercial|financeiro|finance|fatura|invoice|pagamento|payment|plano saas|saas plan|dashboard admin|admin dashboard|dashboard cliente|client dashboard|pipeline|follow-up|cobran[cç]a|contabilidade|contador|documentos cont[aá]beis|relat[oó]rio cont[aá]bil|imposto|nota fiscal|receita|despesa|contas a pagar|contas a receber|accounting|accountant|accounts receivable|accounts payable|tax|bookkeeping)\b/i.test(text)
+}
+
+function isAuthIntent(text: string) {
+  return /\b(login|entrar|cadastro|cadastrar|criar conta|sign in|signup|sign up|usu[aá]rio|usuarios|user account|sess[aã]o|session|permiss[oõ]es|permissions|auth|authentication|supabase)\b/i.test(text)
 }
 
 function inferBusinessFocus(text: string): BusinessOutput['focus'] {
@@ -471,6 +477,10 @@ function App() {
     const stored = initialAppState.metricsOutput as SimpleStudioOutput | undefined
     return stored || null
   })
+  const [authOutput, setAuthOutput] = useState<SimpleStudioOutput | null>(() => {
+    const stored = initialAppState.authOutput as SimpleStudioOutput | undefined
+    return stored || null
+  })
   const [bimCommand, setBimCommand] = useState<BimCommand | undefined>()
   const [workspaceOpenSignal, setWorkspaceOpenSignal] = useState('')
   const [skillUpdateOpenSignal, setSkillUpdateOpenSignal] = useState('')
@@ -522,7 +532,7 @@ function App() {
           activeRecord,
         ]
       : activeProject.files
-    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : fieldOpsOutput ? 'fieldops' : businessOutput ? 'business' : agentsOutput ? 'agents' : evmSchedulerComplianceOutput ? 'evm-scheduler-compliance' : supplyChainOutput ? 'supply-chain' : notificationsOutput ? 'notifications' : aiCostOutput ? 'ai-cost' : multiTenantOutput ? 'multi-tenant' : pwaMobileOutput ? 'pwa-mobile' : digitalTwinOutput ? 'digital-twin' : knowledgeBaseOutput ? 'knowledge-base' : metricsOutput ? 'metrics-dashboard' : null
+    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : fieldOpsOutput ? 'fieldops' : businessOutput ? 'business' : agentsOutput ? 'agents' : evmSchedulerComplianceOutput ? 'evm-scheduler-compliance' : supplyChainOutput ? 'supply-chain' : notificationsOutput ? 'notifications' : aiCostOutput ? 'ai-cost' : multiTenantOutput ? 'multi-tenant' : pwaMobileOutput ? 'pwa-mobile' : digitalTwinOutput ? 'digital-twin' : knowledgeBaseOutput ? 'knowledge-base' : metricsOutput ? 'metrics-dashboard' : authOutput ? 'auth' : null
     return {
       ...activeProject,
       language: navigator.language || activeProject.language,
@@ -581,6 +591,7 @@ function App() {
         digitalTwinOutput,
         knowledgeBaseOutput,
         metricsOutput,
+        authOutput,
       },
     }
   }
@@ -601,7 +612,7 @@ function App() {
     }, 650)
     return () => window.clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, budgetOutput, contractsOutput, researchOutput, fieldOpsOutput, businessOutput, agentsOutput, evmSchedulerComplianceOutput, supplyChainOutput, notificationsOutput, aiCostOutput, multiTenantOutput, pwaMobileOutput, digitalTwinOutput, knowledgeBaseOutput, metricsOutput, archVisRevisionConstraints, activeTool.id])
+  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, budgetOutput, contractsOutput, researchOutput, fieldOpsOutput, businessOutput, agentsOutput, evmSchedulerComplianceOutput, supplyChainOutput, notificationsOutput, aiCostOutput, multiTenantOutput, pwaMobileOutput, digitalTwinOutput, knowledgeBaseOutput, metricsOutput, authOutput, archVisRevisionConstraints, activeTool.id])
 
   async function askCopilot(text = input, attachment = activeFile) {
     const clean = text.trim()
@@ -617,6 +628,7 @@ function App() {
     const shouldOpenBudget = clean && isBudgetIntent(clean)
     const shouldOpenResearch = clean && isResearchIntent(clean)
     const shouldOpenFieldOps = clean && isFieldOpsIntent(clean, attachment)
+    const shouldOpenAuth = clean && isAuthIntent(clean)
     const shouldOpenBusiness = clean && isBusinessLayerIntent(clean)
     const shouldOpenControlsAgents = clean && isEvmSchedulerComplianceIntent(clean)
     const shouldOpenSupplyChain = clean && isSupplyChainIntent(clean)
@@ -674,6 +686,21 @@ function App() {
             : 'Envie um TXT, MD, JSON, PDF, PY, JS, TS, TSX ou ZIP primeiro. Eu analiso e mostro o preview antes de alterar memória ou skill.',
         },
       ])
+      setInput('')
+      return
+    }
+    if (shouldOpenAuth) {
+      const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
+      setMessages(prev => [
+        ...prev,
+        userMessage,
+        {
+          id: id(),
+          role: 'assistant',
+          text: 'Abri o Auth / User Account ao lado. Este é scaffold de integração: sem Supabase conectado, sem login falso e sem Google OAuth até configurar as variáveis.',
+        },
+      ])
+      setAuthOutput({ goal: clean, conversationContext: context })
       setInput('')
       return
     }
@@ -1140,6 +1167,7 @@ function App() {
     setDigitalTwinOutput(null)
     setKnowledgeBaseOutput(null)
     setMetricsOutput(null)
+    setAuthOutput(null)
     setExportCenterOpen(false)
     setArchVisRevisionConstraints([])
     setMessages([{ id: id(), role: 'assistant', text: 'New Apex project started. Upload a file or tell me what we are building.' }])
@@ -1190,6 +1218,7 @@ function App() {
     setDigitalTwinOutput((state.digitalTwinOutput as SimpleStudioOutput | null | undefined) || null)
     setKnowledgeBaseOutput((state.knowledgeBaseOutput as SimpleStudioOutput | null | undefined) || null)
     setMetricsOutput((state.metricsOutput as SimpleStudioOutput | null | undefined) || null)
+    setAuthOutput((state.authOutput as SimpleStudioOutput | null | undefined) || null)
   }
 
   function switchProject(projectId: string) {
@@ -1244,6 +1273,7 @@ function App() {
     setDigitalTwinOutput(null)
     setKnowledgeBaseOutput(null)
     setMetricsOutput(null)
+    setAuthOutput(null)
     setArchVisRevisionConstraints([])
     setMessages([{ id: id(), role: 'assistant', text: 'Local workspace cleared. New Apex project ready.' }])
   }
@@ -1524,7 +1554,7 @@ function App() {
         </div>
       </header>
 
-      <section className={`workspace ${archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || evmSchedulerComplianceOutput || supplyChainOutput || notificationsOutput || aiCostOutput || multiTenantOutput || pwaMobileOutput || digitalTwinOutput || knowledgeBaseOutput || metricsOutput || exportCenterOpen ? 'studio-open' : ''}`}>
+      <section className={`workspace ${archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || evmSchedulerComplianceOutput || supplyChainOutput || notificationsOutput || aiCostOutput || multiTenantOutput || pwaMobileOutput || digitalTwinOutput || knowledgeBaseOutput || metricsOutput || authOutput || exportCenterOpen ? 'studio-open' : ''}`}>
         <section className="chat-shell" aria-label="Apex AI Copilot chat">
           <div className="chat-header">
             <div>
@@ -1915,6 +1945,13 @@ function App() {
               onSaveToProject={saveMetricsToProject}
               onClear={() => setMetricsOutput(null)}
             />
+          )}
+
+          {authOutput && (
+            <div className="business-layer-stack">
+              <AuthPanel onClear={() => setAuthOutput(null)} />
+              <UserAccountPanel onClear={() => setAuthOutput(null)} />
+            </div>
           )}
 
           {agentsOutput && (

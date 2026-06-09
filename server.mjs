@@ -2614,6 +2614,83 @@ function createMetricsPlan(goal = '') {
 }
 async function handleMetricsPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createMetricsPlan(String(body.goal || '')) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'LOCAL_DEMO' }) } }
 
+const authRoles = [
+  'Owner/Admin',
+  'Internal Team',
+  'Client',
+  'Partner',
+  'Viewer',
+  'Contractor',
+  'Finance',
+  'Sales',
+  'Field',
+  'BIM Manager',
+  'Project Manager',
+]
+
+const authPermissionGroups = [
+  'project.read',
+  'project.write',
+  'files.read',
+  'files.write',
+  'archvis.read',
+  'archvis.write',
+  'directcut.read',
+  'directcut.write',
+  'bim.read',
+  'bim.write',
+  'budget.read',
+  'budget.write',
+  'contracts.read',
+  'contracts.write',
+  'fieldops.read',
+  'fieldops.write',
+  'crm.read',
+  'crm.write',
+  'finance.read',
+  'finance.write',
+  'accounting.read',
+  'accounting.write',
+  'admin.manage_users',
+  'admin.manage_tenants',
+]
+
+function createAuthPlan() {
+  const hasUrl = Boolean(process.env.VITE_SUPABASE_URL)
+  const hasAnonKey = Boolean(process.env.VITE_SUPABASE_ANON_KEY)
+  const providerStatus = hasUrl && hasAnonKey ? 'supabase-env-present' : 'supabase-not-configured'
+  return {
+    providerStatus,
+    authStatus: providerStatus === 'supabase-env-present' ? 'env-present-not-verified' : 'not-connected',
+    requiredEnvVars: [
+      { name: 'VITE_SUPABASE_URL', scope: 'browser', configured: hasUrl },
+      { name: 'VITE_SUPABASE_ANON_KEY', scope: 'browser', configured: hasAnonKey },
+      { name: 'SUPABASE_SERVICE_ROLE_KEY', scope: 'server-only future use', configured: false, warning: 'Never expose this to the browser.' },
+      { name: 'GOOGLE_OAUTH_STATUS', scope: 'server/client status flag', configured: process.env.GOOGLE_OAUTH_STATUS || 'not-configured' },
+    ],
+    roles: authRoles,
+    permissionGroups: authPermissionGroups,
+    nextSteps: [
+      'Create brand-new Supabase project.',
+      'Review and apply final non-draft migrations only after approval.',
+      'Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to local env when ready.',
+      'Configure email/password Auth first.',
+      'Configure Google OAuth only after redirect URLs and provider settings are ready.',
+      'Keep service role server-only and never expose it in Vite/client code.',
+      'Validate RLS with Owner/Admin, Client, Viewer, Field, BIM Manager, Finance and Sales roles before pilot users.',
+    ],
+  }
+}
+
+async function handleAuthPlan(req, res) {
+  try {
+    await readJson(req).catch(() => ({}))
+    return json(res, 200, createAuthPlan())
+  } catch (error) {
+    return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'supabase-not-configured' })
+  }
+}
+
 function exportSafeSlug(value = 'apex-export') {
   return String(value || 'apex-export')
     .toLowerCase()
@@ -3132,6 +3209,10 @@ const server = http.createServer((req, res) => {
   }
   if (req.url === '/api/copilot/metrics-plan' && req.method === 'POST') {
     handleMetricsPlan(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/auth-plan' && req.method === 'POST') {
+    handleAuthPlan(req, res)
     return
   }
   if (req.url === '/api/copilot/analyze-skill-update' && req.method === 'POST') {
