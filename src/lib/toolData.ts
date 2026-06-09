@@ -128,6 +128,12 @@ export const toolData: CopilotTool[] = [
     trigger: ['eua', 'usa', 'europa', 'offshore', 'international clients', 'permit sets', 'linkedin', 'bim em dolar', 'revit', 'construction documentation'],
   },
   {
+    id: 'platform-engineering-devops',
+    name: 'Platform Engineering / DevOps',
+    role: 'Review repos, organize code, plan branches/PRs, generate Supabase SQL/RLS, diagnose Vercel/build issues and audit security without fake access or fake deploy claims.',
+    trigger: ['github', 'repo', 'branch', 'pr', 'supabase', 'sql', 'vercel', 'deploy', 'backend', 'frontend', 'database', 'security', 'vulnerability', 'refactor', 'code review'],
+  },
+  {
     id: 'exploration',
     name: 'Exploration / General Reasoning',
     role: 'Think through open-ended questions, strategy, planning, decisions and general knowledge tasks.',

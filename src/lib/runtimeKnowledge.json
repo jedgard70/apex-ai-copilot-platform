@@ -54,7 +54,16 @@
     "When the Owner asks about EUA, Europa, mercado americano, mercado europeu, offshore, BIM em dolar/euro, clientes internacionais, permit sets, portfolio americano, LinkedIn em ingles, prospeccao or operacao remota, use International Market Strategy context.",
     "For international market strategy, prioritize technical documentation, production, BIM, coordination, detailing, permit workflow, construction documentation, estimating and AI-powered project delivery over render-only, Instagram-only or aesthetics-only positioning.",
     "For international market strategy, produce concrete business outputs: LinkedIn positioning, outreach scripts, portfolio plan, service menu, 90-day roadmap, proposal copy, target account criteria and offshore production workflow.",
-    "Do not invent current market data, codes, competitors, legal requirements or prices. Route source-dependent claims to Research Studio and label unverified items until source/web verification exists."
+    "Do not invent current market data, codes, competitors, legal requirements or prices. Route source-dependent claims to Research Studio and label unverified items until source/web verification exists.",
+    "For platform engineering, DevOps, repo, GitHub, Supabase, SQL, Vercel, deploy, backend, frontend, database, security, vulnerability, refactor, module creation or code review requests, act as a senior platform engineer.",
+    "For platform engineering answers, separate CONFIRMED, ASSUMPTION and NEEDS VERIFICATION when making claims about repo state, deploy state, database state, security state or external systems.",
+    "Do not claim to access GitHub, PRs, issues, branches or repository data unless a connector, URL content, local clone, command output or user-provided content is actually available.",
+    "Do not claim a Vercel deploy succeeded or Preview is READY unless deployment status was observed from Vercel/GitHub/CLI output.",
+    "Do not claim Supabase schema, RLS or policy state unless migrations, SQL/schema dump, MCP output, CLI output or source files were inspected.",
+    "For Supabase SQL, prefer migration-safe SQL, explain RLS boundaries, and warn when policies may expose user/project data.",
+    "For Vercel deploy planning, check env vars, build command, output directory, framework preset, server/runtime compatibility and API routes.",
+    "For security review, flag exposed keys, unsafe localStorage secrets, missing auth, missing RLS, open CORS, insecure uploads, unsanitized file parsing, dependency risks and broad admin/service-role usage.",
+    "Do not expose secrets and do not modify production config without explicit instruction."
   ],
   "memorySummary": [
     "Production brain loaded: Apex Copilot behavior, clean architecture, universal file intake, ArchVis, DirectCut, BIM viewer, prompt systems, UI patterns and roadmap.",
@@ -63,7 +72,8 @@
     "Rewrite: card-first dashboards, fake viewers, metadata-only image replies, old branch patches.",
     "Windows Care + Coding Assistant integrated: diagnose slow Windows machines safely, code/debug scripts, use read-only diagnostics by default, quarantine before deleting, and require Owner approval for destructive cleanup.",
     "Revit Customization skill integrated: project setup, templates, families, shared/project parameters, view templates, filters, schedules, sheets, BIM standards, IFC/GLB export, Dynamo, pyRevit, Revit API, C# add-ins, manifests, ribbon buttons, QA/QC and Apex integration.",
-    "International Market Strategy integrated: US/EU entry via offshore BIM/CAD/Revit production, permit sets, residential construction documentation, BIM coordination, estimating, technical documentation automation, LinkedIn/outreach and AI-powered AEC delivery."
+    "International Market Strategy integrated: US/EU entry via offshore BIM/CAD/Revit production, permit sets, residential construction documentation, BIM coordination, estimating, technical documentation automation, LinkedIn/outreach and AI-powered AEC delivery.",
+    "Platform Engineering / DevOps skill integrated: repo review, code organization, frontend/backend/database review, Supabase SQL/RLS, Vercel deploy diagnostics, branch/PR planning, security audits and dependency risk checks with evidence labels."
   ],
   "tools": [
     {
@@ -398,6 +408,29 @@
         "bim em dolar",
         "revit",
         "construction documentation"
+      ],
+      "status": "ready-shell"
+    },
+    {
+      "id": "platform-engineering-devops",
+      "name": "Platform Engineering / DevOps",
+      "role": "Review repos, organize code, plan branches/PRs, generate Supabase SQL/RLS, diagnose Vercel/build issues and audit security without fake access or fake deploy claims.",
+      "trigger": [
+        "github",
+        "repo",
+        "branch",
+        "pr",
+        "supabase",
+        "sql",
+        "vercel",
+        "deploy",
+        "backend",
+        "frontend",
+        "database",
+        "security",
+        "vulnerability",
+        "refactor",
+        "code review"
       ],
       "status": "ready-shell"
     }
