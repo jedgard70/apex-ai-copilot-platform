@@ -6,6 +6,7 @@ import { codingKnowledge } from './coding'
 import { dataKnowledge } from './data'
 import { imagePromptKnowledge } from './imagePrompts'
 import { interiorsKnowledge } from './interiors'
+import { internationalMarketStrategyKnowledge } from './internationalMarketStrategy'
 import { negotiationKnowledge } from './negotiation'
 import { platformKnowledge } from './platform'
 import { revitCustomizationKnowledge } from './revitCustomization'
@@ -19,6 +20,7 @@ export const apexSkillKnowledge = {
   videoPrompts: videoPromptKnowledge,
   cinematic: cinematicKnowledge,
   interiors: interiorsKnowledge,
+  internationalMarketStrategy: internationalMarketStrategyKnowledge,
   bimCad: bimCadKnowledge,
   business: businessKnowledge,
   coding: codingKnowledge,
@@ -40,6 +42,7 @@ export function selectApexSkillKnowledge(input: string, fileName = ''): ApexSkil
   if (/(interior|sala|quarto|cozinha|futurista|furniture|material|palette)/.test(text)) domains.add('interiors')
   if (/(ifc|rvt|dwg|dxf|skp|bim|cad|3d|viewer|clash)/.test(text)) domains.add('bimCad')
   if (/(revit|dynamo|pyrevit|add-?in|plugin|c#|csharp|ribbon|shared parameter|shared parameters|par[aâ]metro|par[aâ]metros compartilhados|view template|template bim|fam[ií]lia|families|ifc export|exportar ifc|glb|manifest|externalcommand|iexternalcommand|iexternalapplication|sheets|pranchas|schedules|quantitativos|qa\/qc|model checking)/.test(text)) domains.add('revitCustomization').add('bimCad').add('coding')
+  if (/(eua|usa|united states|mercado americano|american market|europa|europe|european market|mercado europeu|offshore|d[oó]lar|euro|clientes internacionais|international clients|permit set|permit sets|portfolio americano|linkedin em ingl[eê]s|linkedin|prospec[cç][aã]o|outreach|bim em d[oó]lar|revit em d[oó]lar|opera[cç][aã]o remota|remote operation|residential construction docs|construction documentation)/.test(text)) domains.add('internationalMarketStrategy').add('business').add('revitCustomization')
   if (/(venda|cliente|crm|proposal|proposta|business|marketing|or[cç]amento|budget)/.test(text)) domains.add('business')
   if (/(code|c[oó]digo|react|typescript|mcp|api|server|platform)/.test(text)) domains.add('coding').add('platform')
   if (/(windows|computador|pc lento|lento|limpeza|startup|inicializa[cç][aã]o|powershell|defender|malware|v[ií]rus|processo|task scheduler|scheduled task|appdata|temp|disco|ram|cpu)/.test(text)) domains.add('windowsCare').add('coding')

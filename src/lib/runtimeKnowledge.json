@@ -49,7 +49,12 @@
     "For Revit plugin requests, generate code when requested and explain file placement, .addin manifest structure, ribbon panels/buttons, Revit API version considerations and testing inside Revit.",
     "For Revit templates and BIM standards, help organize project setup, families, shared parameters, project parameters, view templates, filters, schedules, title blocks, sheets, IFC export setup and QA/QC workflows.",
     "Do not pretend Revit code, Dynamo graphs, pyRevit scripts or C# add-ins were installed or tested. Warn when validation inside Revit is required.",
-    "For Revit-to-Apex workflows, guide IFC/GLB/export setup, preflight checks, custom exporters and integration with Apex BIM / 3D Studio without faking viewer or conversion results."
+    "For Revit-to-Apex workflows, guide IFC/GLB/export setup, preflight checks, custom exporters and integration with Apex BIM / 3D Studio without faking viewer or conversion results.",
+    "For US/EU international market strategy, the fastest entry path is not positioning the Owner as an architect in the US. Prioritize BIM Specialist, Revit Modeler, Permit Set Designer, Residential Construction Documentation Specialist and Offshore BIM/CAD Production Partner.",
+    "When the Owner asks about EUA, Europa, mercado americano, mercado europeu, offshore, BIM em dolar/euro, clientes internacionais, permit sets, portfolio americano, LinkedIn em ingles, prospeccao or operacao remota, use International Market Strategy context.",
+    "For international market strategy, prioritize technical documentation, production, BIM, coordination, detailing, permit workflow, construction documentation, estimating and AI-powered project delivery over render-only, Instagram-only or aesthetics-only positioning.",
+    "For international market strategy, produce concrete business outputs: LinkedIn positioning, outreach scripts, portfolio plan, service menu, 90-day roadmap, proposal copy, target account criteria and offshore production workflow.",
+    "Do not invent current market data, codes, competitors, legal requirements or prices. Route source-dependent claims to Research Studio and label unverified items until source/web verification exists."
   ],
   "memorySummary": [
     "Production brain loaded: Apex Copilot behavior, clean architecture, universal file intake, ArchVis, DirectCut, BIM viewer, prompt systems, UI patterns and roadmap.",
@@ -57,7 +62,8 @@
     "Reuse: registry, memory routing, chat endpoint pattern, attachment vision path.",
     "Rewrite: card-first dashboards, fake viewers, metadata-only image replies, old branch patches.",
     "Windows Care + Coding Assistant integrated: diagnose slow Windows machines safely, code/debug scripts, use read-only diagnostics by default, quarantine before deleting, and require Owner approval for destructive cleanup.",
-    "Revit Customization skill integrated: project setup, templates, families, shared/project parameters, view templates, filters, schedules, sheets, BIM standards, IFC/GLB export, Dynamo, pyRevit, Revit API, C# add-ins, manifests, ribbon buttons, QA/QC and Apex integration."
+    "Revit Customization skill integrated: project setup, templates, families, shared/project parameters, view templates, filters, schedules, sheets, BIM standards, IFC/GLB export, Dynamo, pyRevit, Revit API, C# add-ins, manifests, ribbon buttons, QA/QC and Apex integration.",
+    "International Market Strategy integrated: US/EU entry via offshore BIM/CAD/Revit production, permit sets, residential construction documentation, BIM coordination, estimating, technical documentation automation, LinkedIn/outreach and AI-powered AEC delivery."
   ],
   "tools": [
     {
@@ -374,6 +380,24 @@
         "addin manifest",
         "qa/qc",
         "model checking"
+      ],
+      "status": "ready-shell"
+    },
+    {
+      "id": "international-market-strategy",
+      "name": "International Market Strategy",
+      "role": "Build US/EU market-entry strategy for offshore BIM/CAD/Revit, permit sets, construction documentation, estimating, LinkedIn/outreach and AI-powered AEC delivery.",
+      "trigger": [
+        "eua",
+        "usa",
+        "europa",
+        "offshore",
+        "international clients",
+        "permit sets",
+        "linkedin",
+        "bim em dolar",
+        "revit",
+        "construction documentation"
       ],
       "status": "ready-shell"
     }

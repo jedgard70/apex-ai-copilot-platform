@@ -122,6 +122,12 @@ export const toolData: CopilotTool[] = [
     trigger: ['pesquisa', 'market research', 'concorrentes', 'competitor', 'sinapi', 'preco atualizado', 'pricing research', 'benchmark'],
   },
   {
+    id: 'international-market-strategy',
+    name: 'International Market Strategy',
+    role: 'Build US/EU market-entry strategy for offshore BIM/CAD/Revit, permit sets, construction documentation, estimating, LinkedIn/outreach and AI-powered AEC delivery.',
+    trigger: ['eua', 'usa', 'europa', 'offshore', 'international clients', 'permit sets', 'linkedin', 'bim em dolar', 'revit', 'construction documentation'],
+  },
+  {
     id: 'exploration',
     name: 'Exploration / General Reasoning',
     role: 'Think through open-ended questions, strategy, planning, decisions and general knowledge tasks.',

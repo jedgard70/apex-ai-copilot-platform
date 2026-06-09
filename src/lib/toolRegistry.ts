@@ -21,6 +21,7 @@ export type ToolDomain =
   | 'website-design'
   | 'revit-customization'
   | 'research-market-intelligence'
+  | 'international-market-strategy'
   | 'exploration'
 
 export type CopilotTool = {
