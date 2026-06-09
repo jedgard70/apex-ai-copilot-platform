@@ -10,6 +10,9 @@ export type ExportScope =
   | 'fieldops-rdo'
   | 'research-market'
   | 'evm-scheduler-nr'
+  | 'supply-chain'
+  | 'notifications'
+  | 'ai-cost'
   | 'skill-package'
   | 'custom'
 
@@ -48,6 +51,9 @@ export const exportScopes: { value: ExportScope; label: string }[] = [
   { value: 'fieldops-rdo', label: 'FieldOps / RDO package' },
   { value: 'research-market', label: 'Research / Market package' },
   { value: 'evm-scheduler-nr', label: 'EVM / Scheduler / NR package' },
+  { value: 'supply-chain', label: 'Supply Chain / Suppliers package' },
+  { value: 'notifications', label: 'Notifications / Alerts package' },
+  { value: 'ai-cost', label: 'AI Cost / Observability package' },
   { value: 'skill-package', label: 'Skill package' },
   { value: 'custom', label: 'Custom selection' },
 ]
@@ -70,11 +76,14 @@ export const exportSections = [
   'fieldops',
   'research',
   'evm-scheduler-nr',
+  'supply-chain',
+  'notifications',
+  'ai-cost',
   'skills',
 ]
 
 export function isExportIntent(text: string) {
-  return /\b(exportar projeto|baixar pacote|gerar pacote do cliente|exportar or[cç]amento|exportar contrato|exportar rdo|exportar bim report|exportar archvis|exportar evm|exportar cronograma|exportar nr|exportar compliance|exportar tudo|export center|export package|download package|client package)\b/i.test(text)
+  return /\b(exportar projeto|baixar pacote|gerar pacote do cliente|exportar or[cç]amento|exportar contrato|exportar rdo|exportar bim report|exportar archvis|exportar evm|exportar cronograma|exportar nr|exportar compliance|exportar fornecedores|exportar supply chain|exportar alertas|exportar custo de ia|exportar observabilidade|exportar tudo|export center|export package|download package|client package)\b/i.test(text)
 }
 
 export function downloadExportFile(file: ExportPackageFile) {

@@ -422,10 +422,19 @@ function buildLocalSkillContext(userText, file) {
   if (/(evm|cpi|spi|eac|vac|tcpi|planned value|earned value|actual cost|cronograma|gantt|caminho cr[ií]tico|atraso|lookahead|cronograma f[ií]sico-financeiro|nr-18|nr-35|nr-10|nr-6|nr-33|seguran[cç]a do trabalho|compliance nr)/.test(text)) {
     contexts.push('CP11C EVM/Scheduler/NR: run local analysis only. Calculate CPI=EV/AC, SPI=EV/PV, CV=EV-AC, SV=EV-PV, EAC/ETC/VAC/TCPI only when inputs exist. Missing PV/EV/AC/BAC stays UNKNOWN. Scheduler is local Gantt/milestone/lookahead planning only, no MS Project integration. NR compliance is GENERAL_GUIDANCE or NEEDS_SAFETY_REVIEW; no official compliance approval or safety certification.')
   }
+  if (/(fornecedor|fornecedores|supply chain|cotação|cotacao|rfq|compra|material|materiais|subcontratado|procurement|supplier)/.test(text)) {
+    contexts.push('CP11E Supply Chain: local supplier registry, procurement items, RFQs and comparisons only. Do not fake ERP, supplier price, availability or verification. Label data USER_ENTERED, PLACEHOLDER or NEEDS_VERIFICATION.')
+  }
+  if (/(alerta|notificação|notificacao|prazo|lembrete|pendência|pendencia|vencimento|atraso crítico|atraso critico|deadline|notification)/.test(text)) {
+    contexts.push('CP11E Notifications: local alerts only. No push, email, SMS or calendar connector is connected unless explicitly verified. Label Local alert only - notification connector not connected yet.')
+  }
+  if (/(custo de ia|gasto com ia|tokens|observabilidade|custo openai|ai cost|billing|usage dashboard)/.test(text)) {
+    contexts.push('CP11E AI Cost / Observability: local estimated usage and cost only. Do not claim provider billing accuracy. Use ESTIMATED_LOCAL until real billing/usage API is connected.')
+  }
   if (!contexts.length) {
     contexts.push('Platform: Apex AI Copilot is a command-first full AI assistant. Chat is primary; modules and connectors are optional execution paths.')
   }
-  return contexts.slice(0, 4).join('\n')
+  return contexts.slice(0, 6).join('\n')
 }
 
 function buildToolSummary(tools) {
@@ -2460,6 +2469,125 @@ async function handleEvmSchedulerCompliance(req, res) {
   }
 }
 
+function createSupplyChainPlan(goal = '') {
+  const suppliers = [
+    {
+      id: 'supplier-materials-placeholder',
+      name: 'Material supplier to verify',
+      category: 'Materials',
+      contact: '',
+      region: '',
+      rating: 'Not rated',
+      status: 'Needs verification',
+      paymentTerms: 'To confirm',
+      leadTime: 'To confirm',
+      complianceDocs: 'Pending',
+      contractLink: '',
+      notes: 'Placeholder supplier. No price, availability or verification is confirmed.',
+      sourceConfidence: 'PLACEHOLDER',
+    },
+    {
+      id: 'supplier-subcontractor-placeholder',
+      name: 'Subcontractor to qualify',
+      category: 'Subcontractor',
+      contact: '',
+      region: '',
+      rating: 'Not rated',
+      status: 'Needs verification',
+      paymentTerms: 'To confirm',
+      leadTime: 'To confirm',
+      complianceDocs: 'Pending',
+      contractLink: '',
+      notes: 'Use Contracts Studio before accepting commercial terms.',
+      sourceConfidence: 'PLACEHOLDER',
+    },
+  ]
+  const procurementItems = [
+    { id: 'procurement-material-package', item: 'Material package from project scope', quantity: 1, unit: 'package', requiredDate: '', supplier: suppliers[0].name, quoteStatus: 'Not requested', deliveryStatus: 'Not scheduled', costPlaceholder: 0, sourceConfidence: 'PLACEHOLDER' },
+    { id: 'procurement-labor-package', item: 'Labor/subcontractor package', quantity: 1, unit: 'package', requiredDate: '', supplier: suppliers[1].name, quoteStatus: 'Not requested', deliveryStatus: 'Not scheduled', costPlaceholder: 0, sourceConfidence: 'PLACEHOLDER' },
+  ]
+  return {
+    providerStatus: 'local-planning',
+    suppliers,
+    procurementItems,
+    supplierComparison: suppliers.map(supplier => ({
+      supplier: supplier.name,
+      price: 'NEEDS_VERIFICATION',
+      quality: 'NEEDS_VERIFICATION',
+      deadline: 'NEEDS_VERIFICATION',
+      compliance: 'NEEDS_VERIFICATION',
+      reliability: 'NEEDS_VERIFICATION',
+      risk: 'Medium until verified',
+      sourceConfidence: supplier.sourceConfidence,
+    })),
+    rfqDraft: ['RFQ draft - local planning only', `Project/request: ${goal || 'Apex project procurement package'}`, 'Please provide itemized price, lead time, payment terms, delivery conditions, compliance documents, exclusions and validity date.', 'Apex has not verified supplier availability or pricing yet.'].join('\n'),
+    risks: ['Supplier prices are not verified.', 'Availability is not verified.', 'Compliance documents are pending.', 'Payment terms and lead times require supplier confirmation.'],
+    message: 'Supply Chain Studio generated a local supplier/procurement draft. No ERP, price or availability connector is connected.',
+  }
+}
+
+async function handleSupplyChainPlan(req, res) {
+  try {
+    const body = await readJson(req)
+    return json(res, 200, { plan: createSupplyChainPlan(String(body.goal || '')) })
+  } catch (error) {
+    return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'local-planning' })
+  }
+}
+
+function createNotificationsPlan(goal = '') {
+  const lower = String(goal || '').toLowerCase()
+  const type = /pagamento|fatura|payment|invoice|cobran/.test(lower)
+    ? 'Payment overdue'
+    : /fornecedor|supplier|material|entrega/.test(lower)
+      ? 'Supplier delay'
+      : /seguran|safety|nr-/.test(lower)
+        ? 'Safety risk'
+        : /custo|cost|budget|or[cç]amento/.test(lower)
+          ? 'Cost deviation'
+          : /cliente|follow/.test(lower)
+            ? 'Client follow-up'
+            : 'Deadline'
+  const severity = /cr[ií]tico|critical|urgente|alto risco/.test(lower) ? 'Critical' : 'High'
+  const alert = { id: `alert-${Date.now()}`, type, title: goal || 'Apex local alert', description: goal || 'Local reminder created from chat intent.', severity, dueDate: '', assignedTo: 'Owner/Admin', status: 'Open', sourceModule: 'Apex Copilot', evidence: 'USER_ENTERED' }
+  const followUp = { id: `alert-followup-${Date.now()}`, type: 'Client follow-up', title: 'Follow up with client', description: 'Suggested local follow-up. No email/SMS/push connector is connected.', severity: 'Medium', dueDate: '', assignedTo: 'Sales / Owner', status: 'Open', sourceModule: 'CRM', evidence: 'SYSTEM_SUGGESTED' }
+  return { providerStatus: 'local-alerts-only', alerts: [alert], suggestedAlerts: [alert, followUp], message: 'Local alert only — notification connector not connected yet.' }
+}
+
+async function handleNotificationsPlan(req, res) {
+  try {
+    const body = await readJson(req)
+    return json(res, 200, { plan: createNotificationsPlan(String(body.goal || '')) })
+  } catch (error) {
+    return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'local-alerts-only' })
+  }
+}
+
+function createAiCostPlan(goal = '') {
+  const now = new Date().toISOString()
+  const modules = ['Chat', 'ArchVis', 'DirectCut', 'BIM/3D', 'Budget', 'Contracts', 'FieldOps', 'Research', 'Skill Update', 'Export']
+  const moduleBreakdown = modules.map(module => ({ id: `ai-cost-${module.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`, module, requestCount: module === 'Chat' ? 1 : 0, estimatedTokens: module === 'Chat' ? 1200 : 0, estimatedCost: module === 'Chat' ? 0.01 : 0, model: 'unknown / local estimate', timestamp: now, userProject: goal || 'Apex Project', sourceConfidence: 'ESTIMATED_LOCAL' }))
+  const totalRequests = moduleBreakdown.reduce((sum, item) => sum + item.requestCount, 0)
+  const totalEstimatedTokens = moduleBreakdown.reduce((sum, item) => sum + item.estimatedTokens, 0)
+  const totalEstimatedCost = Number(moduleBreakdown.reduce((sum, item) => sum + item.estimatedCost, 0).toFixed(4))
+  return {
+    providerStatus: 'estimated-local',
+    usageSummary: { totalRequests, totalEstimatedTokens, totalEstimatedCost, sourceConfidence: 'ESTIMATED_LOCAL', warning: 'No provider billing API is connected. These values are local estimates, not invoice-accurate billing.' },
+    moduleBreakdown,
+    costWarnings: ['No fake OpenAI billing: provider billing source is not connected.', 'Use ESTIMATED_LOCAL until real usage/billing API is connected.', 'Set local threshold alerts only; push/email connectors are not connected.'],
+    message: 'AI Cost Dashboard generated an estimated-local observability draft. It is not provider billing.',
+  }
+}
+
+async function handleAiCostPlan(req, res) {
+  try {
+    const body = await readJson(req)
+    return json(res, 200, { plan: createAiCostPlan(String(body.goal || '')) })
+  } catch (error) {
+    return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'estimated-local' })
+  }
+}
+
 function exportSafeSlug(value = 'apex-export') {
   return String(value || 'apex-export')
     .toLowerCase()
@@ -2536,6 +2664,10 @@ function exportPickSections(project, scope, selectedSections, includeChat) {
       chatMessages: includeChat ? project.chatMessages : '[CHAT_EXCLUDED]',
       revisionConstraints: project.revisionConstraints,
       preferences: project.preferences,
+      suppliers: project.suppliers || [],
+      procurementItems: project.procurementItems || [],
+      alerts: project.alerts || [],
+      aiCostRecords: project.aiCostRecords || [],
     } : undefined,
     archvis: should('archvis') ? {
       outputs: project.archVisOutputs,
@@ -2572,6 +2704,22 @@ function exportPickSections(project, scope, selectedSections, includeChat) {
     controls: should('evm-scheduler-nr') || should('controls') ? {
       exports: byType('evm-scheduler-nr-compliance'),
       activeState: appState.evmSchedulerComplianceOutput || null,
+    } : undefined,
+    supplychain: should('supply-chain') || should('supplychain') ? {
+      suppliers: project.suppliers || [],
+      procurementItems: project.procurementItems || [],
+      exports: byType('supply-chain'),
+      activeState: appState.supplyChainOutput || null,
+    } : undefined,
+    notifications: should('notifications') || should('alerts') ? {
+      alerts: project.alerts || [],
+      exports: byType('notifications'),
+      activeState: appState.notificationsOutput || null,
+    } : undefined,
+    aicost: should('ai-cost') || should('observability') ? {
+      aiCostRecords: project.aiCostRecords || [],
+      exports: byType('ai-cost'),
+      activeState: appState.aiCostOutput || null,
     } : undefined,
     skills: should('skill-package') || should('skills') ? {
       skillUpdates: project.skillUpdates,
@@ -2901,6 +3049,18 @@ const server = http.createServer((req, res) => {
   }
   if (req.url === '/api/copilot/evm-scheduler-compliance' && req.method === 'POST') {
     handleEvmSchedulerCompliance(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/supply-chain-plan' && req.method === 'POST') {
+    handleSupplyChainPlan(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/notifications-plan' && req.method === 'POST') {
+    handleNotificationsPlan(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/ai-cost-plan' && req.method === 'POST') {
+    handleAiCostPlan(req, res)
     return
   }
   if (req.url === '/api/copilot/analyze-skill-update' && req.method === 'POST') {

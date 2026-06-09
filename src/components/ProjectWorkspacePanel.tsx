@@ -13,6 +13,10 @@ type ProjectSummary = {
   constraints: number
   skillUpdates: number
   preferences: number
+  suppliers: number
+  procurementItems: number
+  alerts: number
+  aiCostRecords: number
 }
 
 type ProjectWorkspacePanelProps = {
@@ -122,6 +126,10 @@ export function ProjectWorkspacePanel({
             <div><strong>{summary.constraints}</strong><span>constraints</span></div>
             <div><strong>{summary.skillUpdates}</strong><span>skills</span></div>
             <div><strong>{summary.preferences}</strong><span>prefs</span></div>
+            <div><strong>{summary.suppliers}</strong><span>suppliers</span></div>
+            <div><strong>{summary.procurementItems}</strong><span>procure</span></div>
+            <div><strong>{summary.alerts}</strong><span>alerts</span></div>
+            <div><strong>{summary.aiCostRecords}</strong><span>AI cost</span></div>
           </div>
 
           <div className="project-actions">

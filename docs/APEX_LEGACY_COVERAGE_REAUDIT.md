@@ -23,7 +23,7 @@ Coverage statuses:
 
 The new Apex AI Copilot platform now covers the core legacy promise better than the old landing/report in several areas: chat-first command center, ArchVis, DirectCut planning, BIM/3D internal-first foundation, Budget, Contracts/Permits, FieldOps/RDO, Export Center, Project Workspace, Skill Update/Export, Revit automation knowledge, platform engineering knowledge, SaaS/CRM/Finance scaffolding, and the 8 cognitive agents map.
 
-The biggest remaining gaps are not UI quantity; they are production infrastructure and source truth: real auth/database/multi-tenant isolation, real Supabase/RLS, Vercel deployment readiness, real IFC parsing/viewer extraction, real SINAPI/source connectors, real payment/fiscal/accounting connectors, notifications/alerts, observability/AI cost dashboard, PWA/mobile polish, digital twin UI, Knowledge Base UI, and metrics dashboard UI.
+The biggest remaining gaps are not UI quantity; they are production infrastructure and source truth: real auth/database/multi-tenant isolation, real Supabase/RLS, Vercel deployment readiness, real IFC parsing/viewer extraction, real SINAPI/source connectors, real payment/fiscal/accounting connectors, PWA/mobile polish, digital twin UI, Knowledge Base UI, metrics dashboard UI, and production connectors for suppliers, notifications and provider billing.
 
 ## Detailed Re-Audit Table
 
@@ -48,9 +48,9 @@ The biggest remaining gaps are not UI quantity; they are production infrastructu
 | 17 | Platform engineering / DevOps | COVERED | CONFIRMED: `docs/APEX_PLATFORM_ENGINEERING_SKILL.md`, `src/lib/apexSkillKnowledge/platformEngineering.ts`, `runtimeKnowledge.json` | Legacy platform-building support | Platform engineering skill for repo, PR, Supabase SQL/RLS, Vercel, security, deploy diagnostics | Knowledge/tooling only; no automatic GitHub/Vercel connector execution in app | DevOps connector integration |
 | 18 | Export Center | COVERED | CONFIRMED: `src/components/ExportCenterPanel.tsx`, `src/lib/exportCenter.ts`, `/api/copilot/export-package` | Legacy executive reports/packages | Central export packaging for project, studios, skills, EVM/Scheduler/NR | No real ZIP binary bundler or database-backed file store; exports only current project state | Export v2 with packaged files/storage |
 | 19 | SaaS / users / roles / accounting | PARTIALLY COVERED | CONFIRMED: `SaasAdminPanel.tsx`, `CrmPanel.tsx`, `FinancePanel.tsx`, `saasBusinessModel.ts`, `crmFinanceKnowledge.ts` | Legacy SaaS/client/business platform | Local demo users/roles, client workspace, CRM, finance, accounting prep, plans | No real auth, RLS, multi-tenant DB, payment, fiscal or accountant connector | Auth/RLS + payments/fiscal/accounting connectors |
-| 20 | Supply chain / suppliers | MISSING | CONFIRMED absence: no dedicated supplier/supply-chain component/lib in current scan | Legacy-style operations could imply suppliers/materials | Materials fields exist in FieldOps/Budget; no supplier workspace | No supplier registry, procurement, vendor comparison, PO workflow | Supply Chain / Suppliers Studio |
-| 21 | Notifications / alerts | MISSING | CONFIRMED absence: no notifications/alerts panel/endpoint in current scan | Legacy operational alerts implied by platform reporting | None dedicated | No email/SMS/push/in-app notifications or alert rules | Notifications/Alerts checkpoint |
-| 22 | AI cost dashboard / observability UI | MISSING | CONFIRMED absence: no AI cost/observability component/endpoint in current scan | Legacy report may imply monitoring | Runtime uses API, but no visible cost/usage dashboard | No token/cost tracking UI, model usage logs or budget alerts | AI Cost + Observability dashboard |
+| 20 | Supply chain / suppliers | COVERED | CONFIRMED: `src/components/SupplyChainPanel.tsx`, `src/lib/supplyChainKnowledge.ts`, `/api/copilot/supply-chain-plan` | Legacy-style operations could imply suppliers/materials | Local supplier registry, procurement items, RFQ draft and supplier comparison | No fake ERP, no live price/availability/supplier verification, no purchase orders | ERP/supplier/source connector |
+| 21 | Notifications / alerts | COVERED | CONFIRMED: `src/components/NotificationsPanel.tsx`, `src/lib/notificationsKnowledge.ts`, `/api/copilot/notifications-plan` | Legacy operational alerts implied by platform reporting | Local alert center with severity, due date, assignment, status and evidence | No push/email/SMS/calendar connector; local alerts only | Notification connector checkpoint |
+| 22 | AI cost dashboard / observability UI | COVERED | CONFIRMED: `src/components/AiCostDashboardPanel.tsx`, `src/lib/aiCostKnowledge.ts`, `/api/copilot/ai-cost-plan` | Legacy report may imply monitoring | Estimated-local AI usage/cost dashboard by module/project/model | No provider billing/usage API; not invoice-accurate | Provider billing/observability connector |
 | 23 | Multi-tenant | MISSING | CONFIRMED: SaaS layer labels local demo; no auth/database | Legacy SaaS/client portal direction | Local role/client model only | No real tenant isolation, auth, organizations, RLS or DB | Supabase auth/RLS multi-tenant foundation |
 | 24 | PWA / mobile | MISSING | CONFIRMED absence: no PWA/mobile manifest/service worker evidence in current scan | Legacy broad platform access | Responsive UI exists generally, but no PWA module | No installable app/offline/push/mobile shell | PWA/mobile checkpoint |
 | 25 | Digital Twin UI | MISSING | ASSUMPTION: BIM/3D foundation is not a Digital Twin UI | Legacy BIM/digital twin ambition | BIM/3D Studio can become foundation | No persistent asset twin, live data layers, sensors, timeline or twin dashboard | Digital Twin workspace |
@@ -71,6 +71,9 @@ The biggest remaining gaps are not UI quantity; they are production infrastructu
 - Contracts / Permits Studio with document/risk/permit package intelligence.
 - FieldOps / RDO Studio with field evidence labels.
 - Research Studio with source confidence and web-not-connected honesty.
+- Supply Chain Studio with local supplier registry, procurement items, RFQs and comparison.
+- Notifications / Alerts Center with local alerts only and no fake push/email/SMS.
+- AI Cost Dashboard with ESTIMATED_LOCAL observability and no fake provider billing.
 - Export Center with redaction and CP11C report coverage.
 - Local Project Workspace persistence/import/export.
 - SaaS/CRM/Finance/Accounting local demo scaffolding.
@@ -83,11 +86,10 @@ The biggest remaining gaps are not UI quantity; they are production infrastructu
 1. Real auth/database/RLS/multi-tenant foundation.
 2. Real BIM parser/viewer evidence extraction and IFC model data pipeline.
 3. Source connectors: web research, SINAPI/user-upload source parser, legal/permit sources and NR source review.
-4. Notifications/alerts, AI cost dashboard and observability UI.
-5. Supply Chain / Suppliers Studio.
-6. Knowledge Base UI and Metrics Dashboard UI.
-7. PWA/mobile and Digital Twin UI.
-8. Vercel deployment readiness for the new platform.
+4. Production connectors for suppliers/ERP, notifications and provider billing/usage.
+5. Knowledge Base UI and Metrics Dashboard UI.
+6. PWA/mobile and Digital Twin UI.
+7. Vercel deployment readiness for the new platform.
 
 ## Recommended Next Checkpoint
 

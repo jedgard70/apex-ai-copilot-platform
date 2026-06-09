@@ -158,6 +158,24 @@ export const toolData: CopilotTool[] = [
     trigger: ['evm', 'cpi', 'spi', 'eac', 'vac', 'tcpi', 'planned value', 'earned value', 'actual cost', 'cronograma', 'gantt', 'caminho crítico', 'atraso', 'lookahead', 'cronograma físico-financeiro', 'nr-18', 'nr-35', 'nr-10', 'nr-6', 'nr-33', 'segurança do trabalho', 'compliance nr'],
   },
   {
+    id: 'supply-chain',
+    name: 'Supply Chain / Suppliers',
+    role: 'Manage local supplier registry, procurement items, RFQs and supplier comparisons without fake ERP, price, availability or verification.',
+    trigger: ['fornecedor', 'fornecedores', 'supply chain', 'cotação', 'cotacao', 'rfq', 'compra', 'material', 'materiais', 'subcontratado', 'procurement', 'supplier'],
+  },
+  {
+    id: 'notifications-alerts',
+    name: 'Notifications / Alerts',
+    role: 'Create local alerts for deadlines, cost deviation, safety, quality, permits, payments, suppliers and AI thresholds without fake push/email/SMS.',
+    trigger: ['alerta', 'notificação', 'notificacao', 'prazo', 'lembrete', 'pendência', 'pendencia', 'vencimento', 'atraso crítico', 'deadline', 'notification'],
+  },
+  {
+    id: 'ai-cost-observability',
+    name: 'AI Cost / Observability',
+    role: 'Track estimated local AI usage and cost by module/project/model without fake provider billing.',
+    trigger: ['custo de ia', 'gasto com ia', 'tokens', 'observabilidade', 'custo openai', 'ai cost', 'billing', 'usage dashboard'],
+  },
+  {
     id: 'exploration',
     name: 'Exploration / General Reasoning',
     role: 'Think through open-ended questions, strategy, planning, decisions and general knowledge tasks.',

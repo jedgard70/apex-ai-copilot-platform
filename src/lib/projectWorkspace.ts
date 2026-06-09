@@ -35,12 +35,16 @@ export type ProjectWorkspace = {
   savedViews: unknown[]
   tours: unknown[]
   exports: unknown[]
+  suppliers: unknown[]
+  procurementItems: unknown[]
+  alerts: unknown[]
+  aiCostRecords: unknown[]
   projectMemory: unknown[]
   skillUpdates: unknown[]
   preferences: unknown[]
   activeTool?: string
   activeFileId?: string
-  activeStudio?: 'archvis' | 'directcut' | 'bim3d' | 'budget' | 'contracts' | 'research' | 'fieldops' | 'business' | 'agents' | 'evm-scheduler-compliance' | null
+  activeStudio?: 'archvis' | 'directcut' | 'bim3d' | 'budget' | 'contracts' | 'research' | 'fieldops' | 'business' | 'agents' | 'evm-scheduler-compliance' | 'supply-chain' | 'notifications' | 'ai-cost' | null
   appState?: Record<string, unknown>
 }
 
@@ -86,6 +90,10 @@ export function createProject(name = 'Apex Project'): ProjectWorkspace {
     savedViews: [],
     tours: [],
     exports: [],
+    suppliers: [],
+    procurementItems: [],
+    alerts: [],
+    aiCostRecords: [],
     projectMemory: [],
     skillUpdates: [],
     preferences: [],
@@ -112,6 +120,10 @@ export function validateProjectWorkspace(value: unknown): ProjectWorkspace | nul
     savedViews: Array.isArray(candidate.savedViews) ? candidate.savedViews : [],
     tours: Array.isArray(candidate.tours) ? candidate.tours : [],
     exports: Array.isArray(candidate.exports) ? candidate.exports : [],
+    suppliers: Array.isArray(candidate.suppliers) ? candidate.suppliers : [],
+    procurementItems: Array.isArray(candidate.procurementItems) ? candidate.procurementItems : [],
+    alerts: Array.isArray(candidate.alerts) ? candidate.alerts : [],
+    aiCostRecords: Array.isArray(candidate.aiCostRecords) ? candidate.aiCostRecords : [],
     projectMemory: Array.isArray(candidate.projectMemory) ? candidate.projectMemory : [],
     skillUpdates: Array.isArray(candidate.skillUpdates) ? candidate.skillUpdates : [],
     preferences: Array.isArray(candidate.preferences) ? candidate.preferences : [],

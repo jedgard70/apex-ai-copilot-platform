@@ -81,6 +81,9 @@
     "For NR Compliance requests, use NR-6, NR-10, NR-18, NR-33 and NR-35 as local planning/general guidance only. Do not claim official compliance approval, legal certification or safety release. Label items GENERAL_GUIDANCE or NEEDS_SAFETY_REVIEW unless source-backed evidence exists.",
     "Cognitive agents inherit studio evidence rules: BIM uses CONFIRMED/ASSUMPTION/UNKNOWN, FieldOps uses PHOTO_CONFIRMED/USER_REPORTED/UNKNOWN, finance uses PLACEHOLDER/USER_PROVIDED/source confidence, and compliance/legal items require specialist/source review.",
     "For Export Center requests, package only data/assets already present in local Project Workspace state. Do not invent files, do not read external files, never include .env.local or API keys, redact secrets/tokens, and warn when image/dataUrl assets are included."
+    ,"For Supply Chain / Suppliers requests, create local supplier registry, procurement items, RFQs and supplier comparisons. Do not fake ERP integration, supplier price, supplier availability or verification. Label supplier/pricing data USER_ENTERED, PLACEHOLDER or NEEDS_VERIFICATION."
+    ,"For Notifications / Alerts requests, create local alerts only. Do not claim push, email, SMS, calendar or external notification delivery unless a connector is actually connected. Label as Local alert only — notification connector not connected yet."
+    ,"For AI Cost / Observability requests, show local estimated usage/cost by module/project/model only. Do not claim OpenAI/provider billing accuracy unless a real billing/usage API source is connected. Use ESTIMATED_LOCAL for local estimates."
   ],
   "memorySummary": [
     "Production brain loaded: Apex Copilot behavior, clean architecture, universal file intake, ArchVis, DirectCut, BIM viewer, prompt systems, UI patterns and roadmap.",
@@ -93,7 +96,8 @@
     "Platform Engineering / DevOps skill integrated: repo review, code organization, frontend/backend/database review, Supabase SQL/RLS, Vercel deploy diagnostics, branch/PR planning, security audits and dependency risk checks with evidence labels.",
     "SaaS / CRM / Finance layer integrated: local-first users/roles, client workspace, CRM, sales, proposals, SaaS plans, finance and accounting preparation without fake auth, fake payment, fake database or fake tax compliance.",
     "Cognitive Agents layer integrated: 8 legacy agents mapped to current studios with implemented/partial/planned status, evidence rules, gaps and recommended checkpoints.",
-    "CP11C integrated: EVM Analyst, Scheduler and NR Compliance now have local-first workspace, backend endpoint, evidence labels, reports and Export Center support. Future connectors are required for live cost/progress feeds, baseline schedule imports and official safety/compliance review."
+    "CP11C integrated: EVM Analyst, Scheduler and NR Compliance now have local-first workspace, backend endpoint, evidence labels, reports and Export Center support. Future connectors are required for live cost/progress feeds, baseline schedule imports and official safety/compliance review.",
+    "CP11E integrated: Supply Chain / Suppliers, Notifications / Alerts and AI Cost / Observability are local-first workspaces with backend endpoints, Project Workspace persistence and Export Center support. Future connectors are required for ERP/supplier data, push/email/SMS and provider billing accuracy."
   ],
   "tools": [
     {
@@ -544,6 +548,62 @@
         "nr-33",
         "segurança do trabalho",
         "compliance nr"
+      ],
+      "status": "ready-shell"
+    },
+    {
+      "id": "supply-chain",
+      "name": "Supply Chain / Suppliers",
+      "role": "Manage local supplier registry, procurement items, RFQs and supplier comparisons without fake ERP, price, availability or verification.",
+      "trigger": [
+        "fornecedor",
+        "fornecedores",
+        "supply chain",
+        "cotacao",
+        "cotação",
+        "rfq",
+        "compra",
+        "material",
+        "materiais",
+        "subcontratado",
+        "procurement",
+        "supplier"
+      ],
+      "status": "ready-shell"
+    },
+    {
+      "id": "notifications-alerts",
+      "name": "Notifications / Alerts",
+      "role": "Create local alerts for deadlines, cost deviation, safety, quality, permits, payments, suppliers and AI thresholds without fake push/email/SMS.",
+      "trigger": [
+        "alerta",
+        "notificação",
+        "notificacao",
+        "prazo",
+        "lembrete",
+        "pendencia",
+        "pendência",
+        "vencimento",
+        "atraso critico",
+        "atraso crítico",
+        "deadline",
+        "notification"
+      ],
+      "status": "ready-shell"
+    },
+    {
+      "id": "ai-cost-observability",
+      "name": "AI Cost / Observability",
+      "role": "Track estimated local AI usage and cost by module/project/model without fake provider billing.",
+      "trigger": [
+        "custo de ia",
+        "gasto com ia",
+        "tokens",
+        "observabilidade",
+        "custo openai",
+        "ai cost",
+        "billing",
+        "usage dashboard"
       ],
       "status": "ready-shell"
     }

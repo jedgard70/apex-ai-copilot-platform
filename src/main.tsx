@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { ArchVisPanel } from './components/ArchVisPanel'
 import { AgentsPanel } from './components/AgentsPanel'
+import { AiCostDashboardPanel } from './components/AiCostDashboardPanel'
 import { Bim3DPanel, BimArchVisOutput, BimTourOutput } from './components/Bim3DPanel'
 import { BudgetPanel } from './components/BudgetPanel'
 import { ContractsPanel } from './components/ContractsPanel'
@@ -21,11 +22,13 @@ import { EvmSchedulerCompliancePanel } from './components/EvmSchedulerCompliance
 import { ExportCenterPanel } from './components/ExportCenterPanel'
 import { FinancePanel } from './components/FinancePanel'
 import { FieldOpsPanel } from './components/FieldOpsPanel'
+import { NotificationsPanel } from './components/NotificationsPanel'
 import { ProjectWorkspacePanel } from './components/ProjectWorkspacePanel'
 import { ResearchPanel } from './components/ResearchPanel'
 import { SaasAdminPanel } from './components/SaasAdminPanel'
 import { SkillExportPanel } from './components/SkillExportPanel'
 import { SkillUpdatePanel } from './components/SkillUpdatePanel'
+import { SupplyChainPanel } from './components/SupplyChainPanel'
 import { classifyFile, formatSize, IntakeFile, isVisionReady, readFileAsDataUrl, readImageDimensions } from './lib/fileIntake'
 import {
   createProject,
@@ -49,7 +52,10 @@ import { FieldOpsPlan } from './lib/fieldOpsKnowledge'
 import { ResearchPlan } from './lib/researchKnowledge'
 import { selectTool, tools } from './lib/toolRegistry'
 import { isAgentIntent } from './lib/apexAgents'
+import { AiCostPlan, isAiCostIntent } from './lib/aiCostKnowledge'
 import { EvmSchedulerCompliancePlan, isEvmSchedulerComplianceIntent } from './lib/evmSchedulerComplianceKnowledge'
+import { isNotificationsIntent, NotificationsPlan } from './lib/notificationsKnowledge'
+import { isSupplyChainIntent, SupplyChainPlan } from './lib/supplyChainKnowledge'
 import './styles.css'
 
 type Message = {
@@ -111,6 +117,21 @@ type AgentsOutput = {
 }
 
 type EvmSchedulerComplianceOutput = {
+  goal: string
+  conversationContext: string[]
+}
+
+type SupplyChainOutput = {
+  goal: string
+  conversationContext: string[]
+}
+
+type NotificationsOutput = {
+  goal: string
+  conversationContext: string[]
+}
+
+type AiCostOutput = {
   goal: string
   conversationContext: string[]
 }
@@ -403,6 +424,18 @@ function App() {
     const stored = initialAppState.evmSchedulerComplianceOutput as EvmSchedulerComplianceOutput | undefined
     return stored || null
   })
+  const [supplyChainOutput, setSupplyChainOutput] = useState<SupplyChainOutput | null>(() => {
+    const stored = initialAppState.supplyChainOutput as SupplyChainOutput | undefined
+    return stored || null
+  })
+  const [notificationsOutput, setNotificationsOutput] = useState<NotificationsOutput | null>(() => {
+    const stored = initialAppState.notificationsOutput as NotificationsOutput | undefined
+    return stored || null
+  })
+  const [aiCostOutput, setAiCostOutput] = useState<AiCostOutput | null>(() => {
+    const stored = initialAppState.aiCostOutput as AiCostOutput | undefined
+    return stored || null
+  })
   const [bimCommand, setBimCommand] = useState<BimCommand | undefined>()
   const [workspaceOpenSignal, setWorkspaceOpenSignal] = useState('')
   const [skillUpdateOpenSignal, setSkillUpdateOpenSignal] = useState('')
@@ -437,6 +470,10 @@ function App() {
     projectMemory: activeProject.projectMemory.length,
     skillUpdates: activeProject.skillUpdates.length,
     preferences: activeProject.preferences.length,
+    suppliers: activeProject.suppliers.length,
+    procurementItems: activeProject.procurementItems.length,
+    alerts: activeProject.alerts.length,
+    aiCostRecords: activeProject.aiCostRecords.length,
   }), [activeProject, archVisOutput, archVisRevisionConstraints.length, bim3DOutput, directCutOutput, messages.length])
 
   function buildProjectSnapshot() {
@@ -447,7 +484,7 @@ function App() {
           activeRecord,
         ]
       : activeProject.files
-    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : fieldOpsOutput ? 'fieldops' : businessOutput ? 'business' : agentsOutput ? 'agents' : evmSchedulerComplianceOutput ? 'evm-scheduler-compliance' : null
+    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : fieldOpsOutput ? 'fieldops' : businessOutput ? 'business' : agentsOutput ? 'agents' : evmSchedulerComplianceOutput ? 'evm-scheduler-compliance' : supplyChainOutput ? 'supply-chain' : notificationsOutput ? 'notifications' : aiCostOutput ? 'ai-cost' : null
     return {
       ...activeProject,
       language: navigator.language || activeProject.language,
@@ -466,6 +503,10 @@ function App() {
       savedViews: activeProject.savedViews,
       tours: activeProject.tours,
       exports: activeProject.exports,
+      suppliers: activeProject.suppliers,
+      procurementItems: activeProject.procurementItems,
+      alerts: activeProject.alerts,
+      aiCostRecords: activeProject.aiCostRecords,
       activeTool: activeTool.id,
       activeFileId: activeRecord?.id || activeProject.activeFileId,
       activeStudio,
@@ -489,6 +530,9 @@ function App() {
         businessOutput,
         agentsOutput,
         evmSchedulerComplianceOutput,
+        supplyChainOutput,
+        notificationsOutput,
+        aiCostOutput,
       },
     }
   }
@@ -509,7 +553,7 @@ function App() {
     }, 650)
     return () => window.clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, budgetOutput, contractsOutput, researchOutput, fieldOpsOutput, businessOutput, agentsOutput, evmSchedulerComplianceOutput, archVisRevisionConstraints, activeTool.id])
+  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, budgetOutput, contractsOutput, researchOutput, fieldOpsOutput, businessOutput, agentsOutput, evmSchedulerComplianceOutput, supplyChainOutput, notificationsOutput, aiCostOutput, archVisRevisionConstraints, activeTool.id])
 
   async function askCopilot(text = input, attachment = activeFile) {
     const clean = text.trim()
@@ -527,6 +571,9 @@ function App() {
     const shouldOpenFieldOps = clean && isFieldOpsIntent(clean, attachment)
     const shouldOpenBusiness = clean && isBusinessLayerIntent(clean)
     const shouldOpenControlsAgents = clean && isEvmSchedulerComplianceIntent(clean)
+    const shouldOpenSupplyChain = clean && isSupplyChainIntent(clean)
+    const shouldOpenNotifications = clean && isNotificationsIntent(clean)
+    const shouldOpenAiCost = clean && isAiCostIntent(clean)
     const shouldOpenAgents = clean && isAgentIntent(clean)
     const shouldOpenBim3D = isBim3DIntent(clean || modelText, attachment)
     const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
@@ -612,6 +659,27 @@ function App() {
             : 'Abri a camada SaaS/CRM/Finance ao lado. Tudo está em Local demo mode: sem auth, sem database e sem payment connector.'
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: responseText }])
       setBusinessOutput({ goal: clean, focus, conversationContext: context })
+      setInput('')
+      return
+    }
+    if (shouldOpenSupplyChain) {
+      const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Supply Chain / Suppliers Studio ao lado. Vou organizar fornecedores, cotações e compras em modo local, sem fingir preço, disponibilidade ou verificação de fornecedor.' }])
+      setSupplyChainOutput({ goal: clean, conversationContext: context })
+      setInput('')
+      return
+    }
+    if (shouldOpenNotifications) {
+      const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Notifications / Alerts Center ao lado. Estes são alertas locais; conector de push, email ou SMS ainda não está conectado.' }])
+      setNotificationsOutput({ goal: clean, conversationContext: context })
+      setInput('')
+      return
+    }
+    if (shouldOpenAiCost) {
+      const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o AI Cost Dashboard ao lado. Vou mostrar estimativas locais de uso/custo, sem fingir billing real da OpenAI ou de outro provedor.' }])
+      setAiCostOutput({ goal: clean, conversationContext: context })
       setInput('')
       return
     }
@@ -976,6 +1044,9 @@ function App() {
     setBusinessOutput(null)
     setAgentsOutput(null)
     setEvmSchedulerComplianceOutput(null)
+    setSupplyChainOutput(null)
+    setNotificationsOutput(null)
+    setAiCostOutput(null)
     setExportCenterOpen(false)
     setArchVisRevisionConstraints([])
     setMessages([{ id: id(), role: 'assistant', text: 'New Apex project started. Upload a file or tell me what we are building.' }])
@@ -1015,6 +1086,12 @@ function App() {
     setAgentsOutput(restoredAgents || null)
     const restoredEvmControls = state.evmSchedulerComplianceOutput as EvmSchedulerComplianceOutput | null | undefined
     setEvmSchedulerComplianceOutput(restoredEvmControls || null)
+    const restoredSupplyChain = state.supplyChainOutput as SupplyChainOutput | null | undefined
+    setSupplyChainOutput(restoredSupplyChain || null)
+    const restoredNotifications = state.notificationsOutput as NotificationsOutput | null | undefined
+    setNotificationsOutput(restoredNotifications || null)
+    const restoredAiCost = state.aiCostOutput as AiCostOutput | null | undefined
+    setAiCostOutput(restoredAiCost || null)
   }
 
   function switchProject(projectId: string) {
@@ -1061,6 +1138,9 @@ function App() {
     setBusinessOutput(null)
     setAgentsOutput(null)
     setEvmSchedulerComplianceOutput(null)
+    setSupplyChainOutput(null)
+    setNotificationsOutput(null)
+    setAiCostOutput(null)
     setArchVisRevisionConstraints([])
     setMessages([{ id: id(), role: 'assistant', text: 'Local workspace cleared. New Apex project ready.' }])
   }
@@ -1244,6 +1324,61 @@ function App() {
     ])
   }
 
+  function saveSupplyChainToProject(plan: SupplyChainPlan) {
+    const saved = upsertProject({
+      ...activeProject,
+      suppliers: plan.suppliers,
+      procurementItems: plan.procurementItems,
+      exports: [
+        ...activeProject.exports,
+        {
+          type: 'supply-chain-suppliers',
+          timestamp: new Date().toISOString(),
+          plan,
+        },
+      ],
+    })
+    setActiveProject(saved)
+    setProjects(loadProjects())
+    setMessages(prev => [...prev, { id: id(), role: 'assistant', text: 'Salvei fornecedores e itens de compra no Project Workspace local.' }])
+  }
+
+  function saveNotificationsToProject(plan: NotificationsPlan) {
+    const saved = upsertProject({
+      ...activeProject,
+      alerts: plan.alerts,
+      exports: [
+        ...activeProject.exports,
+        {
+          type: 'notifications-alerts',
+          timestamp: new Date().toISOString(),
+          plan,
+        },
+      ],
+    })
+    setActiveProject(saved)
+    setProjects(loadProjects())
+    setMessages(prev => [...prev, { id: id(), role: 'assistant', text: 'Salvei os alertas locais no Project Workspace. Nenhum push/email/SMS foi enviado.' }])
+  }
+
+  function saveAiCostToProject(plan: AiCostPlan) {
+    const saved = upsertProject({
+      ...activeProject,
+      aiCostRecords: plan.moduleBreakdown,
+      exports: [
+        ...activeProject.exports,
+        {
+          type: 'ai-cost-observability',
+          timestamp: new Date().toISOString(),
+          plan,
+        },
+      ],
+    })
+    setActiveProject(saved)
+    setProjects(loadProjects())
+    setMessages(prev => [...prev, { id: id(), role: 'assistant', text: 'Salvei o dashboard de custo de IA no Project Workspace como estimativa local, não billing real.' }])
+  }
+
   return (
     <main className="app" onPaste={handlePaste} onDragOver={event => event.preventDefault()} onDrop={handleDrop}>
       <header className="topbar">
@@ -1256,7 +1391,7 @@ function App() {
         </div>
       </header>
 
-      <section className={`workspace ${archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || evmSchedulerComplianceOutput || exportCenterOpen ? 'studio-open' : ''}`}>
+      <section className={`workspace ${archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || evmSchedulerComplianceOutput || supplyChainOutput || notificationsOutput || aiCostOutput || exportCenterOpen ? 'studio-open' : ''}`}>
         <section className="chat-shell" aria-label="Apex AI Copilot chat">
           <div className="chat-header">
             <div>
@@ -1567,6 +1702,40 @@ function App() {
               conversationContext={evmSchedulerComplianceOutput.conversationContext}
               onSaveToProject={saveEvmSchedulerComplianceToProject}
               onClear={() => setEvmSchedulerComplianceOutput(null)}
+            />
+          )}
+
+          {supplyChainOutput && (
+            <SupplyChainPanel
+              goal={supplyChainOutput.goal}
+              conversationContext={supplyChainOutput.conversationContext}
+              onSaveToProject={saveSupplyChainToProject}
+              onClear={() => setSupplyChainOutput(null)}
+            />
+          )}
+
+          {notificationsOutput && (
+            <NotificationsPanel
+              goal={notificationsOutput.goal}
+              conversationContext={notificationsOutput.conversationContext}
+              onSaveToProject={saveNotificationsToProject}
+              onClear={() => setNotificationsOutput(null)}
+            />
+          )}
+
+          {aiCostOutput && (
+            <AiCostDashboardPanel
+              goal={aiCostOutput.goal}
+              conversationContext={aiCostOutput.conversationContext}
+              onSaveToProject={saveAiCostToProject}
+              onCreateThresholdAlert={summary => {
+                setNotificationsOutput({
+                  goal: summary,
+                  conversationContext: [`assistant: ${summary}`],
+                })
+                setMessages(prev => [...prev, { id: id(), role: 'assistant', text: 'Criei um alerta local de threshold de custo de IA. O conector de notificação ainda não está conectado.' }])
+              }}
+              onClear={() => setAiCostOutput(null)}
             />
           )}
 
