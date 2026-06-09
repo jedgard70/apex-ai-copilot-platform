@@ -1550,6 +1550,74 @@ function permitItem(id, category, requirement, evidence) {
   }
 }
 
+function permitPackageDoc(id, documentName, group, responsibleParty, evidenceLevel, notes) {
+  return {
+    id,
+    documentName,
+    group,
+    responsibleParty,
+    status: 'Not started',
+    evidenceLevel,
+    dueDate: '',
+    notes,
+    sourceLink: '',
+  }
+}
+
+function permitPackageForRegion(region, evidenceLevel, jurisdictionLabel) {
+  const verifyNote = `Verify exact current requirement with ${jurisdictionLabel}.`
+  if (region === 'EU') {
+    return [
+      permitPackageDoc('eu-planning', 'Planning permission / planning application package', 'required documents', 'architect/engineer-provided', evidenceLevel, `General EU-style planning package item. ${verifyNote}`),
+      permitPackageDoc('eu-building-control', 'Building control / building permit submission', 'required documents', 'architect/engineer-provided', evidenceLevel, `General building control package item. ${verifyNote}`),
+      permitPackageDoc('eu-zoning', 'Zoning / land-use compliance summary', 'required documents', 'architect/engineer-provided', evidenceLevel, `Confirm local land-use constraints. ${verifyNote}`),
+      permitPackageDoc('eu-fire', 'Fire safety strategy and drawings', 'required documents', 'architect/engineer-provided', evidenceLevel, `Fire safety requirements vary by municipality/country. ${verifyNote}`),
+      permitPackageDoc('eu-accessibility', 'Accessibility compliance checklist', 'required documents', 'architect/engineer-provided', evidenceLevel, `Use local accessibility standard only after source verification. ${verifyNote}`),
+      permitPackageDoc('eu-energy', 'Energy performance / EPC-style documentation', 'required documents', 'architect/engineer-provided', evidenceLevel, `Energy documentation is jurisdiction-dependent. ${verifyNote}`),
+      permitPackageDoc('eu-environmental', 'Environmental impact screening', 'unknown until jurisdiction verified', 'architect/engineer-provided', 'NEEDS_LOCAL_AUTHORITY', `May or may not be required. ${verifyNote}`),
+      permitPackageDoc('eu-structural', 'Structural documentation / calculations', 'required documents', 'architect/engineer-provided', evidenceLevel, `Engineer-stamped requirements vary. ${verifyNote}`),
+      permitPackageDoc('eu-mep', 'MEP documentation', 'optional documents', 'architect/engineer-provided', evidenceLevel, `May be required depending on scope. ${verifyNote}`),
+      permitPackageDoc('eu-heritage', 'Heritage / conservation constraints check', 'unknown until jurisdiction verified', 'authority-provided', 'NEEDS_LOCAL_AUTHORITY', `Only confirm after local authority/source check. ${verifyNote}`),
+      permitPackageDoc('eu-contractor', 'Contractor documentation and insurance', 'optional documents', 'contractor-provided', evidenceLevel, `Confirm contractor documentation locally. ${verifyNote}`),
+      permitPackageDoc('eu-completion', 'Completion / occupancy certificate checklist', 'required documents', 'authority-provided', evidenceLevel, `General completion-stage package item. ${verifyNote}`),
+    ]
+  }
+  if (region === 'UK') {
+    return [
+      permitPackageDoc('uk-planning', 'Planning permission application package', 'required documents', 'architect/engineer-provided', evidenceLevel, `General UK planning package item. ${verifyNote}`),
+      permitPackageDoc('uk-building-control', 'Building control application package', 'required documents', 'architect/engineer-provided', evidenceLevel, `General building control package item. ${verifyNote}`),
+      permitPackageDoc('uk-fire', 'Fire strategy / building safety notes', 'required documents', 'architect/engineer-provided', evidenceLevel, `Confirm project-specific fire/building safety requirements. ${verifyNote}`),
+      permitPackageDoc('uk-accessibility', 'Access statement / accessibility checklist', 'required documents', 'architect/engineer-provided', evidenceLevel, `Confirm local and project-specific scope. ${verifyNote}`),
+      permitPackageDoc('uk-energy', 'Energy / sustainability compliance documents', 'required documents', 'architect/engineer-provided', evidenceLevel, `Confirm source-backed requirement. ${verifyNote}`),
+      permitPackageDoc('uk-heritage', 'Conservation / listed building check', 'unknown until jurisdiction verified', 'authority-provided', 'NEEDS_LOCAL_AUTHORITY', `Only if site constraints apply. ${verifyNote}`),
+      permitPackageDoc('uk-completion', 'Completion certificate checklist', 'required documents', 'authority-provided', evidenceLevel, `General completion-stage package item. ${verifyNote}`),
+    ]
+  }
+  if (region === 'Brazil') {
+    return [
+      permitPackageDoc('br-aprovacao', 'Pacote de aprovação municipal / alvará', 'required documents', 'architect/engineer-provided', evidenceLevel, `Checklist geral; confirmar na prefeitura/local authority. ${verifyNote}`),
+      permitPackageDoc('br-art-rrt', 'ART/RRT / responsabilidade técnica', 'required documents', 'architect/engineer-provided', evidenceLevel, `Confirmar responsável técnico e exigência local. ${verifyNote}`),
+      permitPackageDoc('br-projeto', 'Projeto arquitetônico e complementares', 'required documents', 'architect/engineer-provided', evidenceLevel, `Confirmar escopo de pranchas exigidas. ${verifyNote}`),
+      permitPackageDoc('br-bombeiros', 'Checklist Corpo de Bombeiros / fire safety', 'unknown until jurisdiction verified', 'architect/engineer-provided', 'NEEDS_LOCAL_AUTHORITY', `Pode depender de uso, área e estado. ${verifyNote}`),
+      permitPackageDoc('br-habite-se', 'Habite-se / certificado de conclusão', 'required documents', 'authority-provided', evidenceLevel, `Checklist geral de fechamento. ${verifyNote}`),
+    ]
+  }
+  return [
+    permitPackageDoc('us-building-permit', 'Building permit application package', 'required documents', 'architect/engineer-provided', evidenceLevel, `General US permit package item. ${verifyNote}`),
+    permitPackageDoc('us-zoning', 'Zoning review / planning application', 'required documents', 'architect/engineer-provided', evidenceLevel, `Confirm zoning and planning path with AHJ. ${verifyNote}`),
+    permitPackageDoc('us-site-plan', 'Site plan review package', 'required documents', 'architect/engineer-provided', evidenceLevel, `General site plan package item. ${verifyNote}`),
+    permitPackageDoc('us-fire-marshal', 'Fire marshal review package', 'unknown until jurisdiction verified', 'architect/engineer-provided', 'NEEDS_LOCAL_AUTHORITY', `Required scope varies by occupancy/AHJ. ${verifyNote}`),
+    permitPackageDoc('us-ada', 'ADA / accessibility checklist', 'required documents', 'architect/engineer-provided', evidenceLevel, `Confirm applicability and local amendments. ${verifyNote}`),
+    permitPackageDoc('us-environmental', 'Environmental review / screening', 'unknown until jurisdiction verified', 'authority-provided', 'NEEDS_LOCAL_AUTHORITY', `May be required by site/scope. ${verifyNote}`),
+    permitPackageDoc('us-stormwater', 'Stormwater / drainage package', 'unknown until jurisdiction verified', 'architect/engineer-provided', 'NEEDS_LOCAL_AUTHORITY', `Often site/scope dependent. ${verifyNote}`),
+    permitPackageDoc('us-energy', 'Energy code compliance package', 'required documents', 'architect/engineer-provided', evidenceLevel, `Confirm applicable code edition locally. ${verifyNote}`),
+    permitPackageDoc('us-structural', 'Structural calculations package', 'required documents', 'architect/engineer-provided', evidenceLevel, `Engineer requirements vary. ${verifyNote}`),
+    permitPackageDoc('us-mep', 'MEP permit package', 'optional documents', 'architect/engineer-provided', evidenceLevel, `May be separate trade permits depending on AHJ. ${verifyNote}`),
+    permitPackageDoc('us-contractor', 'Contractor licensing, insurance and bonds', 'required documents', 'contractor-provided', evidenceLevel, `Confirm local licensing and bond requirements. ${verifyNote}`),
+    permitPackageDoc('us-co', 'Inspections and certificate of occupancy checklist', 'required documents', 'authority-provided', evidenceLevel, `General closeout/inspection package item. ${verifyNote}`),
+  ]
+}
+
 async function handleContractsPlan(req, res) {
   try {
     const body = await readJson(req)
@@ -1559,7 +1627,16 @@ async function handleContractsPlan(req, res) {
     const goal = String(body.goal || '')
     const documentType = String(context.documentType || 'Contract')
     const location = String(context.location || '')
-    const jurisdictionStatus = location ? 'ASSUMPTION' : 'UNKNOWN'
+    const region = String(context.region || 'US')
+    const country = String(context.country || '')
+    const stateProvince = String(context.stateProvince || '')
+    const cityMunicipality = String(context.cityMunicipality || '')
+    const ahjLocalAuthority = String(context.ahjLocalAuthority || '')
+    const jurisdictionParts = [cityMunicipality, stateProvince, country].filter(Boolean).join(', ')
+    const jurisdictionLabel = ahjLocalAuthority || location || jurisdictionParts || 'local AHJ / authority'
+    const hasJurisdictionDetail = Boolean(ahjLocalAuthority || location || jurisdictionParts)
+    const jurisdictionStatus = hasJurisdictionDetail ? 'ASSUMPTION' : 'UNKNOWN'
+    const permitEvidenceLevel = hasJurisdictionDetail ? 'GENERAL_GUIDANCE' : 'NEEDS_LOCAL_AUTHORITY'
     const detectedDocumentType = source ? documentType : documentType
     const highRiskEvidence = 'NEEDS LAWYER REVIEW'
 
@@ -1618,11 +1695,12 @@ async function handleContractsPlan(req, res) {
     const permitChecklist = permitCategories.map((category, index) => permitItem(
       `permit-${index + 1}`,
       category,
-      location
-        ? `General checklist item for ${category}; confirm exact requirement with local authority for ${location}.`
+      hasJurisdictionDetail
+        ? `General ${region} package checklist item for ${category}; confirm exact current requirement with ${jurisdictionLabel}.`
         : `General checklist item for ${category}; jurisdiction is unknown.`,
-      location ? 'ASSUMPTION' : 'UNKNOWN'
+      permitEvidenceLevel
     ))
+    const permitPackage = permitPackageForRegion(region, permitEvidenceLevel, jurisdictionLabel)
 
     const projectName = String(context.projectName || 'the project')
     const parties = String(context.parties || 'Owner / Client / Contractor')
@@ -1631,7 +1709,7 @@ async function handleContractsPlan(req, res) {
     const documentSummary = [
       `${mode} support for ${documentType} related to ${projectName}.`,
       sourceCopy,
-      location ? `Jurisdiction/location provided: ${location}.` : 'Jurisdiction/location not provided.',
+      hasJurisdictionDetail ? `Jurisdiction context provided: ${jurisdictionLabel}. Region: ${region}.` : `Jurisdiction/location not provided. Region mode: ${region}.`,
       'This is planning/legal support, not licensed legal approval.',
     ].join(' ')
 
@@ -1683,12 +1761,67 @@ async function handleContractsPlan(req, res) {
 
     const pendingQuestions = [
       'What is the exact jurisdiction/location?',
+      'What is the AHJ / local authority name?',
       'Who are the legal parties and signatories?',
       'Which drawings, budget and memorial descritivo are attached as contract exhibits?',
       'What payment milestones, deadlines and penalties should apply?',
       'Which permits/approvals are required by local authority?',
     ]
     if (action === 'permits') pendingQuestions.unshift('Confirm property type, zoning, project size and authority having jurisdiction.')
+    if (!hasJurisdictionDetail) pendingQuestions.unshift('Add country, state/province, city/municipality and AHJ/local authority before treating requirements as current.')
+
+    const usChecklist = permitPackageForRegion('US', permitEvidenceLevel, jurisdictionLabel)
+      .map(item => `- ${item.documentName} (${item.responsibleParty}; ${item.evidenceLevel})`)
+      .join('\n')
+    const euChecklist = permitPackageForRegion('EU', permitEvidenceLevel, jurisdictionLabel)
+      .map(item => `- ${item.documentName} (${item.responsibleParty}; ${item.evidenceLevel})`)
+      .join('\n')
+    const architectDocs = permitPackage
+      .filter(item => item.responsibleParty === 'architect/engineer-provided')
+      .map(item => `- ${item.documentName}`)
+      .join('\n') || '- Confirm architectural/engineering package with local authority.'
+    const ownerDocs = permitPackage
+      .filter(item => item.responsibleParty === 'owner-provided')
+      .map(item => `- ${item.documentName}`)
+      .join('\n') || '- Property address/APN or parcel reference\n- Proof of ownership or authorization\n- Owner contact and billing details\n- Existing survey/site information if available'
+    const contractorDocs = permitPackage
+      .filter(item => item.responsibleParty === 'contractor-provided')
+      .map(item => `- ${item.documentName}`)
+      .join('\n') || '- Contractor license/status\n- Insurance certificate\n- Bonds if required\n- Trade permit contacts'
+    const missingDocs = permitPackage
+      .filter(item => item.evidenceLevel === 'UNKNOWN' || item.evidenceLevel === 'NEEDS_LOCAL_AUTHORITY' || item.group === 'unknown until jurisdiction verified')
+      .map(item => `- ${item.documentName}: ${item.notes}`)
+      .join('\n') || '- No missing/unknown package item has been identified yet, but local authority verification is still required.'
+    const packageOutputs = {
+      usPermitPackageChecklist: `US permit package checklist (GENERAL GUIDANCE - verify with AHJ):\n${usChecklist}`,
+      euPermitPackageChecklist: `EU permit package checklist (GENERAL GUIDANCE - verify with municipality/building authority):\n${euChecklist}`,
+      ahjInquiryEmailDraft: [
+        `Subject: Permit package requirements inquiry for ${projectName}`,
+        '',
+        `Hello ${ahjLocalAuthority || 'Permit Department'},`,
+        '',
+        `We are preparing a ${region} permit/document package for ${projectName}. Could you confirm the current submittal requirements, drawing sets, forms, fees, review path, inspection sequence, accessibility/fire/energy/stormwater requirements, and any local amendments for ${jurisdictionLabel}?`,
+        '',
+        'Please also confirm whether preliminary zoning/site plan review is required before building permit submission.',
+        '',
+        'Thank you,',
+        'Apex AI Copilot / Project Team',
+      ].join('\n'),
+      architectEngineerDocumentRequestList: `Architect/engineer document request list:\n${architectDocs}`,
+      ownerDocumentRequestList: `Owner document request list:\n${ownerDocs}`,
+      contractorComplianceChecklist: `Contractor compliance checklist:\n${contractorDocs}`,
+      permitSubmissionCoverLetter: [
+        `Permit submission cover letter draft for ${projectName}`,
+        '',
+        `This package is submitted for preliminary authority review. The enclosed checklist is evidence-labeled and any item marked NEEDS_LOCAL_AUTHORITY remains subject to confirmation by ${jurisdictionLabel}.`,
+      ].join('\n'),
+      revisionResponseLetter: [
+        `Revision response letter draft for ${projectName}`,
+        '',
+        'Thank you for the review comments. The project team will respond item-by-item, attach revised drawings/documents, and identify any remaining open items requiring authority confirmation.',
+      ].join('\n'),
+      missingDocumentsReport: `Missing / authority-dependent documents:\n${missingDocs}`,
+    }
 
     json(res, 200, {
       plan: {
@@ -1700,6 +1833,8 @@ async function handleContractsPlan(req, res) {
         needsVerification: true,
         riskItems,
         permitChecklist,
+        permitPackage,
+        packageOutputs,
         scopeDraft,
         contractDraft,
         clientFacingSummary: [

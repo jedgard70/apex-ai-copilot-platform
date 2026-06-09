@@ -1,6 +1,12 @@
+import { SourceConfidence } from './sourceConfidence'
+
 export type ContractEvidence = 'CONFIRMED' | 'ASSUMPTION' | 'UNKNOWN' | 'NEEDS LAWYER REVIEW'
+export type PermitEvidence = 'CONFIRMED_SOURCE' | 'GENERAL_GUIDANCE' | 'UNKNOWN' | 'NEEDS_LOCAL_AUTHORITY'
 export type ContractSeverity = 'Low' | 'Medium' | 'High' | 'Critical'
 export type ContractStatus = 'Open' | 'In Review' | 'Resolved'
+export type PermitRegion = 'US' | 'EU' | 'UK' | 'Brazil' | 'Other'
+export type PermitDocumentStatus = 'Not started' | 'Drafting' | 'Submitted' | 'Approved' | 'Rejected' | 'Needs revision'
+export type PermitResponsibleParty = 'owner-provided' | 'architect/engineer-provided' | 'contractor-provided' | 'authority-provided' | 'Apex-prepared'
 export type ContractDocumentType =
   | 'Contract'
   | 'Proposal'
@@ -24,6 +30,11 @@ export type ContractContext = {
   projectName: string
   parties: string
   location: string
+  region: PermitRegion
+  country: string
+  stateProvince: string
+  cityMunicipality: string
+  ahjLocalAuthority: string
   language: string
   reviewMode: ContractReviewMode
 }
@@ -43,8 +54,20 @@ export type PermitChecklistItem = {
   id: string
   category: string
   requirement: string
-  evidence: ContractEvidence
+  evidence: ContractEvidence | PermitEvidence
   status: ContractStatus
+}
+
+export type PermitPackageDocument = {
+  id: string
+  documentName: string
+  group: 'required documents' | 'optional documents' | 'unknown until jurisdiction verified'
+  responsibleParty: PermitResponsibleParty
+  status: PermitDocumentStatus
+  evidenceLevel: PermitEvidence
+  dueDate: string
+  notes: string
+  sourceLink: string
 }
 
 export type ContractsPlan = {
@@ -56,6 +79,18 @@ export type ContractsPlan = {
   needsVerification: boolean
   riskItems: ContractRiskItem[]
   permitChecklist: PermitChecklistItem[]
+  permitPackage: PermitPackageDocument[]
+  packageOutputs: {
+    usPermitPackageChecklist: string
+    euPermitPackageChecklist: string
+    ahjInquiryEmailDraft: string
+    architectEngineerDocumentRequestList: string
+    ownerDocumentRequestList: string
+    contractorComplianceChecklist: string
+    permitSubmissionCoverLetter: string
+    revisionResponseLetter: string
+    missingDocumentsReport: string
+  }
   scopeDraft: {
     servicesIncluded: string[]
     materialsSpecs: string[]
@@ -107,6 +142,24 @@ export const permitCategories = [
   'insurance / bonds if applicable',
 ]
 
+export const permitRegions: PermitRegion[] = ['US', 'EU', 'UK', 'Brazil', 'Other']
+
+export const permitDocumentStatuses: PermitDocumentStatus[] = [
+  'Not started',
+  'Drafting',
+  'Submitted',
+  'Approved',
+  'Rejected',
+  'Needs revision',
+]
+
+export const permitEvidenceLevels: PermitEvidence[] = [
+  'CONFIRMED_SOURCE',
+  'GENERAL_GUIDANCE',
+  'UNKNOWN',
+  'NEEDS_LOCAL_AUTHORITY',
+]
+
 export const legalDisclaimer =
   'Apex AI Copilot is not a lawyer and does not provide licensed legal advice. Use this as drafting, risk triage and checklist support, then send high-risk or jurisdiction-specific items to a qualified lawyer/local authority.'
 
@@ -120,6 +173,18 @@ export function emptyContractsPlan(context: ContractContext): ContractsPlan {
     needsVerification: true,
     riskItems: [],
     permitChecklist: [],
+    permitPackage: [],
+    packageOutputs: {
+      usPermitPackageChecklist: '',
+      euPermitPackageChecklist: '',
+      ahjInquiryEmailDraft: '',
+      architectEngineerDocumentRequestList: '',
+      ownerDocumentRequestList: '',
+      contractorComplianceChecklist: '',
+      permitSubmissionCoverLetter: '',
+      revisionResponseLetter: '',
+      missingDocumentsReport: '',
+    },
     scopeDraft: {
       servicesIncluded: [],
       materialsSpecs: [],
@@ -137,5 +202,3 @@ export function emptyContractsPlan(context: ContractContext): ContractsPlan {
     message: legalDisclaimer,
   }
 }
-import { SourceConfidence } from './sourceConfidence'
-

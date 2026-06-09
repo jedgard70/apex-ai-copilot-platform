@@ -23,11 +23,18 @@ import {
   ContractsPlan,
   ContractSeverity,
   ContractStatus,
+  PermitDocumentStatus,
+  PermitEvidence,
+  PermitPackageDocument,
+  PermitRegion,
   contractDocumentTypes,
   contractReviewModes,
   emptyContractsPlan,
   legalDisclaimer,
   permitCategories,
+  permitDocumentStatuses,
+  permitEvidenceLevels,
+  permitRegions,
 } from '../lib/contractsKnowledge'
 
 type ContractsPanelProps = {
@@ -43,14 +50,28 @@ function id() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
 
-function initialContext(): ContractContext {
+function inferRegion(goal: string): PermitRegion {
+  const lower = goal.toLowerCase()
+  if (/\b(uk|united kingdom|building control)\b/.test(lower)) return 'UK'
+  if (/\b(eu|europe|european|planning permission|epc|heritage|conservation)\b/.test(lower)) return 'EU'
+  if (/\b(brasil|brazil|art|rrt|habite)\b/.test(lower)) return 'Brazil'
+  return 'US'
+}
+
+function initialContext(goal: string): ContractContext {
+  const permitIntent = /\b(permit|permits|alvar|licen|planning permission|ahj|building control|certificate of occupancy|fire marshal|ada)\b/i.test(goal)
   return {
-    documentType: 'Contract',
+    documentType: permitIntent ? 'Permit checklist' : 'Contract',
     projectName: '',
     parties: '',
     location: '',
+    region: inferRegion(goal),
+    country: '',
+    stateProvince: '',
+    cityMunicipality: '',
+    ahjLocalAuthority: '',
     language: navigator.language?.toLowerCase().startsWith('pt') ? 'PT' : 'EN',
-    reviewMode: 'Draft',
+    reviewMode: permitIntent ? 'Compliance checklist' : 'Draft',
   }
 }
 
@@ -71,6 +92,7 @@ function copyText(text: string) {
 }
 
 function planText(plan: ContractsPlan) {
+  const packageDocs = plan.permitPackage.map(item => `- ${item.documentName} | ${item.responsibleParty} | ${item.status} | ${item.evidenceLevel}`)
   return [
     legalDisclaimer,
     '',
@@ -83,17 +105,27 @@ function planText(plan: ContractsPlan) {
     'Lawyer review summary:',
     plan.lawyerReviewSummary,
     '',
+    'Permit package documents:',
+    ...packageDocs,
+    '',
+    'Package outputs:',
+    plan.packageOutputs.usPermitPackageChecklist,
+    plan.packageOutputs.euPermitPackageChecklist,
+    plan.packageOutputs.ahjInquiryEmailDraft,
+    plan.packageOutputs.missingDocumentsReport,
+    '',
     'Pending questions:',
     ...plan.pendingQuestions.map(item => `- ${item}`),
   ].join('\n')
 }
 
 export function ContractsPanel({ source, goal, conversationContext, onSendToBudget, onSaveToProject, onClear }: ContractsPanelProps) {
-  const [context, setContext] = useState<ContractContext>(() => initialContext())
+  const [context, setContext] = useState<ContractContext>(() => initialContext(goal))
   const [plan, setPlan] = useState<ContractsPlan | null>(null)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [draftClause, setDraftClause] = useState('Payment schedule and scope clarity')
+  const [draftDocument, setDraftDocument] = useState('Site plan / architectural drawing set')
 
   function updateContext<K extends keyof ContractContext>(key: K, value: ContractContext[K]) {
     setContext(prev => ({ ...prev, [key]: value }))
@@ -152,6 +184,29 @@ export function ContractsPanel({ source, goal, conversationContext, onSendToBudg
     setDraftClause('')
   }
 
+  function updatePackageDocument(index: number, patch: Partial<PermitPackageDocument>) {
+    const current = plan || emptyContractsPlan(context)
+    const permitPackage = current.permitPackage.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item)
+    setPlan({ ...current, permitPackage })
+  }
+
+  function addPackageDocument() {
+    const current = plan || emptyContractsPlan(context)
+    const item: PermitPackageDocument = {
+      id: id(),
+      documentName: draftDocument || 'New permit package document',
+      group: 'unknown until jurisdiction verified',
+      responsibleParty: 'Apex-prepared',
+      status: 'Not started',
+      evidenceLevel: 'UNKNOWN',
+      dueDate: '',
+      notes: 'Manual package item; verify with AHJ/local authority.',
+      sourceLink: '',
+    }
+    setPlan({ ...current, permitPackage: [...current.permitPackage, item] })
+    setDraftDocument('')
+  }
+
   function exportJson() {
     const snapshot = plan || emptyContractsPlan(context)
     downloadTextFile('apex-contracts-review.json', JSON.stringify(snapshot, null, 2), 'application/json;charset=utf-8')
@@ -187,6 +242,25 @@ export function ContractsPanel({ source, goal, conversationContext, onSendToBudg
             </label>
             <label>Location / jurisdiction
               <input value={context.location} placeholder="city, state, country" onChange={event => updateContext('location', event.target.value)} />
+            </label>
+            <label>Region
+              <select value={context.region} onChange={event => updateContext('region', event.target.value as PermitRegion)}>
+                {permitRegions.map(item => <option key={item} value={item}>{item}</option>)}
+              </select>
+            </label>
+            <div className="contracts-two">
+              <label>Country
+                <input value={context.country} onChange={event => updateContext('country', event.target.value)} />
+              </label>
+              <label>State / province
+                <input value={context.stateProvince} onChange={event => updateContext('stateProvince', event.target.value)} />
+              </label>
+            </div>
+            <label>City / municipality
+              <input value={context.cityMunicipality} onChange={event => updateContext('cityMunicipality', event.target.value)} />
+            </label>
+            <label>AHJ / local authority
+              <input value={context.ahjLocalAuthority} placeholder="Authority Having Jurisdiction / municipality" onChange={event => updateContext('ahjLocalAuthority', event.target.value)} />
             </label>
             <div className="contracts-two">
               <label>Language
@@ -227,6 +301,12 @@ export function ContractsPanel({ source, goal, conversationContext, onSendToBudg
             <strong>Add clause / risk</strong>
             <input value={draftClause} onChange={event => setDraftClause(event.target.value)} />
             <button type="button" onClick={addClause}><Plus size={15} /> Add clause</button>
+          </div>
+
+          <div className="contracts-card">
+            <strong>Add package document</strong>
+            <input value={draftDocument} onChange={event => setDraftDocument(event.target.value)} />
+            <button type="button" onClick={addPackageDocument}><Plus size={15} /> Add document</button>
           </div>
         </aside>
 
@@ -330,6 +410,82 @@ export function ContractsPanel({ source, goal, conversationContext, onSendToBudg
             </div>
           </div>
 
+          <div className="contracts-card contracts-table-card">
+            <div className="contracts-section-head">
+              <strong>Permit package builder / document tracker</strong>
+              <span>{plan?.permitPackage.length || 0} documents</span>
+            </div>
+            <div className="contracts-table-wrap">
+              <table className="contracts-table">
+                <thead>
+                  <tr>
+                    <th>Document</th>
+                    <th>Group</th>
+                    <th>Responsible</th>
+                    <th>Status</th>
+                    <th>Evidence</th>
+                    <th>Due date</th>
+                    <th>Notes</th>
+                    <th>Source/link</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(plan?.permitPackage || []).map((item, index) => (
+                    <tr key={item.id}>
+                      <td><input value={item.documentName} onChange={event => updatePackageDocument(index, { documentName: event.target.value })} /></td>
+                      <td>
+                        <select value={item.group} onChange={event => updatePackageDocument(index, { group: event.target.value as PermitPackageDocument['group'] })}>
+                          <option value="required documents">required documents</option>
+                          <option value="optional documents">optional documents</option>
+                          <option value="unknown until jurisdiction verified">unknown until jurisdiction verified</option>
+                        </select>
+                      </td>
+                      <td>
+                        <select value={item.responsibleParty} onChange={event => updatePackageDocument(index, { responsibleParty: event.target.value as PermitPackageDocument['responsibleParty'] })}>
+                          <option value="owner-provided">owner-provided</option>
+                          <option value="architect/engineer-provided">architect/engineer-provided</option>
+                          <option value="contractor-provided">contractor-provided</option>
+                          <option value="authority-provided">authority-provided</option>
+                          <option value="Apex-prepared">Apex-prepared</option>
+                        </select>
+                      </td>
+                      <td>
+                        <select value={item.status} onChange={event => updatePackageDocument(index, { status: event.target.value as PermitDocumentStatus })}>
+                          {permitDocumentStatuses.map(value => <option key={value} value={value}>{value}</option>)}
+                        </select>
+                      </td>
+                      <td>
+                        <select value={item.evidenceLevel} onChange={event => updatePackageDocument(index, { evidenceLevel: event.target.value as PermitEvidence })}>
+                          {permitEvidenceLevels.map(value => <option key={value} value={value}>{value}</option>)}
+                        </select>
+                      </td>
+                      <td><input value={item.dueDate} onChange={event => updatePackageDocument(index, { dueDate: event.target.value })} /></td>
+                      <td><input value={item.notes} onChange={event => updatePackageDocument(index, { notes: event.target.value })} /></td>
+                      <td><input value={item.sourceLink} onChange={event => updatePackageDocument(index, { sourceLink: event.target.value })} /></td>
+                      <td><button type="button" title="Remove" onClick={() => plan && setPlan({ ...plan, permitPackage: plan.permitPackage.filter((_, itemIndex) => itemIndex !== index) })}><Trash2 size={14} /></button></td>
+                    </tr>
+                  ))}
+                  {!plan?.permitPackage.length && <tr><td colSpan={9}>No package documents yet. Generate a permit checklist or add a document manually.</td></tr>}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {plan && (
+            <div className="contracts-grid">
+              <OutputBlock title="US permit package checklist" text={plan.packageOutputs.usPermitPackageChecklist} />
+              <OutputBlock title="EU permit package checklist" text={plan.packageOutputs.euPermitPackageChecklist} />
+              <OutputBlock title="AHJ inquiry email draft" text={plan.packageOutputs.ahjInquiryEmailDraft} />
+              <OutputBlock title="Architect/engineer request list" text={plan.packageOutputs.architectEngineerDocumentRequestList} />
+              <OutputBlock title="Owner request list" text={plan.packageOutputs.ownerDocumentRequestList} />
+              <OutputBlock title="Contractor compliance checklist" text={plan.packageOutputs.contractorComplianceChecklist} />
+              <OutputBlock title="Permit submission cover letter" text={plan.packageOutputs.permitSubmissionCoverLetter} />
+              <OutputBlock title="Revision response letter" text={plan.packageOutputs.revisionResponseLetter} />
+              <OutputBlock title="Missing documents report" text={plan.packageOutputs.missingDocumentsReport} />
+            </div>
+          )}
+
           <div className="contracts-card">
             <div className="contracts-section-head">
               <strong>Draft generator</strong>
@@ -357,6 +513,20 @@ function ScopeBlock({ title, items }: { title: string; items: string[] }) {
     <div className="contracts-scope-block">
       <span>{title}</span>
       {items.length ? items.map(item => <p key={item}>{item}</p>) : <p>Pending.</p>}
+    </div>
+  )
+}
+
+function OutputBlock({ title, text }: { title: string; text: string }) {
+  return (
+    <div className="contracts-card">
+      <div className="contracts-section-head">
+        <strong>{title}</strong>
+        <button type="button" onClick={() => copyText(text)} disabled={!text}>
+          <Clipboard size={14} /> Copy
+        </button>
+      </div>
+      <pre className="contracts-draft">{text || 'Generate a permit package first.'}</pre>
     </div>
   )
 }
