@@ -11,6 +11,7 @@ import {
   Upload,
 } from 'lucide-react'
 import { ArchVisPanel } from './components/ArchVisPanel'
+import { AgentsPanel } from './components/AgentsPanel'
 import { Bim3DPanel, BimArchVisOutput, BimTourOutput } from './components/Bim3DPanel'
 import { BudgetPanel } from './components/BudgetPanel'
 import { ContractsPanel } from './components/ContractsPanel'
@@ -46,6 +47,7 @@ import { isExportIntent } from './lib/exportCenter'
 import { FieldOpsPlan } from './lib/fieldOpsKnowledge'
 import { ResearchPlan } from './lib/researchKnowledge'
 import { selectTool, tools } from './lib/toolRegistry'
+import { isAgentIntent } from './lib/apexAgents'
 import './styles.css'
 
 type Message = {
@@ -98,6 +100,11 @@ type FieldOpsOutput = {
 type BusinessOutput = {
   goal: string
   focus: 'admin' | 'crm-sales' | 'finance-accounting' | 'all'
+  conversationContext: string[]
+}
+
+type AgentsOutput = {
+  goal: string
   conversationContext: string[]
 }
 
@@ -381,6 +388,10 @@ function App() {
     const stored = initialAppState.businessOutput as BusinessOutput | undefined
     return stored || null
   })
+  const [agentsOutput, setAgentsOutput] = useState<AgentsOutput | null>(() => {
+    const stored = initialAppState.agentsOutput as AgentsOutput | undefined
+    return stored || null
+  })
   const [bimCommand, setBimCommand] = useState<BimCommand | undefined>()
   const [workspaceOpenSignal, setWorkspaceOpenSignal] = useState('')
   const [skillUpdateOpenSignal, setSkillUpdateOpenSignal] = useState('')
@@ -425,7 +436,7 @@ function App() {
           activeRecord,
         ]
       : activeProject.files
-    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : fieldOpsOutput ? 'fieldops' : businessOutput ? 'business' : null
+    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : fieldOpsOutput ? 'fieldops' : businessOutput ? 'business' : agentsOutput ? 'agents' : null
     return {
       ...activeProject,
       language: navigator.language || activeProject.language,
@@ -465,6 +476,7 @@ function App() {
         researchOutput,
         fieldOpsOutput: fieldOpsOutput ? { ...fieldOpsOutput, source: undefined } : null,
         businessOutput,
+        agentsOutput,
       },
     }
   }
@@ -485,7 +497,7 @@ function App() {
     }, 650)
     return () => window.clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, budgetOutput, contractsOutput, researchOutput, fieldOpsOutput, businessOutput, archVisRevisionConstraints, activeTool.id])
+  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, budgetOutput, contractsOutput, researchOutput, fieldOpsOutput, businessOutput, agentsOutput, archVisRevisionConstraints, activeTool.id])
 
   async function askCopilot(text = input, attachment = activeFile) {
     const clean = text.trim()
@@ -502,6 +514,7 @@ function App() {
     const shouldOpenResearch = clean && isResearchIntent(clean)
     const shouldOpenFieldOps = clean && isFieldOpsIntent(clean, attachment)
     const shouldOpenBusiness = clean && isBusinessLayerIntent(clean)
+    const shouldOpenAgents = clean && isAgentIntent(clean)
     const shouldOpenBim3D = isBim3DIntent(clean || modelText, attachment)
     const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
     const shouldOpenSkillExport = clean && isSkillExportIntent(clean)
@@ -586,6 +599,23 @@ function App() {
             : 'Abri a camada SaaS/CRM/Finance ao lado. Tudo está em Local demo mode: sem auth, sem database e sem payment connector.'
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: responseText }])
       setBusinessOutput({ goal: clean, focus, conversationContext: context })
+      setInput('')
+      return
+    }
+    if (shouldOpenAgents) {
+      const context = [...messages, userMessage]
+        .slice(-8)
+        .map(message => `${message.role}: ${message.text}`)
+      setMessages(prev => [
+        ...prev,
+        userMessage,
+        {
+          id: id(),
+          role: 'assistant',
+          text: 'Abri o painel dos 8 Cognitive Agents ao lado. EVM, Scheduler e NR Compliance aparecem como planejados/parciais onde ainda falta CP11C, sem marcar como concluído.',
+        },
+      ])
+      setAgentsOutput({ goal: clean, conversationContext: context })
       setInput('')
       return
     }
@@ -914,6 +944,7 @@ function App() {
     setResearchOutput(null)
     setFieldOpsOutput(null)
     setBusinessOutput(null)
+    setAgentsOutput(null)
     setExportCenterOpen(false)
     setArchVisRevisionConstraints([])
     setMessages([{ id: id(), role: 'assistant', text: 'New Apex project started. Upload a file or tell me what we are building.' }])
@@ -949,6 +980,8 @@ function App() {
     setFieldOpsOutput(restoredFieldOps ? { ...restoredFieldOps, source: restored } : null)
     const restoredBusiness = state.businessOutput as BusinessOutput | null | undefined
     setBusinessOutput(restoredBusiness || null)
+    const restoredAgents = state.agentsOutput as AgentsOutput | null | undefined
+    setAgentsOutput(restoredAgents || null)
   }
 
   function switchProject(projectId: string) {
@@ -993,6 +1026,7 @@ function App() {
     setResearchOutput(null)
     setFieldOpsOutput(null)
     setBusinessOutput(null)
+    setAgentsOutput(null)
     setArchVisRevisionConstraints([])
     setMessages([{ id: id(), role: 'assistant', text: 'Local workspace cleared. New Apex project ready.' }])
   }
@@ -1164,7 +1198,7 @@ function App() {
         </div>
       </header>
 
-      <section className={`workspace ${archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || exportCenterOpen ? 'studio-open' : ''}`}>
+      <section className={`workspace ${archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || exportCenterOpen ? 'studio-open' : ''}`}>
         <section className="chat-shell" aria-label="Apex AI Copilot chat">
           <div className="chat-header">
             <div>
@@ -1467,6 +1501,22 @@ function App() {
                 <button className="business-close-button" onClick={() => setBusinessOutput(null)}>Close business layer</button>
               )}
             </div>
+          )}
+
+          {agentsOutput && (
+            <AgentsPanel
+              onClear={() => setAgentsOutput(null)}
+              onOpenStudio={studio => {
+                setMessages(prev => [
+                  ...prev,
+                  {
+                    id: id(),
+                    role: 'assistant',
+                    text: `Agent routing note: ${studio} is connected to this agent. Open the related studio with a direct command when you want to work there.`,
+                  },
+                ])
+              }}
+            />
           )}
 
           {exportCenterOpen && (

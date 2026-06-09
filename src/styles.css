@@ -3541,6 +3541,105 @@ input {
   cursor: pointer;
 }
 
+.agents-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.agent-card {
+  display: grid;
+  gap: 12px;
+  border: 1px solid rgba(150, 164, 195, 0.16);
+  border-radius: 18px;
+  padding: 16px;
+  background:
+    radial-gradient(circle at top right, rgba(109, 168, 255, 0.12), transparent 34%),
+    rgba(255, 255, 255, 0.045);
+}
+
+.agent-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.agent-card-head strong {
+  display: block;
+  color: #ffffff;
+  font-size: 16px;
+}
+
+.agent-card-head span,
+.agent-section p,
+.agent-section li,
+.agent-gap span {
+  color: #b8c2d8;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.agent-status {
+  border-radius: 999px;
+  padding: 6px 9px;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.agent-status.implemented {
+  color: #bfffd8;
+  background: rgba(24, 181, 92, 0.16);
+  border: 1px solid rgba(24, 181, 92, 0.28);
+}
+
+.agent-status.partial {
+  color: #dbe8ff;
+  background: rgba(109, 168, 255, 0.13);
+  border: 1px solid rgba(109, 168, 255, 0.28);
+}
+
+.agent-status.planned {
+  color: #ffe5b4;
+  background: rgba(255, 190, 92, 0.12);
+  border: 1px solid rgba(255, 190, 92, 0.28);
+}
+
+.agent-section {
+  display: grid;
+  gap: 6px;
+}
+
+.agent-section > span,
+.agent-gap strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #eaf0ff;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.agent-section ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.agent-section p {
+  margin: 0;
+}
+
+.agent-gap {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid rgba(255, 190, 92, 0.2);
+  border-radius: 12px;
+  background: rgba(255, 190, 92, 0.08);
+}
+
 .panel-section {
   border: 1px solid #e2e8f2;
   border-radius: 18px;

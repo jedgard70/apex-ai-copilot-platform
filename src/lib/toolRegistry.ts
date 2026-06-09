@@ -25,6 +25,7 @@ export type ToolDomain =
   | 'platform-engineering-devops'
   | 'export-center'
   | 'saas-crm-finance'
+  | 'cognitive-agents'
   | 'exploration'
 
 export type CopilotTool = {

@@ -146,6 +146,12 @@ export const toolData: CopilotTool[] = [
     trigger: ['crm', 'lead', 'cliente', 'vendas', 'financeiro', 'fatura', 'pagamento', 'plano saas', 'usuário', 'permissões', 'contabilidade', 'contador', 'contas a receber'],
   },
   {
+    id: 'cognitive-agents',
+    name: 'Cognitive Agents',
+    role: 'Expose the 8 Apex cognitive agents, their connected studios, evidence rules, implementation status, gaps and next checkpoints.',
+    trigger: ['agentes', '8 agentes', 'cognitive agents', 'maestro', 'bim manager', 'evm', 'nr compliance', 'cost controller', 'doc manager', 'scheduler', 'quality qa'],
+  },
+  {
     id: 'exploration',
     name: 'Exploration / General Reasoning',
     role: 'Think through open-ended questions, strategy, planning, decisions and general knowledge tasks.',
