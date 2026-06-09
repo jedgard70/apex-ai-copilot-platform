@@ -176,6 +176,36 @@ export const toolData: CopilotTool[] = [
     trigger: ['custo de ia', 'gasto com ia', 'tokens', 'observabilidade', 'custo openai', 'ai cost', 'billing', 'usage dashboard'],
   },
   {
+    id: 'multi-tenant-readiness',
+    name: 'Multi-tenant Readiness',
+    role: 'Plan tenants, roles, workspace isolation, RLS readiness and data boundaries without fake Supabase/auth isolation.',
+    trigger: ['multi-tenant', 'tenant', 'empresa', 'workspace', 'isolamento de dados', 'data isolation', 'rls'],
+  },
+  {
+    id: 'pwa-mobile-field',
+    name: 'PWA / Mobile Field Mode',
+    role: 'Plan mobile field workflows, offline-first behavior, installability and sync queues without fake PWA install claims.',
+    trigger: ['pwa', 'mobile', 'app de campo', 'offline', 'modo mobile', 'service worker', 'manifest'],
+  },
+  {
+    id: 'digital-twin',
+    name: 'Digital Twin',
+    role: 'Prepare local digital twin model-state, linked BIM/FieldOps/Budget data, timelines and health indicators without fake real-time IoT.',
+    trigger: ['digital twin', 'gêmeo digital', 'gemeo digital', 'iot', 'sensor', 'modelo vivo'],
+  },
+  {
+    id: 'knowledge-base',
+    name: 'Knowledge Base',
+    role: 'Index local/project knowledge items, source type, domain, confidence and memory scope without executing content or auto-approving global knowledge.',
+    trigger: ['knowledge base', 'base de conhecimento', 'memória', 'memoria', 'knowledge index'],
+  },
+  {
+    id: 'metrics-dashboard',
+    name: 'Metrics Dashboard',
+    role: 'Show local demo API/module/project metrics and endpoint health without fake production telemetry.',
+    trigger: ['métricas', 'metricas', 'dashboard de métricas', 'metrics dashboard', 'health check', 'endpoint health'],
+  },
+  {
     id: 'exploration',
     name: 'Exploration / General Reasoning',
     role: 'Think through open-ended questions, strategy, planning, decisions and general knowledge tasks.',

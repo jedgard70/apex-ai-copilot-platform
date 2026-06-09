@@ -17,13 +17,18 @@ import { Bim3DPanel, BimArchVisOutput, BimTourOutput } from './components/Bim3DP
 import { BudgetPanel } from './components/BudgetPanel'
 import { ContractsPanel } from './components/ContractsPanel'
 import { CrmPanel } from './components/CrmPanel'
+import { DigitalTwinPanel } from './components/DigitalTwinPanel'
 import { DirectCutInitialConfig, DirectCutPanel } from './components/DirectCutPanel'
 import { EvmSchedulerCompliancePanel } from './components/EvmSchedulerCompliancePanel'
 import { ExportCenterPanel } from './components/ExportCenterPanel'
 import { FinancePanel } from './components/FinancePanel'
 import { FieldOpsPanel } from './components/FieldOpsPanel'
+import { KnowledgeBasePanel } from './components/KnowledgeBasePanel'
+import { MetricsDashboardPanel } from './components/MetricsDashboardPanel'
+import { MultiTenantPanel } from './components/MultiTenantPanel'
 import { NotificationsPanel } from './components/NotificationsPanel'
 import { ProjectWorkspacePanel } from './components/ProjectWorkspacePanel'
+import { PwaMobilePanel } from './components/PwaMobilePanel'
 import { ResearchPanel } from './components/ResearchPanel'
 import { SaasAdminPanel } from './components/SaasAdminPanel'
 import { SkillExportPanel } from './components/SkillExportPanel'
@@ -53,8 +58,13 @@ import { ResearchPlan } from './lib/researchKnowledge'
 import { selectTool, tools } from './lib/toolRegistry'
 import { isAgentIntent } from './lib/apexAgents'
 import { AiCostPlan, isAiCostIntent } from './lib/aiCostKnowledge'
+import { DigitalTwinPlan, isDigitalTwinIntent } from './lib/digitalTwinKnowledge'
 import { EvmSchedulerCompliancePlan, isEvmSchedulerComplianceIntent } from './lib/evmSchedulerComplianceKnowledge'
+import { KnowledgeBasePlan, isKnowledgeBaseIntent } from './lib/knowledgeBaseKnowledge'
+import { MetricsPlan, isMetricsIntent } from './lib/metricsKnowledge'
+import { MultiTenantPlan, isMultiTenantIntent } from './lib/multiTenantKnowledge'
 import { isNotificationsIntent, NotificationsPlan } from './lib/notificationsKnowledge'
+import { PwaMobilePlan, isPwaMobileIntent } from './lib/pwaMobileKnowledge'
 import { isSupplyChainIntent, SupplyChainPlan } from './lib/supplyChainKnowledge'
 import './styles.css'
 
@@ -132,6 +142,11 @@ type NotificationsOutput = {
 }
 
 type AiCostOutput = {
+  goal: string
+  conversationContext: string[]
+}
+
+type SimpleStudioOutput = {
   goal: string
   conversationContext: string[]
 }
@@ -436,6 +451,26 @@ function App() {
     const stored = initialAppState.aiCostOutput as AiCostOutput | undefined
     return stored || null
   })
+  const [multiTenantOutput, setMultiTenantOutput] = useState<SimpleStudioOutput | null>(() => {
+    const stored = initialAppState.multiTenantOutput as SimpleStudioOutput | undefined
+    return stored || null
+  })
+  const [pwaMobileOutput, setPwaMobileOutput] = useState<SimpleStudioOutput | null>(() => {
+    const stored = initialAppState.pwaMobileOutput as SimpleStudioOutput | undefined
+    return stored || null
+  })
+  const [digitalTwinOutput, setDigitalTwinOutput] = useState<SimpleStudioOutput | null>(() => {
+    const stored = initialAppState.digitalTwinOutput as SimpleStudioOutput | undefined
+    return stored || null
+  })
+  const [knowledgeBaseOutput, setKnowledgeBaseOutput] = useState<SimpleStudioOutput | null>(() => {
+    const stored = initialAppState.knowledgeBaseOutput as SimpleStudioOutput | undefined
+    return stored || null
+  })
+  const [metricsOutput, setMetricsOutput] = useState<SimpleStudioOutput | null>(() => {
+    const stored = initialAppState.metricsOutput as SimpleStudioOutput | undefined
+    return stored || null
+  })
   const [bimCommand, setBimCommand] = useState<BimCommand | undefined>()
   const [workspaceOpenSignal, setWorkspaceOpenSignal] = useState('')
   const [skillUpdateOpenSignal, setSkillUpdateOpenSignal] = useState('')
@@ -474,6 +509,9 @@ function App() {
     procurementItems: activeProject.procurementItems.length,
     alerts: activeProject.alerts.length,
     aiCostRecords: activeProject.aiCostRecords.length,
+    tenants: activeProject.tenants.length,
+    knowledgeItems: activeProject.knowledgeItems.length,
+    metricsRecords: activeProject.metricsRecords.length,
   }), [activeProject, archVisOutput, archVisRevisionConstraints.length, bim3DOutput, directCutOutput, messages.length])
 
   function buildProjectSnapshot() {
@@ -484,7 +522,7 @@ function App() {
           activeRecord,
         ]
       : activeProject.files
-    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : fieldOpsOutput ? 'fieldops' : businessOutput ? 'business' : agentsOutput ? 'agents' : evmSchedulerComplianceOutput ? 'evm-scheduler-compliance' : supplyChainOutput ? 'supply-chain' : notificationsOutput ? 'notifications' : aiCostOutput ? 'ai-cost' : null
+    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : fieldOpsOutput ? 'fieldops' : businessOutput ? 'business' : agentsOutput ? 'agents' : evmSchedulerComplianceOutput ? 'evm-scheduler-compliance' : supplyChainOutput ? 'supply-chain' : notificationsOutput ? 'notifications' : aiCostOutput ? 'ai-cost' : multiTenantOutput ? 'multi-tenant' : pwaMobileOutput ? 'pwa-mobile' : digitalTwinOutput ? 'digital-twin' : knowledgeBaseOutput ? 'knowledge-base' : metricsOutput ? 'metrics-dashboard' : null
     return {
       ...activeProject,
       language: navigator.language || activeProject.language,
@@ -507,6 +545,11 @@ function App() {
       procurementItems: activeProject.procurementItems,
       alerts: activeProject.alerts,
       aiCostRecords: activeProject.aiCostRecords,
+      tenants: activeProject.tenants,
+      pwaSettings: activeProject.pwaSettings,
+      digitalTwinItems: activeProject.digitalTwinItems,
+      knowledgeItems: activeProject.knowledgeItems,
+      metricsRecords: activeProject.metricsRecords,
       activeTool: activeTool.id,
       activeFileId: activeRecord?.id || activeProject.activeFileId,
       activeStudio,
@@ -533,6 +576,11 @@ function App() {
         supplyChainOutput,
         notificationsOutput,
         aiCostOutput,
+        multiTenantOutput,
+        pwaMobileOutput,
+        digitalTwinOutput,
+        knowledgeBaseOutput,
+        metricsOutput,
       },
     }
   }
@@ -553,7 +601,7 @@ function App() {
     }, 650)
     return () => window.clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, budgetOutput, contractsOutput, researchOutput, fieldOpsOutput, businessOutput, agentsOutput, evmSchedulerComplianceOutput, supplyChainOutput, notificationsOutput, aiCostOutput, archVisRevisionConstraints, activeTool.id])
+  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, budgetOutput, contractsOutput, researchOutput, fieldOpsOutput, businessOutput, agentsOutput, evmSchedulerComplianceOutput, supplyChainOutput, notificationsOutput, aiCostOutput, multiTenantOutput, pwaMobileOutput, digitalTwinOutput, knowledgeBaseOutput, metricsOutput, archVisRevisionConstraints, activeTool.id])
 
   async function askCopilot(text = input, attachment = activeFile) {
     const clean = text.trim()
@@ -574,6 +622,11 @@ function App() {
     const shouldOpenSupplyChain = clean && isSupplyChainIntent(clean)
     const shouldOpenNotifications = clean && isNotificationsIntent(clean)
     const shouldOpenAiCost = clean && isAiCostIntent(clean)
+    const shouldOpenMultiTenant = clean && isMultiTenantIntent(clean)
+    const shouldOpenPwaMobile = clean && isPwaMobileIntent(clean)
+    const shouldOpenDigitalTwin = clean && isDigitalTwinIntent(clean)
+    const shouldOpenKnowledgeBase = clean && isKnowledgeBaseIntent(clean)
+    const shouldOpenMetrics = clean && isMetricsIntent(clean)
     const shouldOpenAgents = clean && isAgentIntent(clean)
     const shouldOpenBim3D = isBim3DIntent(clean || modelText, attachment)
     const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
@@ -680,6 +733,41 @@ function App() {
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o AI Cost Dashboard ao lado. Vou mostrar estimativas locais de uso/custo, sem fingir billing real da OpenAI ou de outro provedor.' }])
       setAiCostOutput({ goal: clean, conversationContext: context })
+      setInput('')
+      return
+    }
+    if (shouldOpenMultiTenant) {
+      const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Multi-tenant Readiness ao lado. É planejamento local-first: sem fingir isolamento real de Supabase/auth/RLS.' }])
+      setMultiTenantOutput({ goal: clean, conversationContext: context })
+      setInput('')
+      return
+    }
+    if (shouldOpenPwaMobile) {
+      const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o PWA / Mobile Field Mode ao lado. Vou preparar checklist e fluxo mobile/offline, sem fingir PWA instalado.' }])
+      setPwaMobileOutput({ goal: clean, conversationContext: context })
+      setInput('')
+      return
+    }
+    if (shouldOpenDigitalTwin) {
+      const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Digital Twin UI ao lado. É estado local/planning-only: sem IoT em tempo real e sem sync vivo de modelo.' }])
+      setDigitalTwinOutput({ goal: clean, conversationContext: context })
+      setInput('')
+      return
+    }
+    if (shouldOpenKnowledgeBase) {
+      const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri a Knowledge Base ao lado. Vou indexar conhecimento local/projeto sem executar conteúdo e sem marcar global sem aprovação do Owner.' }])
+      setKnowledgeBaseOutput({ goal: clean, conversationContext: context })
+      setInput('')
+      return
+    }
+    if (shouldOpenMetrics) {
+      const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Metrics Dashboard ao lado. Métricas são LOCAL_DEMO/ESTIMATED_LOCAL até existir telemetria real.' }])
+      setMetricsOutput({ goal: clean, conversationContext: context })
       setInput('')
       return
     }
@@ -1047,6 +1135,11 @@ function App() {
     setSupplyChainOutput(null)
     setNotificationsOutput(null)
     setAiCostOutput(null)
+    setMultiTenantOutput(null)
+    setPwaMobileOutput(null)
+    setDigitalTwinOutput(null)
+    setKnowledgeBaseOutput(null)
+    setMetricsOutput(null)
     setExportCenterOpen(false)
     setArchVisRevisionConstraints([])
     setMessages([{ id: id(), role: 'assistant', text: 'New Apex project started. Upload a file or tell me what we are building.' }])
@@ -1092,6 +1185,11 @@ function App() {
     setNotificationsOutput(restoredNotifications || null)
     const restoredAiCost = state.aiCostOutput as AiCostOutput | null | undefined
     setAiCostOutput(restoredAiCost || null)
+    setMultiTenantOutput((state.multiTenantOutput as SimpleStudioOutput | null | undefined) || null)
+    setPwaMobileOutput((state.pwaMobileOutput as SimpleStudioOutput | null | undefined) || null)
+    setDigitalTwinOutput((state.digitalTwinOutput as SimpleStudioOutput | null | undefined) || null)
+    setKnowledgeBaseOutput((state.knowledgeBaseOutput as SimpleStudioOutput | null | undefined) || null)
+    setMetricsOutput((state.metricsOutput as SimpleStudioOutput | null | undefined) || null)
   }
 
   function switchProject(projectId: string) {
@@ -1141,6 +1239,11 @@ function App() {
     setSupplyChainOutput(null)
     setNotificationsOutput(null)
     setAiCostOutput(null)
+    setMultiTenantOutput(null)
+    setPwaMobileOutput(null)
+    setDigitalTwinOutput(null)
+    setKnowledgeBaseOutput(null)
+    setMetricsOutput(null)
     setArchVisRevisionConstraints([])
     setMessages([{ id: id(), role: 'assistant', text: 'Local workspace cleared. New Apex project ready.' }])
   }
@@ -1379,6 +1482,36 @@ function App() {
     setMessages(prev => [...prev, { id: id(), role: 'assistant', text: 'Salvei o dashboard de custo de IA no Project Workspace como estimativa local, não billing real.' }])
   }
 
+  function saveMultiTenantToProject(plan: MultiTenantPlan) {
+    const saved = upsertProject({ ...activeProject, tenants: plan.tenants, exports: [...activeProject.exports, { type: 'multi-tenant-readiness', timestamp: new Date().toISOString(), plan }] })
+    setActiveProject(saved); setProjects(loadProjects())
+    setMessages(prev => [...prev, { id: id(), role: 'assistant', text: 'Salvei o plano multi-tenant local-first no Project Workspace. Ainda não é isolamento real Supabase/Auth.' }])
+  }
+
+  function savePwaMobileToProject(plan: PwaMobilePlan) {
+    const saved = upsertProject({ ...activeProject, pwaSettings: [plan], exports: [...activeProject.exports, { type: 'pwa-mobile-field-mode', timestamp: new Date().toISOString(), plan }] })
+    setActiveProject(saved); setProjects(loadProjects())
+    setMessages(prev => [...prev, { id: id(), role: 'assistant', text: 'Salvei o checklist PWA/mobile no Project Workspace. Nenhum PWA instalado foi alegado.' }])
+  }
+
+  function saveDigitalTwinToProject(plan: DigitalTwinPlan) {
+    const saved = upsertProject({ ...activeProject, digitalTwinItems: [plan], exports: [...activeProject.exports, { type: 'digital-twin-local-state', timestamp: new Date().toISOString(), plan }] })
+    setActiveProject(saved); setProjects(loadProjects())
+    setMessages(prev => [...prev, { id: id(), role: 'assistant', text: 'Salvei o relatório Digital Twin local/planning-only no Project Workspace.' }])
+  }
+
+  function saveKnowledgeBaseToProject(plan: KnowledgeBasePlan) {
+    const saved = upsertProject({ ...activeProject, knowledgeItems: plan.items, exports: [...activeProject.exports, { type: 'knowledge-base-index', timestamp: new Date().toISOString(), plan }] })
+    setActiveProject(saved); setProjects(loadProjects())
+    setMessages(prev => [...prev, { id: id(), role: 'assistant', text: 'Salvei o índice da Knowledge Base no Project Workspace. Conteúdo não foi executado.' }])
+  }
+
+  function saveMetricsToProject(plan: MetricsPlan) {
+    const saved = upsertProject({ ...activeProject, metricsRecords: plan.moduleUsage, exports: [...activeProject.exports, { type: 'metrics-dashboard-local-demo', timestamp: new Date().toISOString(), plan }] })
+    setActiveProject(saved); setProjects(loadProjects())
+    setMessages(prev => [...prev, { id: id(), role: 'assistant', text: 'Salvei o relatório de métricas local demo no Project Workspace.' }])
+  }
+
   return (
     <main className="app" onPaste={handlePaste} onDragOver={event => event.preventDefault()} onDrop={handleDrop}>
       <header className="topbar">
@@ -1391,7 +1524,7 @@ function App() {
         </div>
       </header>
 
-      <section className={`workspace ${archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || evmSchedulerComplianceOutput || supplyChainOutput || notificationsOutput || aiCostOutput || exportCenterOpen ? 'studio-open' : ''}`}>
+      <section className={`workspace ${archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || evmSchedulerComplianceOutput || supplyChainOutput || notificationsOutput || aiCostOutput || multiTenantOutput || pwaMobileOutput || digitalTwinOutput || knowledgeBaseOutput || metricsOutput || exportCenterOpen ? 'studio-open' : ''}`}>
         <section className="chat-shell" aria-label="Apex AI Copilot chat">
           <div className="chat-header">
             <div>
@@ -1736,6 +1869,51 @@ function App() {
                 setMessages(prev => [...prev, { id: id(), role: 'assistant', text: 'Criei um alerta local de threshold de custo de IA. O conector de notificação ainda não está conectado.' }])
               }}
               onClear={() => setAiCostOutput(null)}
+            />
+          )}
+
+          {multiTenantOutput && (
+            <MultiTenantPanel
+              goal={multiTenantOutput.goal}
+              conversationContext={multiTenantOutput.conversationContext}
+              onSaveToProject={saveMultiTenantToProject}
+              onClear={() => setMultiTenantOutput(null)}
+            />
+          )}
+
+          {pwaMobileOutput && (
+            <PwaMobilePanel
+              goal={pwaMobileOutput.goal}
+              conversationContext={pwaMobileOutput.conversationContext}
+              onSaveToProject={savePwaMobileToProject}
+              onClear={() => setPwaMobileOutput(null)}
+            />
+          )}
+
+          {digitalTwinOutput && (
+            <DigitalTwinPanel
+              goal={digitalTwinOutput.goal}
+              conversationContext={digitalTwinOutput.conversationContext}
+              onSaveToProject={saveDigitalTwinToProject}
+              onClear={() => setDigitalTwinOutput(null)}
+            />
+          )}
+
+          {knowledgeBaseOutput && (
+            <KnowledgeBasePanel
+              goal={knowledgeBaseOutput.goal}
+              conversationContext={knowledgeBaseOutput.conversationContext}
+              onSaveToProject={saveKnowledgeBaseToProject}
+              onClear={() => setKnowledgeBaseOutput(null)}
+            />
+          )}
+
+          {metricsOutput && (
+            <MetricsDashboardPanel
+              goal={metricsOutput.goal}
+              conversationContext={metricsOutput.conversationContext}
+              onSaveToProject={saveMetricsToProject}
+              onClear={() => setMetricsOutput(null)}
             />
           )}
 

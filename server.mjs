@@ -2588,6 +2588,32 @@ async function handleAiCostPlan(req, res) {
   }
 }
 
+function createMultiTenantPlan(goal = '') {
+  return { providerStatus: 'local-first tenant planning only', tenants: [{ id: 'tenant-owner', name: 'Apex Internal', workspaceType: 'Owner/Admin', status: 'local demo', dataBoundary: 'Internal only' }, { id: 'tenant-client', name: 'Client Workspace', workspaceType: 'Client', status: 'planned', dataBoundary: 'Client project data only' }], rolesPerTenant: ['Owner/Admin', 'Internal Team', 'Client', 'Partner', 'Viewer', 'Contractor', 'Finance', 'Sales'], projectIsolationPlan: ['Tenant id on every user, project, file and export.', 'Server-side role checks before every project/file read.', 'Client users cannot query admin/internal tenant data.'], rlsReadinessChecklist: ['Define tenant tables.', 'Add tenant_id to project-owned rows.', 'Create Supabase RLS policies after approval.', 'Test cross-tenant denial before production.'], tenantRiskChecklist: ['No real tenant isolation yet.', 'No Supabase/auth connector in this checkpoint.', 'Do not onboard real clients until backend isolation is verified.'], exportPlan: `Tenant architecture plan for: ${goal || 'Apex multi-tenant readiness'}` }
+}
+async function handleMultiTenantPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createMultiTenantPlan(String(body.goal || '')) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'local-first tenant planning only' }) } }
+
+function createPwaPlan(goal = '') {
+  return { providerStatus: 'planning-checklist', mobileFieldWorkflow: ['Open project', 'Capture RDO', 'Upload photos', 'Add punch item', 'Complete safety checklist', 'Queue sync when offline'], offlineFirstPlan: ['Cache shell after PWA implementation.', 'Store drafts locally.', 'Sync when connector/database is available.', 'Show conflict review before overwriting records.'], installabilityChecklist: ['manifest.webmanifest not verified here.', 'Service worker not verified here.', 'Icons/offline route needed.', 'Validate install prompt in browser before claiming PWA installed.'], syncQueuePlan: ['Queue RDO drafts', 'Queue photo metadata', 'Queue punch list updates', 'Retry with visible status and errors'], fieldUserUx: ['Large tap targets', 'Photo-first RDO', 'Offline badge', 'Simple pending sync queue', 'Safety checklist shortcuts'], exportChecklist: `PWA / mobile field mode checklist for: ${goal || 'Apex field users'}` }
+}
+async function handlePwaPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createPwaPlan(String(body.goal || '')) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'planning-checklist' }) } }
+
+function createDigitalTwinPlan(goal = '') {
+  return { providerStatus: 'planning-only/local-model-state', assetModelState: ['BIM model reference: local/project file when uploaded.', 'FieldOps status: local RDO/photo/punch data.', 'Budget/EVM status: local estimates and controls only.'], linkedSources: ['BIM / 3D Studio', 'FieldOps / RDO', 'Budget / EVM', 'Export Center'], statusTimeline: ['Created', 'Model linked', 'Field data linked', 'Issues reviewed', 'Report exported'], issueOverlayPlan: ['Overlay punch list/risks on model views when real viewer metadata exists.', 'Use UNKNOWN for unavailable geometry or coordinates.'], sensorConnectorStatus: 'not-connected', twinHealthIndicators: ['Model freshness', 'Open issues', 'Schedule risk', 'Cost risk', 'Safety risk', 'Unknown data count'], digitalTwinReport: `Digital Twin local planning report for: ${goal || 'Apex project'}. No real-time IoT or live model sync is connected.` }
+}
+async function handleDigitalTwinPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createDigitalTwinPlan(String(body.goal || '')) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'planning-only/local-model-state' }) } }
+
+function createKnowledgePlan(goal = '') {
+  return { providerStatus: 'local-knowledge-index', items: [{ id: 'kb-skill-archvis', title: 'ArchVis prompt brain', sourceType: 'skill', domain: 'ArchVis', confidence: 'APPROVED_GLOBAL', scope: 'global', summary: 'Prompt styles, preserve plan rules and image workflow knowledge.' }, { id: 'kb-project-note', title: 'Project memory note', sourceType: 'project note', domain: 'Project', confidence: 'PROJECT_MEMORY', scope: 'project', summary: goal || 'Local project knowledge item.' }], filters: ['domain', 'sourceType', 'confidence', 'scope'], exportIndex: 'Knowledge Base index is local. Do not execute knowledge content. Global entries require Owner approval.' }
+}
+async function handleKnowledgePlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createKnowledgePlan(String(body.goal || '')) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'local-knowledge-index' }) } }
+
+function createMetricsPlan(goal = '') {
+  const modules = ['Chat', 'ArchVis', 'DirectCut', 'BIM/3D', 'Budget', 'Contracts', 'FieldOps', 'Research', 'Export']
+  return { providerStatus: 'LOCAL_DEMO', apiMetrics: ['/api/copilot/chat', '/api/copilot/export-package', '/api/copilot/metrics-plan'].map(endpoint => ({ endpoint, health: 'not production monitored', source: 'LOCAL_DEMO' })), moduleUsage: modules.map((module, index) => ({ module, activity: index === 0 ? 1 : 0, source: 'ESTIMATED_LOCAL' })), projectActivity: ['Local project state can count files, messages, exports and active panels.', 'No production telemetry source is connected.'], connectorStatus: ['Supabase: not connected', 'Vercel telemetry: not connected', 'Provider billing: not connected', 'Push/email/SMS: not connected'], metricsReport: `Metrics dashboard local demo for: ${goal || 'Apex platform'}. No fake production telemetry.` }
+}
+async function handleMetricsPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createMetricsPlan(String(body.goal || '')) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'LOCAL_DEMO' }) } }
+
 function exportSafeSlug(value = 'apex-export') {
   return String(value || 'apex-export')
     .toLowerCase()
@@ -2720,6 +2746,31 @@ function exportPickSections(project, scope, selectedSections, includeChat) {
       aiCostRecords: project.aiCostRecords || [],
       exports: byType('ai-cost'),
       activeState: appState.aiCostOutput || null,
+    } : undefined,
+    multitenant: should('multi-tenant') || should('multitenant') ? {
+      tenants: project.tenants || [],
+      exports: byType('multi-tenant'),
+      activeState: appState.multiTenantOutput || null,
+    } : undefined,
+    pwamobile: should('pwa-mobile') || should('pwa') ? {
+      pwaSettings: project.pwaSettings || [],
+      exports: byType('pwa-mobile'),
+      activeState: appState.pwaMobileOutput || null,
+    } : undefined,
+    digitaltwin: should('digital-twin') ? {
+      digitalTwinItems: project.digitalTwinItems || [],
+      exports: byType('digital-twin'),
+      activeState: appState.digitalTwinOutput || null,
+    } : undefined,
+    knowledgebase: should('knowledge-base') || should('knowledge') ? {
+      knowledgeItems: project.knowledgeItems || [],
+      exports: byType('knowledge-base'),
+      activeState: appState.knowledgeBaseOutput || null,
+    } : undefined,
+    metrics: should('metrics-dashboard') || should('metrics') ? {
+      metricsRecords: project.metricsRecords || [],
+      exports: byType('metrics-dashboard'),
+      activeState: appState.metricsOutput || null,
     } : undefined,
     skills: should('skill-package') || should('skills') ? {
       skillUpdates: project.skillUpdates,
@@ -3061,6 +3112,26 @@ const server = http.createServer((req, res) => {
   }
   if (req.url === '/api/copilot/ai-cost-plan' && req.method === 'POST') {
     handleAiCostPlan(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/multitenant-plan' && req.method === 'POST') {
+    handleMultiTenantPlan(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/pwa-plan' && req.method === 'POST') {
+    handlePwaPlan(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/digital-twin-plan' && req.method === 'POST') {
+    handleDigitalTwinPlan(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/knowledge-plan' && req.method === 'POST') {
+    handleKnowledgePlan(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/metrics-plan' && req.method === 'POST') {
+    handleMetricsPlan(req, res)
     return
   }
   if (req.url === '/api/copilot/analyze-skill-update' && req.method === 'POST') {

@@ -13,6 +13,11 @@ export type ExportScope =
   | 'supply-chain'
   | 'notifications'
   | 'ai-cost'
+  | 'multi-tenant'
+  | 'pwa-mobile'
+  | 'digital-twin'
+  | 'knowledge-base'
+  | 'metrics-dashboard'
   | 'skill-package'
   | 'custom'
 
@@ -54,6 +59,11 @@ export const exportScopes: { value: ExportScope; label: string }[] = [
   { value: 'supply-chain', label: 'Supply Chain / Suppliers package' },
   { value: 'notifications', label: 'Notifications / Alerts package' },
   { value: 'ai-cost', label: 'AI Cost / Observability package' },
+  { value: 'multi-tenant', label: 'Multi-tenant architecture package' },
+  { value: 'pwa-mobile', label: 'PWA / Mobile field package' },
+  { value: 'digital-twin', label: 'Digital Twin package' },
+  { value: 'knowledge-base', label: 'Knowledge Base index package' },
+  { value: 'metrics-dashboard', label: 'Metrics Dashboard package' },
   { value: 'skill-package', label: 'Skill package' },
   { value: 'custom', label: 'Custom selection' },
 ]
@@ -79,11 +89,16 @@ export const exportSections = [
   'supply-chain',
   'notifications',
   'ai-cost',
+  'multi-tenant',
+  'pwa-mobile',
+  'digital-twin',
+  'knowledge-base',
+  'metrics-dashboard',
   'skills',
 ]
 
 export function isExportIntent(text: string) {
-  return /\b(exportar projeto|baixar pacote|gerar pacote do cliente|exportar or[cç]amento|exportar contrato|exportar rdo|exportar bim report|exportar archvis|exportar evm|exportar cronograma|exportar nr|exportar compliance|exportar fornecedores|exportar supply chain|exportar alertas|exportar custo de ia|exportar observabilidade|exportar tudo|export center|export package|download package|client package)\b/i.test(text)
+  return /\b(exportar projeto|baixar pacote|gerar pacote do cliente|exportar or[cç]amento|exportar contrato|exportar rdo|exportar bim report|exportar archvis|exportar evm|exportar cronograma|exportar nr|exportar compliance|exportar fornecedores|exportar supply chain|exportar alertas|exportar custo de ia|exportar observabilidade|exportar multi-tenant|exportar tenant|exportar pwa|exportar mobile|exportar g[eê]meo digital|exportar digital twin|exportar base de conhecimento|exportar knowledge base|exportar m[eé]tricas|exportar metrics|exportar tudo|export center|export package|download package|client package)\b/i.test(text)
 }
 
 export function downloadExportFile(file: ExportPackageFile) {

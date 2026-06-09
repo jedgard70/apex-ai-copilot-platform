@@ -2,9 +2,9 @@
 
 Date: 2026-06-09
 
-Baseline: `8d33f40 feat: add EVM scheduler NR compliance agents`
+Baseline: `24cc9a8 feat: add supply chain notifications ai cost dashboard`
 
-Scope: re-audit the legacy landing/report/platform promise against the current Apex AI Copilot platform after CP11C.
+Scope: re-audit the legacy landing/report/platform promise against the current Apex AI Copilot platform after CP11F.
 
 Truth rule: this is an audit checkpoint only. A capability is not marked real/complete when it is only local demo, localStorage, planning-only, skill-only, connector-ready, or prompt knowledge. External systems such as Supabase, Vercel, payments, live web, live SINAPI, official legal review, official safety approval, real BIM parsing and real multi-tenant isolation remain `NEEDS VERIFICATION` until connected and verified.
 
@@ -23,7 +23,7 @@ Coverage statuses:
 
 The new Apex AI Copilot platform now covers the core legacy promise better than the old landing/report in several areas: chat-first command center, ArchVis, DirectCut planning, BIM/3D internal-first foundation, Budget, Contracts/Permits, FieldOps/RDO, Export Center, Project Workspace, Skill Update/Export, Revit automation knowledge, platform engineering knowledge, SaaS/CRM/Finance scaffolding, and the 8 cognitive agents map.
 
-The biggest remaining gaps are not UI quantity; they are production infrastructure and source truth: real auth/database/multi-tenant isolation, real Supabase/RLS, Vercel deployment readiness, real IFC parsing/viewer extraction, real SINAPI/source connectors, real payment/fiscal/accounting connectors, PWA/mobile polish, digital twin UI, Knowledge Base UI, metrics dashboard UI, and production connectors for suppliers, notifications and provider billing.
+The biggest remaining gaps are not UI quantity; they are production infrastructure and source truth: real auth/database/multi-tenant isolation, real Supabase/RLS, Vercel deployment readiness, real IFC parsing/viewer extraction, real SINAPI/source connectors, real payment/fiscal/accounting connectors, installable PWA validation, real-time digital twin connectors, governed knowledge persistence, production telemetry, and production connectors for suppliers, notifications and provider billing.
 
 ## Detailed Re-Audit Table
 
@@ -51,11 +51,11 @@ The biggest remaining gaps are not UI quantity; they are production infrastructu
 | 20 | Supply chain / suppliers | COVERED | CONFIRMED: `src/components/SupplyChainPanel.tsx`, `src/lib/supplyChainKnowledge.ts`, `/api/copilot/supply-chain-plan` | Legacy-style operations could imply suppliers/materials | Local supplier registry, procurement items, RFQ draft and supplier comparison | No fake ERP, no live price/availability/supplier verification, no purchase orders | ERP/supplier/source connector |
 | 21 | Notifications / alerts | COVERED | CONFIRMED: `src/components/NotificationsPanel.tsx`, `src/lib/notificationsKnowledge.ts`, `/api/copilot/notifications-plan` | Legacy operational alerts implied by platform reporting | Local alert center with severity, due date, assignment, status and evidence | No push/email/SMS/calendar connector; local alerts only | Notification connector checkpoint |
 | 22 | AI cost dashboard / observability UI | COVERED | CONFIRMED: `src/components/AiCostDashboardPanel.tsx`, `src/lib/aiCostKnowledge.ts`, `/api/copilot/ai-cost-plan` | Legacy report may imply monitoring | Estimated-local AI usage/cost dashboard by module/project/model | No provider billing/usage API; not invoice-accurate | Provider billing/observability connector |
-| 23 | Multi-tenant | MISSING | CONFIRMED: SaaS layer labels local demo; no auth/database | Legacy SaaS/client portal direction | Local role/client model only | No real tenant isolation, auth, organizations, RLS or DB | Supabase auth/RLS multi-tenant foundation |
-| 24 | PWA / mobile | MISSING | CONFIRMED absence: no PWA/mobile manifest/service worker evidence in current scan | Legacy broad platform access | Responsive UI exists generally, but no PWA module | No installable app/offline/push/mobile shell | PWA/mobile checkpoint |
-| 25 | Digital Twin UI | MISSING | ASSUMPTION: BIM/3D foundation is not a Digital Twin UI | Legacy BIM/digital twin ambition | BIM/3D Studio can become foundation | No persistent asset twin, live data layers, sensors, timeline or twin dashboard | Digital Twin workspace |
-| 26 | Knowledge Base UI | MISSING | CONFIRMED: memory/skill files exist, but no dedicated Knowledge Base UI | Legacy knowledge/report intelligence | Skill Update panel and runtime knowledge exist | No browsable/searchable end-user knowledge base | Knowledge Base UI checkpoint |
-| 27 | Metrics dashboard UI | MISSING | CONFIRMED: no dedicated metrics dashboard component after CP11C | Legacy executive KPIs/dashboard promise | EVM panel has KPIs, SaaS admin has placeholders | No unified executive metrics dashboard across modules | Metrics / Mission Control dashboard |
+| 23 | Multi-tenant | PARTIALLY COVERED | CONFIRMED: `src/components/MultiTenantPanel.tsx`, `src/lib/multiTenantKnowledge.ts`, `/api/copilot/multitenant-plan` | Legacy SaaS/client portal direction | Local-first tenant planning UI, company/workspace model, roles per tenant, isolation plan, RLS readiness and risk checklist | No real tenant isolation, auth, organizations, RLS or DB; explicitly labeled local-first planning only | Supabase auth/RLS multi-tenant foundation |
+| 24 | PWA / mobile | PARTIALLY COVERED | CONFIRMED: `src/components/PwaMobilePanel.tsx`, `src/lib/pwaMobileKnowledge.ts`, `/api/copilot/pwa-plan` | Legacy broad platform access | Mobile field mode planning UI, RDO capture, photo upload flow, punch list, safety checklist, offline/sync queue plan and installability checklist | No manifest/service worker validation, no installed PWA, no offline runtime or push connector | PWA implementation and validation |
+| 25 | Digital Twin UI | PARTIALLY COVERED | CONFIRMED: `src/components/DigitalTwinPanel.tsx`, `src/lib/digitalTwinKnowledge.ts`, `/api/copilot/digital-twin-plan` | Legacy BIM/digital twin ambition | Local Digital Twin UI with linked BIM/FieldOps/Budget/EVM sources, timeline, issue overlay plan, sensor connector status and health indicators | No fake real-time IoT, no live model sync, no actual sensor/model connector; providerStatus planning-only/local-model-state | Digital Twin connector and model-state integration |
+| 26 | Knowledge Base UI | COVERED | CONFIRMED: `src/components/KnowledgeBasePanel.tsx`, `src/lib/knowledgeBaseKnowledge.ts`, `/api/copilot/knowledge-plan` | Legacy knowledge/report intelligence | Searchable/filterable local Knowledge Base UI for files, skills, project notes, web sources, user corrections, prompt templates and code patterns | No code execution, no global approval without Owner, no durable database/search backend | Governed knowledge persistence and search backend |
+| 27 | Metrics dashboard UI | PARTIALLY COVERED | CONFIRMED: `src/components/MetricsDashboardPanel.tsx`, `src/lib/metricsKnowledge.ts`, `/api/copilot/metrics-plan` | Legacy executive KPIs/dashboard promise | Local Metrics Dashboard with endpoint health, module usage, estimated usage, project activity and connector status | No fake production telemetry, no provider billing, no live observability source; labels LOCAL_DEMO / ESTIMATED_LOCAL | Production telemetry and provider billing connector |
 | 28 | Auth / real database / Supabase readiness | MISSING | CONFIRMED: local-first only; no Supabase changes in new platform | Legacy real platform/user system | Local Project Workspace and SaaS scaffolding | No auth, Supabase schema, RLS, storage or user sessions | Supabase/auth/RLS checkpoint |
 | 29 | Vercel deploy readiness | MISSING | CONFIRMED: no Vercel config changes; local app only | Legacy production deployment expectation | Vite/server local runtime builds | No configured deployment verification, env setup or preview automation for new repo | Vercel deployment readiness checkpoint |
 | 30 | Security / LGPD / secrets / RLS readiness | PARTIALLY COVERED | CONFIRMED: Export Center redaction, runtime no-secret rules, platform engineering skill; NEEDS VERIFICATION for RLS | Legacy enterprise/security expectation | Secret redaction in exports and safety rules in runtime knowledge | No real auth/RLS/LGPD policy enforcement, audit logging or storage security | Security P0 for new platform |
@@ -74,6 +74,11 @@ The biggest remaining gaps are not UI quantity; they are production infrastructu
 - Supply Chain Studio with local supplier registry, procurement items, RFQs and comparison.
 - Notifications / Alerts Center with local alerts only and no fake push/email/SMS.
 - AI Cost Dashboard with ESTIMATED_LOCAL observability and no fake provider billing.
+- Multi-tenant Readiness UI with local-first tenant architecture planning and explicit no-auth/RLS warning.
+- PWA / Mobile Field Mode planning UI with offline/sync/installability checklist and no fake install claim.
+- Digital Twin UI with local model-state planning, linked source map, timeline and no fake IoT/live sync.
+- Knowledge Base UI with searchable local knowledge index and Owner-approval guardrails.
+- Metrics Dashboard UI with LOCAL_DEMO endpoint/module/project metrics and no fake production telemetry.
 - Export Center with redaction and CP11C report coverage.
 - Local Project Workspace persistence/import/export.
 - SaaS/CRM/Finance/Accounting local demo scaffolding.
@@ -87,8 +92,8 @@ The biggest remaining gaps are not UI quantity; they are production infrastructu
 2. Real BIM parser/viewer evidence extraction and IFC model data pipeline.
 3. Source connectors: web research, SINAPI/user-upload source parser, legal/permit sources and NR source review.
 4. Production connectors for suppliers/ERP, notifications and provider billing/usage.
-5. Knowledge Base UI and Metrics Dashboard UI.
-6. PWA/mobile and Digital Twin UI.
+5. Installable PWA/offline validation and real mobile runtime.
+6. Digital Twin live model/sensor connectors and production telemetry.
 7. Vercel deployment readiness for the new platform.
 
 ## Recommended Next Checkpoint

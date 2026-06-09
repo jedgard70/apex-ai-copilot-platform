@@ -30,6 +30,11 @@ export type ToolDomain =
   | 'supply-chain'
   | 'notifications-alerts'
   | 'ai-cost-observability'
+  | 'multi-tenant-readiness'
+  | 'pwa-mobile-field'
+  | 'digital-twin'
+  | 'knowledge-base'
+  | 'metrics-dashboard'
   | 'exploration'
 
 export type CopilotTool = {

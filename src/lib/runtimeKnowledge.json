@@ -97,7 +97,8 @@
     "SaaS / CRM / Finance layer integrated: local-first users/roles, client workspace, CRM, sales, proposals, SaaS plans, finance and accounting preparation without fake auth, fake payment, fake database or fake tax compliance.",
     "Cognitive Agents layer integrated: 8 legacy agents mapped to current studios with implemented/partial/planned status, evidence rules, gaps and recommended checkpoints.",
     "CP11C integrated: EVM Analyst, Scheduler and NR Compliance now have local-first workspace, backend endpoint, evidence labels, reports and Export Center support. Future connectors are required for live cost/progress feeds, baseline schedule imports and official safety/compliance review.",
-    "CP11E integrated: Supply Chain / Suppliers, Notifications / Alerts and AI Cost / Observability are local-first workspaces with backend endpoints, Project Workspace persistence and Export Center support. Future connectors are required for ERP/supplier data, push/email/SMS and provider billing accuracy."
+    "CP11E integrated: Supply Chain / Suppliers, Notifications / Alerts and AI Cost / Observability are local-first workspaces with backend endpoints, Project Workspace persistence and Export Center support. Future connectors are required for ERP/supplier data, push/email/SMS and provider billing accuracy.",
+    "CP11F integrated: Multi-tenant readiness, PWA/mobile field mode, Digital Twin UI, Knowledge Base UI and Metrics Dashboard UI are local-first planning/workspace modules. Future connectors are required for Supabase/auth/RLS tenant isolation, installable PWA validation, real-time IoT/model sync, governed knowledge base and production telemetry."
   ],
   "tools": [
     {
@@ -604,6 +605,77 @@
         "ai cost",
         "billing",
         "usage dashboard"
+      ],
+      "status": "ready-shell"
+    },
+    {
+      "id": "multi-tenant-readiness",
+      "name": "Multi-tenant Readiness",
+      "role": "Plan tenants, roles, workspace isolation, RLS readiness and data boundaries without fake Supabase/auth isolation.",
+      "trigger": [
+        "multi-tenant",
+        "tenant",
+        "empresa",
+        "workspace",
+        "isolamento de dados",
+        "data isolation",
+        "rls"
+      ],
+      "status": "ready-shell"
+    },
+    {
+      "id": "pwa-mobile-field",
+      "name": "PWA / Mobile Field Mode",
+      "role": "Plan mobile field workflows, offline-first behavior, installability and sync queues without fake PWA install claims.",
+      "trigger": [
+        "pwa",
+        "mobile",
+        "app de campo",
+        "offline",
+        "modo mobile",
+        "service worker",
+        "manifest"
+      ],
+      "status": "ready-shell"
+    },
+    {
+      "id": "digital-twin",
+      "name": "Digital Twin",
+      "role": "Prepare local digital twin model-state, linked BIM/FieldOps/Budget data, timelines and health indicators without fake real-time IoT.",
+      "trigger": [
+        "digital twin",
+        "gêmeo digital",
+        "gemeo digital",
+        "iot",
+        "sensor",
+        "modelo vivo"
+      ],
+      "status": "ready-shell"
+    },
+    {
+      "id": "knowledge-base",
+      "name": "Knowledge Base",
+      "role": "Index local/project knowledge items, source type, domain, confidence and memory scope without executing content or auto-approving global knowledge.",
+      "trigger": [
+        "knowledge base",
+        "base de conhecimento",
+        "memória",
+        "memoria",
+        "knowledge index"
+      ],
+      "status": "ready-shell"
+    },
+    {
+      "id": "metrics-dashboard",
+      "name": "Metrics Dashboard",
+      "role": "Show local demo API/module/project metrics and endpoint health without fake production telemetry.",
+      "trigger": [
+        "métricas",
+        "metricas",
+        "dashboard de métricas",
+        "metrics dashboard",
+        "health check",
+        "endpoint health"
       ],
       "status": "ready-shell"
     }

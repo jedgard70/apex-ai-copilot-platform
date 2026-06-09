@@ -39,12 +39,17 @@ export type ProjectWorkspace = {
   procurementItems: unknown[]
   alerts: unknown[]
   aiCostRecords: unknown[]
+  tenants: unknown[]
+  pwaSettings: unknown[]
+  digitalTwinItems: unknown[]
+  knowledgeItems: unknown[]
+  metricsRecords: unknown[]
   projectMemory: unknown[]
   skillUpdates: unknown[]
   preferences: unknown[]
   activeTool?: string
   activeFileId?: string
-  activeStudio?: 'archvis' | 'directcut' | 'bim3d' | 'budget' | 'contracts' | 'research' | 'fieldops' | 'business' | 'agents' | 'evm-scheduler-compliance' | 'supply-chain' | 'notifications' | 'ai-cost' | null
+  activeStudio?: 'archvis' | 'directcut' | 'bim3d' | 'budget' | 'contracts' | 'research' | 'fieldops' | 'business' | 'agents' | 'evm-scheduler-compliance' | 'supply-chain' | 'notifications' | 'ai-cost' | 'multi-tenant' | 'pwa-mobile' | 'digital-twin' | 'knowledge-base' | 'metrics-dashboard' | null
   appState?: Record<string, unknown>
 }
 
@@ -94,6 +99,11 @@ export function createProject(name = 'Apex Project'): ProjectWorkspace {
     procurementItems: [],
     alerts: [],
     aiCostRecords: [],
+    tenants: [],
+    pwaSettings: [],
+    digitalTwinItems: [],
+    knowledgeItems: [],
+    metricsRecords: [],
     projectMemory: [],
     skillUpdates: [],
     preferences: [],
@@ -124,6 +134,11 @@ export function validateProjectWorkspace(value: unknown): ProjectWorkspace | nul
     procurementItems: Array.isArray(candidate.procurementItems) ? candidate.procurementItems : [],
     alerts: Array.isArray(candidate.alerts) ? candidate.alerts : [],
     aiCostRecords: Array.isArray(candidate.aiCostRecords) ? candidate.aiCostRecords : [],
+    tenants: Array.isArray(candidate.tenants) ? candidate.tenants : [],
+    pwaSettings: Array.isArray(candidate.pwaSettings) ? candidate.pwaSettings : [],
+    digitalTwinItems: Array.isArray(candidate.digitalTwinItems) ? candidate.digitalTwinItems : [],
+    knowledgeItems: Array.isArray(candidate.knowledgeItems) ? candidate.knowledgeItems : [],
+    metricsRecords: Array.isArray(candidate.metricsRecords) ? candidate.metricsRecords : [],
     projectMemory: Array.isArray(candidate.projectMemory) ? candidate.projectMemory : [],
     skillUpdates: Array.isArray(candidate.skillUpdates) ? candidate.skillUpdates : [],
     preferences: Array.isArray(candidate.preferences) ? candidate.preferences : [],
