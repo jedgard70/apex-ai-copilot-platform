@@ -24,6 +24,7 @@ export type ToolDomain =
   | 'international-market-strategy'
   | 'platform-engineering-devops'
   | 'export-center'
+  | 'saas-crm-finance'
   | 'exploration'
 
 export type CopilotTool = {

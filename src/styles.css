@@ -3400,6 +3400,147 @@ input {
   grid-column: 2;
 }
 
+.business-layer-stack {
+  display: grid;
+  gap: 18px;
+}
+
+.business-studio pre {
+  max-width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  color: #eaf0ff;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(150, 164, 195, 0.16);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.business-alert {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid rgba(255, 190, 92, 0.28);
+  border-radius: 14px;
+  color: #ffe9c4;
+  background: rgba(255, 190, 92, 0.09);
+}
+
+.business-alert strong {
+  color: #fff3d8;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.business-alert span {
+  color: #f7d8a4;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.business-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.business-kpi-grid div,
+.business-client-strip div,
+.business-service-grid div {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid rgba(150, 164, 195, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.business-kpi-grid strong {
+  color: #ffffff;
+  font-size: 24px;
+}
+
+.business-kpi-grid span,
+.business-client-strip span,
+.business-service-grid span,
+.business-service-grid small,
+.business-client-strip small,
+.business-muted,
+.business-footer-note {
+  color: #b8c2d8;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.business-stage-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.business-stage-row span {
+  padding: 8px 10px;
+  border: 1px solid rgba(109, 168, 255, 0.28);
+  border-radius: 999px;
+  color: #dbe8ff;
+  background: rgba(109, 168, 255, 0.1);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.business-client-strip,
+.business-service-grid,
+.business-two-col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.business-service-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.business-service-grid strong,
+.business-client-strip strong,
+.business-two-col strong {
+  color: #ffffff;
+}
+
+.business-service-grid em {
+  color: #ffcfdf;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.business-field {
+  display: grid;
+  gap: 6px;
+  color: #cfd8ec;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.business-field select {
+  width: 100%;
+  border: 1px solid rgba(150, 164, 195, 0.22);
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: #eaf0ff;
+  background: #121a2f;
+}
+
+.business-close-button {
+  width: 100%;
+  border: 1px solid rgba(150, 164, 195, 0.18);
+  border-radius: 14px;
+  padding: 12px;
+  color: #eaf0ff;
+  background: rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+}
+
 .panel-section {
   border: 1px solid #e2e8f2;
   border-radius: 18px;
@@ -3552,7 +3693,11 @@ input {
   .directcut-select-grid,
   .directcut-reference-grid,
   .directcut-plan-head,
-  .directcut-gallery-list button {
+  .directcut-gallery-list button,
+  .business-kpi-grid,
+  .business-client-strip,
+  .business-service-grid,
+  .business-two-col {
     grid-template-columns: 1fr;
   }
 }

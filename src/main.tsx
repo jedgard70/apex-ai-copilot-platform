@@ -14,11 +14,14 @@ import { ArchVisPanel } from './components/ArchVisPanel'
 import { Bim3DPanel, BimArchVisOutput, BimTourOutput } from './components/Bim3DPanel'
 import { BudgetPanel } from './components/BudgetPanel'
 import { ContractsPanel } from './components/ContractsPanel'
+import { CrmPanel } from './components/CrmPanel'
 import { DirectCutInitialConfig, DirectCutPanel } from './components/DirectCutPanel'
 import { ExportCenterPanel } from './components/ExportCenterPanel'
+import { FinancePanel } from './components/FinancePanel'
 import { FieldOpsPanel } from './components/FieldOpsPanel'
 import { ProjectWorkspacePanel } from './components/ProjectWorkspacePanel'
 import { ResearchPanel } from './components/ResearchPanel'
+import { SaasAdminPanel } from './components/SaasAdminPanel'
 import { SkillExportPanel } from './components/SkillExportPanel'
 import { SkillUpdatePanel } from './components/SkillUpdatePanel'
 import { classifyFile, formatSize, IntakeFile, isVisionReady, readFileAsDataUrl, readImageDimensions } from './lib/fileIntake'
@@ -38,6 +41,7 @@ import { isSkillUpdateIntent, ProjectMemoryUpdate, SkillUpdateApplyResult } from
 import { isSkillExportIntent } from './lib/skillExportFactory'
 import { BudgetPlan } from './lib/budgetKnowledge'
 import { ContractsPlan } from './lib/contractsKnowledge'
+import { BusinessPlan } from './lib/crmFinanceKnowledge'
 import { isExportIntent } from './lib/exportCenter'
 import { FieldOpsPlan } from './lib/fieldOpsKnowledge'
 import { ResearchPlan } from './lib/researchKnowledge'
@@ -88,6 +92,12 @@ type ResearchOutput = {
 type FieldOpsOutput = {
   source?: IntakeFile
   goal: string
+  conversationContext: string[]
+}
+
+type BusinessOutput = {
+  goal: string
+  focus: 'admin' | 'crm-sales' | 'finance-accounting' | 'all'
   conversationContext: string[]
 }
 
@@ -190,6 +200,17 @@ function isResearchIntent(text: string) {
 function isFieldOpsIntent(text: string, attachment?: IntakeFile) {
   if (attachment?.kind === 'image' && /\b(obra|campo|rdo|di[aá]rio|relat[oó]rio|andamento|progresso|qualidade|seguran[cç]a|punch|pend[eê]ncia|foto de obra)\b/i.test(text)) return true
   return /\b(rdo|di[aá]rio de obra|relat[oó]rio de obra|andamento da obra|progresso da obra|checklist de qualidade|checklist de seguran[cç]a|equipe de obra|materiais entregues|pend[eê]ncia de obra|punch list|foto de obra|field operations|daily report|jobsite|site report|quality checklist|safety checklist|field photo)\b/i.test(text)
+}
+
+function isBusinessLayerIntent(text: string) {
+  return /\b(crm|lead|leads|cliente|clientes|client workspace|vendas|sales|proposta comercial|financeiro|finance|fatura|invoice|pagamento|payment|plano saas|saas plan|usu[aá]rio|usuarios|users|permiss[oõ]es|permissions|dashboard admin|admin dashboard|dashboard cliente|client dashboard|pipeline|follow-up|cobran[cç]a|contabilidade|contador|documentos cont[aá]beis|relat[oó]rio cont[aá]bil|imposto|nota fiscal|receita|despesa|contas a pagar|contas a receber|accounting|accountant|accounts receivable|accounts payable|tax|bookkeeping)\b/i.test(text)
+}
+
+function inferBusinessFocus(text: string): BusinessOutput['focus'] {
+  if (/\b(contabilidade|contador|documentos cont[aá]beis|relat[oó]rio cont[aá]bil|imposto|nota fiscal|receita|despesa|contas a pagar|contas a receber|financeiro|fatura|pagamento|invoice|payment|accounting|accountant|accounts receivable|accounts payable|tax|bookkeeping)\b/i.test(text)) return 'finance-accounting'
+  if (/\b(crm|lead|pipeline|follow-up|vendas|proposta comercial|sales|proposal)\b/i.test(text)) return 'crm-sales'
+  if (/\b(usu[aá]rio|usuarios|users|permiss[oõ]es|dashboard admin|dashboard cliente|client dashboard|plano saas|saas plan)\b/i.test(text)) return 'admin'
+  return 'all'
 }
 
 function fileExtension(fileName: string) {
@@ -356,6 +377,10 @@ function App() {
     const stored = initialAppState.fieldOpsOutput as Omit<FieldOpsOutput, 'source'> | undefined
     return stored ? { ...stored, source: restoredFile } : null
   })
+  const [businessOutput, setBusinessOutput] = useState<BusinessOutput | null>(() => {
+    const stored = initialAppState.businessOutput as BusinessOutput | undefined
+    return stored || null
+  })
   const [bimCommand, setBimCommand] = useState<BimCommand | undefined>()
   const [workspaceOpenSignal, setWorkspaceOpenSignal] = useState('')
   const [skillUpdateOpenSignal, setSkillUpdateOpenSignal] = useState('')
@@ -400,7 +425,7 @@ function App() {
           activeRecord,
         ]
       : activeProject.files
-    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : fieldOpsOutput ? 'fieldops' : null
+    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : fieldOpsOutput ? 'fieldops' : businessOutput ? 'business' : null
     return {
       ...activeProject,
       language: navigator.language || activeProject.language,
@@ -439,6 +464,7 @@ function App() {
         contractsOutput: contractsOutput ? { ...contractsOutput, source: undefined } : null,
         researchOutput,
         fieldOpsOutput: fieldOpsOutput ? { ...fieldOpsOutput, source: undefined } : null,
+        businessOutput,
       },
     }
   }
@@ -459,7 +485,7 @@ function App() {
     }, 650)
     return () => window.clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, budgetOutput, contractsOutput, researchOutput, fieldOpsOutput, archVisRevisionConstraints, activeTool.id])
+  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, budgetOutput, contractsOutput, researchOutput, fieldOpsOutput, businessOutput, archVisRevisionConstraints, activeTool.id])
 
   async function askCopilot(text = input, attachment = activeFile) {
     const clean = text.trim()
@@ -475,6 +501,7 @@ function App() {
     const shouldOpenBudget = clean && isBudgetIntent(clean)
     const shouldOpenResearch = clean && isResearchIntent(clean)
     const shouldOpenFieldOps = clean && isFieldOpsIntent(clean, attachment)
+    const shouldOpenBusiness = clean && isBusinessLayerIntent(clean)
     const shouldOpenBim3D = isBim3DIntent(clean || modelText, attachment)
     const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
     const shouldOpenSkillExport = clean && isSkillExportIntent(clean)
@@ -542,6 +569,23 @@ function App() {
         if (nextName) renameProject(nextName)
       }
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Feito. Atualizei o Project Workspace e mantive o projeto ativo salvo localmente.' }])
+      setInput('')
+      return
+    }
+    if (shouldOpenBusiness) {
+      const context = [...messages, userMessage]
+        .slice(-8)
+        .map(message => `${message.role}: ${message.text}`)
+      const focus = inferBusinessFocus(clean)
+      const responseText = focus === 'finance-accounting'
+        ? 'Abri o Finance / Accounting layer ao lado. Vou preparar financeiro, contas a receber/pagar e pacote para contador em modo local, sem fingir pagamento, imposto ou compliance.'
+        : focus === 'crm-sales'
+          ? 'Abri o CRM / Sales layer ao lado. Vou estruturar leads, pipeline, proposta comercial e follow-up em modo local, sem banco de dados real ainda.'
+          : focus === 'admin'
+            ? 'Abri o SaaS Admin / Client Workspace ao lado. Vou modelar usuários, permissões, planos e dashboards em modo local, sem auth real ainda.'
+            : 'Abri a camada SaaS/CRM/Finance ao lado. Tudo está em Local demo mode: sem auth, sem database e sem payment connector.'
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: responseText }])
+      setBusinessOutput({ goal: clean, focus, conversationContext: context })
       setInput('')
       return
     }
@@ -869,6 +913,7 @@ function App() {
     setContractsOutput(null)
     setResearchOutput(null)
     setFieldOpsOutput(null)
+    setBusinessOutput(null)
     setExportCenterOpen(false)
     setArchVisRevisionConstraints([])
     setMessages([{ id: id(), role: 'assistant', text: 'New Apex project started. Upload a file or tell me what we are building.' }])
@@ -902,6 +947,8 @@ function App() {
     setResearchOutput(restoredResearch || null)
     const restoredFieldOps = state.fieldOpsOutput as Omit<FieldOpsOutput, 'source'> | null | undefined
     setFieldOpsOutput(restoredFieldOps ? { ...restoredFieldOps, source: restored } : null)
+    const restoredBusiness = state.businessOutput as BusinessOutput | null | undefined
+    setBusinessOutput(restoredBusiness || null)
   }
 
   function switchProject(projectId: string) {
@@ -944,6 +991,8 @@ function App() {
     setBudgetOutput(null)
     setContractsOutput(null)
     setResearchOutput(null)
+    setFieldOpsOutput(null)
+    setBusinessOutput(null)
     setArchVisRevisionConstraints([])
     setMessages([{ id: id(), role: 'assistant', text: 'Local workspace cleared. New Apex project ready.' }])
   }
@@ -1079,6 +1128,30 @@ function App() {
     ])
   }
 
+  function saveBusinessToProject(plan: BusinessPlan) {
+    const saved = upsertProject({
+      ...activeProject,
+      exports: [
+        ...activeProject.exports,
+        {
+          type: 'saas-crm-finance-business-layer',
+          timestamp: new Date().toISOString(),
+          plan,
+        },
+      ],
+    })
+    setActiveProject(saved)
+    setProjects(loadProjects())
+    setMessages(prev => [
+      ...prev,
+      {
+        id: id(),
+        role: 'assistant',
+        text: 'Salvei a estrutura SaaS/CRM/Finance no Project Workspace local.',
+      },
+    ])
+  }
+
   return (
     <main className="app" onPaste={handlePaste} onDragOver={event => event.preventDefault()} onDrop={handleDrop}>
       <header className="topbar">
@@ -1091,7 +1164,7 @@ function App() {
         </div>
       </header>
 
-      <section className={`workspace ${archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || exportCenterOpen ? 'studio-open' : ''}`}>
+      <section className={`workspace ${archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || exportCenterOpen ? 'studio-open' : ''}`}>
         <section className="chat-shell" aria-label="Apex AI Copilot chat">
           <div className="chat-header">
             <div>
@@ -1366,6 +1439,34 @@ function App() {
               }}
               onClear={() => setFieldOpsOutput(null)}
             />
+          )}
+
+          {businessOutput && (
+            <div className="business-layer-stack">
+              {(businessOutput.focus === 'admin' || businessOutput.focus === 'all') && (
+                <SaasAdminPanel
+                  goal={businessOutput.goal}
+                  onClear={() => setBusinessOutput(null)}
+                />
+              )}
+              {(businessOutput.focus === 'crm-sales' || businessOutput.focus === 'all') && (
+                <CrmPanel
+                  goal={businessOutput.goal}
+                  conversationContext={businessOutput.conversationContext}
+                  onSaveToProject={saveBusinessToProject}
+                />
+              )}
+              {(businessOutput.focus === 'finance-accounting' || businessOutput.focus === 'all') && (
+                <FinancePanel
+                  goal={businessOutput.goal}
+                  conversationContext={businessOutput.conversationContext}
+                  onSaveToProject={saveBusinessToProject}
+                />
+              )}
+              {businessOutput.focus !== 'admin' && (
+                <button className="business-close-button" onClick={() => setBusinessOutput(null)}>Close business layer</button>
+              )}
+            </div>
           )}
 
           {exportCenterOpen && (

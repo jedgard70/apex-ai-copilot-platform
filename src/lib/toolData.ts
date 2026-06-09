@@ -140,6 +140,12 @@ export const toolData: CopilotTool[] = [
     trigger: ['exportar', 'export package', 'baixar pacote', 'client package', 'exportar projeto', 'exportar rdo', 'exportar orçamento'],
   },
   {
+    id: 'saas-crm-finance',
+    name: 'SaaS / CRM / Finance',
+    role: 'Model local-first users, roles, client workspaces, CRM, proposals, finance, accounting preparation and SaaS plans without fake auth, payments or database claims.',
+    trigger: ['crm', 'lead', 'cliente', 'vendas', 'financeiro', 'fatura', 'pagamento', 'plano saas', 'usuário', 'permissões', 'contabilidade', 'contador', 'contas a receber'],
+  },
+  {
     id: 'exploration',
     name: 'Exploration / General Reasoning',
     role: 'Think through open-ended questions, strategy, planning, decisions and general knowledge tasks.',

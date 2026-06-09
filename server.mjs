@@ -413,6 +413,9 @@ function buildLocalSkillContext(userText, file) {
   if (/(rdo|di[aá]rio de obra|relat[oó]rio de obra|andamento da obra|progresso da obra|checklist de qualidade|checklist de seguran[cç]a|equipe de obra|materiais entregues|pend[eê]ncia de obra|punch list|foto de obra|field operations|daily report|jobsite|site report|quality checklist|safety checklist|field photo)/.test(text)) {
     contexts.push('Field Operations / RDO: produce daily reports, progress summaries, crew/material logs, safety/quality checklists, punch lists and client reports. Do not claim field verification unless supported by photo or user field data. User notes are USER_REPORTED. Visible photo items can be PHOTO_CONFIRMED. Unknown items remain UNKNOWN. Do not fake weather or inspection approval.')
   }
+  if (/(crm|lead|cliente|client|vendas|sales|proposta comercial|financeiro|finance|fatura|invoice|pagamento|payment|plano saas|usu[aá]rio|permiss[oõ]es|dashboard admin|dashboard cliente|pipeline|follow-up|cobran[cç]a|contabilidade|contador|documentos cont[aá]beis|relat[oó]rio cont[aá]bil|imposto|nota fiscal|receita|despesa|contas a pagar|contas a receber|accounting|accountant|tax)/.test(text)) {
+    contexts.push('SaaS / CRM / Finance: local-first business layer only. No fake auth, no fake database persistence, no fake payment confirmation, no fake invoice sent, no fake tax filing. Always label Local demo mode — auth/database not connected yet. Client users must not access admin/internal data in the real model. Finance/accounting prepares records, ledgers, reports and accountant handoff packages with USER_ENTERED, SYSTEM_GENERATED, IMPORTED_DOCUMENT, UNKNOWN or NEEDS_ACCOUNTANT_REVIEW evidence.')
+  }
   if (!contexts.length) {
     contexts.push('Platform: Apex AI Copilot is a command-first full AI assistant. Chat is primary; modules and connectors are optional execution paths.')
   }
@@ -1769,6 +1772,124 @@ async function handleBudgetPlan(req, res) {
   }
 }
 
+function businessCurrency(value) {
+  const normalized = String(value || '').toUpperCase()
+  return ['BRL', 'USD', 'EUR'].includes(normalized) ? normalized : 'USD'
+}
+
+function createBusinessPlanPayload({ goal = '', focus = 'all', currency = 'USD' }) {
+  const safeCurrency = businessCurrency(currency)
+  const localNotice = 'Local demo mode — auth/database not connected yet'
+  const paymentNotice = 'Payment connector not connected yet — no real payment was processed or confirmed.'
+  const accountingNotice = 'NEEDS_ACCOUNTANT_REVIEW: Apex prepares documents and reports for accountant review. It does not file taxes or confirm accounting compliance.'
+  const pipelineStages = ['New Lead', 'Qualified', 'Discovery', 'Proposal Sent', 'Negotiation', 'Won', 'Lost', 'On Hold']
+  const saasPlans = [
+    ['Internal', 'Owner and internal production team', ['Apex Copilot', 'Project Workspace', 'ArchVis', 'DirectCut', 'BIM/3D', 'Budget', 'Contracts', 'FieldOps']],
+    ['Starter', 'Small clients needing guided project intake and deliverables', ['Client Workspace', 'Apex Copilot chat', 'file uploads', 'output viewer']],
+    ['Pro', 'Design/build teams needing ArchVis, video and project package workflows', ['ArchVis Studio', 'DirectCut Studio', 'Project exports', 'CRM proposal support']],
+    ['Business', 'AEC offices needing client portal, CRM, finance and operational modules', ['Admin dashboard', 'Client dashboards', 'CRM', 'Finance', 'Budget', 'Contracts', 'FieldOps']],
+    ['Enterprise', 'Larger firms needing governance, integrations and custom workflows', ['All modules', 'advanced permissions', 'custom connectors', 'source confidence reporting']],
+    ['Offshore Production Partner', 'US/EU firms outsourcing BIM/CAD/Revit/permit documentation to Apex', ['BIM/Revit production workflow', 'permit packages', 'estimating', 'project delivery dashboard', 'client reporting']],
+    ['Custom AI/BIM Operations', 'AEC operations that need a custom AI-enabled production system', ['Custom Copilot workflows', 'BIM operations', 'document intelligence', 'automation roadmap']],
+  ].map(([name, targetUser, includedModules]) => ({
+    name,
+    targetUser,
+    includedModules,
+    limits: ['Local-first scaffold in this checkpoint', 'Connector limits TBD'],
+    suggestedPricePlaceholder: name === 'Internal' ? 'Internal cost center' : 'Placeholder until market research confirms',
+    sourceConfidence: 'PLACEHOLDER',
+  }))
+  const accounting = {
+    chartOfAccountsPlaceholder: ['Service revenue', 'SaaS subscription revenue', 'BIM/Revit production revenue', 'ArchVis/render revenue', 'DirectCut/video revenue', 'Contractor/subcontractor expense', 'Software/tools expense', 'Marketing/sales expense', 'Taxes payable placeholder', 'Accounts receivable', 'Accounts payable'],
+    ledger: [
+      { id: 'ledger-revenue-placeholder', type: 'revenue', date: '', description: 'Revenue record placeholder. Enter real invoice/payment data before accounting use.', clientOrSupplier: 'Client company', amount: 0, currency: safeCurrency, taxCategory: 'NEEDS_ACCOUNTANT_REVIEW', costCenter: 'Client project', evidence: 'SYSTEM_GENERATED' },
+      { id: 'ledger-expense-placeholder', type: 'expense', date: '', description: 'Expense record placeholder. Attach receipts or imported documents before accountant export.', clientOrSupplier: 'Supplier not entered', amount: 0, currency: safeCurrency, taxCategory: 'NEEDS_ACCOUNTANT_REVIEW', costCenter: 'Client project', evidence: 'SYSTEM_GENERATED' },
+    ],
+    monthlyAccountingSummary: 'Monthly accounting summary is a preparation draft only. No tax filing, tax compliance or paid invoice is confirmed.',
+    monthlyRevenueReport: 'Revenue report placeholder: no confirmed revenue records have been entered yet.',
+    monthlyExpenseReport: 'Expense report placeholder: no confirmed expense records have been entered yet.',
+    invoicesSummary: 'Invoice summary placeholder: draft invoices are not sent or paid.',
+    paymentsSummary: 'Payment summary placeholder: payment connector is not connected and no payment is confirmed.',
+    accountsReceivableReport: 'Accounts receivable placeholder: amounts require user-entered invoices or imported accounting documents.',
+    accountsPayableReport: 'Accounts payable placeholder: supplier bills/expenses require user-entered or imported documents.',
+    projectProfitLossReport: 'Project profit/loss placeholder: profit cannot be confirmed until revenue and expenses are entered or imported.',
+    taxPreparationChecklist: ['Confirm jurisdiction, company type and accountant/tax advisor requirements.', 'Attach invoices, receipts and supplier documents.', 'Review tax categories with accountant before filing.', 'Do not treat Apex-generated tax fields as confirmed calculations.'],
+    documentsPendingForAccountant: ['Client/company legal data', 'Supplier data and receipts', 'Issued invoices', 'Payment confirmations from real provider or bank records', 'Expense documents', 'Jurisdiction-specific tax guidance from accountant'],
+    accountantHandoffPackage: 'Accountant handoff package includes ledger placeholders, invoices summary, payments summary, accounts receivable/payable, project P/L draft, tax prep checklist and pending documents list. It requires accountant review before filing.',
+    reviewNotice: accountingNotice,
+  }
+  return {
+    providerStatus: 'local-demo',
+    modeNotice: localNotice,
+    authStatus: 'not-connected',
+    databaseStatus: 'not-connected',
+    paymentProviderStatus: 'not-connected',
+    focus,
+    usersRoles: {
+      roles: ['Owner/Admin', 'Internal Team', 'Client', 'Partner', 'Viewer', 'Contractor', 'Finance', 'Sales'],
+      rule: 'Client users must not access admin/internal data. Real enforcement requires approved auth/database/RLS later.',
+    },
+    clientWorkspace: {
+      clientName: 'Client workspace',
+      projects: [{ name: 'Client project', status: 'New', uploadedFiles: 0, outputs: 0, proposals: 0, invoices: 0, messages: 0 }],
+      visibleToClient: ['active projects', 'uploaded files', 'generated outputs', 'proposals', 'invoices', 'messages', 'project status', 'next actions'],
+      hiddenFromClient: ['admin settings', 'internal finance controls', 'other clients', 'internal production notes unless shared'],
+    },
+    crm: {
+      pipelineStages,
+      leads: [{ id: 'lead-local-demo', name: 'New client lead', company: 'Client company', source: 'Manual / local demo', status: 'New', notes: goal, assignedOwner: 'Owner/Admin', expectedValue: 0, currency: safeCurrency, probability: 0, nextAction: 'Qualify need, project type, budget range, location and decision timeline.' }],
+      contacts: [{ id: 'contact-local-demo', name: 'Client contact', company: 'Client company', role: 'Decision maker', email: 'not connected', phone: 'not connected', notes: 'Local scaffold only. No real CRM database is connected.' }],
+      companies: ['Client company'],
+      opportunities: [{ id: 'opportunity-local-demo', title: 'Apex service opportunity', company: 'Client company', stage: 'New Lead', expectedValue: 0, currency: safeCurrency, probability: 0, proposalLink: 'Not generated yet', followUpTask: 'Prepare discovery questions and proposal package.', nextAction: 'Build proposal with scope, deliverables, assumptions and next meeting CTA.' }],
+      followUpTasks: ['Confirm client objective and project location.', 'Collect files, scope and deadline.', 'Prepare proposal package and presentation assets.', 'Schedule follow-up after proposal review.'],
+      recommendations: ['Keep CRM data local until real database/auth is approved.', 'Separate client-visible project data from internal/admin data.', 'Use Research Studio before publishing market-based pricing.'],
+    },
+    sales: {
+      title: 'Apex commercial proposal package',
+      executiveSummary: 'Apex can organize project intake, production modules and client deliverables into a clear proposal package. Pricing remains placeholder until user-provided or source-verified.',
+      serviceScope: ['Client intake and file review', 'Apex Copilot project guidance', 'Selected production module outputs', 'Project workspace/export package'],
+      quotePackages: ['Starter: project intake and basic output package', 'Pro: ArchVis/DirectCut/Budget production package', 'Business: client workspace, CRM and finance workflow package', 'Offshore Production Partner: US/EU BIM/Revit/permit documentation support'],
+      pricingTiers: saasPlans,
+      salesScript: 'Lead with the client outcome, show the project workflow, define deliverables, label assumptions, then close with the next practical action.',
+      emailDraft: 'Hi [Client], I prepared an Apex workflow for your project with intake, deliverables, timeline assumptions and next steps. I can send the package for review and adjust scope after your feedback.',
+      followUpSequence: ['Day 1: send proposal package', 'Day 3: clarify scope/questions', 'Day 7: confirm decision path', 'Day 14: offer revised package or close as on hold'],
+      objectionHandling: ['If price is high: separate must-have deliverables from optional add-ons.', 'If timing is uncertain: propose a discovery/preflight package first.', 'If trust is low: show sample outputs and source-confidence labels.'],
+      clientPresentationPackage: ['project problem', 'Apex workflow', 'deliverables', 'timeline assumptions', 'investment placeholder', 'next action'],
+      internationalPositioning: 'For US/EU clients, position Apex as an offshore BIM/CAD/Revit and permit documentation production partner first, with AI-powered delivery as leverage.',
+    },
+    finance: {
+      invoices: [{ id: 'invoice-local-placeholder', client: 'Client company', project: 'Client project', amount: 0, currency: safeCurrency, status: 'Draft', dueDate: '', source: 'local placeholder' }],
+      payments: [{ id: 'payment-local-placeholder', invoiceId: 'invoice-local-placeholder', amount: 0, currency: safeCurrency, status: 'UNKNOWN', evidence: 'UNKNOWN' }],
+      expenses: [{ id: 'expense-local-placeholder', project: 'Client project', category: 'Production cost placeholder', amount: 0, currency: safeCurrency, status: 'Draft', taxCategory: 'NEEDS_ACCOUNTANT_REVIEW', costCenter: 'Client project', evidence: 'SYSTEM_GENERATED' }],
+      summary: { currency: safeCurrency, revenueSummary: 'No real revenue connected. Enter values manually or connect a finance/payment provider later.', clientBalance: 'Unknown until invoices/payments are user-entered or provider-connected.', accountsReceivable: 'Placeholder only — no payment connector is connected.', accountsPayable: 'Placeholder only — supplier bills/expenses must be user-entered or imported.', projectCostProfit: 'Unknown until project costs and invoices are entered.', paymentConnectorStatus: 'not-connected', warnings: [paymentNotice, 'Do not treat draft invoices as sent or paid.'] },
+      accounting,
+    },
+    saasPlans,
+    adminDashboard: { usersCount: 3, clientsCount: 1, projectsCount: 1, leadsCount: 0, proposalsCount: 0, revenuePlaceholder: 'Revenue not connected — use Finance Studio with user-entered data only.', usageSummary: ['Local Project Workspace is active.', 'Auth/database/payment connectors are not connected.', 'Client data boundaries are modeled but not enforced by a backend yet.'], moduleUsage: ['Apex Copilot', 'ArchVis', 'DirectCut', 'BIM/3D', 'Budget', 'Contracts', 'FieldOps', 'CRM', 'Finance'], openTasks: ['Connect real auth before production client access.', 'Connect database/RLS before multi-client persistence.', 'Connect payment provider before invoices can be sent/paid.'] },
+    clientDashboard: { activeProjects: 1, uploadedFiles: 0, generatedOutputs: 0, proposals: 0, invoices: 0, messages: 0, projectStatus: 'New', nextActions: ['Upload project files', 'Confirm scope', 'Review proposal package'] },
+    recommendations: [focus === 'finance-accounting' ? 'Prepare accountant handoff package, but keep tax/compliance fields as NEEDS_ACCOUNTANT_REVIEW.' : 'Use local-first scaffolding until auth/database/payment connector is approved.', 'Do not expose admin/internal data to Client role in the future production model.', 'Use Export Center to package only real local project data.'],
+    warnings: [localNotice, paymentNotice, accountingNotice, 'No fake login, fake database persistence, fake invoice sent status or fake payment confirmation.'],
+    message: 'SaaS/CRM/Finance layer generated in local demo mode.',
+  }
+}
+
+async function handleBusinessPlan(req, res) {
+  try {
+    const body = await readJson(req)
+    const plan = createBusinessPlanPayload({
+      goal: String(body.goal || ''),
+      focus: String(body.focus || 'all'),
+      currency: body.currency,
+    })
+    json(res, 200, { plan })
+  } catch (error) {
+    json(res, error.status || 500, {
+      error: scrubProviderError(error.message || error),
+      providerStatus: 'local-demo',
+    })
+  }
+}
+
 function contractsRisk(id, clause, issue, severity, evidence, recommendation, ownerAction) {
   return {
     id,
@@ -2642,6 +2763,10 @@ const server = http.createServer((req, res) => {
   }
   if (req.url === '/api/copilot/export-package' && req.method === 'POST') {
     handleExportPackage(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/business-plan' && req.method === 'POST') {
+    handleBusinessPlan(req, res)
     return
   }
   if (req.url === '/api/copilot/analyze-skill-update' && req.method === 'POST') {
