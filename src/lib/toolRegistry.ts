@@ -26,6 +26,7 @@ export type ToolDomain =
   | 'export-center'
   | 'saas-crm-finance'
   | 'cognitive-agents'
+  | 'evm-scheduler-compliance'
   | 'exploration'
 
 export type CopilotTool = {

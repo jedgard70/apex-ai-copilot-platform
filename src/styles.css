@@ -3640,6 +3640,51 @@ input {
   background: rgba(255, 190, 92, 0.08);
 }
 
+.evm-input-grid,
+.evm-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.evm-input-grid label,
+.evm-kpi-grid article {
+  display: grid;
+  gap: 6px;
+  border: 1px solid rgba(150, 164, 195, 0.16);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.evm-input-grid span,
+.evm-kpi-grid span {
+  color: #9fb0d0;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.evm-input-grid input {
+  width: 100%;
+  border: 1px solid rgba(150, 164, 195, 0.22);
+  border-radius: 10px;
+  padding: 10px;
+  color: #ffffff;
+  background: rgba(6, 13, 31, 0.72);
+}
+
+.evm-kpi-grid strong {
+  color: #ffffff;
+  font-size: 20px;
+}
+
+.evm-kpi-grid em {
+  color: #9fb0d0;
+  font-size: 11px;
+  font-style: normal;
+}
+
 .panel-section {
   border: 1px solid #e2e8f2;
   border-radius: 18px;
@@ -3788,6 +3833,8 @@ input {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .evm-input-grid,
+  .evm-kpi-grid,
   .video-constraints-panel div,
   .directcut-select-grid,
   .directcut-reference-grid,

@@ -152,6 +152,12 @@ export const toolData: CopilotTool[] = [
     trigger: ['agentes', '8 agentes', 'cognitive agents', 'maestro', 'bim manager', 'evm', 'nr compliance', 'cost controller', 'doc manager', 'scheduler', 'quality qa'],
   },
   {
+    id: 'evm-scheduler-compliance',
+    name: 'EVM / Scheduler / NR Compliance',
+    role: 'Run local EVM, Gantt-style scheduling, physical-financial planning and NR safety compliance analysis without fake real-time data or official certification.',
+    trigger: ['evm', 'cpi', 'spi', 'eac', 'vac', 'tcpi', 'planned value', 'earned value', 'actual cost', 'cronograma', 'gantt', 'caminho crítico', 'atraso', 'lookahead', 'cronograma físico-financeiro', 'nr-18', 'nr-35', 'nr-10', 'nr-6', 'nr-33', 'segurança do trabalho', 'compliance nr'],
+  },
+  {
     id: 'exploration',
     name: 'Exploration / General Reasoning',
     role: 'Think through open-ended questions, strategy, planning, decisions and general knowledge tasks.',

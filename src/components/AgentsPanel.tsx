@@ -29,8 +29,8 @@ export function AgentsPanel({ onClear, onOpenStudio }: AgentsPanelProps) {
       </div>
 
       <div className="business-alert">
-        <strong>No fake completion</strong>
-        <span>EVM, Scheduler and NR Compliance require CP11C foundations before they can be treated as implemented.</span>
+        <strong>Local-first CP11C implemented</strong>
+        <span>EVM, Scheduler and NR Compliance now have local-first workspaces. External data, official compliance approval and source-connected automation still require future connectors.</span>
       </div>
 
       <div className="agents-grid">

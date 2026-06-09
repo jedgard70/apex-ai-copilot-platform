@@ -417,7 +417,10 @@ function buildLocalSkillContext(userText, file) {
     contexts.push('SaaS / CRM / Finance: local-first business layer only. No fake auth, no fake database persistence, no fake payment confirmation, no fake invoice sent, no fake tax filing. Always label Local demo mode — auth/database not connected yet. Client users must not access admin/internal data in the real model. Finance/accounting prepares records, ledgers, reports and accountant handoff packages with USER_ENTERED, SYSTEM_GENERATED, IMPORTED_DOCUMENT, UNKNOWN or NEEDS_ACCOUNTANT_REVIEW evidence.')
   }
   if (/(agentes|8 agentes|cognitive agents|maestro|bim manager|evm|nr compliance|cost controller|doc manager|scheduler|quality qa|agente cognitivo|agentes cognitivos)/.test(text)) {
-    contexts.push('Cognitive Agents: expose the 8-agent Apex layer with honest status. Maestro AI orchestrates studios; BIM Manager connects BIM/3D; EVM Analyst needs CP11C for CPI/SPI/EAC/VAC/TCPI/PV/EV/AC; NR Compliance needs CP11C for NR-6/NR-10/NR-18/NR-33/NR-35; Cost Controller connects Budget/Finance/SINAPI source confidence; Doc Manager connects Project Workspace/Export Center/docs; Scheduler needs CP11C for Gantt/milestones/critical path; Quality QA connects FieldOps/punch list/NCIs/PBQP-H/ISO awareness. Do not fake complete status.')
+    contexts.push('Cognitive Agents: expose the 8-agent Apex layer with honest status. Maestro AI orchestrates studios; BIM Manager connects BIM/3D; EVM Analyst has local-first CP11C support for CPI/SPI/EAC/VAC/TCPI/PV/EV/AC; NR Compliance has local-first CP11C support for NR-6/NR-10/NR-18/NR-33/NR-35; Cost Controller connects Budget/Finance/EVM/SINAPI source confidence; Doc Manager connects Project Workspace/Export Center/docs; Scheduler has local-first CP11C Gantt/milestones/critical path planning; Quality QA connects FieldOps/NR/punch list/NCIs/PBQP-H/ISO awareness. Do not fake external connectors or official completion.')
+  }
+  if (/(evm|cpi|spi|eac|vac|tcpi|planned value|earned value|actual cost|cronograma|gantt|caminho cr[ií]tico|atraso|lookahead|cronograma f[ií]sico-financeiro|nr-18|nr-35|nr-10|nr-6|nr-33|seguran[cç]a do trabalho|compliance nr)/.test(text)) {
+    contexts.push('CP11C EVM/Scheduler/NR: run local analysis only. Calculate CPI=EV/AC, SPI=EV/PV, CV=EV-AC, SV=EV-PV, EAC/ETC/VAC/TCPI only when inputs exist. Missing PV/EV/AC/BAC stays UNKNOWN. Scheduler is local Gantt/milestone/lookahead planning only, no MS Project integration. NR compliance is GENERAL_GUIDANCE or NEEDS_SAFETY_REVIEW; no official compliance approval or safety certification.')
   }
   if (!contexts.length) {
     contexts.push('Platform: Apex AI Copilot is a command-first full AI assistant. Chat is primary; modules and connectors are optional execution paths.')
@@ -2337,6 +2340,126 @@ async function handleSourceEvidence(req, res) {
   }
 }
 
+function controlNumber(value) {
+  const number = Number(value)
+  return Number.isFinite(number) && number > 0 ? number : null
+}
+
+function controlDivide(left, right) {
+  if (left === null || right === null || right === 0) return null
+  return Number((left / right).toFixed(3))
+}
+
+function controlSubtract(left, right) {
+  if (left === null || right === null) return null
+  return Number((left - right).toFixed(2))
+}
+
+function createControlsPlan(goal = '', evmInputs = {}) {
+  const pv = controlNumber(evmInputs.plannedValue)
+  const ev = controlNumber(evmInputs.earnedValue)
+  const ac = controlNumber(evmInputs.actualCost)
+  const bac = controlNumber(evmInputs.budgetAtCompletion)
+  const cpi = controlDivide(ev, ac)
+  const spi = controlDivide(ev, pv)
+  const cv = controlSubtract(ev, ac)
+  const sv = controlSubtract(ev, pv)
+  const eac = cpi && bac ? Number((bac / cpi).toFixed(2)) : null
+  const etc = controlSubtract(eac, ac)
+  const vac = controlSubtract(bac, eac)
+  const tcpi = bac !== null && ev !== null && ac !== null && bac - ac !== 0 ? Number(((bac - ev) / (bac - ac)).toFixed(3)) : null
+  const evidence = pv !== null && ev !== null && ac !== null ? 'CONFIRMED' : 'UNKNOWN'
+  const missingData = [
+    pv === null ? 'Planned Value (PV)' : '',
+    ev === null ? 'Earned Value (EV)' : '',
+    ac === null ? 'Actual Cost (AC)' : '',
+    bac === null ? 'Budget at Completion (BAC)' : '',
+  ].filter(Boolean)
+  const scheduleTasks = [
+    { id: 'sch-mobilization', name: 'Mobilization and project setup', start: '', finish: '', durationDays: 3, dependencies: [], responsible: 'Project lead', plannedPercent: 0, actualPercent: 0, evidence: 'ESTIMATED', status: 'Unknown' },
+    { id: 'sch-documentation', name: 'Documentation / permit / production package', start: '', finish: '', durationDays: 10, dependencies: ['sch-mobilization'], responsible: 'Doc Manager / BIM team', plannedPercent: 0, actualPercent: 0, evidence: 'ESTIMATED', status: 'Unknown' },
+    { id: 'sch-execution', name: 'Execution / production / field work', start: '', finish: '', durationDays: 20, dependencies: ['sch-documentation'], responsible: 'Production / field team', plannedPercent: 0, actualPercent: 0, evidence: 'ESTIMATED', status: 'Unknown' },
+    { id: 'sch-review-delivery', name: 'QA review and delivery package', start: '', finish: '', durationDays: 5, dependencies: ['sch-execution'], responsible: 'Quality QA / Owner', plannedPercent: 0, actualPercent: 0, evidence: 'ESTIMATED', status: 'Unknown' },
+  ]
+  const nrChecklist = [
+    { id: 'nr6-ppe', norm: 'NR-6', item: 'Confirm PPE/EPI list, delivery records, training and usage evidence.', riskLevel: 'High', evidence: 'GENERAL_GUIDANCE', status: 'Needs qualified review', responsible: 'Safety lead', dueDate: '', correctiveAction: 'Collect PPE/EPI records and validate with qualified safety professional.' },
+    { id: 'nr10-electrical', norm: 'NR-10', item: 'Review electrical safety, lockout/tagout, qualified workers and energized work controls.', riskLevel: 'Critical', evidence: 'GENERAL_GUIDANCE', status: 'Needs qualified review', responsible: 'Electrical / safety lead', dueDate: '', correctiveAction: 'Prepare NR-10 checklist and require qualified review before execution.' },
+    { id: 'nr18-construction', norm: 'NR-18', item: 'Review construction site conditions, access, housekeeping, collective protection and work fronts.', riskLevel: 'High', evidence: 'GENERAL_GUIDANCE', status: 'Needs qualified review', responsible: 'Site manager', dueDate: '', correctiveAction: 'Create site safety action list from FieldOps photos/notes and qualified review.' },
+    { id: 'nr33-confined', norm: 'NR-33', item: 'Identify whether confined spaces exist and whether permits, monitoring and rescue plan are required.', riskLevel: 'Critical', evidence: 'NEEDS_SAFETY_REVIEW', status: 'Needs qualified review', responsible: 'Safety lead', dueDate: '', correctiveAction: 'Do not authorize confined-space work without qualified assessment and permit workflow.' },
+    { id: 'nr35-height', norm: 'NR-35', item: 'Review work-at-height exposure, fall protection, anchorage, training and rescue plan.', riskLevel: 'Critical', evidence: 'GENERAL_GUIDANCE', status: 'Needs qualified review', responsible: 'Safety lead', dueDate: '', correctiveAction: 'Prepare work-at-height control plan and require qualified review before execution.' },
+  ]
+  const riskMatrix = nrChecklist.reduce((rows, item) => {
+    const existing = rows.find(row => row.norm === item.norm && row.risk === item.riskLevel)
+    if (existing) existing.count += 1
+    else rows.push({ norm: item.norm, risk: item.riskLevel, count: 1, evidence: item.evidence })
+    return rows
+  }, [])
+  const schedulePlan = {
+    tasks: scheduleTasks,
+    milestones: [
+      { id: 'ms-kickoff', name: 'Kickoff', date: '', evidence: 'ESTIMATED' },
+      { id: 'ms-package-ready', name: 'Production package ready', date: '', evidence: 'ESTIMATED' },
+      { id: 'ms-delivery', name: 'Client delivery', date: '', evidence: 'ESTIMATED' },
+    ],
+    dependencies: scheduleTasks.flatMap(task => task.dependencies.map(dep => `${dep} -> ${task.id}`)),
+    delayLog: ['No confirmed delay log provided yet. FieldOps delay notes can be connected here.'],
+    lookaheadPlan: ['Confirm baseline dates, dependencies and responsible parties.', 'Collect FieldOps progress and blockers.', 'Update planned vs actual before claiming schedule variance.'],
+    physicalFinancialSchedule: [
+      { period: 'Phase 1', physicalProgress: 0, financialProgress: 0, evidence: 'ESTIMATED' },
+      { period: 'Phase 2', physicalProgress: 0, financialProgress: 0, evidence: 'ESTIMATED' },
+      { period: 'Phase 3', physicalProgress: 0, financialProgress: 0, evidence: 'ESTIMATED' },
+    ],
+    criticalPath: scheduleTasks.map(task => task.name),
+    summary: goal ? `Local schedule scaffold prepared for: ${goal}` : 'Local schedule scaffold prepared. No MS Project integration is connected.',
+  }
+  const evmSummary = missingData.length
+    ? `EVM local analysis is incomplete. Missing: ${missingData.join(', ')}. Apex will not fake CPI/SPI/EAC.`
+    : `EVM local analysis complete from supplied values. CPI ${cpi}, SPI ${spi}, EAC ${eac}.`
+  const varianceTable = [
+    { metric: 'CPI', value: cpi, evidence, interpretation: cpi === null ? 'UNKNOWN: needs EV and AC.' : cpi >= 1 ? 'Cost performance at or above baseline.' : 'Cost overrun risk.' },
+    { metric: 'SPI', value: spi, evidence, interpretation: spi === null ? 'UNKNOWN: needs EV and PV.' : spi >= 1 ? 'Schedule performance at or above baseline.' : 'Schedule delay risk.' },
+    { metric: 'CV', value: cv, evidence, interpretation: cv === null ? 'UNKNOWN: needs EV and AC.' : cv >= 0 ? 'Positive/neutral cost variance.' : 'Negative cost variance.' },
+    { metric: 'SV', value: sv, evidence, interpretation: sv === null ? 'UNKNOWN: needs EV and PV.' : sv >= 0 ? 'Positive/neutral schedule variance.' : 'Negative schedule variance.' },
+  ]
+  const safetyReportDraft = ['NR Compliance draft - GENERAL_GUIDANCE / NEEDS_SAFETY_REVIEW.', 'No official compliance approval, legal certification or safety release is claimed.', ...nrChecklist.map(item => `- ${item.norm}: ${item.item} Evidence: ${item.evidence}. Action: ${item.correctiveAction}`)].join('\n')
+  const evmReport = ['EVM report draft', evmSummary, `PV: ${pv ?? 'UNKNOWN'} | EV: ${ev ?? 'UNKNOWN'} | AC: ${ac ?? 'UNKNOWN'} | BAC: ${bac ?? 'UNKNOWN'}`, `CPI: ${cpi ?? 'UNKNOWN'} | SPI: ${spi ?? 'UNKNOWN'} | EAC: ${eac ?? 'UNKNOWN'} | VAC: ${vac ?? 'UNKNOWN'} | TCPI: ${tcpi ?? 'UNKNOWN'}`].join('\n')
+  const scheduleReport = ['Schedule report draft', schedulePlan.summary, '', 'Tasks:', ...scheduleTasks.map(task => `- ${task.name}: ${task.durationDays} days, dependencies ${task.dependencies.join(', ') || 'none'}, evidence ${task.evidence}`)].join('\n')
+  const correctiveActionPlan = nrChecklist.map(item => `${item.norm} / ${item.riskLevel}: ${item.correctiveAction} Responsible: ${item.responsible}. Evidence: ${item.evidence}.`).join('\n')
+  return {
+    providerStatus: 'local-analysis',
+    evmSummary,
+    kpis: { pv, ev, ac, bac, cpi, spi, cv, sv, eac, etc, vac, tcpi, evidence },
+    varianceTable,
+    forecastPanel: [
+      eac === null ? 'EAC is UNKNOWN until BAC, EV and AC exist.' : `EAC forecast: ${eac}.`,
+      vac === null ? 'VAC is UNKNOWN until BAC and EAC exist.' : `VAC forecast: ${vac}.`,
+      tcpi === null ? 'TCPI is UNKNOWN until BAC, EV and AC support it.' : `TCPI required performance: ${tcpi}.`,
+    ],
+    missingData,
+    schedulePlan,
+    milestones: schedulePlan.milestones,
+    criticalPath: schedulePlan.criticalPath,
+    nrChecklist,
+    riskMatrix,
+    correctiveActions: nrChecklist,
+    safetyReportDraft,
+    exports: { evmReport, scheduleReport, nrComplianceReport: safetyReportDraft, correctiveActionPlan },
+  }
+}
+
+async function handleEvmSchedulerCompliance(req, res) {
+  try {
+    const body = await readJson(req)
+    const plan = createControlsPlan(String(body.goal || ''), body.evmInputs || {})
+    json(res, 200, { plan })
+  } catch (error) {
+    json(res, error.status || 500, {
+      error: scrubProviderError(error.message || error),
+      providerStatus: 'local-analysis',
+    })
+  }
+}
+
 function exportSafeSlug(value = 'apex-export') {
   return String(value || 'apex-export')
     .toLowerCase()
@@ -2445,6 +2568,10 @@ function exportPickSections(project, scope, selectedSections, includeChat) {
     research: should('research-market') || should('research') ? {
       exports: byType('research'),
       activeState: appState.researchOutput || null,
+    } : undefined,
+    controls: should('evm-scheduler-nr') || should('controls') ? {
+      exports: byType('evm-scheduler-nr-compliance'),
+      activeState: appState.evmSchedulerComplianceOutput || null,
     } : undefined,
     skills: should('skill-package') || should('skills') ? {
       skillUpdates: project.skillUpdates,
@@ -2770,6 +2897,10 @@ const server = http.createServer((req, res) => {
   }
   if (req.url === '/api/copilot/business-plan' && req.method === 'POST') {
     handleBusinessPlan(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/evm-scheduler-compliance' && req.method === 'POST') {
+    handleEvmSchedulerCompliance(req, res)
     return
   }
   if (req.url === '/api/copilot/analyze-skill-update' && req.method === 'POST') {

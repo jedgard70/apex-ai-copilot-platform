@@ -17,6 +17,7 @@ import { BudgetPanel } from './components/BudgetPanel'
 import { ContractsPanel } from './components/ContractsPanel'
 import { CrmPanel } from './components/CrmPanel'
 import { DirectCutInitialConfig, DirectCutPanel } from './components/DirectCutPanel'
+import { EvmSchedulerCompliancePanel } from './components/EvmSchedulerCompliancePanel'
 import { ExportCenterPanel } from './components/ExportCenterPanel'
 import { FinancePanel } from './components/FinancePanel'
 import { FieldOpsPanel } from './components/FieldOpsPanel'
@@ -48,6 +49,7 @@ import { FieldOpsPlan } from './lib/fieldOpsKnowledge'
 import { ResearchPlan } from './lib/researchKnowledge'
 import { selectTool, tools } from './lib/toolRegistry'
 import { isAgentIntent } from './lib/apexAgents'
+import { EvmSchedulerCompliancePlan, isEvmSchedulerComplianceIntent } from './lib/evmSchedulerComplianceKnowledge'
 import './styles.css'
 
 type Message = {
@@ -104,6 +106,11 @@ type BusinessOutput = {
 }
 
 type AgentsOutput = {
+  goal: string
+  conversationContext: string[]
+}
+
+type EvmSchedulerComplianceOutput = {
   goal: string
   conversationContext: string[]
 }
@@ -392,6 +399,10 @@ function App() {
     const stored = initialAppState.agentsOutput as AgentsOutput | undefined
     return stored || null
   })
+  const [evmSchedulerComplianceOutput, setEvmSchedulerComplianceOutput] = useState<EvmSchedulerComplianceOutput | null>(() => {
+    const stored = initialAppState.evmSchedulerComplianceOutput as EvmSchedulerComplianceOutput | undefined
+    return stored || null
+  })
   const [bimCommand, setBimCommand] = useState<BimCommand | undefined>()
   const [workspaceOpenSignal, setWorkspaceOpenSignal] = useState('')
   const [skillUpdateOpenSignal, setSkillUpdateOpenSignal] = useState('')
@@ -436,7 +447,7 @@ function App() {
           activeRecord,
         ]
       : activeProject.files
-    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : fieldOpsOutput ? 'fieldops' : businessOutput ? 'business' : agentsOutput ? 'agents' : null
+    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : fieldOpsOutput ? 'fieldops' : businessOutput ? 'business' : agentsOutput ? 'agents' : evmSchedulerComplianceOutput ? 'evm-scheduler-compliance' : null
     return {
       ...activeProject,
       language: navigator.language || activeProject.language,
@@ -477,6 +488,7 @@ function App() {
         fieldOpsOutput: fieldOpsOutput ? { ...fieldOpsOutput, source: undefined } : null,
         businessOutput,
         agentsOutput,
+        evmSchedulerComplianceOutput,
       },
     }
   }
@@ -497,7 +509,7 @@ function App() {
     }, 650)
     return () => window.clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, budgetOutput, contractsOutput, researchOutput, fieldOpsOutput, businessOutput, agentsOutput, archVisRevisionConstraints, activeTool.id])
+  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, budgetOutput, contractsOutput, researchOutput, fieldOpsOutput, businessOutput, agentsOutput, evmSchedulerComplianceOutput, archVisRevisionConstraints, activeTool.id])
 
   async function askCopilot(text = input, attachment = activeFile) {
     const clean = text.trim()
@@ -514,6 +526,7 @@ function App() {
     const shouldOpenResearch = clean && isResearchIntent(clean)
     const shouldOpenFieldOps = clean && isFieldOpsIntent(clean, attachment)
     const shouldOpenBusiness = clean && isBusinessLayerIntent(clean)
+    const shouldOpenControlsAgents = clean && isEvmSchedulerComplianceIntent(clean)
     const shouldOpenAgents = clean && isAgentIntent(clean)
     const shouldOpenBim3D = isBim3DIntent(clean || modelText, attachment)
     const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
@@ -602,6 +615,23 @@ function App() {
       setInput('')
       return
     }
+    if (shouldOpenControlsAgents) {
+      const context = [...messages, userMessage]
+        .slice(-8)
+        .map(message => `${message.role}: ${message.text}`)
+      setMessages(prev => [
+        ...prev,
+        userMessage,
+        {
+          id: id(),
+          role: 'assistant',
+          text: 'Abri o painel CP11C com EVM Analyst, Scheduler e NR Compliance. Vou calcular somente com dados fornecidos/localizados e manter o restante como UNKNOWN, GENERAL_GUIDANCE ou NEEDS_SAFETY_REVIEW.',
+        },
+      ])
+      setEvmSchedulerComplianceOutput({ goal: clean, conversationContext: context })
+      setInput('')
+      return
+    }
     if (shouldOpenAgents) {
       const context = [...messages, userMessage]
         .slice(-8)
@@ -612,7 +642,7 @@ function App() {
         {
           id: id(),
           role: 'assistant',
-          text: 'Abri o painel dos 8 Cognitive Agents ao lado. EVM, Scheduler e NR Compliance aparecem como planejados/parciais onde ainda falta CP11C, sem marcar como concluído.',
+          text: 'Abri o painel dos 8 Cognitive Agents ao lado. EVM, Scheduler e NR Compliance agora aparecem como implementados local-first, com limites claros: sem dados em tempo real falsos e sem aprovação oficial de compliance.',
         },
       ])
       setAgentsOutput({ goal: clean, conversationContext: context })
@@ -945,6 +975,7 @@ function App() {
     setFieldOpsOutput(null)
     setBusinessOutput(null)
     setAgentsOutput(null)
+    setEvmSchedulerComplianceOutput(null)
     setExportCenterOpen(false)
     setArchVisRevisionConstraints([])
     setMessages([{ id: id(), role: 'assistant', text: 'New Apex project started. Upload a file or tell me what we are building.' }])
@@ -982,6 +1013,8 @@ function App() {
     setBusinessOutput(restoredBusiness || null)
     const restoredAgents = state.agentsOutput as AgentsOutput | null | undefined
     setAgentsOutput(restoredAgents || null)
+    const restoredEvmControls = state.evmSchedulerComplianceOutput as EvmSchedulerComplianceOutput | null | undefined
+    setEvmSchedulerComplianceOutput(restoredEvmControls || null)
   }
 
   function switchProject(projectId: string) {
@@ -1027,6 +1060,7 @@ function App() {
     setFieldOpsOutput(null)
     setBusinessOutput(null)
     setAgentsOutput(null)
+    setEvmSchedulerComplianceOutput(null)
     setArchVisRevisionConstraints([])
     setMessages([{ id: id(), role: 'assistant', text: 'Local workspace cleared. New Apex project ready.' }])
   }
@@ -1186,6 +1220,30 @@ function App() {
     ])
   }
 
+  function saveEvmSchedulerComplianceToProject(plan: EvmSchedulerCompliancePlan) {
+    const saved = upsertProject({
+      ...activeProject,
+      exports: [
+        ...activeProject.exports,
+        {
+          type: 'evm-scheduler-nr-compliance',
+          timestamp: new Date().toISOString(),
+          plan,
+        },
+      ],
+    })
+    setActiveProject(saved)
+    setProjects(loadProjects())
+    setMessages(prev => [
+      ...prev,
+      {
+        id: id(),
+        role: 'assistant',
+        text: 'Salvei o relatório CP11C de EVM, cronograma e NR Compliance no Project Workspace local.',
+      },
+    ])
+  }
+
   return (
     <main className="app" onPaste={handlePaste} onDragOver={event => event.preventDefault()} onDrop={handleDrop}>
       <header className="topbar">
@@ -1198,7 +1256,7 @@ function App() {
         </div>
       </header>
 
-      <section className={`workspace ${archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || exportCenterOpen ? 'studio-open' : ''}`}>
+      <section className={`workspace ${archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || evmSchedulerComplianceOutput || exportCenterOpen ? 'studio-open' : ''}`}>
         <section className="chat-shell" aria-label="Apex AI Copilot chat">
           <div className="chat-header">
             <div>
@@ -1501,6 +1559,15 @@ function App() {
                 <button className="business-close-button" onClick={() => setBusinessOutput(null)}>Close business layer</button>
               )}
             </div>
+          )}
+
+          {evmSchedulerComplianceOutput && (
+            <EvmSchedulerCompliancePanel
+              goal={evmSchedulerComplianceOutput.goal}
+              conversationContext={evmSchedulerComplianceOutput.conversationContext}
+              onSaveToProject={saveEvmSchedulerComplianceToProject}
+              onClear={() => setEvmSchedulerComplianceOutput(null)}
+            />
           )}
 
           {agentsOutput && (

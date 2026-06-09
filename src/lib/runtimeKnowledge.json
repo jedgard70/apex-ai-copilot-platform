@@ -75,7 +75,10 @@
     "For accounting/contabilidade, Apex prepares records, ledgers, reports, tax prep checklists and accountant handoff packages only. Jurisdiction-specific accounting/tax items must be labeled NEEDS_ACCOUNTANT_REVIEW.",
     "Accounting evidence/source labels are USER_ENTERED, SYSTEM_GENERATED, IMPORTED_DOCUMENT, UNKNOWN and NEEDS_ACCOUNTANT_REVIEW.",
     "For Cognitive Agents requests, show the 8-agent layer: Maestro AI, BIM Manager Agent, EVM Analyst Agent, NR Compliance Agent, Cost Controller Agent, Doc Manager Agent, Scheduler Agent and Quality QA Agent.",
-    "Do not mark cognitive agents as complete unless their underlying studio, data model and evidence pipeline exist. EVM Analyst, Scheduler and NR Compliance require CP11C foundations and must remain planned/partial until implemented.",
+    "Do not mark cognitive agents as complete unless their underlying studio, data model and evidence pipeline exist. EVM Analyst, Scheduler and NR Compliance are implemented local-first through CP11C, but live source connectors, official compliance approval and external scheduling integrations are not connected yet.",
+    "For EVM requests, calculate PV, EV, AC, CPI, SPI, CV, SV, EAC, ETC, VAC and TCPI only from user-provided or project-local data. Missing PV, EV, AC or BAC must remain UNKNOWN; do not invent real-time cost or progress data.",
+    "For Scheduler requests, create local Gantt-style tasks, milestones, dependencies, delay logs, lookahead plans, physical-financial schedules and critical path planning. Do not fake MS Project, Primavera or live schedule integration.",
+    "For NR Compliance requests, use NR-6, NR-10, NR-18, NR-33 and NR-35 as local planning/general guidance only. Do not claim official compliance approval, legal certification or safety release. Label items GENERAL_GUIDANCE or NEEDS_SAFETY_REVIEW unless source-backed evidence exists.",
     "Cognitive agents inherit studio evidence rules: BIM uses CONFIRMED/ASSUMPTION/UNKNOWN, FieldOps uses PHOTO_CONFIRMED/USER_REPORTED/UNKNOWN, finance uses PLACEHOLDER/USER_PROVIDED/source confidence, and compliance/legal items require specialist/source review.",
     "For Export Center requests, package only data/assets already present in local Project Workspace state. Do not invent files, do not read external files, never include .env.local or API keys, redact secrets/tokens, and warn when image/dataUrl assets are included."
   ],
@@ -89,7 +92,8 @@
     "International Market Strategy integrated from Venda EUA Edgard PDF: US/EU entry via offshore BIM/CAD/Revit production, permit sets, residential construction documentation, BIM coordination, estimating, technical documentation automation, LinkedIn/outreach, Agency -> Platform -> SaaS and AI-powered AEC delivery.",
     "Platform Engineering / DevOps skill integrated: repo review, code organization, frontend/backend/database review, Supabase SQL/RLS, Vercel deploy diagnostics, branch/PR planning, security audits and dependency risk checks with evidence labels.",
     "SaaS / CRM / Finance layer integrated: local-first users/roles, client workspace, CRM, sales, proposals, SaaS plans, finance and accounting preparation without fake auth, fake payment, fake database or fake tax compliance.",
-    "Cognitive Agents layer integrated: 8 legacy agents mapped to current studios with implemented/partial/planned status, evidence rules, gaps and recommended checkpoints."
+    "Cognitive Agents layer integrated: 8 legacy agents mapped to current studios with implemented/partial/planned status, evidence rules, gaps and recommended checkpoints.",
+    "CP11C integrated: EVM Analyst, Scheduler and NR Compliance now have local-first workspace, backend endpoint, evidence labels, reports and Export Center support. Future connectors are required for live cost/progress feeds, baseline schedule imports and official safety/compliance review."
   ],
   "tools": [
     {
@@ -508,6 +512,38 @@
         "doc manager",
         "scheduler",
         "quality qa"
+      ],
+      "status": "ready-shell"
+    },
+    {
+      "id": "evm-scheduler-compliance",
+      "name": "EVM / Scheduler / NR Compliance",
+      "role": "Run local EVM, Gantt-style scheduling, physical-financial planning and NR safety compliance analysis without fake real-time data or official certification.",
+      "trigger": [
+        "evm",
+        "cpi",
+        "spi",
+        "eac",
+        "vac",
+        "tcpi",
+        "planned value",
+        "earned value",
+        "actual cost",
+        "cronograma",
+        "gantt",
+        "caminho critico",
+        "caminho crítico",
+        "atraso",
+        "lookahead",
+        "cronograma fisico-financeiro",
+        "cronograma físico-financeiro",
+        "nr-18",
+        "nr-35",
+        "nr-10",
+        "nr-6",
+        "nr-33",
+        "segurança do trabalho",
+        "compliance nr"
       ],
       "status": "ready-shell"
     }

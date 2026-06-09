@@ -9,6 +9,7 @@ export type ExportScope =
   | 'contracts-permits'
   | 'fieldops-rdo'
   | 'research-market'
+  | 'evm-scheduler-nr'
   | 'skill-package'
   | 'custom'
 
@@ -46,6 +47,7 @@ export const exportScopes: { value: ExportScope; label: string }[] = [
   { value: 'contracts-permits', label: 'Contracts / Permits package' },
   { value: 'fieldops-rdo', label: 'FieldOps / RDO package' },
   { value: 'research-market', label: 'Research / Market package' },
+  { value: 'evm-scheduler-nr', label: 'EVM / Scheduler / NR package' },
   { value: 'skill-package', label: 'Skill package' },
   { value: 'custom', label: 'Custom selection' },
 ]
@@ -67,11 +69,12 @@ export const exportSections = [
   'contracts',
   'fieldops',
   'research',
+  'evm-scheduler-nr',
   'skills',
 ]
 
 export function isExportIntent(text: string) {
-  return /\b(exportar projeto|baixar pacote|gerar pacote do cliente|exportar or[cç]amento|exportar contrato|exportar rdo|exportar bim report|exportar archvis|exportar tudo|export center|export package|download package|client package)\b/i.test(text)
+  return /\b(exportar projeto|baixar pacote|gerar pacote do cliente|exportar or[cç]amento|exportar contrato|exportar rdo|exportar bim report|exportar archvis|exportar evm|exportar cronograma|exportar nr|exportar compliance|exportar tudo|export center|export package|download package|client package)\b/i.test(text)
 }
 
 export function downloadExportFile(file: ExportPackageFile) {
