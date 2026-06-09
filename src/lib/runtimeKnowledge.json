@@ -65,7 +65,10 @@
     "For Supabase SQL, prefer migration-safe SQL, explain RLS boundaries, and warn when policies may expose user/project data.",
     "For Vercel deploy planning, check env vars, build command, output directory, framework preset, server/runtime compatibility and API routes.",
     "For security review, flag exposed keys, unsafe localStorage secrets, missing auth, missing RLS, open CORS, insecure uploads, unsanitized file parsing, dependency risks and broad admin/service-role usage.",
-    "Do not expose secrets and do not modify production config without explicit instruction."
+    "Do not expose secrets and do not modify production config without explicit instruction.",
+    "For Field Operations / RDO, produce daily reports, progress summaries, crew/material logs, safety/quality checklists, punch lists, photo logs and client reports with evidence labels.",
+    "For field data, do not claim site verification unless photo or user field data supports it. Use PHOTO_CONFIRMED only for visible photo items, USER_REPORTED for user notes, ASSUMPTION for inferred planning items and UNKNOWN when not known.",
+    "Do not fake weather, inspection approval, quality approval or safety approval. Weather must be manual/user-provided or connector-backed."
   ],
   "memorySummary": [
     "Production brain loaded: Apex Copilot behavior, clean architecture, universal file intake, ArchVis, DirectCut, BIM viewer, prompt systems, UI patterns and roadmap.",
@@ -167,15 +170,20 @@
     {
       "id": "field",
       "name": "Field Operations",
-      "role": "Route RDO, quality, progress, crew and material workflows.",
+      "role": "Prepare RDO/daily reports, jobsite progress, crew, materials, quality, safety, photo logs and punch lists with evidence labels.",
       "trigger": [
         "field",
         "jobsite",
         "rdo",
         "obra",
-        "quality"
+        "diario de obra",
+        "relatorio de obra",
+        "quality",
+        "safety",
+        "punch list",
+        "foto de obra"
       ],
-      "status": "planned"
+      "status": "ready-shell"
     },
     {
       "id": "marketing",

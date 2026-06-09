@@ -40,8 +40,8 @@ export const toolData: CopilotTool[] = [
   {
     id: 'field',
     name: 'Field Operations',
-    role: 'Route RDO, quality, progress, crew and material workflows.',
-    trigger: ['field', 'jobsite', 'rdo', 'obra', 'quality'],
+    role: 'Prepare RDO/daily reports, jobsite progress, crew, materials, quality, safety, photo logs and punch lists with evidence labels.',
+    trigger: ['field', 'jobsite', 'rdo', 'obra', 'diario de obra', 'relatorio de obra', 'quality', 'safety', 'punch list', 'foto de obra'],
   },
   {
     id: 'marketing',

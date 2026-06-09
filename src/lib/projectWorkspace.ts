@@ -40,7 +40,7 @@ export type ProjectWorkspace = {
   preferences: unknown[]
   activeTool?: string
   activeFileId?: string
-  activeStudio?: 'archvis' | 'directcut' | 'bim3d' | 'budget' | 'contracts' | 'research' | null
+  activeStudio?: 'archvis' | 'directcut' | 'bim3d' | 'budget' | 'contracts' | 'research' | 'fieldops' | null
   appState?: Record<string, unknown>
 }
 

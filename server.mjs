@@ -75,6 +75,9 @@ function classifySkillUpdate(file, text) {
   if (/(bim|ifc|revit|rvt|dwg|dxf|skp|clash|viewer|3d)/i.test(lower)) {
     return { category: 'bim-3d-skill', targetDomain: 'bim-3d', riskLevel: 'low' }
   }
+  if (/(rdo|di[aá]rio de obra|relat[oó]rio de obra|field operations|jobsite|punch list|checklist de qualidade|checklist de seguran[cç]a|foto de obra|daily report)/i.test(lower)) {
+    return { category: 'field-operations-skill', targetDomain: 'field-operations-rdo', riskLevel: 'low' }
+  }
   if (/(sql|data|analytics|dashboard|metric|csv|query)/i.test(lower)) {
     return { category: 'data-sql', targetDomain: 'data-analysis', riskLevel: 'low' }
   }
@@ -406,6 +409,9 @@ function buildLocalSkillContext(userText, file) {
   }
   if (/(data|dados|sql|planilha|xlsx|csv|analytics|metric)/.test(text)) {
     contexts.push('Data: do not invent data values; state missing data clearly; produce analysis structure, SQL, spreadsheet logic or metric reasoning.')
+  }
+  if (/(rdo|di[aá]rio de obra|relat[oó]rio de obra|andamento da obra|progresso da obra|checklist de qualidade|checklist de seguran[cç]a|equipe de obra|materiais entregues|pend[eê]ncia de obra|punch list|foto de obra|field operations|daily report|jobsite|site report|quality checklist|safety checklist|field photo)/.test(text)) {
+    contexts.push('Field Operations / RDO: produce daily reports, progress summaries, crew/material logs, safety/quality checklists, punch lists and client reports. Do not claim field verification unless supported by photo or user field data. User notes are USER_REPORTED. Visible photo items can be PHOTO_CONFIRMED. Unknown items remain UNKNOWN. Do not fake weather or inspection approval.')
   }
   if (!contexts.length) {
     contexts.push('Platform: Apex AI Copilot is a command-first full AI assistant. Chat is primary; modules and connectors are optional execution paths.')
@@ -1389,6 +1395,236 @@ async function handleBimTourPlan(req, res) {
   }
 }
 
+function splitFieldList(value = '') {
+  return String(value || '')
+    .split(/\r?\n|,|;/)
+    .map(item => item.trim())
+    .filter(Boolean)
+    .slice(0, 30)
+}
+
+function fieldEvidenceFromSource(source, hasManualText) {
+  if (source?.kind === 'image') return 'PHOTO_CONFIRMED'
+  if (hasManualText) return 'USER_REPORTED'
+  return 'UNKNOWN'
+}
+
+async function handleFieldOpsPlan(req, res) {
+  try {
+    const body = await readJson(req)
+    const context = body.context || {}
+    const source = body.source || null
+    const action = String(body.action || 'rdo')
+    const goal = String(body.goal || '')
+    const project = String(context.project || 'Apex field project')
+    const date = String(context.date || new Date().toISOString().slice(0, 10))
+    const weather = String(context.weather || '')
+    const crew = splitFieldList(context.crew)
+    const materials = splitFieldList(context.materialsDeliveredUsed)
+    const activitiesText = String(context.activitiesPerformed || goal || '')
+    const delays = String(context.delays || '')
+    const incidents = String(context.incidents || '')
+    const safetyNotes = String(context.safetyNotes || '')
+    const qualityNotes = String(context.qualityNotes || '')
+    const hasManualText = Boolean(activitiesText || delays || incidents || safetyNotes || qualityNotes || crew.length || materials.length)
+    const baseEvidence = fieldEvidenceFromSource(source, hasManualText)
+    const photoEvidence = source?.kind === 'image' ? 'PHOTO_CONFIRMED' : 'UNKNOWN'
+    const activityDescriptions = splitFieldList(activitiesText)
+    const activities = activityDescriptions.length
+      ? activityDescriptions.map((description, index) => ({
+        id: `activity-${index + 1}`,
+        description,
+        responsibleParty: crew[0] || 'Field team',
+        evidence: baseEvidence === 'PHOTO_CONFIRMED' ? 'USER_REPORTED' : baseEvidence,
+        status: 'Completed',
+      }))
+      : [{
+        id: 'activity-1',
+        description: 'Daily field activities were not fully described yet.',
+        responsibleParty: 'Field team',
+        evidence: 'UNKNOWN',
+        status: 'In Progress',
+      }]
+    const issues = []
+    if (delays) {
+      issues.push({
+        id: 'issue-delay',
+        issue: delays,
+        location: 'Project schedule / field coordination',
+        severity: 'Medium',
+        evidence: 'USER_REPORTED',
+        assignedTo: 'Project manager',
+        dueDate: '',
+        status: 'Open',
+      })
+    }
+    if (incidents) {
+      issues.push({
+        id: 'issue-incident',
+        issue: incidents,
+        location: 'Jobsite',
+        severity: 'High',
+        evidence: 'USER_REPORTED',
+        assignedTo: 'Safety / field lead',
+        dueDate: '',
+        status: 'Open',
+      })
+    }
+    if (source?.kind === 'image') {
+      issues.push({
+        id: 'issue-photo-review',
+        issue: 'Photo attached for field review. Only visible conditions in the photo can be marked PHOTO_CONFIRMED.',
+        location: 'Photo log',
+        severity: 'Low',
+        evidence: 'PHOTO_CONFIRMED',
+        assignedTo: 'Field reviewer',
+        dueDate: '',
+        status: 'Open',
+      })
+    }
+    const safetyItems = [
+      ['PPE / EPI', safetyNotes ? 'Needs review' : 'Unknown', safetyNotes ? 'Medium' : 'Medium', safetyNotes || 'No manual safety observation provided.'],
+      ['fall protection', 'Unknown', 'Medium', 'Not verified from current data.'],
+      ['electrical safety', 'Unknown', 'Medium', 'Not verified from current data.'],
+      ['housekeeping', source?.kind === 'image' ? 'Needs review' : 'Unknown', 'Medium', source?.kind === 'image' ? 'Photo should be reviewed for visible access/cleanliness conditions.' : 'No photo evidence available.'],
+      ['access/circulation', source?.kind === 'image' ? 'Needs review' : 'Unknown', 'Medium', source?.kind === 'image' ? 'Photo should be reviewed for visible circulation/access conditions.' : 'No photo evidence available.'],
+      ['machinery/equipment', 'Unknown', 'Medium', String(context.equipment || 'No equipment status provided.')],
+    ].map((item, index) => ({
+      id: `safety-${index + 1}`,
+      item: item[0],
+      status: item[1],
+      riskLevel: item[2],
+      evidence: item[3] === 'Not verified from current data.' ? 'UNKNOWN' : (safetyNotes ? 'USER_REPORTED' : photoEvidence),
+      notes: item[3],
+    }))
+    const qualityItems = [
+      ['dimensions', 'Unknown', 'Not verified from current data.'],
+      ['finishes', qualityNotes ? 'Needs review' : 'Unknown', qualityNotes || 'No finish quality note provided.'],
+      ['waterproofing', 'Unknown', 'Not verified from current data.'],
+      ['concrete/structure', 'Unknown', 'Not verified from current data.'],
+      ['MEP', 'Unknown', 'Not verified from current data.'],
+      ['rework items', qualityNotes ? 'Needs review' : 'Unknown', qualityNotes || 'No rework item reported.'],
+    ].map((item, index) => ({
+      id: `quality-${index + 1}`,
+      item: item[0],
+      status: item[1],
+      riskLevel: 'Medium',
+      evidence: qualityNotes ? 'USER_REPORTED' : 'UNKNOWN',
+      notes: item[2],
+    }))
+    const photoLog = source ? [{
+      id: 'photo-1',
+      fileName: source.name || 'uploaded field file',
+      caption: source.kind === 'image'
+        ? 'Uploaded field photo. Use PHOTO_CONFIRMED only for visible items.'
+        : 'Uploaded field file. Content is metadata-only unless manually described.',
+      location: 'Unassigned location',
+      relatedActivity: activityDescriptions[0] || 'General field progress',
+      evidence: source.kind === 'image' ? 'PHOTO_CONFIRMED' : 'UNKNOWN',
+    }] : []
+    const rdoDraft = [
+      `RDO / Daily Report - ${date}`,
+      `Project: ${project}`,
+      `Weather: ${weather || 'UNKNOWN - manual/weather connector data not provided'}`,
+      '',
+      'Crew / equipe:',
+      ...(crew.length ? crew.map(item => `- ${item}`) : ['- UNKNOWN / not provided']),
+      '',
+      'Activities performed:',
+      ...activities.map(item => `- ${item.description} [${item.evidence}]`),
+      '',
+      'Equipment:',
+      `- ${String(context.equipment || 'UNKNOWN / not provided')}`,
+      '',
+      'Materials delivered/used:',
+      ...(materials.length ? materials.map(item => `- ${item} [USER_REPORTED]`) : ['- UNKNOWN / not provided']),
+      '',
+      'Visitors:',
+      `- ${String(context.visitors || 'None reported / UNKNOWN')}`,
+      '',
+      'Delays:',
+      `- ${delays || 'None reported / UNKNOWN'}`,
+      '',
+      'Incidents:',
+      `- ${incidents || 'None reported / UNKNOWN'}`,
+      '',
+      'Safety notes:',
+      `- ${safetyNotes || 'No safety note provided. No inspection approval claimed.'}`,
+      '',
+      'Quality notes:',
+      `- ${qualityNotes || 'No quality note provided. No inspection approval claimed.'}`,
+    ].join('\n')
+    const clientSummary = [
+      `Client progress report for ${project} (${date}).`,
+      activities.length ? `Progress reported: ${activities.map(item => item.description).join('; ')}.` : 'Progress detail is pending.',
+      delays ? `Reported blocker/delay: ${delays}.` : 'No delay was reported in the provided notes.',
+      'This summary does not claim independent site verification.',
+    ].join(' ')
+    const internalFieldReport = [
+      rdoDraft,
+      '',
+      'Issues / punch list:',
+      ...(issues.length ? issues.map(item => `- ${item.severity} | ${item.evidence} | ${item.issue}`) : ['- No issue recorded yet.']),
+    ].join('\n')
+    const safetyReport = [
+      'Safety report draft:',
+      ...safetyItems.map(item => `- ${item.item}: ${item.status} / ${item.riskLevel} / ${item.evidence}. ${item.notes}`),
+      'No fake inspection approval. Confirm with qualified site/safety lead.',
+    ].join('\n')
+    const qualityPunchList = [
+      'Quality punch list draft:',
+      ...qualityItems.map(item => `- ${item.item}: ${item.status} / ${item.evidence}. ${item.notes}`),
+      ...(issues.length ? issues.map(item => `- Issue: ${item.issue} (${item.status})`) : []),
+    ].join('\n')
+    const materialsLog = [
+      'Materials log:',
+      ...(materials.length ? materials.map(item => `- ${item} [USER_REPORTED]`) : ['- No material delivery/use was reported.']),
+    ].join('\n')
+    const nextDayPlan = [
+      'Next-day plan:',
+      '- Confirm weather manually or connect weather source before publishing.',
+      delays ? `- Resolve blocker: ${delays}` : '- Continue planned activities and confirm next sequence.',
+      incidents ? '- Follow up incident documentation and safety review.' : '- Complete safety toolbox/checklist before work starts.',
+      qualityNotes ? '- Review quality notes and close punch items.' : '- Record quality checks with photo/user evidence.',
+    ].join('\n')
+    const confidenceSummary = [
+      'Field report is a draft.',
+      source?.kind === 'image' ? 'Photo log can support visible items as PHOTO_CONFIRMED.' : 'No image evidence provided.',
+      hasManualText ? 'Manual notes are USER_REPORTED.' : 'Several fields remain UNKNOWN.',
+      'Weather is not verified because no weather connector is connected and no weather field was provided.',
+    ].join(' ')
+
+    return json(res, 200, {
+      plan: {
+        providerStatus: 'report-draft',
+        rdoDraft,
+        activities,
+        crew,
+        materials,
+        issues,
+        safetyItems,
+        qualityItems,
+        photoLog,
+        clientSummary,
+        internalFieldReport,
+        safetyReport,
+        qualityPunchList,
+        materialsLog,
+        nextDayPlan,
+        confidenceSummary,
+        message: action === 'rdo'
+          ? 'Field Operations Studio generated an RDO draft. Weather and inspection status are not faked.'
+          : `Field Operations Studio generated a ${action} draft with evidence labels.`,
+      },
+    })
+  } catch (error) {
+    return json(res, error.status || 500, {
+      error: scrubProviderError(error.message || 'Field Operations planner failed.'),
+      providerStatus: 'report-draft',
+    })
+  }
+}
+
 function parseArea(areaText = '') {
   const match = String(areaText).replace(',', '.').match(/(\d+(?:\.\d+)?)/)
   return match ? Number(match[1]) : 0
@@ -2177,6 +2413,10 @@ const server = http.createServer((req, res) => {
   }
   if (req.url === '/api/copilot/bim-tour-plan' && req.method === 'POST') {
     handleBimTourPlan(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/fieldops-plan' && req.method === 'POST') {
+    handleFieldOpsPlan(req, res)
     return
   }
   if (req.url === '/api/copilot/budget-plan' && req.method === 'POST') {

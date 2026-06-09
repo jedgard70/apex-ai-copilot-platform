@@ -1659,6 +1659,7 @@ input {
 
 .contracts-card input,
 .contracts-card select,
+.contracts-card textarea,
 .contracts-table input,
 .contracts-table select {
   width: 100%;
@@ -1669,6 +1670,26 @@ input {
   color: #eaf0ff;
   background: #111f3e;
   font: inherit;
+}
+
+.contracts-card textarea {
+  min-height: 74px;
+  resize: vertical;
+  line-height: 1.4;
+}
+
+.fieldops-photo-preview {
+  overflow: hidden;
+  border: 1px solid rgba(150, 164, 195, 0.18);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.24);
+}
+
+.fieldops-photo-preview img {
+  display: block;
+  width: 100%;
+  max-height: 320px;
+  object-fit: contain;
 }
 
 .contracts-two,

@@ -15,6 +15,7 @@ import { Bim3DPanel, BimArchVisOutput, BimTourOutput } from './components/Bim3DP
 import { BudgetPanel } from './components/BudgetPanel'
 import { ContractsPanel } from './components/ContractsPanel'
 import { DirectCutInitialConfig, DirectCutPanel } from './components/DirectCutPanel'
+import { FieldOpsPanel } from './components/FieldOpsPanel'
 import { ProjectWorkspacePanel } from './components/ProjectWorkspacePanel'
 import { ResearchPanel } from './components/ResearchPanel'
 import { SkillExportPanel } from './components/SkillExportPanel'
@@ -36,6 +37,7 @@ import { isSkillUpdateIntent, ProjectMemoryUpdate, SkillUpdateApplyResult } from
 import { isSkillExportIntent } from './lib/skillExportFactory'
 import { BudgetPlan } from './lib/budgetKnowledge'
 import { ContractsPlan } from './lib/contractsKnowledge'
+import { FieldOpsPlan } from './lib/fieldOpsKnowledge'
 import { ResearchPlan } from './lib/researchKnowledge'
 import { selectTool, tools } from './lib/toolRegistry'
 import './styles.css'
@@ -77,6 +79,12 @@ type ContractsOutput = {
 }
 
 type ResearchOutput = {
+  goal: string
+  conversationContext: string[]
+}
+
+type FieldOpsOutput = {
+  source?: IntakeFile
   goal: string
   conversationContext: string[]
 }
@@ -175,6 +183,11 @@ function isContractsIntent(text: string) {
 
 function isResearchIntent(text: string) {
   return /\b(pesquisa de mercado|pesquisa na internet|faça uma pesquisa|faca uma pesquisa|concorrentes|pre[cç]o atualizado|sinapi|tabela sinapi|proposta comercial com pesquisa|estudo de mercado|market research|competitor|benchmark|pricing research|source check)\b/i.test(text)
+}
+
+function isFieldOpsIntent(text: string, attachment?: IntakeFile) {
+  if (attachment?.kind === 'image' && /\b(obra|campo|rdo|di[aá]rio|relat[oó]rio|andamento|progresso|qualidade|seguran[cç]a|punch|pend[eê]ncia|foto de obra)\b/i.test(text)) return true
+  return /\b(rdo|di[aá]rio de obra|relat[oó]rio de obra|andamento da obra|progresso da obra|checklist de qualidade|checklist de seguran[cç]a|equipe de obra|materiais entregues|pend[eê]ncia de obra|punch list|foto de obra|field operations|daily report|jobsite|site report|quality checklist|safety checklist|field photo)\b/i.test(text)
 }
 
 function fileExtension(fileName: string) {
@@ -337,6 +350,10 @@ function App() {
     const stored = initialAppState.researchOutput as ResearchOutput | undefined
     return stored || null
   })
+  const [fieldOpsOutput, setFieldOpsOutput] = useState<FieldOpsOutput | null>(() => {
+    const stored = initialAppState.fieldOpsOutput as Omit<FieldOpsOutput, 'source'> | undefined
+    return stored ? { ...stored, source: restoredFile } : null
+  })
   const [bimCommand, setBimCommand] = useState<BimCommand | undefined>()
   const [workspaceOpenSignal, setWorkspaceOpenSignal] = useState('')
   const [skillUpdateOpenSignal, setSkillUpdateOpenSignal] = useState('')
@@ -380,7 +397,7 @@ function App() {
           activeRecord,
         ]
       : activeProject.files
-    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : null
+    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : fieldOpsOutput ? 'fieldops' : null
     return {
       ...activeProject,
       language: navigator.language || activeProject.language,
@@ -418,6 +435,7 @@ function App() {
         budgetOutput: budgetOutput ? { ...budgetOutput, source: undefined } : null,
         contractsOutput: contractsOutput ? { ...contractsOutput, source: undefined } : null,
         researchOutput,
+        fieldOpsOutput: fieldOpsOutput ? { ...fieldOpsOutput, source: undefined } : null,
       },
     }
   }
@@ -438,7 +456,7 @@ function App() {
     }, 650)
     return () => window.clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, budgetOutput, contractsOutput, researchOutput, archVisRevisionConstraints, activeTool.id])
+  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, budgetOutput, contractsOutput, researchOutput, fieldOpsOutput, archVisRevisionConstraints, activeTool.id])
 
   async function askCopilot(text = input, attachment = activeFile) {
     const clean = text.trim()
@@ -453,6 +471,7 @@ function App() {
     const shouldOpenContracts = clean && isContractsIntent(clean)
     const shouldOpenBudget = clean && isBudgetIntent(clean)
     const shouldOpenResearch = clean && isResearchIntent(clean)
+    const shouldOpenFieldOps = clean && isFieldOpsIntent(clean, attachment)
     const shouldOpenBim3D = isBim3DIntent(clean || modelText, attachment)
     const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
     const shouldOpenSkillExport = clean && isSkillExportIntent(clean)
@@ -594,6 +613,27 @@ function App() {
         },
       ])
       setResearchOutput({
+        goal: clean,
+        conversationContext: context,
+      })
+      setInput('')
+      return
+    }
+    if (shouldOpenFieldOps) {
+      const context = [...messages, userMessage]
+        .slice(-8)
+        .map(message => `${message.role}: ${message.text}`)
+      setMessages(prev => [
+        ...prev,
+        userMessage,
+        {
+          id: id(),
+          role: 'assistant',
+          text: 'Abri o Field Operations / RDO Studio ao lado. Vou preparar RDO, progresso, segurança, qualidade e punch list com evidência por item, sem fingir clima ou aprovação de inspeção.',
+        },
+      ])
+      setFieldOpsOutput({
+        source: attachment,
         goal: clean,
         conversationContext: context,
       })
@@ -810,6 +850,7 @@ function App() {
     setBudgetOutput(null)
     setContractsOutput(null)
     setResearchOutput(null)
+    setFieldOpsOutput(null)
     setArchVisRevisionConstraints([])
     setMessages([{ id: id(), role: 'assistant', text: 'New Apex project started. Upload a file or tell me what we are building.' }])
   }
@@ -840,6 +881,8 @@ function App() {
     setContractsOutput(restoredContracts ? { ...restoredContracts, source: restored } : null)
     const restoredResearch = state.researchOutput as ResearchOutput | null | undefined
     setResearchOutput(restoredResearch || null)
+    const restoredFieldOps = state.fieldOpsOutput as Omit<FieldOpsOutput, 'source'> | null | undefined
+    setFieldOpsOutput(restoredFieldOps ? { ...restoredFieldOps, source: restored } : null)
   }
 
   function switchProject(projectId: string) {
@@ -993,6 +1036,30 @@ function App() {
     ])
   }
 
+  function saveFieldOpsToProject(plan: FieldOpsPlan) {
+    const saved = upsertProject({
+      ...activeProject,
+      exports: [
+        ...activeProject.exports,
+        {
+          type: 'field-operations-rdo',
+          timestamp: new Date().toISOString(),
+          plan,
+        },
+      ],
+    })
+    setActiveProject(saved)
+    setProjects(loadProjects())
+    setMessages(prev => [
+      ...prev,
+      {
+        id: id(),
+        role: 'assistant',
+        text: 'Salvei o RDO / Field Operations report no Project Workspace local.',
+      },
+    ])
+  }
+
   return (
     <main className="app" onPaste={handlePaste} onDragOver={event => event.preventDefault()} onDrop={handleDrop}>
       <header className="topbar">
@@ -1005,7 +1072,7 @@ function App() {
         </div>
       </header>
 
-      <section className={`workspace ${archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput ? 'studio-open' : ''}`}>
+      <section className={`workspace ${archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput ? 'studio-open' : ''}`}>
         <section className="chat-shell" aria-label="Apex AI Copilot chat">
           <div className="chat-header">
             <div>
@@ -1214,6 +1281,71 @@ function App() {
               conversationContext={researchOutput.conversationContext}
               onSaveToProject={saveResearchToProject}
               onClear={() => setResearchOutput(null)}
+            />
+          )}
+
+          {fieldOpsOutput && (
+            <FieldOpsPanel
+              source={fieldOpsOutput.source}
+              goal={fieldOpsOutput.goal}
+              conversationContext={fieldOpsOutput.conversationContext}
+              onSaveToProject={saveFieldOpsToProject}
+              onSendToBudget={summary => {
+                setBudgetOutput({
+                  source: fieldOpsOutput.source,
+                  goal: summary,
+                  conversationContext: [`assistant: ${summary}`],
+                })
+                setMessages(prev => [
+                  ...prev,
+                  {
+                    id: id(),
+                    role: 'assistant',
+                    text: 'Enviei os blockers de campo para o Budget Studio como impacto de custo/escopo.',
+                  },
+                ])
+              }}
+              onSendToContracts={summary => {
+                setContractsOutput({
+                  source: fieldOpsOutput.source,
+                  goal: summary,
+                  conversationContext: [`assistant: ${summary}`],
+                })
+                setMessages(prev => [
+                  ...prev,
+                  {
+                    id: id(),
+                    role: 'assistant',
+                    text: 'Enviei a pendência de campo para Contracts / Permits como possível tema de escopo, contrato ou evidência.',
+                  },
+                ])
+              }}
+              onSendToDirectCut={summary => {
+                setDirectCutOutput({
+                  source: fieldOpsOutput.source,
+                  goal: summary,
+                  conversationContext: [`assistant: ${summary}`],
+                  initialConfig: {
+                    videoMode: 'construction-presentation',
+                    duration: '30s',
+                    aspectRatio: '16:9',
+                    audio: 'on',
+                    voice: 'narrator',
+                    style: 'documentary',
+                    lighting: 'keep-original',
+                    cameraMovement: 'walkthrough',
+                  },
+                })
+                setMessages(prev => [
+                  ...prev,
+                  {
+                    id: id(),
+                    role: 'assistant',
+                    text: 'Enviei o progresso de campo para o DirectCut Studio como base de relatório visual para cliente.',
+                  },
+                ])
+              }}
+              onClear={() => setFieldOpsOutput(null)}
             />
           )}
 
