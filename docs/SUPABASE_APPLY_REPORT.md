@@ -1,22 +1,22 @@
 # Supabase Apply Report
 
-Date/time: 2026-06-09, America/Sao_Paulo
+Date/time: 2026-06-10, America/Sao_Paulo
 
 Project:
 
 - Project ID/ref: `csvtkvyauusvtmrkqtzl`
 - Name: `apex-ai-copilot-platform`
 - Region: `sa-east-1`
-- Report status: `YELLOW - blocked before migration apply`
+- Report status: `YELLOW - migrations applied and verified; advisor warnings remain`
 
 ## Pre-Apply Validation
 
-Completed successfully:
+Completed successfully before verification:
 
 - `npm.cmd run validate:supabase-sql`
   - Required files: `3/3`
-  - Required tables present: `95/95`
-  - Required buckets present: `10/10`
+  - Required tables present in drafts: `95/95`
+  - Required buckets present in drafts: `10/10`
   - Warnings: `0`
   - Status: `OK`
 - `npm.cmd run build`
@@ -32,144 +32,127 @@ Completed successfully:
   - No `TRUNCATE`
   - No `DELETE FROM`
 
-## Migration Apply Attempt
+## Migrations Applied
 
-The Supabase CLI is authenticated and can list projects.
-
-The target project is visible:
-
-- `csvtkvyauusvtmrkqtzl`
-- `apex-ai-copilot-platform`
-- Region: South America / Sao Paulo
-
-The repo was linked with:
-
-```text
-npx.cmd supabase link --project-ref csvtkvyauusvtmrkqtzl --yes
-```
-
-Result:
-
-```text
-Finished supabase link.
-```
-
-Migration list after linking:
+The remote migration history now shows the three drafted migrations applied:
 
 ```text
 Local | Remote | Time (UTC)
-0001  |        | 0001
-0002  |        | 0002
-0003  |        | 0003
+0001  | 0001   | 0001
+0002  | 0002   | 0002
+0003  | 0003   | 0003
 ```
 
-Dry-run attempt:
-
-```text
-npx.cmd supabase db push --linked --dry-run
-```
-
-Result:
-
-```text
-failed to connect to postgres: failed to connect to
-host=db.csvtkvyauusvtmrkqtzl.supabase.co
-user=cli_login_postgres
-database=postgres:
-failed SASL auth
-FATAL: password authentication failed for user "cli_login_postgres"
-Connect to your database by setting the env var correctly: SUPABASE_DB_PASSWORD
-```
-
-Environment check:
-
-```text
-SUPABASE_DB_PASSWORD=missing
-```
-
-## Migrations Applied
-
-None.
-
-The following drafted migrations were validated but not applied:
+Applied migration set:
 
 - `supabase/migrations/0001_initial_schema_draft.sql`
 - `supabase/migrations/0002_rls_policies_draft.sql`
 - `supabase/migrations/0003_storage_buckets_draft.sql`
 
+Note: no service role key was requested or printed during this verification. The local terminal still does not expose `SUPABASE_DB_PASSWORD`; future direct `db push` or migration repair flows may require setting it locally only.
+
 ## Tables Created Count
 
-`0` confirmed created by this run.
+Verified via Supabase CLI query:
 
-Expected after successful apply:
+```sql
+select count(*) as table_count
+from information_schema.tables
+where table_schema = 'public'
+  and table_type = 'BASE TABLE';
+```
 
-- `95` application tables/enums/functions/triggers from `0001`
+Result:
+
+- Public base tables: `95`
 
 ## Buckets Created Count
 
-`0` confirmed created by this run.
+Verified via Supabase CLI query against `storage.buckets`.
 
-Expected after successful apply:
+Expected buckets:
 
-- `10` storage buckets from `0003`
+- `project-uploads`
+- `archvis-images`
+- `generated-images`
+- `directcut-media`
+- `bim-models`
+- `documents`
+- `field-photos`
+- `exports`
+- `skill-files`
+- `public-assets`
+
+Result:
+
+- Expected buckets present: `10/10`
 
 ## RLS Status
 
-Not applied by this run.
+Verified via Supabase CLI query against `pg_class` and `pg_namespace`.
 
-Expected after successful apply:
+Result:
 
-- RLS enabled and forced for public tables.
-- Tenant/project helper functions created in `app_private`.
-- No public writes.
-- Storage policies bound to `<tenant_id>/<project_id>/...` path convention.
+- Public tables: `95`
+- Public tables with RLS enabled: `95`
+
+RLS is enabled on all public application tables created by the draft schema.
 
 ## Advisor Results Summary
 
-Not run.
+Security advisor:
 
-Reason:
+- Status: `WARN`
+- Findings: `5`
+- Summary:
+  - `function_search_path_mutable` for `public.create_updated_at_trigger`
+  - `function_search_path_mutable` for `public.set_updated_at`
+  - `public_bucket_allows_listing` for bucket `public-assets` through policy `public_assets_read`
+  - `anon_security_definer_function_executable` for `public.rls_auto_enable()`
+  - `authenticated_security_definer_function_executable` for `public.rls_auto_enable()`
 
-- Migrations were not applied because remote database authentication failed before `db push`.
-- Security/performance advisors should be run only after the schema/RLS/storage drafts are successfully applied.
+Performance advisor:
+
+- Status: `WARN/INFO`
+- Summary:
+  - `320` INFO findings for `unused_index`
+  - `58` INFO findings for `unindexed_foreign_keys`
+  - `19` WARN findings for `multiple_permissive_policies`
+  - `5` WARN findings for `auth_rls_initplan`
+
+Interpretation:
+
+- The schema is applied and RLS is active.
+- The database is not production-clean yet.
+- The performance advisor output is expected to be noisy immediately after creating a large schema with no real workload, especially `unused_index`.
+- The `unindexed_foreign_keys`, `multiple_permissive_policies`, `auth_rls_initplan`, function `search_path`, and public bucket listing warnings should be addressed in the next Supabase hardening checkpoint before production client data.
 
 ## Errors
 
-Blocking error:
+No migration verification errors were found.
 
-- Missing or invalid remote database password for Supabase CLI connection.
-- Required variable: `SUPABASE_DB_PASSWORD`
-- Do not paste this password into chat or commit it to the repo.
+Known remaining issue:
+
+- `SUPABASE_DB_PASSWORD` is not present in the local shell. Do not commit it. Set it only in a local terminal if future CLI `db push`, `migration repair`, or direct database maintenance requires it.
 
 ## Manual Actions Required
 
-Choose one safe path:
+Before production data or external clients:
 
-1. Preferred CLI path:
-   - Set `SUPABASE_DB_PASSWORD` locally in the current terminal only.
-   - Re-run:
-
-```text
-npm.cmd run validate:supabase-sql
-npx.cmd supabase db push --linked --dry-run
-npx.cmd supabase db push --linked
-```
-
-2. Dashboard SQL editor path:
-   - Open the Supabase SQL editor for project `csvtkvyauusvtmrkqtzl`.
-   - Apply the three files in order:
-     1. `0001_initial_schema_draft.sql`
-     2. `0002_rls_policies_draft.sql`
-     3. `0003_storage_buckets_draft.sql`
-   - Then verify tables, buckets and RLS manually.
-
-After apply:
-
-- Verify tables exist.
-- Verify buckets exist.
-- Verify RLS is enabled.
-- Run Supabase security and performance advisors.
-- Update this report with final counts and advisor results.
+1. Create a Supabase hardening migration to set explicit `search_path` on:
+   - `public.create_updated_at_trigger`
+   - `public.set_updated_at`
+2. Review bucket `public-assets` listing policy:
+   - Keep only if public object listing is intentional.
+   - Otherwise restrict or remove broad SELECT/list behavior.
+3. Investigate `public.rls_auto_enable()`:
+   - Confirm source and purpose.
+   - Revoke anon/authenticated execute permissions if not required.
+   - Move helper/admin-only functions out of public access where appropriate.
+4. Add covering indexes for important foreign keys after reviewing expected query paths.
+5. Consolidate overlapping permissive SELECT policies where practical.
+6. Optimize auth-dependent RLS expressions to avoid per-row auth function initplan warnings.
+7. Re-run security and performance advisors after hardening.
 
 ## Local Files Note
 
