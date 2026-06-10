@@ -108,6 +108,50 @@ Supabase dashboard advisors still need to be checked directly after this migrati
 - Do not drop `unused_index` warnings until real traffic/query patterns exist.
 - Retry `npx.cmd supabase migration list --linked` after refreshing Supabase CLI database authentication.
 
+## CP14D Security Advisor Fix
+
+Date: 2026-06-10
+
+Security advisor before migration `0005_security_advisor_fix.sql`:
+
+1. `function_search_path_mutable`: `public.create_updated_at_trigger`
+2. `function_search_path_mutable`: `public.set_updated_at`
+3. `public_bucket_allows_listing`: broad `public_assets_read` SELECT policy on `storage.objects`
+4. `anon_security_definer_function_executable`: `public.rls_auto_enable()`
+5. `authenticated_security_definer_function_executable`: `public.rls_auto_enable()`
+
+Performance advisor before migration `0005_security_advisor_fix.sql`:
+
+```text
+No issues found
+```
+
+Migration created:
+
+`supabase/migrations/0005_security_advisor_fix.sql`
+
+Planned fixes:
+
+- Recreate `public.set_updated_at()` with fixed `search_path = public`.
+- Recreate `public.create_updated_at_trigger(table_name text)` with fixed `search_path = public`.
+- Drop broad `public_assets_read` SELECT policy from `storage.objects`; public object URLs do not require bucket listing.
+- Revoke `EXECUTE` on `public.rls_auto_enable()` from `anon`, `authenticated`, and `public` when the function exists.
+
+CP14D validation:
+
+- `npm.cmd run build`: passed
+- `node --check server.mjs`: passed
+- `npm.cmd run validate:supabase-sql`: passed
+- destructive/secrets scan on `0005_security_advisor_fix.sql`: passed
+- `npx.cmd supabase db push --linked --dry-run`: only `0005_security_advisor_fix.sql` pending before apply
+- `npx.cmd supabase db push --linked`: applied `0005_security_advisor_fix.sql`
+- post-apply dry run: `Remote database is up to date.`
+- `npx.cmd supabase db advisors --linked --type security --level warn --fail-on none`: `No issues found`
+- `npx.cmd supabase db advisors --linked --type performance --level warn --fail-on none`: `No issues found`
+- `npx.cmd supabase db lint --linked --fail-on none --level warning`: `No schema errors found`
+
+One first post-apply lint attempt returned a transient `cli_login_postgres` password authentication error. The command was rerun and passed.
+
 ## Result
 
-Status: YELLOW - hardening migration applied and local validation is green; dashboard advisor confirmation is still required.
+Status: GREEN - CP14C/CP14D migrations applied, local validation is green, and Supabase security/performance advisors report no warning-level issues.
