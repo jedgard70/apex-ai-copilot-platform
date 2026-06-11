@@ -49,6 +49,7 @@ import {
   setActiveProjectId,
   upsertProject,
 } from './lib/projectWorkspace'
+import { syncProjectLocalToRemote } from './lib/projectPersistenceAdapter'
 import { isSkillUpdateIntent, ProjectMemoryUpdate, SkillUpdateApplyResult } from './lib/skillUpdateEngine'
 import { isSkillExportIntent } from './lib/skillExportFactory'
 import { BudgetPlan } from './lib/budgetKnowledge'
@@ -601,6 +602,18 @@ function App() {
     setActiveProject(saved)
     setProjects(loadProjects())
     setWorkspaceSavedAt(new Date().toLocaleTimeString())
+  }
+
+  async function syncWorkspaceToSupabase() {
+    const saved = upsertProject(buildProjectSnapshot())
+    setActiveProject(saved)
+    setProjects(loadProjects())
+    setWorkspaceSavedAt(new Date().toLocaleTimeString())
+    const result = await syncProjectLocalToRemote(saved)
+    const suffix = result.counts
+      ? ` Files: ${result.counts.files}. Messages: ${result.counts.messages}. Exports: ${result.counts.exports}.`
+      : ''
+    return `${result.providerStatus}: ${result.message}${suffix}`
   }
 
   useEffect(() => {
@@ -1644,6 +1657,7 @@ function App() {
             onNewProject={createNewProject}
             onSwitchProject={switchProject}
             onSaveNow={saveWorkspaceNow}
+            onSyncRemote={syncWorkspaceToSupabase}
             onExport={exportWorkspaceProject}
             onImport={importWorkspaceProject}
             onClear={clearLocalWorkspace}

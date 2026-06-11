@@ -1,5 +1,7 @@
 import { KeyRound, UserCircle } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { apexRoles, getAuthProviderStatus, permissionGroups } from '../lib/authModel'
+import { loadSupabaseAccountState, SupabaseAccountState } from '../lib/supabaseAuthBootstrap'
 
 type UserAccountPanelProps = {
   onClear?: () => void
@@ -7,6 +9,13 @@ type UserAccountPanelProps = {
 
 export function UserAccountPanel({ onClear }: UserAccountPanelProps) {
   const authMode = getAuthProviderStatus()
+  const [account, setAccount] = useState<SupabaseAccountState | null>(null)
+
+  useEffect(() => {
+    loadSupabaseAccountState()
+      .then(setAccount)
+      .catch(() => setAccount(null))
+  }, [])
 
   return (
     <section className="studio-panel account-panel">
@@ -21,25 +30,29 @@ export function UserAccountPanel({ onClear }: UserAccountPanelProps) {
 
       <div className="status-strip warning">
         <KeyRound size={16} />
-        <span>Auth mode: {authMode}. Local UI only until Supabase is configured.</span>
+        <span>Auth mode: {authMode}. Persistence: {account?.persistenceMode || 'localStorage'}.</span>
       </div>
 
       <div className="panel-grid two">
         <div className="panel-card">
           <h3><UserCircle size={16} /> Current session</h3>
-          <p>No real Supabase session is loaded in this scaffold unless env vars are configured and login succeeds.</p>
+          <p>{account?.user ? account.user.email : 'No real Supabase session is loaded yet.'}</p>
+          <small>{account?.sessionStatus || 'signed-out'} · {account?.bootstrapStatus || 'needs-login'}</small>
         </div>
         <div className="panel-card">
-          <h3>Profile placeholder</h3>
-          <p>Name, email and avatar will come from `profiles` after CP12 real connection.</p>
+          <h3>Profile</h3>
+          <p>{account?.profile ? account.profile.email : 'No profile row loaded yet.'}</p>
+          <small>{account?.message || 'Supabase/Auth not connected yet.'}</small>
         </div>
         <div className="panel-card">
           <h3>Tenant / workspace</h3>
-          <p>Future source: `tenants` and `tenant_members`. No fake tenant isolation is claimed here.</p>
+          <p>{account?.tenant ? account.tenant.name : 'No tenant/workspace loaded yet.'}</p>
+          <small>{account?.tenant?.id || 'Tenant assignment required before remote project sync.'}</small>
         </div>
         <div className="panel-card">
           <h3>Role / permissions</h3>
-          <p>Future source: `tenant_members`, `project_members`, `roles`, `permissions`.</p>
+          <p>{account?.role || 'No role loaded yet.'}</p>
+          <small>Permissions remain policy-owned by Supabase RLS.</small>
         </div>
       </div>
 

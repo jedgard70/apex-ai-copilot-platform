@@ -2658,10 +2658,10 @@ const authPermissionGroups = [
 function createAuthPlan() {
   const hasUrl = Boolean(process.env.VITE_SUPABASE_URL)
   const hasAnonKey = Boolean(process.env.VITE_SUPABASE_ANON_KEY)
-  const providerStatus = hasUrl && hasAnonKey ? 'supabase-env-present' : 'supabase-not-configured'
+  const providerStatus = hasUrl && hasAnonKey ? 'supabase-connected' : 'supabase-not-configured'
   return {
     providerStatus,
-    authStatus: providerStatus === 'supabase-env-present' ? 'env-present-not-verified' : 'not-connected',
+    authStatus: providerStatus === 'supabase-connected' ? 'client-env-present' : 'not-connected',
     requiredEnvVars: [
       { name: 'VITE_SUPABASE_URL', scope: 'browser', configured: hasUrl },
       { name: 'VITE_SUPABASE_ANON_KEY', scope: 'browser', configured: hasAnonKey },
@@ -2673,10 +2673,11 @@ function createAuthPlan() {
     nextSteps: [
       'Create brand-new Supabase project.',
       'Review and apply final non-draft migrations only after approval.',
-      'Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to local env when ready.',
-      'Configure email/password Auth first.',
+      providerStatus === 'supabase-connected' ? 'Local public Supabase env is present. Test email/password signup/login in the app.' : 'Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to local env when ready.',
+      'Use email/password Auth first.',
       'Configure Google OAuth only after redirect URLs and provider settings are ready.',
       'Keep service role server-only and never expose it in Vite/client code.',
+      'If signup/login creates auth.users without profile/tenant membership, add a reviewed bootstrap policy/RPC or assign first Owner/Admin manually.',
       'Validate RLS with Owner/Admin, Client, Viewer, Field, BIM Manager, Finance and Sales roles before pilot users.',
     ],
   }

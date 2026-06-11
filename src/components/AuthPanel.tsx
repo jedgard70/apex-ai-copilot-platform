@@ -1,6 +1,7 @@
 import { LogIn, LogOut, ShieldCheck, UserPlus } from 'lucide-react'
-import { FormEvent, useMemo, useState } from 'react'
+import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { apexRoles, getGoogleOauthStatus, permissionGroups } from '../lib/authModel'
+import { attemptProfileBootstrap, loadSupabaseAccountState, SupabaseAccountState } from '../lib/supabaseAuthBootstrap'
 import { getBrowserSupabaseClient, getSupabaseProviderStatus } from '../lib/supabaseClient'
 
 type AuthPanelProps = {
@@ -15,6 +16,27 @@ export function AuthPanel({ onClear }: AuthPanelProps) {
   const [password, setPassword] = useState('')
   const [statusText, setStatusText] = useState(provider.message)
   const [busy, setBusy] = useState(false)
+  const [account, setAccount] = useState<SupabaseAccountState | null>(null)
+
+  async function refreshAccount(autoBootstrap = false) {
+    const state = await loadSupabaseAccountState()
+    if (
+      autoBootstrap
+      && (state.bootstrapStatus === 'needs-profile-bootstrap' || state.bootstrapStatus === 'needs-tenant-assignment')
+    ) {
+      const bootstrapped = await attemptProfileBootstrap()
+      setAccount(bootstrapped)
+      setStatusText(bootstrapped.message)
+      return bootstrapped
+    }
+    setAccount(state)
+    setStatusText(state.message)
+    return state
+  }
+
+  useEffect(() => {
+    refreshAccount().catch(error => setStatusText(error instanceof Error ? error.message : 'Could not load Supabase session.'))
+  }, [])
 
   async function submit(event: FormEvent) {
     event.preventDefault()
@@ -31,7 +53,10 @@ export function AuthPanel({ onClear }: AuthPanelProps) {
         ? await client.auth.signInWithPassword({ email, password })
         : await client.auth.signUp({ email, password })
       if (result.error) setStatusText(result.error.message)
-      else setStatusText(mode === 'login' ? 'Supabase session returned by provider.' : 'Signup submitted to Supabase. Confirm email settings in Supabase before production.')
+      else {
+        setStatusText(mode === 'login' ? 'Supabase session returned by provider.' : 'Signup submitted to Supabase. Confirm email settings in Supabase before production.')
+        await refreshAccount(true)
+      }
     } finally {
       setBusy(false)
     }
@@ -46,6 +71,7 @@ export function AuthPanel({ onClear }: AuthPanelProps) {
     if (!client) return
     await client.auth.signOut()
     setStatusText('Signed out through Supabase client.')
+    await refreshAccount()
   }
 
   async function googleLogin() {
@@ -56,6 +82,17 @@ export function AuthPanel({ onClear }: AuthPanelProps) {
     const { client } = getBrowserSupabaseClient()
     if (!client) return
     await client.auth.signInWithOAuth({ provider: 'google' })
+  }
+
+  async function bootstrapProfile() {
+    setBusy(true)
+    try {
+      const state = await attemptProfileBootstrap()
+      setAccount(state)
+      setStatusText(state.message)
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
@@ -101,6 +138,15 @@ export function AuthPanel({ onClear }: AuthPanelProps) {
       <div className="panel-card">
         <h3>Session status</h3>
         <p>{statusText}</p>
+        {account?.user && <p>Signed in as: {account.user.email}</p>}
+        {account?.bootstrapStatus === 'needs-profile-bootstrap' && (
+          <button type="button" className="secondary-action" disabled={busy} onClick={bootstrapProfile}>
+            Attempt safe profile bootstrap
+          </button>
+        )}
+        {account?.bootstrapStatus === 'needs-tenant-assignment' && (
+          <p>Tenant assignment is required before Supabase project sync. No fake Owner/Admin role was created.</p>
+        )}
         <p>Google OAuth: {googleStatus}</p>
       </div>
 

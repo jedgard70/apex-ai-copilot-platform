@@ -33,6 +33,7 @@ type ProjectWorkspacePanelProps = {
   onExport: () => void
   onImport: (raw: string) => void
   onClear: () => void
+  onSyncRemote?: () => Promise<string> | string
   openSignal?: string
 }
 
@@ -47,12 +48,14 @@ export function ProjectWorkspacePanel({
   onExport,
   onImport,
   onClear,
+  onSyncRemote,
   openSignal,
 }: ProjectWorkspacePanelProps) {
   const importInput = useRef<HTMLInputElement | null>(null)
   const [name, setName] = useState(project.name)
   const [open, setOpen] = useState(false)
   const [importStatus, setImportStatus] = useState('')
+  const [syncStatus, setSyncStatus] = useState('')
 
   useEffect(() => {
     if (openSignal) setOpen(true)
@@ -140,15 +143,28 @@ export function ProjectWorkspacePanel({
 
           <div className="project-actions">
             <button type="button" onClick={onSaveNow}><Save size={15} /> Save now</button>
+            {onSyncRemote && (
+              <button
+                type="button"
+                onClick={async () => {
+                  setSyncStatus('Syncing current project to Supabase...')
+                  const message = await onSyncRemote()
+                  setSyncStatus(message)
+                }}
+              >
+                <Save size={15} /> Sync to Supabase
+              </button>
+            )}
             <button type="button" onClick={onExport}><Download size={15} /> Export JSON</button>
             <button type="button" onClick={() => importInput.current?.click()}><Import size={15} /> Import JSON</button>
             <button type="button" onClick={onClear}><Trash2 size={15} /> Clear local</button>
           </div>
           <input ref={importInput} type="file" accept="application/json,.json" hidden onChange={handleImport} />
           {importStatus && <p className="project-import-status">{importStatus}</p>}
+          {syncStatus && <p className="project-import-status">{syncStatus}</p>}
 
           <p className="project-note">
-            Local browser workspace. No database, Supabase or external storage is used in this checkpoint.
+            Hybrid workspace. LocalStorage remains available; Supabase sync uses only the signed-in user's browser session and RLS.
           </p>
         </div>
       )}
