@@ -6,7 +6,9 @@ import {
   Building2,
   File as FileIcon,
   ImageIcon,
+  LogOut,
   Paperclip,
+  ShieldCheck,
   Sparkles,
   Upload,
 } from 'lucide-react'
@@ -50,6 +52,8 @@ import {
   upsertProject,
 } from './lib/projectWorkspace'
 import { syncProjectLocalToRemote } from './lib/projectPersistenceAdapter'
+import { SupabaseAccountState, loadSupabaseAccountState } from './lib/supabaseAuthBootstrap'
+import { getBrowserSupabaseClient, getSupabaseProviderStatus } from './lib/supabaseClient'
 import { isSkillUpdateIntent, ProjectMemoryUpdate, SkillUpdateApplyResult } from './lib/skillUpdateEngine'
 import { isSkillExportIntent } from './lib/skillExportFactory'
 import { BudgetPlan } from './lib/budgetKnowledge'
@@ -393,6 +397,11 @@ function dataUrlToFile(dataUrl: string, name: string, type: string) {
 
 function App() {
   const fileInput = useRef<HTMLInputElement | null>(null)
+  const supabaseProvider = useMemo(() => getSupabaseProviderStatus(), [])
+  const isSupabaseConfigured = supabaseProvider.providerStatus === 'supabase-connected'
+  const [accountState, setAccountState] = useState<SupabaseAccountState | null>(null)
+  const [authLoading, setAuthLoading] = useState(isSupabaseConfigured)
+  const [authMessage, setAuthMessage] = useState(supabaseProvider.message)
   const initialProject = useMemo(() => loadActiveProject() || createProject('Apex Project'), [])
   const initialAppState = initialProject.appState || {}
   const restoredFile = recordToIntakeFile(initialProject.files.find(file => file.id === initialProject.activeFileId) || initialProject.files[initialProject.files.length - 1])
@@ -525,6 +534,91 @@ function App() {
     metricsRecords: activeProject.metricsRecords.length,
   }), [activeProject, archVisOutput, archVisRevisionConstraints.length, bim3DOutput, directCutOutput, messages.length])
 
+  const isSignedIn = !isSupabaseConfigured || accountState?.sessionStatus === 'signed-in'
+  const authShellStatus = accountState?.bootstrapStatus || (isSupabaseConfigured ? 'needs-login' : 'local-demo')
+
+  async function refreshAuthState() {
+    if (!isSupabaseConfigured) {
+      setAccountState(null)
+      setAuthLoading(false)
+      setAuthMessage('Local demo mode — Supabase not configured.')
+      return null
+    }
+
+    try {
+      const state = await loadSupabaseAccountState()
+      setAccountState(state)
+      setAuthMessage(state.message)
+      return state
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Could not load Supabase session.'
+      setAuthMessage(message)
+      return null
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+
+  function clearProtectedPanels() {
+    setArchVisOutput(null)
+    setDirectCutOutput(null)
+    setBim3DOutput(null)
+    setBudgetOutput(null)
+    setContractsOutput(null)
+    setResearchOutput(null)
+    setFieldOpsOutput(null)
+    setBusinessOutput(null)
+    setAgentsOutput(null)
+    setEvmSchedulerComplianceOutput(null)
+    setSupplyChainOutput(null)
+    setNotificationsOutput(null)
+    setAiCostOutput(null)
+    setMultiTenantOutput(null)
+    setPwaMobileOutput(null)
+    setDigitalTwinOutput(null)
+    setKnowledgeBaseOutput(null)
+    setMetricsOutput(null)
+    setAuthOutput(null)
+    setExportCenterOpen(false)
+    setActiveFile(undefined)
+    setInput('')
+  }
+
+  async function signOutFromShell() {
+    if (!isSupabaseConfigured) return
+    const { client } = getBrowserSupabaseClient()
+    if (!client) return
+    await client.auth.signOut()
+    clearProtectedPanels()
+    await refreshAuthState()
+  }
+
+  useEffect(() => {
+    let mounted = true
+    if (!isSupabaseConfigured) {
+      setAuthLoading(false)
+      setAuthMessage('Local demo mode — Supabase not configured.')
+      return
+    }
+
+    refreshAuthState().then(state => {
+      if (mounted && state?.sessionStatus !== 'signed-in') clearProtectedPanels()
+    })
+
+    const { client } = getBrowserSupabaseClient()
+    const subscription = client?.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return
+      if (!session) clearProtectedPanels()
+      refreshAuthState()
+    }).data.subscription
+
+    return () => {
+      mounted = false
+      subscription?.unsubscribe()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSupabaseConfigured])
+
   function buildProjectSnapshot() {
     const activeRecord = activeFile ? fileToRecord(activeFile) : undefined
     const files = activeRecord
@@ -635,6 +729,19 @@ function App() {
       ? 'User uploaded this file. Analyze it as project context and continue naturally in a short conversational reply. Do not write a report, heading, observations list, or capabilities list.'
       : '')
     const userMessage: Message = { id: id(), role: 'user', text: userText, attachment }
+    if (!isSignedIn) {
+      setMessages(prev => [
+        ...prev,
+        userMessage,
+        {
+          id: id(),
+          role: 'assistant',
+          text: 'Please sign in first. Supabase is connected, so Apex project, chat, upload and account tools stay locked until there is a real session.',
+        },
+      ])
+      setInput('')
+      return
+    }
     const shouldOpenArchVis = isArchVisIntent(clean || modelText, attachment)
     const shouldOpenDirectCut = clean && isDirectCutIntent(clean)
     const shouldOpenContracts = clean && isContractsIntent(clean)
@@ -1555,6 +1662,66 @@ function App() {
     setMessages(prev => [...prev, { id: id(), role: 'assistant', text: 'Salvei o relatório de métricas local demo no Project Workspace.' }])
   }
 
+  const authHeader = (
+    <div className="auth-header-state">
+      {isSupabaseConfigured ? (
+        <>
+          <div className="auth-header-details">
+            <span>{accountState?.user?.email || (authLoading ? 'Checking session...' : 'Signed out')}</span>
+            <small>
+              Role: {accountState?.role || 'none'} · Workspace: {accountState?.tenant?.name || 'none'} · Persistence: {accountState?.persistenceMode || 'Supabase connected'}
+            </small>
+          </div>
+          {accountState?.sessionStatus === 'signed-in' && (
+            <button className="secondary-action auth-signout" type="button" onClick={signOutFromShell}>
+              <LogOut size={15} /> Sign out
+            </button>
+          )}
+        </>
+      ) : (
+        <div className="auth-header-details">
+          <span>Local demo mode</span>
+          <small>Persistence: localStorage · Supabase not configured</small>
+        </div>
+      )}
+    </div>
+  )
+  const workspaceClass = archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || evmSchedulerComplianceOutput || supplyChainOutput || notificationsOutput || aiCostOutput || multiTenantOutput || pwaMobileOutput || digitalTwinOutput || knowledgeBaseOutput || metricsOutput || authOutput || exportCenterOpen ? 'studio-open' : ''
+
+  if (isSupabaseConfigured && (!isSignedIn || authLoading)) {
+    return (
+      <main className="app auth-only-app">
+        <header className="topbar">
+          <div className="brand">
+            <div className="brand-mark"><Sparkles size={22} /></div>
+            <div>
+              <strong>APEX AI COPILOT</strong>
+              <span>Protected platform shell</span>
+            </div>
+          </div>
+          {authHeader}
+        </header>
+
+        <section className="auth-gate-shell" aria-label="Apex login">
+          <div className="auth-gate-copy">
+            <ShieldCheck size={24} />
+            <div>
+              <span>Supabase connected</span>
+              <h1>Sign in to open Apex.</h1>
+              <p>{authMessage}</p>
+              <small>Chat, studios, upload, tool list, project workspace and project data are hidden until Supabase returns a valid session.</small>
+            </div>
+          </div>
+          <AuthPanel onAuthStateChange={state => {
+            setAccountState(state)
+            setAuthMessage(state.message)
+            setAuthLoading(false)
+          }} />
+        </section>
+      </main>
+    )
+  }
+
   return (
     <main className="app" onPaste={handlePaste} onDragOver={event => event.preventDefault()} onDrop={handleDrop}>
       <header className="topbar">
@@ -1565,9 +1732,14 @@ function App() {
             <span>Full intelligence copilot platform</span>
           </div>
         </div>
+        {authHeader}
       </header>
 
-      <section className={`workspace ${archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || evmSchedulerComplianceOutput || supplyChainOutput || notificationsOutput || aiCostOutput || multiTenantOutput || pwaMobileOutput || digitalTwinOutput || knowledgeBaseOutput || metricsOutput || authOutput || exportCenterOpen ? 'studio-open' : ''}`}>
+      {!isSupabaseConfigured && (
+        <div className="demo-mode-banner">Local demo mode — Supabase not configured.</div>
+      )}
+
+      <section className={`workspace ${workspaceClass}`}>
         <section className="chat-shell" aria-label="Apex AI Copilot chat">
           <div className="chat-header">
             <div>
@@ -1963,7 +2135,13 @@ function App() {
 
           {authOutput && (
             <div className="business-layer-stack">
-              <AuthPanel onClear={() => setAuthOutput(null)} />
+              <AuthPanel
+                onClear={() => setAuthOutput(null)}
+                onAuthStateChange={state => {
+                  setAccountState(state)
+                  setAuthMessage(state.message)
+                }}
+              />
               <UserAccountPanel onClear={() => setAuthOutput(null)} />
             </div>
           )}

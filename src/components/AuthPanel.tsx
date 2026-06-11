@@ -6,9 +6,10 @@ import { getBrowserSupabaseClient, getSupabaseProviderStatus } from '../lib/supa
 
 type AuthPanelProps = {
   onClear?: () => void
+  onAuthStateChange?: (state: SupabaseAccountState) => void
 }
 
-export function AuthPanel({ onClear }: AuthPanelProps) {
+export function AuthPanel({ onClear, onAuthStateChange }: AuthPanelProps) {
   const provider = useMemo(() => getSupabaseProviderStatus(), [])
   const googleStatus = getGoogleOauthStatus()
   const [mode, setMode] = useState<'login' | 'signup'>('login')
@@ -27,10 +28,12 @@ export function AuthPanel({ onClear }: AuthPanelProps) {
       const bootstrapped = await attemptProfileBootstrap()
       setAccount(bootstrapped)
       setStatusText(bootstrapped.message)
+      onAuthStateChange?.(bootstrapped)
       return bootstrapped
     }
     setAccount(state)
     setStatusText(state.message)
+    onAuthStateChange?.(state)
     return state
   }
 
