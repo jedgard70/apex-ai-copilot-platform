@@ -3752,6 +3752,65 @@ input {
   gap: 10px;
 }
 
+.execution-raw-controls {
+  display: grid;
+  gap: 10px;
+}
+
+.execution-raw-controls label {
+  display: grid;
+  gap: 6px;
+}
+
+.execution-raw-controls label span {
+  color: #b8c2d8;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.execution-raw-controls input,
+.execution-raw-controls textarea {
+  width: 100%;
+  border: 1px solid rgba(150, 164, 195, 0.2);
+  border-radius: 12px;
+  padding: 10px 11px;
+  color: #eaf0ff;
+  background: rgba(0, 0, 0, 0.22);
+  font: inherit;
+  font-size: 12px;
+}
+
+.execution-raw-controls textarea {
+  min-height: 92px;
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace;
+}
+
+.execution-approval-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(255, 190, 92, 0.35);
+  border-radius: 14px;
+  padding: 11px 12px;
+  color: #ffe9c4;
+  background: rgba(255, 190, 92, 0.1);
+  cursor: pointer;
+}
+
+.execution-approval-button.approved {
+  border-color: rgba(24, 181, 92, 0.35);
+  color: #bfffd8;
+  background: rgba(24, 181, 92, 0.12);
+}
+
+.execution-approval-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .execution-actions button {
   display: inline-flex;
   align-items: center;

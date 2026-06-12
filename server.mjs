@@ -12,8 +12,21 @@ const skillUpdateLogPath = path.join(root, 'docs', 'SKILL_UPDATE_LOG.md')
 const copilotExecutionCwd = path.resolve(root)
 const authorizedExecutionCwd = path.resolve('D:\\AI-constr\\apex-ai-copilot-platform')
 const maxExecutionOutputBytes = 160000
+const rawExecutionApprovalText = 'JOSE_APPROVES_LOCAL_EXECUTION'
 
 const copilotExecutionCommands = [
+  {
+    id: 'raw_shell',
+    label: 'Raw shell command',
+    description: 'Run an approved raw command in a user-selected cwd through the local shell.',
+    executable: 'shell',
+    args: [],
+    acceptsRawCommand: true,
+    risk: 'high',
+    requiresApproval: true,
+    timeoutMs: 60000,
+    source: 'raw-shell',
+  },
   {
     id: 'git_status',
     label: 'Git status',
@@ -419,12 +432,18 @@ function json(res, status, body) {
 function publicExecutionCommand(command) {
   return {
     ...command,
-    cwd: authorizedExecutionCwd,
+    cwd: command.acceptsRawCommand ? 'User selected cwd' : authorizedExecutionCwd,
   }
 }
 
 function getExecutionCommand(commandId) {
   return copilotExecutionCommands.find(command => command.id === commandId)
+}
+
+function shellQuote(value) {
+  const text = String(value || '')
+  if (/^[A-Za-z0-9_./:=@+-]+$/.test(text)) return text
+  return `"${text.replace(/"/g, '\\"')}"`
 }
 
 function resolveExecutable(executable) {
@@ -433,14 +452,8 @@ function resolveExecutable(executable) {
   return fs.existsSync(githubDesktopGit) ? githubDesktopGit : executable
 }
 
-function resolveSpawnSpec(command) {
-  if (command.executable === 'npm.cmd') {
-    const npmCliPath = path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'npm-cli.js')
-    if (fs.existsSync(npmCliPath)) {
-      return { executable: process.execPath, args: [npmCliPath, ...command.args] }
-    }
-  }
-  return { executable: resolveExecutable(command.executable), args: command.args }
+function buildRegisteredCommandText(command) {
+  return [resolveExecutable(command.executable), ...command.args].map(shellQuote).join(' ')
 }
 
 function appendLimitedOutput(current, chunk) {
@@ -461,16 +474,19 @@ async function runCopilotExecutionCommand(command, body) {
   return new Promise(resolve => {
     const startedAtMs = Date.now()
     const startedAt = new Date(startedAtMs).toISOString()
+    const requestedCwd = command.acceptsRawCommand ? String(body?.cwd || '').trim() : String(body?.cwd || authorizedExecutionCwd).trim()
+    const executionCwd = path.resolve(requestedCwd || authorizedExecutionCwd)
+    const rawCommand = command.acceptsRawCommand ? String(body?.rawCommand || '').trim() : ''
+    const commandText = command.acceptsRawCommand ? rawCommand : buildRegisteredCommandText(command)
     let stdout = ''
     let stderr = ''
     let exitCode = null
     let settled = false
     let timedOut = false
-    const spawnSpec = resolveSpawnSpec(command)
 
-    const child = spawn(spawnSpec.executable, spawnSpec.args, {
-      cwd: authorizedExecutionCwd,
-      shell: false,
+    const child = spawn(commandText, [], {
+      cwd: executionCwd,
+      shell: true,
       windowsHide: true,
       env: {
         ...process.env,
@@ -488,8 +504,10 @@ async function runCopilotExecutionCommand(command, body) {
         id: safeId('execution'),
         commandId: command.id,
         label: command.label,
-        cwd: authorizedExecutionCwd,
-        args: [command.executable, ...command.args],
+        cwd: executionCwd,
+        args: command.acceptsRawCommand ? [rawCommand] : [command.executable, ...command.args],
+        rawCommand: command.acceptsRawCommand ? rawCommand : undefined,
+        shell: true,
         status,
         stdout: cleanStdout,
         stderr: cleanStderr,
@@ -542,19 +560,51 @@ async function handleExecutionCommands(_req, res) {
 
 async function handleExecutionRun(req, res) {
   try {
-    if (copilotExecutionCwd !== authorizedExecutionCwd) {
-      return json(res, 403, {
-        error: 'Apex Copilot execution is locked to the authorized local repo.',
-        expectedCwd: authorizedExecutionCwd,
-        actualCwd: copilotExecutionCwd,
-      })
-    }
     const body = await readJson(req)
     const commandId = String(body.commandId || '')
     const command = getExecutionCommand(commandId)
     if (!command) {
       return json(res, 403, {
         error: 'Command is not registered for Apex Copilot Local Execution v0.',
+        commandId,
+        providerStatus: 'blocked',
+      })
+    }
+    if (!command.acceptsRawCommand && copilotExecutionCwd !== authorizedExecutionCwd) {
+      return json(res, 403, {
+        error: 'Apex Copilot execution is locked to the authorized local repo.',
+        expectedCwd: authorizedExecutionCwd,
+        actualCwd: copilotExecutionCwd,
+      })
+    }
+    if (command.acceptsRawCommand) {
+      const rawCommand = String(body.rawCommand || '').trim()
+      const requestedCwd = String(body.cwd || '').trim()
+      const executionCwd = path.resolve(requestedCwd || authorizedExecutionCwd)
+      if (!rawCommand) {
+        return json(res, 400, { error: 'Raw command is required for raw_shell.', providerStatus: 'blocked' })
+      }
+      if (!fs.existsSync(executionCwd) || !fs.statSync(executionCwd).isDirectory()) {
+        return json(res, 400, { error: 'Requested cwd does not exist or is not a directory.', cwd: executionCwd, providerStatus: 'blocked' })
+      }
+      if (body.approvedBy !== 'Jose' || body.approvalText !== rawExecutionApprovalText) {
+        return json(res, 403, {
+          error: 'Jose approval is required before executing a raw shell command.',
+          providerStatus: 'approval-required',
+          requiredApprovalText: rawExecutionApprovalText,
+        })
+      }
+    }
+    if (!command.acceptsRawCommand) {
+      const requestedCwd = String(body.cwd || authorizedExecutionCwd).trim()
+      const executionCwd = path.resolve(requestedCwd || authorizedExecutionCwd)
+      if (!fs.existsSync(executionCwd) || !fs.statSync(executionCwd).isDirectory()) {
+        return json(res, 400, { error: 'Requested cwd does not exist or is not a directory.', cwd: executionCwd, providerStatus: 'blocked' })
+      }
+    }
+    if (!command.acceptsRawCommand && String(body.rawCommand || '').trim()) {
+      return json(res, 403, {
+        error: 'Registered command execution does not accept rawCommand.',
         commandId,
         providerStatus: 'blocked',
       })

@@ -24,11 +24,13 @@ function buildRunReport(run: CopilotExecutionResult) {
   return [
     `Apex Copilot Local Execution v0`,
     `Command: ${run.commandId} (${run.label})`,
+    `Shell: ${run.shell ? 'yes' : 'no'}`,
     `Status: ${run.status}`,
     `Exit code: ${run.exitCode ?? 'n/a'}`,
     `Duration: ${formatDuration(run.durationMs)}`,
     `CWD: ${run.cwd}`,
     `Args: ${run.args.join(' ')}`,
+    run.rawCommand ? `Raw command: ${run.rawCommand}` : '',
     `Redacted output: ${run.redactedOutput ? 'yes' : 'no'}`,
     '',
     'STDOUT:',
@@ -44,6 +46,9 @@ export function CopilotExecutionPanel({ initialRuns = [], onRunComplete, onClear
   const [runs, setRuns] = useState<CopilotExecutionResult[]>(initialRuns)
   const [selectedCommandId, setSelectedCommandId] = useState('')
   const [runningCommandId, setRunningCommandId] = useState('')
+  const [cwd, setCwd] = useState('D:\\AI-constr\\apex-ai-copilot-platform')
+  const [rawCommand, setRawCommand] = useState('')
+  const [rawApproval, setRawApproval] = useState(false)
   const [error, setError] = useState('')
   const latestRun = runs[0]
 
@@ -69,17 +74,33 @@ export function CopilotExecutionPanel({ initialRuns = [], onRunComplete, onClear
     () => commands.find(command => command.id === selectedCommandId),
     [commands, selectedCommandId],
   )
+  const selectedIsRaw = selectedCommand?.acceptsRawCommand === true
+
+  useEffect(() => {
+    setRawApproval(false)
+  }, [cwd, rawCommand, selectedCommandId])
 
   async function runSelectedCommand(commandId = selectedCommandId) {
     if (!commandId || runningCommandId) return
+    const command = commands.find(item => item.id === commandId)
+    if (command?.acceptsRawCommand && !rawCommand.trim()) {
+      setError('Raw command is required before asking Jose for approval.')
+      return
+    }
+    if (command?.acceptsRawCommand && !rawApproval) {
+      setError('Jose approval is required before this raw shell command can run.')
+      return
+    }
     setError('')
     setRunningCommandId(commandId)
     const pending: CopilotExecutionResult = {
       id: `pending-${Date.now()}`,
       commandId,
-      label: commands.find(command => command.id === commandId)?.label || commandId,
-      cwd: 'D:\\AI-constr\\apex-ai-copilot-platform',
-      args: [],
+      label: command?.label || commandId,
+      cwd,
+      args: command?.acceptsRawCommand ? [rawCommand] : [],
+      rawCommand: command?.acceptsRawCommand ? rawCommand : undefined,
+      shell: true,
       status: 'running',
       stdout: '',
       stderr: '',
@@ -88,8 +109,9 @@ export function CopilotExecutionPanel({ initialRuns = [], onRunComplete, onClear
       finishedAt: '',
       durationMs: 0,
       createdBy: 'Jose',
-      risk: commands.find(command => command.id === commandId)?.risk || 'low',
-      requiresApproval: false,
+      risk: command?.risk || 'low',
+      requiresApproval: Boolean(command?.requiresApproval),
+      approvedBy: command?.acceptsRawCommand ? 'Jose' : undefined,
       redactedOutput: false,
     }
     setRuns(previous => [pending, ...previous.filter(run => run.status !== 'running')])
@@ -98,7 +120,14 @@ export function CopilotExecutionPanel({ initialRuns = [], onRunComplete, onClear
       const response = await fetch('/api/copilot/execution/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ commandId, note: 'Run from Apex Copilot Local Execution v0' }),
+        body: JSON.stringify({
+          commandId,
+          cwd,
+          rawCommand: command?.acceptsRawCommand ? rawCommand : undefined,
+          approvedBy: command?.acceptsRawCommand ? 'Jose' : undefined,
+          approvalText: command?.acceptsRawCommand ? 'JOSE_APPROVES_LOCAL_EXECUTION' : undefined,
+          note: command?.acceptsRawCommand ? 'Jose approved raw shell command from Apex Copilot Local Execution v0' : 'Run from Apex Copilot Local Execution v0',
+        }),
       })
       const data = await response.json()
       const result = data.result as CopilotExecutionResult | undefined
@@ -144,7 +173,7 @@ export function CopilotExecutionPanel({ initialRuns = [], onRunComplete, onClear
 
       <div className="execution-guardrail">
         <Terminal size={18} />
-        <span>Only registered v0 commands run here. No free command input, no deploy, no migrations, no remote Supabase changes.</span>
+        <span>Registered commands and raw shell mode run through spawn with shell enabled. Raw commands require Jose approval in this panel before execution.</span>
       </div>
 
       {error && <div className="business-alert"><strong>Execution error</strong><span>{error}</span></div>}
@@ -164,8 +193,41 @@ export function CopilotExecutionPanel({ initialRuns = [], onRunComplete, onClear
         ))}
       </div>
 
+      <div className="execution-raw-controls">
+        <label>
+          <span>CWD</span>
+          <input
+            value={cwd}
+            onChange={event => setCwd(event.target.value)}
+            placeholder="C:\\path\\to\\working-directory"
+          />
+        </label>
+        {selectedIsRaw && (
+          <>
+            <label>
+              <span>Raw command</span>
+              <textarea
+                value={rawCommand}
+                onChange={event => setRawCommand(event.target.value)}
+                placeholder="Type the exact command Jose wants to approve..."
+                rows={4}
+              />
+            </label>
+            <button
+              type="button"
+              className={`execution-approval-button ${rawApproval ? 'approved' : ''}`}
+              onClick={() => setRawApproval(true)}
+              disabled={!rawCommand.trim() || !cwd.trim()}
+            >
+              <ShieldCheck size={16} />
+              {rawApproval ? 'Jose approved this command' : 'Ask Jose approval'}
+            </button>
+          </>
+        )}
+      </div>
+
       <div className="execution-actions">
-        <button type="button" onClick={() => runSelectedCommand()} disabled={!selectedCommand || Boolean(runningCommandId)}>
+        <button type="button" onClick={() => runSelectedCommand()} disabled={!selectedCommand || Boolean(runningCommandId) || (selectedIsRaw && !rawApproval)}>
           <Play size={16} /> Run selected
         </button>
         <button type="button" onClick={copyLatestReport} disabled={!latestRun}>
@@ -177,7 +239,8 @@ export function CopilotExecutionPanel({ initialRuns = [], onRunComplete, onClear
         <div className="execution-command-meta">
           <span>Risk: {selectedCommand.risk}</span>
           <span>Timeout: {formatDuration(selectedCommand.timeoutMs)}</span>
-          <span>CWD: {selectedCommand.cwd}</span>
+          <span>CWD: {selectedIsRaw ? cwd : selectedCommand.cwd}</span>
+          <span>Shell: enabled</span>
         </div>
       )}
 

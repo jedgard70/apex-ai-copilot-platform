@@ -2,7 +2,7 @@ export type CopilotExecutionStatus = 'idle' | 'running' | 'completed' | 'failed'
 
 export type CopilotExecutionRisk = 'low' | 'medium' | 'high'
 
-export type CopilotExecutionSource = 'allowlist' | 'api' | 'ui'
+export type CopilotExecutionSource = 'allowlist' | 'api' | 'ui' | 'raw-shell'
 
 export type CopilotExecutionCommand = {
   id: string
@@ -11,6 +11,7 @@ export type CopilotExecutionCommand = {
   cwd: string
   executable: string
   args: string[]
+  acceptsRawCommand?: boolean
   risk: CopilotExecutionRisk
   requiresApproval: boolean
   timeoutMs: number
@@ -20,10 +21,13 @@ export type CopilotExecutionCommand = {
 export type CopilotExecutionRequest = {
   id: string
   commandId: string
+  rawCommand?: string
+  cwd?: string
   note?: string
   context?: string
   createdBy: string
   approvedBy?: string
+  approvalText?: string
 }
 
 export type CopilotExecutionResult = {
@@ -32,6 +36,8 @@ export type CopilotExecutionResult = {
   label: string
   cwd: string
   args: string[]
+  rawCommand?: string
+  shell: boolean
   status: CopilotExecutionStatus
   stdout: string
   stderr: string

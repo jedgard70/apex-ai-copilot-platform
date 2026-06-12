@@ -4,6 +4,19 @@ export const COPILOT_EXECUTION_CWD = 'D:\\AI-constr\\apex-ai-copilot-platform'
 
 export const copilotExecutionCommands: CopilotExecutionCommand[] = [
   {
+    id: 'raw_shell',
+    label: 'Raw shell command',
+    description: 'Run an approved raw command in a user-selected cwd through the local shell.',
+    cwd: 'User selected cwd',
+    executable: 'shell',
+    args: [],
+    acceptsRawCommand: true,
+    risk: 'high',
+    requiresApproval: true,
+    timeoutMs: 60000,
+    source: 'raw-shell',
+  },
+  {
     id: 'git_status',
     label: 'Git status',
     description: 'Show concise repo status for the authorized Apex Copilot repo.',
