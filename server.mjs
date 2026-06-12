@@ -1000,6 +1000,46 @@ function buildIdentityReply(userText, identity) {
   return `Sim. Você está logado como ${identity.email || 'email não disponível'}, com role ${identity.role || 'não disponível'}, no workspace ${identity.workspaceName || 'não disponível'}, usando persistence ${identity.persistenceMode || 'não disponível'}.${ownerLine}${missingLine} Ainda não vou inventar dados além do que está disponível na sessão.`
 }
 
+function prefersPortugueseText(text = '') {
+  return /\b(vc|voce|você|quem sou|o que|serviços|servicos|orçamento|orcamento|consultoria|arquivo|anexar|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra)\b|[ãõçáéíóú]/i.test(text)
+}
+
+function isCapabilitiesQuestionText(text = '') {
+  return /\b(o que (vc|voce|você) sabe fazer|o que faz|quais servi[cç]os|servi[cç]os|capabilities|what can you do|what do you do|features)\b/i.test(text.trim())
+}
+
+function isContactQuestionText(text = '') {
+  return /\b(or[cç]amento|consultoria|contato|falar com|proposal|quote|estimate|consultation|contact)\b/i.test(text.trim())
+}
+
+function isUploadQuestionText(text = '') {
+  return /\b(upload|arquivo|anexar|mandar imagem|enviar arquivo|screenshot|planta|pdf|file|attach)\b/i.test(text.trim())
+}
+
+function buildChatFallbackReply(userText, identity) {
+  const identityReply = buildIdentityReply(userText, identity)
+  if (identityReply) return identityReply
+  const pt = prefersPortugueseText(userText)
+  if (isCapabilitiesQuestionText(userText)) {
+    return pt
+      ? 'A Apex AI Copilot ajuda em BIM 5D/6D/7D, visualização 3D e ArchViz, CFD e simulações, agentes de IA, DirectCut, vendas, marketing, contabilidade, financeiro, alvarás, contratos, jurídico, documentos, propostas, engenharia e operações de campo. Você pode conversar comigo, enviar arquivos, pedir análise de projeto e transformar isso em ações dentro da plataforma.'
+      : 'Apex AI Copilot helps with BIM 5D/6D/7D, 3D and ArchViz, CFD and simulations, AI agents, DirectCut, sales, marketing, accounting, finance, permits, contracts, legal, documents, proposals, engineering and field operations. You can chat, upload files, request project analysis and turn that into platform actions.'
+  }
+  if (isContactQuestionText(userText)) {
+    return pt
+      ? 'Posso ajudar a preparar a consulta. Envie nome, email, telefone, cidade, tipo de projeto e o que precisa: BIM, 3D, contrato, alvará, proposta, financeiro, marketing ou operação de campo.'
+      : 'I can help prepare the consultation. Send name, email, phone, city, project type and what you need: BIM, 3D, contract, permit, proposal, finance, marketing or field operations.'
+  }
+  if (isUploadQuestionText(userText)) {
+    return pt
+      ? 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar. Eu uso o arquivo como contexto da conversa e sigo com uma resposta direta.'
+      : 'You can upload a file, PDF, image, plan or screenshot with the attach button. I will use it as conversation context and continue with a direct answer.'
+  }
+  return pt
+    ? 'Tive um problema ao gerar a resposta completa, mas posso continuar. Reformule o pedido ou envie um arquivo/screenshot para eu analisar.'
+    : 'I had trouble generating the full response, but I can continue. Rephrase the request or upload a file/screenshot for me to analyze.'
+}
+
 async function handleChat(req, res) {
   try {
     const body = await readJson(req)
@@ -1016,9 +1056,8 @@ async function handleChat(req, res) {
     const apiKey = process.env.OPENAI_API_KEY
     if (!apiKey) {
       return json(res, 200, {
-        reply:
-          'OPENAI_API_KEY is not configured in .env.local yet. I received the request, but the real AI runtime cannot call OpenAI until the local key is present.',
-        mode: 'missing-key',
+        reply: buildChatFallbackReply(userText, identityContext),
+        mode: 'local-fallback',
       })
     }
 
@@ -1119,18 +1158,21 @@ async function handleChat(req, res) {
     })
     const data = await response.json().catch(() => ({}))
     if (!response.ok) {
-      return json(res, response.status, {
-        error: data?.error?.message || 'OpenAI request failed.',
+      return json(res, 200, {
+        reply: buildChatFallbackReply(userText, identityContext),
+        mode: 'local-fallback',
       })
     }
+    const reply = data?.choices?.[0]?.message?.content || ''
     return json(res, 200, {
-      reply: data?.choices?.[0]?.message?.content || 'Apex AI Copilot did not return text.',
+      reply: reply || buildChatFallbackReply(userText, identityContext),
       model: data?.model,
       usage: data?.usage,
     })
   } catch (error) {
-    return json(res, error.status || 500, {
-      error: error.message || 'Apex AI Copilot runtime failed.',
+    return json(res, 200, {
+      reply: buildChatFallbackReply('', {}),
+      mode: 'local-fallback',
     })
   }
 }

@@ -295,15 +295,24 @@ function isOperationalGovernancePrompt(text: string) {
   return hasGovernanceSignal && (lineCount >= 3 || trimmed.length > 450)
 }
 
-function buildCopilotFailureMessage(userText: string, detail?: string) {
+function prefersPortuguese(text: string) {
+  return /\b(vc|voce|você|quem sou|o que|serviços|servicos|orçamento|orcamento|consultoria|arquivo|anexar|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra)\b|[ãõçáéíóú]/i.test(text)
+}
+
+function buildCopilotFailureMessage(userText: string) {
   const preserved = userText.trim()
-  const suffix = preserved ? `\n\nYour message was preserved:\n${preserved.slice(0, 2000)}` : ''
-  const reason = detail ? ` Detail: ${detail}` : ''
-  return `I could not complete that response because the Copilot backend did not return a valid answer.${reason} I did not execute any action. You can retry, or open Platform Maintenance to inspect the local runtime.${suffix}`
+  const suffix = preserved ? `\n\n${prefersPortuguese(userText) ? 'Sua mensagem foi preservada:' : 'Your message was preserved:'}\n${preserved.slice(0, 2000)}` : ''
+  return prefersPortuguese(userText)
+    ? `Tive um problema ao gerar a resposta completa, mas posso continuar. Reformule o pedido ou envie um arquivo/screenshot para eu analisar.${suffix}`
+    : `I had trouble generating the full response, but I can continue. Rephrase the request or upload a file/screenshot for me to analyze.${suffix}`
 }
 
 function isIdentityQuestion(text: string) {
   return /\b(vc sabe quem sou eu|você sabe quem sou eu|voce sabe quem sou eu|quem sou eu|do you know who i am|who am i)\b/i.test(text.trim())
+}
+
+function isTechnicalIdentityQuestion(text: string) {
+  return /\b(role|workspace|tenant|persistence|sess[aã]o|session|email|dados t[eé]cnicos|technical|owner_admin)\b/i.test(text.trim())
 }
 
 function buildChatIdentityContext(accountState: SupabaseAccountState | null): ChatIdentityContext {
@@ -323,6 +332,8 @@ function buildChatIdentityContext(accountState: SupabaseAccountState | null): Ch
 function buildIdentityAnswer(text: string, identity: ChatIdentityContext) {
   if (!isIdentityQuestion(text)) return ''
 
+  const language = prefersPortuguese(text) ? 'PT' : 'EN'
+  const technical = isTechnicalIdentityQuestion(text)
   const known: string[] = []
   const missing: string[] = []
   if (identity.profileName) known.push(`nome de perfil ${identity.profileName}`)
@@ -339,12 +350,64 @@ function buildIdentityAnswer(text: string, identity: ChatIdentityContext) {
   else missing.push('tenant/workspace id')
 
   if (!known.length) {
-    return 'Ainda não tenho dados de sessão disponíveis nesta tela. Não vou inventar nome, email, role ou workspace sem contexto real.'
+    return language === 'PT'
+      ? 'Ainda não tenho dados de sessão disponíveis nesta tela. Não vou inventar nome, email, função ou workspace sem contexto real.'
+      : 'I do not have session identity data available in this screen yet. I will not invent a name, email, role or workspace without real context.'
   }
 
-  const ownerLine = identity.isOwnerAdmin ? ' Você está marcado como owner_admin.' : ''
-  const missingLine = missing.length ? ` Dados não disponíveis na sessão: ${missing.join(', ')}.` : ''
-  return `Sim. Você está logado como ${identity.email || 'email não disponível'}, com role ${identity.role || 'não disponível'}, no workspace ${identity.workspaceName || 'não disponível'}, usando persistence ${identity.persistenceMode || 'não disponível'}.${ownerLine}${missingLine} Ainda não vou inventar dados além do que está disponível na sessão.`
+  if (technical) {
+    const ownerLine = identity.isOwnerAdmin ? ' Você está marcado como owner_admin.' : ''
+    const missingLine = missing.length ? ` Dados não disponíveis na sessão: ${missing.join(', ')}.` : ''
+    return `Sim. Você está logado como ${identity.email || 'email não disponível'}, com role ${identity.role || 'não disponível'}, no workspace ${identity.workspaceName || 'não disponível'}, usando persistence ${identity.persistenceMode || 'não disponível'}.${ownerLine}${missingLine} Ainda não vou inventar dados além do que está disponível na sessão.`
+  }
+
+  if (language === 'PT') {
+    const name = identity.profileName || (identity.email?.toLowerCase().includes('jedgard70') ? 'Jose' : 'usuario')
+    const workspace = identity.workspaceName ? ` no workspace ${identity.workspaceName}` : ''
+    const role = identity.role === 'owner_admin' ? 'administrador principal' : identity.role ? `com funcao ${identity.role}` : 'com sessao autenticada'
+    const notKnown = identity.profileName ? '' : ' Ainda nao vou inventar nome completo alem do que esta salvo na sessao.'
+    return `Sim. Voce e ${name}, esta logado como ${identity.email || 'email nao disponivel'}, ${role}${workspace}.${notKnown}`
+  }
+
+  const name = identity.profileName || (identity.email?.toLowerCase().includes('jedgard70') ? 'Jose' : 'the signed-in user')
+  const workspace = identity.workspaceName ? ` in the ${identity.workspaceName} workspace` : ''
+  const role = identity.role === 'owner_admin' ? 'the primary administrator' : identity.role ? `signed in with the ${identity.role} role` : 'signed in with an authenticated session'
+  const notKnown = identity.profileName ? '' : ' I will not invent a full name beyond what is saved in the session.'
+  return `Yes. You are ${name}, signed in as ${identity.email || 'email unavailable'}, ${role}${workspace}.${notKnown}`
+}
+
+function isCapabilitiesQuestion(text: string) {
+  return /\b(o que (vc|voce|você) sabe fazer|o que faz|quais servi[cç]os|servi[cç]os|capabilities|what can you do|what do you do|features)\b/i.test(text.trim())
+}
+
+function isContactQuestion(text: string) {
+  return /\b(or[cç]amento|consultoria|contato|falar com|proposal|quote|estimate|consultation|contact)\b/i.test(text.trim())
+}
+
+function isUploadQuestion(text: string) {
+  return /\b(upload|arquivo|anexar|mandar imagem|enviar arquivo|screenshot|planta|pdf|file|attach)\b/i.test(text.trim())
+}
+
+function buildProductFallbackAnswer(userText: string, identity: ChatIdentityContext) {
+  const identityAnswer = buildIdentityAnswer(userText, identity)
+  if (identityAnswer) return identityAnswer
+  const pt = prefersPortuguese(userText)
+  if (isCapabilitiesQuestion(userText)) {
+    return pt
+      ? 'A Apex AI Copilot ajuda em BIM 5D/6D/7D, visualizacao 3D e ArchViz, CFD e simulacoes, agentes de IA, DirectCut, vendas, marketing, contabilidade, financeiro, alvaras, contratos, juridico, documentos, propostas, engenharia e operacoes de campo. Voce pode conversar comigo, enviar arquivos, pedir analise de projeto e transformar isso em acoes dentro da plataforma.'
+      : 'Apex AI Copilot helps with BIM 5D/6D/7D, 3D and ArchViz, CFD and simulations, AI agents, DirectCut, sales, marketing, accounting, finance, permits, contracts, legal, documents, proposals, engineering and field operations. You can chat, upload files, request project analysis and turn that into platform actions.'
+  }
+  if (isContactQuestion(userText)) {
+    return pt
+      ? 'Posso ajudar a preparar a consulta. Envie nome, email, telefone, cidade, tipo de projeto e o que precisa: BIM, 3D, contrato, alvara, proposta, financeiro, marketing ou operacao de campo.'
+      : 'I can help prepare the consultation. Send name, email, phone, city, project type and what you need: BIM, 3D, contract, permit, proposal, finance, marketing or field operations.'
+  }
+  if (isUploadQuestion(userText)) {
+    return pt
+      ? 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botao de anexar. Eu uso o arquivo como contexto da conversa e sigo com uma resposta direta.'
+      : 'You can upload a file, PDF, image, plan or screenshot with the attach button. I will use it as conversation context and continue with a direct answer.'
+  }
+  return ''
 }
 
 function inferBusinessFocus(text: string): BusinessOutput['focus'] {
@@ -478,6 +541,7 @@ function dataUrlToFile(dataUrl: string, name: string, type: string) {
 function App() {
   const fileInput = useRef<HTMLInputElement | null>(null)
   const composerTextarea = useRef<HTMLTextAreaElement | null>(null)
+  const messagesEnd = useRef<HTMLDivElement | null>(null)
   const supabaseProvider = useMemo(() => getSupabaseProviderStatus(), [])
   const isSupabaseConfigured = supabaseProvider.providerStatus === 'supabase-connected'
   const [accountState, setAccountState] = useState<SupabaseAccountState | null>(null)
@@ -590,12 +654,7 @@ function App() {
   const [uiLanguage, setUiLanguage] = useState<UiLanguage>('EN')
   const [archVisRevisionConstraints, setArchVisRevisionConstraints] = useState<string[]>(initialProject.revisionConstraints || [])
   const [loading, setLoading] = useState(false)
-  const [messages, setMessages] = useState<Message[]>(initialProject.chatMessages.length ? initialProject.chatMessages.map(message => ({
-    id: message.id,
-    role: message.role,
-    text: message.text,
-    attachment: message.attachmentFileId ? restoredFile : undefined,
-  })) : [
+  const [messages, setMessages] = useState<Message[]>([
     {
       id: id(),
       role: 'assistant',
@@ -826,6 +885,10 @@ function App() {
     textarea.style.height = `${Math.min(textarea.scrollHeight, 320)}px`
   }, [input])
 
+  useEffect(() => {
+    messagesEnd.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  }, [messages, loading])
+
   async function askCopilot(text = input, attachment = activeFile) {
     const clean = text.trim()
     if ((!clean && !attachment) || loading) return
@@ -841,22 +904,22 @@ function App() {
         {
           id: id(),
           role: 'assistant',
-          text: 'Please sign in first. Supabase is connected, so Apex project, chat, upload and account tools stay locked until there is a real session.',
+          text: 'Please sign in first to use Apex Copilot, uploads and project tools.',
         },
       ])
       setInput('')
       return
     }
     const identityContext = buildChatIdentityContext(accountState)
-    const localIdentityAnswer = buildIdentityAnswer(userText, identityContext)
-    if (localIdentityAnswer) {
+    const localProductAnswer = buildProductFallbackAnswer(userText, identityContext)
+    if (localProductAnswer) {
       setMessages(prev => [
         ...prev,
         userMessage,
         {
           id: id(),
           role: 'assistant',
-          text: localIdentityAnswer,
+          text: localProductAnswer,
         },
       ])
       setInput('')
@@ -1280,10 +1343,10 @@ function App() {
         }),
       })
       const data = await response.json().catch(() => ({}))
-      const identityFallback = buildIdentityAnswer(userText, identityContext)
+      const localFallback = buildProductFallbackAnswer(userText, identityContext)
       const reply = response.ok && data.reply
         ? data.reply
-        : identityFallback || buildCopilotFailureMessage(userText, data.error)
+        : localFallback || buildCopilotFailureMessage(userText)
       if (shouldOpenArchVis && attachment?.kind === 'image') {
         const studioMessage = asksExplicit3D(clean)
           ? 'Abri o ArchVis Studio ao lado para render 3D/perspectiva. Você pode ajustar câmera, prompt e gerar pelo painel.'
@@ -1305,7 +1368,7 @@ function App() {
         {
           id: id(),
           role: 'assistant',
-          text: buildIdentityAnswer(userText, identityContext) || buildCopilotFailureMessage(userText, error instanceof Error ? error.message : 'Local Copilot runtime was not reachable.'),
+          text: buildProductFallbackAnswer(userText, identityContext) || buildCopilotFailureMessage(userText),
         },
       ])
     } finally {
@@ -1895,12 +1958,6 @@ function App() {
         </nav>
 
         <section className="chat-shell" aria-label="Apex AI Copilot chat">
-          <div className="chat-header">
-            <div>
-              <span className="clean-note">{uiLanguage === 'EN' ? 'Chat-first workspace' : 'Area conversacional'}</span>
-            </div>
-          </div>
-
           <div className="messages">
             {messages.map(message => (
               <article key={message.id} className={`message ${message.role}`}>
@@ -1923,6 +1980,7 @@ function App() {
                 <div className="bubble typing">Apex AI Copilot is thinking...</div>
               </article>
             )}
+            <div ref={messagesEnd} className="messages-end" aria-hidden="true" />
           </div>
 
           <div className="composer">
