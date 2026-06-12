@@ -13,6 +13,7 @@ const copilotExecutionCwd = path.resolve(root)
 const authorizedExecutionCwd = path.resolve('D:\\AI-constr\\apex-ai-copilot-platform')
 const maxExecutionOutputBytes = 160000
 const rawExecutionApprovalText = 'JOSE_APPROVES_LOCAL_EXECUTION'
+const rawShellAllowedEnvironments = new Set(['', 'development', 'local', 'test'])
 
 const copilotExecutionCommands = [
   {
@@ -436,6 +437,12 @@ function publicExecutionCommand(command) {
   }
 }
 
+function isPathInsideAuthorizedRepo(candidatePath) {
+  const resolved = path.resolve(candidatePath || authorizedExecutionCwd)
+  const relative = path.relative(authorizedExecutionCwd, resolved)
+  return relative === '' || (!!relative && !relative.startsWith('..') && !path.isAbsolute(relative))
+}
+
 function getExecutionCommand(commandId) {
   return copilotExecutionCommands.find(command => command.id === commandId)
 }
@@ -581,8 +588,22 @@ async function handleExecutionRun(req, res) {
       const rawCommand = String(body.rawCommand || '').trim()
       const requestedCwd = String(body.cwd || '').trim()
       const executionCwd = path.resolve(requestedCwd || authorizedExecutionCwd)
+      if (!rawShellAllowedEnvironments.has(String(process.env.NODE_ENV || '').toLowerCase()) || process.env.VERCEL) {
+        return json(res, 403, {
+          error: 'raw_shell is available only in local/development runtime.',
+          providerStatus: 'blocked',
+        })
+      }
       if (!rawCommand) {
         return json(res, 400, { error: 'Raw command is required for raw_shell.', providerStatus: 'blocked' })
+      }
+      if (!isPathInsideAuthorizedRepo(executionCwd)) {
+        return json(res, 403, {
+          error: 'raw_shell cwd must stay inside the authorized Apex Copilot repo.',
+          cwd: executionCwd,
+          authorizedCwd: authorizedExecutionCwd,
+          providerStatus: 'blocked',
+        })
       }
       if (!fs.existsSync(executionCwd) || !fs.statSync(executionCwd).isDirectory()) {
         return json(res, 400, { error: 'Requested cwd does not exist or is not a directory.', cwd: executionCwd, providerStatus: 'blocked' })
@@ -598,6 +619,14 @@ async function handleExecutionRun(req, res) {
     if (!command.acceptsRawCommand) {
       const requestedCwd = String(body.cwd || authorizedExecutionCwd).trim()
       const executionCwd = path.resolve(requestedCwd || authorizedExecutionCwd)
+      if (!isPathInsideAuthorizedRepo(executionCwd)) {
+        return json(res, 403, {
+          error: 'Execution cwd must stay inside the authorized Apex Copilot repo.',
+          cwd: executionCwd,
+          authorizedCwd: authorizedExecutionCwd,
+          providerStatus: 'blocked',
+        })
+      }
       if (!fs.existsSync(executionCwd) || !fs.statSync(executionCwd).isDirectory()) {
         return json(res, 400, { error: 'Requested cwd does not exist or is not a directory.', cwd: executionCwd, providerStatus: 'blocked' })
       }
@@ -3378,13 +3407,21 @@ async function handleExportSkillPack(req, res) {
     const runtime = loadRuntimeKnowledge()
     const allowedTargets = new Set(['chatgpt', 'gemini', 'claude', 'api', 'cursor-codex', 'generic-md', 'generic-json', 'zip-bundle'])
     if (!allowedTargets.has(String(body.targetPlatform || ''))) {
-      json(res, 400, { error: 'Unsupported export target.' })
+      json(res, 400, { error: 'Unsupported export target.', providerStatus: 'skill-export-blocked' })
+      return
+    }
+    if (!String(body.skillName || '').trim()) {
+      json(res, 400, { error: 'Skill name is required before export.', providerStatus: 'skill-export-blocked' })
+      return
+    }
+    if (!Array.isArray(body.domains) || body.domains.length === 0) {
+      json(res, 400, { error: 'Select at least one knowledge domain before export.', providerStatus: 'skill-export-blocked' })
       return
     }
     const pack = buildSkillExportPack(body, runtime)
-    json(res, 200, { pack })
+    json(res, 200, { providerStatus: 'skill-export-ready', pack })
   } catch (error) {
-    json(res, error.status || 500, { error: scrubProviderError(error.message || error) })
+    json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'skill-export-error' })
   }
 }
 

@@ -1,4 +1,4 @@
-import { LogIn, LogOut, ShieldCheck, UserPlus } from 'lucide-react'
+import { Eye, EyeOff, KeyRound, Languages, LogIn, LogOut, Mail, ShieldCheck, UserPlus, X } from 'lucide-react'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { apexRoles, getGoogleOauthStatus, permissionGroups } from '../lib/authModel'
 import { attemptProfileBootstrap, loadSupabaseAccountState, SupabaseAccountState } from '../lib/supabaseAuthBootstrap'
@@ -9,15 +9,57 @@ type AuthPanelProps = {
   onAuthStateChange?: (state: SupabaseAccountState) => void
 }
 
+const copy = {
+  EN: {
+    eyebrow: 'Apex Global AI',
+    title: 'Secure access for project intelligence',
+    subtitle: 'Sign in to continue with real Supabase Auth. No demo session is created.',
+    login: 'Sign in',
+    signup: 'Create account',
+    email: 'Email',
+    password: 'Password',
+    submitLogin: 'Sign in',
+    submitSignup: 'Create account',
+    google: 'Google OAuth',
+    signOut: 'Sign out',
+    status: 'Session status',
+    bootstrap: 'Attempt safe profile bootstrap',
+    assignment: 'Tenant assignment is required before Supabase project sync. No fake Owner/Admin role was created.',
+    provider: 'Auth provider',
+  },
+  PT: {
+    eyebrow: 'Apex Global AI',
+    title: 'Acesso seguro para inteligencia de projetos',
+    subtitle: 'Entre para continuar com Supabase Auth real. Nenhuma sessao demo e criada.',
+    login: 'Entrar',
+    signup: 'Criar conta',
+    email: 'Email',
+    password: 'Senha',
+    submitLogin: 'Entrar',
+    submitSignup: 'Criar conta',
+    google: 'Google OAuth',
+    signOut: 'Sair',
+    status: 'Status da sessao',
+    bootstrap: 'Tentar bootstrap seguro do perfil',
+    assignment: 'A atribuicao de tenant e obrigatoria antes do sync Supabase. Nenhum papel Owner/Admin falso foi criado.',
+    provider: 'Provedor Auth',
+  },
+}
+
+const capabilities = ['BIM intelligence', 'EVM controls', 'Safety workflows', 'Multi-Agent execution']
+
 export function AuthPanel({ onClear, onAuthStateChange }: AuthPanelProps) {
   const provider = useMemo(() => getSupabaseProviderStatus(), [])
   const googleStatus = getGoogleOauthStatus()
   const [mode, setMode] = useState<'login' | 'signup'>('login')
+  const [language, setLanguage] = useState<'EN' | 'PT'>('EN')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [statusText, setStatusText] = useState(provider.message)
   const [busy, setBusy] = useState(false)
   const [account, setAccount] = useState<SupabaseAccountState | null>(null)
+  const labels = copy[language]
 
   async function refreshAccount(autoBootstrap = false) {
     const state = await loadSupabaseAccountState()
@@ -99,69 +141,101 @@ export function AuthPanel({ onClear, onAuthStateChange }: AuthPanelProps) {
   }
 
   return (
-    <section className="studio-panel auth-panel">
-      <div className="studio-panel-header">
+    <section className="auth-premium-panel" aria-label="Apex Global AI authentication">
+      {onClear && (
+        <button className="auth-close-button" onClick={onClear} aria-label="Close authentication panel">
+          <X size={17} />
+        </button>
+      )}
+
+      <aside className="auth-brand-column">
         <div>
-          <span className="eyebrow">Auth scaffold</span>
-          <h2>Supabase / Auth</h2>
-          <p>{provider.providerStatus === 'supabase-connected' ? 'Supabase browser client is configured.' : 'Supabase/Auth not connected yet.'}</p>
+          <span className="auth-eyebrow">{labels.eyebrow}</span>
+          <h2>Apex Global AI</h2>
+          <p>{labels.title}</p>
         </div>
-        {onClear && <button className="ghost-button" onClick={onClear}>Close</button>}
-      </div>
+        <div className="auth-capability-grid">
+          {capabilities.map(capability => <span key={capability}>{capability}</span>)}
+        </div>
+        <div className="auth-provider-pill">
+          <ShieldCheck size={16} />
+          <span>{provider.providerStatus}</span>
+        </div>
+      </aside>
 
-      <div className="status-strip warning">
-        <ShieldCheck size={16} />
-        <span>{provider.providerStatus} · no fake auth success · service role is server-only future config</span>
-      </div>
-
-      <form className="studio-form" onSubmit={submit}>
-        <div className="segmented-control">
-          <button type="button" className={mode === 'login' ? 'active' : ''} onClick={() => setMode('login')}>
-            <LogIn size={15} /> Login
+      <div className="auth-form-column">
+        <div className="auth-form-head">
+          <div>
+            <span>{labels.provider}</span>
+            <h3>{mode === 'login' ? labels.login : labels.signup}</h3>
+            <p>{labels.subtitle}</p>
+          </div>
+          <button className="auth-language-toggle" type="button" onClick={() => setLanguage(current => current === 'EN' ? 'PT' : 'EN')}>
+            <Languages size={15} /> {language}
           </button>
-          <button type="button" className={mode === 'signup' ? 'active' : ''} onClick={() => setMode('signup')}>
-            <UserPlus size={15} /> Signup
-          </button>
         </div>
-        <label>
-          Email
-          <input value={email} onChange={event => setEmail(event.target.value)} placeholder="user@example.com" type="email" />
-        </label>
-        <label>
-          Password
-          <input value={password} onChange={event => setPassword(event.target.value)} placeholder="Password" type="password" />
-        </label>
-        <div className="button-row">
-          <button className="primary-action" disabled={busy}>{mode === 'login' ? 'Login with email' : 'Create account'}</button>
-          <button type="button" className="secondary-action" onClick={googleLogin}>Google OAuth</button>
-          <button type="button" className="secondary-action" onClick={signOut}><LogOut size={15} /> Sign out</button>
-        </div>
-      </form>
 
-      <div className="panel-card">
-        <h3>Session status</h3>
-        <p>{statusText}</p>
-        {account?.user && <p>Signed in as: {account.user.email}</p>}
-        {account?.bootstrapStatus === 'needs-profile-bootstrap' && (
-          <button type="button" className="secondary-action" disabled={busy} onClick={bootstrapProfile}>
-            Attempt safe profile bootstrap
-          </button>
-        )}
-        {account?.bootstrapStatus === 'needs-tenant-assignment' && (
-          <p>Tenant assignment is required before Supabase project sync. No fake Owner/Admin role was created.</p>
-        )}
-        <p>Google OAuth: {googleStatus}</p>
-      </div>
+        <form className="auth-premium-form" onSubmit={submit}>
+          <div className="auth-mode-toggle">
+            <button type="button" className={mode === 'login' ? 'active' : ''} onClick={() => setMode('login')}>
+              <LogIn size={15} /> {labels.login}
+            </button>
+            <button type="button" className={mode === 'signup' ? 'active' : ''} onClick={() => setMode('signup')}>
+              <UserPlus size={15} /> {labels.signup}
+            </button>
+          </div>
 
-      <div className="panel-grid two">
-        <div className="panel-card">
-          <h3>Planned roles</h3>
-          <ul>{apexRoles.map(role => <li key={role.id}>{role.label}</li>)}</ul>
+          <label className="auth-input-label">
+            <span>{labels.email}</span>
+            <div className="auth-input-shell">
+              <Mail size={17} />
+              <input value={email} onChange={event => setEmail(event.target.value)} placeholder="jose@apexglobal.ai" type="email" autoComplete="email" />
+            </div>
+          </label>
+
+          <label className="auth-input-label">
+            <span>{labels.password}</span>
+            <div className="auth-input-shell">
+              <KeyRound size={17} />
+              <input value={password} onChange={event => setPassword(event.target.value)} placeholder="Password" type={showPassword ? 'text' : 'password'} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
+              <button type="button" onClick={() => setShowPassword(current => !current)} aria-label={showPassword ? 'Hide password' : 'Show password'}>
+                {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+              </button>
+            </div>
+          </label>
+
+          <button className="auth-primary-button" disabled={busy}>
+            {mode === 'login' ? labels.submitLogin : labels.submitSignup}
+          </button>
+
+          <div className="auth-secondary-actions">
+            <button type="button" onClick={googleLogin}>{labels.google}</button>
+            <button type="button" onClick={signOut}><LogOut size={15} /> {labels.signOut}</button>
+          </div>
+        </form>
+
+        <div className="auth-status-card">
+          <strong>{labels.status}</strong>
+          <p>{statusText}</p>
+          {account?.user && <span>Signed in as: {account.user.email}</span>}
+          {account?.bootstrapStatus === 'needs-profile-bootstrap' && (
+            <button type="button" disabled={busy} onClick={bootstrapProfile}>
+              {labels.bootstrap}
+            </button>
+          )}
+          {account?.bootstrapStatus === 'needs-tenant-assignment' && <p>{labels.assignment}</p>}
+          <small>Google OAuth: {googleStatus}</small>
         </div>
-        <div className="panel-card">
-          <h3>Permission groups</h3>
-          <ul>{permissionGroups.slice(0, 14).map(permission => <li key={permission}>{permission}</li>)}</ul>
-          <small>{permissionGroups.length} groups total.</small>
+
+        <div className="auth-meta-grid">
+          <div>
+            <strong>Roles</strong>
+            <span>{apexRoles.slice(0, 4).map(role => role.label).join(' / ')}</span>
+          </div>
+          <div>
+            <strong>Permissions</strong>
+            <span>{permissionGroups.length} groups configured</span>
+          </div>
         </div>
       </div>
     </section>

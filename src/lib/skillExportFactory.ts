@@ -68,7 +68,7 @@ export const exportDomains = [
 ]
 
 export function isSkillExportIntent(text: string) {
-  return /\b(gera|gerar|cria|criar|exporta|exportar|skill para chatgpt|gem para gemini|gemini|claude|codex|cursor|prompt pack|zip da skill|skill pack|knowledge pack|system prompt|pack de prompt)\b/i.test(text)
+  return /\b(export skill|exportar skill|skill export|abrir skill export|open skill export|generate skill pack|gerar pacote de skill|exportar pacote de skill|gerar preview de skill|generate export preview|download skill pack|baixar pacote de skill|prompt pack export|exportar prompt pack|zip da skill|skill pack)\b/i.test(text)
 }
 
 export function sanitizeExportText(value: string) {

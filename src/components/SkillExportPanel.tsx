@@ -63,10 +63,14 @@ export function SkillExportPanel({ openSignal, onClose }: SkillExportPanelProps)
         body: JSON.stringify(request),
       })
       const data = await response.json().catch(() => ({}))
-      if (!response.ok) throw new Error(data.error || 'Could not export skill pack.')
+      if (!response.ok) {
+        const status = data.providerStatus ? ` (${data.providerStatus})` : ''
+        throw new Error(`${data.error || 'Could not export skill pack.'}${status}`)
+      }
+      if (!data.pack) throw new Error('Skill export returned no pack. Check server.mjs /api/copilot/export-skill-pack.')
       setPack(data.pack)
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Could not export skill pack.')
+      setError(caught instanceof Error ? caught.message : 'Could not export skill pack. Confirm the local server is running and retry.')
     } finally {
       setLoading(false)
     }

@@ -10,6 +10,7 @@ import {
   Paperclip,
   ShieldCheck,
   Sparkles,
+  Terminal,
   Upload,
 } from 'lucide-react'
 import { ArchVisPanel } from './components/ArchVisPanel'
@@ -273,6 +274,21 @@ function isCopilotExecutionIntent(text: string) {
   return /\b(copilot execution|local execution|executar comando|executa comando|rodar comando|repo checks|build checks|git status|git log|check server|validar server|npm build|build local)\b/i.test(text)
 }
 
+function isOperationalGovernancePrompt(text: string) {
+  const trimmed = text.trim()
+  if (!trimmed) return false
+  const lineCount = trimmed.split(/\r?\n/).filter(line => line.trim()).length
+  const hasGovernanceSignal = /\b(checkpoint|governança|governanca|governance|antes de push|before push|não faça|nao faca|não fazer|nao fazer|não executar|nao executar|não commitar|nao commitar|não fazer deploy|nao fazer deploy|não rodar migrations|nao rodar migrations|tarefas|escopo autorizado|regras obrigatórias|regras obrigatorias|objetivo|critério green|criterio green|autorização|autorizacao|repo autorizado|branch obrigatória|branch obrigatoria|codex|claude|system prompt|instruções|instrucoes)\b/i.test(trimmed)
+  return hasGovernanceSignal && (lineCount >= 4 || trimmed.length > 700)
+}
+
+function buildCopilotFailureMessage(userText: string, detail?: string) {
+  const preserved = userText.trim()
+  const suffix = preserved ? `\n\nYour message was preserved:\n${preserved.slice(0, 2000)}` : ''
+  const reason = detail ? ` Detail: ${detail}` : ''
+  return `I could not complete that response because the Copilot backend did not return a valid answer.${reason} I did not execute any action. You can retry, or open Platform Maintenance to inspect the local runtime.${suffix}`
+}
+
 function inferBusinessFocus(text: string): BusinessOutput['focus'] {
   if (/\b(contabilidade|contador|documentos cont[aá]beis|relat[oó]rio cont[aá]bil|imposto|nota fiscal|receita|despesa|contas a pagar|contas a receber|financeiro|fatura|pagamento|invoice|payment|accounting|accountant|accounts receivable|accounts payable|tax|bookkeeping)\b/i.test(text)) return 'finance-accounting'
   if (/\b(crm|lead|pipeline|follow-up|vendas|proposta comercial|sales|proposal)\b/i.test(text)) return 'crm-sales'
@@ -403,6 +419,7 @@ function dataUrlToFile(dataUrl: string, name: string, type: string) {
 
 function App() {
   const fileInput = useRef<HTMLInputElement | null>(null)
+  const composerTextarea = useRef<HTMLTextAreaElement | null>(null)
   const supabaseProvider = useMemo(() => getSupabaseProviderStatus(), [])
   const isSupabaseConfigured = supabaseProvider.providerStatus === 'supabase-connected'
   const [accountState, setAccountState] = useState<SupabaseAccountState | null>(null)
@@ -740,6 +757,13 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, budgetOutput, contractsOutput, researchOutput, fieldOpsOutput, businessOutput, agentsOutput, evmSchedulerComplianceOutput, supplyChainOutput, notificationsOutput, aiCostOutput, multiTenantOutput, pwaMobileOutput, digitalTwinOutput, knowledgeBaseOutput, metricsOutput, copilotExecutionOutput, authOutput, archVisRevisionConstraints, activeTool.id, executionRuns, lastExecutionSummary])
 
+  useEffect(() => {
+    const textarea = composerTextarea.current
+    if (!textarea) return
+    textarea.style.height = 'auto'
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 220)}px`
+  }, [input])
+
   async function askCopilot(text = input, attachment = activeFile) {
     const clean = text.trim()
     if ((!clean && !attachment) || loading) return
@@ -782,7 +806,8 @@ function App() {
     const shouldOpenAgents = clean && isAgentIntent(clean)
     const shouldOpenBim3D = isBim3DIntent(clean || modelText, attachment)
     const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
-    const shouldOpenSkillExport = clean && isSkillExportIntent(clean)
+    const shouldTreatAsConversation = clean && isOperationalGovernancePrompt(clean)
+    const shouldOpenSkillExport = clean && !shouldTreatAsConversation && isSkillExportIntent(clean)
     const shouldOpenExportCenter = clean && isExportIntent(clean)
     if (shouldOpenExportCenter) {
       setExportCenterOpen(true)
@@ -1157,7 +1182,9 @@ function App() {
         }),
       })
       const data = await response.json().catch(() => ({}))
-      const reply = data.reply || data.error || 'Apex AI Copilot could not complete the response.'
+      const reply = response.ok && data.reply
+        ? data.reply
+        : buildCopilotFailureMessage(userText, data.error)
       if (shouldOpenArchVis && attachment?.kind === 'image') {
         const studioMessage = asksExplicit3D(clean)
           ? 'Abri o ArchVis Studio ao lado para render 3D/perspectiva. Você pode ajustar câmera, prompt e gerar pelo painel.'
@@ -1173,13 +1200,13 @@ function App() {
       } else {
         setMessages(prev => [...prev, { id: id(), role: 'assistant', text: reply }])
       }
-    } catch {
+    } catch (error) {
       setMessages(prev => [
         ...prev,
         {
           id: id(),
           role: 'assistant',
-          text: 'I could not reach the local Copilot runtime. Start the server with npm start after npm run build.',
+          text: buildCopilotFailureMessage(userText, error instanceof Error ? error.message : 'Local Copilot runtime was not reachable.'),
         },
       ])
     } finally {
@@ -1779,9 +1806,14 @@ function App() {
               <p>Upload a file, paste a screenshot, or tell Apex AI Copilot what you need.</p>
               <span className="clean-note">Apex AI Copilot can help with design, construction, code, data, writing, video, negotiation and business workflows.</span>
             </div>
-            <button className="upload-button" onClick={() => fileInput.current?.click()}>
-              <Upload size={18} /> Upload any file
-            </button>
+            <div className="chat-header-actions">
+              <button className="upload-button" onClick={() => fileInput.current?.click()}>
+                <Upload size={18} /> Upload any file
+              </button>
+              <button className="maintenance-button" onClick={() => setCopilotExecutionOutput({ goal: 'Open Platform Maintenance', conversationContext: [] })}>
+                <Terminal size={18} /> Platform Maintenance
+              </button>
+            </div>
             <input
               ref={fileInput}
               type="file"
@@ -1831,13 +1863,18 @@ function App() {
               <button className="icon-button" onClick={() => fileInput.current?.click()} aria-label="Attach file">
                 <Paperclip size={20} />
               </button>
-              <input
+              <textarea
+                ref={composerTextarea}
                 value={input}
                 onChange={event => setInput(event.target.value)}
                 onKeyDown={event => {
-                  if (event.key === 'Enter') askCopilot()
+                  if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault()
+                    askCopilot()
+                  }
                 }}
                 placeholder="Ask Apex AI Copilot what to build, analyze or generate..."
+                rows={1}
               />
               <button className="send-button" onClick={() => askCopilot()} aria-label="Send message" disabled={loading}>
                 <ArrowUp size={20} />
