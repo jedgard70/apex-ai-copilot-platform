@@ -953,8 +953,66 @@ function buildIntentInstruction(userText, file, conversation, preferredLanguage)
   return instructions.join('\n')
 }
 
+function isIdentityQuestionText(text) {
+  return /\b(vc sabe quem sou eu|você sabe quem sou eu|voce sabe quem sou eu|quem sou eu|do you know who i am|who am i)\b/i.test(String(text || '').trim())
+}
+
+function normalizeChatIdentityContext(value) {
+  const source = value && typeof value === 'object' ? value : {}
+  const role = String(source.role || '').trim()
+  return {
+    email: String(source.email || '').trim(),
+    role,
+    workspaceName: String(source.workspaceName || '').trim(),
+    persistenceMode: String(source.persistenceMode || '').trim(),
+    tenantId: String(source.tenantId || '').trim(),
+    isOwnerAdmin: source.isOwnerAdmin === true || role === 'owner_admin',
+    profileName: String(source.profileName || '').trim(),
+  }
+}
+
+function buildIdentityContextSummary(identity) {
+  return [
+    `email: ${identity.email || 'unknown'}`,
+    `role: ${identity.role || 'unknown'}`,
+    `workspaceName: ${identity.workspaceName || 'unknown'}`,
+    `persistenceMode: ${identity.persistenceMode || 'unknown'}`,
+    `tenantId: ${identity.tenantId || 'unknown'}`,
+    `isOwnerAdmin: ${identity.isOwnerAdmin ? 'true' : 'false'}`,
+    `profileName: ${identity.profileName || 'unknown'}`,
+  ].join('\n')
+}
+
+function buildIdentityReply(userText, identity) {
+  if (!isIdentityQuestionText(userText)) return ''
+  if (!identity.email && !identity.role && !identity.workspaceName && !identity.persistenceMode && !identity.tenantId && !identity.profileName) {
+    return 'Ainda não tenho dados de sessão disponíveis nesta requisição. Não vou inventar nome, email, role ou workspace sem contexto real.'
+  }
+  const ownerLine = identity.isOwnerAdmin ? ' Você está marcado como owner_admin.' : ''
+  const missing = []
+  if (!identity.profileName) missing.push('nome completo/perfil')
+  if (!identity.email) missing.push('email')
+  if (!identity.role) missing.push('role')
+  if (!identity.workspaceName) missing.push('workspace')
+  if (!identity.persistenceMode) missing.push('persistence')
+  if (!identity.tenantId) missing.push('tenant/workspace id')
+  const missingLine = missing.length ? ` Dados não disponíveis na sessão: ${missing.join(', ')}.` : ''
+  return `Sim. Você está logado como ${identity.email || 'email não disponível'}, com role ${identity.role || 'não disponível'}, no workspace ${identity.workspaceName || 'não disponível'}, usando persistence ${identity.persistenceMode || 'não disponível'}.${ownerLine}${missingLine} Ainda não vou inventar dados além do que está disponível na sessão.`
+}
+
 async function handleChat(req, res) {
   try {
+    const body = await readJson(req)
+    const identityContext = normalizeChatIdentityContext(body.identityContext)
+    const userText = String(body.message || '').slice(0, 12000)
+    const identityReply = buildIdentityReply(userText, identityContext)
+    if (identityReply) {
+      return json(res, 200, {
+        reply: identityReply,
+        mode: 'identity-context',
+      })
+    }
+
     const apiKey = process.env.OPENAI_API_KEY
     if (!apiKey) {
       return json(res, 200, {
@@ -964,9 +1022,7 @@ async function handleChat(req, res) {
       })
     }
 
-    const body = await readJson(req)
     const runtime = loadRuntimeKnowledge()
-    const userText = String(body.message || '').slice(0, 12000)
     const file = body.file || null
     const conversation = Array.isArray(body.messages) ? body.messages.slice(-10) : []
     const preferredLanguage = String(body.language || body.locale || '').slice(0, 40)
@@ -980,6 +1036,10 @@ async function handleChat(req, res) {
       '',
       'Production memory summary:',
       runtime.memorySummary.join('\n'),
+      '',
+      'Authenticated session context:',
+      buildIdentityContextSummary(identityContext),
+      'Use this context when the user asks who they are. Do not invent a full name if profileName is unknown.',
       '',
       'Relevant local skill knowledge:',
       buildLocalSkillContext(userText, file),
@@ -1017,6 +1077,9 @@ async function handleChat(req, res) {
       type: 'text',
       text: [
         userText || 'The user uploaded a file and asks for guidance.',
+        '',
+        'Authenticated session context:',
+        buildIdentityContextSummary(identityContext),
         '',
         buildFileContext(file),
         '',

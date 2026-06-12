@@ -4,14 +4,15 @@ import {
   ArrowUp,
   Bot,
   Building2,
-  File as FileIcon,
-  ImageIcon,
   LogOut,
+  Mic,
   Paperclip,
-  ShieldCheck,
+  Plus,
+  Settings,
   Sparkles,
+  Square,
   Terminal,
-  Upload,
+  X,
 } from 'lucide-react'
 import { ArchVisPanel } from './components/ArchVisPanel'
 import { AgentsPanel } from './components/AgentsPanel'
@@ -84,6 +85,18 @@ type Message = {
   text: string
   attachment?: IntakeFile
 }
+
+type ChatIdentityContext = {
+  email?: string
+  role?: string
+  workspaceName?: string
+  persistenceMode?: string
+  tenantId?: string
+  isOwnerAdmin: boolean
+  profileName?: string
+}
+
+type UiLanguage = 'EN' | 'PT'
 
 type ArchVisOutput = {
   source: IntakeFile
@@ -278,8 +291,8 @@ function isOperationalGovernancePrompt(text: string) {
   const trimmed = text.trim()
   if (!trimmed) return false
   const lineCount = trimmed.split(/\r?\n/).filter(line => line.trim()).length
-  const hasGovernanceSignal = /\b(checkpoint|governança|governanca|governance|antes de push|before push|não faça|nao faca|não fazer|nao fazer|não executar|nao executar|não commitar|nao commitar|não fazer deploy|nao fazer deploy|não rodar migrations|nao rodar migrations|tarefas|escopo autorizado|regras obrigatórias|regras obrigatorias|objetivo|critério green|criterio green|autorização|autorizacao|repo autorizado|branch obrigatória|branch obrigatoria|codex|claude|system prompt|instruções|instrucoes)\b/i.test(trimmed)
-  return hasGovernanceSignal && (lineCount >= 4 || trimmed.length > 700)
+  const hasGovernanceSignal = /\b(checkpoint|governança|governanca|governance|auditoria|audit|antes de push|before push|não faça|nao faca|não fazer|nao fazer|não executar|nao executar|não commitar|nao commitar|não fazer deploy|nao fazer deploy|não rodar migrations|nao rodar migrations|migration|migrations|tarefas|escopo autorizado|regras obrigatórias|regras obrigatorias|objetivo|critério green|criterio green|green|autorização|autorizacao|repo autorizado|repo|repository|branch obrigatória|branch obrigatoria|branch|commit|push|deploy|codex|claude|gemini|system prompt|instruções|instrucoes|relatório final|relatorio final)\b/i.test(trimmed)
+  return hasGovernanceSignal && (lineCount >= 3 || trimmed.length > 450)
 }
 
 function buildCopilotFailureMessage(userText: string, detail?: string) {
@@ -287,6 +300,51 @@ function buildCopilotFailureMessage(userText: string, detail?: string) {
   const suffix = preserved ? `\n\nYour message was preserved:\n${preserved.slice(0, 2000)}` : ''
   const reason = detail ? ` Detail: ${detail}` : ''
   return `I could not complete that response because the Copilot backend did not return a valid answer.${reason} I did not execute any action. You can retry, or open Platform Maintenance to inspect the local runtime.${suffix}`
+}
+
+function isIdentityQuestion(text: string) {
+  return /\b(vc sabe quem sou eu|você sabe quem sou eu|voce sabe quem sou eu|quem sou eu|do you know who i am|who am i)\b/i.test(text.trim())
+}
+
+function buildChatIdentityContext(accountState: SupabaseAccountState | null): ChatIdentityContext {
+  const profileName = accountState?.profile?.full_name?.trim() || undefined
+  const role = accountState?.role || undefined
+  return {
+    email: accountState?.user?.email || accountState?.profile?.email || undefined,
+    role,
+    workspaceName: accountState?.tenant?.name || undefined,
+    persistenceMode: accountState?.persistenceMode || undefined,
+    tenantId: accountState?.tenant?.id || accountState?.profile?.default_tenant_id || undefined,
+    isOwnerAdmin: role === 'owner_admin',
+    profileName,
+  }
+}
+
+function buildIdentityAnswer(text: string, identity: ChatIdentityContext) {
+  if (!isIdentityQuestion(text)) return ''
+
+  const known: string[] = []
+  const missing: string[] = []
+  if (identity.profileName) known.push(`nome de perfil ${identity.profileName}`)
+  else missing.push('nome completo/perfil')
+  if (identity.email) known.push(`email ${identity.email}`)
+  else missing.push('email')
+  if (identity.role) known.push(`role ${identity.role}`)
+  else missing.push('role')
+  if (identity.workspaceName) known.push(`workspace ${identity.workspaceName}`)
+  else missing.push('workspace')
+  if (identity.persistenceMode) known.push(`persistence ${identity.persistenceMode}`)
+  else missing.push('persistence')
+  if (identity.tenantId) known.push(`tenant/workspace id ${identity.tenantId}`)
+  else missing.push('tenant/workspace id')
+
+  if (!known.length) {
+    return 'Ainda não tenho dados de sessão disponíveis nesta tela. Não vou inventar nome, email, role ou workspace sem contexto real.'
+  }
+
+  const ownerLine = identity.isOwnerAdmin ? ' Você está marcado como owner_admin.' : ''
+  const missingLine = missing.length ? ` Dados não disponíveis na sessão: ${missing.join(', ')}.` : ''
+  return `Sim. Você está logado como ${identity.email || 'email não disponível'}, com role ${identity.role || 'não disponível'}, no workspace ${identity.workspaceName || 'não disponível'}, usando persistence ${identity.persistenceMode || 'não disponível'}.${ownerLine}${missingLine} Ainda não vou inventar dados além do que está disponível na sessão.`
 }
 
 function inferBusinessFocus(text: string): BusinessOutput['focus'] {
@@ -527,6 +585,9 @@ function App() {
   const [skillUpdateOpenSignal, setSkillUpdateOpenSignal] = useState('')
   const [skillExportOpenSignal, setSkillExportOpenSignal] = useState('')
   const [exportCenterOpen, setExportCenterOpen] = useState(false)
+  const [ownerConsoleOpen, setOwnerConsoleOpen] = useState(false)
+  const [voiceNotice, setVoiceNotice] = useState(false)
+  const [uiLanguage, setUiLanguage] = useState<UiLanguage>('EN')
   const [archVisRevisionConstraints, setArchVisRevisionConstraints] = useState<string[]>(initialProject.revisionConstraints || [])
   const [loading, setLoading] = useState(false)
   const [messages, setMessages] = useState<Message[]>(initialProject.chatMessages.length ? initialProject.chatMessages.map(message => ({
@@ -538,7 +599,7 @@ function App() {
     {
       id: id(),
       role: 'assistant',
-      text: 'I am Apex AI Copilot. Upload a file, paste a screenshot, or tell me what you need.',
+      text: "I'm Apex Copilot. Upload a file, paste a screenshot, or tell me what you need.",
     },
   ])
 
@@ -568,6 +629,7 @@ function App() {
 
   const isSignedIn = !isSupabaseConfigured || accountState?.sessionStatus === 'signed-in'
   const authShellStatus = accountState?.bootstrapStatus || (isSupabaseConfigured ? 'needs-login' : 'local-demo')
+  const isOwnerUser = accountState?.role === 'owner_admin' || accountState?.role === 'admin' || accountState?.role === 'developer' || !isSupabaseConfigured
 
   async function refreshAuthState() {
     if (!isSupabaseConfigured) {
@@ -761,7 +823,7 @@ function App() {
     const textarea = composerTextarea.current
     if (!textarea) return
     textarea.style.height = 'auto'
-    textarea.style.height = `${Math.min(textarea.scrollHeight, 220)}px`
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 320)}px`
   }, [input])
 
   async function askCopilot(text = input, attachment = activeFile) {
@@ -780,6 +842,21 @@ function App() {
           id: id(),
           role: 'assistant',
           text: 'Please sign in first. Supabase is connected, so Apex project, chat, upload and account tools stay locked until there is a real session.',
+        },
+      ])
+      setInput('')
+      return
+    }
+    const identityContext = buildChatIdentityContext(accountState)
+    const localIdentityAnswer = buildIdentityAnswer(userText, identityContext)
+    if (localIdentityAnswer) {
+      setMessages(prev => [
+        ...prev,
+        userMessage,
+        {
+          id: id(),
+          role: 'assistant',
+          text: localIdentityAnswer,
         },
       ])
       setInput('')
@@ -824,7 +901,13 @@ function App() {
       return
     }
     if (shouldOpenSkillExport) {
+      if (!isOwnerUser) {
+        setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'This tool is restricted to workspace owners/admins.' }])
+        setInput('')
+        return
+      }
       setSkillExportOpenSignal(id())
+      setOwnerConsoleOpen(true)
       setMessages(prev => [
         ...prev,
         userMessage,
@@ -839,7 +922,13 @@ function App() {
     }
     const shouldOpenSkillUpdate = clean && isSkillUpdateIntent(clean)
     if (shouldOpenSkillUpdate) {
+      if (!isOwnerUser) {
+        setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'This tool is restricted to workspace owners/admins.' }])
+        setInput('')
+        return
+      }
       setSkillUpdateOpenSignal(id())
+      setOwnerConsoleOpen(true)
       setMessages(prev => [
         ...prev,
         userMessage,
@@ -862,7 +951,9 @@ function App() {
         {
           id: id(),
           role: 'assistant',
-          text: 'Abri o Auth / User Account ao lado. Este é scaffold de integração: sem Supabase conectado, sem login falso e sem Google OAuth até configurar as variáveis.',
+          text: isOwnerUser
+            ? 'Open Owner Console to review account diagnostics.'
+            : 'Your account tools are available from your profile after sign in.',
         },
       ])
       setAuthOutput({ goal: clean, conversationContext: context })
@@ -964,9 +1055,15 @@ function App() {
       return
     }
     if (shouldOpenCopilotExecution) {
+      if (!isOwnerUser) {
+        setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'This tool is restricted to workspace owners/admins.' }])
+        setInput('')
+        return
+      }
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Apex Copilot Local Execution v0. Ele executa comandos reais apenas pela allowlist do server.mjs, sem comando livre.' }])
       setCopilotExecutionOutput({ goal: clean, conversationContext: context })
+      setOwnerConsoleOpen(true)
       setInput('')
       return
     }
@@ -1160,6 +1257,7 @@ function App() {
         body: JSON.stringify({
           message: modelText,
           language: navigator.language || 'en',
+          identityContext,
           messages: [
             ...messages.map(message => ({
               role: message.role,
@@ -1182,9 +1280,10 @@ function App() {
         }),
       })
       const data = await response.json().catch(() => ({}))
+      const identityFallback = buildIdentityAnswer(userText, identityContext)
       const reply = response.ok && data.reply
         ? data.reply
-        : buildCopilotFailureMessage(userText, data.error)
+        : identityFallback || buildCopilotFailureMessage(userText, data.error)
       if (shouldOpenArchVis && attachment?.kind === 'image') {
         const studioMessage = asksExplicit3D(clean)
           ? 'Abri o ArchVis Studio ao lado para render 3D/perspectiva. Você pode ajustar câmera, prompt e gerar pelo painel.'
@@ -1206,7 +1305,7 @@ function App() {
         {
           id: id(),
           role: 'assistant',
-          text: buildCopilotFailureMessage(userText, error instanceof Error ? error.message : 'Local Copilot runtime was not reachable.'),
+          text: buildIdentityAnswer(userText, identityContext) || buildCopilotFailureMessage(userText, error instanceof Error ? error.message : 'Local Copilot runtime was not reachable.'),
         },
       ])
     } finally {
@@ -1723,29 +1822,26 @@ function App() {
 
   const authHeader = (
     <div className="auth-header-state">
-      {isSupabaseConfigured ? (
-        <>
-          <div className="auth-header-details">
-            <span>{accountState?.user?.email || (authLoading ? 'Checking session...' : 'Signed out')}</span>
-            <small>
-              Role: {accountState?.role || 'none'} · Workspace: {accountState?.tenant?.name || 'none'} · Persistence: {accountState?.persistenceMode || 'Supabase connected'}
-            </small>
-          </div>
-          {accountState?.sessionStatus === 'signed-in' && (
-            <button className="secondary-action auth-signout" type="button" onClick={signOutFromShell}>
-              <LogOut size={15} /> Sign out
-            </button>
-          )}
-        </>
-      ) : (
-        <div className="auth-header-details">
-          <span>Local demo mode</span>
-          <small>Persistence: localStorage · Supabase not configured</small>
-        </div>
+      <button className="language-pill" type="button" onClick={() => setUiLanguage(current => current === 'EN' ? 'PT' : 'EN')}>
+        {uiLanguage}
+      </button>
+      {accountState?.sessionStatus === 'signed-in' && (
+        <span className="account-pill">{accountState.user?.email || 'Signed in'}</span>
+      )}
+      {isOwnerUser && isSignedIn && (
+        <button className="secondary-action owner-console-button" type="button" onClick={() => setOwnerConsoleOpen(true)}>
+          <Settings size={15} /> {uiLanguage === 'EN' ? 'Owner Console' : 'Console Owner'}
+        </button>
+      )}
+      {accountState?.sessionStatus === 'signed-in' && (
+        <button className="secondary-action auth-signout" type="button" onClick={signOutFromShell}>
+          <LogOut size={15} /> {uiLanguage === 'EN' ? 'Sign out' : 'Sair'}
+        </button>
       )}
     </div>
   )
-  const workspaceClass = archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || evmSchedulerComplianceOutput || supplyChainOutput || notificationsOutput || aiCostOutput || multiTenantOutput || pwaMobileOutput || digitalTwinOutput || knowledgeBaseOutput || metricsOutput || copilotExecutionOutput || authOutput || exportCenterOpen ? 'studio-open' : ''
+  const hasOperationalPanel = archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || evmSchedulerComplianceOutput || supplyChainOutput || notificationsOutput || aiCostOutput || multiTenantOutput || pwaMobileOutput || digitalTwinOutput || knowledgeBaseOutput || metricsOutput || exportCenterOpen
+  const workspaceClass = hasOperationalPanel ? 'studio-open' : ''
 
   if (isSupabaseConfigured && (!isSignedIn || authLoading)) {
     return (
@@ -1755,22 +1851,13 @@ function App() {
             <div className="brand-mark"><Sparkles size={22} /></div>
             <div>
               <strong>APEX AI COPILOT</strong>
-              <span>Protected platform shell</span>
+              <span>{uiLanguage === 'EN' ? 'Full intelligence copilot platform' : 'Plataforma de inteligencia operacional'}</span>
             </div>
           </div>
           {authHeader}
         </header>
 
         <section className="auth-gate-shell" aria-label="Apex login">
-          <div className="auth-gate-copy">
-            <ShieldCheck size={24} />
-            <div>
-              <span>Supabase connected</span>
-              <h1>Sign in to open Apex.</h1>
-              <p>{authMessage}</p>
-              <small>Chat, studios, upload, tool list, project workspace and project data are hidden until Supabase returns a valid session.</small>
-            </div>
-          </div>
           <AuthPanel onAuthStateChange={state => {
             setAccountState(state)
             setAuthMessage(state.message)
@@ -1788,7 +1875,7 @@ function App() {
           <div className="brand-mark"><Sparkles size={22} /></div>
           <div>
             <strong>APEX AI COPILOT</strong>
-            <span>Full intelligence copilot platform</span>
+            <span>{uiLanguage === 'EN' ? 'Full intelligence copilot platform' : 'Plataforma de inteligencia operacional'}</span>
           </div>
         </div>
         {authHeader}
@@ -1799,39 +1886,26 @@ function App() {
       )}
 
       <section className={`workspace ${workspaceClass}`}>
+        <nav className="tool-rail" aria-label="Apex tools">
+          {['BIM', 'ArchVis', 'DirectCut', 'Budget', 'Contracts', 'Field', 'Marketing', 'Revit', 'Code', 'Data'].map(toolName => (
+            <button key={toolName} type="button" title={toolName} onClick={() => setInput(current => current || `${toolName}: `)}>
+              {toolName}
+            </button>
+          ))}
+        </nav>
+
         <section className="chat-shell" aria-label="Apex AI Copilot chat">
           <div className="chat-header">
             <div>
-              <h1>What are we building today?</h1>
-              <p>Upload a file, paste a screenshot, or tell Apex AI Copilot what you need.</p>
-              <span className="clean-note">Apex AI Copilot can help with design, construction, code, data, writing, video, negotiation and business workflows.</span>
+              <span className="clean-note">{uiLanguage === 'EN' ? 'Chat-first workspace' : 'Area conversacional'}</span>
             </div>
-            <div className="chat-header-actions">
-              <button className="upload-button" onClick={() => fileInput.current?.click()}>
-                <Upload size={18} /> Upload any file
-              </button>
-              <button className="maintenance-button" onClick={() => setCopilotExecutionOutput({ goal: 'Open Platform Maintenance', conversationContext: [] })}>
-                <Terminal size={18} /> Platform Maintenance
-              </button>
-            </div>
-            <input
-              ref={fileInput}
-              type="file"
-              accept="*/*"
-              hidden
-              onChange={event => {
-                const file = event.target.files?.[0]
-                if (file) handleFile(file)
-                event.currentTarget.value = ''
-              }}
-            />
           </div>
 
           <div className="messages">
             {messages.map(message => (
               <article key={message.id} className={`message ${message.role}`}>
                 <div className="avatar">{message.role === 'assistant' ? <Bot size={18} /> : <Building2 size={18} />}</div>
-                <div className="bubble">
+                <div className={`bubble ${message.text.length > 900 || message.text.includes('\n') ? 'long-text' : ''}`}>
                   <p>{message.text}</p>
                   {message.attachment && (
                     <div className="attachment-chip">
@@ -1860,8 +1934,8 @@ function App() {
               </div>
             )}
             <div className="input-row">
-              <button className="icon-button" onClick={() => fileInput.current?.click()} aria-label="Attach file">
-                <Paperclip size={20} />
+              <button className="icon-button" onClick={() => fileInput.current?.click()} aria-label={uiLanguage === 'EN' ? 'Attach file' : 'Anexar arquivo'}>
+                <Plus size={20} />
               </button>
               <textarea
                 ref={composerTextarea}
@@ -1873,15 +1947,39 @@ function App() {
                     askCopilot()
                   }
                 }}
-                placeholder="Ask Apex AI Copilot what to build, analyze or generate..."
+                placeholder={uiLanguage === 'EN' ? 'Ask Apex Copilot anything...' : 'Pergunte qualquer coisa à Apex Copilot...'}
                 rows={1}
               />
-              <button className="send-button" onClick={() => askCopilot()} aria-label="Send message" disabled={loading}>
-                <ArrowUp size={20} />
+              <button className="composer-language-button" type="button" onClick={() => setUiLanguage(current => current === 'EN' ? 'PT' : 'EN')}>
+                {uiLanguage}
+              </button>
+              <button className="icon-button" type="button" onClick={() => setVoiceNotice(current => !current)} aria-label={uiLanguage === 'EN' ? 'Voice input' : 'Entrada por voz'}>
+                <Mic size={19} />
+              </button>
+              <button className="send-button" onClick={() => askCopilot()} aria-label={loading ? 'Stop' : 'Send message'} disabled={!loading && !input.trim() && !activeFile}>
+                {loading ? <Square size={17} /> : <ArrowUp size={20} />}
               </button>
             </div>
-            <div className="composer-hint">Paste screenshot or drop/upload any file</div>
+            {voiceNotice && (
+              <div className="voice-notice">{uiLanguage === 'EN' ? 'Voice input coming soon.' : 'Entrada por voz em breve.'}</div>
+            )}
+            <div className="composer-hint">
+              {uiLanguage === 'EN'
+                ? 'Apex Copilot can make mistakes. Verify critical project, legal, financial and engineering information.'
+                : 'A Apex Copilot pode cometer erros. Verifique informações criticas de projeto, engenharia, legais e financeiras.'}
+            </div>
           </div>
+          <input
+            ref={fileInput}
+            type="file"
+            accept="*/*"
+            hidden
+            onChange={event => {
+              const file = event.target.files?.[0]
+              if (file) handleFile(file)
+              event.currentTarget.value = ''
+            }}
+          />
           {debugEnabled && (
             <div className="debug-panel" aria-label="Debug mode">
               Debug mode is enabled. Internal prompt and memory details remain server-side and are hidden from the end-user experience.
@@ -1889,36 +1987,8 @@ function App() {
           )}
         </section>
 
-        <aside className="right-panel">
-          <ProjectWorkspacePanel
-            project={activeProject}
-            projects={projects}
-            summary={projectSummary}
-            onRename={renameProject}
-            onNewProject={createNewProject}
-            onSwitchProject={switchProject}
-            onSaveNow={saveWorkspaceNow}
-            onSyncRemote={syncWorkspaceToSupabase}
-            onExport={exportWorkspaceProject}
-            onImport={importWorkspaceProject}
-            onClear={clearLocalWorkspace}
-            openSignal={workspaceOpenSignal}
-          />
-          {workspaceSavedAt && <div className="project-save-indicator">Project autosaved at {workspaceSavedAt}</div>}
-
-          <SkillUpdatePanel
-            source={activeFile}
-            openSignal={skillUpdateOpenSignal}
-            onApproveProjectMemory={approveProjectMemory}
-            onAppliedGlobal={handleGlobalSkillApplied}
-            onClose={() => setSkillUpdateOpenSignal('')}
-          />
-
-          <SkillExportPanel
-            openSignal={skillExportOpenSignal}
-            onClose={() => setSkillExportOpenSignal('')}
-          />
-
+        {hasOperationalPanel && (
+        <aside className="right-panel" aria-label="Active Apex tool">
           {archVisOutput && (
             <ArchVisPanel
               source={archVisOutput.source}
@@ -2203,33 +2273,11 @@ function App() {
           )}
 
           {copilotExecutionOutput && (
-            <CopilotExecutionPanel
-              initialRuns={executionRuns}
-              onRunComplete={(run, runs) => {
-                setExecutionRuns(runs)
-                setLastExecutionSummary({
-                  commandId: run.commandId,
-                  status: run.status,
-                  exitCode: run.exitCode,
-                  finishedAt: run.finishedAt,
-                  durationMs: run.durationMs,
-                })
-              }}
-              onClear={() => setCopilotExecutionOutput(null)}
-            />
+            null
           )}
 
           {authOutput && (
-            <div className="business-layer-stack">
-              <AuthPanel
-                onClear={() => setAuthOutput(null)}
-                onAuthStateChange={state => {
-                  setAccountState(state)
-                  setAuthMessage(state.message)
-                }}
-              />
-              <UserAccountPanel onClear={() => setAuthOutput(null)} />
-            </div>
+            null
           )}
 
           {agentsOutput && (
@@ -2255,44 +2303,106 @@ function App() {
             />
           )}
 
-          <div className="panel-section">
-            <h2>File preview</h2>
-            {!activeFile && (
-              <div className="empty-preview">
-                <FileIcon size={34} />
-                <span>No file uploaded yet</span>
-              </div>
-            )}
-            {activeFile?.kind === 'image' && activeFile.url && (
-              <div className="image-preview">
-                <img src={activeFile.url} alt={activeFile.file.name} />
-                <span><ImageIcon size={15} /> Image ready</span>
-              </div>
-            )}
-            {activeFile && activeFile.kind !== 'image' && (
-              <div className="file-preview">
-                <FileIcon size={38} />
-                <strong>{activeFile.file.name}</strong>
-                <span>{activeFile.kind} · {formatSize(activeFile.file.size)}</span>
-                <p>{isVisionReady(activeFile.kind) ? 'Ready to analyze.' : 'File accepted. I can use its details and guide the next step.'}</p>
-              </div>
-            )}
-          </div>
-
-          <div className="panel-section">
-            <h2>Available tools</h2>
-            <p className="panel-copy">Use them when they help. You can also ask anything directly in chat.</p>
-            <div className="tool-list">
-              {tools.map(tool => (
-                <div key={tool.id} className={`tool-row ${tool.id === activeTool.id ? 'active' : ''}`}>
-                  <strong>{tool.name}</strong>
-                  <span>{tool.role}</span>
-                </div>
-              ))}
-            </div>
-          </div>
         </aside>
+        )}
       </section>
+
+      {ownerConsoleOpen && isOwnerUser && (
+        <div className="owner-console-backdrop" role="dialog" aria-modal="true" aria-label="Owner Console">
+          <section className="owner-console-drawer">
+            <div className="owner-console-head">
+              <div>
+                <span>{uiLanguage === 'EN' ? 'Owner workspace' : 'Area do owner'}</span>
+                <h2>{uiLanguage === 'EN' ? 'Owner Console' : 'Console Owner'}</h2>
+              </div>
+              <button type="button" onClick={() => setOwnerConsoleOpen(false)} aria-label="Close Owner Console">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="owner-console-status">
+              <span>Email: {accountState?.user?.email || 'local'}</span>
+              <span>Role: {accountState?.role || 'local-owner'}</span>
+              <span>Workspace: {accountState?.tenant?.name || 'local workspace'}</span>
+              <span>Persistence: {accountState?.persistenceMode || 'localStorage'}</span>
+            </div>
+
+            <div className="owner-console-actions">
+              <button type="button" onClick={() => setCopilotExecutionOutput({ goal: 'Open Platform Maintenance', conversationContext: [] })}>
+                <Terminal size={16} /> Platform Maintenance
+              </button>
+              <button type="button" onClick={() => setSkillUpdateOpenSignal(id())}>
+                Skill Update
+              </button>
+              <button type="button" onClick={() => setSkillExportOpenSignal(id())}>
+                Skill Export
+              </button>
+              <button type="button" onClick={() => setAuthOutput({ goal: 'Open account diagnostics', conversationContext: [] })}>
+                Account
+              </button>
+            </div>
+
+            <ProjectWorkspacePanel
+              project={activeProject}
+              projects={projects}
+              summary={projectSummary}
+              onRename={renameProject}
+              onNewProject={createNewProject}
+              onSwitchProject={switchProject}
+              onSaveNow={saveWorkspaceNow}
+              onSyncRemote={syncWorkspaceToSupabase}
+              onExport={exportWorkspaceProject}
+              onImport={importWorkspaceProject}
+              onClear={clearLocalWorkspace}
+              openSignal={workspaceOpenSignal}
+            />
+            {workspaceSavedAt && <div className="project-save-indicator">Project autosaved at {workspaceSavedAt}</div>}
+
+            <SkillUpdatePanel
+              source={activeFile}
+              openSignal={skillUpdateOpenSignal}
+              onApproveProjectMemory={approveProjectMemory}
+              onAppliedGlobal={handleGlobalSkillApplied}
+              onClose={() => setSkillUpdateOpenSignal('')}
+            />
+
+            <SkillExportPanel
+              openSignal={skillExportOpenSignal}
+              onClose={() => setSkillExportOpenSignal('')}
+            />
+
+            {copilotExecutionOutput && (
+              <CopilotExecutionPanel
+                initialRuns={executionRuns}
+                onRunComplete={(run, runs) => {
+                  setExecutionRuns(runs)
+                  setLastExecutionSummary({
+                    commandId: run.commandId,
+                    status: run.status,
+                    exitCode: run.exitCode,
+                    finishedAt: run.finishedAt,
+                    durationMs: run.durationMs,
+                  })
+                }}
+                onClear={() => setCopilotExecutionOutput(null)}
+              />
+            )}
+
+            {authOutput && (
+              <div className="business-layer-stack">
+                <AuthPanel
+                  onClear={() => setAuthOutput(null)}
+                  onAuthStateChange={state => {
+                    setAccountState(state)
+                    setAuthMessage(state.message)
+                  }}
+                />
+                <UserAccountPanel onClear={() => setAuthOutput(null)} />
+              </div>
+            )}
+          </section>
+        </div>
+      )}
     </main>
   )
 }

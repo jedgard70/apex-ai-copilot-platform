@@ -68,7 +68,16 @@ export const exportDomains = [
 ]
 
 export function isSkillExportIntent(text: string) {
-  return /\b(export skill|exportar skill|skill export|abrir skill export|open skill export|generate skill pack|gerar pacote de skill|exportar pacote de skill|gerar preview de skill|generate export preview|download skill pack|baixar pacote de skill|prompt pack export|exportar prompt pack|zip da skill|skill pack)\b/i.test(text)
+  const trimmed = text.trim()
+  if (!trimmed) return false
+  const hasExplicitExportCommand = /\b(export skill|exportar skill|exportar pacote|generate skill pack|gerar pacote de skill|gerar preview de skill|abrir skill export|open skill export)\b/i.test(trimmed)
+  if (!hasExplicitExportCommand) return false
+
+  const directCommand = /^(por favor\s+)?(abra|abrir|open|export|exportar|generate|gerar)\b/i.test(trimmed)
+  const shortCommand = trimmed.length <= 180 && trimmed.split(/\r?\n/).filter(line => line.trim()).length <= 2
+  const hasOperationalContext = /\b(codex|claude|gemini|system prompt|checkpoint|governança|governanca|governance|auditoria|audit|branch|commit|push|deploy|deployment|migration|migrations|repo|repository|relatório final|relatorio final|critério green|criterio green|prompt longo|long prompt)\b/i.test(trimmed)
+
+  return directCommand && shortCommand && !hasOperationalContext
 }
 
 export function sanitizeExportText(value: string) {

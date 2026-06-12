@@ -1,6 +1,5 @@
-import { Eye, EyeOff, KeyRound, Languages, LogIn, LogOut, Mail, ShieldCheck, UserPlus, X } from 'lucide-react'
+import { Eye, EyeOff, KeyRound, Languages, LogIn, LogOut, Mail, UserPlus, X } from 'lucide-react'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
-import { apexRoles, getGoogleOauthStatus, permissionGroups } from '../lib/authModel'
 import { attemptProfileBootstrap, loadSupabaseAccountState, SupabaseAccountState } from '../lib/supabaseAuthBootstrap'
 import { getBrowserSupabaseClient, getSupabaseProviderStatus } from '../lib/supabaseClient'
 
@@ -12,45 +11,42 @@ type AuthPanelProps = {
 const copy = {
   EN: {
     eyebrow: 'Apex Global AI',
-    title: 'Secure access for project intelligence',
-    subtitle: 'Sign in to continue with real Supabase Auth. No demo session is created.',
+    title: 'Construction Intelligence Platform',
+    subtitle: 'Intelligence for construction, BIM and project execution.',
     login: 'Sign in',
     signup: 'Create account',
     email: 'Email',
     password: 'Password',
     submitLogin: 'Sign in',
     submitSignup: 'Create account',
-    google: 'Google OAuth',
     signOut: 'Sign out',
-    status: 'Session status',
-    bootstrap: 'Attempt safe profile bootstrap',
-    assignment: 'Tenant assignment is required before Supabase project sync. No fake Owner/Admin role was created.',
-    provider: 'Auth provider',
+    bootstrap: 'Prepare workspace',
+    footer: 'Authorized users only',
+    statusReady: 'Access ready.',
+    statusPending: 'Check your credentials and try again.',
   },
   PT: {
     eyebrow: 'Apex Global AI',
-    title: 'Acesso seguro para inteligencia de projetos',
-    subtitle: 'Entre para continuar com Supabase Auth real. Nenhuma sessao demo e criada.',
+    title: 'Plataforma de inteligencia para construcao',
+    subtitle: 'Inteligencia para construcao, BIM e execucao de projetos.',
     login: 'Entrar',
     signup: 'Criar conta',
     email: 'Email',
     password: 'Senha',
     submitLogin: 'Entrar',
     submitSignup: 'Criar conta',
-    google: 'Google OAuth',
     signOut: 'Sair',
-    status: 'Status da sessao',
-    bootstrap: 'Tentar bootstrap seguro do perfil',
-    assignment: 'A atribuicao de tenant e obrigatoria antes do sync Supabase. Nenhum papel Owner/Admin falso foi criado.',
-    provider: 'Provedor Auth',
+    bootstrap: 'Preparar workspace',
+    footer: 'Usuarios autorizados apenas',
+    statusReady: 'Acesso pronto.',
+    statusPending: 'Verifique suas credenciais e tente novamente.',
   },
 }
 
-const capabilities = ['BIM intelligence', 'EVM controls', 'Safety workflows', 'Multi-Agent execution']
+const capabilities = ['BIM Intelligence', 'Project Controls', 'Field Operations', 'Multi-Agent AI']
 
 export function AuthPanel({ onClear, onAuthStateChange }: AuthPanelProps) {
   const provider = useMemo(() => getSupabaseProviderStatus(), [])
-  const googleStatus = getGoogleOauthStatus()
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [language, setLanguage] = useState<'EN' | 'PT'>('EN')
   const [email, setEmail] = useState('')
@@ -60,6 +56,7 @@ export function AuthPanel({ onClear, onAuthStateChange }: AuthPanelProps) {
   const [busy, setBusy] = useState(false)
   const [account, setAccount] = useState<SupabaseAccountState | null>(null)
   const labels = copy[language]
+  const publicStatus = account?.user ? labels.statusReady : labels.statusPending
 
   async function refreshAccount(autoBootstrap = false) {
     const state = await loadSupabaseAccountState()
@@ -86,7 +83,7 @@ export function AuthPanel({ onClear, onAuthStateChange }: AuthPanelProps) {
   async function submit(event: FormEvent) {
     event.preventDefault()
     if (provider.providerStatus !== 'supabase-connected') {
-      setStatusText('Supabase/Auth not connected yet. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY later; no fake login was created.')
+      setStatusText(labels.statusPending)
       return
     }
 
@@ -99,7 +96,7 @@ export function AuthPanel({ onClear, onAuthStateChange }: AuthPanelProps) {
         : await client.auth.signUp({ email, password })
       if (result.error) setStatusText(result.error.message)
       else {
-        setStatusText(mode === 'login' ? 'Supabase session returned by provider.' : 'Signup submitted to Supabase. Confirm email settings in Supabase before production.')
+        setStatusText(mode === 'login' ? labels.statusReady : 'Account created. Check your email if confirmation is required.')
         await refreshAccount(true)
       }
     } finally {
@@ -109,24 +106,14 @@ export function AuthPanel({ onClear, onAuthStateChange }: AuthPanelProps) {
 
   async function signOut() {
     if (provider.providerStatus !== 'supabase-connected') {
-      setStatusText('Supabase/Auth not connected yet. There is no real session to sign out.')
+      setStatusText(labels.statusPending)
       return
     }
     const { client } = getBrowserSupabaseClient()
     if (!client) return
     await client.auth.signOut()
-    setStatusText('Signed out through Supabase client.')
+    setStatusText(labels.statusPending)
     await refreshAccount()
-  }
-
-  async function googleLogin() {
-    if (provider.providerStatus !== 'supabase-connected' || googleStatus !== 'configured') {
-      setStatusText('Google OAuth not configured yet.')
-      return
-    }
-    const { client } = getBrowserSupabaseClient()
-    if (!client) return
-    await client.auth.signInWithOAuth({ provider: 'google' })
   }
 
   async function bootstrapProfile() {
@@ -153,20 +140,16 @@ export function AuthPanel({ onClear, onAuthStateChange }: AuthPanelProps) {
           <span className="auth-eyebrow">{labels.eyebrow}</span>
           <h2>Apex Global AI</h2>
           <p>{labels.title}</p>
+          <small>Operational intelligence for modern construction.</small>
         </div>
         <div className="auth-capability-grid">
           {capabilities.map(capability => <span key={capability}>{capability}</span>)}
-        </div>
-        <div className="auth-provider-pill">
-          <ShieldCheck size={16} />
-          <span>{provider.providerStatus}</span>
         </div>
       </aside>
 
       <div className="auth-form-column">
         <div className="auth-form-head">
           <div>
-            <span>{labels.provider}</span>
             <h3>{mode === 'login' ? labels.login : labels.signup}</h3>
             <p>{labels.subtitle}</p>
           </div>
@@ -208,34 +191,22 @@ export function AuthPanel({ onClear, onAuthStateChange }: AuthPanelProps) {
             {mode === 'login' ? labels.submitLogin : labels.submitSignup}
           </button>
 
-          <div className="auth-secondary-actions">
-            <button type="button" onClick={googleLogin}>{labels.google}</button>
-            <button type="button" onClick={signOut}><LogOut size={15} /> {labels.signOut}</button>
-          </div>
+          {account?.user && (
+            <div className="auth-secondary-actions">
+              <button type="button" onClick={signOut}><LogOut size={15} /> {labels.signOut}</button>
+            </div>
+          )}
         </form>
 
-        <div className="auth-status-card">
-          <strong>{labels.status}</strong>
-          <p>{statusText}</p>
-          {account?.user && <span>Signed in as: {account.user.email}</span>}
+        <div className="auth-status-card public">
+          <p>{statusText && !/supabase|provider|tenant|rls|bootstrap|configured|session/i.test(statusText) ? statusText : publicStatus}</p>
+          {account?.user && <span>{account.user.email}</span>}
           {account?.bootstrapStatus === 'needs-profile-bootstrap' && (
             <button type="button" disabled={busy} onClick={bootstrapProfile}>
               {labels.bootstrap}
             </button>
           )}
-          {account?.bootstrapStatus === 'needs-tenant-assignment' && <p>{labels.assignment}</p>}
-          <small>Google OAuth: {googleStatus}</small>
-        </div>
-
-        <div className="auth-meta-grid">
-          <div>
-            <strong>Roles</strong>
-            <span>{apexRoles.slice(0, 4).map(role => role.label).join(' / ')}</span>
-          </div>
-          <div>
-            <strong>Permissions</strong>
-            <span>{permissionGroups.length} groups configured</span>
-          </div>
+          <small>{labels.footer}</small>
         </div>
       </div>
     </section>
