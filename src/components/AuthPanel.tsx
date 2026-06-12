@@ -1,5 +1,5 @@
-import { Eye, EyeOff, KeyRound, Languages, LogIn, Mail, UserPlus, X } from 'lucide-react'
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { Eye, EyeOff, KeyRound, Mail, X } from 'lucide-react'
+import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { attemptProfileBootstrap, loadSupabaseAccountState, SupabaseAccountState } from '../lib/supabaseAuthBootstrap'
 import { getBrowserSupabaseClient, getSupabaseProviderStatus } from '../lib/supabaseClient'
 
@@ -8,21 +8,23 @@ type AuthPanelProps = {
   onAuthStateChange?: (state: SupabaseAccountState) => void
 }
 
+const logoSrc = '/apex-global-logo.png'
+
 const copy = {
   EN: {
-    brand: 'Apex AI Copilot',
-    eyebrow: 'Apex Global AI',
-    headline: 'Transform Your Construction Intelligence',
-    subtitle: 'AI-powered intelligence for BIM, 3D visualization, project controls, documents, contracts, permits, marketing, finance and field operations.',
-    primaryCta: 'Start with Apex Copilot',
-    secondaryCta: 'Request a consultation',
-    accessTitle: 'Access Apex Copilot',
-    accessText: 'Sign in or create your account to open the conversational workspace.',
+    product: 'APEX AI COPILOT',
+    subtitle: 'Full intelligence copilot platform',
+    platformTitle: 'CONSTRUCTION INTELLIGENCE PLATFORM',
+    introStrong: 'Operational Intelligence for Construction & Business',
+    intro: 'AI-powered platform for construction, BIM, EVM and executive intelligence.',
     login: 'Sign in',
     signup: 'Create account',
+    formTitleLogin: 'Sign in to the platform',
+    formTitleSignup: 'Create your account',
+    formText: 'AI-powered platform for construction, BIM, EVM and executive intelligence.',
     email: 'Email',
     password: 'Password',
-    submitLogin: 'Enter Apex Copilot',
+    submitLogin: 'Sign in',
     submitSignup: 'Create account',
     footer: 'Authorized users only',
     statusReady: 'Access ready.',
@@ -30,19 +32,19 @@ const copy = {
     signupSuccess: 'Account created. Check your email if confirmation is required.',
   },
   PT: {
-    brand: 'Apex AI Copilot',
-    eyebrow: 'Apex Global AI',
-    headline: 'Transforme sua inteligencia na construcao',
-    subtitle: 'Inteligencia com IA para BIM, visualizacao 3D, controles de projeto, documentos, contratos, alvaras, marketing, financeiro e operacoes de campo.',
-    primaryCta: 'Comecar com Apex Copilot',
-    secondaryCta: 'Solicitar consultoria',
-    accessTitle: 'Acesse a Apex Copilot',
-    accessText: 'Entre ou crie sua conta para abrir o workspace conversacional.',
+    product: 'APEX AI COPILOT',
+    subtitle: 'Full intelligence copilot platform',
+    platformTitle: 'PLATAFORMA DE INTELIGENCIA PARA CONSTRUCAO',
+    introStrong: 'Inteligencia operacional para construcao e negocios',
+    intro: 'Plataforma com IA para construcao, BIM, EVM e inteligencia executiva.',
     login: 'Entrar',
     signup: 'Criar conta',
+    formTitleLogin: 'Entrar na plataforma',
+    formTitleSignup: 'Criar sua conta',
+    formText: 'Plataforma com IA para construcao, BIM, EVM e inteligencia executiva.',
     email: 'Email',
     password: 'Senha',
-    submitLogin: 'Entrar na Apex Copilot',
+    submitLogin: 'Entrar',
     submitSignup: 'Criar conta',
     footer: 'Usuarios autorizados apenas',
     statusReady: 'Acesso pronto.',
@@ -51,37 +53,15 @@ const copy = {
   },
 }
 
-const capabilityGroups = [
-  { title: 'BIM Intelligence', items: 'BIM 5D/6D/7D, engineering, proposals' },
-  { title: '3D / ArchViz', items: '3D visualization, CFD, simulations, DirectCut' },
-  { title: 'AI Agents', items: 'Documents, contracts, legal, permits' },
-  { title: 'Project Controls', items: 'Finance, accounting, field operations' },
-  { title: 'Sales & Marketing', items: 'Commercial workflows and client packages' },
-  { title: 'Operations', items: 'Procurement, reporting, execution support' },
-]
-
-const serviceLine = [
-  'BIM 5D/6D/7D',
-  '3D / ArchViz',
-  'CFD / Simulations',
-  'AI Agents',
-  'DirectCut',
-  'Sales',
-  'Marketing',
-  'Accounting',
-  'Finance',
-  'Permits',
-  'Contracts',
-  'Legal',
-  'Documents',
-  'Proposals',
-  'Engineering',
-  'Field Operations',
+const highlights = [
+  { code: 'A', title: 'BIM Intelligence', detail: 'IFC, RVT, NWD, DWG, clash detection' },
+  { code: 'E', title: 'EVM Controls', detail: 'CPI, SPI, EAC, VAC, live performance signals' },
+  { code: 'S', title: 'Safety & Standards', detail: 'ABNT, NR-18, NR-35, NR-10, NR-6' },
+  { code: 'AI', title: 'Multi-Agent AI', detail: 'Specialized agents for planning and execution' },
 ]
 
 export function AuthPanel({ onClear, onAuthStateChange }: AuthPanelProps) {
   const provider = useMemo(() => getSupabaseProviderStatus(), [])
-  const emailInput = useRef<HTMLInputElement | null>(null)
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [language, setLanguage] = useState<'EN' | 'PT'>('EN')
   const [email, setEmail] = useState('')
@@ -91,11 +71,6 @@ export function AuthPanel({ onClear, onAuthStateChange }: AuthPanelProps) {
   const [busy, setBusy] = useState(false)
   const [account, setAccount] = useState<SupabaseAccountState | null>(null)
   const labels = copy[language]
-
-  function focusAccess(nextMode = mode) {
-    setMode(nextMode)
-    window.setTimeout(() => emailInput.current?.focus(), 0)
-  }
 
   function publicStatus(raw = statusText) {
     if (account?.user) return labels.statusReady
@@ -153,107 +128,93 @@ export function AuthPanel({ onClear, onAuthStateChange }: AuthPanelProps) {
   }
 
   return (
-    <section className="auth-landing-page" aria-label="Apex AI Copilot access">
-      <header className="auth-landing-header">
-        <div className="auth-landing-brand">
-          <span className="auth-landing-mark">A</span>
+    <section className="auth-legacy-panel" aria-label="Apex AI Copilot access">
+      {onClear && (
+        <button className="auth-close-button" type="button" onClick={onClear} aria-label="Close authentication panel">
+          <X size={17} />
+        </button>
+      )}
+
+      <aside className="auth-legacy-left">
+        <div className="auth-legacy-brand">
+          <img src={logoSrc} alt="Apex Global" />
           <div>
-            <strong>{labels.brand}</strong>
-            <small>{labels.eyebrow}</small>
-          </div>
-        </div>
-        <nav className="auth-landing-nav" aria-label="Apex public navigation">
-          <button type="button" onClick={() => setLanguage(current => current === 'EN' ? 'PT' : 'EN')}>
-            <Languages size={16} /> {language}
-          </button>
-          <button type="button" onClick={() => focusAccess('login')}>
-            {labels.login}
-          </button>
-          {onClear && (
-            <button type="button" onClick={onClear} aria-label="Close authentication panel">
-              <X size={16} />
-            </button>
-          )}
-        </nav>
-      </header>
-
-      <div className="auth-landing-hero">
-        <div className="auth-landing-copy">
-          <span>{labels.eyebrow}</span>
-          <h1>{labels.headline}</h1>
-          <p>{labels.subtitle}</p>
-          <div className="auth-landing-actions">
-            <button type="button" className="auth-landing-primary" onClick={() => focusAccess('signup')}>
-              {labels.primaryCta}
-            </button>
-            <button type="button" className="auth-landing-secondary" onClick={() => focusAccess('login')}>
-              {labels.secondaryCta}
-            </button>
-          </div>
-          <div className="auth-service-ribbon">
-            {serviceLine.map(service => <span key={service}>{service}</span>)}
+            <strong>{labels.product}</strong>
+            <span>{labels.subtitle}</span>
           </div>
         </div>
 
-        <aside className="auth-access-panel" aria-label="Apex Copilot sign in">
-          <div className="auth-access-head">
-            <span>{labels.accessTitle}</span>
-            <h2>{mode === 'login' ? labels.login : labels.signup}</h2>
-            <p>{labels.accessText}</p>
+        <div className="auth-legacy-copy">
+          <h1>{labels.platformTitle}</h1>
+          <strong>{labels.introStrong}</strong>
+          <p>{labels.intro}</p>
+        </div>
+
+        <div className="auth-legacy-highlights">
+          {highlights.map(item => (
+            <article key={item.title}>
+              <span>{item.code}</span>
+              <div>
+                <strong>{item.title}</strong>
+                <small>{item.detail}</small>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <footer>2026 Apex Global AI. All rights reserved.</footer>
+      </aside>
+
+      <div className="auth-legacy-form-side">
+        <div className="auth-legacy-language">
+          <button type="button" className={language === 'EN' ? 'active' : ''} onClick={() => setLanguage('EN')}>EN</button>
+          <button type="button" className={language === 'PT' ? 'active' : ''} onClick={() => setLanguage('PT')}>PT</button>
+        </div>
+
+        <form className="auth-legacy-form" onSubmit={submit}>
+          <div className="auth-mode-toggle">
+            <button type="button" className={mode === 'login' ? 'active' : ''} onClick={() => setMode('login')}>
+              {labels.login}
+            </button>
+            <button type="button" className={mode === 'signup' ? 'active' : ''} onClick={() => setMode('signup')}>
+              {labels.signup}
+            </button>
           </div>
 
-          <form className="auth-access-form" onSubmit={submit}>
-            <div className="auth-mode-toggle">
-              <button type="button" className={mode === 'login' ? 'active' : ''} onClick={() => setMode('login')}>
-                <LogIn size={15} /> {labels.login}
-              </button>
-              <button type="button" className={mode === 'signup' ? 'active' : ''} onClick={() => setMode('signup')}>
-                <UserPlus size={15} /> {labels.signup}
+          <div className="auth-legacy-form-head">
+            <h2>{mode === 'login' ? labels.formTitleLogin : labels.formTitleSignup}</h2>
+            <p>{labels.formText}</p>
+          </div>
+
+          <label className="auth-input-label">
+            <span>{labels.email}</span>
+            <div className="auth-input-shell">
+              <Mail size={17} />
+              <input value={email} onChange={event => setEmail(event.target.value)} placeholder="jedgard70@gmail.com" type="email" autoComplete="email" />
+            </div>
+          </label>
+
+          <label className="auth-input-label">
+            <span>{labels.password}</span>
+            <div className="auth-input-shell">
+              <KeyRound size={17} />
+              <input value={password} onChange={event => setPassword(event.target.value)} placeholder={labels.password} type={showPassword ? 'text' : 'password'} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
+              <button type="button" onClick={() => setShowPassword(current => !current)} aria-label={showPassword ? 'Hide password' : 'Show password'}>
+                {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
               </button>
             </div>
+          </label>
 
-            <label className="auth-input-label">
-              <span>{labels.email}</span>
-              <div className="auth-input-shell">
-                <Mail size={17} />
-                <input ref={emailInput} value={email} onChange={event => setEmail(event.target.value)} placeholder="jose@apexglobal.ai" type="email" autoComplete="email" />
-              </div>
-            </label>
+          <button className="auth-primary-button" disabled={busy}>
+            {mode === 'login' ? labels.submitLogin : labels.submitSignup}
+          </button>
+        </form>
 
-            <label className="auth-input-label">
-              <span>{labels.password}</span>
-              <div className="auth-input-shell">
-                <KeyRound size={17} />
-                <input value={password} onChange={event => setPassword(event.target.value)} placeholder={labels.password} type={showPassword ? 'text' : 'password'} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
-                <button type="button" onClick={() => setShowPassword(current => !current)} aria-label={showPassword ? 'Hide password' : 'Show password'}>
-                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-                </button>
-              </div>
-            </label>
-
-            <button className="auth-primary-button" disabled={busy}>
-              {mode === 'login' ? labels.submitLogin : labels.submitSignup}
-            </button>
-          </form>
-
-          <p className="auth-access-status">{publicStatus()}</p>
+        <div className="auth-legacy-status">
+          <p>{publicStatus()}</p>
           <small>{labels.footer}</small>
-        </aside>
+        </div>
       </div>
-
-      <div className="auth-capability-showcase">
-        {capabilityGroups.map(group => (
-          <article key={group.title}>
-            <strong>{group.title}</strong>
-            <span>{group.items}</span>
-          </article>
-        ))}
-      </div>
-
-      <footer className="auth-landing-footer">
-        <span>{labels.footer}</span>
-        <span>Apex Global AI © 2026</span>
-      </footer>
     </section>
   )
 }

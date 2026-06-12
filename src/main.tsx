@@ -9,7 +9,6 @@ import {
   Paperclip,
   Plus,
   Settings,
-  Sparkles,
   Square,
   Terminal,
   X,
@@ -1909,17 +1908,6 @@ function App() {
   if (isSupabaseConfigured && (!isSignedIn || authLoading)) {
     return (
       <main className="app auth-only-app">
-        <header className="topbar">
-          <div className="brand">
-            <div className="brand-mark"><Sparkles size={22} /></div>
-            <div>
-              <strong>APEX AI COPILOT</strong>
-              <span>{uiLanguage === 'EN' ? 'Full intelligence copilot platform' : 'Plataforma de inteligencia operacional'}</span>
-            </div>
-          </div>
-          {authHeader}
-        </header>
-
         <section className="auth-gate-shell" aria-label="Apex login">
           <AuthPanel onAuthStateChange={state => {
             setAccountState(state)
@@ -1935,10 +1923,10 @@ function App() {
     <main className="app" onPaste={handlePaste} onDragOver={event => event.preventDefault()} onDrop={handleDrop}>
       <header className="topbar">
         <div className="brand">
-          <div className="brand-mark"><Sparkles size={22} /></div>
+          <div className="brand-mark"><img src="/apex-global-logo.png" alt="Apex Global" /></div>
           <div>
             <strong>APEX AI COPILOT</strong>
-            <span>{uiLanguage === 'EN' ? 'Full intelligence copilot platform' : 'Plataforma de inteligencia operacional'}</span>
+            <span>Full intelligence copilot platform</span>
           </div>
         </div>
         {authHeader}
