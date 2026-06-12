@@ -2,12 +2,96 @@ import http from 'node:http'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { spawn } from 'node:child_process'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = __dirname
 const dist = path.join(root, 'dist')
 const runtimeKnowledgePath = path.join(root, 'src', 'lib', 'runtimeKnowledge.json')
 const skillUpdateLogPath = path.join(root, 'docs', 'SKILL_UPDATE_LOG.md')
+const copilotExecutionCwd = path.resolve(root)
+const authorizedExecutionCwd = path.resolve('D:\\AI-constr\\apex-ai-copilot-platform')
+const maxExecutionOutputBytes = 160000
+
+const copilotExecutionCommands = [
+  {
+    id: 'git_status',
+    label: 'Git status',
+    description: 'Show concise repo status for the authorized Apex Copilot repo.',
+    executable: 'git',
+    args: ['status', '--short'],
+    risk: 'low',
+    requiresApproval: false,
+    timeoutMs: 15000,
+    source: 'allowlist',
+  },
+  {
+    id: 'git_log_recent',
+    label: 'Recent Git log',
+    description: 'Show the five most recent commits.',
+    executable: 'git',
+    args: ['log', '--oneline', '-5'],
+    risk: 'low',
+    requiresApproval: false,
+    timeoutMs: 15000,
+    source: 'allowlist',
+  },
+  {
+    id: 'git_diff_stat',
+    label: 'Git diff stat',
+    description: 'Summarize unstaged and staged file changes without showing full patches.',
+    executable: 'git',
+    args: ['diff', '--stat'],
+    risk: 'low',
+    requiresApproval: false,
+    timeoutMs: 15000,
+    source: 'allowlist',
+  },
+  {
+    id: 'git_diff_name_only',
+    label: 'Git changed names',
+    description: 'List changed file paths only.',
+    executable: 'git',
+    args: ['diff', '--name-only'],
+    risk: 'low',
+    requiresApproval: false,
+    timeoutMs: 15000,
+    source: 'allowlist',
+  },
+  {
+    id: 'build',
+    label: 'Build',
+    description: 'Run the local Vite production build.',
+    executable: 'npm.cmd',
+    args: ['run', 'build'],
+    risk: 'medium',
+    requiresApproval: false,
+    timeoutMs: 120000,
+    source: 'allowlist',
+  },
+  {
+    id: 'validate_supabase_sql',
+    label: 'Validate Supabase SQL',
+    description: 'Run the local read-only Supabase SQL validation script.',
+    executable: 'npm.cmd',
+    args: ['run', 'validate:supabase-sql'],
+    risk: 'medium',
+    requiresApproval: false,
+    timeoutMs: 60000,
+    source: 'allowlist',
+  },
+  {
+    id: 'check_server',
+    label: 'Check server.mjs',
+    description: 'Syntax-check the local Node server.',
+    executable: 'node',
+    args: ['--check', 'server.mjs'],
+    risk: 'low',
+    requiresApproval: false,
+    timeoutMs: 30000,
+    source: 'allowlist',
+  },
+]
 
 loadEnvLocal()
 
@@ -330,6 +414,159 @@ async function readJson(req) {
 function json(res, status, body) {
   res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' })
   res.end(JSON.stringify(body))
+}
+
+function publicExecutionCommand(command) {
+  return {
+    ...command,
+    cwd: authorizedExecutionCwd,
+  }
+}
+
+function getExecutionCommand(commandId) {
+  return copilotExecutionCommands.find(command => command.id === commandId)
+}
+
+function resolveExecutable(executable) {
+  if (executable !== 'git') return executable
+  const githubDesktopGit = 'C:\\Users\\apexg\\AppData\\Local\\GitHubDesktop\\app-3.5.12\\resources\\app\\git\\cmd\\git.exe'
+  return fs.existsSync(githubDesktopGit) ? githubDesktopGit : executable
+}
+
+function resolveSpawnSpec(command) {
+  if (command.executable === 'npm.cmd') {
+    const npmCliPath = path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'npm-cli.js')
+    if (fs.existsSync(npmCliPath)) {
+      return { executable: process.execPath, args: [npmCliPath, ...command.args] }
+    }
+  }
+  return { executable: resolveExecutable(command.executable), args: command.args }
+}
+
+function appendLimitedOutput(current, chunk) {
+  const next = current + chunk
+  if (Buffer.byteLength(next, 'utf8') <= maxExecutionOutputBytes) return next
+  return next.slice(0, maxExecutionOutputBytes) + '\n[output truncated]'
+}
+
+function redactedExecutionText(value) {
+  return redactSensitiveText(value)
+    .replace(/NEXT_PUBLIC_SUPABASE_[A-Z_]*=([^\s]+)/g, 'NEXT_PUBLIC_SUPABASE_KEY=[redacted-secret]')
+    .replace(/VITE_SUPABASE_[A-Z_]*=([^\s]+)/g, 'VITE_SUPABASE_KEY=[redacted-secret]')
+    .replace(/Bearer\s+[A-Za-z0-9._-]{16,}/gi, 'Bearer [redacted-token]')
+    .replace(/eyJ[A-Za-z0-9._-]{20,}/g, '[redacted-jwt]')
+}
+
+async function runCopilotExecutionCommand(command, body) {
+  return new Promise(resolve => {
+    const startedAtMs = Date.now()
+    const startedAt = new Date(startedAtMs).toISOString()
+    let stdout = ''
+    let stderr = ''
+    let exitCode = null
+    let settled = false
+    let timedOut = false
+    const spawnSpec = resolveSpawnSpec(command)
+
+    const child = spawn(spawnSpec.executable, spawnSpec.args, {
+      cwd: authorizedExecutionCwd,
+      shell: false,
+      windowsHide: true,
+      env: {
+        ...process.env,
+        APEX_COPILOT_EXECUTION: 'v0',
+      },
+    })
+
+    const finish = status => {
+      if (settled) return
+      settled = true
+      const finishedAtMs = Date.now()
+      const cleanStdout = redactedExecutionText(stdout)
+      const cleanStderr = redactedExecutionText(stderr)
+      resolve({
+        id: safeId('execution'),
+        commandId: command.id,
+        label: command.label,
+        cwd: authorizedExecutionCwd,
+        args: [command.executable, ...command.args],
+        status,
+        stdout: cleanStdout,
+        stderr: cleanStderr,
+        exitCode,
+        startedAt,
+        finishedAt: new Date(finishedAtMs).toISOString(),
+        durationMs: finishedAtMs - startedAtMs,
+        createdBy: 'Jose',
+        risk: command.risk,
+        requiresApproval: command.requiresApproval,
+        approvedBy: body?.approvedBy || 'Jose',
+        redactedOutput: cleanStdout !== stdout || cleanStderr !== stderr,
+      })
+    }
+
+    const timer = setTimeout(() => {
+      timedOut = true
+      stderr = appendLimitedOutput(stderr, `\nCommand timed out after ${command.timeoutMs}ms.`)
+      child.kill('SIGTERM')
+    }, command.timeoutMs)
+
+    child.stdout.on('data', chunk => {
+      stdout = appendLimitedOutput(stdout, chunk.toString('utf8'))
+    })
+
+    child.stderr.on('data', chunk => {
+      stderr = appendLimitedOutput(stderr, chunk.toString('utf8'))
+    })
+
+    child.on('error', error => {
+      clearTimeout(timer)
+      stderr = appendLimitedOutput(stderr, error.message || String(error))
+      finish('failed')
+    })
+
+    child.on('close', code => {
+      clearTimeout(timer)
+      exitCode = code
+      finish(timedOut ? 'timeout' : code === 0 ? 'completed' : 'failed')
+    })
+  })
+}
+
+async function handleExecutionCommands(_req, res) {
+  json(res, 200, {
+    providerStatus: 'local-execution-v0',
+    commands: copilotExecutionCommands.map(publicExecutionCommand),
+  })
+}
+
+async function handleExecutionRun(req, res) {
+  try {
+    if (copilotExecutionCwd !== authorizedExecutionCwd) {
+      return json(res, 403, {
+        error: 'Apex Copilot execution is locked to the authorized local repo.',
+        expectedCwd: authorizedExecutionCwd,
+        actualCwd: copilotExecutionCwd,
+      })
+    }
+    const body = await readJson(req)
+    const commandId = String(body.commandId || '')
+    const command = getExecutionCommand(commandId)
+    if (!command) {
+      return json(res, 403, {
+        error: 'Command is not registered for Apex Copilot Local Execution v0.',
+        commandId,
+        providerStatus: 'blocked',
+      })
+    }
+    const result = await runCopilotExecutionCommand(command, body)
+    return json(res, 200, {
+      providerStatus: 'local-execution-v0',
+      result,
+    })
+  } catch (error) {
+    return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'local-execution-v0' })
+  }
 }
 
 function scrubProviderError(value) {
@@ -3124,6 +3361,14 @@ function serveStatic(req, res) {
 }
 
 const server = http.createServer((req, res) => {
+  if (req.url === '/api/copilot/execution/commands' && req.method === 'GET') {
+    handleExecutionCommands(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/execution/run' && req.method === 'POST') {
+    handleExecutionRun(req, res)
+    return
+  }
   if (req.url === '/api/copilot/chat' && req.method === 'POST') {
     handleChat(req, res)
     return

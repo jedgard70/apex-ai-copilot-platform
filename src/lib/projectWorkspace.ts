@@ -44,12 +44,14 @@ export type ProjectWorkspace = {
   digitalTwinItems: unknown[]
   knowledgeItems: unknown[]
   metricsRecords: unknown[]
+  executionRuns: unknown[]
+  lastExecutionSummary?: unknown
   projectMemory: unknown[]
   skillUpdates: unknown[]
   preferences: unknown[]
   activeTool?: string
   activeFileId?: string
-  activeStudio?: 'archvis' | 'directcut' | 'bim3d' | 'budget' | 'contracts' | 'research' | 'fieldops' | 'business' | 'agents' | 'evm-scheduler-compliance' | 'supply-chain' | 'notifications' | 'ai-cost' | 'multi-tenant' | 'pwa-mobile' | 'digital-twin' | 'knowledge-base' | 'metrics-dashboard' | 'auth' | null
+  activeStudio?: 'archvis' | 'directcut' | 'bim3d' | 'budget' | 'contracts' | 'research' | 'fieldops' | 'business' | 'agents' | 'evm-scheduler-compliance' | 'supply-chain' | 'notifications' | 'ai-cost' | 'multi-tenant' | 'pwa-mobile' | 'digital-twin' | 'knowledge-base' | 'metrics-dashboard' | 'copilot-execution' | 'auth' | null
   appState?: Record<string, unknown>
 }
 
@@ -104,6 +106,8 @@ export function createProject(name = 'Apex Project'): ProjectWorkspace {
     digitalTwinItems: [],
     knowledgeItems: [],
     metricsRecords: [],
+    executionRuns: [],
+    lastExecutionSummary: null,
     projectMemory: [],
     skillUpdates: [],
     preferences: [],
@@ -139,6 +143,8 @@ export function validateProjectWorkspace(value: unknown): ProjectWorkspace | nul
     digitalTwinItems: Array.isArray(candidate.digitalTwinItems) ? candidate.digitalTwinItems : [],
     knowledgeItems: Array.isArray(candidate.knowledgeItems) ? candidate.knowledgeItems : [],
     metricsRecords: Array.isArray(candidate.metricsRecords) ? candidate.metricsRecords : [],
+    executionRuns: Array.isArray(candidate.executionRuns) ? candidate.executionRuns : [],
+    lastExecutionSummary: candidate.lastExecutionSummary || null,
     projectMemory: Array.isArray(candidate.projectMemory) ? candidate.projectMemory : [],
     skillUpdates: Array.isArray(candidate.skillUpdates) ? candidate.skillUpdates : [],
     preferences: Array.isArray(candidate.preferences) ? candidate.preferences : [],

@@ -19,6 +19,7 @@ import { AuthPanel } from './components/AuthPanel'
 import { Bim3DPanel, BimArchVisOutput, BimTourOutput } from './components/Bim3DPanel'
 import { BudgetPanel } from './components/BudgetPanel'
 import { ContractsPanel } from './components/ContractsPanel'
+import { CopilotExecutionPanel } from './components/CopilotExecutionPanel'
 import { CrmPanel } from './components/CrmPanel'
 import { DigitalTwinPanel } from './components/DigitalTwinPanel'
 import { DirectCutInitialConfig, DirectCutPanel } from './components/DirectCutPanel'
@@ -57,6 +58,7 @@ import { getBrowserSupabaseClient, getSupabaseProviderStatus } from './lib/supab
 import { isSkillUpdateIntent, ProjectMemoryUpdate, SkillUpdateApplyResult } from './lib/skillUpdateEngine'
 import { isSkillExportIntent } from './lib/skillExportFactory'
 import { BudgetPlan } from './lib/budgetKnowledge'
+import type { CopilotExecutionResult } from './lib/copilotExecutionModel'
 import { ContractsPlan } from './lib/contractsKnowledge'
 import { BusinessPlan } from './lib/crmFinanceKnowledge'
 import { isExportIntent } from './lib/exportCenter'
@@ -265,6 +267,10 @@ function isBusinessLayerIntent(text: string) {
 
 function isAuthIntent(text: string) {
   return /\b(login|entrar|cadastro|cadastrar|criar conta|sign in|signup|sign up|usu[aá]rio|usuarios|user account|sess[aã]o|session|permiss[oõ]es|permissions|auth|authentication|supabase)\b/i.test(text)
+}
+
+function isCopilotExecutionIntent(text: string) {
+  return /\b(copilot execution|local execution|executar comando|executa comando|rodar comando|repo checks|build checks|git status|git log|check server|validar server|npm build|build local)\b/i.test(text)
 }
 
 function inferBusinessFocus(text: string): BusinessOutput['focus'] {
@@ -487,6 +493,14 @@ function App() {
     const stored = initialAppState.metricsOutput as SimpleStudioOutput | undefined
     return stored || null
   })
+  const [copilotExecutionOutput, setCopilotExecutionOutput] = useState<SimpleStudioOutput | null>(() => {
+    const stored = initialAppState.copilotExecutionOutput as SimpleStudioOutput | undefined
+    return stored || null
+  })
+  const [executionRuns, setExecutionRuns] = useState<CopilotExecutionResult[]>(() => (
+    Array.isArray(initialProject.executionRuns) ? initialProject.executionRuns as CopilotExecutionResult[] : []
+  ))
+  const [lastExecutionSummary, setLastExecutionSummary] = useState<unknown>(initialProject.lastExecutionSummary || null)
   const [authOutput, setAuthOutput] = useState<SimpleStudioOutput | null>(() => {
     const stored = initialAppState.authOutput as SimpleStudioOutput | undefined
     return stored || null
@@ -532,7 +546,8 @@ function App() {
     tenants: activeProject.tenants.length,
     knowledgeItems: activeProject.knowledgeItems.length,
     metricsRecords: activeProject.metricsRecords.length,
-  }), [activeProject, archVisOutput, archVisRevisionConstraints.length, bim3DOutput, directCutOutput, messages.length])
+    executionRuns: executionRuns.length,
+  }), [activeProject, archVisOutput, archVisRevisionConstraints.length, bim3DOutput, directCutOutput, executionRuns.length, messages.length])
 
   const isSignedIn = !isSupabaseConfigured || accountState?.sessionStatus === 'signed-in'
   const authShellStatus = accountState?.bootstrapStatus || (isSupabaseConfigured ? 'needs-login' : 'local-demo')
@@ -578,6 +593,7 @@ function App() {
     setDigitalTwinOutput(null)
     setKnowledgeBaseOutput(null)
     setMetricsOutput(null)
+    setCopilotExecutionOutput(null)
     setAuthOutput(null)
     setExportCenterOpen(false)
     setActiveFile(undefined)
@@ -627,7 +643,7 @@ function App() {
           activeRecord,
         ]
       : activeProject.files
-    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : fieldOpsOutput ? 'fieldops' : businessOutput ? 'business' : agentsOutput ? 'agents' : evmSchedulerComplianceOutput ? 'evm-scheduler-compliance' : supplyChainOutput ? 'supply-chain' : notificationsOutput ? 'notifications' : aiCostOutput ? 'ai-cost' : multiTenantOutput ? 'multi-tenant' : pwaMobileOutput ? 'pwa-mobile' : digitalTwinOutput ? 'digital-twin' : knowledgeBaseOutput ? 'knowledge-base' : metricsOutput ? 'metrics-dashboard' : authOutput ? 'auth' : null
+    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : fieldOpsOutput ? 'fieldops' : businessOutput ? 'business' : agentsOutput ? 'agents' : evmSchedulerComplianceOutput ? 'evm-scheduler-compliance' : supplyChainOutput ? 'supply-chain' : notificationsOutput ? 'notifications' : aiCostOutput ? 'ai-cost' : multiTenantOutput ? 'multi-tenant' : pwaMobileOutput ? 'pwa-mobile' : digitalTwinOutput ? 'digital-twin' : knowledgeBaseOutput ? 'knowledge-base' : metricsOutput ? 'metrics-dashboard' : copilotExecutionOutput ? 'copilot-execution' : authOutput ? 'auth' : null
     return {
       ...activeProject,
       language: navigator.language || activeProject.language,
@@ -655,6 +671,8 @@ function App() {
       digitalTwinItems: activeProject.digitalTwinItems,
       knowledgeItems: activeProject.knowledgeItems,
       metricsRecords: activeProject.metricsRecords,
+      executionRuns,
+      lastExecutionSummary,
       activeTool: activeTool.id,
       activeFileId: activeRecord?.id || activeProject.activeFileId,
       activeStudio,
@@ -686,6 +704,7 @@ function App() {
         digitalTwinOutput,
         knowledgeBaseOutput,
         metricsOutput,
+        copilotExecutionOutput,
         authOutput,
       },
     }
@@ -719,7 +738,7 @@ function App() {
     }, 650)
     return () => window.clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, budgetOutput, contractsOutput, researchOutput, fieldOpsOutput, businessOutput, agentsOutput, evmSchedulerComplianceOutput, supplyChainOutput, notificationsOutput, aiCostOutput, multiTenantOutput, pwaMobileOutput, digitalTwinOutput, knowledgeBaseOutput, metricsOutput, authOutput, archVisRevisionConstraints, activeTool.id])
+  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, budgetOutput, contractsOutput, researchOutput, fieldOpsOutput, businessOutput, agentsOutput, evmSchedulerComplianceOutput, supplyChainOutput, notificationsOutput, aiCostOutput, multiTenantOutput, pwaMobileOutput, digitalTwinOutput, knowledgeBaseOutput, metricsOutput, copilotExecutionOutput, authOutput, archVisRevisionConstraints, activeTool.id, executionRuns, lastExecutionSummary])
 
   async function askCopilot(text = input, attachment = activeFile) {
     const clean = text.trim()
@@ -759,6 +778,7 @@ function App() {
     const shouldOpenDigitalTwin = clean && isDigitalTwinIntent(clean)
     const shouldOpenKnowledgeBase = clean && isKnowledgeBaseIntent(clean)
     const shouldOpenMetrics = clean && isMetricsIntent(clean)
+    const shouldOpenCopilotExecution = clean && isCopilotExecutionIntent(clean)
     const shouldOpenAgents = clean && isAgentIntent(clean)
     const shouldOpenBim3D = isBim3DIntent(clean || modelText, attachment)
     const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
@@ -915,6 +935,13 @@ function App() {
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Metrics Dashboard ao lado. Métricas são LOCAL_DEMO/ESTIMATED_LOCAL até existir telemetria real.' }])
       setMetricsOutput({ goal: clean, conversationContext: context })
+      setInput('')
+      return
+    }
+    if (shouldOpenCopilotExecution) {
+      const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Apex Copilot Local Execution v0. Ele executa comandos reais apenas pela allowlist do server.mjs, sem comando livre.' }])
+      setCopilotExecutionOutput({ goal: clean, conversationContext: context })
       setInput('')
       return
     }
@@ -1287,6 +1314,7 @@ function App() {
     setDigitalTwinOutput(null)
     setKnowledgeBaseOutput(null)
     setMetricsOutput(null)
+    setCopilotExecutionOutput(null)
     setAuthOutput(null)
     setExportCenterOpen(false)
     setArchVisRevisionConstraints([])
@@ -1338,6 +1366,9 @@ function App() {
     setDigitalTwinOutput((state.digitalTwinOutput as SimpleStudioOutput | null | undefined) || null)
     setKnowledgeBaseOutput((state.knowledgeBaseOutput as SimpleStudioOutput | null | undefined) || null)
     setMetricsOutput((state.metricsOutput as SimpleStudioOutput | null | undefined) || null)
+    setCopilotExecutionOutput((state.copilotExecutionOutput as SimpleStudioOutput | null | undefined) || null)
+    setExecutionRuns(Array.isArray(project.executionRuns) ? project.executionRuns as CopilotExecutionResult[] : [])
+    setLastExecutionSummary(project.lastExecutionSummary || null)
     setAuthOutput((state.authOutput as SimpleStudioOutput | null | undefined) || null)
   }
 
@@ -1393,6 +1424,7 @@ function App() {
     setDigitalTwinOutput(null)
     setKnowledgeBaseOutput(null)
     setMetricsOutput(null)
+    setCopilotExecutionOutput(null)
     setAuthOutput(null)
     setArchVisRevisionConstraints([])
     setMessages([{ id: id(), role: 'assistant', text: 'Local workspace cleared. New Apex project ready.' }])
@@ -1686,7 +1718,7 @@ function App() {
       )}
     </div>
   )
-  const workspaceClass = archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || evmSchedulerComplianceOutput || supplyChainOutput || notificationsOutput || aiCostOutput || multiTenantOutput || pwaMobileOutput || digitalTwinOutput || knowledgeBaseOutput || metricsOutput || authOutput || exportCenterOpen ? 'studio-open' : ''
+  const workspaceClass = archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || evmSchedulerComplianceOutput || supplyChainOutput || notificationsOutput || aiCostOutput || multiTenantOutput || pwaMobileOutput || digitalTwinOutput || knowledgeBaseOutput || metricsOutput || copilotExecutionOutput || authOutput || exportCenterOpen ? 'studio-open' : ''
 
   if (isSupabaseConfigured && (!isSignedIn || authLoading)) {
     return (
@@ -2130,6 +2162,23 @@ function App() {
               conversationContext={metricsOutput.conversationContext}
               onSaveToProject={saveMetricsToProject}
               onClear={() => setMetricsOutput(null)}
+            />
+          )}
+
+          {copilotExecutionOutput && (
+            <CopilotExecutionPanel
+              initialRuns={executionRuns}
+              onRunComplete={(run, runs) => {
+                setExecutionRuns(runs)
+                setLastExecutionSummary({
+                  commandId: run.commandId,
+                  status: run.status,
+                  exitCode: run.exitCode,
+                  finishedAt: run.finishedAt,
+                  durationMs: run.durationMs,
+                })
+              }}
+              onClear={() => setCopilotExecutionOutput(null)}
             />
           )}
 

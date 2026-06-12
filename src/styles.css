@@ -3646,6 +3646,195 @@ input {
   cursor: pointer;
 }
 
+.copilot-execution-panel {
+  display: grid;
+  gap: 14px;
+  border: 1px solid rgba(150, 164, 195, 0.18);
+  border-radius: 18px;
+  padding: 16px;
+  color: #eaf0ff;
+  background: #101827;
+}
+
+.copilot-execution-head,
+.execution-run-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.copilot-execution-head span,
+.execution-run-head strong,
+.execution-command-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.copilot-execution-head h2 {
+  margin: 6px 0 4px;
+  color: #ffffff;
+  font-size: 20px;
+}
+
+.copilot-execution-head p {
+  margin: 0;
+  color: #b8c2d8;
+  font-size: 12px;
+}
+
+.copilot-execution-head button {
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(150, 164, 195, 0.2);
+  border-radius: 12px;
+  color: #eaf0ff;
+  background: rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+}
+
+.execution-guardrail {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 10px;
+  align-items: start;
+  border: 1px solid rgba(109, 168, 255, 0.22);
+  border-radius: 14px;
+  padding: 12px;
+  color: #dbe8ff;
+  background: rgba(109, 168, 255, 0.09);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.execution-command-list,
+.execution-runs {
+  display: grid;
+  gap: 10px;
+}
+
+.execution-command-list button {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  border: 1px solid rgba(150, 164, 195, 0.16);
+  border-radius: 14px;
+  padding: 12px;
+  text-align: left;
+  color: #eaf0ff;
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+}
+
+.execution-command-list button.active {
+  border-color: rgba(109, 168, 255, 0.78);
+  box-shadow: inset 4px 0 0 #6da8ff;
+}
+
+.execution-command-list strong {
+  color: #ffffff;
+}
+
+.execution-command-list span,
+.execution-command-list small,
+.execution-run-head span,
+.execution-command-meta span {
+  color: #b8c2d8;
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.execution-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.execution-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(150, 164, 195, 0.18);
+  border-radius: 14px;
+  padding: 11px 12px;
+  color: #eaf0ff;
+  background: rgba(255, 255, 255, 0.07);
+  cursor: pointer;
+}
+
+.execution-actions button:first-child {
+  color: #ffffff;
+  background: #d7192a;
+  border-color: rgba(215, 25, 42, 0.8);
+}
+
+.execution-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.execution-command-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.execution-command-meta span {
+  border: 1px solid rgba(150, 164, 195, 0.16);
+  border-radius: 999px;
+  padding: 6px 9px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.execution-run {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(150, 164, 195, 0.16);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.execution-run.completed {
+  border-color: rgba(24, 181, 92, 0.26);
+}
+
+.execution-run.failed,
+.execution-run.timeout {
+  border-color: rgba(255, 91, 116, 0.32);
+}
+
+.execution-run pre {
+  max-height: 260px;
+  margin: 0;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  border: 1px solid rgba(150, 164, 195, 0.16);
+  border-radius: 12px;
+  padding: 10px;
+  color: #eaf0ff;
+  background: rgba(0, 0, 0, 0.25);
+  font-size: 12px;
+}
+
+.execution-stderr {
+  color: #ffd0d8 !important;
+}
+
+.spin-icon {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .agents-grid {
   display: grid;
   gap: 14px;

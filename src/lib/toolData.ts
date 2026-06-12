@@ -134,6 +134,12 @@ export const toolData: CopilotTool[] = [
     trigger: ['github', 'repo', 'branch', 'pr', 'supabase', 'sql', 'vercel', 'deploy', 'backend', 'frontend', 'database', 'security', 'vulnerability', 'refactor', 'code review'],
   },
   {
+    id: 'copilot-execution',
+    name: 'Copilot Execution',
+    role: 'Run safe allowlisted local Platform Maintenance, Build and Repo Checks through server.mjs without free shell input.',
+    trigger: ['copilot execution', 'local execution', 'executar comando', 'repo checks', 'build checks', 'git status', 'git log', 'check server'],
+  },
+  {
     id: 'export-center',
     name: 'Export Center',
     role: 'Package real project workspace outputs from all studios into redacted JSON, Markdown, TXT, CSV or ZIP-compatible bundles.',

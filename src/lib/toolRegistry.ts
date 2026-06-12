@@ -35,6 +35,7 @@ export type ToolDomain =
   | 'digital-twin'
   | 'knowledge-base'
   | 'metrics-dashboard'
+  | 'copilot-execution'
   | 'exploration'
 
 export type CopilotTool = {
