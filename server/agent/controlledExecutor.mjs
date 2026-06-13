@@ -4,7 +4,7 @@ import { spawn } from 'node:child_process'
 import { collectProductionOperatorStatus } from './productionStatus.mjs'
 import { redactOutput } from './executor.mjs'
 import { buildControlledExecutionGate, isPathInsideRepo } from './policy.mjs'
-import { buildConnectorsStatusReply, collectConnectorsStatus } from './connectorsStatus.mjs'
+import { buildConnectorsStatusReply, classifyConnectorStatusIntent, collectConnectorsStatus } from './connectorsStatus.mjs'
 
 const MAX_OUTPUT = 60000
 
@@ -193,6 +193,9 @@ function prepareCommand(command) {
 
 export function classifyControlledExecutionRequest(message = '', operatorIntent = '') {
   const text = normalizeMessage(message)
+  const connectorIntent = classifyConnectorStatusIntent(message)
+
+  if (connectorIntent) return [connectorIntent]
 
   if (MUTATION_PATTERNS.some(pattern => pattern.test(text))) return ['blocked_mutation']
   if (/\b(status do repositorio|status do repo|git status|repositorio|reposit[oó]rio)\b/i.test(message)) return ['repository_status']
@@ -201,10 +204,10 @@ export function classifyControlledExecutionRequest(message = '', operatorIntent 
   if (/\b(rota|rotas|route|handler|api)\b/i.test(message)) return ['route_validation']
   if (/\b(github)\b/i.test(message)) return ['github_connector_status']
   if (/\b(vercel)\b/i.test(message)) return ['vercel_connector_status']
-  if (/\b(conector|conectores|ambiente|variaveis|variáveis|vercel|supabase)\b/i.test(message)) return ['connector_presence']
-  if (/\b(valida|validar|validacao|valida[cç][aã]o|verifica|verificar|teste|testar)\b/i.test(message)) return ['validation', 'connector_presence']
-  if (operatorIntent === 'status_request') return ['repository_status', 'connector_presence']
-  if (operatorIntent === 'validation_request') return ['validation', 'connector_presence']
+  if (/\b(conector|conectores|ambiente|variaveis|variáveis|vercel|supabase)\b/i.test(message)) return ['connector_status']
+  if (/\b(valida|validar|validacao|valida[cç][aã]o|verifica|verificar|teste|testar)\b/i.test(message)) return ['validation', 'connector_status']
+  if (operatorIntent === 'status_request') return ['repository_status', 'connector_status']
+  if (operatorIntent === 'validation_request') return ['validation', 'connector_status']
   return []
 }
 
@@ -240,7 +243,7 @@ export function buildControlledExecutionPolicy({ tasks = [], operatorIntent = ''
     requiresConfirmation: false,
     risk: gate.risk,
     mutates: gate.mutates,
-    allowedTasks: tasks.filter(task => task !== 'connector_presence'),
+    allowedTasks: tasks.filter(task => task !== 'connector_status'),
   }
 }
 
@@ -463,11 +466,11 @@ export async function runControlledExecutor({
   }
 
   const connectorStatus = collectConnectorsStatus()
-  const connectors = tasks.some(task => ['connector_presence', 'github_connector_status', 'vercel_connector_status'].includes(task))
+  const connectors = tasks.some(task => ['connector_status', 'github_connector_status', 'vercel_connector_status'].includes(task))
     ? connectorPresence(safeStatus)
     : []
   const summary = summarizeCommands(results)
-  const connectorOnly = tasks.length > 0 && tasks.every(task => ['connector_presence', 'github_connector_status', 'vercel_connector_status'].includes(task))
+  const connectorOnly = tasks.length > 0 && tasks.every(task => ['connector_status', 'github_connector_status', 'vercel_connector_status'].includes(task))
   const connectorFocus = tasks.includes('github_connector_status')
     ? 'github'
     : tasks.includes('vercel_connector_status')

@@ -1,8 +1,11 @@
+import { classifyConnectorStatusIntent } from './connectorsStatus.mjs'
+
 export function classifyOperatorIntent(message = '') {
   const text = String(message || '').toLowerCase()
   if (/^\s*(ol[aá]|oi|bom dia|boa tarde|boa noite|hello|hi|hey)(?:[\s!.,?]|$)/i.test(text)) return 'greeting_request'
   if (/\b(drop\s+(database|schema|table)|delete\s+from|truncate|rm\s+-rf|rmdir\s+\/s|git\s+reset\s+--hard|push\s+--force|force\s+push)\b/i.test(text)) return 'destructive_request'
   if (/\b(aplica|aplicar|roda|rodar|executa|executar|faz|fazer).*\b(migration|migracao|migra[cç][aã]o|supabase)\b|\bsupabase\s+db\s+(push|reset)\b/i.test(text)) return 'supabase_migration_request'
+  if (classifyConnectorStatusIntent(message)) return 'connector_status_request'
   if (/\b(verifique|verificar|validar|valide|status|conector|conectores).*\b(vercel|github)\b|\b(vercel|github).*\b(status|conector|conectores)\b/i.test(text)) return 'validation_request'
   if (/\b(deploy|faz deploy|fazer deploy|publica|publicar|subir para vercel|produ[cç][aã]o|production)\b/i.test(text)) return 'deploy_request'
   if (/\b(git\s+push|push|subir\s+branch|manda\s+pro\s+github|github)\b/i.test(text)) return 'push_request'
@@ -24,6 +27,7 @@ export function isOperatorIntent(message = '') {
 export function selectEvidenceCommands(intent) {
   if (intent === 'greeting_request') return []
   const base = ['git_status', 'git_diff_stat', 'git_diff_name_only', 'git_log_recent', 'check_server', 'check_reasoning_core']
+  if (intent === 'connector_status_request') return []
   if (intent === 'raw_shell_request') return ['git_status', 'git_diff_stat']
   if (['validation_request', 'natural_execution_request', 'checkpoint_close_request', 'approved_commit_request'].includes(intent)) {
     base.push(

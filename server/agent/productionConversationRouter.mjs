@@ -1,3 +1,5 @@
+import { buildConnectorsStatusReply, classifyConnectorStatusIntent } from './connectorsStatus.mjs'
+
 function normalizeMessage(message = '') {
   return String(message || '')
     .normalize('NFD')
@@ -99,6 +101,11 @@ export function classifyProductionConversationIntent(message = '') {
   ])) {
     return 'production_platform_position'
   }
+
+  const connectorStatusIntent = classifyConnectorStatusIntent(message)
+  if (connectorStatusIntent === 'github_connector_status') return 'production_github_connector_status'
+  if (connectorStatusIntent === 'vercel_connector_status') return 'production_vercel_connector_status'
+  if (connectorStatusIntent === 'connector_status') return 'production_connector_status'
 
   if (includesAny(text, [
     /\b(faz deploy|fazer deploy|deploy)\b/,
@@ -204,6 +211,9 @@ const REPLIES = {
     'Não executei deploy, migração, commit, push ou comando livre.',
   ].join('\n'),
   production_platform_position: '',
+  production_github_connector_status: '',
+  production_vercel_connector_status: '',
+  production_connector_status: '',
   production_vercel_deploy: [
     'Capacidade de publicação preparada.',
     'Para publicar na Vercel, preciso de conector Vercel ou variáveis operacionais configuradas no servidor, escopo confirmado, evidência de compilação e alvo de publicação definido.',
@@ -242,6 +252,12 @@ export function routeProductionConversation({
       ? `Entendido, ${displayName}. Vou te chamar assim nesta sessão.`
       : conversationIntent === 'production_platform_position'
         ? buildPlatformPositionReply(productionStatus)
+      : conversationIntent === 'production_github_connector_status'
+        ? buildConnectorsStatusReply(productionStatus.connectorStatus, 'github')
+      : conversationIntent === 'production_vercel_connector_status'
+        ? buildConnectorsStatusReply(productionStatus.connectorStatus, 'vercel')
+      : conversationIntent === 'production_connector_status'
+        ? buildConnectorsStatusReply(productionStatus.connectorStatus, 'all')
       : REPLIES[conversationIntent]
   const finalReply = String(template || REPLIES.production_general_portuguese).replaceAll('{{displayName}}', displayName)
 

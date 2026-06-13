@@ -18,6 +18,22 @@ function boolStatus(configured) {
   return configured ? 'configured' : 'unavailable'
 }
 
+export function classifyConnectorStatusIntent(message = '') {
+  const text = String(message || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  const asksStatus = /\b(verifique|verificar|verifica|checar|cheque|validar|valide|status|conector|conectores)\b/.test(text)
+  if (!asksStatus) return ''
+  if (/\bgithub\b/.test(text)) return 'github_connector_status'
+  if (/\bvercel\b/.test(text)) return 'vercel_connector_status'
+  if (/\bconector|conectores\b/.test(text)) return 'connector_status'
+  return ''
+}
+
 export function collectConnectorsStatus() {
   const githubTokenPresent = hasEnv('GITHUB_TOKEN') || hasEnv('GH_TOKEN')
   const githubRepository = firstEnv(['APEX_GITHUB_REPOSITORY', 'GITHUB_REPOSITORY']) || DEFAULT_GITHUB_REPOSITORY

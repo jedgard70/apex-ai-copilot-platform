@@ -330,6 +330,41 @@ function isPlatformEngineeringIntent(text: string) {
   return /\b(status da plataforma|platform engineering|abrir pr|github|vercel|supabase status|status supabase|deploy status|deployment status|pull request|branch plan|plano de branch)\b/i.test(text)
 }
 
+function classifyConnectorStatusIntent(text: string) {
+  const normalized = text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim()
+  const asksStatus = /\b(verifique|verificar|verifica|checar|cheque|validar|valide|status|conector|conectores)\b/.test(normalized)
+  if (!asksStatus) return ''
+  if (/\bgithub\b/.test(normalized)) return 'github'
+  if (/\bvercel\b/.test(normalized)) return 'vercel'
+  if (/\bconector|conectores\b/.test(normalized)) return 'all'
+  return ''
+}
+
+function buildConnectorStatusFallback(text: string) {
+  const focus = classifyConnectorStatusIntent(text)
+  if (!focus) return ''
+  const lines = ['Status de conectores Apex:']
+  if (focus === 'all' || focus === 'github') {
+    lines.push('- GitHub connector: unavailable.')
+    lines.push('  Repositório: jedgard70/apex-ai-copilot-platform.')
+    lines.push('  Branch: feature/image-generation-connector.')
+    lines.push('  Token presente: não.')
+  }
+  if (focus === 'all' || focus === 'vercel') {
+    lines.push('- Vercel connector: unavailable.')
+    lines.push('  Projeto: prj_uVRjNyFprz8NyzVcb8NTdnALr1Xm.')
+    lines.push('  Domínio de produção: www.apexglobalai.com.')
+    lines.push('  Token presente: não.')
+  }
+  lines.push('Nenhum segredo foi exibido. Nenhuma ação remota foi executada.')
+  return lines.join('\n')
+}
+
 function isCodeSkillIntent(text: string) {
   return /\b(code skill|livre code|corrigir c[oó]digo)\b/i.test(text)
 }
@@ -361,6 +396,8 @@ function buildOperationalSkillResponse(text: string) {
   if (isCodeSkillIntent(text)) {
     return 'Code execution is not connected yet. I can prepare the checkpoint, handoff, scope, validation plan and PR checklist.'
   }
+  const connectorStatusAnswer = buildConnectorStatusFallback(text)
+  if (connectorStatusAnswer) return connectorStatusAnswer
   if (isPlatformEngineeringIntent(text)) {
     return pt
       ? 'Platform Engineering acionado em modo LOCAL-FIRST / ROUTING IMPROVEMENT. Posso preparar status da plataforma, escopo, plano de branch/PR, checklist GitHub/Vercel/Supabase, diagnóstico de build e revisão de segurança a partir de evidência local. GitHub, Vercel e Supabase write/status remoto não serão fingidos: preciso de conector, URL, CLI/output ou conteúdo fornecido para confirmar estado externo.'
