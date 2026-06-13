@@ -638,6 +638,20 @@ async function handleExecutionRun(req, res) {
         providerStatus: 'blocked',
       })
     }
+    if (!command.acceptsRawCommand) {
+      const registeredCommandText = [command.executable, ...command.args].join(' ')
+      const ownerSafetyDecision = validateOwnerCodeCommand(registeredCommandText)
+      if (!ownerSafetyDecision.allowed) {
+        return json(res, 403, {
+          error: 'Registered command blocked by Owner Code Executor Safety Gate.',
+          commandId,
+          commandText: registeredCommandText,
+          safetyDecision: ownerSafetyDecision,
+          providerStatus: 'blocked-by-owner-code-executor',
+        })
+      }
+    }
+
     const result = await runCopilotExecutionCommand(command, body)
     return json(res, 200, {
       providerStatus: 'local-execution-v0',
@@ -3905,4 +3919,5 @@ const port = Number(process.env.PORT || 4177)
 server.listen(port, () => {
   console.log(`Apex AI Copilot platform listening on http://127.0.0.1:${port}`)
 })
+
 
