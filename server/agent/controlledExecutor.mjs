@@ -4,7 +4,7 @@ import { spawn } from 'node:child_process'
 import { collectProductionOperatorStatus } from './productionStatus.mjs'
 import { redactOutput } from './executor.mjs'
 import { buildControlledExecutionGate, isPathInsideRepo } from './policy.mjs'
-import { buildConnectorsStatusReply, classifyConnectorStatusIntent, collectConnectorsStatus } from './connectorsStatus.mjs'
+import { buildConnectorsStatusReply, classifyConnectorStatusIntent, collectConnectorsStatusReadOnly } from './connectorsStatus.mjs'
 
 const MAX_OUTPUT = 60000
 
@@ -465,7 +465,7 @@ export async function runControlledExecutor({
     results.push(await runControlledCommand(commandId, resolvedRepo, safeStatus))
   }
 
-  const connectorStatus = collectConnectorsStatus()
+  const connectorStatus = await collectConnectorsStatusReadOnly()
   const connectors = tasks.some(task => ['connector_status', 'github_connector_status', 'vercel_connector_status'].includes(task))
     ? connectorPresence(safeStatus)
     : []

@@ -1,4 +1,4 @@
-import { buildConnectorsStatusReply, collectConnectorsStatus } from '../../server/agent/connectorsStatus.mjs'
+import { buildConnectorsStatusReply, collectConnectorsStatusReadOnly } from '../../server/agent/connectorsStatus.mjs'
 
 function sendJson(res, status, body) {
   res.status(status).json(body)
@@ -15,10 +15,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    const status = collectConnectorsStatus()
+    const status = await collectConnectorsStatusReadOnly()
     return sendJson(res, 200, {
-      ...status,
-      mode: 'connector-status',
+      ok: status.ok,
+      github: status.github,
+      vercel: status.vercel,
       finalReply: buildConnectorsStatusReply(status),
     })
   } catch (error) {

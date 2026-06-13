@@ -2,6 +2,7 @@ const DEFAULT_GITHUB_REPOSITORY = 'jedgard70/apex-ai-copilot-platform'
 const DEFAULT_GITHUB_BRANCH = 'feature/image-generation-connector'
 const DEFAULT_VERCEL_PROJECT_ID = 'prj_uVRjNyFprz8NyzVcb8NTdnALr1Xm'
 const DEFAULT_VERCEL_PRODUCTION_DOMAIN = 'www.apexglobalai.com'
+const CONNECTOR_TIMEOUT_MS = 7000
 
 function hasEnv(name) {
   return Boolean(process.env[name])
@@ -16,6 +17,84 @@ function firstEnv(names) {
 
 function boolStatus(configured) {
   return configured ? 'configured' : 'unavailable'
+}
+
+function shortSha(value = '') {
+  return String(value || '').slice(0, 7)
+}
+
+function cleanText(value = '', maxLength = 180) {
+  return String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, maxLength)
+}
+
+function cleanUrl(value = '') {
+  const text = String(value || '').trim()
+  if (!text) return ''
+  return text.startsWith('http') ? text : `https://${text}`
+}
+
+function safeIsoDate(value) {
+  if (!value) return ''
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? cleanText(value, 80) : date.toISOString()
+}
+
+function safeFailure(kind) {
+  return {
+    ok: false,
+    status: 'unavailable',
+    reason: kind === 'timeout'
+      ? 'Tempo limite da API atingido.'
+      : 'Consulta read-only falhou ou não foi autorizada.',
+  }
+}
+
+async function fetchJsonReadOnly(url, { token, provider, timeoutMs = CONNECTOR_TIMEOUT_MS } = {}) {
+  if (!globalThis.fetch) return { ok: false, status: 0, data: null, failure: safeFailure('fetch_unavailable') }
+
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const headers = provider === 'github'
+      ? {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+          'User-Agent': 'apex-copilot-readonly',
+        }
+      : {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        }
+    const response = await fetch(url, { method: 'GET', headers, signal: controller.signal })
+    const data = await response.json().catch(() => null)
+    if (!response.ok) return { ok: false, status: response.status, data: null, failure: safeFailure('api') }
+    return { ok: true, status: response.status, data, failure: null }
+  } catch (error) {
+    return {
+      ok: false,
+      status: 0,
+      data: null,
+      failure: safeFailure(error?.name === 'AbortError' ? 'timeout' : 'api'),
+    }
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+function githubApiUrl(pathname) {
+  return `https://api.github.com${pathname}`
+}
+
+function vercelApiUrl(pathname, params = {}) {
+  const url = new URL(`https://api.vercel.com${pathname}`)
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null && String(value).trim()) url.searchParams.set(key, String(value))
+  }
+  return url.toString()
 }
 
 export function classifyConnectorStatusIntent(message = '') {
@@ -35,15 +114,18 @@ export function classifyConnectorStatusIntent(message = '') {
 }
 
 export function collectConnectorsStatus() {
-  const githubTokenPresent = hasEnv('GITHUB_TOKEN') || hasEnv('GH_TOKEN')
+  const githubToken = firstEnv(['GITHUB_TOKEN', 'GH_TOKEN'])
+  const githubTokenPresent = Boolean(githubToken)
   const githubRepository = firstEnv(['APEX_GITHUB_REPOSITORY', 'GITHUB_REPOSITORY']) || DEFAULT_GITHUB_REPOSITORY
   const githubBranch = firstEnv(['APEX_GITHUB_BRANCH', 'VERCEL_GIT_COMMIT_REF']) || DEFAULT_GITHUB_BRANCH
   const githubKnownCommit = firstEnv(['APEX_GITHUB_COMMIT_SHA', 'VERCEL_GIT_COMMIT_SHA', 'GITHUB_SHA'])
   const githubConfigured = githubTokenPresent && Boolean(githubRepository)
 
-  const vercelTokenPresent = hasEnv('VERCEL_TOKEN')
+  const vercelToken = firstEnv(['VERCEL_TOKEN'])
+  const vercelTokenPresent = Boolean(vercelToken)
   const vercelProjectId = firstEnv(['APEX_VERCEL_PROJECT_ID', 'VERCEL_PROJECT_ID']) || DEFAULT_VERCEL_PROJECT_ID
-  const vercelOrgPresent = hasEnv('VERCEL_ORG_ID') || hasEnv('APEX_VERCEL_ORG_ID')
+  const vercelTeamId = firstEnv(['VERCEL_TEAM_ID', 'VERCEL_ORG_ID', 'APEX_VERCEL_TEAM_ID', 'APEX_VERCEL_ORG_ID'])
+  const vercelOrgPresent = Boolean(vercelTeamId)
   const vercelProductionDomain = firstEnv(['APEX_PRODUCTION_DOMAIN', 'VERCEL_PROJECT_PRODUCTION_URL']) || DEFAULT_VERCEL_PRODUCTION_DOMAIN
   const vercelConfigured = vercelTokenPresent && Boolean(vercelProjectId)
 
@@ -57,8 +139,12 @@ export function collectConnectorsStatus() {
       status: boolStatus(githubConfigured),
       configured: githubConfigured,
       tokenPresent: githubTokenPresent,
+      reachable: false,
       repository: githubRepository,
       branch: githubBranch,
+      defaultBranch: '',
+      branchExists: false,
+      latestCommit: null,
       currentKnownProductionCommit: githubKnownCommit || '',
       capability: githubConfigured ? 'remote_repository_status_available' : 'requires_github_token',
       unavailableReason: githubConfigured ? '' : 'GitHub token/env ausente.',
@@ -71,8 +157,13 @@ export function collectConnectorsStatus() {
       configured: vercelConfigured,
       tokenPresent: vercelTokenPresent,
       orgPresent: vercelOrgPresent,
+      teamIdPresent: Boolean(vercelTeamId),
+      reachable: false,
       projectId: vercelProjectId,
       productionDomain: vercelProductionDomain,
+      projectName: '',
+      latestDeployments: [],
+      latestProductionDeployment: null,
       capability: vercelConfigured ? 'deployment_status_available' : 'requires_vercel_token',
       unavailableReason: vercelConfigured ? '' : 'Vercel token/env ausente.',
       nextRequired: vercelConfigured ? '' : 'Configurar VERCEL_TOKEN e VERCEL_PROJECT_ID no backend.',
@@ -80,6 +171,154 @@ export function collectConnectorsStatus() {
     executor: {
       localExecutor: process.env.VERCEL === '1' ? 'unavailable_in_vercel' : 'available_when_git_and_repo_exist',
       connectorExecutor: githubConfigured || vercelConfigured ? 'configured' : 'pending',
+    },
+  }
+}
+
+async function collectGithubReadOnly(base) {
+  if (!base.github.tokenPresent) return base.github
+
+  const [owner, repo] = String(base.github.repository || '').split('/')
+  if (!owner || !repo) {
+    return {
+      ...base.github,
+      status: 'unavailable',
+      configured: false,
+      unavailableReason: 'Repositório GitHub inválido.',
+      nextRequired: 'Configurar APEX_GITHUB_REPOSITORY no formato owner/repo.',
+    }
+  }
+
+  const token = firstEnv(['GITHUB_TOKEN', 'GH_TOKEN'])
+  const repoResult = await fetchJsonReadOnly(githubApiUrl(`/repos/${owner}/${repo}`), { token, provider: 'github' })
+  if (!repoResult.ok) {
+    return {
+      ...base.github,
+      status: 'unavailable',
+      reachable: false,
+      configured: false,
+      unavailableReason: repoResult.failure.reason,
+      nextRequired: 'Validar token GitHub e permissão read-only para o repositório.',
+    }
+  }
+
+  const defaultBranch = cleanText(repoResult.data?.default_branch || '', 80)
+  const branch = base.github.branch || defaultBranch
+  const branchResult = await fetchJsonReadOnly(githubApiUrl(`/repos/${owner}/${repo}/branches/${encodeURIComponent(branch)}`), { token, provider: 'github' })
+  if (!branchResult.ok) {
+    return {
+      ...base.github,
+      status: 'partial',
+      reachable: true,
+      configured: true,
+      defaultBranch,
+      branchExists: false,
+      unavailableReason: 'Repositório acessível, mas branch configurada não foi encontrada ou não foi autorizada.',
+      nextRequired: 'Validar APEX_GITHUB_BRANCH ou permissão de leitura da branch.',
+    }
+  }
+
+  const commitSha = cleanText(branchResult.data?.commit?.sha || '', 80)
+  const commitResult = commitSha
+    ? await fetchJsonReadOnly(githubApiUrl(`/repos/${owner}/${repo}/commits/${commitSha}`), { token, provider: 'github' })
+    : { ok: false, data: null, failure: safeFailure('api') }
+  const commit = commitResult.ok ? commitResult.data : null
+  const latestCommit = commitSha
+    ? {
+        sha: commitSha,
+        shortSha: shortSha(commitSha),
+        message: cleanText(commit?.commit?.message || '', 240),
+        author: cleanText(commit?.commit?.author?.name || commit?.author?.login || '', 120),
+        date: cleanText(commit?.commit?.author?.date || commit?.commit?.committer?.date || '', 80),
+      }
+    : null
+
+  return {
+    ...base.github,
+    status: latestCommit ? 'configured' : 'partial',
+    configured: true,
+    reachable: true,
+    defaultBranch,
+    branch,
+    branchExists: true,
+    latestCommit,
+    currentKnownProductionCommit: latestCommit?.shortSha || base.github.currentKnownProductionCommit,
+    unavailableReason: latestCommit ? '' : 'Branch encontrada, mas detalhe do commit não foi retornado.',
+    nextRequired: latestCommit ? '' : 'Tentar novamente ou validar permissão de leitura de commits.',
+  }
+}
+
+async function collectVercelReadOnly(base) {
+  if (!base.vercel.tokenPresent) return base.vercel
+
+  const token = firstEnv(['VERCEL_TOKEN'])
+  const teamId = firstEnv(['VERCEL_TEAM_ID', 'VERCEL_ORG_ID', 'APEX_VERCEL_TEAM_ID', 'APEX_VERCEL_ORG_ID'])
+  const projectResult = await fetchJsonReadOnly(
+    vercelApiUrl(`/v9/projects/${encodeURIComponent(base.vercel.projectId)}`, { teamId }),
+    { token, provider: 'vercel' },
+  )
+  if (!projectResult.ok) {
+    return {
+      ...base.vercel,
+      status: 'unavailable',
+      reachable: false,
+      configured: false,
+      unavailableReason: projectResult.failure.reason,
+      nextRequired: 'Validar VERCEL_TOKEN, VERCEL_PROJECT_ID e VERCEL_TEAM_ID se o projeto for de time.',
+    }
+  }
+
+  const deploymentsResult = await fetchJsonReadOnly(
+    vercelApiUrl('/v13/deployments', { projectId: base.vercel.projectId, limit: 5, teamId }),
+    { token, provider: 'vercel' },
+  )
+  const deploymentsRaw = deploymentsResult.ok && Array.isArray(deploymentsResult.data?.deployments)
+    ? deploymentsResult.data.deployments
+    : []
+  const latestDeployments = deploymentsRaw.slice(0, 5).map(deployment => ({
+    id: cleanText(deployment.uid || deployment.id || '', 80),
+    state: cleanText(deployment.state || deployment.readyState || deployment.status || '', 80),
+    target: cleanText(deployment.target || deployment.environment || '', 80),
+    url: cleanUrl(deployment.url || ''),
+    createdAt: safeIsoDate(deployment.createdAt || deployment.created),
+  }))
+  const latestProductionDeployment = latestDeployments.find(deployment => deployment.target === 'production')
+    || latestDeployments.find(deployment => deployment.url.includes(base.vercel.productionDomain))
+    || null
+
+  return {
+    ...base.vercel,
+    status: deploymentsResult.ok ? 'configured' : 'partial',
+    configured: true,
+    reachable: true,
+    projectName: cleanText(projectResult.data?.name || projectResult.data?.id || '', 120),
+    latestDeployments,
+    latestProductionDeployment,
+    unavailableReason: deploymentsResult.ok ? '' : 'Projeto acessível, mas a lista de deployments não foi retornada.',
+    nextRequired: deploymentsResult.ok ? '' : 'Validar permissão read-only para listar deployments.',
+  }
+}
+
+export async function collectConnectorsStatusReadOnly() {
+  const base = collectConnectorsStatus()
+  const [github, vercel] = await Promise.all([
+    collectGithubReadOnly(base),
+    collectVercelReadOnly(base),
+  ])
+  const connectorExecutor = github.configured || vercel.configured ? 'configured' : 'pending'
+  const ok = [github.status, vercel.status].some(status => ['configured', 'partial'].includes(status))
+    || (!github.tokenPresent && !vercel.tokenPresent)
+
+  return {
+    ...base,
+    ok,
+    checkedAt: new Date().toISOString(),
+    secretsExposed: false,
+    github,
+    vercel,
+    executor: {
+      ...base.executor,
+      connectorExecutor,
     },
   }
 }
@@ -132,24 +371,50 @@ export function buildConnectorsStatusReply(status = collectConnectorsStatus(), f
   const lines = ['Status de conectores Apex:']
 
   if (focus === 'all' || focus === 'github') {
-    lines.push(`- GitHub connector: ${status.github.configured ? 'configured' : 'unavailable'}.`)
+    lines.push(`- GitHub connector: ${status.github.status || (status.github.configured ? 'configured' : 'unavailable')}.`)
     lines.push(`  Repositório: ${status.github.repository}.`)
+    if (status.github.reachable) lines.push('  Repositório acessível: sim.')
+    else lines.push('  Repositório acessível: não confirmado.')
+    if (status.github.defaultBranch) lines.push(`  Branch padrão: ${status.github.defaultBranch}.`)
     lines.push(`  Branch: ${status.github.branch}.`)
+    if (status.github.tokenPresent) lines.push(`  Branch configurada existe: ${status.github.branchExists ? 'sim' : 'não confirmado'}.`)
     lines.push(`  Token presente: ${status.github.tokenPresent ? 'sim' : 'não'}.`)
-    if (status.github.currentKnownProductionCommit) lines.push(`  Commit conhecido: ${status.github.currentKnownProductionCommit}.`)
+    if (status.github.latestCommit) {
+      lines.push(`  Último commit: ${status.github.latestCommit.shortSha}.`)
+      if (status.github.latestCommit.message) lines.push(`  Mensagem: ${status.github.latestCommit.message}.`)
+      if (status.github.latestCommit.author) lines.push(`  Autor: ${status.github.latestCommit.author}.`)
+      if (status.github.latestCommit.date) lines.push(`  Data: ${status.github.latestCommit.date}.`)
+    } else if (status.github.currentKnownProductionCommit) {
+      lines.push(`  Commit conhecido: ${status.github.currentKnownProductionCommit}.`)
+    }
     if (!status.github.configured) lines.push(`  Próximo: ${status.github.nextRequired}`)
+    else if (status.github.unavailableReason) lines.push(`  Observação: ${status.github.unavailableReason}`)
   }
 
   if (focus === 'all' || focus === 'vercel') {
-    lines.push(`- Vercel connector: ${status.vercel.configured ? 'configured' : 'unavailable'}.`)
+    lines.push(`- Vercel connector: ${status.vercel.status || (status.vercel.configured ? 'configured' : 'unavailable')}.`)
     lines.push(`  Projeto: ${status.vercel.projectId}.`)
+    if (status.vercel.projectName) lines.push(`  Nome do projeto: ${status.vercel.projectName}.`)
     lines.push(`  Domínio de produção: ${status.vercel.productionDomain}.`)
+    if (status.vercel.reachable) lines.push('  Projeto acessível: sim.')
+    else lines.push('  Projeto acessível: não confirmado.')
     lines.push(`  Token presente: ${status.vercel.tokenPresent ? 'sim' : 'não'}.`)
+    lines.push(`  Team ID presente: ${status.vercel.teamIdPresent ? 'sim' : 'não'}.`)
+    if (status.vercel.latestProductionDeployment) {
+      lines.push(`  Último deploy de produção: ${status.vercel.latestProductionDeployment.state || 'status indisponível'}.`)
+      if (status.vercel.latestProductionDeployment.url) lines.push(`  URL do deploy: ${status.vercel.latestProductionDeployment.url}.`)
+      if (status.vercel.latestProductionDeployment.createdAt) lines.push(`  Data do deploy: ${status.vercel.latestProductionDeployment.createdAt}.`)
+    } else if (Array.isArray(status.vercel.latestDeployments) && status.vercel.latestDeployments.length) {
+      const latest = status.vercel.latestDeployments[0]
+      lines.push(`  Último deployment listado: ${latest.state || 'status indisponível'}.`)
+      if (latest.url) lines.push(`  URL do deployment: ${latest.url}.`)
+    }
     if (!status.vercel.configured) lines.push(`  Próximo: ${status.vercel.nextRequired}`)
+    else if (status.vercel.unavailableReason) lines.push(`  Observação: ${status.vercel.unavailableReason}`)
   }
 
   lines.push(`- Executor local: ${status.executor.localExecutor}.`)
   lines.push(`- Executor por conector: ${status.executor.connectorExecutor}.`)
-  lines.push('Nenhum segredo foi exibido. Nenhuma ação remota foi executada.')
+  lines.push('Nenhum segredo foi exibido. Nenhuma ação remota, deploy, push ou mutação foi executada.')
   return lines.join('\n')
 }
