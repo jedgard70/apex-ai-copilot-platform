@@ -63,7 +63,7 @@ export function inferDisplayNameFromMessages(messages = []) {
 
 function hasPortugueseSignal(text) {
   return includesAny(text, [
-    /\b(ola|bom dia|boa tarde|boa noite|mas|voce|voces|vc|nao|entao|me diga|liste|proximo|passo|faz|execute|quero|deploy|publica|subir|aplica|migration|supabase|plataforma|posicao|posição|entendeu|revit|bim|modelagem|familias|famílias|quantitativo|meu nome|quem sou eu|computador|pc|internet|travando)\b/,
+    /\b(ola|bom dia|boa tarde|boa noite|mas|voce|voces|vc|nao|entao|me diga|liste|proximo|passo|faz|execute|quero|deploy|publica|subir|aplica|migration|supabase|plataforma|posicao|posição|entendeu|revit|bim|modelagem|familias|famílias|quantitativo|meu nome|quem sou eu|computador|pc|internet|travando|sim|certo|pode|beleza|portugues|continua|seguir|continuar|tudo bem|claro|obrigado)\b/,
   ])
 }
 
@@ -124,6 +124,16 @@ const INTENT_PATTERNS = {
   production_supabase: [
     /\b(aplica|aplicar|aplique|roda|rodar|executa|executar).*\b(migration|migracao|supabase)\b/,
     /\bsupabase\b/,
+  ],
+  production_language_preference: [
+    /\bem portugu[eê]s\b/,
+    /\bresponda em portugu[eê]s\b/,
+    /\bfale portugu[eê]s\b/,
+    /\bfale em portugu[eê]s\b/,
+    /\bsempre em portugu[eê]s\b/,
+  ],
+  production_affirmation: [
+    /^(sim|ok|certo|beleza|pode|tudo bem|claro|tudo certo|pode ser|por favor|combinado|entendido)[\s!.,?]*$/,
   ],
   production_execute_recommended: [
     /\bexecute entao\b/,
@@ -285,6 +295,14 @@ export function classifyProductionConversationIntent(message = '') {
 
   if (includesAny(text, INTENT_PATTERNS.production_supabase)) {
     return 'production_supabase'
+  }
+
+  if (includesAny(text, INTENT_PATTERNS.production_language_preference)) {
+    return 'production_language_preference'
+  }
+
+  if (includesAny(text, INTENT_PATTERNS.production_affirmation)) {
+    return 'production_affirmation'
   }
 
   if (includesAny(text, INTENT_PATTERNS.production_execute_recommended)) {
@@ -460,6 +478,8 @@ function sectionTitleForIntent(intent, index) {
     production_platform_position: 'Plataforma',
     production_next_step: 'Próximo passo',
     production_execute_recommended: 'Execução',
+    production_language_preference: 'Idioma',
+    production_affirmation: 'Confirmação',
   }
   return `${index}. ${titles[intent] || 'Resposta'}`
 }
@@ -484,6 +504,8 @@ function buildReplyForIntent(intent, {
   if (intent === 'production_user_confusion') return buildConfusionReply(messages, { multiQuestionContext })
   if (intent === 'production_name_identity') return buildNameIdentityReply(clientMemory)
   if (intent === 'production_who_am_i') return buildWhoAmIReply({ identityContext, clientMemory, displayName })
+  if (intent === 'production_language_preference') return `Entendido, ${displayName}. Vou responder sempre em português nesta sessão.`
+  if (intent === 'production_affirmation') return `Certo, ${displayName}. Me diga qual ação ou contexto você quer seguir, ou copie a resposta anterior se quiser continuar de onde paramos.`
   return REPLIES[intent] || buildNaturalFallbackReply(userMessage)
 }
 
@@ -553,8 +575,8 @@ const REPLIES = {
     'Me diga o objetivo concreto, o erro, o arquivo, o print ou o resultado que você quer. Com isso eu preparo a resposta, checklist ou passo a passo sem fingir acesso a computador, conector, deploy, banco ou arquivo que eu não recebi.',
   ].join('\n'),
   production_general: [
-    'I understand the direction, but I still need the concrete detail to help well.',
-    'Send the goal, error, file, screenshot or result you want. I can prepare an answer, checklist or next step without pretending to access a computer, connector, deployment, database or file I do not have.',
+    'Entendi o caminho do pedido, mas ainda falta o detalhe principal para eu agir bem.',
+    'Me diga o objetivo concreto, o erro, o arquivo, o print ou o resultado que você quer. Com isso eu preparo a resposta, checklist ou passo a passo sem fingir acesso a computador, conector, deploy, banco ou arquivo que eu não recebi.',
   ].join('\n'),
 }
 

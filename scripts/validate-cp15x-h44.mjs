@@ -153,4 +153,35 @@ assert.equal(revitCrash.intent, 'production_computer_help')
 assertIncludes(revitCrash.finalReply, ['versao do revit', 'travamento', 'sem acesso remoto'])
 console.log(`GREEN revit travando: ${revitCrash.finalReply.split('\n')[0]}`)
 
+// H4.4C — "sim" must respond in Portuguese, not English fallback
+const simResult = await route('sim')
+assert.equal(simResult.intent, 'production_affirmation')
+assertFinalReplyContract(simResult)
+assertIncludes(simResult.finalReply, ['certo', 'dr edgard', 'acao'])
+assert.ok(!simResult.finalReply.toLowerCase().includes('i understand'), '"sim" must not return English fallback')
+console.log(`GREEN sim: ${simResult.finalReply.split('\n')[0]}`)
+
+// H4.4C — "em portugues" must respond in Portuguese and confirm language
+const ptResult = await route('em portugues')
+assert.equal(ptResult.intent, 'production_language_preference')
+assertFinalReplyContract(ptResult)
+assertIncludes(ptResult.finalReply, ['entendido', 'portugues', 'dr edgard'])
+assert.ok(!ptResult.finalReply.toLowerCase().includes('i understand'), '"em portugues" must not return English fallback')
+console.log(`GREEN em portugues: ${ptResult.finalReply.split('\n')[0]}`)
+
+// H4.4C — "com é" short ambiguous must respond in Portuguese
+const comeResult = await route('com é')
+assertFinalReplyContract(comeResult)
+assert.ok(!comeResult.finalReply.toLowerCase().includes('i understand'), '"com é" must not return English fallback')
+assertIncludes(comeResult.finalReply, ['entendi', 'detalhe'])
+console.log(`GREEN com e: ${comeResult.finalReply.split('\n')[0]}`)
+
+// H4.4C — production_general fallback must be in Portuguese (not English)
+const { classifyProductionConversationIntent: classify } = await import('../server/agent/productionConversationRouter.mjs')
+import { routeProductionConversation } from '../server/agent/productionConversationRouter.mjs'
+const unknownResult = routeProductionConversation({ userMessage: 'xyzzy irreconhecível 123' })
+assert.ok(!unknownResult.finalReply.toLowerCase().includes('i understand'), 'production_general fallback must be Portuguese')
+assertIncludes(unknownResult.finalReply, ['entendi'])
+console.log(`GREEN production_general fallback is Portuguese: ${unknownResult.finalReply.split('\n')[0]}`)
+
 console.log('GREEN CP15X-H4.4 natural assistant brain validation passed.')
