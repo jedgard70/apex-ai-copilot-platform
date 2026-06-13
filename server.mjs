@@ -1054,6 +1054,160 @@ function buildChatFallbackReply(userText, identity) {
     : 'I had trouble generating the full response, but I can continue. Rephrase the request or upload a file/screenshot for me to analyze.'
 }
 
+
+const LIVE_AGENT_SAFE_COMMAND_IDS = new Set([
+  'git_status',
+  'git_diff_stat',
+  'build',
+  'validate_supabase_sql',
+  'check_server',
+])
+
+function buildLiveAgentToolDefinitions() {
+  return [
+    {
+      type: 'function',
+      function: {
+        name: 'run_safe_local_command',
+        description: 'Run a safe allowlisted local Apex project command when live project evidence is needed. Use this naturally; the user does not need to know command names.',
+        parameters: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            commandId: {
+              type: 'string',
+              enum: ['git_status', 'git_diff_stat', 'build', 'validate_supabase_sql', 'check_server'],
+              description: 'Safe command to execute in the authorized Apex repo.'
+            },
+            reason: {
+              type: 'string',
+              description: 'Brief natural reason why this command is needed.'
+            }
+          },
+          required: ['commandId', 'reason']
+        }
+      }
+    }
+  ]
+}
+
+function compactLiveAgentToolText(value) {
+  const clean = redactedExecutionText(String(value || '').trim())
+  if (!clean) return ''
+  if (clean.length <= 5000) return clean
+  return clean.slice(0, 2400) + '\n...\n' + clean.slice(-2200)
+}
+
+async function executeLiveAgentToolCall(toolCall) {
+  const name = toolCall && toolCall.function ? String(toolCall.function.name || '') : ''
+  if (name !== 'run_safe_local_command') {
+    return { providerStatus: 'blocked', error: 'Unknown Apex live agent tool.' }
+  }
+
+  let args = {}
+  try {
+    args = JSON.parse(toolCall.function.arguments || '{}')
+  } catch {
+    return { providerStatus: 'blocked', error: 'Invalid tool arguments.' }
+  }
+
+  const commandId = String(args.commandId || '')
+  const reason = String(args.reason || '').slice(0, 500)
+
+  if (!LIVE_AGENT_SAFE_COMMAND_IDS.has(commandId)) {
+    return {
+      providerStatus: 'blocked',
+      commandId,
+      reason,
+      error: 'Command is not allowed in Apex Live Agent. raw_shell, deploy, migrations and destructive commands are blocked.'
+    }
+  }
+
+  const command = getExecutionCommand(commandId)
+  if (!command || command.acceptsRawCommand) {
+    return {
+      providerStatus: 'blocked',
+      commandId,
+      reason,
+      error: 'Command is unavailable or unsafe for live chat.'
+    }
+  }
+
+  const registeredCommandText = [command.executable, ...command.args].join(' ')
+  const safetyDecision = validateOwnerCodeCommand(registeredCommandText)
+
+  if (!safetyDecision.allowed) {
+    return {
+      providerStatus: 'blocked-by-owner-code-executor',
+      commandId,
+      reason,
+      commandText: registeredCommandText,
+      safetyDecision
+    }
+  }
+
+  const result = await runCopilotExecutionCommand(command, {
+    cwd: authorizedExecutionCwd,
+    approvedBy: 'Jose',
+  })
+
+  return {
+    providerStatus: 'local-execution-v0',
+    reason,
+    commandId: result.commandId,
+    label: result.label,
+    status: result.status,
+    exitCode: result.exitCode,
+    durationMs: result.durationMs,
+    stdout: compactLiveAgentToolText(result.stdout),
+    stderr: compactLiveAgentToolText(result.stderr),
+    redactedOutput: result.redactedOutput,
+  }
+}
+
+
+function isLiveAgentOperationalPreflightNeeded(text) {
+  const value = String(text || '').toLowerCase().trim()
+  if (!value) return false
+
+  return /\b(pr[oó]ximo|proximo|agora|status|plataforma|checkpoint|continua|continuar|seguir|sugere|sugest[aã]o|o que fazer|o que fazemos|tudo certo|ficou certo|pode seguir|fa[cç]a|execute|executa|ok|valida|validar|fechar|finalizar|commitar|commit)\b/i.test(value)
+}
+
+async function buildLiveAgentPreflightContext(userText) {
+  if (!isLiveAgentOperationalPreflightNeeded(userText)) return ''
+
+  const commandIds = ['git_status', 'git_diff_stat', 'check_server']
+  const lower = String(userText || '').toLowerCase()
+
+  if (/\b(build|tudo certo|ficou certo|fechar|finalizar|checkpoint|valida|validar|pode seguir|execute|fa[cç]a|ok)\b/i.test(lower)) {
+    commandIds.push('build')
+  }
+
+  const results = []
+
+  for (const commandId of [...new Set(commandIds)]) {
+    const toolResult = await executeLiveAgentToolCall({
+      function: {
+        name: 'run_safe_local_command',
+        arguments: JSON.stringify({
+          commandId,
+          reason: 'Apex Live Agent operational preflight for a natural project/status/next-step request.'
+        })
+      }
+    })
+
+    results.push(toolResult)
+  }
+
+  return [
+    'Apex live operational preflight evidence was collected before answering.',
+    'Use this evidence to answer decisively. Do not ask the user what to do if a safe next step is clear.',
+    'Do not claim commit/push/deploy/migration/file edit unless a tool result proves it.',
+    'Current tool results:',
+    JSON.stringify(results, null, 2)
+  ].join('\n')
+}
+
 async function handleChat(req, res) {
   try {
     const body = await readJson(req)
@@ -1156,20 +1310,50 @@ async function handleChat(req, res) {
       { role: 'user', content: userContent },
     ]
 
+
+    const liveAgentPreflightContext = await buildLiveAgentPreflightContext(userText)
+
+    const liveAgentMessages = [
+      ...messages.slice(0, -1),
+      {
+        role: 'system',
+        content: [
+          'Apex Live Agent Runtime is enabled.',
+          'The user can talk naturally, like with ChatGPT or Codex. Do not require exact command phrases.',
+          'You are not a button router. You are a live project copilot: infer intent from context, decide whether evidence is needed, use safe tools when useful, then give a concrete recommendation.',
+          'When live evidence about this local repo is useful, decide by yourself whether to call run_safe_local_command.',
+          'Use tools only when useful. Do not use tools for normal writing, explanation, strategy, design or business answers.',
+          'Never call raw shell. Never deploy. Never migrate Supabase. Never push. Never modify files from this tool.',
+          'Critical truth rule: never claim that you committed, pushed, deployed, migrated, edited files, installed packages, or changed production unless a tool result explicitly proves that exact action.',
+          'The live tool can validate status/build/checks only. It cannot commit. If the user says faca, ok, pode, segue, continua, infer the next safe action from context. If the next action is commit, recommend it and provide the exact command or ask for an explicit approved commit tool; do not claim it was done.',
+          'Do not end with vague questions like "what would you like to do next?" when evidence supports a clear next step. Give a decisive recommendation and one practical next action.',
+          'Use status language: GREEN for proven OK, YELLOW for pending/review, BLOCKED for unsafe/unavailable. Be confident only when evidence exists.',
+          'After tool results, answer naturally in the latest user language with clear status, what is proven, what is not proven, and the recommended next execution.'
+        ].join(' ')
+      },
+      ...(liveAgentPreflightContext ? [{ role: 'system', content: liveAgentPreflightContext }] : []),
+      messages[messages.length - 1],
+    ]
+
+    const requestPayload = {
+      model: process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
+      messages: liveAgentMessages,
+      tools: buildLiveAgentToolDefinitions(),
+      tool_choice: 'auto',
+      temperature: 0.72,
+      frequency_penalty: 0.2,
+      max_tokens: 900,
+    }
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: 'Bearer ' + apiKey,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
-        messages,
-        temperature: 0.72,
-        frequency_penalty: 0.2,
-        max_tokens: 900,
-      }),
+      body: JSON.stringify(requestPayload),
     })
+
     const data = await response.json().catch(() => ({}))
     if (!response.ok) {
       return json(res, 200, {
@@ -1177,12 +1361,70 @@ async function handleChat(req, res) {
         mode: 'local-fallback',
       })
     }
-    const reply = data?.choices?.[0]?.message?.content || ''
+
+    const assistantMessage = data && data.choices && data.choices[0] ? data.choices[0].message || {} : {}
+    const toolCalls = Array.isArray(assistantMessage.tool_calls) ? assistantMessage.tool_calls : []
+
+    if (toolCalls.length) {
+      const followUpMessages = [
+        ...liveAgentMessages,
+        {
+          role: 'assistant',
+          content: assistantMessage.content || '',
+          tool_calls: toolCalls,
+        },
+      ]
+
+      for (const toolCall of toolCalls) {
+        const toolResult = await executeLiveAgentToolCall(toolCall)
+        followUpMessages.push({
+          role: 'tool',
+          tool_call_id: toolCall.id,
+          content: JSON.stringify(toolResult),
+        })
+      }
+
+      const finalResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ' + apiKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
+          messages: followUpMessages,
+          temperature: 0.45,
+          frequency_penalty: 0.1,
+          max_tokens: 900,
+        }),
+      })
+
+      const finalData = await finalResponse.json().catch(() => ({}))
+      if (!finalResponse.ok) {
+        return json(res, 200, {
+          reply: buildChatFallbackReply(userText, identityContext),
+          mode: 'local-fallback-after-tool',
+        })
+      }
+
+      const finalReply = finalData && finalData.choices && finalData.choices[0] ? finalData.choices[0].message.content || '' : ''
+      return json(res, 200, {
+        reply: finalReply || buildChatFallbackReply(userText, identityContext),
+        model: finalData.model,
+        usage: finalData.usage,
+        mode: 'live-agent-tool-calling',
+        toolCalls: toolCalls.map(call => call && call.function ? call.function.name : 'unknown'),
+      })
+    }
+
+    const reply = assistantMessage.content || ''
     return json(res, 200, {
       reply: reply || buildChatFallbackReply(userText, identityContext),
-      model: data?.model,
-      usage: data?.usage,
+      model: data.model,
+      usage: data.usage,
+      mode: 'live-agent-chat',
     })
+
   } catch (error) {
     return json(res, 200, {
       reply: buildChatFallbackReply('', {}),
@@ -3919,5 +4161,6 @@ const port = Number(process.env.PORT || 4177)
 server.listen(port, () => {
   console.log(`Apex AI Copilot platform listening on http://127.0.0.1:${port}`)
 })
+
 
 

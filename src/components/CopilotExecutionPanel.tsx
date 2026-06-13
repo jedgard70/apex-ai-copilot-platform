@@ -51,6 +51,14 @@ export function CopilotExecutionPanel({ initialRuns = [], onRunComplete, onClear
   const [rawApproval, setRawApproval] = useState(false)
   const [error, setError] = useState('')
   const latestRun = runs[0]
+  const allowlistedCommands = useMemo(
+    () => commands.filter(command => command.acceptsRawCommand !== true),
+    [commands],
+  )
+  const rawShellCommand = useMemo(
+    () => commands.find(command => command.acceptsRawCommand === true),
+    [commands],
+  )
 
   useEffect(() => {
     let mounted = true
@@ -60,7 +68,7 @@ export function CopilotExecutionPanel({ initialRuns = [], onRunComplete, onClear
         if (!mounted) return
         const nextCommands = Array.isArray(data.commands) ? data.commands : []
         setCommands(nextCommands)
-        setSelectedCommandId(current => current || nextCommands[0]?.id || '')
+        setSelectedCommandId(current => current || nextCommands.find((command: CopilotExecutionCommand) => command.acceptsRawCommand !== true)?.id || nextCommands[0]?.id || '')
       })
       .catch(fetchError => {
         if (mounted) setError(fetchError instanceof Error ? fetchError.message : 'Could not load execution commands.')
@@ -179,7 +187,7 @@ export function CopilotExecutionPanel({ initialRuns = [], onRunComplete, onClear
       {error && <div className="business-alert"><strong>Execution error</strong><span>{error}</span></div>}
 
       <div className="execution-command-list">
-        {commands.map(command => (
+        {allowlistedCommands.map(command => (
           <button
             key={command.id}
             className={command.id === selectedCommandId ? 'active' : ''}
@@ -192,6 +200,16 @@ export function CopilotExecutionPanel({ initialRuns = [], onRunComplete, onClear
           </button>
         ))}
       </div>
+
+      {rawShellCommand && (
+        <div className="execution-guardrail">
+          <ShieldCheck size={18} />
+          <span>Advanced raw shell is separated from the safe command list. It requires explicit Jose approval and should not be used for routine checks.</span>
+          <button type="button" onClick={() => setSelectedCommandId(rawShellCommand.id)}>
+            Select raw shell
+          </button>
+        </div>
+      )}
 
       <div className="execution-raw-controls">
         <label>
@@ -260,3 +278,4 @@ export function CopilotExecutionPanel({ initialRuns = [], onRunComplete, onClear
     </section>
   )
 }
+
