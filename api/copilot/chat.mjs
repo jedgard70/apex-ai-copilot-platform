@@ -1,4 +1,5 @@
 import { runApexOperatorProductionSafe } from '../../server/agent/apexOperatorRuntime.mjs'
+import { collectProductionOperatorStatus } from '../../server/agent/productionStatus.mjs'
 
 function sendJson(res, status, body) {
   res.status(status).json(body)
@@ -33,18 +34,21 @@ export default async function handler(req, res) {
   try {
     const body = await readJsonBody(req)
     const userMessage = String(body.message || '').slice(0, 12000)
+    const productionStatus = collectProductionOperatorStatus()
     const result = await runApexOperatorProductionSafe({
       userMessage,
       identityContext: normalizeIdentityContext(body.identityContext || {}),
       workspaceContext: body.workspaceContext || {},
       repoPath: process.cwd(),
       permissions: {},
+      productionStatus,
     })
 
     return sendJson(res, 200, {
       reply: result.finalReply,
       mode: 'apex-operator-production-safe',
       operator: result,
+      productionStatus,
     })
   } catch (error) {
     console.error('Apex production chat route failed safely:', error?.message || error)

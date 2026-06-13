@@ -1,4 +1,5 @@
 import { runApexOperatorProductionSafe } from '../../server/agent/apexOperatorRuntime.mjs'
+import { collectProductionOperatorStatus } from '../../server/agent/productionStatus.mjs'
 
 function sendJson(res, status, body) {
   res.status(status).json(body)
@@ -33,17 +34,20 @@ export default async function handler(req, res) {
 
   try {
     const body = await readJsonBody(req)
+    const productionStatus = collectProductionOperatorStatus()
     const result = await runApexOperatorProductionSafe({
       userMessage: String(body.message || '').slice(0, 12000),
       identityContext: normalizeIdentityContext(body.identityContext || {}),
       workspaceContext: body.workspaceContext || {},
       repoPath: process.cwd(),
       permissions: {},
+      productionStatus,
     })
 
     return sendJson(res, 200, {
       ...result,
       mode: 'operator-preview-production-safe',
+      productionStatus,
     })
   } catch (error) {
     console.error('Apex production operator preview failed safely:', error?.message || error)

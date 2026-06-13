@@ -3,6 +3,7 @@ import { classifyOperatorIntent, inferConcreteShellCommand, isOperatorIntent, se
 import { buildPolicyDecision, isExplicitCommitApproval } from './policy.mjs'
 import { runApprovedCommit, runCommands, runOwnerRawShell } from './executor.mjs'
 import { buildOperatorMemory } from './memory.mjs'
+import { collectProductionOperatorStatus, summarizeProductionOperatorStatus } from './productionStatus.mjs'
 import { buildDecision, summarizeEvidence } from './verifier.mjs'
 
 export { isOperatorIntent }
@@ -167,12 +168,15 @@ export async function runApexOperator({
   }
 }
 
-function buildProductionSafeReply({ intent, policyDecision }) {
+function buildProductionSafeReply({ intent, policyDecision, productionStatus }) {
+  const statusSummary = summarizeProductionOperatorStatus(productionStatus)
+
   if (intent === 'greeting_request') {
     return [
       'GREEN - Apex Copilot esta ativo em producao.',
       'Sou o operador da plataforma Apex: classifico risco, explico capacidades e preparo proximas acoes com evidencia.',
       'Neste ambiente web eu nao executo Git, build, shell local, deploy ou migration sem um executor/conector server-side configurado.',
+      statusSummary,
     ].join('\n')
   }
 
@@ -181,6 +185,7 @@ function buildProductionSafeReply({ intent, policyDecision }) {
       'YELLOW - capacidade vercel_deploy: preparada para producao, mas sem execucao automatica neste chat.',
       'Status: requer confirmacao natural, escopo, evidencia e conector Vercel configurado no backend.',
       'Nao executei deploy. Nao vou fingir publicacao.',
+      statusSummary,
     ].join('\n')
   }
 
@@ -189,6 +194,7 @@ function buildProductionSafeReply({ intent, policyDecision }) {
       'YELLOW - capacidade git_push: preparada, mas depende de conector GitHub/server-side configurado.',
       'Status: requer confirmacao natural, branch alvo, diff validado e credencial operacional.',
       'Nao executei push. Nao vou fingir alteracao remota.',
+      statusSummary,
     ].join('\n')
   }
 
@@ -197,6 +203,7 @@ function buildProductionSafeReply({ intent, policyDecision }) {
       'YELLOW - capacidade supabase_migration: preparada, mas sem credencial/conector de migration neste runtime web.',
       'Status: requer confirmacao natural, SQL revisado, plano de rollback e credencial Supabase operacional.',
       'Nao apliquei migration. Nao vou fingir alteracao no banco.',
+      statusSummary,
     ].join('\n')
   }
 
@@ -214,6 +221,7 @@ function buildProductionSafeReply({ intent, policyDecision }) {
       'O proximo passo e fechar a ponte serverless: chat em producao deve responder, classificar risco e preparar acoes sem depender do server.mjs local.',
       'Capacidades disponiveis agora: conversa operacional, classificacao de risco, status de capacidade para GitHub/Vercel/Supabase e orientacao de checkpoint.',
       'Capacidades que exigem executor separado: git status real, diff real, build local, shell, commit, push, deploy e migration.',
+      statusSummary,
       'Minha decisao: nao executar localmente dentro da funcao Vercel. Preparar evidencia e acionar executor/conector dedicado quando aprovado.',
     ].join('\n')
   }
@@ -223,6 +231,7 @@ function buildProductionSafeReply({ intent, policyDecision }) {
       'YELLOW - capacidade git_commit: reconhecida, mas indisponivel neste runtime web sem executor Git server-side.',
       'Status: commit local exige repositorio com working tree real, diff validado e autorizacao natural.',
       'Nao criei commit em producao. Posso orientar o checkpoint e aguardar o executor local/conector apropriado.',
+      statusSummary,
     ].join('\n')
   }
 
@@ -231,6 +240,7 @@ function buildProductionSafeReply({ intent, policyDecision }) {
       'YELLOW - capacidade local_shell: reconhecida, mas nao disponivel no runtime serverless de producao.',
       'Shell local precisa de executor dedicado, cwd controlado, stdout/stderr e aprovacao do Owner.',
       'Nada foi executado.',
+      statusSummary,
     ].join('\n')
   }
 
@@ -240,6 +250,7 @@ function buildProductionSafeReply({ intent, policyDecision }) {
     `Capacidade atual: ${capability}.`,
     'Posso responder como operador, classificar risco e preparar o proximo passo sem cair no fallback de erro generico.',
     'Para execucoes reais de Git, build, shell, deploy ou Supabase, preciso de um executor/conector server-side configurado e confirmacao clara.',
+    statusSummary,
   ].join('\n')
 }
 
@@ -249,6 +260,7 @@ export async function runApexOperatorProductionSafe({
   workspaceContext = {},
   repoPath,
   permissions = {},
+  productionStatus,
 } = {}) {
   const resolvedRepo = path.resolve(repoPath || process.cwd())
   const intent = classifyOperatorIntent(userMessage)
@@ -263,7 +275,8 @@ export async function runApexOperatorProductionSafe({
       allowRawShell: false,
     },
   })
-  const finalReply = buildProductionSafeReply({ intent, policyDecision })
+  const safeStatus = productionStatus || collectProductionOperatorStatus()
+  const finalReply = buildProductionSafeReply({ intent, policyDecision, productionStatus: safeStatus })
 
   return {
     ok: true,
@@ -274,6 +287,7 @@ export async function runApexOperatorProductionSafe({
       summary: {
         productionSafe: true,
         localExecution: 'not_available_in_vercel_function',
+        productionStatus: safeStatus,
         commandProof: [],
       },
       commands: [],
