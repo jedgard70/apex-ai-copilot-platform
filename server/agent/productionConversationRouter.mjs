@@ -104,7 +104,6 @@ export function classifyProductionConversationIntent(message = '') {
     /\b(faz deploy|fazer deploy|deploy)\b/,
     /\bpublica(r)?\b/,
     /\bsubir para vercel\b/,
-    /\bvercel\b/,
   ])) {
     return 'production_vercel_deploy'
   }
@@ -175,6 +174,22 @@ function buildCapabilityListingReply() {
   ].join('\n')
 }
 
+function buildPlatformPositionReply(productionStatus = {}) {
+  const connectorStatus = productionStatus.connectorStatus || {}
+  const github = connectorStatus.github || {}
+  const vercel = connectorStatus.vercel || {}
+  return [
+    'Posição da plataforma Apex:',
+    '- Conversa: GREEN.',
+    '- API serverless: GREEN.',
+    '- Memória de sessão: GREEN.',
+    '- Executor H4: PARTIAL.',
+    `- GitHub connector: ${github.configured ? 'configured' : 'unavailable'}.`,
+    `- Vercel connector: ${vercel.configured ? 'configured' : 'unavailable'}.`,
+    '- Próximo passo: configurar env tokens ou worker executor.',
+  ].join('\n')
+}
+
 const REPLIES = {
   production_greeting: 'Olá, {{displayName}}. Estou ativa na plataforma Apex. Pode me pedir para revisar a plataforma, planejar o próximo passo, preparar documentos, analisar código ou conduzir um checkpoint.',
   production_user_correction: 'Correto. Vou responder apenas ao que você pedir, em português, sem repetir status técnico quando não for necessário.',
@@ -188,13 +203,7 @@ const REPLIES = {
     'Execução real de alteração no código depende do Codex/local executor.',
     'Não executei deploy, migração, commit, push ou comando livre.',
   ].join('\n'),
-  production_platform_position: [
-    'Posição da plataforma Apex:',
-    '- Produção conversacional: GREEN.',
-    '- Status bridge: GREEN.',
-    '- Executor H4: PARTIAL em Vercel, porque Git local e repositório persistente podem não estar disponíveis no runtime serverless.',
-    '- Próximo requisito: configurar conector GitHub/Vercel ou um worker executor externo para evidência real de repositório, build remoto e operação controlada.',
-  ].join('\n'),
+  production_platform_position: '',
   production_vercel_deploy: [
     'Capacidade de publicação preparada.',
     'Para publicar na Vercel, preciso de conector Vercel ou variáveis operacionais configuradas no servidor, escopo confirmado, evidência de compilação e alvo de publicação definido.',
@@ -231,6 +240,8 @@ export function routeProductionConversation({
     ? buildCapabilityListingReply()
     : conversationIntent === 'production_display_name_preference'
       ? `Entendido, ${displayName}. Vou te chamar assim nesta sessão.`
+      : conversationIntent === 'production_platform_position'
+        ? buildPlatformPositionReply(productionStatus)
       : REPLIES[conversationIntent]
   const finalReply = String(template || REPLIES.production_general_portuguese).replaceAll('{{displayName}}', displayName)
 

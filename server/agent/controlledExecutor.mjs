@@ -4,6 +4,7 @@ import { spawn } from 'node:child_process'
 import { collectProductionOperatorStatus } from './productionStatus.mjs'
 import { redactOutput } from './executor.mjs'
 import { buildControlledExecutionGate, isPathInsideRepo } from './policy.mjs'
+import { buildConnectorsStatusReply, collectConnectorsStatus } from './connectorsStatus.mjs'
 
 const MAX_OUTPUT = 60000
 
@@ -89,6 +90,13 @@ const CONTROLLED_COMMANDS = {
     optionalFile: 'api/copilot/operator-execute.mjs',
     label: 'validação da rota de execução controlada',
   },
+  check_connector_status_route: {
+    executable: 'node',
+    args: ['--check', 'api/copilot/connector-status.mjs'],
+    timeoutMs: 30000,
+    optionalFile: 'api/copilot/connector-status.mjs',
+    label: 'validação da rota de conectores',
+  },
   build_validation: {
     executable: 'npm.cmd',
     args: ['run', 'build'],
@@ -100,8 +108,8 @@ const CONTROLLED_COMMANDS = {
 const TASK_COMMANDS = {
   repository_status: ['repository_status', 'git_log'],
   git_log: ['git_log'],
-  route_validation: ['check_chat_route', 'check_operator_preview_route', 'check_operator_status_route', 'check_operator_execute_route'],
-  validation: ['check_server', 'check_operator_runtime', 'check_production_status', 'check_production_router', 'check_controlled_executor', 'check_chat_route', 'check_operator_preview_route', 'check_operator_status_route', 'check_operator_execute_route'],
+  route_validation: ['check_chat_route', 'check_operator_preview_route', 'check_operator_status_route', 'check_operator_execute_route', 'check_connector_status_route'],
+  validation: ['check_server', 'check_operator_runtime', 'check_production_status', 'check_production_router', 'check_controlled_executor', 'check_chat_route', 'check_operator_preview_route', 'check_operator_status_route', 'check_operator_execute_route', 'check_connector_status_route'],
   build_validation: ['check_server', 'check_operator_runtime', 'check_controlled_executor', 'build_validation'],
 }
 
@@ -191,6 +199,8 @@ export function classifyControlledExecutionRequest(message = '', operatorIntent 
   if (/\b(git log|historico|hist[oó]rico|ultimos commits|últimos commits)\b/i.test(message)) return ['git_log']
   if (/\b(build|compilacao|compila[cç][aã]o)\b/i.test(message)) return ['build_validation']
   if (/\b(rota|rotas|route|handler|api)\b/i.test(message)) return ['route_validation']
+  if (/\b(github)\b/i.test(message)) return ['github_connector_status']
+  if (/\b(vercel)\b/i.test(message)) return ['vercel_connector_status']
   if (/\b(conector|conectores|ambiente|variaveis|variáveis|vercel|supabase)\b/i.test(message)) return ['connector_presence']
   if (/\b(valida|validar|validacao|valida[cç][aã]o|verifica|verificar|teste|testar)\b/i.test(message)) return ['validation', 'connector_presence']
   if (operatorIntent === 'status_request') return ['repository_status', 'connector_presence']
@@ -452,17 +462,29 @@ export async function runControlledExecutor({
     results.push(await runControlledCommand(commandId, resolvedRepo, safeStatus))
   }
 
-  const connectors = tasks.includes('connector_presence') ? connectorPresence(safeStatus) : []
+  const connectorStatus = collectConnectorsStatus()
+  const connectors = tasks.some(task => ['connector_presence', 'github_connector_status', 'vercel_connector_status'].includes(task))
+    ? connectorPresence(safeStatus)
+    : []
   const summary = summarizeCommands(results)
-  const finalReply = buildControlledFinalReply({ tasks, policy, summary, connectors })
+  const connectorOnly = tasks.length > 0 && tasks.every(task => ['connector_presence', 'github_connector_status', 'vercel_connector_status'].includes(task))
+  const connectorFocus = tasks.includes('github_connector_status')
+    ? 'github'
+    : tasks.includes('vercel_connector_status')
+      ? 'vercel'
+      : 'all'
+  const finalReply = connectorOnly
+    ? buildConnectorsStatusReply(connectorStatus, connectorFocus)
+    : buildControlledFinalReply({ tasks, policy, summary, connectors })
 
   return {
-    ok: !['BLOCKED', 'UNAVAILABLE'].includes(summary.status),
-    status: summary.status,
+    ok: connectorOnly || !['BLOCKED', 'UNAVAILABLE'].includes(summary.status),
+    status: connectorOnly ? 'GREEN' : summary.status,
     tasks,
     policy,
     commands: summary.commandProof,
     connectors,
+    connectorStatus,
     finalReply,
   }
 }

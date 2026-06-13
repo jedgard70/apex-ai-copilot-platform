@@ -1,52 +1,10 @@
-function hasEnv(name) {
-  return Boolean(process.env[name])
-}
-
-function connectorStatus(id, label, configured, detail) {
-  return {
-    id,
-    label,
-    status: configured ? 'configured' : 'missing_configuration',
-    configured: Boolean(configured),
-    detail,
-  }
-}
+import { collectConnectorsStatus, connectorsAsProductionList } from './connectorsStatus.mjs'
 
 export function collectProductionOperatorStatus() {
   const isVercel = process.env.VERCEL === '1'
   const deploymentUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL || ''
-  const connectors = [
-    connectorStatus(
-      'github',
-      'GitHub remote operations',
-      hasEnv('GITHUB_TOKEN') || hasEnv('GH_TOKEN'),
-      'Necessario para push, PR e operacoes GitHub reais.',
-    ),
-    connectorStatus(
-      'vercel',
-      'Vercel deploy/control',
-      hasEnv('VERCEL_TOKEN') && (hasEnv('VERCEL_PROJECT_ID') || hasEnv('VERCEL_ORG_ID')),
-      'Necessario para deploy/promote/rollback via backend.',
-    ),
-    connectorStatus(
-      'supabase_migrations',
-      'Supabase migrations',
-      hasEnv('SUPABASE_ACCESS_TOKEN') || hasEnv('SUPABASE_DB_URL'),
-      'Necessario para migrations e mutacoes de banco com rollback.',
-    ),
-    connectorStatus(
-      'supabase_frontend',
-      'Supabase frontend/auth config',
-      hasEnv('VITE_SUPABASE_URL') && hasEnv('VITE_SUPABASE_ANON_KEY'),
-      'Suficiente para cliente Supabase no frontend, nao para migrations.',
-    ),
-    connectorStatus(
-      'openai',
-      'OpenAI provider',
-      hasEnv('OPENAI_API_KEY'),
-      'Opcional para respostas generativas; o operador seguro responde sem isso.',
-    ),
-  ]
+  const connectorStatus = collectConnectorsStatus()
+  const connectors = connectorsAsProductionList(connectorStatus)
 
   const validations = [
     {
@@ -103,6 +61,8 @@ export function collectProductionOperatorStatus() {
       supabaseMigration: 'requires_connector_confirmation_and_rollback',
     },
     connectors,
+    connectorStatus,
+    executorStatus: connectorStatus.executor,
     validations,
     overallStatus: isVercel ? 'PARTIAL' : 'YELLOW',
     summary: isVercel
