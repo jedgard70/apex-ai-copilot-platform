@@ -191,8 +191,8 @@ function buildToolExecutionReply({ requestTools = [], executions = [] } = {}) {
 
   const count = requestTools.length
   const header = count > 1
-    ? `Apex AI Copilot — análise multi-ferramenta (${count} intenções detectadas):`
-    : `Apex AI Copilot — análise de ferramenta H5:`
+    ? `Apex AI Copilot [H5.0D] — análise multi-ferramenta (${count} intenções detectadas):`
+    : `Apex AI Copilot [H5.0D] — análise de ferramenta H5:`
 
   const lines = [header]
 

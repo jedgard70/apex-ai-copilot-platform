@@ -1,5 +1,15 @@
 import { runApexOperatorProductionSafe } from '../../server/agent/apexOperatorRuntime.mjs'
 import { collectProductionOperatorStatus } from '../../server/agent/productionStatus.mjs'
+import { classifyToolExecutionRequest, routeToolExecution } from '../../server/agent/toolExecutionRouter.mjs'
+
+// H5.0D: action tools that must always bypass conversation/connector router
+const H5_ACTION_TOOLS = new Set([
+  'local_worker.status',
+  'revit_mcp.status',
+  'revit_model.status',
+  'vercel.deploy',
+  'supabase.migration',
+])
 
 function sendJson(res, status, body) {
   res.status(status).json(body)
@@ -36,6 +46,21 @@ export default async function handler(req, res) {
     const body = await readJsonBody(req)
     const userMessage = String(body.message || '').slice(0, 12000)
     const productionStatus = collectProductionOperatorStatus()
+
+    // H5.0D: hard override — detect action tools before any conversation/connector router
+    const h5ToolIds = classifyToolExecutionRequest(userMessage)
+    if (h5ToolIds.length && h5ToolIds.some(id => H5_ACTION_TOOLS.has(id))) {
+      const toolExecution = await routeToolExecution({ userMessage, requestedToolIds: h5ToolIds })
+      return sendJson(res, 200, {
+        finalReply: toolExecution.finalReply,
+        reply: toolExecution.finalReply,
+        memoryPatch: null,
+        mode: 'apex-h5-tool-execution-direct',
+        operator: { intent: 'tool_execution', toolExecution },
+        productionStatus,
+      })
+    }
+
     const result = await runApexOperatorProductionSafe({
       userMessage,
       identityContext: normalizeIdentityContext(body.identityContext || {}),

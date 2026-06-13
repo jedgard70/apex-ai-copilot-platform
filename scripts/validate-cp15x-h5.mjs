@@ -175,4 +175,54 @@ assert.ok(classifyToolExecutionRequest('computador').includes('local_worker.stat
 assert.ok(classifyToolExecutionRequest('pc').includes('local_worker.status'), 'bare "pc" must route to local_worker.status')
 console.log('GREEN H5.0C bare keyword fallback detection passed.')
 
+// H5.0D — version marker present in H5 replies
+assertIncludes(multiRoute.finalReply, ['h5.0d'])
+assertIncludes(multiRoute.toolExecution?.finalReply || multiRoute.finalReply, ['h5.0d'])
+console.log('GREEN H5.0D version marker present in multi-tool finalReply.')
+
+// H5.0D — simulate exact HTTP handler payload (api/copilot/chat.mjs)
+import chatHandler from '../api/copilot/chat.mjs'
+const multiInputHttp = [
+  'arrume meu computador',
+  'abra o revit',
+  'verifique o modelo revit',
+  'faça deploy',
+  'aplique migration',
+  'verifique github e vercel',
+].join('\n')
+
+let httpResponseBody = null
+const mockReq = {
+  method: 'POST',
+  body: { message: multiInputHttp, identityContext: { email: 'test@apex.com', role: 'owner_admin', isOwnerAdmin: true } },
+  [Symbol.asyncIterator]: async function* () {},
+}
+const mockRes = {
+  _status: null,
+  status(code) { this._status = code; return this },
+  json(body) { httpResponseBody = body },
+  setHeader() {},
+}
+await chatHandler(mockReq, mockRes)
+
+assert.ok(httpResponseBody, 'HTTP handler must return a response body')
+assert.equal(mockRes._status, 200, 'HTTP status must be 200')
+assert.ok(typeof httpResponseBody.finalReply === 'string', 'HTTP response must have finalReply string')
+assert.ok(httpResponseBody.finalReply.trim().length > 0, 'HTTP finalReply must not be empty')
+assertIncludes(httpResponseBody.finalReply, [
+  'h5.0d',
+  'controlled local pc worker',
+  'revit mcp bridge',
+  'revit model check',
+  'vercel deploy',
+  'supabase migration',
+  'github repository status',
+  'vercel deployment status',
+  '7',
+])
+assert.ok(!normalize(httpResponseBody.finalReply).startsWith('status de conectores'), 'HTTP finalReply must not start with legacy connector header')
+assert.ok(normalize(httpResponseBody.finalReply).includes('supabase migration'), 'HTTP finalReply must not respond with GitHub only')
+console.log(`GREEN H5.0D HTTP chat handler: ${httpResponseBody.finalReply.split('\n')[0]}`)
+console.log(`GREEN H5.0D HTTP mode: ${httpResponseBody.mode}`)
+
 console.log('GREEN CP15X-H5 real tool execution layer validation passed.')
