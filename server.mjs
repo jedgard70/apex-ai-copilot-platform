@@ -3530,6 +3530,223 @@ async function handleExportSkillPack(req, res) {
   }
 }
 
+
+const OWNER_CODE_EXECUTOR_STATUS = {
+  providerStatus: 'local-first-foundation',
+  executionStatus: 'planning-only',
+  codeExecution: 'not-connected',
+  githubWrite: 'not-connected',
+  vercelDeploy: 'not-connected',
+  supabaseMutation: 'blocked-without-owner-approval',
+}
+
+const OWNER_CODE_ALLOWED_COMMANDS = [
+  'git status --short',
+  'git diff --stat',
+  'npm.cmd run build',
+  'npm.cmd run validate:supabase-sql',
+  'node --check server.mjs',
+]
+
+const OWNER_CODE_BLOCKED_PATTERNS = [
+  'rm -rf',
+  'del /s',
+  'rmdir /s',
+  'drop database',
+  'drop schema',
+  'drop table',
+  'truncate',
+  'delete from',
+  'reset database',
+  'supabase db reset',
+  'supabase db push',
+  'vercel --prod',
+  'force push',
+  'push --force',
+  'service_role',
+  '.env',
+]
+
+function normalizeOwnerCommand(command = '') {
+  return String(command).trim().replace(/\s+/g, ' ').toLowerCase()
+}
+
+function isOwnerCommandAllowed(command = '') {
+  const normalized = normalizeOwnerCommand(command)
+  return OWNER_CODE_ALLOWED_COMMANDS.some(allowed => normalized === allowed.toLowerCase())
+}
+
+function isOwnerCommandBlocked(command = '') {
+  const normalized = normalizeOwnerCommand(command)
+  return OWNER_CODE_BLOCKED_PATTERNS.some(pattern => normalized.includes(pattern.toLowerCase()))
+}
+
+function classifyOwnerExecutionRisk({ objective = '', command = '', files = [] } = {}) {
+  const text = String(objective).toLowerCase()
+  const normalizedCommand = normalizeOwnerCommand(command)
+
+  if (normalizedCommand && isOwnerCommandBlocked(normalizedCommand)) return 'BLOCKED'
+
+  if (files.some(file => {
+    const normalizedFile = String(file).replace(/\\/g, '/').toLowerCase()
+    return normalizedFile.includes('.env') ||
+      normalizedFile.includes('node_modules') ||
+      normalizedFile.includes('dist') ||
+      normalizedFile.includes('supabase/.temp') ||
+      normalizedFile.includes('.vercel')
+  })) {
+    return 'BLOCKED'
+  }
+
+  if (
+    text.includes('drop') ||
+    text.includes('reset') ||
+    text.includes('delete data') ||
+    text.includes('service role') ||
+    text.includes('produção') ||
+    text.includes('production deploy')
+  ) {
+    return 'BLOCKED'
+  }
+
+  if (
+    text.includes('auth') ||
+    text.includes('supabase') ||
+    text.includes('rls') ||
+    text.includes('payment') ||
+    text.includes('billing') ||
+    text.includes('deploy') ||
+    text.includes('vercel')
+  ) {
+    return 'HIGH'
+  }
+
+  if (
+    text.includes('editar') ||
+    text.includes('alterar código') ||
+    text.includes('frontend') ||
+    text.includes('backend') ||
+    text.includes('api') ||
+    text.includes('package')
+  ) {
+    return 'MEDIUM'
+  }
+
+  return 'LOW'
+}
+
+function validateOwnerCodeCommand(command = '') {
+  if (isOwnerCommandBlocked(command)) {
+    return {
+      allowed: false,
+      riskLevel: 'BLOCKED',
+      requiresOwnerApproval: true,
+      reason: 'Command matches a blocked or destructive pattern.',
+      ...OWNER_CODE_EXECUTOR_STATUS,
+    }
+  }
+
+  if (isOwnerCommandAllowed(command)) {
+    return {
+      allowed: true,
+      riskLevel: 'LOW',
+      requiresOwnerApproval: false,
+      reason: 'Command is explicitly allowlisted for local validation.',
+      ...OWNER_CODE_EXECUTOR_STATUS,
+    }
+  }
+
+  return {
+    allowed: false,
+    riskLevel: 'HIGH',
+    requiresOwnerApproval: true,
+    reason: 'Command is not in the allowlist and requires Owner approval before execution.',
+    ...OWNER_CODE_EXECUTOR_STATUS,
+  }
+}
+
+function buildOwnerCodeExecutionPlan({ objective = 'Continue checkpoint safely', command = '', files = [], checkpoint = 'UNSPECIFIED_CHECKPOINT' } = {}) {
+  const riskLevel = classifyOwnerExecutionRisk({ objective, command, files })
+  const approvalRequired = riskLevel === 'HIGH' || riskLevel === 'BLOCKED'
+
+  return {
+    checkpoint,
+    objective,
+    status: approvalRequired ? 'ready-for-owner-approval' : 'planning-only',
+    riskLevel,
+    allowedCommands: OWNER_CODE_ALLOWED_COMMANDS,
+    blockedPatterns: OWNER_CODE_BLOCKED_PATTERNS,
+    files,
+    approvalRequired,
+    nextSafeAction:
+      riskLevel === 'BLOCKED'
+        ? 'Stop and request explicit Owner decision. Do not execute.'
+        : approvalRequired
+          ? 'Prepare scope, evidence, and approval request before execution.'
+          : 'Prepare local validation plan and run only allowlisted checks.',
+    notes: [
+      'This endpoint does not execute shell commands.',
+      'Native code execution is local-first foundation only.',
+      'Production deploy, Supabase migrations, service role usage, and destructive actions are blocked without explicit Owner approval.',
+    ],
+    ...OWNER_CODE_EXECUTOR_STATUS,
+  }
+}
+
+async function handleOwnerCodeExecutorPlan(req, res) {
+  try {
+    const body = await readJson(req)
+    return json(res, 200, buildOwnerCodeExecutionPlan(body || {}))
+  } catch (error) {
+    return json(res, error.status || 500, {
+      error: scrubProviderError(error.message || error),
+      ...OWNER_CODE_EXECUTOR_STATUS,
+    })
+  }
+}
+
+async function handleOwnerCodeExecutorValidateCommand(req, res) {
+  try {
+    const body = await readJson(req)
+    return json(res, 200, validateOwnerCodeCommand(body?.command || ''))
+  } catch (error) {
+    return json(res, error.status || 500, {
+      error: scrubProviderError(error.message || error),
+      ...OWNER_CODE_EXECUTOR_STATUS,
+    })
+  }
+}
+
+async function handleOwnerCodeExecutorStatus(_req, res) {
+  return json(res, 200, {
+    ...OWNER_CODE_EXECUTOR_STATUS,
+    status: 'available',
+    message: 'Owner Code Executor foundation is available in planning-only mode.',
+    allowedCommands: OWNER_CODE_ALLOWED_COMMANDS,
+  })
+}
+
+async function handleOwnerCodeExecutorLog(req, res) {
+  try {
+    const body = await readJson(req)
+    return json(res, 200, {
+      id: `exec_${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      checkpoint: body?.checkpoint || 'UNSPECIFIED_CHECKPOINT',
+      action: body?.action || 'owner-code-executor-log',
+      status: body?.status || 'planning-only',
+      riskLevel: body?.riskLevel || 'LOW',
+      message: body?.message || 'Execution log entry recorded locally.',
+      ...OWNER_CODE_EXECUTOR_STATUS,
+    })
+  } catch (error) {
+    return json(res, error.status || 500, {
+      error: scrubProviderError(error.message || error),
+      ...OWNER_CODE_EXECUTOR_STATUS,
+    })
+  }
+}
+
 function serveStatic(req, res) {
   const url = new URL(req.url, 'http://localhost')
   const safePath = decodeURIComponent(url.pathname).replace(/^\/+/, '')
@@ -3553,6 +3770,22 @@ function serveStatic(req, res) {
 }
 
 const server = http.createServer((req, res) => {
+  if (req.url === '/api/copilot/code-executor/plan' && req.method === 'POST') {
+    handleOwnerCodeExecutorPlan(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/code-executor/validate-command' && req.method === 'POST') {
+    handleOwnerCodeExecutorValidateCommand(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/code-executor/status' && req.method === 'POST') {
+    handleOwnerCodeExecutorStatus(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/code-executor/log' && req.method === 'POST') {
+    handleOwnerCodeExecutorLog(req, res)
+    return
+  }
   if (req.url === '/api/copilot/execution/commands' && req.method === 'GET') {
     handleExecutionCommands(req, res)
     return
@@ -3672,3 +3905,4 @@ const port = Number(process.env.PORT || 4177)
 server.listen(port, () => {
   console.log(`Apex AI Copilot platform listening on http://127.0.0.1:${port}`)
 })
+
