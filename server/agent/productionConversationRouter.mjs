@@ -24,6 +24,9 @@ export function extractDisplayNamePreference(message = '') {
   const patterns = [
     /\bme chame de\s+([^.!?\n\r,;]+)/i,
     /\bpode me chamar de\s+([^.!?\n\r,;]+)/i,
+    /\bquero ser chamad[oa] de\s+([^.!?\n\r,;]+)/i,
+    /\bquero que me chame de\s+([^.!?\n\r,;]+)/i,
+    /\bser chamad[oa] de\s+([^.!?\n\r,;]+)/i,
     /^\s*sou\s+([^.!?\n\r,;]+)/i,
   ]
 

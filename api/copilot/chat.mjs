@@ -47,6 +47,7 @@ export default async function handler(req, res) {
     })
 
     return sendJson(res, 200, {
+      finalReply: result.finalReply,
       reply: result.finalReply,
       memoryPatch: result.memoryPatch || null,
       mode: 'apex-operator-production-safe',

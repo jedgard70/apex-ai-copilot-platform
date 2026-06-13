@@ -268,6 +268,17 @@ function saveClientMemory(memory: ClientMemory) {
   }
 }
 
+function pickCanonicalReply(data: Record<string, unknown>, fallback: string) {
+  const candidates = [
+    data.finalReply,
+    (data.operator as { finalReply?: unknown } | undefined)?.finalReply,
+    data.reply,
+    data.message,
+  ]
+  const reply = candidates.find(candidate => typeof candidate === 'string' && candidate.trim())
+  return typeof reply === 'string' ? reply : fallback
+}
+
 function isArchVisIntent(text: string, attachment?: IntakeFile) {
   if (attachment?.kind === 'image' && !text.trim()) return true
   if (attachment?.kind !== 'image') return false
@@ -1110,18 +1121,9 @@ function App() {
     }
     if (shouldOpenAuth) {
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
-      setMessages(prev => [
-        ...prev,
-        userMessage,
-        {
-          id: id(),
-          role: 'assistant',
-          text: isOwnerUser
-            ? 'Open Owner Console to review account diagnostics.'
-            : 'Your account tools are available from your profile after sign in.',
-        },
-      ])
       setAuthOutput({ goal: clean, conversationContext: context })
+      if (isOwnerUser) setOwnerConsoleOpen(true)
+      setMessages(prev => [...prev, userMessage])
       setInput('')
       return
     }
@@ -1454,8 +1456,8 @@ function App() {
         })
       }
       const localFallback = buildProductFallbackAnswer(userText, identityContext)
-      const reply = response.ok && data.reply
-        ? data.reply
+      const reply = response.ok
+        ? pickCanonicalReply(data, localFallback || buildCopilotFailureMessage(userText))
         : localFallback || buildCopilotFailureMessage(userText)
       if (shouldOpenArchVis && attachment?.kind === 'image') {
         const studioMessage = asksExplicit3D(clean)
