@@ -327,7 +327,7 @@ function isCheckpointContinuationIntent(text: string) {
 }
 
 function isPlatformEngineeringIntent(text: string) {
-  return /\b(status da plataforma|platform engineering|abrir pr|github|vercel|supabase status|status supabase|deploy status|deployment status|pull request|branch plan|plano de branch)\b/i.test(text)
+  return /\b(status da plataforma|platform engineering|abrir pr|supabase status|status supabase|deploy status|deployment status|pull request|branch plan|plano de branch)\b/i.test(text)
 }
 
 function classifyConnectorStatusIntent(text: string) {
@@ -345,24 +345,9 @@ function classifyConnectorStatusIntent(text: string) {
   return ''
 }
 
-function buildConnectorStatusFallback(text: string) {
-  const focus = classifyConnectorStatusIntent(text)
-  if (!focus) return ''
-  const lines = ['Status de conectores Apex:']
-  if (focus === 'all' || focus === 'github') {
-    lines.push('- GitHub connector: unavailable.')
-    lines.push('  Repositório: jedgard70/apex-ai-copilot-platform.')
-    lines.push('  Branch: feature/image-generation-connector.')
-    lines.push('  Token presente: não.')
-  }
-  if (focus === 'all' || focus === 'vercel') {
-    lines.push('- Vercel connector: unavailable.')
-    lines.push('  Projeto: prj_uVRjNyFprz8NyzVcb8NTdnALr1Xm.')
-    lines.push('  Domínio de produção: www.apexglobalai.com.')
-    lines.push('  Token presente: não.')
-  }
-  lines.push('Nenhum segredo foi exibido. Nenhuma ação remota foi executada.')
-  return lines.join('\n')
+function buildConnectorStatusFallback(_text: string) {
+  // H5.0D: connector/tool status is now served by backend H5 tool router (api/copilot/chat)
+  return ''
 }
 
 function isCodeSkillIntent(text: string) {
@@ -1485,6 +1470,8 @@ function App() {
         }),
       })
       const data = await response.json().catch(() => ({}))
+      // H5.0D: log response mode so version is visible in browser console
+      if (data?.mode) console.log('[Apex H5] response mode:', data.mode)
       if (data?.memoryPatch && typeof data.memoryPatch === 'object') {
         setClientMemory(current => {
           const next = { ...current, ...data.memoryPatch }
