@@ -285,6 +285,12 @@ export async function runApexOperatorProductionSafe({
   const conversationalOnlyIntents = [
     'production_display_name_preference',
     'production_acknowledgement',
+    'production_revit_bim_help',
+    'production_user_confusion',
+    'production_name_identity',
+    'production_who_am_i',
+    'production_computer_help',
+    'production_multi_intent',
     'production_platform_position',
     'production_next_step',
     'production_execute_recommended',

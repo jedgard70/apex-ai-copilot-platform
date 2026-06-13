@@ -1236,6 +1236,8 @@ async function handleChat(req, res) {
       'production_who_am_i',
       'production_user_confusion',
       'production_revit_bim_help',
+      'production_computer_help',
+      'production_multi_intent',
       'production_github_connector_status',
       'production_vercel_connector_status',
       'production_connector_status',

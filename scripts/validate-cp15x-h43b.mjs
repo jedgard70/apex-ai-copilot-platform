@@ -83,9 +83,9 @@ const cases = [
   {
     name: 'connector route',
     message: 'verifique status dos conectores GitHub e Vercel',
-    intent: 'production_github_connector_status',
+    intent: 'production_multi_intent',
     validate(result) {
-      assertIncludes(result.finalReply, ['status de conectores apex', 'github connector', 'nenhuma acao remota'])
+      assertIncludes(result.finalReply, ['github connector status', 'vercel connector status', 'github connector', 'vercel connector', 'nenhuma acao remota'])
       assert.equal(result.requiresApproval, false)
     },
   },

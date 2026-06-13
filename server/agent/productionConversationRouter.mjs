@@ -13,6 +13,16 @@ function includesAny(text, patterns) {
   return patterns.some(pattern => pattern.test(text))
 }
 
+function firstPatternIndex(text, patterns) {
+  let first = -1
+  for (const pattern of patterns) {
+    const match = pattern.exec(text)
+    pattern.lastIndex = 0
+    if (match?.index >= 0 && (first === -1 || match.index < first)) first = match.index
+  }
+  return first
+}
+
 function sanitizeDisplayName(value = '') {
   return String(value || '')
     .replace(/[<>{}[\]\\]/g, '')
@@ -53,17 +63,12 @@ export function inferDisplayNameFromMessages(messages = []) {
 
 function hasPortugueseSignal(text) {
   return includesAny(text, [
-    /\b(ola|bom dia|boa tarde|boa noite|mas|voce|voces|nao|entao|me diga|liste|proximo|passo|faz|execute|quero|deploy|publica|subir|aplica|migration|supabase|plataforma|posicao|posição|entendeu|revit|bim|modelagem|familias|famílias|quantitativo|meu nome|quem sou eu)\b/,
+    /\b(ola|bom dia|boa tarde|boa noite|mas|voce|voces|vc|nao|entao|me diga|liste|proximo|passo|faz|execute|quero|deploy|publica|subir|aplica|migration|supabase|plataforma|posicao|posição|entendeu|revit|bim|modelagem|familias|famílias|quantitativo|meu nome|quem sou eu|computador|pc|internet|travando)\b/,
   ])
 }
 
-export function classifyProductionConversationIntent(message = '') {
-  const text = normalizeMessage(message)
-
-  if (!text) return 'production_next_step'
-  if (extractDisplayNamePreference(message)) return 'production_display_name_preference'
-
-  if (includesAny(text, [
+const INTENT_PATTERNS = {
+  production_revit_bim_help: [
     /\b(o que pode me ajudar com o )?revit\b/,
     /\bbim\b/,
     /\bmodelagem\b/,
@@ -73,34 +78,169 @@ export function classifyProductionConversationIntent(message = '') {
     /\bcompatibilizacao\b/,
     /\bifc\b/,
     /\bnwc\b/,
-  ])) {
-    return 'production_revit_bim_help'
-  }
-
-  if (includesAny(text, [
+  ],
+  production_user_confusion: [
     /\bnao entendi\b/,
     /\bnão entendi\b/,
     /\bexplique melhor\b/,
     /\bfala mais simples\b/,
     /\bresuma\b/,
-  ])) {
-    return 'production_user_confusion'
-  }
-
-  if (includesAny(text, [
+  ],
+  production_name_identity: [
     /\bmeu nome\b/,
     /\bqual meu nome\b/,
     /\bcomo voce deve me chamar\b/,
     /\bcomo você deve me chamar\b/,
-  ])) {
-    return 'production_name_identity'
-  }
-
-  if (includesAny(text, [
+  ],
+  production_who_am_i: [
     /\bquem sou eu\b/,
     /\bvoce sabe quem sou eu\b/,
     /\bvocê sabe quem sou eu\b/,
-  ])) {
+  ],
+  production_computer_help: [
+    /\b(arrumar|consertar|corrigir|diagnosticar).*\b(computador|pc|notebook)\b/,
+    /\b(computador|pc|notebook).*\b(arrumar|consertar|corrigir|diagnosticar|erro|lento|travando|problema)\b/,
+    /\bme ajuda(?:r)? no computador\b/,
+    /\berro no pc\b/,
+    /\binternet (nao|não) funciona\b/,
+    /\b(revit).*\b(travando|lento|crash|fechando|erro)\b/,
+  ],
+  production_capability_listing: [
+    /\bo que sabe fazer\b/,
+    /\bliste para mim\b/,
+    /\bquais sao suas capacidades\b/,
+    /\bo que voce consegue fazer\b/,
+  ],
+  production_platform_position: [
+    /\bqual (a )?(posicao|posição|situacao|situação) da plataforma\b/,
+    /\bstatus da plataforma\b/,
+    /\bcomo esta a plataforma\b/,
+  ],
+  production_vercel_deploy: [
+    /\b(faz deploy|fazer deploy|deploy)\b/,
+    /\bpublica(r)?\b/,
+    /\bsubir para vercel\b/,
+  ],
+  production_supabase: [
+    /\b(aplica|aplicar|aplique|roda|rodar|executa|executar).*\b(migration|migracao|supabase)\b/,
+    /\bsupabase\b/,
+  ],
+  production_execute_recommended: [
+    /\bexecute entao\b/,
+    /\bexecuta entao\b/,
+    /\bfa[cç]a entao\b/,
+    /\bpode executar\b/,
+    /\b(execute|executa|executar|faz|fazer|pode seguir|quero que execute).*\b(proximo|passo)\b/,
+    /\b^(faz|pode seguir|segue|seguir)$\b/,
+  ],
+  production_next_step: [
+    /\bproximo passo\b/,
+    /\bqual o proximo passo\b/,
+    /\bo que fazemos agora\b/,
+    /\be agora\b/,
+  ],
+}
+
+const CONNECTOR_SECTION_INTENTS = new Set([
+  'production_github_connector_status',
+  'production_vercel_connector_status',
+  'production_connector_status',
+])
+
+function splitNaturalRequestItems(message = '') {
+  const raw = String(message || '').trim()
+  if (!raw) return []
+  return raw
+    .replace(/\r/g, '\n')
+    .replace(/(?:^|\n)\s*\d+[\).\-\s]+/g, '\n')
+    .split(/\n+|[;!?]+|(?:\s+tamb[eé]m\s+)|(?:\s+depois\s+)/i)
+    .map(item => item.replace(/^\s*[-*]\s+/, '').trim())
+    .filter(Boolean)
+}
+
+function connectorIntentsFromSegment(segment = '') {
+  const text = normalizeMessage(segment)
+  const asksStatus = /\b(verifique|verificar|verifica|checar|cheque|validar|valide|status|conector|conectores)\b/.test(text)
+  if (!asksStatus) return []
+  const intents = []
+  if (/\bgithub\b/.test(text)) intents.push('production_github_connector_status')
+  if (/\bvercel\b/.test(text)) intents.push('production_vercel_connector_status')
+  if (!intents.length && /\bconector|conectores\b/.test(text)) intents.push('production_connector_status')
+  return intents
+}
+
+function orderedIntentsFromSegment(segment = '') {
+  const text = normalizeMessage(segment)
+  if (!text) return []
+  const ordered = []
+
+  const connectorIntents = connectorIntentsFromSegment(segment)
+  for (const intent of connectorIntents) {
+    const marker = intent === 'production_github_connector_status' ? 'github' : intent === 'production_vercel_connector_status' ? 'vercel' : 'conector'
+    ordered.push({ intent, index: text.indexOf(marker) >= 0 ? text.indexOf(marker) : 0 })
+  }
+
+  const computerHelpIndex = firstPatternIndex(text, INTENT_PATTERNS.production_computer_help)
+  for (const [intent, patterns] of Object.entries(INTENT_PATTERNS)) {
+    if (intent === 'production_revit_bim_help' && computerHelpIndex >= 0) continue
+    const index = firstPatternIndex(text, patterns)
+    if (index >= 0) ordered.push({ intent, index })
+  }
+
+  return ordered
+    .sort((a, b) => a.index - b.index)
+    .map(item => item.intent)
+}
+
+export function decomposeProductionConversationIntents(message = '') {
+  const preferredName = extractDisplayNamePreference(message)
+  const items = splitNaturalRequestItems(message)
+  const intents = []
+  if (preferredName) intents.push('production_display_name_preference')
+
+  for (const item of items.length ? items : [message]) {
+    for (const intent of orderedIntentsFromSegment(item)) intents.push(intent)
+  }
+
+  const deduped = []
+  const seenConnectorIntents = new Set()
+  for (const intent of intents) {
+    if (CONNECTOR_SECTION_INTENTS.has(intent)) {
+      if (intent === 'production_connector_status' && (seenConnectorIntents.has('production_github_connector_status') || seenConnectorIntents.has('production_vercel_connector_status'))) continue
+      if (seenConnectorIntents.has(intent)) continue
+      seenConnectorIntents.add(intent)
+    }
+    deduped.push(intent)
+  }
+
+  return deduped
+}
+
+export function classifyProductionConversationIntent(message = '') {
+  const text = normalizeMessage(message)
+  const decomposedIntents = decomposeProductionConversationIntents(message)
+
+  if (!text) return 'production_next_step'
+  if (decomposedIntents.length > 1) return 'production_multi_intent'
+  if (extractDisplayNamePreference(message)) return 'production_display_name_preference'
+
+  if (includesAny(text, INTENT_PATTERNS.production_computer_help)) {
+    return 'production_computer_help'
+  }
+
+  if (includesAny(text, INTENT_PATTERNS.production_revit_bim_help)) {
+    return 'production_revit_bim_help'
+  }
+
+  if (includesAny(text, INTENT_PATTERNS.production_user_confusion)) {
+    return 'production_user_confusion'
+  }
+
+  if (includesAny(text, INTENT_PATTERNS.production_name_identity)) {
+    return 'production_name_identity'
+  }
+
+  if (includesAny(text, INTENT_PATTERNS.production_who_am_i)) {
     return 'production_who_am_i'
   }
 
@@ -126,20 +266,11 @@ export function classifyProductionConversationIntent(message = '') {
     return 'production_acknowledgement'
   }
 
-  if (includesAny(text, [
-    /\bo que sabe fazer\b/,
-    /\bliste para mim\b/,
-    /\bquais sao suas capacidades\b/,
-    /\bo que voce consegue fazer\b/,
-  ])) {
+  if (includesAny(text, INTENT_PATTERNS.production_capability_listing)) {
     return 'production_capability_listing'
   }
 
-  if (includesAny(text, [
-    /\bqual (a )?(posicao|posição|situacao|situação) da plataforma\b/,
-    /\bstatus da plataforma\b/,
-    /\bcomo esta a plataforma\b/,
-  ])) {
+  if (includesAny(text, INTENT_PATTERNS.production_platform_position)) {
     return 'production_platform_position'
   }
 
@@ -148,38 +279,19 @@ export function classifyProductionConversationIntent(message = '') {
   if (connectorStatusIntent === 'vercel_connector_status') return 'production_vercel_connector_status'
   if (connectorStatusIntent === 'connector_status') return 'production_connector_status'
 
-  if (includesAny(text, [
-    /\b(faz deploy|fazer deploy|deploy)\b/,
-    /\bpublica(r)?\b/,
-    /\bsubir para vercel\b/,
-  ])) {
+  if (includesAny(text, INTENT_PATTERNS.production_vercel_deploy)) {
     return 'production_vercel_deploy'
   }
 
-  if (includesAny(text, [
-    /\b(aplica|aplicar|aplique|roda|rodar|executa|executar).*\b(migration|migracao|supabase)\b/,
-    /\bsupabase\b/,
-  ])) {
+  if (includesAny(text, INTENT_PATTERNS.production_supabase)) {
     return 'production_supabase'
   }
 
-  if (includesAny(text, [
-    /\bexecute entao\b/,
-    /\bexecuta entao\b/,
-    /\bfa[cç]a entao\b/,
-    /\bpode executar\b/,
-    /\b(execute|executa|executar|faz|fazer|pode seguir|quero que execute).*\b(proximo|passo)\b/,
-    /\b^(faz|pode seguir|segue|seguir)$\b/,
-  ])) {
+  if (includesAny(text, INTENT_PATTERNS.production_execute_recommended)) {
     return 'production_execute_recommended'
   }
 
-  if (includesAny(text, [
-    /\bproximo passo\b/,
-    /\bqual o proximo passo\b/,
-    /\bo que fazemos agora\b/,
-    /\be agora\b/,
-  ])) {
+  if (includesAny(text, INTENT_PATTERNS.production_next_step)) {
     return 'production_next_step'
   }
 
@@ -253,6 +365,14 @@ function buildRevitBimHelpReply() {
   ].join('\n')
 }
 
+function buildComputerHelpReply() {
+  return [
+    'Consigo te orientar e diagnosticar.',
+    'Se você me disser o problema ou enviar print/erro, eu preparo um passo a passo seguro: sintomas, quando começou, Windows/versão do Revit se for o caso, mensagem de erro, internet/cabo/Wi-Fi, lentidão, travamento ou tela azul.',
+    'Sem acesso remoto ou conector autorizado, eu não mexo diretamente no computador. Posso guiar diagnóstico, checklist, comandos de leitura e próximos passos sem apagar nada nem alterar configurações sensíveis no escuro.',
+  ].join('\n')
+}
+
 function summarizeLastTopic(messages = []) {
   const recent = Array.isArray(messages) ? messages.slice(-8).reverse() : []
   for (const message of recent) {
@@ -270,13 +390,23 @@ function summarizeLastTopic(messages = []) {
 }
 
 function cleanNaturalSummary(text = '') {
-  return String(text || '')
+  const cleaned = String(text || '')
     .replace(/\s+/g, ' ')
     .trim()
-    .slice(0, 260)
+  if (cleaned.length <= 520) return cleaned
+  const excerpt = cleaned.slice(0, 520)
+  const boundary = Math.max(
+    excerpt.lastIndexOf('. '),
+    excerpt.lastIndexOf('; '),
+    excerpt.lastIndexOf(': '),
+  )
+  return `${excerpt.slice(0, boundary > 220 ? boundary + 1 : 520).trim()}...`
 }
 
-function buildConfusionReply(messages = []) {
+function buildConfusionReply(messages = [], { multiQuestionContext = false } = {}) {
+  if (multiQuestionContext) {
+    return 'Claro. Quando você cola várias perguntas juntas, eu posso responder item por item na mesma resposta. Vou separar por assunto, manter a ordem e não executar nada real como deploy, push, migração ou conector sem evidência e confirmação.'
+  }
   const lastTopic = summarizeLastTopic(messages)
   if (lastTopic) {
     return [
@@ -303,8 +433,90 @@ function buildWhoAmIReply({ identityContext = {}, clientMemory = {}, displayName
   return 'Ainda não tenho dados suficientes desta sessão para dizer quem você é. Se quiser, diga: me chame de Dr Edgard.'
 }
 
+function buildNaturalFallbackReply(userMessage = '') {
+  const text = normalizeMessage(userMessage)
+  if (text) {
+    return [
+      'Entendi o caminho do pedido, mas ainda falta o detalhe principal para eu agir bem.',
+      'Me diga o objetivo concreto, o erro, o arquivo, o print ou o resultado que você quer. Com isso eu preparo a resposta, checklist ou passo a passo sem fingir acesso a computador, conector, deploy, banco ou arquivo que eu não recebi.',
+    ].join('\n')
+  }
+  return 'Me diga o que você quer resolver e eu organizo o próximo passo. Se for erro, arquivo, computador, Revit, GitHub, Vercel ou Supabase, mande o contexto ou print e eu sigo por partes.'
+}
+
+function sectionTitleForIntent(intent, index) {
+  const titles = {
+    production_revit_bim_help: 'Revit/BIM help',
+    production_user_confusion: 'Explicação simples',
+    production_name_identity: 'Nome preferido',
+    production_who_am_i: 'Identidade da conta',
+    production_github_connector_status: 'GitHub connector status',
+    production_vercel_connector_status: 'Vercel connector status',
+    production_connector_status: 'Connector status',
+    production_computer_help: 'Computador/PC',
+    production_vercel_deploy: 'Deploy',
+    production_supabase: 'Supabase',
+    production_capability_listing: 'Capacidades',
+    production_platform_position: 'Plataforma',
+    production_next_step: 'Próximo passo',
+    production_execute_recommended: 'Execução',
+  }
+  return `${index}. ${titles[intent] || 'Resposta'}`
+}
+
+function buildReplyForIntent(intent, {
+  userMessage = '',
+  productionStatus = {},
+  clientMemory = {},
+  identityContext = {},
+  messages = [],
+  displayName = '',
+  multiQuestionContext = false,
+} = {}) {
+  if (intent === 'production_capability_listing') return buildCapabilityListingReply()
+  if (intent === 'production_display_name_preference') return `Entendido, ${displayName}. Vou te chamar assim nesta sessão.`
+  if (intent === 'production_platform_position') return buildPlatformPositionReply(productionStatus)
+  if (intent === 'production_github_connector_status') return buildConnectorsStatusReply(productionStatus.connectorStatus, 'github')
+  if (intent === 'production_vercel_connector_status') return buildConnectorsStatusReply(productionStatus.connectorStatus, 'vercel')
+  if (intent === 'production_connector_status') return buildConnectorsStatusReply(productionStatus.connectorStatus, 'all')
+  if (intent === 'production_revit_bim_help') return buildRevitBimHelpReply()
+  if (intent === 'production_computer_help') return buildComputerHelpReply()
+  if (intent === 'production_user_confusion') return buildConfusionReply(messages, { multiQuestionContext })
+  if (intent === 'production_name_identity') return buildNameIdentityReply(clientMemory)
+  if (intent === 'production_who_am_i') return buildWhoAmIReply({ identityContext, clientMemory, displayName })
+  return REPLIES[intent] || buildNaturalFallbackReply(userMessage)
+}
+
+function buildMultiIntentReply({
+  intents = [],
+  userMessage = '',
+  productionStatus = {},
+  clientMemory = {},
+  identityContext = {},
+  messages = [],
+  displayName = '',
+} = {}) {
+  const sections = []
+  let sectionIndex = 1
+  for (const intent of intents) {
+    const body = buildReplyForIntent(intent, {
+      userMessage,
+      productionStatus,
+      clientMemory,
+      identityContext,
+      messages,
+      displayName,
+      multiQuestionContext: true,
+    })
+    if (!body) continue
+    sections.push(`${sectionTitleForIntent(intent, sectionIndex)}\n${body}`)
+    sectionIndex += 1
+  }
+  return sections.join('\n\n')
+}
+
 const REPLIES = {
-  production_greeting: 'Olá, {{displayName}}. Estou ativa na plataforma Apex. Pode me pedir para revisar a plataforma, planejar o próximo passo, preparar documentos, analisar código ou conduzir um checkpoint.',
+  production_greeting: 'Olá, {{displayName}}. Pode me dizer o que quer resolver agora. Eu posso responder, organizar um plano, revisar contexto ou preparar um passo a passo sem acionar execução real sem confirmação.',
   production_user_correction: 'Correto. Vou responder apenas ao que você pedir, em português, sem repetir status técnico quando não for necessário.',
   production_acknowledgement: 'Entendi, {{displayName}}. Vou manter esse contexto nesta sessão.',
   production_next_step: [
@@ -324,6 +536,8 @@ const REPLIES = {
   production_user_confusion: '',
   production_name_identity: '',
   production_who_am_i: '',
+  production_computer_help: '',
+  production_multi_intent: '',
   production_vercel_deploy: [
     'Capacidade de publicação preparada.',
     'Para publicar na Vercel, preciso de conector Vercel ou variáveis operacionais configuradas no servidor, escopo confirmado, evidência de compilação e alvo de publicação definido.',
@@ -335,12 +549,12 @@ const REPLIES = {
     'Não apliquei migração e não vou simular alteração no banco.',
   ].join('\n'),
   production_general_portuguese: [
-    'Entendi. Me diga o que você quer resolver agora e eu transformo em um próximo passo claro.',
-    'Posso ajudar com engenharia/BIM, documentos, código, operação da plataforma ou preparação de execução; ações reais continuam dependendo de conector e confirmação.',
+    'Entendi o caminho do pedido, mas ainda falta o detalhe principal para eu agir bem.',
+    'Me diga o objetivo concreto, o erro, o arquivo, o print ou o resultado que você quer. Com isso eu preparo a resposta, checklist ou passo a passo sem fingir acesso a computador, conector, deploy, banco ou arquivo que eu não recebi.',
   ].join('\n'),
   production_general: [
-    'Estou por aqui. Diga o objetivo em uma frase e eu organizo o caminho.',
-    'Posso ajudar com engenharia/BIM, documentos, código, operação da plataforma ou próximos passos, sem fingir execução real sem conector.',
+    'I understand the direction, but I still need the concrete detail to help well.',
+    'Send the goal, error, file, screenshot or result you want. I can prepare an answer, checklist or next step without pretending to access a computer, connector, deployment, database or file I do not have.',
   ].join('\n'),
 }
 
@@ -354,30 +568,28 @@ export function routeProductionConversation({
   messages = [],
 } = {}) {
   const conversationIntent = classifyProductionConversationIntent(userMessage)
+  const decomposedIntents = decomposeProductionConversationIntents(userMessage)
   const preferredName = extractDisplayNamePreference(userMessage)
   const displayName = sanitizeDisplayName(preferredName || clientMemory.displayName || inferDisplayNameFromMessages(messages) || 'Jose')
   const memoryPatch = preferredName ? { displayName: preferredName } : null
-  const template = conversationIntent === 'production_capability_listing'
-    ? buildCapabilityListingReply()
-    : conversationIntent === 'production_display_name_preference'
-      ? `Entendido, ${displayName}. Vou te chamar assim nesta sessão.`
-      : conversationIntent === 'production_platform_position'
-        ? buildPlatformPositionReply(productionStatus)
-      : conversationIntent === 'production_github_connector_status'
-        ? buildConnectorsStatusReply(productionStatus.connectorStatus, 'github')
-      : conversationIntent === 'production_vercel_connector_status'
-        ? buildConnectorsStatusReply(productionStatus.connectorStatus, 'vercel')
-      : conversationIntent === 'production_connector_status'
-        ? buildConnectorsStatusReply(productionStatus.connectorStatus, 'all')
-      : conversationIntent === 'production_revit_bim_help'
-        ? buildRevitBimHelpReply()
-      : conversationIntent === 'production_user_confusion'
-        ? buildConfusionReply(messages)
-      : conversationIntent === 'production_name_identity'
-        ? buildNameIdentityReply(clientMemory)
-      : conversationIntent === 'production_who_am_i'
-        ? buildWhoAmIReply({ identityContext, clientMemory, displayName })
-      : REPLIES[conversationIntent]
+  const template = conversationIntent === 'production_multi_intent'
+    ? buildMultiIntentReply({
+        intents: decomposedIntents,
+        userMessage,
+        productionStatus,
+        clientMemory,
+        identityContext,
+        messages,
+        displayName,
+      })
+    : buildReplyForIntent(conversationIntent, {
+        userMessage,
+        productionStatus,
+        clientMemory,
+        identityContext,
+        messages,
+        displayName,
+      })
   const finalReply = String(template || REPLIES.production_general_portuguese).replaceAll('{{displayName}}', displayName)
 
   return {
@@ -388,7 +600,7 @@ export function routeProductionConversation({
     memoryPatch,
     displayName,
     status: policyDecision?.status || productionStatus?.overallStatus || 'YELLOW',
-    requiresApproval: ['production_execute_recommended', 'production_vercel_deploy', 'production_supabase'].includes(conversationIntent),
+    requiresApproval: ['production_execute_recommended', 'production_vercel_deploy', 'production_supabase'].some(intent => conversationIntent === intent || decomposedIntents.includes(intent)),
     capability: policyDecision?.capability || 'conversation',
   }
 }
