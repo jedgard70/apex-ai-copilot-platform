@@ -90,6 +90,20 @@ export const TOOL_REGISTRY = [
     mutates: false,
   },
   {
+    id: 'revit_model.status',
+    label: 'Revit model check',
+    provider: 'revit_mcp',
+    executionClass: EXECUTION_CLASSES.EXTERNAL_DESKTOP_REQUIRES_LOCAL_WORKER,
+    capability: 'revit_model_status_check',
+    env: ['REVIT_MCP_URL', 'REVIT_MCP_TOKEN'],
+    isConfigured: () => hasEnv('REVIT_MCP_URL'),
+    missing: () => [
+      ...(!hasEnv('REVIT_MCP_URL') ? ['REVIT_MCP_URL'] : []),
+      ...(!hasEnv('REVIT_MCP_TOKEN') ? ['REVIT_MCP_TOKEN'] : []),
+    ],
+    mutates: false,
+  },
+  {
     id: 'vercel.deploy',
     label: 'Vercel deploy',
     provider: 'vercel',
