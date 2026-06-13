@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawn } from 'node:child_process'
+import { isOperatorIntent, runApexOperator } from './server/agent/apexOperatorRuntime.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = __dirname
@@ -1221,6 +1222,33 @@ async function handleChat(req, res) {
       })
     }
 
+    if (isOperatorIntent(userText)) {
+      try {
+        const operatorResult = await runApexOperator({
+          userMessage: userText,
+          identityContext,
+          workspaceContext: body.workspaceContext || {},
+          repoPath: authorizedExecutionCwd,
+          permissions: {
+            allowCommit: true,
+            commitMessage: 'chore: apex operator approved commit',
+            allowRawShell: true,
+            rawCommand: body.rawCommand || '',
+            approvalText: body.approvalText || '',
+          },
+        })
+        if (operatorResult?.ok && operatorResult.finalReply) {
+          return json(res, 200, {
+            reply: operatorResult.finalReply,
+            mode: 'apex-operator-runtime',
+            operator: operatorResult,
+          })
+        }
+      } catch (operatorError) {
+        console.error('Apex Operator Runtime failed:', scrubProviderError(operatorError.message || operatorError))
+      }
+    }
+
     const apiKey = process.env.OPENAI_API_KEY
     if (!apiKey) {
       return json(res, 200, {
@@ -1429,6 +1457,44 @@ async function handleChat(req, res) {
     return json(res, 200, {
       reply: buildChatFallbackReply('', {}),
       mode: 'local-fallback',
+    })
+  }
+}
+
+async function handleOperatorPreview(req, res) {
+  try {
+    const body = await readJson(req)
+    const identityContext = normalizeChatIdentityContext(body.identityContext)
+    const result = await runApexOperator({
+      userMessage: String(body.message || '').slice(0, 12000),
+      identityContext,
+      workspaceContext: body.workspaceContext || {},
+      repoPath: authorizedExecutionCwd,
+      permissions: {
+        allowCommit: false,
+        allowRawShell: true,
+        rawCommand: body.rawCommand || '',
+        approvalText: body.approvalText || '',
+      },
+    })
+    return json(res, 200, {
+      ...result,
+      mode: 'operator-preview',
+    })
+  } catch (error) {
+    return json(res, 200, {
+      ok: false,
+      mode: 'operator-preview',
+      status: 'BLOCKED',
+      intent: 'operator-error',
+      evidence: [],
+      decision: 'Apex Operator Runtime failed safely.',
+      recommendedAction: 'Keep existing chat fallback and inspect server logs.',
+      requiresApproval: false,
+      proposedExecution: null,
+      executedActions: [],
+      finalReply: 'BLOCKED - Apex Operator Runtime falhou com segurança. O chat principal não foi quebrado.',
+      error: scrubProviderError(error.message || error),
     })
   }
 }
@@ -4048,6 +4114,10 @@ const server = http.createServer((req, res) => {
   }
   if (req.url === '/api/copilot/execution/run' && req.method === 'POST') {
     handleExecutionRun(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/operator-preview' && req.method === 'POST') {
+    handleOperatorPreview(req, res)
     return
   }
   if (req.url === '/api/copilot/chat' && req.method === 'POST') {
