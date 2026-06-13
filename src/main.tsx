@@ -95,6 +95,10 @@ type ChatIdentityContext = {
   profileName?: string
 }
 
+type ClientMemory = {
+  displayName?: string
+}
+
 type UiLanguage = 'EN' | 'PT'
 
 type ArchVisOutput = {
@@ -244,6 +248,23 @@ function isDebugEnabled() {
     return localStorage.getItem('apex_debug') === 'true' || import.meta.env.VITE_APEX_DEBUG === 'true'
   } catch {
     return import.meta.env.VITE_APEX_DEBUG === 'true'
+  }
+}
+
+function loadClientMemory(): ClientMemory {
+  try {
+    const parsed = JSON.parse(localStorage.getItem('apex_copilot_client_memory') || '{}') as ClientMemory
+    return parsed && typeof parsed === 'object' ? parsed : {}
+  } catch {
+    return {}
+  }
+}
+
+function saveClientMemory(memory: ClientMemory) {
+  try {
+    localStorage.setItem('apex_copilot_client_memory', JSON.stringify(memory))
+  } catch {
+    // Local storage can be unavailable in private or restricted browser contexts.
   }
 }
 
@@ -604,6 +625,7 @@ function App() {
   const [accountState, setAccountState] = useState<SupabaseAccountState | null>(null)
   const [authLoading, setAuthLoading] = useState(isSupabaseConfigured)
   const [authMessage, setAuthMessage] = useState(supabaseProvider.message)
+  const [clientMemory, setClientMemory] = useState<ClientMemory>(() => loadClientMemory())
   const initialProject = useMemo(() => loadActiveProject() || createProject('Apex Project'), [])
   const initialAppState = initialProject.appState || {}
   const restoredFile = recordToIntakeFile(initialProject.files.find(file => file.id === initialProject.activeFileId) || initialProject.files[initialProject.files.length - 1])
@@ -1401,6 +1423,7 @@ function App() {
           message: modelText,
           language: navigator.language || 'en',
           identityContext,
+          clientMemory,
           messages: [
             ...messages.map(message => ({
               role: message.role,
@@ -1423,6 +1446,13 @@ function App() {
         }),
       })
       const data = await response.json().catch(() => ({}))
+      if (data?.memoryPatch && typeof data.memoryPatch === 'object') {
+        setClientMemory(current => {
+          const next = { ...current, ...data.memoryPatch }
+          saveClientMemory(next)
+          return next
+        })
+      }
       const localFallback = buildProductFallbackAnswer(userText, identityContext)
       const reply = response.ok && data.reply
         ? data.reply

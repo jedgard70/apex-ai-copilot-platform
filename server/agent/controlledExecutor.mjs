@@ -126,6 +126,37 @@ function resolveExecutable(executable) {
   return fs.existsSync(githubDesktopGit) ? githubDesktopGit : executable
 }
 
+function isVercelRuntime() {
+  return process.env.VERCEL === '1' || process.env.APEX_SIMULATE_VERCEL_GIT_UNAVAILABLE === '1'
+}
+
+function hasLocalGitRepository(repoPath) {
+  return fs.existsSync(path.join(repoPath, '.git'))
+}
+
+function hasGitExecutable() {
+  const resolved = resolveExecutable('git')
+  if (resolved !== 'git') return fs.existsSync(resolved)
+  const pathEntries = String(process.env.PATH || '').split(path.delimiter).filter(Boolean)
+  const executableNames = process.platform === 'win32' ? ['git.exe', 'git.cmd', 'git.bat'] : ['git']
+  return pathEntries.some(entry => executableNames.some(name => fs.existsSync(path.join(entry, name))))
+}
+
+export function inspectControlledRuntime(repoPath = process.cwd(), productionStatus = collectProductionOperatorStatus()) {
+  const githubConnector = (productionStatus.connectors || []).find(connector => connector.id === 'github')
+  const localRepoAvailable = hasLocalGitRepository(repoPath)
+  const gitExecutableAvailable = hasGitExecutable()
+  const vercelRuntime = isVercelRuntime()
+
+  return {
+    vercelRuntime,
+    localRepoAvailable,
+    gitExecutableAvailable,
+    localGitAvailable: !vercelRuntime && localRepoAvailable && gitExecutableAvailable,
+    githubConnectorConfigured: Boolean(githubConnector?.configured),
+  }
+}
+
 function prepareCommand(command) {
   if (command.executable !== 'npm.cmd' && command.executable !== 'npm') {
     return {
@@ -213,10 +244,43 @@ function connectorPresence(productionStatus = collectProductionOperatorStatus())
   }))
 }
 
-function runControlledCommand(commandId, repoPath) {
+function buildUnavailableGitResult(commandId, repoPath, productionStatus) {
+  const command = CONTROLLED_COMMANDS[commandId]
+  const runtime = inspectControlledRuntime(repoPath, productionStatus)
+  const reason = runtime.vercelRuntime
+    ? 'executor local indisponível no runtime Vercel'
+    : !runtime.localRepoAvailable
+      ? 'repositório Git local indisponível neste runtime'
+      : 'binário Git indisponível neste runtime'
+  const next = runtime.githubConnectorConfigured
+    ? 'usar conector GitHub para consultar estado remoto ou acionar worker executor externo/local'
+    : 'ação requer executor externo/local ou GitHub connector'
+
+  return {
+    commandId,
+    command: command ? [command.executable, ...command.args].join(' ') : commandId,
+    label: command?.label || 'Git local',
+    status: 'unavailable',
+    exitCode: null,
+    durationMs: 0,
+    stdout: '',
+    stderr: `${reason}; ${next}.`,
+    unavailableReason: reason,
+    nextRequired: next,
+  }
+}
+
+function runControlledCommand(commandId, repoPath, productionStatus) {
   const command = CONTROLLED_COMMANDS[commandId]
   if (!command) {
     return Promise.resolve({ commandId, status: 'blocked', exitCode: null, stdout: '', stderr: 'Tarefa desconhecida.' })
+  }
+
+  if (command.executable === 'git') {
+    const runtime = inspectControlledRuntime(repoPath, productionStatus)
+    if (!runtime.localGitAvailable) {
+      return Promise.resolve(buildUnavailableGitResult(commandId, repoPath, productionStatus))
+    }
   }
 
   if (command.optionalFile && !fs.existsSync(path.join(repoPath, command.optionalFile))) {
@@ -282,10 +346,16 @@ function runControlledCommand(commandId, repoPath) {
 }
 
 function summarizeCommands(results = []) {
-  const failed = results.filter(result => !['completed', 'skipped'].includes(result.status) || (typeof result.exitCode === 'number' && result.exitCode !== 0))
+  const unavailable = results.filter(result => result.status === 'unavailable')
+  const failed = results.filter(result => !['completed', 'skipped', 'unavailable'].includes(result.status) || (typeof result.exitCode === 'number' && result.exitCode !== 0))
+  let status = 'GREEN'
+  if (failed.length) status = 'BLOCKED'
+  else if (unavailable.length && unavailable.length === results.length) status = 'UNAVAILABLE'
+  else if (unavailable.length) status = 'PARTIAL'
   return {
-    status: failed.length ? 'BLOCKED' : 'GREEN',
+    status,
     failedCommandIds: failed.map(result => result.commandId),
+    unavailableCommandIds: unavailable.map(result => result.commandId),
     commandProof: results.map(result => ({
       commandId: result.commandId,
       command: result.command,
@@ -295,6 +365,8 @@ function summarizeCommands(results = []) {
       durationMs: result.durationMs,
       stdout: String(result.stdout || '').trim().slice(0, 1500),
       stderr: String(result.stderr || '').trim().slice(0, 1500),
+      unavailableReason: result.unavailableReason || '',
+      nextRequired: result.nextRequired || '',
     })),
   }
 }
@@ -309,7 +381,9 @@ function buildControlledFinalReply({ tasks, policy, summary, connectors }) {
   }
 
   const lines = []
-  lines.push(`${summary.status} - execução controlada H4 concluída.`)
+  lines.push(summary.status === 'UNAVAILABLE'
+    ? 'UNAVAILABLE - execução controlada H4 indisponível neste runtime.'
+    : `${summary.status} - execução controlada H4 concluída.`)
   lines.push(`Tarefas: ${tasks.join(', ')}.`)
 
   if (summary.commandProof.length) {
@@ -317,7 +391,8 @@ function buildControlledFinalReply({ tasks, policy, summary, connectors }) {
     for (const proof of summary.commandProof) {
       lines.push(`- ${proof.label}: ${proof.status}, saída ${proof.exitCode === null ? 'sem código' : proof.exitCode}.`)
       if (proof.stdout) lines.push(`  ${proof.stdout.split(/\r?\n/).slice(0, 3).join(' | ')}`)
-      if (proof.stderr && proof.status !== 'completed') lines.push(`  Erro: ${proof.stderr.split(/\r?\n/).slice(0, 2).join(' | ')}`)
+      if (proof.status === 'unavailable') lines.push(`  ${proof.stderr}`)
+      else if (proof.stderr && proof.status !== 'completed') lines.push(`  Erro: ${proof.stderr.split(/\r?\n/).slice(0, 2).join(' | ')}`)
     }
   }
 
@@ -374,7 +449,7 @@ export async function runControlledExecutor({
   const uniqueCommandIds = [...new Set(commandIds)]
   const results = []
   for (const commandId of uniqueCommandIds) {
-    results.push(await runControlledCommand(commandId, resolvedRepo))
+    results.push(await runControlledCommand(commandId, resolvedRepo, safeStatus))
   }
 
   const connectors = tasks.includes('connector_presence') ? connectorPresence(safeStatus) : []
@@ -382,7 +457,7 @@ export async function runControlledExecutor({
   const finalReply = buildControlledFinalReply({ tasks, policy, summary, connectors })
 
   return {
-    ok: summary.status !== 'BLOCKED',
+    ok: !['BLOCKED', 'UNAVAILABLE'].includes(summary.status),
     status: summary.status,
     tasks,
     policy,

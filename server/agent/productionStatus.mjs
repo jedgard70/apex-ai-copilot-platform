@@ -90,10 +90,10 @@ export function collectProductionOperatorStatus() {
       chat: 'supported',
       operatorPreview: 'supported',
       operatorStatus: 'supported',
-      operatorExecute: 'read_only_and_validation_supported',
-      localGitStatus: 'controlled_read_only_supported_when_repo_available',
-      localGitLog: 'controlled_read_only_supported_when_repo_available',
-      localBuild: 'controlled_validation_supported_when_runtime_available',
+      operatorExecute: isVercel ? 'partial_in_vercel_serverless' : 'read_only_and_validation_supported',
+      localGitStatus: isVercel ? 'requires_github_connector_or_external_executor' : 'controlled_read_only_supported_when_repo_available',
+      localGitLog: isVercel ? 'requires_github_connector_or_external_executor' : 'controlled_read_only_supported_when_repo_available',
+      localBuild: isVercel ? 'requires_external_executor_for_reliable_build' : 'controlled_validation_supported_when_runtime_available',
       routeValidation: 'controlled_validation_supported',
       connectorPresence: 'supported_without_secret_values',
       localShell: 'blocked_in_h4',
@@ -104,8 +104,10 @@ export function collectProductionOperatorStatus() {
     },
     connectors,
     validations,
-    overallStatus: connectors.some(connector => connector.configured) ? 'YELLOW' : 'YELLOW',
-    summary: 'Operador em producao seguro: chat/status funcionam; execucoes reais aguardam executor ou conector dedicado.',
+    overallStatus: isVercel ? 'PARTIAL' : 'YELLOW',
+    summary: isVercel
+      ? 'Operador em producao: conversa/status funcionam; executor H4 e parcial no runtime Vercel e exige conector GitHub/Vercel ou worker externo para evidencia local.'
+      : 'Operador em producao seguro: chat/status funcionam; execucoes reais aguardam executor ou conector dedicado.',
   }
 }
 

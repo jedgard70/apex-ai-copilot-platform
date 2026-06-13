@@ -4,7 +4,7 @@ import { buildPolicyDecision, isExplicitCommitApproval } from './policy.mjs'
 import { classifyControlledExecutionRequest, runControlledExecutor } from './controlledExecutor.mjs'
 import { runApprovedCommit, runCommands, runOwnerRawShell } from './executor.mjs'
 import { buildOperatorMemory } from './memory.mjs'
-import { routeProductionConversation } from './productionConversationRouter.mjs'
+import { classifyProductionConversationIntent, routeProductionConversation } from './productionConversationRouter.mjs'
 import { collectProductionOperatorStatus, summarizeProductionOperatorStatus } from './productionStatus.mjs'
 import { buildDecision, summarizeEvidence } from './verifier.mjs'
 
@@ -263,6 +263,8 @@ export async function runApexOperatorProductionSafe({
   repoPath,
   permissions = {},
   productionStatus,
+  clientMemory = {},
+  messages = [],
 } = {}) {
   const resolvedRepo = path.resolve(repoPath || process.cwd())
   const intent = classifyOperatorIntent(userMessage)
@@ -278,9 +280,23 @@ export async function runApexOperatorProductionSafe({
     },
   })
   const safeStatus = productionStatus || collectProductionOperatorStatus()
+  const productionConversationIntent = classifyProductionConversationIntent(userMessage)
   const controlledTasks = classifyControlledExecutionRequest(userMessage, intent)
+  const conversationalOnlyIntents = [
+    'production_display_name_preference',
+    'production_acknowledgement',
+    'production_platform_position',
+    'production_next_step',
+    'production_execute_recommended',
+    'production_greeting',
+    'production_user_correction',
+    'production_capability_listing',
+    'production_vercel_deploy',
+    'production_supabase',
+  ]
   const shouldRunControlledExecution = controlledTasks.length > 0
     && !controlledTasks.includes('blocked_mutation')
+    && !conversationalOnlyIntents.includes(productionConversationIntent)
     && !['greeting_request', 'push_request', 'approved_commit_request', 'raw_shell_request', 'destructive_request', 'natural_execution_request', 'checkpoint_close_request', 'code_implementation_request'].includes(intent)
 
   if (shouldRunControlledExecution) {
@@ -289,6 +305,7 @@ export async function runApexOperatorProductionSafe({
       operatorIntent: intent,
       repoPath: resolvedRepo,
       productionStatus: safeStatus,
+      clientMemory,
     })
 
     return {
@@ -328,6 +345,7 @@ export async function runApexOperatorProductionSafe({
       },
       executedActions: [],
       finalReply: controlledExecution.finalReply,
+      memoryPatch: null,
     }
   }
 
@@ -336,6 +354,8 @@ export async function runApexOperatorProductionSafe({
     operatorIntent: intent,
     policyDecision,
     productionStatus: safeStatus,
+    clientMemory,
+    messages,
   })
 
   return {
@@ -369,5 +389,7 @@ export async function runApexOperatorProductionSafe({
     },
     executedActions: [],
     finalReply: conversation.finalReply,
+    memoryPatch: conversation.memoryPatch,
+    displayName: conversation.displayName,
   }
 }

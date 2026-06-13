@@ -11,9 +11,44 @@ function includesAny(text, patterns) {
   return patterns.some(pattern => pattern.test(text))
 }
 
+function sanitizeDisplayName(value = '') {
+  return String(value || '')
+    .replace(/[<>{}[\]\\]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 80)
+}
+
+export function extractDisplayNamePreference(message = '') {
+  const raw = String(message || '').trim()
+  const patterns = [
+    /\bme chame de\s+([^.!?\n\r,;]+)/i,
+    /\bpode me chamar de\s+([^.!?\n\r,;]+)/i,
+    /^\s*sou\s+([^.!?\n\r,;]+)/i,
+  ]
+
+  for (const pattern of patterns) {
+    const match = raw.match(pattern)
+    const displayName = sanitizeDisplayName(match?.[1] || '')
+    if (displayName) return displayName
+  }
+
+  return ''
+}
+
+export function inferDisplayNameFromMessages(messages = []) {
+  const recent = Array.isArray(messages) ? messages.slice(-12).reverse() : []
+  for (const message of recent) {
+    if (message?.role && message.role !== 'user') continue
+    const displayName = extractDisplayNamePreference(message?.text || message?.content || '')
+    if (displayName) return displayName
+  }
+  return ''
+}
+
 function hasPortugueseSignal(text) {
   return includesAny(text, [
-    /\b(ola|bom dia|boa tarde|boa noite|mas|voce|voces|nao|entao|me diga|liste|proximo|passo|faz|execute|quero|deploy|publica|subir|aplica|migration|supabase)\b/,
+    /\b(ola|bom dia|boa tarde|boa noite|mas|voce|voces|nao|entao|me diga|liste|proximo|passo|faz|execute|quero|deploy|publica|subir|aplica|migration|supabase|plataforma|posicao|posição|entendeu)\b/,
   ])
 }
 
@@ -21,6 +56,7 @@ export function classifyProductionConversationIntent(message = '') {
   const text = normalizeMessage(message)
 
   if (!text) return 'production_next_step'
+  if (extractDisplayNamePreference(message)) return 'production_display_name_preference'
 
   if (/^(ola|oi|bom dia|boa tarde|boa noite)(?:[\s!.,?]|$)/.test(text)) {
     return 'production_greeting'
@@ -37,12 +73,28 @@ export function classifyProductionConversationIntent(message = '') {
   }
 
   if (includesAny(text, [
+    /\bentendeu\b/,
+    /\bvoce entendeu\b/,
+    /\bconfirmou\b/,
+  ])) {
+    return 'production_acknowledgement'
+  }
+
+  if (includesAny(text, [
     /\bo que sabe fazer\b/,
     /\bliste para mim\b/,
     /\bquais sao suas capacidades\b/,
     /\bo que voce consegue fazer\b/,
   ])) {
     return 'production_capability_listing'
+  }
+
+  if (includesAny(text, [
+    /\bqual (a )?(posicao|posição|situacao|situação) da plataforma\b/,
+    /\bstatus da plataforma\b/,
+    /\bcomo esta a plataforma\b/,
+  ])) {
+    return 'production_platform_position'
   }
 
   if (includesAny(text, [
@@ -62,10 +114,14 @@ export function classifyProductionConversationIntent(message = '') {
   }
 
   if (includesAny(text, [
+    /\bexecute entao\b/,
+    /\bexecuta entao\b/,
+    /\bfa[cç]a entao\b/,
+    /\bpode executar\b/,
     /\b(execute|executa|executar|faz|fazer|pode seguir|quero que execute).*\b(proximo|passo)\b/,
     /\b^(faz|pode seguir|segue|seguir)$\b/,
   ])) {
-    return 'production_execute_next_step'
+    return 'production_execute_recommended'
   }
 
   if (includesAny(text, [
@@ -117,17 +173,24 @@ function buildCapabilityListingReply() {
 }
 
 const REPLIES = {
-  production_greeting: 'Olá, Jose. Estou ativa na plataforma Apex. Pode me pedir para revisar a plataforma, planejar o próximo passo, preparar documentos, analisar código ou conduzir um checkpoint.',
+  production_greeting: 'Olá, {{displayName}}. Estou ativa na plataforma Apex. Pode me pedir para revisar a plataforma, planejar o próximo passo, preparar documentos, analisar código ou conduzir um checkpoint.',
   production_user_correction: 'Correto. Vou responder apenas ao que você pedir, em português, sem repetir status técnico quando não for necessário.',
+  production_acknowledgement: 'Entendi, {{displayName}}. Vou manter esse contexto nesta sessão.',
   production_next_step: [
-    'Minha recomendação: fechar primeiro o checkpoint de produção da conversa.',
-    'O próximo passo é validar se cada intenção comum responde com uma mensagem própria em português: saudação, correção, capacidades, próximo passo, execução, publicação e Supabase.',
-    'Depois disso, vale preparar o executor separado para ações reais como Git, compilação, publicação e migração.',
+    'Minha recomendação: corrigir o contexto de produção H4.1 e configurar conector GitHub/Vercel ou um worker executor externo.',
+    'Isso fecha a lacuna atual: preservar preferência de nome na sessão e tratar Vercel serverless como runtime parcial, sem tentar Git local quando ele não existe.',
   ].join('\n'),
-  production_execute_next_step: [
-    'Posso preparar o próximo passo agora: definir o escopo, listar validações, montar o plano de execução e indicar o conector necessário.',
-    'Para executar de verdade em produção, preciso do executor correto: GitHub para ramo, confirmação de alterações ou solicitação de revisão; Vercel para publicação; Supabase para migração; ou executor local controlado para terminal e compilação.',
-    'Não executei nenhuma ação real nesta resposta.',
+  production_execute_recommended: [
+    'Posso preparar o pacote H4.1: ajuste de memória de sessão, correção do executor em Vercel e respostas operacionais para posição da plataforma, próximo passo e execução recomendada.',
+    'Execução real de alteração no código depende do Codex/local executor.',
+    'Não executei deploy, migração, commit, push ou comando livre.',
+  ].join('\n'),
+  production_platform_position: [
+    'Posição da plataforma Apex:',
+    '- Produção conversacional: GREEN.',
+    '- Status bridge: GREEN.',
+    '- Executor H4: PARTIAL em Vercel, porque Git local e repositório persistente podem não estar disponíveis no runtime serverless.',
+    '- Próximo requisito: configurar conector GitHub/Vercel ou um worker executor externo para evidência real de repositório, build remoto e operação controlada.',
   ].join('\n'),
   production_vercel_deploy: [
     'Capacidade de publicação preparada.',
@@ -154,19 +217,29 @@ export function routeProductionConversation({
   operatorIntent = '',
   policyDecision = {},
   productionStatus = {},
+  clientMemory = {},
+  messages = [],
 } = {}) {
   const conversationIntent = classifyProductionConversationIntent(userMessage)
-  const finalReply = conversationIntent === 'production_capability_listing'
+  const preferredName = extractDisplayNamePreference(userMessage)
+  const displayName = sanitizeDisplayName(preferredName || clientMemory.displayName || inferDisplayNameFromMessages(messages) || 'Jose')
+  const memoryPatch = preferredName ? { displayName: preferredName } : null
+  const template = conversationIntent === 'production_capability_listing'
     ? buildCapabilityListingReply()
-    : REPLIES[conversationIntent]
+    : conversationIntent === 'production_display_name_preference'
+      ? `Entendido, ${displayName}. Vou te chamar assim nesta sessão.`
+      : REPLIES[conversationIntent]
+  const finalReply = String(template || REPLIES.production_general_portuguese).replaceAll('{{displayName}}', displayName)
 
   return {
     ok: true,
     intent: conversationIntent,
     operatorIntent,
     finalReply,
+    memoryPatch,
+    displayName,
     status: policyDecision?.status || productionStatus?.overallStatus || 'YELLOW',
-    requiresApproval: ['production_execute_next_step', 'production_vercel_deploy', 'production_supabase'].includes(conversationIntent),
+    requiresApproval: ['production_execute_recommended', 'production_vercel_deploy', 'production_supabase'].includes(conversationIntent),
     capability: policyDecision?.capability || 'conversation',
   }
 }

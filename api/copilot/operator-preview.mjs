@@ -42,6 +42,8 @@ export default async function handler(req, res) {
       repoPath: process.cwd(),
       permissions: {},
       productionStatus,
+      clientMemory: body.clientMemory || {},
+      messages: Array.isArray(body.messages) ? body.messages : [],
     })
 
     return sendJson(res, 200, {
