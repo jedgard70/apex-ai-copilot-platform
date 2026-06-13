@@ -78,11 +78,22 @@ import { PwaMobilePlan, isPwaMobileIntent } from './lib/pwaMobileKnowledge'
 import { isSupplyChainIntent, SupplyChainPlan } from './lib/supplyChainKnowledge'
 import './styles.css'
 
+type H5ToolCard = {
+  id: string
+  label: string
+  executionClass: string
+  status: string
+  missing: string[]
+  mutates: boolean
+  available: boolean
+}
+
 type Message = {
   id: string
   role: 'user' | 'assistant'
   text: string
   attachment?: IntakeFile
+  toolCards?: H5ToolCard[]
 }
 
 type ChatIdentityContext = {
@@ -97,6 +108,7 @@ type ChatIdentityContext = {
 
 type ClientMemory = {
   displayName?: string
+  language?: string
 }
 
 type UiLanguage = 'EN' | 'PT'
@@ -411,9 +423,7 @@ function prefersPortuguese(text: string) {
 function buildCopilotFailureMessage(userText: string) {
   const preserved = userText.trim()
   const suffix = preserved ? `\n\n${prefersPortuguese(userText) ? 'Sua mensagem foi preservada:' : 'Your message was preserved:'}\n${preserved.slice(0, 2000)}` : ''
-  return prefersPortuguese(userText)
-    ? `Tive um problema ao gerar a resposta completa, mas posso continuar. Reformule o pedido ou envie um arquivo/screenshot para eu analisar.${suffix}`
-    : `I had trouble generating the full response, but I can continue. Rephrase the request or upload a file/screenshot for me to analyze.${suffix}`
+  return `Tive um problema ao gerar a resposta completa, mas posso continuar. Reformule o pedido ou envie um arquivo/screenshot para eu analisar.${suffix}`
 }
 
 function isIdentityQuestion(text: string) {
@@ -659,6 +669,10 @@ function App() {
   const [authLoading, setAuthLoading] = useState(isSupabaseConfigured)
   const [authMessage, setAuthMessage] = useState(supabaseProvider.message)
   const [clientMemory, setClientMemory] = useState<ClientMemory>(() => loadClientMemory())
+  const [toolConfirmState, setToolConfirmState] = useState<Record<string, 'idle' | 'confirmed' | 'cancelled'>>({})
+  const confirmToolAction = (msgId: string, action: 'confirmed' | 'cancelled') => {
+    setToolConfirmState(prev => ({ ...prev, [msgId]: action }))
+  }
   const initialProject = useMemo(() => loadActiveProject() || createProject('Apex Project'), [])
   const initialAppState = initialProject.appState || {}
   const restoredFile = recordToIntakeFile(initialProject.files.find(file => file.id === initialProject.activeFileId) || initialProject.files[initialProject.files.length - 1])
@@ -1483,6 +1497,21 @@ function App() {
       const reply = response.ok
         ? pickCanonicalReply(data, localFallback || buildCopilotFailureMessage(userText))
         : localFallback || buildCopilotFailureMessage(userText)
+      // H5.1C: extract tool cards from H5 tool execution response
+      const rawTools = (data?.operator as Record<string, unknown> | undefined)?.toolExecution
+      const toolsArr = rawTools && typeof rawTools === 'object' ? (rawTools as Record<string, unknown>).tools : undefined
+      const toolCards: H5ToolCard[] | undefined = Array.isArray(toolsArr)
+        ? toolsArr.map((t: Record<string, unknown>) => ({
+            id: String(t.id || ''),
+            label: String(t.label || t.id || ''),
+            executionClass: String(t.executionClass || ''),
+            status: String(t.status || ''),
+            missing: Array.isArray(t.missing) ? (t.missing as unknown[]).map(String) : [],
+            mutates: Boolean(t.mutates),
+            available: Boolean(t.available),
+          }))
+        : undefined
+
       if (shouldOpenArchVis && attachment?.kind === 'image') {
         const studioMessage = asksExplicit3D(clean)
           ? 'Abri o ArchVis Studio ao lado para render 3D/perspectiva. Você pode ajustar câmera, prompt e gerar pelo painel.'
@@ -1496,7 +1525,7 @@ function App() {
             .map(message => `${message.role}: ${message.text}`),
         })
       } else {
-        setMessages(prev => [...prev, { id: id(), role: 'assistant', text: reply }])
+        setMessages(prev => [...prev, { id: id(), role: 'assistant', text: reply, toolCards }])
       }
     } catch (error) {
       setMessages(prev => [
@@ -2105,13 +2134,71 @@ function App() {
                       <span>{message.attachment.kind} · {formatSize(message.attachment.file.size)}</span>
                     </div>
                   )}
+                  {message.toolCards && message.toolCards.length > 0 && (
+                    <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {message.toolCards.map(card => {
+                        const cls = card.executionClass
+                        const isMutation = cls === 'mutation_requires_confirmation'
+                        const isBlocked = cls === 'blocked'
+                        const bg = card.available ? '#d1fae5' : isMutation ? '#fef3c7' : isBlocked ? '#fee2e2' : '#f3f4f6'
+                        const border = card.available ? '#10b981' : isMutation ? '#f59e0b' : isBlocked ? '#ef4444' : '#9ca3af'
+                        const badge = card.available ? 'disponível' : isMutation ? 'confirmação' : isBlocked ? 'bloqueado' : 'indisponível'
+                        return (
+                          <div key={card.id} style={{ background: bg, border: `1px solid ${border}`, borderRadius: '6px', padding: '8px 10px', fontSize: '12px', lineHeight: '1.5' }}>
+                            <div style={{ fontWeight: 600, marginBottom: '2px' }}>{card.label}</div>
+                            <div style={{ color: '#6b7280', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                              <span style={{ background: border, color: '#fff', borderRadius: '4px', padding: '1px 6px' }}>{badge}</span>
+                              <span>{cls}</span>
+                              {card.mutates && <span style={{ color: '#b45309' }}>⚠ mutação</span>}
+                            </div>
+                            {card.missing.length > 0 && (
+                              <div style={{ marginTop: '3px', color: '#6b7280', fontSize: '11px' }}>
+                                Faltando: {card.missing.join(', ')}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                      {(() => {
+                        const confirmState = toolConfirmState[message.id] || 'idle'
+                        const hasMutation = message.toolCards.some(c => c.executionClass === 'mutation_requires_confirmation')
+                        if (!hasMutation) return null
+                        if (confirmState === 'confirmed') return (
+                          <div style={{ marginTop: '4px', padding: '8px 10px', background: '#fffbeb', border: '1px solid #f59e0b', borderRadius: '6px', fontSize: '12px', color: '#92400e' }}>
+                            ✓ Confirmação registrada, mas execução real ainda exige conector dedicado.
+                          </div>
+                        )
+                        if (confirmState === 'cancelled') return (
+                          <div style={{ marginTop: '4px', padding: '8px 10px', background: '#f9fafb', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '12px', color: '#6b7280' }}>
+                            ✗ Ação cancelada.
+                          </div>
+                        )
+                        return (
+                          <div style={{ marginTop: '4px', display: 'flex', gap: '8px' }}>
+                            <button
+                              onClick={() => confirmToolAction(message.id, 'confirmed')}
+                              style={{ padding: '6px 14px', background: '#f59e0b', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}
+                            >
+                              Confirmar
+                            </button>
+                            <button
+                              onClick={() => confirmToolAction(message.id, 'cancelled')}
+                              style={{ padding: '6px 14px', background: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        )
+                      })()}
+                    </div>
+                  )}
                 </div>
               </article>
             ))}
             {loading && (
               <article className="message assistant">
                 <div className="avatar"><Bot size={18} /></div>
-                <div className="bubble typing">Apex AI Copilot is thinking...</div>
+                <div className="bubble typing">Apex AI Copilot está pensando...</div>
               </article>
             )}
             <div ref={messagesEnd} className="messages-end" aria-hidden="true" />

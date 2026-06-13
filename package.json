@@ -12,6 +12,7 @@
     "validate:cp15x-h43b": "node scripts/validate-cp15x-h43b.mjs",
     "validate:cp15x-h44": "node scripts/validate-cp15x-h44.mjs",
     "validate:cp15x-h5": "node scripts/validate-cp15x-h5.mjs",
+    "validate:cp15x-h51a": "node scripts/validate-cp15x-h51a.mjs",
     "validate:supabase-sql": "node scripts/validate-supabase-sql.mjs"
   },
   "dependencies": {

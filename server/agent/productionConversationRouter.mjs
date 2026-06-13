@@ -593,7 +593,11 @@ export function routeProductionConversation({
   const decomposedIntents = decomposeProductionConversationIntents(userMessage)
   const preferredName = extractDisplayNamePreference(userMessage)
   const displayName = sanitizeDisplayName(preferredName || clientMemory.displayName || inferDisplayNameFromMessages(messages) || 'Jose')
-  const memoryPatch = preferredName ? { displayName: preferredName } : null
+  const _patch = {}
+  if (preferredName) _patch.displayName = preferredName
+  if (conversationIntent === 'production_language_preference' ||
+      decomposedIntents.includes('production_language_preference')) _patch.language = 'pt-BR'
+  const memoryPatch = Object.keys(_patch).length ? _patch : null
   const template = conversationIntent === 'production_multi_intent'
     ? buildMultiIntentReply({
         intents: decomposedIntents,
