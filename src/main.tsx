@@ -1882,13 +1882,22 @@ function App() {
     setMessages(prev => [...prev, { id: id(), role: 'assistant', text: 'Salvei o relatório de métricas local demo no Project Workspace.' }])
   }
 
+  const signedInEmail = accountState?.user?.email || accountState?.profile?.email || ''
+  const signedInRole = accountState?.role || (accountState?.sessionStatus === 'signed-in' ? 'pending role' : '')
+  const signedInWorkspace = accountState?.tenant?.name || (accountState?.sessionStatus === 'signed-in' ? 'pending workspace' : '')
+  const signedInPersistence = accountState?.persistenceMode || (isSupabaseConfigured ? 'supabase-connected' : 'localStorage')
   const authHeader = (
     <div className="auth-header-state">
       <button className="language-pill" type="button" onClick={() => setUiLanguage(current => current === 'EN' ? 'PT' : 'EN')}>
         {uiLanguage}
       </button>
       {accountState?.sessionStatus === 'signed-in' && (
-        <span className="account-pill">{accountState.user?.email || 'Signed in'}</span>
+        <div className="auth-header-details" aria-label="Signed-in account status">
+          <span>{signedInEmail || 'Signed in'}</span>
+          <small>
+            Role: {signedInRole} · Workspace: {signedInWorkspace} · Persistence: {signedInPersistence}
+          </small>
+        </div>
       )}
       {isOwnerUser && isSignedIn && (
         <button className="secondary-action owner-console-button" type="button" onClick={() => setOwnerConsoleOpen(true)}>

@@ -2806,9 +2806,12 @@ body {
   gap: 10px;
 }
 
-.auth-header-details,
 .demo-mode-banner {
   display: none;
+}
+
+.auth-header-details {
+  display: block;
 }
 
 .language-pill,
