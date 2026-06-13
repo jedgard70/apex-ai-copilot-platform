@@ -14,6 +14,11 @@ Generated: 2026-06-13
 | `rg --files D:\AI-constr\apex-ai-copilot-production-brain` | Production brain contains exports, skill package, references, API artifacts, and production index | COMPROVADO |
 | Backup metadata scan | `D:\documentos\backup AI edgard` has strategic directories and mixed file types | LOCAL-FIRST |
 | Backup secret-name scan | Found only `.env.example` inside scoped backup root by key/token/secret/password/env name scan | COMPROVADO within scoped backup |
+| CP15X-C `git status --short` start | Clean working tree before routing changes | COMPROVADO |
+| CP15X-C alias smoke test | `status da plataforma`, `continuar checkpoint`, `code skill`, `meu PC está lento`, `configurar Revit`, `mostrar agentes` matched local routing patterns | COMPROVADO |
+| CP15X-C `npm.cmd run build` | Vite/TypeScript production build passed; chunk-size warning only | COMPROVADO |
+| CP15X-C `node --check server.mjs` | Server syntax check passed | COMPROVADO |
+| CP15X-C Browser/Playwright attempt | Chromium executable was not installed locally; no browser download was performed | BLOQUEANTE for browser UI proof |
 
 ## File Evidence
 
@@ -26,6 +31,8 @@ Generated: 2026-06-13
 | `server.mjs` | Reads runtime knowledge, includes `raw_shell` approval text, chat/image/file/connector logic | COMPROVADO |
 | `src/lib/runtimeKnowledge.json` | States no-fake parsing/viewer rules, chat-first behavior, source-truth constraints, tool domains | COMPROVADO |
 | `src/lib/supabaseClient.ts` | Browser Supabase client depends on Vite env vars | COMPROVADO |
+| `src/main.tsx` | CP15X-C routes existing operational aliases to Owner Console, Copilot Execution, local planning responses and AgentsPanel without new panels | LOCAL-FIRST |
+| `src/lib/toolData.ts` / `src/lib/toolRegistry.ts` | CP15X-C adds registry aliases for Owner Command, Skill Export and Windows Care plus expanded Platform/Copilot Execution triggers | LOCAL-FIRST |
 | `docs/VERCEL_PRODUCTION_READINESS.md` | Prior readiness doc exists and references build/env/deploy checks | LOCAL-FIRST |
 | `docs/SUPABASE_*` | Supabase planning, apply, storage, rollback, and hardening docs exist | LOCAL-FIRST |
 
@@ -51,4 +58,3 @@ Generated: 2026-06-13
 - No migration was applied.
 - No build was run because this was docs-only.
 - No production claim is made for model calls, image generation, Supabase, Vercel, IFC, CAD conversion, or PDF extraction.
-

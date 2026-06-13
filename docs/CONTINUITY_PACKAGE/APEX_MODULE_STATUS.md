@@ -11,6 +11,7 @@ Generated: 2026-06-13
 | Tool registry | COMPROVADO | `src/lib/toolRegistry.ts`, `src/lib/toolData.ts`, runtime knowledge | Confirm routing through UI flows |
 | Local execution panel / commands | LOCAL-FIRST | `server.mjs` registered commands and raw shell approval gate | Run only with explicit Jose approval |
 | Skill export/update | LOCAL-FIRST | Skill export files and server export pack logic exist | Validate export payload with a small non-secret project |
+| Operational skill alias routing | LOCAL-FIRST / ROUTING IMPROVEMENT | CP15X-C routes Mission Control/Owner Command, checkpoint manager, Platform Engineering, Code Skill, Windows Care, Revit Customization, Agents and Skill Export aliases to existing surfaces or honest planning responses | Browser UI proof still pending; no new panel, endpoint, deploy or migration |
 
 ## Intake And AI
 
@@ -42,5 +43,5 @@ Generated: 2026-06-13
 | Project workspace | LOCAL-FIRST | `src/lib/projectPersistenceAdapter.ts` and workspace components exist | Prove save/reload/export/import path |
 | Supabase auth/storage | LOCAL-FIRST | Supabase client/storage/auth bootstrap files and docs exist | Dedicated Supabase checkpoint; no mutation in this pass |
 | Vercel deployment | PLANNING-ONLY | `vercel.json` and readiness docs exist | Dedicated Vercel checkpoint; no deploy in this pass |
+| GitHub/Vercel/Supabase operational status | PLANNING-ONLY | CP15X-C aliases route to Platform Engineering planning and evidence rules | Do not claim remote status/write success without connector/CLI/URL evidence |
 | Strategic source ingestion | PENDENTE | Backup and production brain sources indexed | Create controlled ingestion checklist before importing anything |
-

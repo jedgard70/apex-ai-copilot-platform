@@ -13,6 +13,7 @@ This is the next gate because the current package proves source organization and
 | Order | Action | Status | Acceptance evidence |
 |---:|---|---|---|
 | 1 | Confirm clean docs-only commit scope | COMPROVADO after this package | `git diff --stat`, `git status --short`, staged file list |
+| 1.5 | CP15X-C operational skill routing | LOCAL-FIRST / ROUTING IMPROVEMENT | Alias smoke test, build, server syntax check, no shell/deploy/migration side effects |
 | 2 | Run local text QA | PENDENTE | User asks "o que vc sabe fazer?" and Copilot answers naturally in Portuguese |
 | 3 | Run image/planta QA | BLOQUEADO until approved key/runtime | Uploaded PNG/JPG preview plus answer naming visible details |
 | 4 | Verify unknown-file honesty | PENDENTE | Unsupported file receives metadata/limit response, no fake parsing |
@@ -30,9 +31,8 @@ This is the next gate because the current package proves source organization and
 - Do not open or commit real env/secrets.
 - Do not run Supabase or Vercel commands inside a continuity-only task.
 - Do not claim model/image/PDF/BIM/CAD success from file inspection.
-- Do not change app code as part of this documentation package.
+- Do not mark Code Skill as real execution until a real approved execution path exists; keep free shell gated.
 
 ## Build Note
 
 Build is intentionally not required for this package because only Markdown documentation changes are expected. If future work changes TypeScript, server code, package files, Vite config, or runtime behavior, run `npm.cmd run build` before claiming readiness.
-

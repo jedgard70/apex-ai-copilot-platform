@@ -11,6 +11,7 @@ export const windowsCareKnowledge = {
   ],
   hardRules: [
     'Default to read-only diagnostics for Windows maintenance.',
+    'Aliases Windows Care, Windows Repair, meu PC esta lento and diagnostico Windows must start in Audit Only mode.',
     'Never delete, move, rename, disable, stop services, alter registry or clean folders without explicit Owner approval.',
     'Before destructive actions, stop and ask.',
     'Prefer reversible quarantine over direct deletion for suspicious startup entries.',

@@ -32,11 +32,11 @@ Generated: 2026-06-13
 | Supabase migrations | PLANNING-ONLY | Docs and migration validator exist | No migration applied; no Supabase touched |
 | Vercel readiness | PLANNING-ONLY | `vercel.json`; readiness docs exist | Vercel not touched; deployment state NAO COMPROVADO |
 | Local execution controls | COMPROVADO | `server.mjs` contains `raw_shell` and `JOSE_APPROVES_LOCAL_EXECUTION` approval gate | Execution not used for product actions in this pass |
+| CP15X-C operational skill routing | LOCAL-FIRST | `src/main.tsx`, `src/lib/toolData.ts`, `src/lib/toolRegistry.ts`, apex skill knowledge files updated; alias smoke test passed for six required commands | Browser UI proof blocked because local Playwright Chromium executable is not installed; no shell/deploy/migration executed by aliases |
 | Source-truth brain | COMPROVADO | Production brain reports 2929 sources processed, 1141 docs, 1485 code patterns, 277 image/render refs | The index is curated evidence, not live product proof |
 | Backup AI Edgard | LOCAL-FIRST | Metadata-only scan found platform, docs, and Copilot skill/reference material | No backup content imported |
 | Secrets committed | COMPROVADO | `.gitignore` excludes `.env`, `.env.local`, `.env.*.local`, `supabase/.temp/`, `.vercel/` | Re-run secret scan before commit |
 
 ## Build Decision
 
-`npm.cmd run build` was not run because the requested change is documentation-only and no code, config, migrations, dependencies, Vercel, or Supabase files were changed. The correct validation for this pass is diff scope, secret scan, and git status.
-
+For CP15X-C, code routing changed, so `npm.cmd run build` and `node --check server.mjs` were run and passed. No Supabase migration, Vercel deploy, shell-free execution, token use or `.env.local` access was performed.

@@ -1,5 +1,22 @@
 # Apex AI Copilot Changelog
 
+## 2026-06-13 - CP15X-C Routed Operational Skills
+
+- Routed existing operational aliases without creating new panels:
+  - Mission Control / Owner Command / Owner Console.
+  - Copilot Execution / checkpoint manager.
+  - Platform Engineering.
+  - Code Skill / livre code.
+  - Windows Care / Windows Repair.
+  - Revit Customization / Revit Plugin / pyRevit / Revit templates.
+  - AgentsPanel / Maestro / Doc Manager / BIM Manager / Cost Controller.
+  - Skill Export Factory alias.
+- Status: LOCAL-FIRST / ROUTING IMPROVEMENT.
+- Code Skill remains planning/support unless explicit approved execution path is used.
+- GitHub, Vercel and Supabase write/status remain evidence-gated; no deploy or migration.
+- Windows Care starts in Audit Only.
+- Revit routing explains pyRevit/MCP/local connector planning without claiming install/test execution.
+
 ## 2026-06-13 - Etapa 1-B
 
 - Handoff updated after Audit 001-A.

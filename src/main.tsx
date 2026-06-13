@@ -283,7 +283,63 @@ function isAuthIntent(text: string) {
 }
 
 function isCopilotExecutionIntent(text: string) {
-  return /\b(copilot execution|local execution|executar comando|executa comando|rodar comando|repo checks|build checks|git status|git log|check server|validar server|npm build|build local)\b/i.test(text)
+  return /\b(copilot execution|local execution|executar comando|executa comando|rodar comando|repo checks|build checks|git status|git log|check server|validar server|npm build|rodar build|build local|executar checkpoint|abrir checkpoint manager|checkpoint manager)\b/i.test(text)
+}
+
+function isOwnerConsoleIntent(text: string) {
+  return /\b(mission control|owner command|owner console|console owner|abrir console owner|abrir owner console)\b/i.test(text)
+}
+
+function isCheckpointContinuationIntent(text: string) {
+  return /\b(continuar checkpoint)\b/i.test(text)
+}
+
+function isPlatformEngineeringIntent(text: string) {
+  return /\b(status da plataforma|platform engineering|abrir pr|github|vercel|supabase status|status supabase|deploy status|deployment status|pull request|branch plan|plano de branch)\b/i.test(text)
+}
+
+function isCodeSkillIntent(text: string) {
+  return /\b(code skill|livre code|corrigir c[oó]digo)\b/i.test(text)
+}
+
+function isWindowsCareIntent(text: string) {
+  return /\b(windows care|windows repair|meu pc est[aá] lento|pc est[aá] lento|pc lento|computador lento|diagn[oó]stico windows|diagnostico windows)\b/i.test(text)
+}
+
+function isRevitOperationalIntent(text: string) {
+  return /\b(revit customization|revit plugin|pyrevit|revit templates?|configurar revit)\b/i.test(text)
+}
+
+function isSkillExportFactoryAlias(text: string) {
+  return /\b(skill export factory|abrir skill export factory)\b/i.test(text)
+}
+
+function buildOperationalSkillResponse(text: string) {
+  const pt = prefersPortuguese(text)
+  if (isWindowsCareIntent(text)) {
+    return pt
+      ? 'Windows Care / Windows Repair acionado em Audit Only. Vou começar por diagnóstico somente leitura: versão/uptime do Windows, CPU/RAM/disco, processos pesados, inicialização, tarefas agendadas, Defender e persistências suspeitas. Não vou limpar, mover, deletar, parar serviço, editar registro ou alterar startup sem aprovação explícita do Owner.'
+      : 'Windows Care / Windows Repair routed in Audit Only mode. I will start with read-only diagnostics: Windows version/uptime, CPU/RAM/disk, heavy processes, startup, scheduled tasks, Defender and suspicious persistence. I will not clean, move, delete, stop services, edit registry or alter startup without explicit Owner approval.'
+  }
+  if (isRevitOperationalIntent(text)) {
+    return pt
+      ? 'Revit Customization acionado em modo local-first. Posso preparar template Revit, parâmetros, view templates, schedules, pyRevit bundles, estrutura de plugin C#/.addin, estratégia MCP/conector local e fluxo IFC/GLB para Apex. Não vou fingir instalação, teste dentro do Revit, execução de script ou conexão MCP real sem evidência.'
+      : 'Revit Customization routed in local-first mode. I can prepare Revit templates, parameters, view templates, schedules, pyRevit bundles, C#/.addin plugin structure, MCP/local connector strategy and IFC/GLB handoff to Apex. I will not claim installation, Revit-side testing, script execution or real MCP connection without evidence.'
+  }
+  if (isCodeSkillIntent(text)) {
+    return 'Code execution is not connected yet. I can prepare the checkpoint, handoff, scope, validation plan and PR checklist.'
+  }
+  if (isPlatformEngineeringIntent(text)) {
+    return pt
+      ? 'Platform Engineering acionado em modo LOCAL-FIRST / ROUTING IMPROVEMENT. Posso preparar status da plataforma, escopo, plano de branch/PR, checklist GitHub/Vercel/Supabase, diagnóstico de build e revisão de segurança a partir de evidência local. GitHub, Vercel e Supabase write/status remoto não serão fingidos: preciso de conector, URL, CLI/output ou conteúdo fornecido para confirmar estado externo.'
+      : 'Platform Engineering routed in LOCAL-FIRST / ROUTING IMPROVEMENT mode. I can prepare platform status, scope, branch/PR plan, GitHub/Vercel/Supabase checklist, build diagnosis and security review from local evidence. GitHub, Vercel and Supabase remote write/status will not be faked: connector, URL, CLI/output or provided content is required for external confirmation.'
+  }
+  if (isCheckpointContinuationIntent(text)) {
+    return pt
+      ? 'Checkpoint manager acionado em modo de planejamento. Vou preparar continuidade, escopo, validações e checklist de PR sem executar shell livre, migration ou deploy. Para checks locais allowlisted, use Copilot Execution no Owner Console.'
+      : 'Checkpoint manager routed in planning mode. I will prepare continuity, scope, validations and PR checklist without free shell, migrations or deploys. For local allowlisted checks, use Copilot Execution in Owner Console.'
+  }
+  return ''
 }
 
 function isOperationalGovernancePrompt(text: string) {
@@ -390,6 +446,8 @@ function isUploadQuestion(text: string) {
 function buildProductFallbackAnswer(userText: string, identity: ChatIdentityContext) {
   const identityAnswer = buildIdentityAnswer(userText, identity)
   if (identityAnswer) return identityAnswer
+  const operationalAnswer = buildOperationalSkillResponse(userText)
+  if (operationalAnswer) return operationalAnswer
   const pt = prefersPortuguese(userText)
   if (isCapabilitiesQuestion(userText)) {
     return pt
@@ -910,6 +968,29 @@ function App() {
       return
     }
     const identityContext = buildChatIdentityContext(accountState)
+    if (clean && isOwnerConsoleIntent(clean)) {
+      if (!isOwnerUser) {
+        setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'This tool is restricted to workspace owners/admins.' }])
+        setInput('')
+        return
+      }
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Owner Console / Mission Control. Use as superfícies existentes: Project Workspace, Skill Update, Skill Export, Account e Platform Maintenance.' }])
+      setOwnerConsoleOpen(true)
+      setInput('')
+      return
+    }
+    if (clean && isCheckpointContinuationIntent(clean)) {
+      if (!isOwnerUser) {
+        setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'This tool is restricted to workspace owners/admins.' }])
+        setInput('')
+        return
+      }
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o checkpoint manager no Owner Console. Vou preparar continuidade, escopo, validações e checklist de PR sem executar shell livre, migration ou deploy.' }])
+      setCopilotExecutionOutput({ goal: clean, conversationContext: [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`) })
+      setOwnerConsoleOpen(true)
+      setInput('')
+      return
+    }
     const localProductAnswer = buildProductFallbackAnswer(userText, identityContext)
     if (localProductAnswer) {
       setMessages(prev => [
@@ -946,7 +1027,7 @@ function App() {
     const shouldOpenBim3D = isBim3DIntent(clean || modelText, attachment)
     const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
     const shouldTreatAsConversation = clean && isOperationalGovernancePrompt(clean)
-    const shouldOpenSkillExport = clean && !shouldTreatAsConversation && isSkillExportIntent(clean)
+    const shouldOpenSkillExport = clean && !shouldTreatAsConversation && (isSkillExportIntent(clean) || isSkillExportFactoryAlias(clean))
     const shouldOpenExportCenter = clean && isExportIntent(clean)
     if (shouldOpenExportCenter) {
       setExportCenterOpen(true)
