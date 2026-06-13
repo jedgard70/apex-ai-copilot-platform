@@ -1,114 +1,133 @@
 # Apex AI Copilot Continuity Package
 
-Updated: 2026-06-08
+Updated: 2026-06-13
 
-This package preserves the working context for Apex AI Copilot so a new ChatGPT, Codex, Gemini, or Claude session can continue without depending on the full original chat.
+This package preserves the operational context for the Apex AI Copilot rebuild after `RELATORIO 001-A - AUDITORIA READ-ONLY DA APEX-AI-COPILOT-PLATFORM`.
 
-## Product Vision
+Status:
 
-Apex AI Copilot is a chat-first, command-first AI platform.
+`ETAPA 1-A CONCLUIDA COM BLOQUEANTES`
 
-The chat is the command center. Tools such as ArchVis, DirectCut, BIM / 3D Studio, Skill Update, Skill Export, Windows Care, Revit Customization, and Project Workspace are supporting workspaces opened by the Copilot when useful.
+`ETAPA 1-B HANDOFF ATUALIZADO`
 
-The assistant must be broad and capable, not restricted to construction only. It can help with construction, BIM, ArchVis, video, coding, data, research, writing, design, negotiation, business, Windows support, Revit customization, and platform development.
+## Operational Decision
+
+The folder below remains the candidate base for the Copilot-first reconstruction:
+
+`D:\AI-constr\apex-ai-copilot-platform`
+
+However, it is not proven as a complete production SaaS.
+
+The larger `F:\AI-Construction-Intelligence-Platform` is inventory/reference. It must be audited as a required functional and operational inventory source before implementation decisions, but it is not the current implementation base.
+
+`D:\documentos\backup AI edgard` is strategic/historical backup. Do not bulk copy it; use it only through triage and evidence.
+
+There is no overall GREEN without `APEX_FINAL_VALIDATION_MATRIX.md`.
+
+Current checkpoint truth:
+
+- CP15B is GREEN local.
+- CP15C Auth Gate is the next checkpoint.
+
+The final product must be SaaS from the foundation. It must not be treated as a local prototype that "evolves into SaaS later".
+
+## Product Direction
+
+Apex AI Copilot must be:
+
+- Premium.
+- Multi-user.
+- Guided by AI.
+- Copilot-first.
+- Built around a central conversational Copilot.
+- Supported by contextual help.
+- Backed by real modules.
+- Backed by real data or clearly labeled demo/assumption data.
+- Designed fully from the foundation.
+
+The Copilot is the center of the experience. Screens and modules are guided tools opened when useful.
+
+## Current Candidate Platform Truth
+
+COMPROVADO:
+
+- `apex-ai-copilot-platform` exists.
+- Stack is Vite, React, TypeScript and Node `server.mjs`.
+- Local backend includes `/api/copilot/chat`.
+- OpenAI is used through `OPENAI_API_KEY`.
+- Supabase client, `AuthPanel` and Auth Gate exist in code.
+- Supabase migrations `0001` through `0006` exist.
+- `project_messages`, `project_files` and `project-uploads` exist in migrations/source.
+- Partial project sync exists.
+- Vercel local config exists.
+- Continuity docs exist.
+
+NAO COMPROVADO:
+
+- Final SaaS completeness.
+- Functional Vercel production.
+- Production API backend.
+- Supabase remote state matching local migrations.
+- Complete remote persistence.
+- Complete remote restore.
+- Robust upload validation.
+- Final premium visual design.
+- Complete multi-tenant SaaS behavior.
+
+BLOQUEANTE:
+
+- Handoff was outdated/conflicting before Etapa 1-B.
+- Vercel config appears static `dist`; backend production is not proven.
+- `server.mjs` is monolithic and contains approval-gated raw shell execution support.
+- Persistence is partial.
+- Formal Git status was not available during Audit 001-A.
+- Visual UI was not browser-tested during Audit 001-A.
 
 ## Core Behavior Rules
 
 - Obey the user command first.
-- Produce the requested output when the user asks to create, generate, write, build, prepare, or make something.
-- Do not answer as a classifier.
-- Do not force every answer into construction.
-- Use active file/project context when relevant.
-- Keep chat natural, concise, and adaptive.
-- Use the user's latest language.
-- Do not fake file parsing, BIM findings, video generation, image generation, or 3D viewing.
-- Be honest when a connector, viewer, parser, or generator is not connected yet.
-- Tools/connectors are optional execution paths, not restrictions.
+- Work by checkpoint.
+- Use evidence labels.
+- Do not claim GREEN without evidence.
+- Do not fake file parsing, BIM findings, video generation, image generation, database state, deployment state or 3D viewing.
+- Be honest when a connector, viewer, parser, generator, database or deployment is not verified.
+- Treat local/demo/planning-only behavior as local/demo/planning-only.
 
 ## Hard Safety Rules
 
-- Work only in `D:\AI-constr\apex-ai-copilot-platform` unless the Owner explicitly approves another path.
-- Do not touch old repos.
-- Do not touch Supabase.
-- Do not touch Vercel config.
+- Do not implement before the platform reconciliation is complete.
+- Do not touch domain settings.
+- Do not deploy.
+- Do not run Supabase migrations.
+- Do not change Supabase remote state.
+- Do not change Vercel remote state.
+- Do not install dependencies.
+- Do not touch the old platform except when a later read-only audit explicitly targets it.
+- Do not modify `AI-Construction-Intelligence-Platform` during Etapa 1-C; audit only.
 - Do not expose secrets.
 - Do not commit `.env.local`.
-- Do not create GitHub remote until explicitly approved.
-- Do not fake generated images, videos, BIM findings, or viewers.
-- Prefer diagnostic-first and reversible actions for Windows care.
 
-## Current Repository
+## Required Next Audit
 
-Path:
+Next:
 
-`D:\AI-constr\apex-ai-copilot-platform`
+`ETAPA 1-C - auditoria read-only da AI-Construction-Intelligence-Platform`
 
-Current branch at time of package:
+Purpose:
 
-`feature/image-generation-connector`
+- Treat the larger platform as mandatory functional inventory.
+- Identify capabilities that must not be lost.
+- Identify architecture/design problems that must not be copied blindly.
+- Prepare evidence for the comparative matrix in Etapa 1-D.
 
-Latest safe commit before this continuity package:
+## Handoff Update Rule
 
-`fd36613 feat: add local project workspace`
+At the end of every etapa:
 
-GitHub remote:
+- Update `APEX_AI_COPILOT_CURRENT_STATE.md`.
+- Update `APEX_AI_COPILOT_NEXT_STEPS.md`.
+- Update `APEX_AI_COPILOT_AUDIT_LOG.md`.
+- Update `APEX_AI_COPILOT_CHANGELOG.md`.
+- Update decisions/risks when product direction changes.
 
-Not created yet.
-
-## What Was Rejected
-
-- Old module-first dashboard approach.
-- Static cards as primary intelligence.
-- Fake deterministic intelligence as the main Copilot behavior.
-- Fake IFC/3D viewer blocks.
-- Text-to-image fallback when preserving exact floor plan layout is required.
-- External-software-first BIM answers such as "open this in Revit" before Apex internal workflow.
-- Generic metadata-only response when real image content is available.
-
-## Current Architecture
-
-- Frontend: Vite + React + TypeScript.
-- Runtime server: `server.mjs`.
-- Main UI: `src/main.tsx`.
-- Main chat remains central.
-- Right-side workspaces open as needed.
-- Local state and project persistence use browser `localStorage`.
-- Real API key lives in `.env.local`, which must remain ignored.
-
-## Active Workspaces
-
-- ArchVis Studio: image/render/humanized plan workflow.
-- DirectCut Studio: video planning and script workflow.
-- BIM / 3D Studio: internal-first viewer/import/review/tour workflow.
-- Project Workspace: local project save/restore/export/import.
-- Skill Update Panel: analyzes and applies new skill knowledge after approval.
-- Skill Export Panel: exports skill packs for other AI platforms.
-
-## Important Files
-
-- `server.mjs`
-- `src/main.tsx`
-- `src/components/ArchVisPanel.tsx`
-- `src/components/DirectCutPanel.tsx`
-- `src/components/Bim3DPanel.tsx`
-- `src/components/ProjectWorkspacePanel.tsx`
-- `src/components/SkillUpdatePanel.tsx`
-- `src/components/SkillExportPanel.tsx`
-- `src/lib/projectWorkspace.ts`
-- `src/lib/systemPrompt.ts`
-- `src/lib/toolRegistry.ts`
-- `src/lib/runtimeKnowledge.json`
-- `src/lib/apexSkillKnowledge/*`
-- `docs/APEX_WINDOWS_CARE_CODING_SKILL.md`
-- `docs/APEX_REVIT_CUSTOMIZATION_SKILL.md`
-
-## Current Validation Baseline
-
-The latest committed checkpoint was built before commit:
-
-`npm.cmd run build`
-
-Build was green at commit `fd36613`.
-
-The continuity package itself is documentation only and should be committed separately only if the Owner wants it tracked in Git.
-
+No open-ended Codex work should continue without a closed checkpoint and updated handoff.

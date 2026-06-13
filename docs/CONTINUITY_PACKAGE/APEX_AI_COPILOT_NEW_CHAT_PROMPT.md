@@ -3,51 +3,72 @@
 Paste this into a new ChatGPT/Codex/Gemini/Claude session if the current chat gets too heavy:
 
 ```text
-We are continuing the Apex AI Copilot platform.
+We are continuing the Apex AI Copilot rebuild.
 
-Repo:
+First, read the updated handoff files before doing anything:
+
+D:\AI-constr\apex-ai-copilot-platform\docs\CONTINUITY_PACKAGE\APEX_AI_COPILOT_CONTINUITY.md
+D:\AI-constr\apex-ai-copilot-platform\docs\CONTINUITY_PACKAGE\APEX_AI_COPILOT_CURRENT_STATE.md
+D:\AI-constr\apex-ai-copilot-platform\docs\CONTINUITY_PACKAGE\APEX_AI_COPILOT_NEXT_STEPS.md
+D:\AI-constr\apex-ai-copilot-platform\docs\CONTINUITY_PACKAGE\APEX_AI_COPILOT_AUDIT_LOG.md
+D:\AI-constr\apex-ai-copilot-platform\docs\CONTINUITY_PACKAGE\APEX_AI_COPILOT_DECISIONS.md
+D:\AI-constr\apex-ai-copilot-platform\docs\CONTINUITY_PACKAGE\APEX_AI_COPILOT_RISKS.md
+D:\AI-constr\apex-ai-copilot-platform\docs\CONTINUITY_PACKAGE\APEX_AI_COPILOT_CHANGELOG.md
+
+Current candidate repo:
 D:\AI-constr\apex-ai-copilot-platform
 
-Hard rules:
-- Work only in this repo unless I explicitly approve another path.
-- Do not touch old repos.
-- Do not touch Supabase.
-- Do not touch Vercel config.
-- Do not expose secrets.
-- Do not commit .env.local.
-- Do not create GitHub remote unless I approve.
-- Do not fake generated images, videos, BIM findings, or 3D viewers.
+Source routing:
+- D:\AI-constr\apex-ai-copilot-platform is the main candidate base.
+- F:\AI-Construction-Intelligence-Platform is inventory/reference.
+- D:\documentos\backup AI edgard is strategic/historical backup.
+- Do not bulk copy backup material.
 
-Current safe baseline:
-- Branch: feature/image-generation-connector
-- Latest app commit: fd36613 feat: add local project workspace
-- Build was GREEN with npm.cmd run build.
-- GitHub remote is not created yet.
-- .env.local is protected/ignored.
+Status:
+ETAPA 1-A was completed with blockers.
+ETAPA 1-B updated the handoff only.
+CP15B is GREEN local.
+CP15C Auth Gate is the next checkpoint.
+
+Do not assume GREEN.
+There is no overall GREEN without APEX_FINAL_VALIDATION_MATRIX.md.
+Use evidence labels:
+- COMPROVADO
+- NAO COMPROVADO
+- FALHOU FUNCIONALMENTE
+- FALHOU VISUALMENTE
+- BLOQUEANTE
 
 Product truth:
-Apex AI Copilot is a full command-first AI assistant. Chat is the command center. Tools are secondary workspaces opened when useful. It can help with construction, BIM, ArchVis, DirectCut/video, coding, data, writing, design, negotiation, business, Windows support, Revit customization, and building the Apex platform itself.
+Apex AI Copilot must be a SaaS Copilot-first platform from the foundation. It must be premium, multi-user, guided by AI, centered on the Copilot, supported by contextual help, real modules, real data, and complete design.
 
-Current modules:
-- ArchVis Studio: real uploaded image, prompt brain, strict top-down humanized floor plan mode, image generation connector, revision memory, iteration gallery.
-- DirectCut Studio: video planning, script, storyboard, prompt, gallery, planning-only until real video connector exists.
-- BIM / 3D Studio: internal-first viewer/import flow, evidence levels, corrections, saved views, tour generator, animation/camera planning, export briefs.
-- Project Workspace: localStorage project save/restore/export/import.
-- Skill Update Panel: analyzes files before applying knowledge.
-- Skill Export Panel: exports skill packs.
-- Windows Care + Coding Assistant skill.
-- Revit Customization + Plugin skill.
+Current candidate platform truth:
+- apex-ai-copilot-platform exists and has a real Vite + React + TypeScript + Node server.mjs base.
+- /api/copilot/chat exists locally.
+- OpenAI is wired through OPENAI_API_KEY.
+- Supabase client, AuthPanel and Auth Gate exist in code.
+- Supabase migrations 0001 to 0006 exist.
+- project_messages, project_files and project-uploads exist in migrations/source.
+- Partial project sync exists.
+- Vercel config exists.
+- Production SaaS completeness is NOT proven.
+- Functional Vercel production is NOT proven.
+- Complete remote persistence/restore is NOT proven.
+- Final premium design is NOT proven.
 
-First commands:
-cd D:\AI-constr\apex-ai-copilot-platform
-git status --short
-npm.cmd run build
+Next required step:
+ETAPA 1-C - read-only audit of AI-Construction-Intelligence-Platform.
 
-Before doing new work, read:
-docs/CONTINUITY_PACKAGE/APEX_AI_COPILOT_CONTINUITY.md
-docs/CONTINUITY_PACKAGE/APEX_AI_COPILOT_CURRENT_STATE.md
-docs/CONTINUITY_PACKAGE/APEX_AI_COPILOT_NEXT_STEPS.md
-
-Continue from the current state. Do not restart from the old platform.
+Rules:
+- Do not implement before auditing the larger platform.
+- Treat AI-Construction-Intelligence-Platform as mandatory functional inventory.
+- Do not patch/remend the old platform.
+- Do not abandon important modules without comparison.
+- Do not touch domain settings.
+- Do not deploy.
+- Do not run Supabase migrations.
+- Do not change Vercel/Supabase remote state.
+- Do not install dependencies.
+- Do not expose secrets.
+- Update handoff after every completed etapa before moving forward.
 ```
-

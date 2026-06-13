@@ -1,80 +1,111 @@
 # Apex AI Copilot Next Steps
 
-Use this file to continue work safely.
+Updated: 2026-06-13
 
-## Immediate Commands
+Status after Audit 001-A:
 
-```powershell
-cd D:\AI-constr\apex-ai-copilot-platform
-git status --short
-npm.cmd run build
-```
+`CONCLUIDA COM BLOQUEANTES`
 
-Expected baseline before new work:
+This file defines the safe continuation order after the read-only audit of `D:\AI-constr\apex-ai-copilot-platform`.
 
-- working tree clean, unless continuity docs are intentionally uncommitted.
-- latest app commit: `fd36613`.
-- `.env.local` ignored.
+## Current Gate Truth
 
-## Recommended Checkpoint Order
+- `D:\AI-constr\apex-ai-copilot-platform` is the main candidate base.
+- `F:\AI-Construction-Intelligence-Platform` is inventory/reference.
+- `D:\documentos\backup AI edgard` is strategic/historical backup.
+- There is no overall GREEN without `APEX_FINAL_VALIDATION_MATRIX.md`.
+- CP15B is GREEN local.
+- CP15C Auth Gate is the next checkpoint.
 
-1. Commit or archive this continuity package if desired.
-2. Manual local QA for Project Workspace:
-   - create new project
-   - upload image
-   - generate ArchVis output
-   - create DirectCut plan
-   - open BIM / 3D Studio
-   - reload page
-   - confirm restore
-   - export JSON
-   - import JSON
-3. Create GitHub remote only after Owner approval.
-4. Add deployment only after GitHub baseline is clean.
-5. Improve real BIM/IFC viewer.
-6. Improve strict image editing fidelity.
-7. Add real video generation connector.
-8. Add cloud persistence when database strategy is approved.
+## Mandatory Continuation Sequence
+
+1. `ETAPA 1-C` - read-only audit of `AI-Construction-Intelligence-Platform`.
+2. `ETAPA 1-D` - comparative matrix between the new Copilot platform and the larger platform.
+3. `ETAPA 2` - official SaaS Copilot-first product definition.
+4. `ETAPA 3` - complete premium design system definition.
+5. `ETAPA 4` - final architecture.
+6. `ETAPA 5` - controlled execution by checkpoints.
+
+## Etapa 1-C Scope
+
+Audit only. Do not implement.
+
+Goal:
+
+- Inspect the larger `AI-Construction-Intelligence-Platform` as functional/operational inventory.
+- Identify modules, workflows, UI, backend, data model, integrations, assets and gaps.
+- Do not modify files.
+- Do not run migrations.
+- Do not deploy.
+- Do not fix.
+
+## Etapa 1-D Scope
+
+Compare:
+
+- What exists in `apex-ai-copilot-platform`.
+- What exists in `AI-Construction-Intelligence-Platform`.
+- What must be preserved.
+- What must be redesigned.
+- What must be discarded.
+- What is proven.
+- What is not proven.
+- What is blocking.
+
+## Hard Rules Before Implementation
+
+- Do not implement before reconciliation is complete.
+- Do not modify domain settings.
+- Do not deploy.
+- Do not run `npm run dev`.
+- Do not run builds unless a later checkpoint explicitly authorizes it.
+- Do not install dependencies.
+- Do not apply Supabase migrations.
+- Do not change Supabase remote state.
+- Do not change Vercel remote state.
+- Do not touch the old platform unless a later read-only audit explicitly targets it.
+- Do not declare GREEN without evidence.
+- Do not present local/demo/planning-only behavior as production.
+- Do not abandon important modules before the comparative matrix is complete.
+
+## Evidence Labels Required
+
+Every future report must use:
+
+- `COMPROVADO`
+- `NAO COMPROVADO`
+- `FALHOU FUNCIONALMENTE`
+- `FALHOU VISUALMENTE`
+- `BLOQUEANTE`
+
+## Product Direction To Preserve
+
+- Apex AI Copilot must be SaaS from the foundation.
+- Copilot is the center of the experience.
+- Screens are guided tools, not the primary intelligence.
+- Help must be contextual.
+- Modules must be real, not static demos.
+- Data must be real or clearly labeled as local/demo/assumption.
+- Design premium is a foundation requirement, not a later polish pass.
 
 ## Do Not Do
 
-- Do not touch old Apex repos.
-- Do not move files from `D:\AI Jedgard` or old folders.
-- Do not touch Supabase.
-- Do not touch Vercel config.
-- Do not create GitHub remote without approval.
-- Do not commit `.env.local`.
-- Do not fake generated media.
-- Do not fake BIM findings.
+- Do not patch the current UI before product reconciliation.
+- Do not keep adding panels without architecture.
+- Do not use the larger platform blindly.
+- Do not discard the larger platform blindly.
+- Do not remend the old platform.
+- Do not make domain or deploy decisions in discovery stages.
+- Do not claim Supabase/Vercel/GitHub state unless verified.
 
-## Commit Pattern
+## Checkpoint Rule
 
-Use small checkpoint commits:
+After each etapa:
 
-```powershell
-git add <safe files>
-git commit -m "feat: <short checkpoint>"
-```
+1. Update handoff.
+2. Update audit/changelog/risks/decisions as needed.
+3. Only then proceed to the next etapa.
 
-Always run:
+Next step:
 
-```powershell
-npm.cmd run build
-git status --short
-git status --ignored --short .env.local
-```
-
-before committing.
-
-## Owner QA Checklist
-
-- Chat responds naturally in Portuguese and English.
-- Upload appears in chat.
-- Screenshot paste works.
-- ArchVis opens on image/render/humanization intent.
-- DirectCut opens on video/reels/tour intent.
-- BIM / 3D opens on model/3D intent.
-- Project Workspace opens on project commands.
-- Export/import JSON does not include secrets.
-- No fake output is presented as real generated media.
-
+`ETAPA 1-C - auditoria read-only da AI-Construction-Intelligence-Platform`
