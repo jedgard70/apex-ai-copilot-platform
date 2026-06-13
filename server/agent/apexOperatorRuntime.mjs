@@ -3,6 +3,7 @@ import { classifyOperatorIntent, inferConcreteShellCommand, isOperatorIntent, se
 import { buildPolicyDecision, isExplicitCommitApproval } from './policy.mjs'
 import { runApprovedCommit, runCommands, runOwnerRawShell } from './executor.mjs'
 import { buildOperatorMemory } from './memory.mjs'
+import { routeProductionConversation } from './productionConversationRouter.mjs'
 import { collectProductionOperatorStatus, summarizeProductionOperatorStatus } from './productionStatus.mjs'
 import { buildDecision, summarizeEvidence } from './verifier.mjs'
 
@@ -276,12 +277,18 @@ export async function runApexOperatorProductionSafe({
     },
   })
   const safeStatus = productionStatus || collectProductionOperatorStatus()
-  const finalReply = buildProductionSafeReply({ intent, policyDecision, productionStatus: safeStatus })
+  const conversation = routeProductionConversation({
+    userMessage,
+    operatorIntent: intent,
+    policyDecision,
+    productionStatus: safeStatus,
+  })
 
   return {
     ok: true,
-    status: policyDecision.status || 'YELLOW',
-    intent,
+    status: conversation.status || policyDecision.status || 'YELLOW',
+    intent: conversation.intent,
+    operatorIntent: intent,
     memory,
     evidence: {
       summary: {
@@ -292,9 +299,9 @@ export async function runApexOperatorProductionSafe({
       },
       commands: [],
     },
-    decision: policyDecision.reason || 'Modo producao seguro sem execucao local.',
-    recommendedAction: 'Configurar executor/conector server-side para acoes reais; manter chat de producao respondendo sem fallback generico.',
-    requiresApproval: Boolean(policyDecision.requiresApproval),
+    decision: policyDecision.reason || 'Modo produção seguro sem execução local.',
+    recommendedAction: 'Responder por intenção conversacional e preparar executor/conector dedicado apenas quando houver ação real.',
+    requiresApproval: Boolean(conversation.requiresApproval || policyDecision.requiresApproval),
     capability: {
       name: policyDecision.capability,
       status: policyDecision.capabilityStatus,
@@ -307,6 +314,6 @@ export async function runApexOperatorProductionSafe({
       note: 'Vercel Function nao executa Git/build/shell local neste modo.',
     },
     executedActions: [],
-    finalReply,
+    finalReply: conversation.finalReply,
   }
 }
