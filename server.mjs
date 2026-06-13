@@ -3,7 +3,13 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawn } from 'node:child_process'
-import { isOperatorIntent, runApexOperator } from './server/agent/apexOperatorRuntime.mjs'
+import {
+  isOperatorIntent,
+  runApexOperator,
+  runApexOperatorProductionSafe,
+} from './server/agent/apexOperatorRuntime.mjs'
+import { classifyProductionConversationIntent } from './server/agent/productionConversationRouter.mjs'
+import { collectProductionOperatorStatus } from './server/agent/productionStatus.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = __dirname
@@ -429,6 +435,15 @@ async function readJson(req) {
 function json(res, status, body) {
   res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' })
   res.end(JSON.stringify(body))
+}
+
+function chatJson(res, status, body = {}) {
+  const finalReply = String(body.finalReply || body.reply || '').trim()
+  return json(res, status, {
+    ...body,
+    finalReply,
+    reply: finalReply,
+  })
 }
 
 function publicExecutionCommand(command) {
@@ -1214,10 +1229,50 @@ async function handleChat(req, res) {
     const body = await readJson(req)
     const identityContext = normalizeChatIdentityContext(body.identityContext)
     const userText = String(body.message || '').slice(0, 12000)
+    const productionConversationIntent = classifyProductionConversationIntent(userText)
+    const productionRouterIntents = new Set([
+      'production_display_name_preference',
+      'production_name_identity',
+      'production_who_am_i',
+      'production_user_confusion',
+      'production_revit_bim_help',
+      'production_github_connector_status',
+      'production_vercel_connector_status',
+      'production_connector_status',
+      'production_platform_position',
+      'production_greeting',
+      'production_acknowledgement',
+      'production_user_correction',
+      'production_capability_listing',
+      'production_vercel_deploy',
+      'production_supabase',
+    ])
+
+    if (productionRouterIntents.has(productionConversationIntent)) {
+      const productionStatus = collectProductionOperatorStatus()
+      const operatorResult = await runApexOperatorProductionSafe({
+        userMessage: userText,
+        identityContext,
+        workspaceContext: body.workspaceContext || {},
+        repoPath: authorizedExecutionCwd,
+        permissions: {},
+        productionStatus,
+        clientMemory: body.clientMemory || {},
+        messages: Array.isArray(body.messages) ? body.messages : [],
+      })
+      return chatJson(res, 200, {
+        finalReply: operatorResult.finalReply,
+        memoryPatch: operatorResult.memoryPatch || null,
+        mode: 'apex-operator-production-safe',
+        operator: operatorResult,
+        productionStatus,
+      })
+    }
+
     const identityReply = buildIdentityReply(userText, identityContext)
     if (identityReply) {
-      return json(res, 200, {
-        reply: identityReply,
+      return chatJson(res, 200, {
+        finalReply: identityReply,
         mode: 'identity-context',
       })
     }
@@ -1238,8 +1293,8 @@ async function handleChat(req, res) {
           },
         })
         if (operatorResult?.ok && operatorResult.finalReply) {
-          return json(res, 200, {
-            reply: operatorResult.finalReply,
+          return chatJson(res, 200, {
+            finalReply: operatorResult.finalReply,
             mode: 'apex-operator-runtime',
             operator: operatorResult,
           })
@@ -1251,8 +1306,8 @@ async function handleChat(req, res) {
 
     const apiKey = process.env.OPENAI_API_KEY
     if (!apiKey) {
-      return json(res, 200, {
-        reply: buildChatFallbackReply(userText, identityContext),
+      return chatJson(res, 200, {
+        finalReply: buildChatFallbackReply(userText, identityContext),
         mode: 'local-fallback',
       })
     }
@@ -1384,8 +1439,8 @@ async function handleChat(req, res) {
 
     const data = await response.json().catch(() => ({}))
     if (!response.ok) {
-      return json(res, 200, {
-        reply: buildChatFallbackReply(userText, identityContext),
+      return chatJson(res, 200, {
+        finalReply: buildChatFallbackReply(userText, identityContext),
         mode: 'local-fallback',
       })
     }
@@ -1429,15 +1484,15 @@ async function handleChat(req, res) {
 
       const finalData = await finalResponse.json().catch(() => ({}))
       if (!finalResponse.ok) {
-        return json(res, 200, {
-          reply: buildChatFallbackReply(userText, identityContext),
+        return chatJson(res, 200, {
+          finalReply: buildChatFallbackReply(userText, identityContext),
           mode: 'local-fallback-after-tool',
         })
       }
 
       const finalReply = finalData && finalData.choices && finalData.choices[0] ? finalData.choices[0].message.content || '' : ''
-      return json(res, 200, {
-        reply: finalReply || buildChatFallbackReply(userText, identityContext),
+      return chatJson(res, 200, {
+        finalReply: finalReply || buildChatFallbackReply(userText, identityContext),
         model: finalData.model,
         usage: finalData.usage,
         mode: 'live-agent-tool-calling',
@@ -1446,16 +1501,16 @@ async function handleChat(req, res) {
     }
 
     const reply = assistantMessage.content || ''
-    return json(res, 200, {
-      reply: reply || buildChatFallbackReply(userText, identityContext),
+    return chatJson(res, 200, {
+      finalReply: reply || buildChatFallbackReply(userText, identityContext),
       model: data.model,
       usage: data.usage,
       mode: 'live-agent-chat',
     })
 
   } catch (error) {
-    return json(res, 200, {
-      reply: buildChatFallbackReply('', {}),
+    return chatJson(res, 200, {
+      finalReply: buildChatFallbackReply('', {}),
       mode: 'local-fallback',
     })
   }

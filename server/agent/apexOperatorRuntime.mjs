@@ -291,6 +291,9 @@ export async function runApexOperatorProductionSafe({
     'production_greeting',
     'production_user_correction',
     'production_capability_listing',
+    'production_github_connector_status',
+    'production_vercel_connector_status',
+    'production_connector_status',
     'production_vercel_deploy',
     'production_supabase',
   ]

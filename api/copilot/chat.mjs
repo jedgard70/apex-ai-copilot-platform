@@ -27,6 +27,7 @@ export default async function handler(req, res) {
     res.setHeader('Allow', 'POST')
     return sendJson(res, 405, {
       error: 'Method not allowed',
+      finalReply: 'BLOCKED - esta rota aceita apenas POST JSON.',
       reply: 'BLOCKED - esta rota aceita apenas POST JSON.',
     })
   }
@@ -56,12 +57,14 @@ export default async function handler(req, res) {
     })
   } catch (error) {
     console.error('Apex production chat route failed safely:', error?.message || error)
+    const finalReply = [
+      'YELLOW - Apex Copilot esta em producao, mas a rota serverless encontrou uma falha segura.',
+      'Nao executei acoes locais, deploy, push ou migration.',
+      'O chat continua operacional em modo seguro; revisar logs da funcao Vercel para corrigir a causa.',
+    ].join('\n')
     return sendJson(res, 200, {
-      reply: [
-        'YELLOW - Apex Copilot esta em producao, mas a rota serverless encontrou uma falha segura.',
-        'Nao executei acoes locais, deploy, push ou migration.',
-        'O chat continua operacional em modo seguro; revisar logs da funcao Vercel para corrigir a causa.',
-      ].join('\n'),
+      finalReply,
+      reply: finalReply,
       mode: 'apex-operator-production-safe-error',
       error: 'production_safe_route_error',
     })
