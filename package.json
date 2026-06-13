@@ -11,6 +11,7 @@
     "start": "node server.mjs",
     "validate:cp15x-h43b": "node scripts/validate-cp15x-h43b.mjs",
     "validate:cp15x-h44": "node scripts/validate-cp15x-h44.mjs",
+    "validate:cp15x-h5": "node scripts/validate-cp15x-h5.mjs",
     "validate:supabase-sql": "node scripts/validate-supabase-sql.mjs"
   },
   "dependencies": {

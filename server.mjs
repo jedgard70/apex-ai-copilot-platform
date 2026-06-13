@@ -10,6 +10,7 @@ import {
 } from './server/agent/apexOperatorRuntime.mjs'
 import { classifyProductionConversationIntent } from './server/agent/productionConversationRouter.mjs'
 import { collectProductionOperatorStatus } from './server/agent/productionStatus.mjs'
+import { routeToolExecution } from './server/agent/toolExecutionRouter.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = __dirname
@@ -1551,6 +1552,30 @@ async function handleOperatorPreview(req, res) {
       proposedExecution: null,
       executedActions: [],
       finalReply: 'BLOCKED - Apex Operator Runtime falhou com segurança. O chat principal não foi quebrado.',
+      error: scrubProviderError(error.message || error),
+    })
+  }
+}
+
+async function handleToolExecute(req, res) {
+  try {
+    const body = await readJson(req)
+    const result = await routeToolExecution({
+      userMessage: String(body.message || '').slice(0, 12000),
+      requestedToolIds: Array.isArray(body.toolIds) ? body.toolIds.map(String) : [],
+      allowMutations: body.allowMutations === true,
+    })
+    return json(res, 200, result)
+  } catch (error) {
+    return json(res, 200, {
+      ok: false,
+      mode: 'tool-execution-router-h5-error',
+      intent: 'tool_execution_error',
+      requestedToolIds: [],
+      executionClasses: [],
+      tools: [],
+      executions: [],
+      finalReply: 'YELLOW - camada H5 de execução por ferramentas falhou com segurança. Nenhuma mutação foi executada e nenhum segredo foi exposto.',
       error: scrubProviderError(error.message || error),
     })
   }
@@ -4175,6 +4200,10 @@ const server = http.createServer((req, res) => {
   }
   if (req.url === '/api/copilot/operator-preview' && req.method === 'POST') {
     handleOperatorPreview(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/tool-execute' && req.method === 'POST') {
+    handleToolExecute(req, res)
     return
   }
   if (req.url === '/api/copilot/chat' && req.method === 'POST') {

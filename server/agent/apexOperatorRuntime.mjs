@@ -4,8 +4,9 @@ import { buildPolicyDecision, isExplicitCommitApproval } from './policy.mjs'
 import { classifyControlledExecutionRequest, runControlledExecutor } from './controlledExecutor.mjs'
 import { runApprovedCommit, runCommands, runOwnerRawShell } from './executor.mjs'
 import { buildOperatorMemory } from './memory.mjs'
-import { classifyProductionConversationIntent, routeProductionConversation } from './productionConversationRouter.mjs'
+import { classifyProductionConversationIntent, decomposeProductionConversationIntents, routeProductionConversation } from './productionConversationRouter.mjs'
 import { collectProductionOperatorStatus, summarizeProductionOperatorStatus } from './productionStatus.mjs'
+import { classifyToolExecutionRequest, routeToolExecution } from './toolExecutionRouter.mjs'
 import { buildDecision, summarizeEvidence } from './verifier.mjs'
 
 export { isOperatorIntent }
@@ -280,6 +281,58 @@ export async function runApexOperatorProductionSafe({
     },
   })
   const safeStatus = productionStatus || collectProductionOperatorStatus()
+  const decomposedProductionIntents = decomposeProductionConversationIntents(userMessage)
+  const h4ConnectorOrExecutionIntents = new Set([
+    'production_github_connector_status',
+    'production_vercel_connector_status',
+    'production_connector_status',
+    'production_vercel_deploy',
+    'production_supabase',
+  ])
+  const mixedNaturalConversation = decomposedProductionIntents.length > 1
+    && decomposedProductionIntents.some(conversationIntent => !h4ConnectorOrExecutionIntents.has(conversationIntent))
+  const h5ToolIds = classifyToolExecutionRequest(userMessage)
+  if (h5ToolIds.length && !mixedNaturalConversation) {
+    const toolExecution = await routeToolExecution({ userMessage, requestedToolIds: h5ToolIds })
+
+    return {
+      ok: toolExecution.ok,
+      status: toolExecution.tools.some(tool => tool.executionClass === 'blocked') ? 'BLOCKED' : 'YELLOW',
+      intent: 'tool_execution',
+      operatorIntent: intent,
+      memory,
+      evidence: {
+        summary: {
+          productionSafe: true,
+          h5ToolExecution: true,
+          localExecution: 'connector_or_capability_status_only',
+          productionStatus: safeStatus,
+          requestedToolIds: toolExecution.requestedToolIds,
+          executions: toolExecution.executions,
+        },
+        commands: [],
+      },
+      decision: 'H5 tool execution router handled capability status and allowed read-only connector execution only.',
+      recommendedAction: 'Configure the missing connector or provide explicit confirmation only through a dedicated mutation route when mutation is required.',
+      requiresApproval: toolExecution.tools.some(tool => tool.executionClass === 'mutation_requires_confirmation'),
+      capability: {
+        name: 'h5_tool_execution_router',
+        status: 'supported',
+        risk: toolExecution.tools.some(tool => tool.mutates) ? 'high' : 'low',
+        nextSetupStep: toolExecution.tools.flatMap(tool => tool.missing || []).join(', '),
+      },
+      proposedExecution: {
+        type: 'h5-tool-router',
+        tools: toolExecution.requestedToolIds,
+        executionClasses: toolExecution.executionClasses,
+        note: 'H5 executa apenas read-only/status neste checkpoint. Mutacoes e desktop exigem confirmação/conector dedicado.',
+      },
+      executedActions: [],
+      toolExecution,
+      finalReply: toolExecution.finalReply,
+      memoryPatch: null,
+    }
+  }
   const productionConversationIntent = classifyProductionConversationIntent(userMessage)
   const controlledTasks = classifyControlledExecutionRequest(userMessage, intent)
   const conversationalOnlyIntents = [
