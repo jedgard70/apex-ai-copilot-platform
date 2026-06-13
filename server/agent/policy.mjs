@@ -202,3 +202,30 @@ export function buildPolicyDecision({ intent, userMessage, repoPath, permissions
     ...capability,
   }
 }
+
+export function buildControlledExecutionGate({ intent = '', userMessage = '', tasks = [] } = {}) {
+  const text = String(userMessage || '')
+  const mutationRequested = tasks.includes('blocked_mutation')
+    || ['destructive_request', 'push_request', 'approved_commit_request', 'raw_shell_request', 'code_implementation_request', 'checkpoint_close_request'].includes(intent)
+    || /\b(commit|push|deploy|publicar|publica|migration|migracao|migra[cç][aã]o|delete|deletar|rm\s+-rf|drop\s+(database|schema|table)|truncate|service[_-]?role|\.env|secret|segredo|token|senha|password)\b/i.test(text)
+
+  if (mutationRequested) {
+    return {
+      ok: false,
+      status: OPERATOR_STATUS.BLOCKED,
+      risk: RISK_LEVEL.HIGH,
+      mutates: true,
+      requiresConfirmation: true,
+      reason: 'H4 bloqueia mutacoes, comandos destrutivos, exposicao de segredo e shell livre.',
+    }
+  }
+
+  return {
+    ok: true,
+    status: OPERATOR_STATUS.YELLOW,
+    risk: RISK_LEVEL.LOW,
+    mutates: false,
+    requiresConfirmation: false,
+    reason: 'H4 permite apenas leitura e validacao controladas por allowlist.',
+  }
+}

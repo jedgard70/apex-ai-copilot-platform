@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { classifyOperatorIntent, inferConcreteShellCommand, isOperatorIntent, selectEvidenceCommands } from './planner.mjs'
 import { buildPolicyDecision, isExplicitCommitApproval } from './policy.mjs'
+import { classifyControlledExecutionRequest, runControlledExecutor } from './controlledExecutor.mjs'
 import { runApprovedCommit, runCommands, runOwnerRawShell } from './executor.mjs'
 import { buildOperatorMemory } from './memory.mjs'
 import { routeProductionConversation } from './productionConversationRouter.mjs'
@@ -277,6 +278,59 @@ export async function runApexOperatorProductionSafe({
     },
   })
   const safeStatus = productionStatus || collectProductionOperatorStatus()
+  const controlledTasks = classifyControlledExecutionRequest(userMessage, intent)
+  const shouldRunControlledExecution = controlledTasks.length > 0
+    && !controlledTasks.includes('blocked_mutation')
+    && !['greeting_request', 'push_request', 'approved_commit_request', 'raw_shell_request', 'destructive_request', 'natural_execution_request', 'checkpoint_close_request', 'code_implementation_request'].includes(intent)
+
+  if (shouldRunControlledExecution) {
+    const controlledExecution = await runControlledExecutor({
+      userMessage,
+      operatorIntent: intent,
+      repoPath: resolvedRepo,
+      productionStatus: safeStatus,
+    })
+
+    return {
+      ok: controlledExecution.ok,
+      status: controlledExecution.status,
+      intent: 'controlled_execution',
+      operatorIntent: intent,
+      memory,
+      evidence: {
+        summary: {
+          productionSafe: false,
+          controlledExecution: true,
+          localExecution: 'read_only_or_validation_only',
+          productionStatus: safeStatus,
+          tasks: controlledExecution.tasks,
+          commandProof: controlledExecution.commands,
+          connectors: controlledExecution.connectors,
+        },
+        commands: controlledExecution.commands,
+      },
+      decision: controlledExecution.policy.reason,
+      recommendedAction: controlledExecution.ok
+        ? 'Usar esta evidência para decidir o próximo passo; qualquer mutação futura continua exigindo confirmação e conector apropriado.'
+        : 'Corrigir a validação bloqueada ou reformular o pedido dentro das tarefas não mutantes permitidas.',
+      requiresApproval: Boolean(controlledExecution.policy.requiresConfirmation),
+      capability: {
+        name: 'controlled_server_side_executor',
+        status: controlledExecution.ok ? 'supported' : 'blocked_or_unavailable',
+        risk: 'low',
+        nextSetupStep: '',
+      },
+      proposedExecution: {
+        type: 'controlled-h4',
+        tasks: controlledExecution.tasks,
+        commands: controlledExecution.commands.map(command => command.commandId),
+        note: 'H4 permite apenas leitura e validação. Mutações permanecem bloqueadas.',
+      },
+      executedActions: [],
+      finalReply: controlledExecution.finalReply,
+    }
+  }
+
   const conversation = routeProductionConversation({
     userMessage,
     operatorIntent: intent,

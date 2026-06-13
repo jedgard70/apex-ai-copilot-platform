@@ -65,9 +65,14 @@ export function collectProductionOperatorStatus() {
       evidence: '/api/copilot/operator-status esta implementada como rota de status sem mutacao.',
     },
     {
+      id: 'serverless_operator_execute_route',
+      status: 'GREEN',
+      evidence: '/api/copilot/operator-execute esta implementada para execucao controlada de leitura e validacao.',
+    },
+    {
       id: 'local_execution_boundary',
       status: 'YELLOW',
-      evidence: 'Git/build/shell/commit/push/deploy/migration reais exigem executor/conector dedicado.',
+      evidence: 'H4 permite leitura e validacao controladas; commit/push/deploy/migration/shell livre continuam bloqueados.',
     },
   ]
 
@@ -85,9 +90,13 @@ export function collectProductionOperatorStatus() {
       chat: 'supported',
       operatorPreview: 'supported',
       operatorStatus: 'supported',
-      localGitStatus: 'requires_dedicated_executor',
-      localBuild: 'requires_dedicated_executor',
-      localShell: 'requires_dedicated_executor',
+      operatorExecute: 'read_only_and_validation_supported',
+      localGitStatus: 'controlled_read_only_supported_when_repo_available',
+      localGitLog: 'controlled_read_only_supported_when_repo_available',
+      localBuild: 'controlled_validation_supported_when_runtime_available',
+      routeValidation: 'controlled_validation_supported',
+      connectorPresence: 'supported_without_secret_values',
+      localShell: 'blocked_in_h4',
       commit: 'requires_dedicated_executor_and_confirmation',
       push: 'requires_connector_and_confirmation',
       deploy: 'requires_connector_and_confirmation',
