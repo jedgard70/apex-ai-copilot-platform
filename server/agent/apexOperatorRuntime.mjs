@@ -355,6 +355,7 @@ export async function runApexOperatorProductionSafe({
     policyDecision,
     productionStatus: safeStatus,
     clientMemory,
+    identityContext,
     messages,
   })
 

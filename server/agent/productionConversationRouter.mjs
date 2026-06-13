@@ -53,7 +53,7 @@ export function inferDisplayNameFromMessages(messages = []) {
 
 function hasPortugueseSignal(text) {
   return includesAny(text, [
-    /\b(ola|bom dia|boa tarde|boa noite|mas|voce|voces|nao|entao|me diga|liste|proximo|passo|faz|execute|quero|deploy|publica|subir|aplica|migration|supabase|plataforma|posicao|posição|entendeu)\b/,
+    /\b(ola|bom dia|boa tarde|boa noite|mas|voce|voces|nao|entao|me diga|liste|proximo|passo|faz|execute|quero|deploy|publica|subir|aplica|migration|supabase|plataforma|posicao|posição|entendeu|revit|bim|modelagem|familias|famílias|quantitativo|meu nome|quem sou eu)\b/,
   ])
 }
 
@@ -62,6 +62,47 @@ export function classifyProductionConversationIntent(message = '') {
 
   if (!text) return 'production_next_step'
   if (extractDisplayNamePreference(message)) return 'production_display_name_preference'
+
+  if (includesAny(text, [
+    /\b(o que pode me ajudar com o )?revit\b/,
+    /\bbim\b/,
+    /\bmodelagem\b/,
+    /\bfamilias revit\b/,
+    /\bfamilias\b.*\brevit\b/,
+    /\bquantitativo revit\b/,
+    /\bcompatibilizacao\b/,
+    /\bifc\b/,
+    /\bnwc\b/,
+  ])) {
+    return 'production_revit_bim_help'
+  }
+
+  if (includesAny(text, [
+    /\bnao entendi\b/,
+    /\bnão entendi\b/,
+    /\bexplique melhor\b/,
+    /\bfala mais simples\b/,
+    /\bresuma\b/,
+  ])) {
+    return 'production_user_confusion'
+  }
+
+  if (includesAny(text, [
+    /\bmeu nome\b/,
+    /\bqual meu nome\b/,
+    /\bcomo voce deve me chamar\b/,
+    /\bcomo você deve me chamar\b/,
+  ])) {
+    return 'production_name_identity'
+  }
+
+  if (includesAny(text, [
+    /\bquem sou eu\b/,
+    /\bvoce sabe quem sou eu\b/,
+    /\bvocê sabe quem sou eu\b/,
+  ])) {
+    return 'production_who_am_i'
+  }
 
   if (/^(ola|oi|bom dia|boa tarde|boa noite)(?:[\s!.,?]|$)/.test(text)) {
     return 'production_greeting'
@@ -197,6 +238,71 @@ function buildPlatformPositionReply(productionStatus = {}) {
   ].join('\n')
 }
 
+function buildRevitBimHelpReply() {
+  return [
+    'Com Revit e BIM, posso ajudar de forma bem prática:',
+    '- montar checklist de modelagem por disciplina;',
+    '- organizar famílias Revit, nomenclatura e biblioteca;',
+    '- estruturar parâmetros compartilhados e parâmetros de projeto;',
+    '- preparar quantitativos e critérios de medição;',
+    '- apoiar compatibilização entre arquitetura, estrutura e instalações;',
+    '- revisar documentação, vistas, folhas e padrões de entrega;',
+    '- planejar exportação IFC/NWC para coordenação, orçamento ou obra;',
+    '- montar um plano BIM com responsabilidades, LOD/LOI, entregáveis e validações.',
+    'Quando o conector Revit/MCP estiver configurado, essa ajuda poderá evoluir para leitura e ações assistidas direto no ambiente conectado. Por enquanto, eu preparo o plano, checklist e documentação sem fingir execução no Revit.',
+  ].join('\n')
+}
+
+function summarizeLastTopic(messages = []) {
+  const recent = Array.isArray(messages) ? messages.slice(-8).reverse() : []
+  for (const message of recent) {
+    const text = String(message?.text || message?.content || '').trim()
+    if (!text || message?.role === 'user' && includesAny(normalizeMessage(text), [
+      /\bnao entendi\b/,
+      /\bnão entendi\b/,
+      /\bexplique melhor\b/,
+      /\bfala mais simples\b/,
+      /\bresuma\b/,
+    ])) continue
+    if (message?.role === 'assistant') return cleanNaturalSummary(text)
+  }
+  return ''
+}
+
+function cleanNaturalSummary(text = '') {
+  return String(text || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 260)
+}
+
+function buildConfusionReply(messages = []) {
+  const lastTopic = summarizeLastTopic(messages)
+  if (lastTopic) {
+    return [
+      'Claro. Em termos simples:',
+      lastTopic,
+      'A ideia principal é: eu explico, organizo e preparo o próximo passo; ações reais como deploy, push, migração ou operação em conector só acontecem com conector configurado e confirmação clara.',
+    ].join('\n')
+  }
+  return 'Claro. Em termos simples: eu posso ajudar a operar a plataforma Apex, preparar documentos, organizar engenharia/BIM, revisar código e orientar próximos passos. Para executar ações reais, preciso de conectores configurados.'
+}
+
+function buildNameIdentityReply(clientMemory = {}) {
+  const displayName = sanitizeDisplayName(clientMemory.displayName || '')
+  if (displayName) return `Você pediu para eu te chamar de ${displayName}.`
+  return 'Ainda não tenho um nome preferido salvo nesta sessão. Pode dizer: me chame de Dr Edgard.'
+}
+
+function buildWhoAmIReply({ identityContext = {}, clientMemory = {}, displayName = '' } = {}) {
+  const preferredName = sanitizeDisplayName(clientMemory.displayName || displayName || '')
+  const email = sanitizeDisplayName(identityContext.email || '')
+  if (email && preferredName) return `Você está logado como ${email} e pediu para ser chamado de ${preferredName}.`
+  if (email) return `Você está logado como ${email}. Ainda não tenho um nome preferido salvo nesta sessão.`
+  if (preferredName) return `Você pediu para eu te chamar de ${preferredName}. Ainda não recebi email de conta nesta sessão.`
+  return 'Ainda não tenho dados suficientes desta sessão para dizer quem você é. Se quiser, diga: me chame de Dr Edgard.'
+}
+
 const REPLIES = {
   production_greeting: 'Olá, {{displayName}}. Estou ativa na plataforma Apex. Pode me pedir para revisar a plataforma, planejar o próximo passo, preparar documentos, analisar código ou conduzir um checkpoint.',
   production_user_correction: 'Correto. Vou responder apenas ao que você pedir, em português, sem repetir status técnico quando não for necessário.',
@@ -214,6 +320,10 @@ const REPLIES = {
   production_github_connector_status: '',
   production_vercel_connector_status: '',
   production_connector_status: '',
+  production_revit_bim_help: '',
+  production_user_confusion: '',
+  production_name_identity: '',
+  production_who_am_i: '',
   production_vercel_deploy: [
     'Capacidade de publicação preparada.',
     'Para publicar na Vercel, preciso de conector Vercel ou variáveis operacionais configuradas no servidor, escopo confirmado, evidência de compilação e alvo de publicação definido.',
@@ -225,12 +335,12 @@ const REPLIES = {
     'Não apliquei migração e não vou simular alteração no banco.',
   ].join('\n'),
   production_general_portuguese: [
-    'Entendi. Vou manter a resposta em português e focada no pedido.',
-    'Posso transformar isso em plano, revisão, documento, análise técnica ou preparação de execução, sem fingir ações que dependem de conector.',
+    'Entendi. Me diga o que você quer resolver agora e eu transformo em um próximo passo claro.',
+    'Posso ajudar com engenharia/BIM, documentos, código, operação da plataforma ou preparação de execução; ações reais continuam dependendo de conector e confirmação.',
   ].join('\n'),
   production_general: [
-    'Estou ativa na plataforma Apex.',
-    'Posso ajudar com operação, planejamento, documentos, código, repositório, Vercel, Supabase, BIM, orçamento, render, imagem e vídeo.',
+    'Estou por aqui. Diga o objetivo em uma frase e eu organizo o caminho.',
+    'Posso ajudar com engenharia/BIM, documentos, código, operação da plataforma ou próximos passos, sem fingir execução real sem conector.',
   ].join('\n'),
 }
 
@@ -240,6 +350,7 @@ export function routeProductionConversation({
   policyDecision = {},
   productionStatus = {},
   clientMemory = {},
+  identityContext = {},
   messages = [],
 } = {}) {
   const conversationIntent = classifyProductionConversationIntent(userMessage)
@@ -258,6 +369,14 @@ export function routeProductionConversation({
         ? buildConnectorsStatusReply(productionStatus.connectorStatus, 'vercel')
       : conversationIntent === 'production_connector_status'
         ? buildConnectorsStatusReply(productionStatus.connectorStatus, 'all')
+      : conversationIntent === 'production_revit_bim_help'
+        ? buildRevitBimHelpReply()
+      : conversationIntent === 'production_user_confusion'
+        ? buildConfusionReply(messages)
+      : conversationIntent === 'production_name_identity'
+        ? buildNameIdentityReply(clientMemory)
+      : conversationIntent === 'production_who_am_i'
+        ? buildWhoAmIReply({ identityContext, clientMemory, displayName })
       : REPLIES[conversationIntent]
   const finalReply = String(template || REPLIES.production_general_portuguese).replaceAll('{{displayName}}', displayName)
 
