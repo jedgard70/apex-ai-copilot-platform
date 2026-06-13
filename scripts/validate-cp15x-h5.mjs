@@ -65,7 +65,7 @@ console.log('GREEN capability matrix includes all H5 execution classes.')
 assert.deepEqual(classifyToolExecutionRequest('verifique github e vercel'), ['github.status', 'vercel.status'])
 assert.deepEqual(classifyToolExecutionRequest('arrume meu computador'), ['local_worker.status'])
 assert.deepEqual(classifyToolExecutionRequest('abra o revit'), ['revit_mcp.status'])
-assert.deepEqual(classifyToolExecutionRequest('verifique o modelo revit'), ['revit_mcp.status'])
+assert.deepEqual(classifyToolExecutionRequest('verifique o modelo revit'), ['revit_model.status'])
 assert.deepEqual(classifyToolExecutionRequest('faça deploy'), ['vercel.deploy'])
 assert.deepEqual(classifyToolExecutionRequest('aplique migration'), ['supabase.migration'])
 console.log('GREEN H5 request classifier passed.')
@@ -95,7 +95,7 @@ console.log(`GREEN open Revit status: ${openRevit.finalReply.split('\n')[0]}`)
 const verifyRevit = await route('verifique o modelo revit')
 assert.equal(verifyRevit.intent, 'tool_execution')
 assertFinalReplyContract(verifyRevit)
-assertIncludes(verifyRevit.finalReply, ['revit mcp bridge'])
+assertIncludes(verifyRevit.finalReply, ['revit model check'])
 assertNoFakeMutation(verifyRevit)
 console.log(`GREEN verify Revit model status: ${verifyRevit.finalReply.split('\n')[0]}`)
 
@@ -120,5 +120,59 @@ assertFinalReplyContract(supabase)
 assertIncludes(supabase.finalReply, ['supabase configuration status', 'read_only'])
 assertNoFakeMutation(supabase)
 console.log(`GREEN Supabase presence status: ${supabase.finalReply.split('\n')[0]}`)
+
+const multiInput = [
+  'arrume meu computador',
+  'abra o revit',
+  'verifique o modelo revit',
+  'faça deploy',
+  'aplique migration',
+  'verifique github e vercel',
+].join('\n')
+
+const multiClassified = classifyToolExecutionRequest(multiInput)
+const expectedToolIds = ['local_worker.status', 'revit_mcp.status', 'revit_model.status', 'vercel.deploy', 'supabase.migration', 'github.status', 'vercel.status']
+for (const id of expectedToolIds) {
+  assert.ok(multiClassified.includes(id), `multi-tool classifier missing: ${id}`)
+}
+assert.equal(multiClassified.length, expectedToolIds.length, `expected ${expectedToolIds.length} unique tools, got ${multiClassified.length}: ${multiClassified.join(', ')}`)
+console.log('GREEN multi-tool classifier detects all 7 unique tools.')
+
+const multiRoute = await route(multiInput)
+assert.equal(multiRoute.intent, 'tool_execution')
+assertFinalReplyContract(multiRoute)
+const routedIds = multiRoute.toolExecution?.requestedToolIds || []
+for (const id of expectedToolIds) {
+  assert.ok(routedIds.includes(id), `multi-tool route missing: ${id}`)
+}
+// H5.0C — numbered sections and all tool labels present
+assertIncludes(multiRoute.finalReply, ['1.', '2.', '3.', '4.', '5.', '6.', '7.'])
+assertIncludes(multiRoute.finalReply, [
+  'controlled local pc worker',
+  'revit mcp bridge',
+  'revit model check',
+  'vercel deploy',
+  'supabase migration',
+  'github repository status',
+  'vercel deployment status',
+])
+// H5.0C — must NOT fall through to old connector router
+assert.ok(!multiRoute.finalReply.startsWith('Status de conectores Apex'), 'finalReply must not start with legacy connector header')
+assert.ok(!normalize(multiRoute.finalReply).startsWith('status de conectores'), 'must not start with legacy connector header (normalized)')
+// H5.0C — must not respond with GitHub only
+assert.ok(normalize(multiRoute.finalReply).includes('supabase migration'), 'multi-tool reply must include supabase migration, not only github')
+assert.equal(multiRoute.intent, 'tool_execution', 'intent must be tool_execution for multi-tool block')
+assertNoFakeMutation(multiRoute)
+console.log(`GREEN multi-tool route produced ${routedIds.length} sections: ${routedIds.join(', ')}`)
+
+// H5.0C — bare keyword detection
+assert.ok(classifyToolExecutionRequest('github').includes('github.status'), 'bare "github" must route to github.status')
+assert.ok(classifyToolExecutionRequest('vercel').includes('vercel.status'), 'bare "vercel" must route to vercel.status')
+assert.ok(classifyToolExecutionRequest('supabase').includes('supabase.status'), 'bare "supabase" must route to supabase.status')
+assert.ok(classifyToolExecutionRequest('revit').includes('revit_mcp.status'), 'bare "revit" must route to revit_mcp.status')
+assert.ok(classifyToolExecutionRequest('migration').includes('supabase.migration'), 'bare "migration" must route to supabase.migration')
+assert.ok(classifyToolExecutionRequest('computador').includes('local_worker.status'), 'bare "computador" must route to local_worker.status')
+assert.ok(classifyToolExecutionRequest('pc').includes('local_worker.status'), 'bare "pc" must route to local_worker.status')
+console.log('GREEN H5.0C bare keyword fallback detection passed.')
 
 console.log('GREEN CP15X-H5 real tool execution layer validation passed.')

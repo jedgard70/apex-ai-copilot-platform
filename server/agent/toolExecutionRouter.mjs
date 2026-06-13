@@ -32,7 +32,9 @@ export function classifyToolExecutionRequest(message = '') {
     tools.push('local_worker.status')
   }
   if (/\babra o revit\b/.test(text)) tools.push('revit_mcp.status')
-  if (/\b(verifique|verificar|analise|analisar|cheque|validar|valide).*\b(modelo revit|revit|modelo bim|bim)\b/.test(text)) {
+  if (/\b(verifique|verificar|analise|analisar|cheque|validar|valide).*\b(modelo revit|modelo bim)\b/.test(text)) {
+    tools.push('revit_model.status')
+  } else if (/\b(verifique|verificar|analise|analisar|cheque|validar|valide).*\b(revit|bim)\b/.test(text)) {
     tools.push('revit_mcp.status')
   }
   if (/\b(verifique|verificar|cheque|status|conector).*\bgithub\b|\bgithub\b.*\b(status|conector)\b/.test(text)) {
@@ -48,6 +50,32 @@ export function classifyToolExecutionRequest(message = '') {
     tools.push('vercel.deploy')
   }
   if (/\b(aplique|aplicar|aplica|rodar|roda|executar|executa).*\b(migration|migracao|migracao|supabase)\b|\bsupabase db (push|reset)\b/.test(text)) {
+    tools.push('supabase.migration')
+  }
+
+  // H5.0C — bare keyword fallbacks: any isolated mention routes to H5 status check
+  if (!tools.includes('local_worker.status') && !asksComputerCapability &&
+      /\b(computador|pc|notebook)\b/.test(text)) {
+    tools.push('local_worker.status')
+  }
+  const asksRevitHelp = /\b(o que|como|consegue|pode|ajudar|duvida|sobre|bim help)\b.*\brevit\b|\brevit\b.*\b(ajudar|duvida|sobre)\b/.test(text) ||
+    /\brevit\b.*\b(travando|trava|lento|nao abre|nao funciona|erro|falha|crash|problema)\b|\b(travando|trava|lento|crash|problema).{0,40}\brevit\b/.test(text)
+  if (!asksRevitHelp && !tools.includes('revit_mcp.status') && !tools.includes('revit_model.status') &&
+      /\brevit\b/.test(text)) {
+    tools.push('revit_mcp.status')
+  }
+  if (!tools.includes('github.status') && /\bgithub\b/.test(text)) {
+    tools.push('github.status')
+  }
+  if (!tools.includes('vercel.status') && !tools.includes('vercel.deploy') &&
+      /\bvercel\b/.test(text)) {
+    tools.push('vercel.status')
+  }
+  if (!tools.includes('supabase.status') && !tools.includes('supabase.migration') &&
+      /\bsupabase\b/.test(text)) {
+    tools.push('supabase.status')
+  }
+  if (!tools.includes('supabase.migration') && /\b(migration|migracao)\b/.test(text)) {
     tools.push('supabase.migration')
   }
 
@@ -137,40 +165,55 @@ async function executeReadOnlyTool(toolId) {
   }
 }
 
-function buildCapabilityLine(item) {
+function buildCapabilityDetail(item) {
   if (item.executionClass === EXECUTION_CLASSES.BLOCKED) {
-    return `- ${item.label}: BLOCKED. Motivo: ação destrutiva ou sem ferramenta segura.`
+    return `   BLOQUEADO. Ação destrutiva ou sem ferramenta segura.`
   }
+  const missing = item.missing.length ? item.missing.join(', ') : 'nenhum'
   if (item.executionClass === EXECUTION_CLASSES.MUTATION_REQUIRES_CONFIRMATION) {
-    return `- ${item.label}: ${item.configured ? 'available' : 'unavailable'} para preparar. Classe: ${item.executionClass}. Mutação exige confirmação explícita, evidência, rollback e rota dedicada. Faltando: ${item.missing.length ? item.missing.join(', ') : 'nenhum conector básico'}.`
+    return `   Classe: ${item.executionClass}. Status: ${item.configured ? 'available' : 'unavailable'} para preparar. Mutação exige confirmação explícita, evidência, rollback e rota dedicada. Faltando: ${missing}.`
   }
   if (item.executionClass === EXECUTION_CLASSES.EXTERNAL_DESKTOP_REQUIRES_LOCAL_WORKER) {
-    return `- ${item.label}: ${item.configured ? 'available' : 'unavailable'}. Classe: ${item.executionClass}. Faltando: ${item.missing.length ? item.missing.join(', ') : 'nenhum conector básico'}.`
+    return `   Classe: ${item.executionClass}. Status: ${item.configured ? 'available' : 'unavailable'}. Faltando: ${missing}.`
   }
-  return `- ${item.label}: ${item.configured ? 'available' : 'unavailable'}. Classe: ${item.executionClass}. Faltando: ${item.missing.length ? item.missing.join(', ') : 'nenhum'}.`
+  return `   Classe: ${item.executionClass}. Status: ${item.configured ? 'available' : 'unavailable'}. Faltando: ${missing}.`
 }
 
 function buildToolExecutionReply({ requestTools = [], executions = [] } = {}) {
-  const lines = ['Status de execução por ferramentas Apex:']
   if (!requestTools.length) {
-    lines.push('- Nenhuma ferramenta H5 conhecida foi identificada nesse pedido.')
+    return [
+      'Status de execução por ferramentas Apex:',
+      '- Nenhuma ferramenta H5 conhecida foi identificada nesse pedido.',
+      '',
+      'Nenhum segredo foi exibido. Nenhum deploy, migration, push, commit, comando local, ação desktop ou mutação foi executado.',
+    ].join('\n')
   }
-  for (const item of requestTools) lines.push(buildCapabilityLine(item))
-  const executed = executions.filter(execution => execution.executed)
-  if (executed.length) {
+
+  const count = requestTools.length
+  const header = count > 1
+    ? `Apex AI Copilot — análise multi-ferramenta (${count} intenções detectadas):`
+    : `Apex AI Copilot — análise de ferramenta H5:`
+
+  const lines = [header]
+
+  for (let i = 0; i < requestTools.length; i++) {
+    const item = requestTools[i]
     lines.push('')
-    lines.push('Execução read-only realizada:')
-    for (const execution of executed) {
-      lines.push(`- ${execution.toolId}: ${execution.executionMode}.`)
-      if (execution.result?.status) lines.push(`  Status: ${redact(execution.result.status)}.`)
-      if (execution.result?.repository) lines.push(`  Repositório: ${redact(execution.result.repository)}.`)
-      if (execution.result?.branch) lines.push(`  Branch: ${redact(execution.result.branch)}.`)
-      if (execution.result?.projectId) lines.push(`  Projeto: ${redact(execution.result.projectId)}.`)
-      if (execution.result?.productionDomain) lines.push(`  Domínio: ${redact(execution.result.productionDomain)}.`)
-      if (execution.result?.latestCommit?.shortSha) lines.push(`  Último commit: ${redact(execution.result.latestCommit.shortSha)}.`)
-      if (execution.result?.latestProductionDeployment?.state) lines.push(`  Último deploy produção: ${redact(execution.result.latestProductionDeployment.state)}.`)
+    lines.push(`${i + 1}. ${item.label}`)
+    lines.push(buildCapabilityDetail(item))
+
+    const exec = executions.find(e => e.toolId === item.id)
+    if (exec?.executed) {
+      if (exec.result?.status) lines.push(`   Status conector: ${redact(exec.result.status)}.`)
+      if (exec.result?.repository) lines.push(`   Repositório: ${redact(exec.result.repository)}.`)
+      if (exec.result?.branch) lines.push(`   Branch: ${redact(exec.result.branch)}.`)
+      if (exec.result?.projectId) lines.push(`   Projeto: ${redact(exec.result.projectId)}.`)
+      if (exec.result?.productionDomain) lines.push(`   Domínio: ${redact(exec.result.productionDomain)}.`)
+      if (exec.result?.latestCommit?.shortSha) lines.push(`   Último commit: ${redact(exec.result.latestCommit.shortSha)}.`)
+      if (exec.result?.latestProductionDeployment?.state) lines.push(`   Último deploy produção: ${redact(exec.result.latestProductionDeployment.state)}.`)
     }
   }
+
   lines.push('')
   lines.push('Nenhum segredo foi exibido. Nenhum deploy, migration, push, commit, comando local, ação desktop ou mutação foi executado.')
   return lines.join('\n')

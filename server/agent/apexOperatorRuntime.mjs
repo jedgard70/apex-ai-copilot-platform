@@ -292,7 +292,11 @@ export async function runApexOperatorProductionSafe({
   const mixedNaturalConversation = decomposedProductionIntents.length > 1
     && decomposedProductionIntents.some(conversationIntent => !h4ConnectorOrExecutionIntents.has(conversationIntent))
   const h5ToolIds = classifyToolExecutionRequest(userMessage)
-  if (h5ToolIds.length && !mixedNaturalConversation) {
+  // H5.0C: action tools always win over conversation router;
+  // status-only tools yield to conversation router when mixed natural intents are present.
+  const H5_ACTION_TOOLS = new Set(['local_worker.status', 'revit_mcp.status', 'revit_model.status', 'vercel.deploy', 'supabase.migration'])
+  const h5HasActionTools = h5ToolIds.some(id => H5_ACTION_TOOLS.has(id))
+  if (h5ToolIds.length && (h5HasActionTools || !mixedNaturalConversation)) {
     const toolExecution = await routeToolExecution({ userMessage, requestedToolIds: h5ToolIds })
 
     return {
