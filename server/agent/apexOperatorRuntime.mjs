@@ -14,6 +14,8 @@ import {
   PIPELINES,
 } from './confirmationStateMachine.mjs'
 import { buildDecision, summarizeEvidence } from './verifier.mjs'
+import { classifyRevitBimQuery, getRevitBimHelp, buildRevitBimReply } from './revitBimConnector.mjs'
+import { classifyImageGenRequest, buildImageGenPromptReply, generateImage, buildImageResultReply, buildImagePrompt } from './imageGenerationConnector.mjs'
 
 export { isOperatorIntent }
 
@@ -433,6 +435,49 @@ export async function runApexOperatorProductionSafe({
       memoryPatch: null,
     }
   }
+  // H13 — Revit/BIM live connector
+  if (productionConversationIntent === 'production_revit_bim_help') {
+    const revitResult = await getRevitBimHelp(userMessage)
+    const finalReply = buildRevitBimReply(revitResult)
+    return {
+      ok: true,
+      status: 'GREEN',
+      intent: 'h13_revit_bim_help',
+      operatorIntent: intent,
+      memory,
+      evidence: { summary: { connector: 'revit_bim', queryType: revitResult.queryType, live: Boolean(revitResult.liveResults) } },
+      decision: finalReply,
+      requiresApproval: false,
+      finalReply,
+      memoryPatch: null,
+      secretsExposed: false,
+    }
+  }
+
+  // H14 — Image generation connector
+  if (productionConversationIntent === 'production_archviz_help') {
+    const imageType = classifyImageGenRequest(userMessage)
+    if (imageType) {
+      const promptReply = buildImageGenPromptReply(userMessage)
+      const { prompt } = buildImagePrompt(userMessage, imageType)
+      // If OpenAI is configured and user is asking to generate (not just a prompt), offer it
+      const finalReply = promptReply
+      return {
+        ok: true,
+        status: 'GREEN',
+        intent: 'h14_image_gen',
+        operatorIntent: intent,
+        memory,
+        evidence: { summary: { connector: 'image_generation', renderType: imageType } },
+        decision: finalReply,
+        requiresApproval: false,
+        finalReply,
+        memoryPatch: null,
+        secretsExposed: false,
+      }
+    }
+  }
+
   const controlledTasks = classifyControlledExecutionRequest(userMessage, intent)
   const conversationalOnlyIntents = [
     'production_display_name_preference',

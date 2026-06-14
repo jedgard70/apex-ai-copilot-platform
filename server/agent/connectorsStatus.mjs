@@ -406,6 +406,24 @@ export function connectorsAsProductionList(status = collectConnectorsStatus()) {
       configured: hasEnv('OPENAI_API_KEY'),
       detail: 'Opcional para respostas generativas; o operador seguro responde sem isso.',
     },
+    {
+      id: 'image_generation',
+      label: 'Image generation (DALL-E)',
+      status: hasEnv('OPENAI_API_KEY') ? 'configured' : 'prompt_only',
+      configured: hasEnv('OPENAI_API_KEY'),
+      detail: hasEnv('OPENAI_API_KEY')
+        ? 'DALL-E 3 configurado — geração direta de imagens disponível.'
+        : 'Modo prompt: gera prompts para Midjourney/DALL-E/SD. Configure OPENAI_API_KEY para geração direta.',
+    },
+    {
+      id: 'revit_bim_mcp',
+      label: 'Revit/BIM MCP connector',
+      status: hasEnv('AUTODESK_ACCESS_TOKEN') || (hasEnv('AUTODESK_CLIENT_ID') && hasEnv('AUTODESK_CLIENT_SECRET')) ? 'configured' : 'knowledge_only',
+      configured: hasEnv('AUTODESK_ACCESS_TOKEN') || (hasEnv('AUTODESK_CLIENT_ID') && hasEnv('AUTODESK_CLIENT_SECRET')),
+      detail: hasEnv('AUTODESK_ACCESS_TOKEN')
+        ? 'Autodesk Platform Services configurado — busca ao vivo na Autodesk Help disponível.'
+        : 'Operando com base de conhecimento curada. Configure AUTODESK_ACCESS_TOKEN para busca ao vivo.',
+    },
   ]
 }
 
