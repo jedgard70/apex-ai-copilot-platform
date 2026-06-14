@@ -63,7 +63,31 @@ export function inferDisplayNameFromMessages(messages = []) {
 
 function hasPortugueseSignal(text) {
   return includesAny(text, [
-    /\b(ola|bom dia|boa tarde|boa noite|mas|voce|voces|vc|nao|entao|me diga|liste|proximo|passo|faz|execute|quero|deploy|publica|subir|aplica|migration|supabase|plataforma|posicao|posição|entendeu|revit|bim|modelagem|familias|famílias|quantitativo|meu nome|quem sou eu|computador|pc|internet|travando|sim|certo|pode|beleza|portugues|continua|seguir|continuar|tudo bem|claro|obrigado)\b/,
+    /\b(ola|bom dia|boa tarde|boa noite|mas|voce|voces|vc|nao|entao|me diga|liste|proximo|passo|faz|execute|quero|deploy|publica|subir|aplica|migration|supabase|plataforma|posicao|posição|entendeu|revit|bim|modelagem|familias|famílias|quantitativo|meu nome|quem sou eu|computador|pc|internet|travando|sim|certo|pode|beleza|portugues|continua|seguir|continuar|tudo bem|claro|obrigado|orcamento|orçamento|contrato|proposta|cronograma|planejamento|obra|campo|checklist|render|imagem|video|vídeo|marketing|vendas|memorial|escopo|sinapi|compra|medicao|medição|aditivo|licitacao|licitação|projeto|estrutura|fundacao|fundação|alvenaria|cobertura|instalacao|instalação|eletrica|elétrica|hidraulica|hidráulica|documentacao|documentação|engenharia|arquitetura|topografia|laudo|relatorio|relatório|diario|diário|visita|aprovacao|aprovação|prefeitura|crea|art|rrt)\b/,
+  ])
+}
+
+function hasEnglishSignal(text) {
+  // Detects predominantly English input when no Portuguese signal is present
+  return includesAny(text, [
+    /\bwhat can you do\b/,
+    /\bwhat do you do\b/,
+    /\bhow (do|can|should) (i|you)\b/,
+    /\bcan you (help|show|tell|explain|do|create|make|build|write|generate)\b/,
+    /\bhelp me (with|to|understand|create|build|write|make|plan|fix|review)\b/,
+    /\bshow me\b/,
+    /\btell me\b/,
+    /\bi (want|need|would like|am looking for)\b/,
+    /\bplease (help|show|tell|explain|do|create|make)\b/,
+    /\bwhat is\b/,
+    /\bwhat are\b/,
+    /\bhow to\b/,
+    /\bdo you (know|have|support|handle|work with)\b/,
+    /\bwill you\b/,
+    /\bare you able\b/,
+    /\bi have a (question|problem|issue|task|project)\b/,
+    /\bmy (project|company|team|client|budget|schedule)\b/,
+    /\b(create|generate|build|write|draft|prepare|review|analyze|explain) (a|an|the|my|our)\b/,
   ])
 }
 
@@ -205,6 +229,127 @@ const INTENT_PATTERNS = {
     /\bqual o proximo passo\b/,
     /\bo que fazemos agora\b/,
     /\be agora\b/,
+  ],
+  production_orcamento_sinapi_help: [
+    /\borcamento\b/,
+    /\borçamento\b/,
+    /\bsinapi\b/,
+    /\bcomposicao de custo\b/,
+    /\bcomposição de custo\b/,
+    /\bbdi\b/,
+    /\bencargo\b/,
+    /\bplanilha (de )?custo\b/,
+    /\bplanilha orcamentaria\b/,
+    /\bplanilha orçamentária\b/,
+    /\bcusto (de )?obra\b/,
+    /\bpreco unitario\b/,
+    /\bpreço unitário\b/,
+    /\bcurva s\b/,
+    /\bdesembolso\b/,
+    /\bunitario\b/,
+    /\bunitário\b/,
+    /\blicitacao\b/,
+    /\blicitação\b/,
+  ],
+  production_proposta_contrato_help: [
+    /\bproposta (comercial|tecnica|técnica)?\b/,
+    /\bcontrato\b/,
+    /\baditivo\b/,
+    /\bmemorial descritivo\b/,
+    /\bmemorial\b/,
+    /\bescopo\b/,
+    /\bexclusoes\b/,
+    /\bexclusões\b/,
+    /\bcondicoes (de )?pagamento\b/,
+    /\bcondições (de )?pagamento\b/,
+    /\bdocumento tecnico\b/,
+    /\bdocumento técnico\b/,
+    /\bespecificacao tecnica\b/,
+    /\bespecificação técnica\b/,
+    /\breport executivo\b/,
+    /\brelatorio executivo\b/,
+    /\brelatório executivo\b/,
+  ],
+  production_obra_campo_help: [
+    /\bdiario de obra\b/,
+    /\bdiário de obra\b/,
+    /\bchecklist de obra\b/,
+    /\bchecklist de campo\b/,
+    /\brfi\b/,
+    /\bnao conformidade\b/,
+    /\bnão conformidade\b/,
+    /\bacompanhamento de obra\b/,
+    /\bvisita de obra\b/,
+    /\brelatorio de obra\b/,
+    /\brelatório de obra\b/,
+    /\bplanejamento semanal\b/,
+    /\blook.?ahead\b/,
+    /\bcontrole de qualidade\b/,
+    /\brecebimento de material\b/,
+    /\bfiscalizacao\b/,
+    /\bfiscalização\b/,
+    /\bgestao de obra\b/,
+    /\bgestão de obra\b/,
+    /\bmedicao de obra\b/,
+    /\bmedição de obra\b/,
+  ],
+  production_cronograma_help: [
+    /\bcronograma\b/,
+    /\bplanejamento (de obra|de projeto|de servico|de serviço)?\b/,
+    /\bprazo\b/,
+    /\betapa\b/,
+    /\bmilestone\b/,
+    /\bms project\b/,
+    /\bgantt\b/,
+    /\bsequencia de servico\b/,
+    /\bsequência de serviço\b/,
+    /\bsequenciamento\b/,
+    /\bfases da obra\b/,
+    /\bfase de execucao\b/,
+    /\bfase de execução\b/,
+  ],
+  production_archviz_help: [
+    /\brender\b/,
+    /\barchviz\b/,
+    /\bvisualizacao (3d|arquitetonica|arquitetônica)?\b/,
+    /\bvisualização (3d|arquitetonica|arquitetônica)?\b/,
+    /\bprompt (de )?render\b/,
+    /\bprompt (de )?imagem\b/,
+    /\bimagem (conceitual|arquitetonica|arquitetônica|3d)?\b/,
+    /\bstoryboard\b/,
+    /\bbriefing visual\b/,
+    /\bvideo (de )?apresentacao\b/,
+    /\bvídeo (de )?apresentação\b/,
+    /\btour virtual\b/,
+    /\bmoodboard\b/,
+    /\breferencia visual\b/,
+    /\breferência visual\b/,
+    /\bdifusao de imagem\b/,
+    /\bdireção de arte\b/,
+    /\bdireccao de arte\b/,
+  ],
+  production_marketing_vendas_help: [
+    /\bmarketing\b/,
+    /\bvendas\b/,
+    /\bfunil\b/,
+    /\bcrm\b/,
+    /\bprospeccao\b/,
+    /\bprospecção\b/,
+    /\bapresentacao comercial\b/,
+    /\bapresentação comercial\b/,
+    /\bcaptacao de cliente\b/,
+    /\bcaptação de cliente\b/,
+    /\bcampanha\b/,
+    /\bconteudo tecnico\b/,
+    /\bconteúdo técnico\b/,
+    /\binbound\b/,
+    /\boutbound\b/,
+    /\bpitch\b/,
+    /\bbranding\b/,
+    /\bproposta (de )?valor\b/,
+    /\bproposta de valor\b/,
+    /\bfidelizacao\b/,
+    /\bfidelização\b/,
   ],
 }
 
@@ -369,6 +514,30 @@ export function classifyProductionConversationIntent(message = '') {
     return 'production_supabase'
   }
 
+  if (includesAny(text, INTENT_PATTERNS.production_orcamento_sinapi_help)) {
+    return 'production_orcamento_sinapi_help'
+  }
+
+  if (includesAny(text, INTENT_PATTERNS.production_proposta_contrato_help)) {
+    return 'production_proposta_contrato_help'
+  }
+
+  if (includesAny(text, INTENT_PATTERNS.production_obra_campo_help)) {
+    return 'production_obra_campo_help'
+  }
+
+  if (includesAny(text, INTENT_PATTERNS.production_cronograma_help)) {
+    return 'production_cronograma_help'
+  }
+
+  if (includesAny(text, INTENT_PATTERNS.production_archviz_help)) {
+    return 'production_archviz_help'
+  }
+
+  if (includesAny(text, INTENT_PATTERNS.production_marketing_vendas_help)) {
+    return 'production_marketing_vendas_help'
+  }
+
   if (includesAny(text, INTENT_PATTERNS.production_language_preference)) {
     return 'production_language_preference'
   }
@@ -383,6 +552,11 @@ export function classifyProductionConversationIntent(message = '') {
 
   if (includesAny(text, INTENT_PATTERNS.production_next_step)) {
     return 'production_next_step'
+  }
+
+  // Detect English input when no Portuguese signal present
+  if (!hasPortugueseSignal(text) && hasEnglishSignal(text)) {
+    return 'production_user_speaks_english'
   }
 
   return hasPortugueseSignal(text) ? 'production_general_portuguese' : 'production_general'
@@ -548,6 +722,182 @@ function buildCapabilityRepairReply(messages = [], userMessage = '') {
   ].join('\n')
 }
 
+function buildEnglishDetectionReply(displayName = '') {
+  return [
+    `Olá${displayName ? `, ${displayName}` : ''}. Percebi que você escreveu em inglês.`,
+    'Respondo sempre em português. Pode me escrever em português à vontade.',
+    'Se preferir continuar em inglês, pode fazer isso — mas minhas respostas serão sempre em português.',
+    'Me diga o que você quer resolver e eu sigo por aqui.',
+  ].join('\n')
+}
+
+function buildOrcamentoSinapiReply() {
+  return [
+    'Em orçamento e SINAPI, posso te ajudar de forma prática:',
+    '',
+    'Composição e unitários',
+    '- Montar planilha de composições com base no SINAPI ou tabela própria.',
+    '- Calcular BDI, encargos sociais, desoneração e lucro por tipo de obra.',
+    '- Revisar inconsistências em preços unitários e comparar com referências de mercado.',
+    '',
+    'Quantitativos e medição',
+    '- Organizar quantitativos por serviço, etapa e contrato.',
+    '- Estruturar critérios de medição para cada item do orçamento.',
+    '- Preparar memória de cálculo e planilha de medição de obra.',
+    '',
+    'Cronograma físico-financeiro',
+    '- Montar cronograma com desembolso mensal e curva S.',
+    '- Calcular fluxo de caixa do projeto e projeção de pagamentos.',
+    '- Adaptar orçamento a diferentes cenários de prazo e ritmo de obra.',
+    '',
+    'Análise e licitação',
+    '- Revisar planilha de licitação, identificar riscos de preço.',
+    '- Comparar proposta recebida com referências SINAPI e mercado.',
+    '- Preparar argumentação técnica para negociação ou impugnação.',
+    '',
+    'Me mande a planilha, escopo ou dúvida específica e eu sigo com você.',
+  ].join('\n')
+}
+
+function buildPropostaContratoReply() {
+  return [
+    'Em propostas, contratos e documentos técnicos, posso ajudar com:',
+    '',
+    'Proposta comercial',
+    '- Estruturar proposta com apresentação, escopo, metodologia, prazo, valor e condições.',
+    '- Definir exclusões, premissas e itens fora do escopo para proteger contratualmente.',
+    '- Adaptar linguagem e formato para cada tipo de cliente (construtora, incorporadora, condomínio, indústria).',
+    '',
+    'Contrato e aditivo',
+    '- Redigir cláusulas de escopo, prazo, pagamento, garantia, reajuste e rescisão.',
+    '- Preparar aditivo de valor, prazo ou escopo com justificativa técnica.',
+    '- Revisar contrato recebido e identificar pontos de risco ou omissão.',
+    '',
+    'Memorial descritivo e especificação',
+    '- Montar memorial por disciplina: arquitetura, estrutura, instalações, acabamento.',
+    '- Escrever especificações técnicas de materiais, serviços e sistemas.',
+    '- Preparar caderno de encargos e diretrizes de execução.',
+    '',
+    'Documentação operacional',
+    '- Relatórios executivos, atas de reunião, registros de decisão.',
+    '- Documentação para aprovação em CREA, prefeitura, INSS, CEF.',
+    '- RRT, ART descritiva, laudo técnico e parecer de engenharia.',
+    '',
+    'Me mande o contexto do projeto ou contrato e eu preparo o documento com você.',
+  ].join('\n')
+}
+
+function buildObraCampoReply() {
+  return [
+    'Em gestão de obra e campo, posso estruturar:',
+    '',
+    'Diário de obra e relatórios',
+    '- Modelo de diário de obra com atividades, efetivo, equipamentos, ocorrências e clima.',
+    '- Relatório semanal e quinzenal de progresso físico com fotos e pendências.',
+    '- Relatório de visita técnica e registro de decisões de campo.',
+    '',
+    'Checklists e controle de qualidade',
+    '- Checklist de recebimento de materiais, inspeção de serviço e entrega de etapa.',
+    '- Protocolo de controle de qualidade por disciplina (estrutura, alvenaria, instalações, acabamento).',
+    '- Registro de não conformidades, ações corretivas e prazo de resolução.',
+    '',
+    'RFI e pendências',
+    '- Modelo de RFI (Solicitação de Informação) com campo, responsável, prazo e resposta.',
+    '- Lista de pendências por frente de obra com prioridade e status.',
+    '- Pauta de reunião de obra e ata com ações e prazos.',
+    '',
+    'Planejamento semanal e look-ahead',
+    '- Look-ahead de 3 a 6 semanas por frente de obra.',
+    '- Planejamento de compras, logística e mobilização de recursos.',
+    '- Controle de avanço físico real x planejado.',
+    '',
+    'Me diga a fase de obra, tipo de projeto e o que quer organizar — eu monto o modelo.',
+  ].join('\n')
+}
+
+function buildCronogramaReply() {
+  return [
+    'Em cronograma e planejamento de obra, posso ajudar com:',
+    '',
+    'Estrutura do cronograma',
+    '- Montar cronograma por etapas, serviços e frentes de obra.',
+    '- Definir sequência lógica de serviços e dependências.',
+    '- Adaptar o cronograma a múltiplas frentes simultâneas ou por blocos.',
+    '',
+    'Prazos e marcos',
+    '- Identificar marcos críticos (fundação, estrutura, vedações, instalações, acabamento, entrega).',
+    '- Calcular folgas e caminho crítico.',
+    '- Preparar cronograma contratual com milestones e penalidades.',
+    '',
+    'Look-ahead e planejamento de curto prazo',
+    '- Look-ahead de 3 a 6 semanas por frente.',
+    '- Planejamento semanal com metas de avanço físico.',
+    '- Ajuste de cronograma frente a atrasos, chuvas e imprevistos.',
+    '',
+    'Integração com financeiro',
+    '- Cronograma físico-financeiro com desembolso mensal.',
+    '- Curva S de avanço físico e financeiro.',
+    '- Relatório de desvio entre planejado e realizado.',
+    '',
+    'Me diga o tipo de obra, prazo total e as principais frentes — eu estruturo o cronograma com você.',
+  ].join('\n')
+}
+
+function buildArchvizReply() {
+  return [
+    'Em ArchViz, imagem e vídeo, posso te ajudar com:',
+    '',
+    'Prompts de render',
+    '- Criar prompts detalhados para renders fotorrealistas (Midjourney, DALL-E, Stable Diffusion, Vray, Enscape).',
+    '- Definir luz, horário do dia, clima, materiais, composição de câmera e pós-produção.',
+    '- Adaptar prompt para perspectiva externa, interna, aérea ou detalhe arquitetônico.',
+    '',
+    'Briefing visual e moodboard',
+    '- Redigir briefing visual completo para o renderista ou equipe de imagem.',
+    '- Selecionar referências por estilo, paleta, atmosfera e linha arquitetônica.',
+    '- Montar moodboard textual descritivo para apresentação ao cliente.',
+    '',
+    'Vídeo e apresentação',
+    '- Roteiro de vídeo de apresentação de projeto (tour virtual, fly-through, apresentação comercial).',
+    '- Storyboard de cenas, trilha sonora, voz e texto.',
+    '- Script narrado para vídeo de lançamento, apresentação de incorporação ou entrega.',
+    '',
+    'Conceito e direção de arte',
+    '- Conceito visual do projeto alinhado ao público-alvo.',
+    '- Paleta de cores, tipografia e linguagem visual para apresentação.',
+    '- Direção de arte para materiais impressos e digitais do empreendimento.',
+    '',
+    'Me mande as plantas, o estilo e o público-alvo — eu preparo o briefing ou prompt com você.',
+  ].join('\n')
+}
+
+function buildMarketingVendasReply() {
+  return [
+    'Em marketing, vendas e receita, posso ajudar com:',
+    '',
+    'Apresentação comercial',
+    '- Estruturar apresentação de empresa: quem somos, o que entregamos, diferenciais, cases e números.',
+    '- Adaptar apresentação para cada tipo de cliente (incorporadora, construtora, indústria, condomínio).',
+    '- Montar deck de vendas com proposta de valor clara e call to action.',
+    '',
+    'Funil e prospecção',
+    '- Mapear etapas do funil de vendas de serviços de engenharia.',
+    '- Criar cadência de prospecção: mensagem inicial, follow-up, proposta e fechamento.',
+    '- Elaborar scripts de abordagem para LinkedIn, email, WhatsApp e reunião.',
+    '',
+    'Conteúdo técnico',
+    '- Artigos e posts sobre BIM, eficiência construtiva, gestão de obra, inovação.',
+    '- Conteúdo educativo que posiciona a empresa como referência técnica.',
+    '- Descrições técnicas de serviços para site, redes sociais e catálogo.',
+    '',
+    'CRM e acompanhamento',
+    '- Estruturar processo de CRM simples: estágio, follow-up, proposta, negociação, fechamento.',
+    '- Modelo de pipeline e indicadores de vendas para serviços de engenharia.',
+    '',
+    'Me diga o tipo de cliente que quer atingir e o serviço que quer vender — eu preparo o material.',
+  ].join('\n')
+}
+
 function buildPlatformPositionReply(productionStatus = {}) {
   const connectorStatus = productionStatus.connectorStatus || {}
   const github = connectorStatus.github || {}
@@ -674,6 +1024,13 @@ function sectionTitleForIntent(intent, index) {
     production_capability_listing: 'Capacidades',
     production_capability_repair: 'Capacidades (completo)',
     production_capability_continuation: 'Mais capacidades',
+    production_orcamento_sinapi_help: 'Orçamento/SINAPI',
+    production_proposta_contrato_help: 'Proposta/Contrato',
+    production_obra_campo_help: 'Obra/Campo',
+    production_cronograma_help: 'Cronograma',
+    production_archviz_help: 'ArchViz/Imagem',
+    production_marketing_vendas_help: 'Marketing/Vendas',
+    production_user_speaks_english: 'Idioma',
     production_platform_position: 'Plataforma',
     production_next_step: 'Próximo passo',
     production_execute_recommended: 'Execução',
@@ -697,6 +1054,13 @@ function buildReplyForIntent(intent, {
   if (intent === 'production_capability_listing') return buildCapabilityListingReply()
   if (intent === 'production_capability_repair') return buildCapabilityRepairReply(messages, userMessage)
   if (intent === 'production_capability_continuation') return buildCapabilityContinuationReply(messages)
+  if (intent === 'production_orcamento_sinapi_help') return buildOrcamentoSinapiReply()
+  if (intent === 'production_proposta_contrato_help') return buildPropostaContratoReply()
+  if (intent === 'production_obra_campo_help') return buildObraCampoReply()
+  if (intent === 'production_cronograma_help') return buildCronogramaReply()
+  if (intent === 'production_archviz_help') return buildArchvizReply()
+  if (intent === 'production_marketing_vendas_help') return buildMarketingVendasReply()
+  if (intent === 'production_user_speaks_english') return buildEnglishDetectionReply(displayName)
   if (intent === 'production_display_name_preference') return `Entendido, ${displayName}. Vou te chamar assim nesta sessão.`
   if (intent === 'production_platform_position') return buildPlatformPositionReply(productionStatus)
   if (intent === 'production_github_connector_status') return buildConnectorsStatusReply(productionStatus.connectorStatus, 'github')
