@@ -355,6 +355,76 @@ function isCheckpointContinuationIntent(text: string) {
   return /\b(continuar checkpoint)\b/i.test(text)
 }
 
+// H15 — lightweight markdown renderer for chat bubbles
+function renderMessageText(text: string): React.ReactNode {
+  const imageLineRe = /^!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)\s*$/
+  const inlineImageRe = /!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g
+  const boldRe = /\*\*([^*]+)\*\*/g
+  const codeBlockRe = /^```[\s\S]*?```$/m
+  const inlineCodeRe = /`([^`]+)`/g
+
+  const lines = text.split('\n')
+  const nodes: React.ReactNode[] = []
+  let i = 0
+
+  while (i < lines.length) {
+    const line = lines[i]
+
+    // Fenced code block
+    if (line.startsWith('```')) {
+      const end = lines.findIndex((l, j) => j > i && l.startsWith('```'))
+      const codeLines = end > i ? lines.slice(i + 1, end) : lines.slice(i + 1)
+      nodes.push(
+        <pre key={i} style={{ background: '#1e293b', color: '#e2e8f0', borderRadius: '6px', padding: '10px 12px', fontSize: '12px', overflowX: 'auto', whiteSpace: 'pre', margin: '6px 0' }}>
+          <code>{codeLines.join('\n')}</code>
+        </pre>
+      )
+      i = end > i ? end + 1 : lines.length
+      continue
+    }
+
+    // Image-only line → render as <img>
+    const imgMatch = imageLineRe.exec(line)
+    if (imgMatch) {
+      nodes.push(
+        <img key={i} src={imgMatch[2]} alt={imgMatch[1] || 'Imagem gerada'} style={{ maxWidth: '100%', borderRadius: '8px', marginTop: '8px', display: 'block' }} />
+      )
+      i++
+      continue
+    }
+
+    // Normal line — parse bold + inline code + inline images
+    const renderInline = (s: string): React.ReactNode[] => {
+      const parts: React.ReactNode[] = []
+      let last = 0
+      const combined = /(\*\*([^*]+)\*\*|`([^`]+)`|!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\))/g
+      let m: RegExpExecArray | null
+      while ((m = combined.exec(s)) !== null) {
+        if (m.index > last) parts.push(s.slice(last, m.index))
+        if (m[0].startsWith('**')) parts.push(<strong key={m.index}>{m[2]}</strong>)
+        else if (m[0].startsWith('`')) parts.push(<code key={m.index} style={{ background: '#f1f5f9', borderRadius: '3px', padding: '1px 4px', fontSize: '11px', fontFamily: 'monospace' }}>{m[3]}</code>)
+        else if (m[0].startsWith('!')) parts.push(<img key={m.index} src={m[5]} alt={m[4] || 'img'} style={{ maxWidth: '100%', borderRadius: '8px', display: 'block', marginTop: '6px' }} />)
+        last = m.index + m[0].length
+      }
+      if (last < s.length) parts.push(s.slice(last))
+      return parts
+    }
+
+    if (line === '') {
+      nodes.push(<br key={i} />)
+    } else if (line.startsWith('- ') || line.startsWith('• ')) {
+      nodes.push(<div key={i} style={{ paddingLeft: '12px', lineHeight: '1.6' }}>{'• '}{renderInline(line.slice(2))}</div>)
+    } else if (/^\d+\.\s/.test(line)) {
+      nodes.push(<div key={i} style={{ paddingLeft: '12px', lineHeight: '1.6' }}>{renderInline(line)}</div>)
+    } else {
+      nodes.push(<div key={i} style={{ lineHeight: '1.6' }}>{renderInline(line)}</div>)
+    }
+    i++
+  }
+
+  return <>{nodes}</>
+}
+
 function isPlatformEngineeringIntent(text: string) {
   return /\b(status da plataforma|platform engineering|abrir pr|supabase status|status supabase|deploy status|deployment status|pull request|branch plan|plano de branch)\b/i.test(text)
 }
@@ -2162,7 +2232,7 @@ function App() {
               <article key={message.id} className={`message ${message.role}`}>
                 <div className="avatar">{message.role === 'assistant' ? <Bot size={18} /> : <Building2 size={18} />}</div>
                 <div className={`bubble ${message.text.length > 900 || message.text.includes('\n') ? 'long-text' : ''}`}>
-                  <p>{message.text}</p>
+                  <div className="message-body">{renderMessageText(message.text)}</div>
                   {message.attachment && (
                     <div className="attachment-chip">
                       <Paperclip size={15} />

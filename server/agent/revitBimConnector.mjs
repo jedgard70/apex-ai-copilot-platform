@@ -23,7 +23,7 @@ export function classifyRevitBimQuery(message = '') {
   const text = String(message || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
   if (/\bfamili[ao]s?\b.*\brevit\b|\brevit\b.*\bfamili[ao]s?\b/.test(text)) return 'revit_families'
-  if (/\bparametro\b.*\bcompartilhado\b|\bshared\s+param/.test(text)) return 'revit_shared_params'
+  if (/\bparametros?\b.*\bcompartilhados?\b|\bcompartilhados?\b.*\bparametros?\b|\bshared\s+param/.test(text)) return 'revit_shared_params'
   if (/\bquantitativo\b|\bschedule\b|\bquantidade\b.*\brevit\b/.test(text)) return 'revit_schedules'
   if (/\bifc\b.*\bexport|\bexport.*\bifc\b/.test(text)) return 'revit_ifc_export'
   if (/\bdynamo\b/.test(text)) return 'revit_dynamo'

@@ -20,7 +20,8 @@ function getOpenAIKey() {
 export function classifyImageGenRequest(message = '') {
   const text = String(message || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
-  const isRequest = /\b(gera|cria|faz|faca|faz|render|renderiza|produz|gere|crie)\b.*\b(imagem|render|visual|foto|perspectiva|visualiz)\b/.test(text)
+  const isRequest = /\b(gera|cria|faz|faca|faz|render|renderiza|produz|gere|crie)\b.*\b(imagem|render|visual|foto|perspectiva|visualiz|holograma)\b/.test(text)
+    || /\b(gera|cria|faz|faca|faz|render|renderiza|produz|gere|crie)\b/.test(text) && /\b(fachada|interior|planta|masterplan|moodboard|holograma|topografia)\b/.test(text)
     || /\b(imagem|render|visualiz)\b.*\b(gera|cria|faz|do|da|de|para)\b/.test(text)
     || /\bgerar\s+(uma\s+)?imagem\b/.test(text)
     || /\bimage\s+gen(eration)?\b/.test(text)
@@ -32,7 +33,7 @@ export function classifyImageGenRequest(message = '') {
   if (/\bplanta\b|\bfloor\s*plan\b/.test(text)) return 'floor_plan_visual'
   if (/\baereo\b|\baérea\b|\bdrone\b|\bmasterplan\b/.test(text)) return 'aerial_masterplan'
   if (/\bconceito\b|\bmoodboard\b|\binspira\b/.test(text)) return 'concept_moodboard'
-  if (/\bholograma\b|\btopografia\b|\btopograf\b/.test(text)) return 'topo_hologram'
+  if (/\bholograma\b|\btopografia\b|\btopografic\b/.test(text)) return 'topo_hologram'
   return 'architectural_render'
 }
 
