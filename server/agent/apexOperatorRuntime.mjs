@@ -17,6 +17,10 @@ import { buildDecision, summarizeEvidence } from './verifier.mjs'
 import { classifyRevitBimQuery, getRevitBimHelp, buildRevitBimReply } from './revitBimConnector.mjs'
 import { classifyImageGenRequest, buildImageGenPromptReply, generateImage, buildImageResultReply, buildImagePrompt } from './imageGenerationConnector.mjs'
 import { buildDomainKnowledgeReply, DOMAIN_KNOWLEDGE_INTENTS } from './domainKnowledgeConnector.mjs'
+import { runSelfUpgradePlanner, buildSelfUpgradePlannerReply, classifySelfUpgradeIntent } from './selfUpgradePlanner.mjs'
+import { classifyDelegationTask, detectPromptTemplate, buildDelegationReply } from './delegationGenerator.mjs'
+import { classifyValidationIntent, buildValidationPlanReply, runValidationSuite, buildValidationResultReply } from './codeChangeValidator.mjs'
+import { runUpgradeWatcher, buildUpgradeWatcherReply, classifyUpgradeWatcherIntent } from './upgradeWatcher.mjs'
 
 export { isOperatorIntent }
 
@@ -211,8 +215,11 @@ function buildProductionSafeReply({ intent, policyDecision, productionStatus }) 
   }
 
   if (intent === 'supabase_migration_request') {
+    const hasSupabaseCreds = Boolean(process.env.SUPABASE_ACCESS_TOKEN && process.env.SUPABASE_PROJECT_REF)
     return [
-      'YELLOW - capacidade supabase_migration: preparada, mas sem credencial/conector de migration neste runtime web.',
+      hasSupabaseCreds
+        ? 'YELLOW - capacidade supabase_migration: credenciais configuradas. Envie o SQL da migration para revisao antes de aplicar.'
+        : 'YELLOW - capacidade supabase_migration: preparada, mas sem credencial/conector de migration neste runtime web.',
       'Status: requer confirmacao natural, SQL revisado, plano de rollback e credencial Supabase operacional.',
       'Nao apliquei migration. Nao vou fingir alteracao no banco.',
       statusSummary,
@@ -476,6 +483,55 @@ export async function runApexOperatorProductionSafe({
         memoryPatch: null,
         secretsExposed: false,
       }
+    }
+  }
+
+  // H18 — Self-Upgrade Planner
+  if (classifySelfUpgradeIntent(userMessage)) {
+    const result = await runSelfUpgradePlanner(userMessage)
+    const finalReply = buildSelfUpgradePlannerReply(result)
+    return {
+      ok: true, status: 'GREEN', intent: 'h18_self_upgrade_planner',
+      operatorIntent: intent, memory,
+      evidence: { summary: { connector: 'self_upgrade_planner', live: result.connectorConfigured } },
+      decision: finalReply, requiresApproval: false, finalReply, memoryPatch: null, secretsExposed: false,
+    }
+  }
+
+  // H19 — Codex/Claude Delegation Generator
+  const delegationCheck = classifyDelegationTask(userMessage)
+  if (delegationCheck.isDelegation) {
+    const task = delegationCheck.extractedTask || userMessage
+    const templateType = detectPromptTemplate(task)
+    const finalReply = buildDelegationReply(task, templateType)
+    return {
+      ok: true, status: 'GREEN', intent: 'h19_delegation_generator',
+      operatorIntent: intent, memory,
+      evidence: { summary: { connector: 'delegation_generator', templateType } },
+      decision: finalReply, requiresApproval: false, finalReply, memoryPatch: null, secretsExposed: false,
+    }
+  }
+
+  // H21 — Validation + Rollback Engine
+  if (classifyValidationIntent(userMessage)) {
+    const finalReply = buildValidationPlanReply(userMessage)
+    return {
+      ok: true, status: 'GREEN', intent: 'h21_validation_engine',
+      operatorIntent: intent, memory,
+      evidence: { summary: { connector: 'code_change_validator' } },
+      decision: finalReply, requiresApproval: false, finalReply, memoryPatch: null, secretsExposed: false,
+    }
+  }
+
+  // H22 — Autonomous Upgrade Watcher (on-demand)
+  if (classifyUpgradeWatcherIntent(userMessage)) {
+    const report = await runUpgradeWatcher()
+    const finalReply = buildUpgradeWatcherReply(report)
+    return {
+      ok: true, status: 'GREEN', intent: 'h22_upgrade_watcher',
+      operatorIntent: intent, memory,
+      evidence: { summary: { connector: 'upgrade_watcher', packages: report.packages?.length } },
+      decision: finalReply, requiresApproval: false, finalReply, memoryPatch: null, secretsExposed: false,
     }
   }
 

@@ -3,6 +3,8 @@ export type IntakeFile = {
   previewUrl?: string
   url?: string
   dataUrl?: string
+  extractedText?: string
+  pageCount?: number
   dimensions?: {
     width: number
     height: number

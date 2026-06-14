@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
+import { IfcViewer } from './IfcViewer'
 import {
   AlertTriangle,
   Aperture,
@@ -664,17 +665,23 @@ export function Bim3DPanel({ source, externalCommand, onSendTourToDirectCut, onS
       </div>
 
       <div className="bim3d-stage">
-        <div className="bim3d-viewer-shell">
-          <Box size={42} />
-          <strong>{copy.area}</strong>
-          <span>{formatLabel(ext)} · {source.file.name}</span>
-          <p>{copy.message}</p>
-          <div className="bim3d-stage-status">
-            <span>{providerStatus(ext)}</span>
-            <span>{supportStatus(ext)}</span>
-            <span>{copy.action}</span>
+        {ext === 'ifc' ? (
+          <Suspense fallback={<div className="bim3d-viewer-shell"><Box size={42} /><span>Carregando IFC…</span></div>}>
+            <IfcViewer file={source.file} />
+          </Suspense>
+        ) : (
+          <div className="bim3d-viewer-shell">
+            <Box size={42} />
+            <strong>{copy.area}</strong>
+            <span>{formatLabel(ext)} · {source.file.name}</span>
+            <p>{copy.message}</p>
+            <div className="bim3d-stage-status">
+              <span>{providerStatus(ext)}</span>
+              <span>{supportStatus(ext)}</span>
+              <span>{copy.action}</span>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="bim3d-error">
           <AlertTriangle size={18} />

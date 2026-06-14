@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useRef, useMemo, useState } from 'react'
+import { exportBudgetXlsx, parseSinapiFile, applySinapiPrices } from '../lib/budgetXlsx'
 import {
   Calculator,
   CheckCircle2,
@@ -143,6 +144,9 @@ export function BudgetPanel({
   const [pendingClarification, setPendingClarification] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [bdi, setBdi] = useState(0.25)
+  const [sinapiMessage, setSinapiMessage] = useState('')
+  const sinapiInputRef = useRef<HTMLInputElement>(null)
 
   const currentItems = plan?.estimateItems || []
   const total = useMemo(() => planTotal(currentItems), [currentItems])
@@ -227,6 +231,24 @@ export function BudgetPanel({
 
   function markConfirmed(index: number) {
     updateItem(index, { confidence: 'CONFIRMED', source: 'user input', sourceConfidence: 'USER_PROVIDED' })
+  }
+
+  async function handleSinapiUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    if (!file) return
+    setSinapiMessage('Processando tabela SINAPI…')
+    try {
+      const rows = await parseSinapiFile(file)
+      if (!rows.length) { setSinapiMessage('Nenhum item encontrado. Verifique o formato do arquivo.'); return }
+      if (!plan) { setSinapiMessage(`✅ ${rows.length} itens SINAPI importados. Gere um orçamento primeiro para aplicar os preços.`); return }
+      const { items: updated, matched } = applySinapiPrices(plan.estimateItems, rows)
+      setPlan({ ...plan, estimateItems: updated, assumptions: { ...plan.assumptions, sinapiStatus: 'user-uploaded-table', pricingSource: 'Uploaded SINAPI table' } })
+      setSinapiMessage(`✅ ${rows.length} itens SINAPI importados · ${matched} preços atualizados nos itens do orçamento.`)
+    } catch (err) {
+      setSinapiMessage(`Erro: ${err instanceof Error ? err.message : 'falha ao processar arquivo'}`)
+    } finally {
+      if (sinapiInputRef.current) sinapiInputRef.current.value = ''
+    }
   }
 
   function exportJson() {
@@ -533,9 +555,34 @@ export function BudgetPanel({
             <pre className="budget-proposal">{plan ? proposalFromPlan(plan) : 'Generate an estimate to create proposal text.'}</pre>
           </div>
 
+          <div className="budget-sinapi-bar">
+            <label className="budget-bdi-label">
+              BDI
+              <input
+                type="number" min={0} max={1} step={0.01}
+                value={bdi}
+                onChange={e => setBdi(Number(e.target.value))}
+                style={{ width: 64, marginLeft: 6 }}
+              />
+              <span style={{ marginLeft: 4, color: '#666' }}>{Math.round(bdi * 100)}%</span>
+            </label>
+            <input
+              ref={sinapiInputRef}
+              type="file"
+              accept=".csv,.xlsx,.xls"
+              style={{ display: 'none' }}
+              onChange={handleSinapiUpload}
+            />
+            <button type="button" onClick={() => sinapiInputRef.current?.click()}>
+              <Calculator size={15} /> Importar tabela SINAPI (CSV/XLSX)
+            </button>
+            {sinapiMessage && <small className="budget-sinapi-msg">{sinapiMessage}</small>}
+          </div>
+
           <div className="budget-actions">
             <button type="button" onClick={exportJson}><FileJson size={15} /> Export estimate JSON</button>
             <button type="button" disabled={!plan} onClick={exportProposal}><Download size={15} /> Export proposal text</button>
+            <button type="button" disabled={!plan} onClick={() => plan && exportBudgetXlsx(plan, bdi)}><Download size={15} /> Download XLSX (com BDI)</button>
             <button type="button" disabled={!plan} onClick={() => plan && copyText(planAsTable(plan))}><Clipboard size={15} /> Copy table</button>
             <button type="button" disabled={!plan} onClick={() => plan && copyText(proposalFromPlan(plan))}><FileText size={15} /> Copy proposal</button>
             <button type="button" disabled={!plan} onClick={() => plan && copyText(`Contract scope draft:\n${proposalFromPlan(plan)}`)}><Send size={15} /> Send scope to Contracts</button>

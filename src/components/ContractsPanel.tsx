@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { exportContractDocx } from '../lib/contractsDocxExport'
 import {
   AlertTriangle,
   CheckCircle2,
@@ -500,6 +501,7 @@ export function ContractsPanel({ source, goal, conversationContext, onSendToBudg
             <button type="button" disabled={!plan} onClick={() => plan && copyText(plan.lawyerReviewSummary)}><FileText size={15} /> Copy lawyer review summary</button>
             <button type="button" disabled={!plan} onClick={() => plan && onSendToBudget?.(planText(plan))}><Send size={15} /> Send scope to Budget</button>
             <button type="button" disabled={!plan} onClick={() => plan && copyText(planText(plan))}><Download size={15} /> Copy full report</button>
+            <button type="button" disabled={!plan} onClick={() => plan && exportContractDocx(plan, context)}><Download size={15} /> Download DOCX</button>
             <button type="button" disabled={!plan} onClick={() => plan && onSaveToProject?.(plan)}><Save size={15} /> Save to Project Workspace</button>
           </div>
         </div>

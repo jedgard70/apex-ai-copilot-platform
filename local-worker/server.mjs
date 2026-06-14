@@ -431,6 +431,57 @@ function buildActionMap() {
       requiresConfirmation: true,
       build: () => [{ ...requireTool('npm'), args: ['install'] }],
     },
+    // H20 — Safe Code Change Executor: branch creation, file ops, validation
+    'project.git_checkout_b': {
+      label: 'git checkout -b <branch>',
+      risk: RISK_CLASS.WRITE,
+      requiresConfirmation: true,
+      build: (params = {}) => {
+        const branch = String(params.branch || '').trim().replace(/[^a-zA-Z0-9_./-]/g, '')
+        if (!branch) return [{ ok: false, tag: 'git', reason: 'branch name required (params.branch)' }]
+        return [{ ...requireTool('git'), args: ['checkout', '-b', branch] }]
+      },
+    },
+    'project.git_checkout': {
+      label: 'git checkout <branch>',
+      risk: RISK_CLASS.WRITE,
+      requiresConfirmation: true,
+      build: (params = {}) => {
+        const branch = String(params.branch || '').trim().replace(/[^a-zA-Z0-9_./-]/g, '')
+        if (!branch) return [{ ok: false, tag: 'git', reason: 'branch name required (params.branch)' }]
+        return [{ ...requireTool('git'), args: ['checkout', branch] }]
+      },
+    },
+    'project.tsc_check': {
+      label: 'npx tsc --noEmit (TypeScript check)',
+      risk: RISK_CLASS.VALIDATE,
+      requiresConfirmation: false,
+      build: () => [{ ...requireTool('npm'), args: ['exec', '--', 'tsc', '--noEmit'] }],
+    },
+    'project.lint': {
+      label: 'npm run lint (ESLint)',
+      risk: RISK_CLASS.VALIDATE,
+      requiresConfirmation: false,
+      build: () => [{ ...requireTool('npm'), args: ['run', 'lint', '--if-present'] }],
+    },
+    'npm.build': {
+      label: 'npm run build',
+      risk: RISK_CLASS.VALIDATE,
+      requiresConfirmation: false,
+      build: () => [{ ...requireTool('npm'), args: ['run', 'build'] }],
+    },
+    'project.validate_h7': {
+      label: 'Validação H7+H10 (scripts/validate-cp15x-h7.mjs)',
+      risk: RISK_CLASS.VALIDATE,
+      requiresConfirmation: false,
+      build: () => [{ ...requireTool('node'), args: ['scripts/validate-cp15x-h7.mjs'] }],
+    },
+    'project.validate_final': {
+      label: 'Validação Final CP15X (scripts/validate-cp15x-final.mjs)',
+      risk: RISK_CLASS.VALIDATE,
+      requiresConfirmation: false,
+      build: () => [{ ...requireTool('node'), args: ['scripts/validate-cp15x-final.mjs'] }],
+    },
     // DANGEROUS — requires confirmed:true + rollbackAcknowledged:true
     'project.git_push_force': {
       label: 'git push --force-with-lease origin <branch>',

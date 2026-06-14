@@ -1036,6 +1036,65 @@ textarea {
     #ffffff;
 }
 
+.ifc-viewer-canvas-wrap {
+  position: relative;
+  height: 480px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #dfe7f2;
+  background: #0a0f1e;
+}
+
+.ifc-viewer-canvas-wrap canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.ifc-viewer-badge {
+  position: absolute;
+  bottom: 10px;
+  left: 12px;
+  background: rgba(0,0,0,0.55);
+  color: #e8edf8;
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  pointer-events: none;
+}
+
+.ifc-viewer-overlay {
+  height: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-radius: 16px;
+  border: 1px solid #dfe7f2;
+  color: #07183f;
+  font-size: 13px;
+}
+
+.ifc-viewer-error {
+  color: #b91c1c;
+  border-color: #fca5a5;
+  background: #fff5f5;
+}
+
+.ifc-viewer-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #dfe7f2;
+  border-top-color: #07183f;
+  border-radius: 50%;
+  animation: ifc-spin 0.8s linear infinite;
+}
+
+@keyframes ifc-spin {
+  to { transform: rotate(360deg); }
+}
+
 .bim3d-viewer-shell strong,
 .bim3d-viewer-shell span,
 .bim3d-viewer-shell p {
@@ -1958,6 +2017,31 @@ textarea {
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 8px;
+}
+
+.budget-sinapi-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(7, 24, 63, 0.04);
+  border-radius: 10px;
+  margin-bottom: 6px;
+}
+
+.budget-bdi-label {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #07183f;
+}
+
+.budget-sinapi-msg {
+  font-size: 12px;
+  color: #07183f;
+  flex: 1;
 }
 
 .contracts-studio {

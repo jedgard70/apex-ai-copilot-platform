@@ -41,6 +41,7 @@ import { SkillUpdatePanel } from './components/SkillUpdatePanel'
 import { SupplyChainPanel } from './components/SupplyChainPanel'
 import { UserAccountPanel } from './components/UserAccountPanel'
 import { classifyFile, formatSize, IntakeFile, isVisionReady, readFileAsDataUrl, readImageDimensions } from './lib/fileIntake'
+import { extractPdfText } from './lib/pdfExtractor'
 import {
   createProject,
   exportProject,
@@ -1112,7 +1113,9 @@ function App() {
     if ((!clean && !attachment) || loading) return
     const userText = clean || (attachment ? `Uploaded ${attachment.file.name}` : '')
     const modelText = clean || (attachment
-      ? 'User uploaded this file. Analyze it as project context and continue naturally in a short conversational reply. Do not write a report, heading, observations list, or capabilities list.'
+      ? attachment.extractedText
+        ? `O usuário enviou o arquivo PDF "${attachment.file.name}" (${attachment.pageCount ?? '?'} páginas). Conteúdo extraído:\n\n${attachment.extractedText}\n\nResponda de forma direta e conversacional com base no conteúdo acima. Não faça relatório nem lista de tópicos.`
+        : 'User uploaded this file. Analyze it as project context and continue naturally in a short conversational reply. Do not write a report, heading, observations list, or capabilities list.'
       : '')
     const userMessage: Message = { id: id(), role: 'user', text: userText, attachment }
     if (!isSignedIn) {
@@ -1651,12 +1654,25 @@ function App() {
     const kind = classifyFile(file)
     const dataUrl = kind === 'image' ? await readFileAsDataUrl(file) : undefined
     const previewUrl = kind === 'image' || kind === 'pdf' ? URL.createObjectURL(file) : undefined
+
+    let extractedText: string | undefined
+    let pageCount: number | undefined
+    if (kind === 'pdf') {
+      const result = await extractPdfText(file).catch(() => null)
+      if (result) {
+        extractedText = result.text
+        pageCount = result.pageCount
+      }
+    }
+
     const intake: IntakeFile = {
       file,
       kind,
       previewUrl,
       url: previewUrl,
       dataUrl,
+      extractedText,
+      pageCount,
       dimensions: dataUrl ? await readImageDimensions(dataUrl).catch(() => undefined) : undefined,
     }
     setActiveFile(intake)
@@ -2385,7 +2401,11 @@ function App() {
               <div className="composer-file">
                 <Paperclip size={16} />
                 <span>{activeFile.file.name}</span>
-                <small>{activeFile.kind} · {formatSize(activeFile.file.size)}</small>
+                <small>
+                  {activeFile.kind} · {formatSize(activeFile.file.size)}
+                  {activeFile.pageCount ? ` · ${activeFile.pageCount}p extraídas` : ''}
+                  {activeFile.extractedText && !activeFile.pageCount ? ' · texto extraído' : ''}
+                </small>
               </div>
             )}
             <div className="input-row">

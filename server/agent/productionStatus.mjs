@@ -82,6 +82,16 @@ export function collectProductionOperatorStatus() {
       // H16 — Domain knowledge connector
       domainKnowledge: 'supported — orçamento/SINAPI, proposta/contrato, obra/campo, cronograma, marketing/vendas',
       domainSubclassification: 'supported — SINAPI/BDI/EVM/CPM/RFI/NCR/look-ahead/funil e mais 40+ tópicos específicos',
+      // H18 — Self-Upgrade Planner
+      selfUpgradePlanner: 'supported — tech radar curado; análise ao vivo com ANTHROPIC_API_KEY',
+      // H19 — Codex/Claude Delegation Generator
+      delegationGenerator: 'supported — gera prompt estruturado para Claude Code/Codex com contexto do repo e constraints de segurança',
+      // H20 — Safe Code Change Executor
+      safeCodeChangeExecutor: 'supported — Local Worker: git checkout -b, tsc --noEmit, lint, build, validate scripts',
+      // H21 — Validation + Rollback Engine
+      validationRollbackEngine: 'supported — plano de validação + rollback antes de commitar; gates: tsc, lint, build, validate_final',
+      // H22 — Autonomous Upgrade Watcher
+      upgradeWatcher: 'supported — verifica npm versions, modelos Anthropic, Vercel status; Cron Job diário 08:00 UTC',
       // Blocked
       localShell: 'blocked — sem shell livre, sem comando arbitrário',
       commit: 'requires_local_worker_and_confirmation',
