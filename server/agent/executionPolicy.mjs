@@ -166,6 +166,30 @@ const H6_ACTION_PATTERNS = [
   { pattern: /\bgit\s+reset\s+--hard\b/, actionId: 'git.reset_hard' },
 ]
 
+// ─── Param extractor ──────────────────────────────────────────────────────────
+
+export function extractParamsFromMessage(message = '', actionId = '') {
+  const params = {}
+
+  // Commit message: "com mensagem 'X'" or "com mensagem \"X\"" or "-m 'X'"
+  const msgMatch = message.match(/(?:(?:com\s+mensagem|mensagem|message|-m)\s+['"]([^'"]+)['"])|(?:-m\s+([^\s'"-][^\s]*))/i)
+  if (msgMatch) params.message = msgMatch[1] || msgMatch[2]
+
+  // Branch: "para o branch X", "no branch X", "branch X", "--branch X"
+  const branchMatch = message.match(/(?:(?:para\s+o?\s*branch|no\s+branch|para\s+o?\s*branch|--branch|-b)\s+([^\s,'"]+))/i)
+  if (branchMatch) params.branch = branchMatch[1]
+
+  // Remote: "para o remote X", "origin X"
+  const remoteMatch = message.match(/(?:remote\s+([^\s,'"]+)|para\s+o?\s*remote\s+([^\s,'"]+))/i)
+  if (remoteMatch) params.remote = remoteMatch[1] || remoteMatch[2]
+
+  // SQL content for migrations: "com sql: X" or "migration: X"
+  const sqlMatch = message.match(/(?:sql|migration):\s*(.+)/i)
+  if (sqlMatch) params.sql = sqlMatch[1].trim()
+
+  return params
+}
+
 export function classifyH6ActionRequest(message = '') {
   const text = normalize(message)
   const found = []
@@ -364,8 +388,14 @@ export function buildConfirmationReply(actionId, params = {}) {
   const plan = buildConfirmationPlan(actionId, params)
   if (!plan) return `Ação não reconhecida: ${actionId}.`
 
+  const paramSummary = []
+  if (params.message)  paramSummary.push(`mensagem: "${params.message}"`)
+  if (params.branch)   paramSummary.push(`branch: ${params.branch}`)
+  if (params.remote)   paramSummary.push(`remote: ${params.remote}`)
+
   const lines = [
     `Posso executar: **${plan.label}**`,
+    ...(paramSummary.length ? [`Parâmetros: ${paramSummary.join(', ')}`] : []),
     `Risco: ${plan.riskLabel}`,
     '',
     'Plano de execução:',

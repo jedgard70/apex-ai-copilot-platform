@@ -7,6 +7,7 @@ import { buildOperatorMemory } from './memory.mjs'
 import { classifyProductionConversationIntent, decomposeProductionConversationIntents, routeProductionConversation } from './productionConversationRouter.mjs'
 import { collectProductionOperatorStatus, summarizeProductionOperatorStatus } from './productionStatus.mjs'
 import { classifyToolExecutionRequest, routeToolExecution, routeH6ActionRequest } from './toolExecutionRouter.mjs'
+import { extractParamsFromMessage } from './executionPolicy.mjs'
 import {
   hasPendingAction, executeConfirmedAction, buildExecutionEvidenceReply,
   classifyPipelineRequest, buildPipelineConfirmationReply, executePipeline, buildPipelineEvidenceReply,
@@ -362,8 +363,10 @@ export async function runApexOperatorProductionSafe({
   // H6.0 — Risk-tiered action policy: check before H5 tool routing
   const h6Route = routeH6ActionRequest({ userMessage })
   if (h6Route) {
+    const firstActionId = h6Route.requestedActionIds?.[0]
+    const extractedParams = firstActionId ? extractParamsFromMessage(userMessage, firstActionId) : {}
     const pendingAction = h6Route.requestedActionIds?.length === 1
-      ? { actionId: h6Route.requestedActionIds[0], params: {}, planText: h6Route.finalReply }
+      ? { actionId: firstActionId, params: extractedParams, planText: h6Route.finalReply }
       : null
     return {
       ok: h6Route.ok,
