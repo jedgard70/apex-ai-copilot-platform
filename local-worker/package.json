@@ -1,0 +1,15 @@
+{
+  "name": "apex-local-worker",
+  "version": "1.0.0",
+  "description": "Apex AI Copilot — secure local worker for controlled Windows PC execution",
+  "type": "module",
+  "main": "server.mjs",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node --watch server.mjs"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {}
+}

@@ -165,10 +165,96 @@ async function executeReadOnlyTool(toolId) {
       result: connectorSummaryFromStatus(null, toolId),
     }
   }
+  if (toolId === 'local_worker.status') {
+    return executeLocalWorkerHealth()
+  }
   return {
     executed: false,
     executionMode: 'not_supported',
     result: null,
+  }
+}
+
+async function executeLocalWorkerHealth() {
+  const workerUrl = process.env.LOCAL_WORKER_URL
+  const workerToken = process.env.LOCAL_WORKER_TOKEN
+  if (!workerUrl || !workerToken) {
+    return {
+      executed: true,
+      executionMode: 'read_only_env_presence',
+      result: {
+        status: 'unavailable',
+        reachable: false,
+        configured: false,
+        allowedActions: [],
+        nextRequired: 'Configurar LOCAL_WORKER_URL e LOCAL_WORKER_TOKEN no backend.',
+      },
+    }
+  }
+
+  if (!globalThis.fetch) {
+    return {
+      executed: true,
+      executionMode: 'read_only_env_presence',
+      result: {
+        status: 'unavailable',
+        reachable: false,
+        configured: true,
+        allowedActions: [],
+        nextRequired: 'fetch não disponível neste ambiente.',
+      },
+    }
+  }
+
+  try {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 5000)
+    const response = await fetch(`${workerUrl}/health`, {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${workerToken}` },
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timer))
+
+    if (response.ok) {
+      const data = await response.json().catch(() => ({}))
+      return {
+        executed: true,
+        executionMode: 'read_only_connector',
+        result: {
+          status: 'available',
+          reachable: true,
+          configured: true,
+          projectPath: data.projectPath || '',
+          allowedActions: Array.isArray(data.allowedActions) ? data.allowedActions : [],
+          checkpoint: data.checkpoint || 'H5.2A',
+          secretsExposed: false,
+        },
+      }
+    }
+
+    return {
+      executed: true,
+      executionMode: 'read_only_connector',
+      result: {
+        status: 'partial',
+        reachable: true,
+        configured: true,
+        allowedActions: [],
+        nextRequired: `Worker respondeu HTTP ${response.status} — verificar token e configuração.`,
+      },
+    }
+  } catch (err) {
+    return {
+      executed: true,
+      executionMode: 'read_only_connector',
+      result: {
+        status: 'unavailable',
+        reachable: false,
+        configured: true,
+        allowedActions: [],
+        nextRequired: `Worker não acessível em ${workerUrl} — verificar se está rodando.`,
+      },
+    }
   }
 }
 
@@ -267,6 +353,15 @@ function buildToolExecutionReply({ requestTools = [], executions = [] } = {}) {
         lines.push(...buildGithubDetail(exec.result))
       } else if (item.id === 'vercel.status') {
         lines.push(...buildVercelDetail(exec.result))
+      } else if (item.id === 'local_worker.status') {
+        const r = exec.result
+        if (r?.status) lines.push(`   Status: ${redact(r.status)}.`)
+        if (r?.reachable) lines.push('   Worker acessível: sim.')
+        if (r?.projectPath) lines.push(`   Projeto: ${redact(r.projectPath)}.`)
+        if (Array.isArray(r?.allowedActions) && r.allowedActions.length) {
+          lines.push(`   Ações permitidas (${r.allowedActions.length}): ${r.allowedActions.slice(0, 5).join(', ')}${r.allowedActions.length > 5 ? '...' : ''}.`)
+        }
+        if (r?.nextRequired) lines.push(`   Próximo: ${r.nextRequired}`)
       } else {
         if (exec.result?.status) lines.push(`   Status conector: ${redact(exec.result.status)}.`)
         if (exec.result?.projectId) lines.push(`   Projeto: ${redact(exec.result.projectId)}.`)
