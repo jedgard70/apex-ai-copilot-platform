@@ -1,5 +1,5 @@
 /**
- * Apex AI Copilot — Local Worker (H5.2C)
+ * Apex AI Copilot — Local Worker (H5.2D)
  * Secure whitelist-only executor for controlled Windows PC operations.
  * Auto-discovers node/npm/git — no manual PATH config required (best effort).
  * Runs at localhost:8787 (or LOCAL_WORKER_PORT).
@@ -41,6 +41,7 @@ if (!TOKEN) {
 
 // Returns version string or null — NEVER throws.
 // Handles EINVAL/ENOENT from spawn() synchronously on Windows with invalid paths.
+// On Windows, .cmd/.bat files require cmd.exe /c with shell:false.
 function probeVersion(bin, timeoutMs = 4000) {
   // Validate candidate before attempting spawn
   if (!bin || typeof bin !== 'string' || bin.trim() === '' || bin.includes('*')) {
@@ -49,7 +50,15 @@ function probeVersion(bin, timeoutMs = 4000) {
   return new Promise(res => {
     let proc
     try {
-      proc = spawn(bin.trim(), ['--version'], {
+      const b = bin.trim()
+      const isCmdScript = IS_WINDOWS && /\.(cmd|bat)$/i.test(b)
+      const isJsScript = /\.(js|mjs|cjs)$/i.test(b)
+      const spawnArgs = isCmdScript
+        ? { exe: 'cmd.exe', args: ['/c', b, '--version'] }
+        : isJsScript
+          ? { exe: process.execPath, args: [b, '--version'] }
+          : { exe: b, args: ['--version'] }
+      proc = spawn(spawnArgs.exe, spawnArgs.args, {
         shell: false,
         stdio: ['ignore', 'pipe', 'pipe'],
         windowsHide: true,
@@ -148,6 +157,8 @@ function npmCandidates() {
     const nd = nodeDir()
     raw.push(join(nd, 'npm.cmd'))
     raw.push(join(nd, 'npm.exe'))
+    // npm-cli.js run via the current node binary — always works if npm is installed
+    raw.push(join(nd, 'node_modules', 'npm', 'bin', 'npm-cli.js'))
     raw.push(join(nd, 'npm'))
     raw.push('npm.cmd')
     raw.push('npm.exe')
@@ -195,6 +206,11 @@ async function discoverBin(candidates) {
   }
   return null
 }
+
+// Log override presence (never log values)
+console.log(`[apex-worker] NODE_BIN override: ${process.env.NODE_BIN ? 'configured' : 'not configured'}`)
+console.log(`[apex-worker] NPM_BIN override:  ${process.env.NPM_BIN  ? 'configured' : 'not configured'}`)
+console.log(`[apex-worker] GIT_BIN override:  ${process.env.GIT_BIN  ? 'configured' : 'not configured'}`)
 
 // Run discovery once at startup — never fatal
 console.log('[apex-worker] Discovering tools...')
@@ -308,7 +324,20 @@ function runCommand(bin, args, timeoutMs = COMMAND_TIMEOUT_MS) {
   return new Promise(res => {
     let proc
     try {
-      proc = spawn(bin, args, {
+      const isCmdScript = IS_WINDOWS && /\.(cmd|bat)$/i.test(bin)
+      const isJsScript = /\.(js|mjs|cjs)$/i.test(bin)
+      let spawnBin, spawnArgs
+      if (isCmdScript) {
+        spawnBin = 'cmd.exe'
+        spawnArgs = ['/c', bin, ...args]
+      } else if (isJsScript) {
+        spawnBin = process.execPath
+        spawnArgs = [bin, ...args]
+      } else {
+        spawnBin = bin
+        spawnArgs = args
+      }
+      proc = spawn(spawnBin, spawnArgs, {
         cwd: PROJECT_PATH,
         shell: false,
         env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
@@ -446,7 +475,7 @@ async function handleRequest(req, res) {
       ok: true,
       service: 'apex-local-worker',
       version: '1.0.0',
-      checkpoint: 'H5.2C',
+      checkpoint: 'H5.2D',
       projectPath: PROJECT_PATH,
       platform: platform(),
       discoveredTools: TOOLS,
@@ -504,8 +533,19 @@ const server = createServer((req, res) => {
   })
 })
 
+server.on('error', err => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`[apex-worker] ERRO: Porta ${PORT} já está em uso.`)
+    console.error(`[apex-worker] Solução: encerre o processo que ocupa a porta e tente novamente.`)
+    console.error(`[apex-worker] Windows: netstat -ano | findstr :${PORT}   depois: taskkill /PID <pid> /F`)
+    console.error(`[apex-worker] Para usar outra porta: defina LOCAL_WORKER_PORT=8788 no .env`)
+    process.exit(1)
+  }
+  throw err
+})
+
 server.listen(PORT, '127.0.0.1', () => {
-  console.log(`[apex-worker] Apex Local Worker H5.2C running on http://127.0.0.1:${PORT}`)
+  console.log(`[apex-worker] Apex Local Worker H5.2D running on http://127.0.0.1:${PORT}`)
   console.log(`[apex-worker] Project path: ${PROJECT_PATH}`)
   console.log(`[apex-worker] node: ${TOOLS.node.available ? TOOLS.node.version : 'NOT FOUND'}`)
   console.log(`[apex-worker] npm:  ${TOOLS.npm.available  ? TOOLS.npm.version  : 'NOT FOUND — set NPM_BIN=npm.cmd in .env'}`)

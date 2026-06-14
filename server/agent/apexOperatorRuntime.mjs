@@ -359,6 +359,20 @@ export async function runApexOperatorProductionSafe({
     'production_connector_status',
     'production_vercel_deploy',
     'production_supabase',
+    // H5.1H — Capability brain + repair
+    'production_capability_repair',
+    'production_capability_continuation',
+    // H5.1I — Domain intents
+    'production_orcamento_sinapi_help',
+    'production_proposta_contrato_help',
+    'production_obra_campo_help',
+    'production_cronograma_help',
+    'production_archviz_help',
+    'production_marketing_vendas_help',
+    // H5.1I — Language detection
+    'production_user_speaks_english',
+    'production_language_preference',
+    'production_affirmation',
   ]
   const shouldRunControlledExecution = controlledTasks.length > 0
     && !controlledTasks.includes('blocked_mutation')

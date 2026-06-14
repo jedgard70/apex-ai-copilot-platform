@@ -1,4 +1,4 @@
-# Apex Local Worker — H5.2C
+# Apex Local Worker — H5.2D
 
 Serviço Node.js local para execução controlada no PC Windows.
 Auto-descobre `node`, `npm` e `git` de forma best-effort — candidatos inválidos são ignorados, não derrubam o worker.
@@ -97,7 +97,7 @@ Ao iniciar, o worker imprime o resultado do auto-discovery:
 [apex-worker] node: ✓ C:\Program Files\nodejs\node.exe (v22.x.x)
 [apex-worker] npm:  ✓ C:\Program Files\nodejs\npm.cmd (10.x.x)
 [apex-worker] git:  ✓ C:\Program Files\Git\cmd\git.exe (git version 2.x.x)
-[apex-worker] Apex Local Worker H5.2C running on http://127.0.0.1:8787
+[apex-worker] Apex Local Worker H5.2D running on http://127.0.0.1:8787
 ```
 
 Se um binário não for encontrado:
@@ -117,7 +117,7 @@ Resposta (mesmo se npm/git não encontrados):
 ```json
 {
   "ok": true,
-  "checkpoint": "H5.2C",
+  "checkpoint": "H5.2D",
   "discoveredTools": {
     "node": { "available": true,  "path": "...", "version": "v22.x.x", "reason": null },
     "npm":  { "available": false, "path": null,  "version": null, "reason": "Not found. Set NPM_BIN=npm.cmd in .env..." },
