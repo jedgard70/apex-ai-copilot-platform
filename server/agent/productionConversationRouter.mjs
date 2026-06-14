@@ -443,6 +443,11 @@ export function classifyProductionConversationIntent(message = '') {
   if (decomposedIntents.length > 1) return 'production_multi_intent'
   if (extractDisplayNamePreference(message)) return 'production_display_name_preference'
 
+  // H7 — confirmation signal (must be checked early, before other intents)
+  if (/^\s*(sim|s|yes|y|ok|okay|confirmo|confirmado|pode|pode sim|vai|vamos|executa|execute|faz sim|pode executar|confirma|certo|beleza|vai la|manda ver)\s*[.!]?\s*$/.test(text)) {
+    return 'production_h7_confirmation'
+  }
+
   if (includesAny(text, INTENT_PATTERNS.production_computer_help)) {
     return 'production_computer_help'
   }

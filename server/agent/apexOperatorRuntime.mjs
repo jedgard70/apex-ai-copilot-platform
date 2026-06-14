@@ -7,6 +7,11 @@ import { buildOperatorMemory } from './memory.mjs'
 import { classifyProductionConversationIntent, decomposeProductionConversationIntents, routeProductionConversation } from './productionConversationRouter.mjs'
 import { collectProductionOperatorStatus, summarizeProductionOperatorStatus } from './productionStatus.mjs'
 import { classifyToolExecutionRequest, routeToolExecution, routeH6ActionRequest } from './toolExecutionRouter.mjs'
+import {
+  hasPendingAction, executeConfirmedAction, buildExecutionEvidenceReply,
+  classifyPipelineRequest, buildPipelineConfirmationReply, executePipeline, buildPipelineEvidenceReply,
+  PIPELINES,
+} from './confirmationStateMachine.mjs'
 import { buildDecision, summarizeEvidence } from './verifier.mjs'
 
 export { isOperatorIntent }
@@ -291,9 +296,75 @@ export async function runApexOperatorProductionSafe({
   ])
   const mixedNaturalConversation = decomposedProductionIntents.length > 1
     && decomposedProductionIntents.some(conversationIntent => !h4ConnectorOrExecutionIntents.has(conversationIntent))
+  // H7.0 — Confirmation State Machine: "sim" with pending action → execute
+  const productionConversationIntent = classifyProductionConversationIntent(userMessage)
+  if (productionConversationIntent === 'production_h7_confirmation' && hasPendingAction(clientMemory)) {
+    const pending = clientMemory.pendingH6Action
+    // Pipeline confirmation
+    if (pending.pipelineId) {
+      const pipelineResult = await executePipeline(pending.pipelineId, pending.params || {})
+      const evidenceReply = buildPipelineEvidenceReply(pipelineResult)
+      return {
+        ok: pipelineResult.ok,
+        status: pipelineResult.ok ? 'GREEN' : 'YELLOW',
+        intent: 'h7_pipeline_executed',
+        operatorIntent: intent,
+        memory,
+        evidence: { summary: pipelineResult },
+        decision: evidenceReply,
+        requiresApproval: false,
+        executedActions: pipelineResult.results || [],
+        finalReply: evidenceReply,
+        memoryPatch: { pendingH6Action: null },
+        secretsExposed: false,
+      }
+    }
+    // Single action confirmation
+    const execResult = await executeConfirmedAction(pending)
+    const evidenceReply = buildExecutionEvidenceReply(execResult, pending.actionId)
+    return {
+      ok: execResult.ok,
+      status: execResult.ok ? 'GREEN' : 'YELLOW',
+      intent: 'h7_action_executed',
+      operatorIntent: intent,
+      memory,
+      evidence: { summary: execResult },
+      decision: evidenceReply,
+      requiresApproval: false,
+      executedActions: [execResult],
+      finalReply: evidenceReply,
+      memoryPatch: { pendingH6Action: null },
+      secretsExposed: false,
+    }
+  }
+
+  // H10 — Pipeline detection: "add, commit e push" etc.
+  const pipelineId = classifyPipelineRequest(userMessage)
+  if (pipelineId) {
+    const pipeline = PIPELINES[pipelineId]
+    const confirmReply = buildPipelineConfirmationReply(pipelineId)
+    return {
+      ok: true,
+      status: 'YELLOW',
+      intent: 'h10_pipeline_request',
+      operatorIntent: intent,
+      memory,
+      evidence: { summary: { pipeline: pipelineId, secretsExposed: false } },
+      decision: confirmReply,
+      requiresApproval: true,
+      executedActions: [],
+      finalReply: confirmReply,
+      memoryPatch: { pendingH6Action: { pipelineId, params: {}, planText: confirmReply } },
+      secretsExposed: false,
+    }
+  }
+
   // H6.0 — Risk-tiered action policy: check before H5 tool routing
   const h6Route = routeH6ActionRequest({ userMessage })
   if (h6Route) {
+    const pendingAction = h6Route.requestedActionIds?.length === 1
+      ? { actionId: h6Route.requestedActionIds[0], params: {}, planText: h6Route.finalReply }
+      : null
     return {
       ok: h6Route.ok,
       status: 'YELLOW',
@@ -308,7 +379,7 @@ export async function runApexOperatorProductionSafe({
       proposedExecution: { type: 'h6-action-router', actionIds: h6Route.requestedActionIds },
       executedActions: [],
       finalReply: h6Route.finalReply,
-      memoryPatch: null,
+      memoryPatch: h6Route.requiresApproval && pendingAction ? { pendingH6Action: pendingAction } : null,
       secretsExposed: false,
     }
   }
@@ -359,7 +430,6 @@ export async function runApexOperatorProductionSafe({
       memoryPatch: null,
     }
   }
-  const productionConversationIntent = classifyProductionConversationIntent(userMessage)
   const controlledTasks = classifyControlledExecutionRequest(userMessage, intent)
   const conversationalOnlyIntents = [
     'production_display_name_preference',
@@ -395,6 +465,8 @@ export async function runApexOperatorProductionSafe({
     'production_user_speaks_english',
     'production_language_preference',
     'production_affirmation',
+    // H7.0 — Confirmation state machine
+    'production_h7_confirmation',
   ]
   const shouldRunControlledExecution = controlledTasks.length > 0
     && !controlledTasks.includes('blocked_mutation')

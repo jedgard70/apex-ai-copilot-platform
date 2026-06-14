@@ -1,6 +1,7 @@
 import { runApexOperatorProductionSafe } from '../../server/agent/apexOperatorRuntime.mjs'
 import { collectProductionOperatorStatus } from '../../server/agent/productionStatus.mjs'
 import { classifyToolExecutionRequest, routeToolExecution } from '../../server/agent/toolExecutionRouter.mjs'
+import { isConfirmationSignal, isCancelSignal, hasPendingAction } from '../../server/agent/confirmationStateMachine.mjs'
 
 // H5.0D: action tools that must always bypass conversation/connector router
 const H5_ACTION_TOOLS = new Set([
@@ -32,6 +33,21 @@ async function readJsonBody(req) {
   return JSON.parse(Buffer.concat(chunks).toString('utf8'))
 }
 
+// Build confirmation UI metadata for frontend buttons
+function buildConfirmationUi(result) {
+  if (!result.requiresApproval) return null
+  return {
+    show: true,
+    intent: result.intent,
+    pendingAction: result.memoryPatch?.pendingH6Action || null,
+    buttons: [
+      { id: 'confirm', label: 'Sim, executar', variant: 'primary', message: 'sim' },
+      { id: 'cancel',  label: 'Não, cancelar', variant: 'secondary', message: 'não' },
+      { id: 'adjust',  label: 'Ajustar',        variant: 'ghost',     message: null },
+    ],
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST')
@@ -45,20 +61,42 @@ export default async function handler(req, res) {
   try {
     const body = await readJsonBody(req)
     const userMessage = String(body.message || '').slice(0, 12000)
+    const clientMemory = body.clientMemory || {}
     const productionStatus = collectProductionOperatorStatus()
 
-    // H5.0D: hard override — detect action tools before any conversation/connector router
-    const h5ToolIds = classifyToolExecutionRequest(userMessage)
-    if (h5ToolIds.length && h5ToolIds.some(id => H5_ACTION_TOOLS.has(id))) {
-      const toolExecution = await routeToolExecution({ userMessage, requestedToolIds: h5ToolIds })
+    // H7: if user says "sim" and there's a pending action, skip H5 bypass and go straight to runtime
+    const hasPending = hasPendingAction(clientMemory)
+    const isConfirm = isConfirmationSignal(userMessage)
+    const isCancel = isCancelSignal(userMessage)
+
+    if (isCancel && hasPending) {
+      const cancelReply = 'Ação cancelada. Nenhuma execução realizada. O que mais posso fazer?'
       return sendJson(res, 200, {
-        finalReply: toolExecution.finalReply,
-        reply: toolExecution.finalReply,
-        memoryPatch: null,
-        mode: 'apex-h5-tool-execution-direct',
-        operator: { intent: 'tool_execution', toolExecution },
+        finalReply: cancelReply,
+        reply: cancelReply,
+        memoryPatch: { pendingH6Action: null },
+        mode: 'apex-h7-cancelled',
+        operator: { intent: 'h7_cancelled' },
+        confirmation: null,
         productionStatus,
       })
+    }
+
+    // H5.0D: hard override — but skip if user is confirming a pending H7 action
+    if (!(isConfirm && hasPending)) {
+      const h5ToolIds = classifyToolExecutionRequest(userMessage)
+      if (h5ToolIds.length && h5ToolIds.some(id => H5_ACTION_TOOLS.has(id))) {
+        const toolExecution = await routeToolExecution({ userMessage, requestedToolIds: h5ToolIds })
+        return sendJson(res, 200, {
+          finalReply: toolExecution.finalReply,
+          reply: toolExecution.finalReply,
+          memoryPatch: null,
+          mode: 'apex-h5-tool-execution-direct',
+          operator: { intent: 'tool_execution', toolExecution },
+          confirmation: null,
+          productionStatus,
+        })
+      }
     }
 
     const result = await runApexOperatorProductionSafe({
@@ -68,7 +106,7 @@ export default async function handler(req, res) {
       repoPath: process.cwd(),
       permissions: {},
       productionStatus,
-      clientMemory: body.clientMemory || {},
+      clientMemory,
       messages: Array.isArray(body.messages) ? body.messages : [],
     })
 
@@ -78,6 +116,7 @@ export default async function handler(req, res) {
       memoryPatch: result.memoryPatch || null,
       mode: 'apex-operator-production-safe',
       operator: result,
+      confirmation: buildConfirmationUi(result),
       productionStatus,
     })
   } catch (error) {
@@ -92,6 +131,7 @@ export default async function handler(req, res) {
       reply: finalReply,
       mode: 'apex-operator-production-safe-error',
       error: 'production_safe_route_error',
+      confirmation: null,
     })
   }
 }
