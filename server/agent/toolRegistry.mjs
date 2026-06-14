@@ -4,6 +4,13 @@ export const EXECUTION_CLASSES = {
   MUTATION_REQUIRES_CONFIRMATION: 'mutation_requires_confirmation',
   EXTERNAL_DESKTOP_REQUIRES_LOCAL_WORKER: 'external_desktop_requires_local_worker',
   BLOCKED: 'blocked',
+  // H6.0 — risk-tiered execution policy
+  H6_WRITE:     'h6_write',
+  H6_DEPLOY:    'h6_deploy',
+  H6_DATABASE:  'h6_database',
+  H6_DESKTOP:   'h6_desktop',
+  H6_DANGEROUS: 'h6_dangerous',
+  H6_FORBIDDEN: 'h6_forbidden',
 }
 
 function hasAnyEnv(names = []) {

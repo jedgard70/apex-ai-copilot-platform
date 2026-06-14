@@ -6,7 +6,7 @@ import { runApprovedCommit, runCommands, runOwnerRawShell } from './executor.mjs
 import { buildOperatorMemory } from './memory.mjs'
 import { classifyProductionConversationIntent, decomposeProductionConversationIntents, routeProductionConversation } from './productionConversationRouter.mjs'
 import { collectProductionOperatorStatus, summarizeProductionOperatorStatus } from './productionStatus.mjs'
-import { classifyToolExecutionRequest, routeToolExecution } from './toolExecutionRouter.mjs'
+import { classifyToolExecutionRequest, routeToolExecution, routeH6ActionRequest } from './toolExecutionRouter.mjs'
 import { buildDecision, summarizeEvidence } from './verifier.mjs'
 
 export { isOperatorIntent }
@@ -291,6 +291,28 @@ export async function runApexOperatorProductionSafe({
   ])
   const mixedNaturalConversation = decomposedProductionIntents.length > 1
     && decomposedProductionIntents.some(conversationIntent => !h4ConnectorOrExecutionIntents.has(conversationIntent))
+  // H6.0 — Risk-tiered action policy: check before H5 tool routing
+  const h6Route = routeH6ActionRequest({ userMessage })
+  if (h6Route) {
+    return {
+      ok: h6Route.ok,
+      status: 'YELLOW',
+      intent: 'h6_action_request',
+      operatorIntent: intent,
+      memory,
+      evidence: { summary: { h6: true, secretsExposed: false } },
+      decision: h6Route.finalReply,
+      recommendedAction: h6Route.requiresApproval ? 'Aguardando confirmação do operador para executar.' : 'Executar diretamente.',
+      requiresApproval: h6Route.requiresApproval ?? false,
+      capability: { name: 'h6_execution_policy', status: 'supported', risk: 'classified' },
+      proposedExecution: { type: 'h6-action-router', actionIds: h6Route.requestedActionIds },
+      executedActions: [],
+      finalReply: h6Route.finalReply,
+      memoryPatch: null,
+      secretsExposed: false,
+    }
+  }
+
   const h5ToolIds = classifyToolExecutionRequest(userMessage)
   // H5.0C: action tools always win over conversation router;
   // status-only tools yield to conversation router when mixed natural intents are present.

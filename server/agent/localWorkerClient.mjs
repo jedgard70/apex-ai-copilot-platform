@@ -1,29 +1,42 @@
 /**
- * Apex AI Copilot — Local Worker Client (H5.2D)
+ * Apex AI Copilot — Local Worker Client (H6.0)
  * Bridge between production backend and the Apex Local Worker running on the user's PC.
  * Reads LOCAL_WORKER_URL + LOCAL_WORKER_TOKEN from ENV.
  * Never logs or returns the token.
- * All actions are whitelist-only.
+ * H6.0: risk-tiered actions — READ/VALIDATE execute directly; WRITE/DANGEROUS require confirmed:true.
  */
 
 const TIMEOUT_MS = 8000
 
-const LIGHT_ACTIONS = new Set([
-  'system.info',
-  'project.git_status',
-  'project.git_log',
-  'node.version',
-  'npm.version',
-  'git.version',
+// READ — execute without confirmation
+const READ_ACTIONS = new Set([
+  'system.info', 'node.version', 'npm.version', 'git.version',
+  'project.git_status', 'project.git_log', 'project.git_log10',
+  'project.git_diff', 'project.git_diff_stat', 'project.git_branch', 'project.git_remote',
+  'npm.list', 'npm.outdated', 'npm.audit',
 ])
 
-const HEAVY_ACTIONS = new Set([
-  'project.build_check',
-  'project.validate_h44',
-  'project.validate_h5',
+// VALIDATE — execute directly (may be slow)
+const VALIDATE_ACTIONS = new Set([
+  'project.build_check', 'npm.test', 'npm.lint',
+  'project.validate_h44', 'project.validate_h5', 'project.validate_h6',
 ])
 
-const ALL_ALLOWED_ACTIONS = new Set([...LIGHT_ACTIONS, ...HEAVY_ACTIONS])
+// WRITE — require confirmed:true
+const WRITE_ACTIONS = new Set([
+  'project.git_add', 'project.git_commit', 'project.git_push', 'project.git_push_u',
+  'project.git_fetch', 'project.git_stash', 'project.git_stash_pop',
+  'npm.install',
+])
+
+// DANGEROUS — require confirmed:true + rollbackAcknowledged:true
+const DANGEROUS_ACTIONS = new Set([
+  'project.git_push_force',
+])
+
+const ALL_ALLOWED_ACTIONS = new Set([
+  ...READ_ACTIONS, ...VALIDATE_ACTIONS, ...WRITE_ACTIONS, ...DANGEROUS_ACTIONS,
+])
 
 function workerConfig() {
   const url = (process.env.LOCAL_WORKER_URL || '').trim()
@@ -79,17 +92,15 @@ async function fetchWorker(path, method, body = null) {
   }
 }
 
-export function isLightAction(action) {
-  return LIGHT_ACTIONS.has(action)
-}
+export function isReadAction(action)      { return READ_ACTIONS.has(action) }
+export function isValidateAction(action)  { return VALIDATE_ACTIONS.has(action) }
+export function isWriteAction(action)     { return WRITE_ACTIONS.has(action) }
+export function isDangerousAction(action) { return DANGEROUS_ACTIONS.has(action) }
+export function isAllowedAction(action)   { return ALL_ALLOWED_ACTIONS.has(action) }
 
-export function isHeavyAction(action) {
-  return HEAVY_ACTIONS.has(action)
-}
-
-export function isAllowedAction(action) {
-  return ALL_ALLOWED_ACTIONS.has(action)
-}
+// Legacy aliases
+export function isLightAction(action) { return READ_ACTIONS.has(action) }
+export function isHeavyAction(action) { return VALIDATE_ACTIONS.has(action) }
 
 export async function readLocalWorkerHealth() {
   const { configured } = workerConfig()
@@ -132,13 +143,13 @@ export async function readLocalWorkerHealth() {
   }
 }
 
-export async function runLocalWorkerAction(action) {
+export async function runLocalWorkerAction(action, { confirmed = false, rollbackAcknowledged = false, params = {} } = {}) {
   if (!isAllowedAction(action)) {
     return {
       ok: false,
       action,
       blocked: true,
-      reason: `Ação "${action}" não está na whitelist permitida.`,
+      reason: `Ação "${action}" não está no catálogo H6.0 permitido.`,
       secretsExposed: false,
     }
   }
@@ -154,7 +165,8 @@ export async function runLocalWorkerAction(action) {
     }
   }
 
-  const { ok, data, error, status } = await fetchWorker('/run', 'POST', { action })
+  const body = { action, confirmed, rollbackAcknowledged, params }
+  const { ok, data, error, status } = await fetchWorker('/run', 'POST', body)
 
   if (error) {
     return {

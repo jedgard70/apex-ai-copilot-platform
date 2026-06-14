@@ -1,5 +1,6 @@
 import { collectConnectorsStatusReadOnly } from './connectorsStatus.mjs'
 import { EXECUTION_CLASSES, getExecutionCapabilityMatrix, getToolDefinition, getToolRegistry } from './toolRegistry.mjs'
+import { classifyH6ActionRequest, buildConfirmationReply, ACTION_CATALOG } from './executionPolicy.mjs'
 
 function normalizeMessage(message = '') {
   return String(message || '')
@@ -375,6 +376,62 @@ function buildToolExecutionReply({ requestTools = [], executions = [] } = {}) {
   lines.push('')
   lines.push('Nenhum segredo foi exibido. Nenhum deploy, migration, push, commit, comando local, ação desktop ou mutação foi executado.')
   return lines.join('\n')
+}
+
+// ─── H6.0 Execution Policy Router ────────────────────────────────────────────
+
+// H6 only handles actions not already covered by H5 tool registry (git/npm local ops)
+const H6_EXCLUSIVE_ACTIONS = new Set([
+  'git.status', 'git.log', 'git.diff', 'git.diff_stat', 'git.branch', 'git.remote', 'git.stash_list',
+  'git.add', 'git.add_files', 'git.commit', 'git.push', 'git.push_u', 'git.checkout_b',
+  'git.fetch', 'git.rebase', 'git.merge', 'git.stash', 'git.stash_pop',
+  'git.push_force', 'git.reset_hard', 'git.clean',
+  'node.version', 'npm.version', 'git.version',
+  'npm.build', 'npm.test', 'npm.lint', 'npm.list', 'npm.outdated', 'npm.audit',
+  'npm.install', 'npm.install_pkg', 'npm.uninstall_pkg',
+  'validate.h44', 'validate.h5', 'validate.h6',
+])
+
+export function routeH6ActionRequest({ userMessage = '' } = {}) {
+  const actionIds = classifyH6ActionRequest(userMessage).filter(id => H6_EXCLUSIVE_ACTIONS.has(id))
+  if (!actionIds.length) return null
+
+  const actions = actionIds.map(id => ACTION_CATALOG.find(a => a.id === id)).filter(Boolean)
+  if (!actions.length) return null
+
+  const needsConfirmation = actions.filter(a => a.requiresConfirmation)
+  const directActions    = actions.filter(a => !a.requiresConfirmation)
+
+  if (needsConfirmation.length === 1 && directActions.length === 0) {
+    return {
+      ok: true,
+      mode: 'h6-action-confirmation-required',
+      intent: 'h6_action_request',
+      requestedActionIds: actionIds,
+      requiresApproval: true,
+      finalReply: buildConfirmationReply(needsConfirmation[0].id),
+      secretsExposed: false,
+    }
+  }
+
+  if (needsConfirmation.length > 0) {
+    const plans = needsConfirmation.map(a => buildConfirmationReply(a.id)).join('\n\n---\n\n')
+    return {
+      ok: true,
+      mode: 'h6-multi-action-confirmation-required',
+      intent: 'h6_action_request',
+      requestedActionIds: actionIds,
+      requiresApproval: true,
+      finalReply: [
+        `Apex AI Copilot [H6.0] — ${needsConfirmation.length} ação(ões) exigem confirmação:\n`,
+        plans,
+        '\nNenhum segredo exibido. Nenhuma ação executada até confirmação.',
+      ].join('\n'),
+      secretsExposed: false,
+    }
+  }
+
+  return null
 }
 
 export async function routeToolExecution({

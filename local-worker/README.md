@@ -1,4 +1,4 @@
-# Apex Local Worker — H5.2D
+# Apex Local Worker — H6.0
 
 Serviço Node.js local para execução controlada no PC Windows.
 Auto-descobre `node`, `npm` e `git` de forma best-effort — candidatos inválidos são ignorados, não derrubam o worker.

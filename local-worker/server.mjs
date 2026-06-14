@@ -1,5 +1,5 @@
 /**
- * Apex AI Copilot — Local Worker (H5.2D)
+ * Apex AI Copilot — Local Worker (H6.0)
  * Secure whitelist-only executor for controlled Windows PC operations.
  * Auto-discovers node/npm/git — no manual PATH config required (best effort).
  * Runs at localhost:8787 (or LOCAL_WORKER_PORT).
@@ -250,10 +250,21 @@ function requireTool(name) {
   return { ok: true, bin: tool.path, tag: name }
 }
 
+// ─── Risk classification ───────────────────────────────────────────────────────
+
+const RISK_CLASS = {
+  READ:      'read',
+  VALIDATE:  'validate',
+  WRITE:     'write',
+  DANGEROUS: 'dangerous',
+}
+
 function buildActionMap() {
   return {
+    // READ — execute immediately
     'system.info': {
       label: 'System info (Node/npm/git versions)',
+      risk: RISK_CLASS.READ,
       build: () => [
         { ...requireTool('node'), args: ['--version'] },
         { ...requireTool('npm'),  args: ['--version'] },
@@ -262,35 +273,175 @@ function buildActionMap() {
     },
     'node.version': {
       label: 'Node.js version',
+      risk: RISK_CLASS.READ,
       build: () => [{ ...requireTool('node'), args: ['--version'] }],
     },
     'npm.version': {
       label: 'npm version',
+      risk: RISK_CLASS.READ,
       build: () => [{ ...requireTool('npm'), args: ['--version'] }],
     },
     'git.version': {
       label: 'Git version',
+      risk: RISK_CLASS.READ,
       build: () => [{ ...requireTool('git'), args: ['--version'] }],
     },
     'project.git_status': {
-      label: 'Git status of project',
+      label: 'git status --short',
+      risk: RISK_CLASS.READ,
       build: () => [{ ...requireTool('git'), args: ['status', '--short'] }],
     },
     'project.git_log': {
-      label: 'Recent git log (last 5 commits)',
+      label: 'git log (últimos 5 commits)',
+      risk: RISK_CLASS.READ,
       build: () => [{ ...requireTool('git'), args: ['log', '--oneline', '-5'] }],
     },
+    'project.git_log10': {
+      label: 'git log (últimos 10 commits)',
+      risk: RISK_CLASS.READ,
+      build: () => [{ ...requireTool('git'), args: ['log', '--oneline', '-10'] }],
+    },
+    'project.git_diff': {
+      label: 'git diff HEAD',
+      risk: RISK_CLASS.READ,
+      build: () => [{ ...requireTool('git'), args: ['diff', 'HEAD'] }],
+    },
+    'project.git_diff_stat': {
+      label: 'git diff --stat',
+      risk: RISK_CLASS.READ,
+      build: () => [{ ...requireTool('git'), args: ['diff', '--stat'] }],
+    },
+    'project.git_branch': {
+      label: 'git branch -a',
+      risk: RISK_CLASS.READ,
+      build: () => [{ ...requireTool('git'), args: ['branch', '-a'] }],
+    },
+    'project.git_remote': {
+      label: 'git remote -v',
+      risk: RISK_CLASS.READ,
+      build: () => [{ ...requireTool('git'), args: ['remote', '-v'] }],
+    },
+    'npm.list': {
+      label: 'npm list --depth=0',
+      risk: RISK_CLASS.READ,
+      build: () => [{ ...requireTool('npm'), args: ['list', '--depth=0'] }],
+    },
+    'npm.outdated': {
+      label: 'npm outdated',
+      risk: RISK_CLASS.READ,
+      build: () => [{ ...requireTool('npm'), args: ['outdated'] }],
+    },
+    'npm.audit': {
+      label: 'npm audit',
+      risk: RISK_CLASS.READ,
+      build: () => [{ ...requireTool('npm'), args: ['audit'] }],
+    },
+    // VALIDATE — executes directly (may take longer)
     'project.build_check': {
-      label: 'npm run build (build check)',
+      label: 'npm run build',
+      risk: RISK_CLASS.VALIDATE,
       build: () => [{ ...requireTool('npm'), args: ['run', 'build'] }],
+    },
+    'npm.test': {
+      label: 'npm test',
+      risk: RISK_CLASS.VALIDATE,
+      build: () => [{ ...requireTool('npm'), args: ['test', '--', '--passWithNoTests'] }],
+    },
+    'npm.lint': {
+      label: 'npm run lint',
+      risk: RISK_CLASS.VALIDATE,
+      build: () => [{ ...requireTool('npm'), args: ['run', 'lint'] }],
     },
     'project.validate_h44': {
       label: 'Validate CP15X-H4.4',
+      risk: RISK_CLASS.VALIDATE,
       build: () => [{ ...requireTool('node'), args: ['scripts/validate-cp15x-h44.mjs'] }],
     },
     'project.validate_h5': {
       label: 'Validate CP15X-H5',
+      risk: RISK_CLASS.VALIDATE,
       build: () => [{ ...requireTool('node'), args: ['scripts/validate-cp15x-h5.mjs'] }],
+    },
+    'project.validate_h6': {
+      label: 'Validate CP15X-H6',
+      risk: RISK_CLASS.VALIDATE,
+      build: () => [{ ...requireTool('node'), args: ['scripts/validate-cp15x-h6.mjs'] }],
+    },
+    // WRITE — requires confirmed:true in request body
+    'project.git_add': {
+      label: 'git add -A (stage all)',
+      risk: RISK_CLASS.WRITE,
+      requiresConfirmation: true,
+      build: () => [{ ...requireTool('git'), args: ['add', '-A'] }],
+    },
+    'project.git_commit': {
+      label: 'git commit',
+      risk: RISK_CLASS.WRITE,
+      requiresConfirmation: true,
+      needsMessage: true,
+      build: (params = {}) => {
+        const msg = String(params.message || '').trim().replace(/"/g, '\\"')
+        if (!msg) return [{ ok: false, tag: 'git', reason: 'commit message required (params.message)' }]
+        return [{ ...requireTool('git'), args: ['commit', '-m', msg] }]
+      },
+    },
+    'project.git_push': {
+      label: 'git push origin <branch>',
+      risk: RISK_CLASS.WRITE,
+      requiresConfirmation: true,
+      needsBranch: true,
+      build: (params = {}) => {
+        const branch = String(params.branch || '').trim().replace(/[^a-zA-Z0-9_./-]/g, '')
+        if (!branch) return [{ ok: false, tag: 'git', reason: 'branch name required (params.branch)' }]
+        return [{ ...requireTool('git'), args: ['push', 'origin', branch] }]
+      },
+    },
+    'project.git_push_u': {
+      label: 'git push -u origin <branch>',
+      risk: RISK_CLASS.WRITE,
+      requiresConfirmation: true,
+      needsBranch: true,
+      build: (params = {}) => {
+        const branch = String(params.branch || '').trim().replace(/[^a-zA-Z0-9_./-]/g, '')
+        if (!branch) return [{ ok: false, tag: 'git', reason: 'branch name required (params.branch)' }]
+        return [{ ...requireTool('git'), args: ['push', '-u', 'origin', branch] }]
+      },
+    },
+    'project.git_fetch': {
+      label: 'git fetch origin',
+      risk: RISK_CLASS.WRITE,
+      requiresConfirmation: true,
+      build: () => [{ ...requireTool('git'), args: ['fetch', 'origin'] }],
+    },
+    'project.git_stash': {
+      label: 'git stash',
+      risk: RISK_CLASS.WRITE,
+      requiresConfirmation: true,
+      build: () => [{ ...requireTool('git'), args: ['stash'] }],
+    },
+    'project.git_stash_pop': {
+      label: 'git stash pop',
+      risk: RISK_CLASS.WRITE,
+      requiresConfirmation: true,
+      build: () => [{ ...requireTool('git'), args: ['stash', 'pop'] }],
+    },
+    'npm.install': {
+      label: 'npm install',
+      risk: RISK_CLASS.WRITE,
+      requiresConfirmation: true,
+      build: () => [{ ...requireTool('npm'), args: ['install'] }],
+    },
+    // DANGEROUS — requires confirmed:true + rollbackAcknowledged:true
+    'project.git_push_force': {
+      label: 'git push --force-with-lease origin <branch>',
+      risk: RISK_CLASS.DANGEROUS,
+      requiresConfirmation: true,
+      rollbackRequired: true,
+      build: (params = {}) => {
+        const branch = String(params.branch || '').trim().replace(/[^a-zA-Z0-9_./-]/g, '')
+        if (!branch) return [{ ok: false, tag: 'git', reason: 'branch name required (params.branch)' }]
+        return [{ ...requireTool('git'), args: ['push', '--force-with-lease', 'origin', branch] }]
+      },
     },
   }
 }
@@ -371,7 +522,7 @@ function runCommand(bin, args, timeoutMs = COMMAND_TIMEOUT_MS) {
   })
 }
 
-async function executeAction(actionId) {
+async function executeAction(actionId, { confirmed = false, rollbackAcknowledged = false, params = {} } = {}) {
   if (!ALLOWED_ACTION_IDS.has(actionId)) {
     return {
       ok: false,
@@ -382,7 +533,33 @@ async function executeAction(actionId) {
   }
 
   const def = ACTION_MAP[actionId]
-  const commands = def.build()
+
+  // Gate WRITE/DANGEROUS — must pass confirmed:true in request body
+  if (def.requiresConfirmation && !confirmed) {
+    return {
+      ok: false,
+      action: actionId,
+      requiresConfirmation: true,
+      risk: def.risk,
+      label: def.label,
+      reason: `Action "${actionId}" (${def.risk}) requires explicit confirmation. Send { "action": "${actionId}", "confirmed": true${def.rollbackRequired ? ', "rollbackAcknowledged": true' : ''} } to execute.`,
+      secretsExposed: false,
+    }
+  }
+
+  if (def.rollbackRequired && !rollbackAcknowledged) {
+    return {
+      ok: false,
+      action: actionId,
+      requiresConfirmation: true,
+      risk: def.risk,
+      label: def.label,
+      reason: `Action "${actionId}" (${def.risk}) requires rollbackAcknowledged:true. Understand: ${actionId === 'project.git_push_force' ? 'force-with-lease overwrites remote — ensure remote refs are what you expect.' : 'This action may be irreversible.'}`,
+      secretsExposed: false,
+    }
+  }
+
+  const commands = def.build(params)
   const results = []
 
   for (const cmd of commands) {
@@ -475,7 +652,7 @@ async function handleRequest(req, res) {
       ok: true,
       service: 'apex-local-worker',
       version: '1.0.0',
-      checkpoint: 'H5.2D',
+      checkpoint: 'H6.0',
       projectPath: PROJECT_PATH,
       platform: platform(),
       discoveredTools: TOOLS,
@@ -511,7 +688,11 @@ async function handleRequest(req, res) {
       return sendJson(res, 400, { ok: false, reason: 'Missing "action" field in request body.' })
     }
 
-    const result = await executeAction(action)
+    const result = await executeAction(action, {
+      confirmed: body.confirmed === true,
+      rollbackAcknowledged: body.rollbackAcknowledged === true,
+      params: body.params && typeof body.params === 'object' ? body.params : {},
+    })
     if (result.blocked) return sendJson(res, 403, result)
     // Return 200 even for partial results so callers can inspect individual tool results
     return sendJson(res, result.ok || result.partial ? 200 : 500, result)
@@ -545,7 +726,7 @@ server.on('error', err => {
 })
 
 server.listen(PORT, '127.0.0.1', () => {
-  console.log(`[apex-worker] Apex Local Worker H5.2D running on http://127.0.0.1:${PORT}`)
+  console.log(`[apex-worker] Apex Local Worker H6.0 running on http://127.0.0.1:${PORT}`)
   console.log(`[apex-worker] Project path: ${PROJECT_PATH}`)
   console.log(`[apex-worker] node: ${TOOLS.node.available ? TOOLS.node.version : 'NOT FOUND'}`)
   console.log(`[apex-worker] npm:  ${TOOLS.npm.available  ? TOOLS.npm.version  : 'NOT FOUND — set NPM_BIN=npm.cmd in .env'}`)
