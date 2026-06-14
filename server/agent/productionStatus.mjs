@@ -45,6 +45,7 @@ export function collectProductionOperatorStatus() {
       localPersistentServer: false,
     },
     capabilities: {
+      // Core operator
       chat: 'supported',
       operatorPreview: 'supported',
       operatorStatus: 'supported',
@@ -54,11 +55,38 @@ export function collectProductionOperatorStatus() {
       localBuild: isVercel ? 'requires_external_executor_for_reliable_build' : 'controlled_validation_supported_when_runtime_available',
       routeValidation: 'controlled_validation_supported',
       connectorPresence: 'supported_without_secret_values',
-      localShell: 'blocked_in_h4',
-      commit: 'requires_dedicated_executor_and_confirmation',
-      push: 'requires_connector_and_confirmation',
-      deploy: 'requires_connector_and_confirmation',
-      supabaseMigration: 'requires_connector_confirmation_and_rollback',
+      // H6.0 — Risk-tiered execution policy
+      executionPolicy: 'supported — READ/VALIDATE direto; WRITE/DEPLOY/DATABASE/DANGEROUS exigem confirmação; FORBIDDEN nunca executa',
+      actionRiskClassification: 'supported — 70+ ações classificadas por risco',
+      // H7 — Confirmation state machine
+      confirmationStateMachine: 'supported — pendingH6Action persiste entre turnos; sim/não/ajustar',
+      confirmationButtons: 'supported — frontend renderiza botões Sim/Não/Ajustar no bubble',
+      // H8 — Vercel Deploy
+      vercelDeploy: 'supported — POST /v13/deployments via VERCEL_TOKEN (exige confirmação)',
+      // H9 — Supabase Migration
+      supabaseMigration: 'supported — Supabase Management API via SUPABASE_ACCESS_TOKEN (exige confirmação + rollback)',
+      // H10 — Pipelines
+      pipelines: 'supported — add_commit_push, build_validate_deploy, validate_full, status_full',
+      // H11 — Workspace Context
+      workspaceContext: 'supported — Local Worker health + git status + último commit, cache 30s',
+      // H12 — Multi-turn params
+      paramExtraction: 'supported — message/branch/remote extraídos da mensagem do usuário',
+      // H13 — Revit/BIM connector
+      revitBimConnector: 'supported — knowledge_only; upgrade para live com AUTODESK_ACCESS_TOKEN',
+      revitTopics: 'famílias, parâmetros, quantitativos, IFC, Dynamo, pyRevit, Revit API, BIM standards, GLB, templates, coordenação',
+      // H14 — Image Generation
+      imageGeneration: 'supported — prompt_only sem OPENAI_API_KEY; geração DALL-E 3 direta com OPENAI_API_KEY',
+      imageRenderTypes: 'facade_render, interior_render, floor_plan_visual, aerial_masterplan, concept_moodboard, topo_hologram',
+      // H15 — Markdown renderer
+      markdownRenderer: 'supported — bold, inline code, fenced code blocks, bullet lists, inline images no chat bubble',
+      // H16 — Domain knowledge connector
+      domainKnowledge: 'supported — orçamento/SINAPI, proposta/contrato, obra/campo, cronograma, marketing/vendas',
+      domainSubclassification: 'supported — SINAPI/BDI/EVM/CPM/RFI/NCR/look-ahead/funil e mais 40+ tópicos específicos',
+      // Blocked
+      localShell: 'blocked — sem shell livre, sem comando arbitrário',
+      commit: 'requires_local_worker_and_confirmation',
+      push: 'requires_local_worker_and_confirmation',
+      deploy: 'requires_vercel_token_and_confirmation',
     },
     connectors,
     connectorStatus,
