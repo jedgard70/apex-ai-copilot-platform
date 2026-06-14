@@ -1,7 +1,7 @@
 /**
- * Apex AI Copilot — Local Worker (H5.2B)
+ * Apex AI Copilot — Local Worker (H5.2C)
  * Secure whitelist-only executor for controlled Windows PC operations.
- * Auto-discovers node/npm/git — no manual PATH config required.
+ * Auto-discovers node/npm/git — no manual PATH config required (best effort).
  * Runs at localhost:8787 (or LOCAL_WORKER_PORT).
  * All routes require Bearer token auth.
  * No free shell. No destructive commands. No secrets in responses.
@@ -9,7 +9,7 @@
 
 import { createServer } from 'node:http'
 import { spawn } from 'node:child_process'
-import { readFile, access } from 'node:fs/promises'
+import { readFile, access, readdir, stat } from 'node:fs/promises'
 import { constants as fsConstants } from 'node:fs'
 import { join, dirname, resolve } from 'node:path'
 import { homedir, platform } from 'node:os'
@@ -39,139 +39,186 @@ if (!TOKEN) {
 
 // ─── Tool auto-discovery ───────────────────────────────────────────────────────
 
-async function fileExists(filePath) {
-  try {
-    await access(filePath, fsConstants.X_OK)
-    return true
-  } catch (_) {
+// Returns version string or null — NEVER throws.
+// Handles EINVAL/ENOENT from spawn() synchronously on Windows with invalid paths.
+function probeVersion(bin, timeoutMs = 4000) {
+  // Validate candidate before attempting spawn
+  if (!bin || typeof bin !== 'string' || bin.trim() === '' || bin.includes('*')) {
+    return Promise.resolve(null)
+  }
+  return new Promise(res => {
+    let proc
     try {
-      await access(filePath, fsConstants.F_OK)
-      return true
-    } catch (_) {
-      return false
+      proc = spawn(bin.trim(), ['--version'], {
+        shell: false,
+        stdio: ['ignore', 'pipe', 'pipe'],
+        windowsHide: true,
+      })
+    } catch (err) {
+      // spawn() can throw synchronously on Windows: EINVAL for bad paths, etc.
+      return res(null)
     }
+
+    let out = ''
+    let settled = false
+    function settle(val) {
+      if (settled) return
+      settled = true
+      clearTimeout(timer)
+      res(val)
+    }
+
+    proc.stdout.on('data', d => { out += d.toString() })
+    proc.stderr.on('data', d => { out += d.toString() })
+
+    const timer = setTimeout(() => {
+      try { proc.kill() } catch (_) {}
+      settle(null)
+    }, timeoutMs)
+
+    proc.on('close', code => settle(code === 0 ? out.trim().split('\n')[0].trim() || null : null))
+    proc.on('error', () => settle(null))
+  })
+}
+
+// Expand a single-wildcard path like path/app-*/sub/bin.exe into real paths.
+// Never returns paths that still contain '*'.
+async function expandGlob(pattern) {
+  if (!pattern || pattern.trim() === '') return []
+  const starIdx = pattern.indexOf('*')
+  if (starIdx === -1) return [pattern]
+
+  // dir = everything before the wildcard segment
+  const beforeStar = pattern.slice(0, starIdx)
+  const dir = dirname(beforeStar.endsWith('/') || beforeStar.endsWith('\\') ? beforeStar + '_' : beforeStar)
+  const rest = pattern.slice(starIdx + 1) // everything after the first '*'
+
+  // If rest still has '*', skip (nested globs not supported)
+  if (rest.includes('*')) return []
+
+  try {
+    const entries = await readdir(dir)
+    const expanded = []
+    for (const entry of entries) {
+      const candidate = join(dir, entry) + rest
+      // Safety: skip if still has wildcard
+      if (candidate.includes('*')) continue
+      expanded.push(candidate)
+    }
+    // Sort reverse so newest app-3.5.x comes before older
+    expanded.sort().reverse()
+    return expanded
+  } catch (_) {
+    return []
   }
 }
 
-function probeVersion(bin, timeoutMs = 4000) {
-  return new Promise(res => {
-    const proc = spawn(bin, ['--version'], {
-      shell: false,
-      stdio: ['ignore', 'pipe', 'pipe'],
-      windowsHide: true,
-    })
-    let out = ''
-    proc.stdout.on('data', d => { out += d.toString() })
-    proc.stderr.on('data', d => { out += d.toString() })
-    const timer = setTimeout(() => { proc.kill(); res(null) }, timeoutMs)
-    proc.on('close', code => {
-      clearTimeout(timer)
-      res(code === 0 ? out.trim().split('\n')[0].trim() : null)
-    })
-    proc.on('error', () => { clearTimeout(timer); res(null) })
-  })
+// Check that a path is a file (not directory) before spawning.
+// Returns true even if stat fails — we let probeVersion handle the final check.
+async function isLikelyExecutable(filePath) {
+  if (!filePath || filePath.includes('*')) return false
+  try {
+    const s = await stat(filePath)
+    return s.isFile()
+  } catch (_) {
+    // Path might still be on PATH; let spawn decide
+    return true
+  }
 }
 
 function nodeDir() {
   return dirname(process.execPath)
 }
 
+function nodeCandidates() {
+  const raw = []
+  if (process.env.NODE_BIN) raw.push(process.env.NODE_BIN)
+  // process.execPath is the running Node binary — always reliable
+  raw.push(process.execPath)
+  if (IS_WINDOWS) raw.push('node.exe')
+  raw.push('node')
+  // Deduplicate, filter empty/null
+  return [...new Set(raw.filter(c => c && c.trim()))]
+}
+
 function npmCandidates() {
-  const candidates = []
-  // .env override
-  if (process.env.NPM_BIN) candidates.push(process.env.NPM_BIN)
+  const raw = []
+  if (process.env.NPM_BIN) raw.push(process.env.NPM_BIN)
   if (IS_WINDOWS) {
     const nd = nodeDir()
-    // npm.cmd sits next to node.exe on Windows Node installs
-    candidates.push(join(nd, 'npm.cmd'))
-    candidates.push(join(nd, 'npm.exe'))
-    candidates.push(join(nd, 'npm'))
-    // Global fallbacks
-    candidates.push('npm.cmd')
-    candidates.push('npm.exe')
+    raw.push(join(nd, 'npm.cmd'))
+    raw.push(join(nd, 'npm.exe'))
+    raw.push(join(nd, 'npm'))
+    raw.push('npm.cmd')
+    raw.push('npm.exe')
   }
-  candidates.push('npm')
-  return [...new Set(candidates)]
+  raw.push('npm')
+  return [...new Set(raw.filter(c => c && c.trim()))]
 }
 
 function gitCandidates() {
-  const candidates = []
-  // .env override
-  if (process.env.GIT_BIN) candidates.push(process.env.GIT_BIN)
+  const raw = []
+  if (process.env.GIT_BIN) raw.push(process.env.GIT_BIN)
   if (IS_WINDOWS) {
     const home = homedir()
-    // Git for Windows standard paths
-    candidates.push('C:\\Program Files\\Git\\cmd\\git.exe')
-    candidates.push('C:\\Program Files\\Git\\bin\\git.exe')
-    candidates.push('C:\\Program Files (x86)\\Git\\cmd\\git.exe')
-    candidates.push('C:\\Program Files (x86)\\Git\\bin\\git.exe')
-    // GitHub Desktop bundled git — glob-like expansion
-    const ghDesktopBase = join(home, 'AppData', 'Local', 'GitHubDesktop')
-    // We'll check common version patterns; actual glob resolved at discovery time
-    candidates.push(join(ghDesktopBase, 'app-*', 'resources', 'app', 'git', 'cmd', 'git.exe'))
-    candidates.push('git.exe')
-    candidates.push('git.cmd')
+    raw.push('C:\\Program Files\\Git\\cmd\\git.exe')
+    raw.push('C:\\Program Files\\Git\\bin\\git.exe')
+    raw.push('C:\\Program Files (x86)\\Git\\cmd\\git.exe')
+    raw.push('C:\\Program Files (x86)\\Git\\bin\\git.exe')
+    // GitHub Desktop bundled git — resolved via expandGlob at discovery time
+    raw.push(join(home, 'AppData', 'Local', 'GitHubDesktop', 'app-*', 'resources', 'app', 'git', 'cmd', 'git.exe'))
+    raw.push('git.exe')
+    raw.push('git.cmd')
   }
-  candidates.push('git')
-  return [...new Set(candidates)]
+  raw.push('git')
+  return [...new Set(raw.filter(c => c && c.trim()))]
 }
 
-function nodeCandidates() {
-  const candidates = []
-  if (process.env.NODE_BIN) candidates.push(process.env.NODE_BIN)
-  // process.execPath is the running Node binary — always reliable
-  candidates.push(process.execPath)
-  if (IS_WINDOWS) {
-    candidates.push('node.exe')
-  }
-  candidates.push('node')
-  return [...new Set(candidates)]
-}
-
-async function expandGlob(pattern) {
-  // Simple glob expansion for patterns like path/app-*/sub/git.exe
-  // Only handles a single * segment
-  const starIdx = pattern.indexOf('*')
-  if (starIdx === -1) return [pattern]
-  const dir = dirname(pattern.slice(0, starIdx + 1))
-  const rest = pattern.slice(starIdx + 1)
-  try {
-    const { readdir } = await import('node:fs/promises')
-    const entries = await readdir(dir)
-    return entries.map(e => join(dir, e) + rest).sort().reverse() // newest version first
-  } catch (_) {
-    return []
-  }
-}
-
+// Tries candidates in order, skipping any that fail. Never throws.
+// Returns { path, version } for the first working candidate, or null.
 async function discoverBin(candidates) {
   for (const candidate of candidates) {
-    const expanded = await expandGlob(candidate)
-    for (const path of expanded) {
-      const version = await probeVersion(path)
-      if (version !== null) return { path, version }
+    let paths
+    try {
+      paths = await expandGlob(candidate)
+    } catch (_) {
+      paths = candidate.includes('*') ? [] : [candidate]
+    }
+
+    for (const p of paths) {
+      if (!p || p.includes('*')) continue
+      // Optional pre-filter: skip if absolute path is known to be a directory
+      if (!await isLikelyExecutable(p)) continue
+      const version = await probeVersion(p)
+      if (version !== null) return { path: p, version }
     }
   }
   return null
 }
 
-// Run discovery once at startup
+// Run discovery once at startup — never fatal
 console.log('[apex-worker] Discovering tools...')
 const [nodeDiscovered, npmDiscovered, gitDiscovered] = await Promise.all([
-  discoverBin(nodeCandidates()),
-  discoverBin(npmCandidates()),
-  discoverBin(gitCandidates()),
+  discoverBin(nodeCandidates()).catch(() => null),
+  discoverBin(npmCandidates()).catch(() => null),
+  discoverBin(gitCandidates()).catch(() => null),
 ])
 
 const TOOLS = {
-  node: nodeDiscovered ? { available: true, path: nodeDiscovered.path, version: nodeDiscovered.version } : { available: false, path: null, version: null },
-  npm:  npmDiscovered  ? { available: true, path: npmDiscovered.path,  version: npmDiscovered.version  } : { available: false, path: null, version: null },
-  git:  gitDiscovered  ? { available: true, path: gitDiscovered.path,  version: gitDiscovered.version  } : { available: false, path: null, version: null },
+  node: nodeDiscovered
+    ? { available: true,  path: nodeDiscovered.path, version: nodeDiscovered.version, reason: null }
+    : { available: false, path: null, version: null, reason: 'Not found. Set NODE_BIN in .env or reinstall Node.js.' },
+  npm: npmDiscovered
+    ? { available: true,  path: npmDiscovered.path, version: npmDiscovered.version, reason: null }
+    : { available: false, path: null, version: null, reason: 'Not found. Set NPM_BIN=npm.cmd in .env or reinstall Node.js.' },
+  git: gitDiscovered
+    ? { available: true,  path: gitDiscovered.path, version: gitDiscovered.version, reason: null }
+    : { available: false, path: null, version: null, reason: 'Not found. Set GIT_BIN in .env or install Git for Windows (https://git-scm.com).' },
 }
 
-console.log(`[apex-worker] node: ${TOOLS.node.available ? `✓ ${TOOLS.node.path} (${TOOLS.node.version})` : '✗ not found'}`)
-console.log(`[apex-worker] npm:  ${TOOLS.npm.available  ? `✓ ${TOOLS.npm.path}  (${TOOLS.npm.version})`  : '✗ not found — set NPM_BIN in .env'}`)
-console.log(`[apex-worker] git:  ${TOOLS.git.available  ? `✓ ${TOOLS.git.path}  (${TOOLS.git.version})`  : '✗ not found — set GIT_BIN in .env or install Git for Windows'}`)
+console.log(`[apex-worker] node: ${TOOLS.node.available ? `✓ ${TOOLS.node.path} (${TOOLS.node.version})` : `✗ ${TOOLS.node.reason}`}`)
+console.log(`[apex-worker] npm:  ${TOOLS.npm.available  ? `✓ ${TOOLS.npm.path} (${TOOLS.npm.version})`   : `✗ ${TOOLS.npm.reason}`}`)
+console.log(`[apex-worker] git:  ${TOOLS.git.available  ? `✓ ${TOOLS.git.path} (${TOOLS.git.version})`   : `✗ ${TOOLS.git.reason}`}`)
 
 // ─── Command timeout ───────────────────────────────────────────────────────────
 
@@ -182,14 +229,9 @@ const COMMAND_TIMEOUT_MS = 30000
 function requireTool(name) {
   const tool = TOOLS[name]
   if (!tool?.available) {
-    const hints = {
-      git: 'Instale Git for Windows (https://git-scm.com) ou defina GIT_BIN no .env.',
-      npm: 'Reinstale Node.js (https://nodejs.org) ou defina NPM_BIN no .env.',
-      node: 'Verifique a instalação do Node.js ou defina NODE_BIN no .env.',
-    }
-    return { ok: false, unavailable: true, reason: `"${name}" não encontrado automaticamente. ${hints[name] || ''}` }
+    return { ok: false, unavailable: true, tag: name, reason: tool?.reason || `"${name}" not available.` }
   }
-  return { ok: true, bin: tool.path }
+  return { ok: true, bin: tool.path, tag: name }
 }
 
 function buildActionMap() {
@@ -197,42 +239,42 @@ function buildActionMap() {
     'system.info': {
       label: 'System info (Node/npm/git versions)',
       build: () => [
-        { ...requireTool('node'), args: ['--version'], tag: 'node' },
-        { ...requireTool('npm'),  args: ['--version'], tag: 'npm'  },
-        { ...requireTool('git'),  args: ['--version'], tag: 'git'  },
+        { ...requireTool('node'), args: ['--version'] },
+        { ...requireTool('npm'),  args: ['--version'] },
+        { ...requireTool('git'),  args: ['--version'] },
       ],
     },
     'node.version': {
       label: 'Node.js version',
-      build: () => [{ ...requireTool('node'), args: ['--version'], tag: 'node' }],
+      build: () => [{ ...requireTool('node'), args: ['--version'] }],
     },
     'npm.version': {
       label: 'npm version',
-      build: () => [{ ...requireTool('npm'), args: ['--version'], tag: 'npm' }],
+      build: () => [{ ...requireTool('npm'), args: ['--version'] }],
     },
     'git.version': {
       label: 'Git version',
-      build: () => [{ ...requireTool('git'), args: ['--version'], tag: 'git' }],
+      build: () => [{ ...requireTool('git'), args: ['--version'] }],
     },
     'project.git_status': {
       label: 'Git status of project',
-      build: () => [{ ...requireTool('git'), args: ['status', '--short'], tag: 'git' }],
+      build: () => [{ ...requireTool('git'), args: ['status', '--short'] }],
     },
     'project.git_log': {
       label: 'Recent git log (last 5 commits)',
-      build: () => [{ ...requireTool('git'), args: ['log', '--oneline', '-5'], tag: 'git' }],
+      build: () => [{ ...requireTool('git'), args: ['log', '--oneline', '-5'] }],
     },
     'project.build_check': {
       label: 'npm run build (build check)',
-      build: () => [{ ...requireTool('npm'), args: ['run', 'build'], tag: 'npm' }],
+      build: () => [{ ...requireTool('npm'), args: ['run', 'build'] }],
     },
     'project.validate_h44': {
       label: 'Validate CP15X-H4.4',
-      build: () => [{ ...requireTool('node'), args: ['scripts/validate-cp15x-h44.mjs'], tag: 'node' }],
+      build: () => [{ ...requireTool('node'), args: ['scripts/validate-cp15x-h44.mjs'] }],
     },
     'project.validate_h5': {
       label: 'Validate CP15X-H5',
-      build: () => [{ ...requireTool('node'), args: ['scripts/validate-cp15x-h5.mjs'], tag: 'node' }],
+      build: () => [{ ...requireTool('node'), args: ['scripts/validate-cp15x-h5.mjs'] }],
     },
   }
 }
@@ -253,13 +295,10 @@ function checkAuth(req) {
 }
 
 function timingSafeEqual(a, b) {
-  if (a.length !== b.length) {
-    let diff = 0
-    for (let i = 0; i < Math.max(a.length, b.length); i++) diff |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0)
-    return false
-  }
-  let diff = 0
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i)
+  // Always iterate max length to prevent timing attacks even on length mismatch
+  const len = Math.max(a.length, b.length)
+  let diff = a.length !== b.length ? 1 : 0
+  for (let i = 0; i < len; i++) diff |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0)
   return diff === 0
 }
 
@@ -267,22 +306,28 @@ function timingSafeEqual(a, b) {
 
 function runCommand(bin, args, timeoutMs = COMMAND_TIMEOUT_MS) {
   return new Promise(res => {
-    const start = Date.now()
-    const proc = spawn(bin, args, {
-      cwd: PROJECT_PATH,
-      shell: false,
-      env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
-      stdio: ['ignore', 'pipe', 'pipe'],
-      windowsHide: true,
-    })
+    let proc
+    try {
+      proc = spawn(bin, args, {
+        cwd: PROJECT_PATH,
+        shell: false,
+        env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
+        stdio: ['ignore', 'pipe', 'pipe'],
+        windowsHide: true,
+      })
+    } catch (err) {
+      return res({ exitCode: -1, stdout: '', stderr: err.message, durationMs: 0 })
+    }
 
+    const start = Date.now()
     let stdout = ''
     let stderr = ''
+
     proc.stdout.on('data', d => { stdout += d.toString() })
     proc.stderr.on('data', d => { stderr += d.toString() })
 
     const timer = setTimeout(() => {
-      proc.kill('SIGTERM')
+      try { proc.kill('SIGTERM') } catch (_) {}
       res({ exitCode: -1, stdout, stderr: stderr + '\n[timeout]', durationMs: Date.now() - start })
     }, timeoutMs)
 
@@ -329,21 +374,28 @@ async function executeAction(actionId) {
     results.push({ tag: cmd.tag, bin: cmd.bin, args: cmd.args, ...r })
   }
 
-  const allOk = results.every(r => r.exitCode === 0)
+  // ok = true if at least one command succeeded and none hard-failed (non-unavailable exit != 0)
+  const ran = results.filter(r => !r.unavailable)
+  const allOk = ran.length > 0 && ran.every(r => r.exitCode === 0)
+  const partialOk = ran.some(r => r.exitCode === 0)
+
   const combined = results.map(r => {
-    const label = r.bin ? `$ ${r.bin} ${r.args.join(' ')}` : `[${r.tag}: unavailable]`
-    return `${label}\n${r.stdout || ''}${r.stderr ? `[stderr] ${r.stderr}` : ''}`.trim()
+    const label = r.bin ? `$ ${r.bin} ${r.args.join(' ')}` : `[${r.tag}: unavailable — ${r.stderr}]`
+    const body = [r.stdout, r.stderr && !r.unavailable ? `[stderr] ${r.stderr}` : ''].filter(Boolean).join('\n')
+    return body ? `${label}\n${body}`.trim() : label
   }).join('\n\n')
 
   return {
     ok: allOk,
+    partial: !allOk && partialOk,
     action: actionId,
     label: def.label,
-    exitCode: results[results.length - 1]?.exitCode ?? -1,
+    exitCode: ran[ran.length - 1]?.exitCode ?? -1,
     stdout: combined,
-    stderr: results.map(r => r.stderr).filter(Boolean).join('\n'),
+    stderr: results.filter(r => r.stderr && !r.unavailable).map(r => r.stderr).join('\n'),
     durationMs: results.reduce((sum, r) => sum + r.durationMs, 0),
     results,
+    secretsExposed: false,
   }
 }
 
@@ -394,7 +446,7 @@ async function handleRequest(req, res) {
       ok: true,
       service: 'apex-local-worker',
       version: '1.0.0',
-      checkpoint: 'H5.2B',
+      checkpoint: 'H5.2C',
       projectPath: PROJECT_PATH,
       platform: platform(),
       discoveredTools: TOOLS,
@@ -432,7 +484,8 @@ async function handleRequest(req, res) {
 
     const result = await executeAction(action)
     if (result.blocked) return sendJson(res, 403, result)
-    return sendJson(res, result.ok ? 200 : 500, result)
+    // Return 200 even for partial results so callers can inspect individual tool results
+    return sendJson(res, result.ok || result.partial ? 200 : 500, result)
   }
 
   // ── 404 ───────────────────────────────────────────────────────────────────
@@ -446,16 +499,16 @@ const server = createServer((req, res) => {
     console.error('[apex-worker] unhandled error:', err?.message || err)
     try {
       res.writeHead(500, { 'Content-Type': 'application/json' })
-      res.end(JSON.stringify({ ok: false, reason: 'Internal worker error. No secrets exposed.' }))
+      res.end(JSON.stringify({ ok: false, reason: 'Internal worker error. No secrets exposed.', secretsExposed: false }))
     } catch (_) { /* response already sent */ }
   })
 })
 
 server.listen(PORT, '127.0.0.1', () => {
-  console.log(`[apex-worker] Apex Local Worker H5.2B running on http://127.0.0.1:${PORT}`)
+  console.log(`[apex-worker] Apex Local Worker H5.2C running on http://127.0.0.1:${PORT}`)
   console.log(`[apex-worker] Project path: ${PROJECT_PATH}`)
   console.log(`[apex-worker] node: ${TOOLS.node.available ? TOOLS.node.version : 'NOT FOUND'}`)
-  console.log(`[apex-worker] npm:  ${TOOLS.npm.available  ? TOOLS.npm.version  : 'NOT FOUND — set NPM_BIN in .env'}`)
+  console.log(`[apex-worker] npm:  ${TOOLS.npm.available  ? TOOLS.npm.version  : 'NOT FOUND — set NPM_BIN=npm.cmd in .env'}`)
   console.log(`[apex-worker] git:  ${TOOLS.git.available  ? TOOLS.git.version  : 'NOT FOUND — set GIT_BIN in .env'}`)
   console.log(`[apex-worker] Allowed actions: ${[...ALLOWED_ACTION_IDS].join(', ')}`)
   console.log('[apex-worker] Free shell: BLOCKED')

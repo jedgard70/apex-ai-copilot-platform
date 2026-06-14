@@ -1,2 +1,11 @@
+# Never commit real secrets
 .env
+.env.local
+.env.*.local
+.env.production
+.env.development
+
+# Keep only the example
+!.env.example
+
 node_modules/

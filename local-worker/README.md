@@ -1,7 +1,7 @@
-# Apex Local Worker — H5.2B
+# Apex Local Worker — H5.2C
 
 Serviço Node.js local para execução controlada no PC Windows.
-Auto-descobre `node`, `npm` e `git` — nenhuma configuração de PATH necessária.
+Auto-descobre `node`, `npm` e `git` de forma best-effort — candidatos inválidos são ignorados, não derrubam o worker.
 Roda em `http://127.0.0.1:8787` e aceita apenas ações da whitelist.
 
 ## Requisitos
@@ -44,29 +44,42 @@ notepad .env
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-## Auto-discovery de binários
+## Auto-discovery de binários (best effort)
 
-O worker descobre automaticamente `node`, `npm` e `git` sem precisar de configuração.
+O worker tenta descobrir `node`, `npm` e `git` automaticamente ao iniciar.
+Se um candidato causar erro (EINVAL, ENOENT, diretório em vez de arquivo, path com `*` não expandido), ele é **ignorado** — o worker **não crasha**.
+
+Se a discovery falhar para um binário, o worker ainda sobe e `/health` retorna `available: false` com uma `reason` clara.
+Nesse caso, defina o override no `.env` (ver abaixo).
+
+**Para node, tenta em ordem:**
+1. `NODE_BIN` do `.env` (se definido)
+2. `process.execPath` (o próprio Node.js em execução — sempre funciona)
+3. `node.exe` / `node` no PATH
 
 **Para npm (Windows), tenta em ordem:**
 1. `NPM_BIN` do `.env` (se definido)
 2. `npm.cmd` ao lado do `node.exe` atual
 3. `npm.exe` ao lado do `node.exe`
-4. `npm` no PATH
+4. `npm.cmd` / `npm.exe` / `npm` no PATH
 
 **Para git (Windows), tenta em ordem:**
 1. `GIT_BIN` do `.env` (se definido)
 2. `C:\Program Files\Git\cmd\git.exe`
 3. `C:\Program Files\Git\bin\git.exe`
-4. GitHub Desktop bundled git
-5. `git.exe` / `git.cmd` no PATH
+4. GitHub Desktop bundled git (`app-*/resources/app/git/cmd/git.exe`)
+5. `git.exe` / `git.cmd` / `git` no PATH
 
-**Para node:**
-1. `NODE_BIN` do `.env` (se definido)
-2. `process.execPath` (o próprio Node.js em execução — sempre funciona)
+### Se auto-discovery falhar — use overrides no `.env`
 
-Se um binário não for encontrado, a ação retorna `unavailable` com instrução clara.
-Você não precisa configurar `NODE_BIN`, `NPM_BIN` ou `GIT_BIN` na maioria dos casos.
+```env
+# Exemplos Windows comuns:
+NPM_BIN=npm.cmd
+GIT_BIN=C:\Program Files\Git\cmd\git.exe
+
+# GitHub Desktop bundled git (ajuste a versão):
+GIT_BIN=C:\Users\apexg\AppData\Local\GitHubDesktop\app-3.5.12\resources\app\git\cmd\git.exe
+```
 
 ## Rodar
 
@@ -80,33 +93,42 @@ node --watch server.mjs
 
 Ao iniciar, o worker imprime o resultado do auto-discovery:
 ```
+[apex-worker] Discovering tools...
 [apex-worker] node: ✓ C:\Program Files\nodejs\node.exe (v22.x.x)
 [apex-worker] npm:  ✓ C:\Program Files\nodejs\npm.cmd (10.x.x)
 [apex-worker] git:  ✓ C:\Program Files\Git\cmd\git.exe (git version 2.x.x)
+[apex-worker] Apex Local Worker H5.2C running on http://127.0.0.1:8787
 ```
+
+Se um binário não for encontrado:
+```
+[apex-worker] npm:  ✗ Not found. Set NPM_BIN=npm.cmd in .env or reinstall Node.js.
+```
+O worker **continua rodando** — apenas as ações que dependem daquele binário retornam `unavailable`.
 
 ## Testar
 
-### Health check (mostra discoveredTools)
+### Health check
 ```bash
 curl -H "Authorization: Bearer SEU_TOKEN" http://127.0.0.1:8787/health
 ```
 
-Resposta:
+Resposta (mesmo se npm/git não encontrados):
 ```json
 {
   "ok": true,
-  "checkpoint": "H5.2B",
+  "checkpoint": "H5.2C",
   "discoveredTools": {
-    "node": { "available": true, "path": "...", "version": "v22.x.x" },
-    "npm":  { "available": true, "path": "...", "version": "10.x.x" },
-    "git":  { "available": true, "path": "...", "version": "git version 2.x.x" }
+    "node": { "available": true,  "path": "...", "version": "v22.x.x", "reason": null },
+    "npm":  { "available": false, "path": null,  "version": null, "reason": "Not found. Set NPM_BIN=npm.cmd in .env..." },
+    "git":  { "available": true,  "path": "...", "version": "git version 2.x.x", "reason": null }
   },
-  "allowedActions": ["system.info", "node.version", ...]
+  "allowedActions": ["system.info", "node.version", ...],
+  "secretsExposed": false
 }
 ```
 
-### Executar system.info
+### system.info (parcial se alguma tool indisponível)
 ```bash
 curl -X POST \
   -H "Authorization: Bearer SEU_TOKEN" \
@@ -148,6 +170,7 @@ curl -X POST \
 - **Bind apenas em 127.0.0.1** — não exposto na rede local
 - **Timeout por comando** — 30 segundos por padrão
 - **cwd restrito** ao `APEX_PROJECT_PATH`
+- **spawn() protegido** — EINVAL/ENOENT capturados, worker não crasha
 
 ## Integração com o Apex Backend (Vercel)
 
@@ -163,4 +186,5 @@ LOCAL_WORKER_TOKEN=o-mesmo-token-do-.env
 
 ## Arquivo `.env` — NÃO commitar
 
-O arquivo `.env` está no `.gitignore`. **Nunca faça commit do token real.**
+O arquivo `.env` e variações (`.env.local`, `.env.production`) estão no `.gitignore`.
+**Nunca faça commit do token real.**
