@@ -89,12 +89,27 @@ type H5ToolCard = {
   connectorDetail?: Record<string, unknown>
 }
 
+type H7ConfirmationButton = {
+  id: string
+  label: string
+  variant: 'primary' | 'secondary' | 'ghost'
+  message: string | null
+}
+
+type H7Confirmation = {
+  show: boolean
+  intent?: string
+  pendingAction?: Record<string, unknown> | null
+  buttons: H7ConfirmationButton[]
+}
+
 type Message = {
   id: string
   role: 'user' | 'assistant'
   text: string
   attachment?: IntakeFile
   toolCards?: H5ToolCard[]
+  confirmation?: H7Confirmation | null
 }
 
 type ChatIdentityContext = {
@@ -110,6 +125,7 @@ type ChatIdentityContext = {
 type ClientMemory = {
   displayName?: string
   language?: string
+  pendingH6Action?: Record<string, unknown> | null
 }
 
 type UiLanguage = 'EN' | 'PT'
@@ -1541,7 +1557,11 @@ function App() {
             .map(message => `${message.role}: ${message.text}`),
         })
       } else {
-        setMessages(prev => [...prev, { id: id(), role: 'assistant', text: reply, toolCards }])
+        // H7: attach confirmation UI metadata if present
+        const confirmation = (data?.confirmation && typeof data.confirmation === 'object' && (data.confirmation as Record<string, unknown>).show)
+          ? data.confirmation as H7Confirmation
+          : null
+        setMessages(prev => [...prev, { id: id(), role: 'assistant', text: reply, toolCards, confirmation }])
       }
     } catch (error) {
       setMessages(prev => [
@@ -2241,6 +2261,41 @@ function App() {
                           </div>
                         )
                       })()}
+                    </div>
+                  )}
+                  {/* H7 — Confirmation buttons for risk-gated actions */}
+                  {message.confirmation?.show && message.confirmation.buttons?.length > 0 && (
+                    <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Apex aguarda confirmação
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        {message.confirmation.buttons.map(btn => btn.message && (
+                          <button
+                            key={btn.id}
+                            disabled={loading}
+                            onClick={() => {
+                              if (!btn.message) return
+                              setInput('')
+                              askCopilot(btn.message)
+                            }}
+                            style={{
+                              padding: '8px 18px',
+                              borderRadius: '8px',
+                              fontWeight: 600,
+                              fontSize: '13px',
+                              cursor: loading ? 'not-allowed' : 'pointer',
+                              opacity: loading ? 0.5 : 1,
+                              border: btn.variant === 'secondary' ? '1px solid #d1d5db' : 'none',
+                              background: btn.variant === 'primary' ? '#10b981' : btn.variant === 'secondary' ? '#f9fafb' : 'transparent',
+                              color: btn.variant === 'primary' ? '#fff' : '#374151',
+                              transition: 'opacity 0.15s',
+                            }}
+                          >
+                            {btn.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
