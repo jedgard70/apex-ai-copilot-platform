@@ -105,6 +105,19 @@ const INTENT_PATTERNS = {
     /\binternet (nao|não) funciona\b/,
     /\b(revit).*\b(travando|lento|crash|fechando|erro)\b/,
   ],
+  production_capability_continuation: [
+    /\bo que mais\b/,
+    /\be mais\b/,
+    /\bme diga mais\b/,
+    /\bo que mais vc faz\b/,
+    /\bo que mais voce faz\b/,
+    /\bquais outras funcoes\b/,
+    /\bquais outras funções\b/,
+    /\bcontinua(r)?\b/,
+    /\bcontinue\b/,
+    /\btem mais\b/,
+    /\btem mais alguma?\b/,
+  ],
   production_capability_listing: [
     /\bo que sabe fazer\b/,
     /\bliste para mim\b/,
@@ -283,6 +296,10 @@ export function classifyProductionConversationIntent(message = '') {
     return 'production_acknowledgement'
   }
 
+  if (includesAny(text, INTENT_PATTERNS.production_capability_continuation)) {
+    return 'production_capability_continuation'
+  }
+
   if (includesAny(text, INTENT_PATTERNS.production_capability_listing)) {
     return 'production_capability_listing'
   }
@@ -321,6 +338,50 @@ export function classifyProductionConversationIntent(message = '') {
   }
 
   return hasPortugueseSignal(text) ? 'production_general_portuguese' : 'production_general'
+}
+
+function buildCapabilityContinuationReply(messages = []) {
+  const lastTopic = summarizeLastTopic(messages)
+  const hasRevitContext = lastTopic && /revit|bim|familia|modelo|ifc/i.test(lastTopic)
+  const hasPlatformContext = lastTopic && /apex|plataforma|checkpoint|deploy|github|vercel/i.test(lastTopic)
+  const hasCodeContext = lastTopic && /codigo|código|compilar|repositorio|repositório|branch/i.test(lastTopic)
+
+  if (hasRevitContext) {
+    return [
+      'Além do que já mencionei sobre Revit/BIM, também posso:',
+      '- montar templates de Plano BIM com LOD/LOI por disciplina;',
+      '- preparar critérios de medição e quantitativos para orçamento;',
+      '- organizar documentação de entregáveis, vistas, folhas e padrões de nomenclatura;',
+      '- planejar exportação IFC/NWC para coordenação, clash detection e obra;',
+      '- preparar especificações técnicas e memoriais descritivos;',
+      '- estruturar cronograma e sequência de entrega BIM.',
+      'Quando o conector Revit/MCP estiver configurado, poderei também ler e agir no ambiente conectado com confirmação.',
+    ].join('\n')
+  }
+
+  if (hasPlatformContext || hasCodeContext) {
+    return [
+      'Além disso, posso ajudar em:',
+      '- orçamento SINAPI, composições e cronograma financeiro;',
+      '- propostas técnicas, contratos e escopos comerciais;',
+      '- análise de arquivos, organização BIM e relatórios de obra;',
+      '- marketing técnico, apresentações e conteúdo para clientes;',
+      '- automações seguras, validação de deploy e leitura de GitHub/Vercel;',
+      '- preparação de ações confirmadas (deploy, migration, rollback) sem executar sem evidência.',
+      'Quando os conectores locais estiverem ativos, também poderei operar Local Worker, Revit MCP e rotinas controladas com confirmação.',
+    ].join('\n')
+  }
+
+  return [
+    'Além disso, posso ajudar em:',
+    '- orçamento e SINAPI, propostas, contratos e escopos;',
+    '- análise de arquivos, organização BIM e relatórios de obra;',
+    '- planejamento, cronograma, compras e acompanhamento;',
+    '- marketing técnico, apresentações e conteúdo;',
+    '- automações, validação de deploy, leitura de GitHub/Vercel;',
+    '- preparação de ações seguras com confirmação (deploy, migration, rollback).',
+    'Quando os conectores locais estiverem ativos, também poderei operar Local Worker, Revit MCP e rotinas controladas com confirmação.',
+  ].join('\n')
 }
 
 function buildCapabilityListingReply() {
@@ -483,6 +544,7 @@ function sectionTitleForIntent(intent, index) {
     production_vercel_deploy: 'Deploy',
     production_supabase: 'Supabase',
     production_capability_listing: 'Capacidades',
+    production_capability_continuation: 'Mais capacidades',
     production_platform_position: 'Plataforma',
     production_next_step: 'Próximo passo',
     production_execute_recommended: 'Execução',
@@ -504,6 +566,7 @@ function buildReplyForIntent(intent, {
   multiQuestionContext = false,
 } = {}) {
   if (intent === 'production_capability_listing') return buildCapabilityListingReply()
+  if (intent === 'production_capability_continuation') return buildCapabilityContinuationReply(messages)
   if (intent === 'production_display_name_preference') return `Entendido, ${displayName}. Vou te chamar assim nesta sessão.`
   if (intent === 'production_platform_position') return buildPlatformPositionReply(productionStatus)
   if (intent === 'production_github_connector_status') return buildConnectorsStatusReply(productionStatus.connectorStatus, 'github')

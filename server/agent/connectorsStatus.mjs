@@ -298,13 +298,22 @@ async function collectVercelReadOnly(base) {
     }
   }
 
-  const deploymentsResult = await fetchJsonReadOnly(
-    vercelApiUrl('/v13/deployments', { projectId: base.vercel.projectId, limit: 5, teamId }),
+  // Try v6 first (most compatible), fall back to v13 if needed
+  let deploymentsResult = await fetchJsonReadOnly(
+    vercelApiUrl('/v6/deployments', { projectId: base.vercel.projectId, limit: 5, teamId }),
     { token, provider: 'vercel' },
   )
+  if (!deploymentsResult.ok) {
+    deploymentsResult = await fetchJsonReadOnly(
+      vercelApiUrl('/v13/deployments', { projectId: base.vercel.projectId, limit: 5, teamId }),
+      { token, provider: 'vercel' },
+    )
+  }
   const deploymentsRaw = deploymentsResult.ok && Array.isArray(deploymentsResult.data?.deployments)
     ? deploymentsResult.data.deployments
-    : []
+    : deploymentsResult.ok && Array.isArray(deploymentsResult.data)
+      ? deploymentsResult.data
+      : []
   const latestDeployments = deploymentsRaw.slice(0, 5).map(deployment => ({
     id: cleanText(deployment.uid || deployment.id || '', 80),
     state: cleanText(deployment.state || deployment.readyState || deployment.status || '', 80),
@@ -327,8 +336,8 @@ async function collectVercelReadOnly(base) {
     projectName: cleanText(projectResult.data?.name || projectResult.data?.id || '', 120),
     latestDeployments,
     latestProductionDeployment,
-    unavailableReason: deploymentsResult.ok ? '' : 'Projeto acessível, mas a lista de deployments não foi retornada.',
-    nextRequired: deploymentsResult.ok ? '' : 'Validar permissão read-only para listar deployments.',
+    unavailableReason: deploymentsResult.ok ? '' : `Projeto acessível, mas deployments retornaram HTTP ${deploymentsResult.status || '?'} — verifique escopo do token (deployments:read).`,
+    nextRequired: deploymentsResult.ok ? '' : 'Garantir que VERCEL_TOKEN tenha escopo deployments:read e que VERCEL_PROJECT_ID/VERCEL_TEAM_ID estejam corretos.',
   }
 }
 
