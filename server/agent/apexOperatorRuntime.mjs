@@ -16,6 +16,7 @@ import {
 import { buildDecision, summarizeEvidence } from './verifier.mjs'
 import { classifyRevitBimQuery, getRevitBimHelp, buildRevitBimReply } from './revitBimConnector.mjs'
 import { classifyImageGenRequest, buildImageGenPromptReply, generateImage, buildImageResultReply, buildImagePrompt } from './imageGenerationConnector.mjs'
+import { buildDomainKnowledgeReply, DOMAIN_KNOWLEDGE_INTENTS } from './domainKnowledgeConnector.mjs'
 
 export { isOperatorIntent }
 
@@ -469,6 +470,26 @@ export async function runApexOperatorProductionSafe({
         operatorIntent: intent,
         memory,
         evidence: { summary: { connector: 'image_generation', renderType: imageType } },
+        decision: finalReply,
+        requiresApproval: false,
+        finalReply,
+        memoryPatch: null,
+        secretsExposed: false,
+      }
+    }
+  }
+
+  // H16 — Domain knowledge connector (orçamento, proposta, obra, cronograma, marketing)
+  if (DOMAIN_KNOWLEDGE_INTENTS.has(productionConversationIntent)) {
+    const finalReply = buildDomainKnowledgeReply(productionConversationIntent, userMessage)
+    if (finalReply) {
+      return {
+        ok: true,
+        status: 'GREEN',
+        intent: 'h16_domain_knowledge',
+        operatorIntent: intent,
+        memory,
+        evidence: { summary: { connector: 'domain_knowledge', domain: productionConversationIntent } },
         decision: finalReply,
         requiresApproval: false,
         finalReply,
