@@ -219,9 +219,13 @@ async function collectGithubReadOnly(base) {
   }
 
   const commitSha = cleanText(branchResult.data?.commit?.sha || '', 80)
-  const commitResult = commitSha
-    ? await fetchJsonReadOnly(githubApiUrl(`/repos/${owner}/${repo}/commits/${commitSha}`), { token, provider: 'github' })
-    : { ok: false, data: null, failure: safeFailure('api') }
+  const [commitResult, prsResult, workflowResult] = await Promise.all([
+    commitSha
+      ? fetchJsonReadOnly(githubApiUrl(`/repos/${owner}/${repo}/commits/${commitSha}`), { token, provider: 'github' })
+      : Promise.resolve({ ok: false, data: null, failure: safeFailure('api') }),
+    fetchJsonReadOnly(githubApiUrl(`/repos/${owner}/${repo}/pulls?state=open&per_page=3`), { token, provider: 'github' }),
+    fetchJsonReadOnly(githubApiUrl(`/repos/${owner}/${repo}/actions/runs?per_page=1`), { token, provider: 'github' }),
+  ])
   const commit = commitResult.ok ? commitResult.data : null
   const latestCommit = commitSha
     ? {
@@ -230,6 +234,30 @@ async function collectGithubReadOnly(base) {
         message: cleanText(commit?.commit?.message || '', 240),
         author: cleanText(commit?.commit?.author?.name || commit?.author?.login || '', 120),
         date: cleanText(commit?.commit?.author?.date || commit?.commit?.committer?.date || '', 80),
+        url: cleanUrl(commit?.html_url || ''),
+      }
+    : null
+
+  const openPRs = prsResult.ok && Array.isArray(prsResult.data)
+    ? prsResult.data.slice(0, 3).map(pr => ({
+        number: pr.number,
+        title: cleanText(pr.title || '', 120),
+        branch: cleanText(pr.head?.ref || '', 80),
+        state: cleanText(pr.state || '', 40),
+        url: cleanUrl(pr.html_url || ''),
+      }))
+    : []
+
+  const workflowRuns = workflowResult.ok && Array.isArray(workflowResult.data?.workflow_runs)
+    ? workflowResult.data.workflow_runs
+    : []
+  const latestWorkflowRun = workflowRuns.length
+    ? {
+        name: cleanText(workflowRuns[0].name || '', 120),
+        status: cleanText(workflowRuns[0].status || '', 40),
+        conclusion: cleanText(workflowRuns[0].conclusion || '', 40),
+        url: cleanUrl(workflowRuns[0].html_url || ''),
+        createdAt: safeIsoDate(workflowRuns[0].created_at),
       }
     : null
 
@@ -242,6 +270,8 @@ async function collectGithubReadOnly(base) {
     branch,
     branchExists: true,
     latestCommit,
+    openPRs,
+    latestWorkflowRun,
     currentKnownProductionCommit: latestCommit?.shortSha || base.github.currentKnownProductionCommit,
     unavailableReason: latestCommit ? '' : 'Branch encontrada, mas detalhe do commit não foi retornado.',
     nextRequired: latestCommit ? '' : 'Tentar novamente ou validar permissão de leitura de commits.',
@@ -281,6 +311,9 @@ async function collectVercelReadOnly(base) {
     target: cleanText(deployment.target || deployment.environment || '', 80),
     url: cleanUrl(deployment.url || ''),
     createdAt: safeIsoDate(deployment.createdAt || deployment.created),
+    commitSha: shortSha(deployment.meta?.githubCommitSha || deployment.gitSource?.sha || ''),
+    commitMessage: cleanText(deployment.meta?.githubCommitMessage || deployment.gitSource?.message || '', 120),
+    creator: cleanText(deployment.creator?.username || deployment.meta?.githubCommitAuthorName || '', 80),
   }))
   const latestProductionDeployment = latestDeployments.find(deployment => deployment.target === 'production')
     || latestDeployments.find(deployment => deployment.url.includes(base.vercel.productionDomain))
@@ -380,12 +413,21 @@ export function buildConnectorsStatusReply(status = collectConnectorsStatus(), f
     if (status.github.tokenPresent) lines.push(`  Branch configurada existe: ${status.github.branchExists ? 'sim' : 'não confirmado'}.`)
     lines.push(`  Token presente: ${status.github.tokenPresent ? 'sim' : 'não'}.`)
     if (status.github.latestCommit) {
-      lines.push(`  Último commit: ${status.github.latestCommit.shortSha}.`)
-      if (status.github.latestCommit.message) lines.push(`  Mensagem: ${status.github.latestCommit.message}.`)
-      if (status.github.latestCommit.author) lines.push(`  Autor: ${status.github.latestCommit.author}.`)
-      if (status.github.latestCommit.date) lines.push(`  Data: ${status.github.latestCommit.date}.`)
+      const c = status.github.latestCommit
+      lines.push(`  Último commit: ${c.shortSha} — ${c.message}.`)
+      if (c.author || c.date) lines.push(`  Autor/data: ${c.author || '—'} | ${c.date || '—'}.`)
     } else if (status.github.currentKnownProductionCommit) {
       lines.push(`  Commit conhecido: ${status.github.currentKnownProductionCommit}.`)
+    }
+    const prs = status.github.openPRs || []
+    if (prs.length) {
+      lines.push(`  PRs abertos (${prs.length}):`)
+      for (const pr of prs) lines.push(`    #${pr.number} ${pr.title} [${pr.branch}]`)
+    }
+    const wf = status.github.latestWorkflowRun
+    if (wf) {
+      const wfStatus = [wf.status, wf.conclusion].filter(Boolean).join('/')
+      lines.push(`  Último workflow: ${wf.name} — ${wfStatus}.`)
     }
     if (!status.github.configured) lines.push(`  Próximo: ${status.github.nextRequired}`)
     else if (status.github.unavailableReason) lines.push(`  Observação: ${status.github.unavailableReason}`)
@@ -401,13 +443,17 @@ export function buildConnectorsStatusReply(status = collectConnectorsStatus(), f
     lines.push(`  Token presente: ${status.vercel.tokenPresent ? 'sim' : 'não'}.`)
     lines.push(`  Team ID presente: ${status.vercel.teamIdPresent ? 'sim' : 'não'}.`)
     if (status.vercel.latestProductionDeployment) {
-      lines.push(`  Último deploy de produção: ${status.vercel.latestProductionDeployment.state || 'status indisponível'}.`)
-      if (status.vercel.latestProductionDeployment.url) lines.push(`  URL do deploy: ${status.vercel.latestProductionDeployment.url}.`)
-      if (status.vercel.latestProductionDeployment.createdAt) lines.push(`  Data do deploy: ${status.vercel.latestProductionDeployment.createdAt}.`)
+      const prod = status.vercel.latestProductionDeployment
+      lines.push(`  Último deploy de produção: ${prod.state || 'status indisponível'}.`)
+      if (prod.url) lines.push(`  URL do deploy: ${prod.url}.`)
+      if (prod.createdAt) lines.push(`  Criado em: ${prod.createdAt}.`)
+      if (prod.commitMessage) lines.push(`  Commit: ${prod.commitSha || ''} — ${prod.commitMessage}.`)
+      if (prod.creator) lines.push(`  Criador: ${prod.creator}.`)
     } else if (Array.isArray(status.vercel.latestDeployments) && status.vercel.latestDeployments.length) {
       const latest = status.vercel.latestDeployments[0]
       lines.push(`  Último deployment listado: ${latest.state || 'status indisponível'}.`)
       if (latest.url) lines.push(`  URL do deployment: ${latest.url}.`)
+      if (latest.commitMessage) lines.push(`  Commit: ${latest.commitSha || ''} — ${latest.commitMessage}.`)
     }
     if (!status.vercel.configured) lines.push(`  Próximo: ${status.vercel.nextRequired}`)
     else if (status.vercel.unavailableReason) lines.push(`  Observação: ${status.vercel.unavailableReason}`)

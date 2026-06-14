@@ -184,4 +184,25 @@ assert.ok(!unknownResult.finalReply.toLowerCase().includes('i understand'), 'pro
 assertIncludes(unknownResult.finalReply, ['entendi'])
 console.log(`GREEN production_general fallback is Portuguese: ${unknownResult.finalReply.split('\n')[0]}`)
 
+// H5.1F — multi-line conversational: all 6 lines produce ordered sections
+const conversationalMulti = await route('me chame de Dr Edgard\nmeu nome\nquem sou eu\nem portugues\nsim\ncom é', { clientMemory: {} })
+assert.equal(conversationalMulti.intent, 'production_multi_intent')
+// section 1: set name
+assert.ok(normalize(conversationalMulti.finalReply).includes('nome definido') || normalize(conversationalMulti.finalReply).includes('entendido, dr edgard'), 'section 1 must confirm Dr Edgard')
+// section 2: name identity must recall Dr Edgard (chain memory)
+assert.ok(normalize(conversationalMulti.finalReply).includes('voce pediu para eu te chamar de dr edgard'), 'section 2 must recall Dr Edgard from in-message chain')
+// section 3: who am i must include email
+assert.ok(normalize(conversationalMulti.finalReply).includes('jedgard70@gmail.com') || normalize(conversationalMulti.finalReply).includes('jose@example.com'), 'section 3 must include email')
+// section 4: language preference
+assert.ok(normalize(conversationalMulti.finalReply).includes('portugues'), 'section 4 must confirm português')
+// section 5: affirmation
+assert.ok(normalize(conversationalMulti.finalReply).includes('certo'), 'section 5 must have affirmation reply')
+// section 6: ambiguous short
+assert.ok(normalize(conversationalMulti.finalReply).includes('pergunta ficou incompleta') || normalize(conversationalMulti.finalReply).includes('entendi que'), 'section 6 must handle ambiguous short input')
+// memoryPatch must carry both displayName and language
+assert.equal(conversationalMulti.memoryPatch?.displayName, 'Dr Edgard', 'memoryPatch.displayName must be Dr Edgard')
+assert.equal(conversationalMulti.memoryPatch?.language, 'pt-BR', 'memoryPatch.language must be pt-BR')
+assert.ok(!normalize(conversationalMulti.finalReply).includes('i understand'), 'multi-line conversational must not return English')
+console.log(`GREEN H5.1F conversational multi-intent: ${conversationalMulti.finalReply.split('\n')[0]}`)
+
 console.log('GREEN CP15X-H4.4 natural assistant brain validation passed.')

@@ -175,10 +175,10 @@ assert.ok(classifyToolExecutionRequest('computador').includes('local_worker.stat
 assert.ok(classifyToolExecutionRequest('pc').includes('local_worker.status'), 'bare "pc" must route to local_worker.status')
 console.log('GREEN H5.0C bare keyword fallback detection passed.')
 
-// H5.0D — version marker present in H5 replies
-assertIncludes(multiRoute.finalReply, ['h5.0d'])
-assertIncludes(multiRoute.toolExecution?.finalReply || multiRoute.finalReply, ['h5.0d'])
-console.log('GREEN H5.0D version marker present in multi-tool finalReply.')
+// H5.1B — version marker present in H5 replies
+assertIncludes(multiRoute.finalReply, ['h5.1b'])
+assertIncludes(multiRoute.toolExecution?.finalReply || multiRoute.finalReply, ['h5.1b'])
+console.log('GREEN H5.1B version marker present in multi-tool finalReply.')
 
 // H5.0D — simulate exact HTTP handler payload (api/copilot/chat.mjs)
 import chatHandler from '../api/copilot/chat.mjs'
@@ -210,7 +210,7 @@ assert.equal(mockRes._status, 200, 'HTTP status must be 200')
 assert.ok(typeof httpResponseBody.finalReply === 'string', 'HTTP response must have finalReply string')
 assert.ok(httpResponseBody.finalReply.trim().length > 0, 'HTTP finalReply must not be empty')
 assertIncludes(httpResponseBody.finalReply, [
-  'h5.0d',
+  'h5.1b',
   'controlled local pc worker',
   'revit mcp bridge',
   'revit model check',
@@ -222,7 +222,7 @@ assertIncludes(httpResponseBody.finalReply, [
 ])
 assert.ok(!normalize(httpResponseBody.finalReply).startsWith('status de conectores'), 'HTTP finalReply must not start with legacy connector header')
 assert.ok(normalize(httpResponseBody.finalReply).includes('supabase migration'), 'HTTP finalReply must not respond with GitHub only')
-console.log(`GREEN H5.0D HTTP chat handler: ${httpResponseBody.finalReply.split('\n')[0]}`)
-console.log(`GREEN H5.0D HTTP mode: ${httpResponseBody.mode}`)
+console.log(`GREEN H5.1B HTTP chat handler: ${httpResponseBody.finalReply.split('\n')[0]}`)
+console.log(`GREEN H5.1B HTTP mode: ${httpResponseBody.mode}`)
 
 console.log('GREEN CP15X-H5 real tool execution layer validation passed.')

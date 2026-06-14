@@ -18,8 +18,29 @@ export default async function handler(req, res) {
     const status = await collectConnectorsStatusReadOnly()
     return sendJson(res, 200, {
       ok: status.ok,
-      github: status.github,
-      vercel: status.vercel,
+      secretsExposed: false,
+      checkedAt: status.checkedAt,
+      github: {
+        configured: status.github.configured,
+        reachable: status.github.reachable,
+        status: status.github.status,
+        repository: status.github.repository,
+        branch: status.github.branch,
+        defaultBranch: status.github.defaultBranch || '',
+        latestCommit: status.github.latestCommit || null,
+        openPRs: status.github.openPRs || [],
+        latestWorkflowRun: status.github.latestWorkflowRun || null,
+      },
+      vercel: {
+        configured: status.vercel.configured,
+        reachable: status.vercel.reachable,
+        status: status.vercel.status,
+        projectId: status.vercel.projectId,
+        projectName: status.vercel.projectName || '',
+        productionDomain: status.vercel.productionDomain,
+        latestProductionDeployment: status.vercel.latestProductionDeployment || null,
+        latestDeployments: (status.vercel.latestDeployments || []).slice(0, 3),
+      },
       finalReply: buildConnectorsStatusReply(status),
     })
   } catch (error) {

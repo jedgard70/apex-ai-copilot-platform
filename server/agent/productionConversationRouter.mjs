@@ -197,9 +197,16 @@ function orderedIntentsFromSegment(segment = '') {
     if (index >= 0) ordered.push({ intent, index })
   }
 
-  return ordered
+  const sorted = ordered
     .sort((a, b) => a.index - b.index)
     .map(item => item.intent)
+
+  // Fallback: very short unrecognized segment (≤4 words, no intent found)
+  if (!sorted.length && text.split(/\s+/).length <= 4) {
+    return ['production_ambiguous_short']
+  }
+
+  return sorted
 }
 
 export function decomposeProductionConversationIntents(message = '') {
@@ -436,8 +443,8 @@ function buildConfusionReply(messages = [], { multiQuestionContext = false } = {
   return 'Claro. Em termos simples: eu posso ajudar a operar a plataforma Apex, preparar documentos, organizar engenharia/BIM, revisar código e orientar próximos passos. Para executar ações reais, preciso de conectores configurados.'
 }
 
-function buildNameIdentityReply(clientMemory = {}) {
-  const displayName = sanitizeDisplayName(clientMemory.displayName || '')
+function buildNameIdentityReply(clientMemory = {}, displayNameOverride = '') {
+  const displayName = sanitizeDisplayName(displayNameOverride || clientMemory.displayName || '')
   if (displayName) return `Você pediu para eu te chamar de ${displayName}.`
   return 'Ainda não tenho um nome preferido salvo nesta sessão. Pode dizer: me chame de Dr Edgard.'
 }
@@ -464,6 +471,7 @@ function buildNaturalFallbackReply(userMessage = '') {
 
 function sectionTitleForIntent(intent, index) {
   const titles = {
+    production_display_name_preference: 'Nome definido',
     production_revit_bim_help: 'Revit/BIM help',
     production_user_confusion: 'Explicação simples',
     production_name_identity: 'Nome preferido',
@@ -480,6 +488,7 @@ function sectionTitleForIntent(intent, index) {
     production_execute_recommended: 'Execução',
     production_language_preference: 'Idioma',
     production_affirmation: 'Confirmação',
+    production_ambiguous_short: 'Pergunta incompleta',
   }
   return `${index}. ${titles[intent] || 'Resposta'}`
 }
@@ -491,6 +500,7 @@ function buildReplyForIntent(intent, {
   identityContext = {},
   messages = [],
   displayName = '',
+  knownName = '',
   multiQuestionContext = false,
 } = {}) {
   if (intent === 'production_capability_listing') return buildCapabilityListingReply()
@@ -502,10 +512,12 @@ function buildReplyForIntent(intent, {
   if (intent === 'production_revit_bim_help') return buildRevitBimHelpReply()
   if (intent === 'production_computer_help') return buildComputerHelpReply()
   if (intent === 'production_user_confusion') return buildConfusionReply(messages, { multiQuestionContext })
-  if (intent === 'production_name_identity') return buildNameIdentityReply(clientMemory)
-  if (intent === 'production_who_am_i') return buildWhoAmIReply({ identityContext, clientMemory, displayName })
+  // H5.1F: use knownName (no 'Jose' fallback) so empty memory correctly shows "não tenho nome"
+  if (intent === 'production_name_identity') return buildNameIdentityReply(clientMemory, knownName)
+  if (intent === 'production_who_am_i') return buildWhoAmIReply({ identityContext, clientMemory, displayName: knownName })
   if (intent === 'production_language_preference') return `Entendido, ${displayName}. Vou responder sempre em português nesta sessão.`
   if (intent === 'production_affirmation') return `Certo, ${displayName}. Me diga qual ação ou contexto você quer seguir, ou copie a resposta anterior se quiser continuar de onde paramos.`
+  if (intent === 'production_ambiguous_short') return 'Entendi que a pergunta ficou incompleta. Escreva o que você quer saber ou fazer.'
   return REPLIES[intent] || buildNaturalFallbackReply(userMessage)
 }
 
@@ -517,6 +529,7 @@ function buildMultiIntentReply({
   identityContext = {},
   messages = [],
   displayName = '',
+  knownName = '',
 } = {}) {
   const sections = []
   let sectionIndex = 1
@@ -528,6 +541,7 @@ function buildMultiIntentReply({
       identityContext,
       messages,
       displayName,
+      knownName,
       multiQuestionContext: true,
     })
     if (!body) continue
@@ -592,7 +606,9 @@ export function routeProductionConversation({
   const conversationIntent = classifyProductionConversationIntent(userMessage)
   const decomposedIntents = decomposeProductionConversationIntents(userMessage)
   const preferredName = extractDisplayNamePreference(userMessage)
-  const displayName = sanitizeDisplayName(preferredName || clientMemory.displayName || inferDisplayNameFromMessages(messages) || 'Jose')
+  // knownName: real preferred name from message/memory, without 'Jose' fallback
+  const knownName = sanitizeDisplayName(preferredName || clientMemory.displayName || inferDisplayNameFromMessages(messages))
+  const displayName = knownName || 'Jose'
   const _patch = {}
   if (preferredName) _patch.displayName = preferredName
   if (conversationIntent === 'production_language_preference' ||
@@ -607,6 +623,7 @@ export function routeProductionConversation({
         identityContext,
         messages,
         displayName,
+        knownName,
       })
     : buildReplyForIntent(conversationIntent, {
         userMessage,
@@ -615,6 +632,7 @@ export function routeProductionConversation({
         identityContext,
         messages,
         displayName,
+        knownName,
       })
   const finalReply = String(template || REPLIES.production_general_portuguese).replaceAll('{{displayName}}', displayName)
 

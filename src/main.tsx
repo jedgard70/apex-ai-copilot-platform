@@ -86,6 +86,7 @@ type H5ToolCard = {
   missing: string[]
   mutates: boolean
   available: boolean
+  connectorDetail?: Record<string, unknown>
 }
 
 type Message = {
@@ -508,10 +509,15 @@ function isUploadQuestion(text: string) {
 }
 
 function buildProductFallbackAnswer(userText: string, identity: ChatIdentityContext) {
-  const identityAnswer = buildIdentityAnswer(userText, identity)
-  if (identityAnswer) return identityAnswer
-  const operationalAnswer = buildOperationalSkillResponse(userText)
-  if (operationalAnswer) return operationalAnswer
+  // H5.1F: multi-line messages are handled by the backend conversational router.
+  // Only apply local fallbacks for single-line messages to prevent interception.
+  const nonEmptyLines = userText.trim().split(/\n/).filter(l => l.trim()).length
+  if (nonEmptyLines === 1) {
+    const identityAnswer = buildIdentityAnswer(userText, identity)
+    if (identityAnswer) return identityAnswer
+    const operationalAnswer = buildOperationalSkillResponse(userText)
+    if (operationalAnswer) return operationalAnswer
+  }
   const pt = prefersPortuguese(userText)
   if (isCapabilitiesQuestion(userText)) {
     return pt
@@ -1497,19 +1503,29 @@ function App() {
       const reply = response.ok
         ? pickCanonicalReply(data, localFallback || buildCopilotFailureMessage(userText))
         : localFallback || buildCopilotFailureMessage(userText)
-      // H5.1C: extract tool cards from H5 tool execution response
-      const rawTools = (data?.operator as Record<string, unknown> | undefined)?.toolExecution
-      const toolsArr = rawTools && typeof rawTools === 'object' ? (rawTools as Record<string, unknown>).tools : undefined
+      // H5.1C/H5.1B: extract tool cards from H5 tool execution response
+      const rawToolExec = (data?.operator as Record<string, unknown> | undefined)?.toolExecution
+      const toolsArr = rawToolExec && typeof rawToolExec === 'object' ? (rawToolExec as Record<string, unknown>).tools : undefined
+      const execsArr = rawToolExec && typeof rawToolExec === 'object' ? (rawToolExec as Record<string, unknown>).executions : undefined
       const toolCards: H5ToolCard[] | undefined = Array.isArray(toolsArr)
-        ? toolsArr.map((t: Record<string, unknown>) => ({
-            id: String(t.id || ''),
-            label: String(t.label || t.id || ''),
-            executionClass: String(t.executionClass || ''),
-            status: String(t.status || ''),
-            missing: Array.isArray(t.missing) ? (t.missing as unknown[]).map(String) : [],
-            mutates: Boolean(t.mutates),
-            available: Boolean(t.available),
-          }))
+        ? toolsArr.map((t: Record<string, unknown>) => {
+            const exec = Array.isArray(execsArr)
+              ? (execsArr as Record<string, unknown>[]).find((e) => e.toolId === t.id)
+              : undefined
+            const connectorDetail = exec && (exec as Record<string, unknown>).executed
+              ? ((exec as Record<string, unknown>).result as Record<string, unknown> | null) ?? undefined
+              : undefined
+            return {
+              id: String(t.id || ''),
+              label: String(t.label || t.id || ''),
+              executionClass: String(t.executionClass || ''),
+              status: String(t.status || ''),
+              missing: Array.isArray(t.missing) ? (t.missing as unknown[]).map(String) : [],
+              mutates: Boolean(t.mutates),
+              available: Boolean(t.available),
+              connectorDetail,
+            }
+          })
         : undefined
 
       if (shouldOpenArchVis && attachment?.kind === 'image') {
@@ -2156,6 +2172,41 @@ function App() {
                                 Faltando: {card.missing.join(', ')}
                               </div>
                             )}
+                            {card.id === 'github.status' && card.connectorDetail && (() => {
+                              const d = card.connectorDetail as Record<string, unknown>
+                              const commit = d.latestCommit as Record<string, unknown> | null
+                              const prs = d.openPRs as unknown[] | undefined
+                              const repo = String(d.repository || '')
+                              const branch = String(d.branch || '')
+                              const sha = commit ? String(commit.shortSha || '') : ''
+                              const msg = commit ? String(commit.message || '').slice(0, 60) : ''
+                              const author = commit ? String(commit.author || '') : ''
+                              return (
+                                <div style={{ marginTop: '4px', fontSize: '11px', color: '#374151' }}>
+                                  {repo && <div>{'Repo: ' + repo + ' / ' + branch}</div>}
+                                  {sha && <div>{'Commit: ' + sha + ' — ' + msg}</div>}
+                                  {author && <div>{'Autor: ' + author}</div>}
+                                  {prs && prs.length > 0 && <div>{'PRs abertos: ' + prs.length}</div>}
+                                </div>
+                              )
+                            })()}
+                            {card.id === 'vercel.status' && card.connectorDetail && (() => {
+                              const d = card.connectorDetail as Record<string, unknown>
+                              const prod = d.latestProductionDeployment as Record<string, unknown> | null
+                              const projectLabel = String(d.projectName || d.projectId || '')
+                              const domain = String(d.productionDomain || '')
+                              const deployState = prod ? String(prod.state || 'unknown') : ''
+                              const deployUrl = prod ? String(prod.url || '') : ''
+                              const deployAt = prod ? String(prod.createdAt || '').slice(0, 16).replace('T', ' ') : ''
+                              return (
+                                <div style={{ marginTop: '4px', fontSize: '11px', color: '#374151' }}>
+                                  {projectLabel && <div>{'Projeto: ' + projectLabel}</div>}
+                                  {domain && <div>{'Domínio: ' + domain}</div>}
+                                  {deployState && <div>{'Deploy: ' + deployState + (deployUrl ? ' — ' + deployUrl : '')}</div>}
+                                  {deployAt && <div>{'Em: ' + deployAt}</div>}
+                                </div>
+                              )
+                            })()}
                           </div>
                         )
                       })}

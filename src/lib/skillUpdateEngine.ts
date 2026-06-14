@@ -85,7 +85,8 @@ export function isSkillTextReadable(fileName: string) {
 }
 
 export function isSkillUpdateIntent(text: string) {
-  return /\b(atualiza|atualizar|incorpora|incorporar|aprenda|aprender|adicione|adicionar|skill|mem[oó]ria|memoria|brain|prompt|refer[eê]ncia|reference|learn|ingest|update.*skill|add.*memory)\b/i.test(text)
+  // H5.1F: removed mem[oó]ria/memoria/brain/prompt — too broad, triggers on memory conversations
+  return /\b(atualiza(?:r)? skill|incorpora(?:r)? skill|aprend(?:er|a) skill|adiciona(?:r)? skill|skill update|update.*skill|add.*memory|ingest.*skill|skill.*export|aprenda isso|incorpore isso|adicione isso)\b/i.test(text)
 }
 
 export function redactSensitiveText(value: string) {

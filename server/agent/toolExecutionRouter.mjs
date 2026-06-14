@@ -103,16 +103,22 @@ function connectorSummaryFromStatus(status, toolId) {
     return {
       repository: status.github.repository,
       branch: status.github.branch,
+      defaultBranch: status.github.defaultBranch || '',
+      branchExists: Boolean(status.github.branchExists),
       reachable: Boolean(status.github.reachable),
       status: status.github.status,
       latestCommit: status.github.latestCommit
         ? {
             shortSha: status.github.latestCommit.shortSha,
+            sha: status.github.latestCommit.sha,
             message: status.github.latestCommit.message,
             author: status.github.latestCommit.author,
             date: status.github.latestCommit.date,
+            url: status.github.latestCommit.url || '',
           }
         : null,
+      openPRs: status.github.openPRs || [],
+      latestWorkflowRun: status.github.latestWorkflowRun || null,
       nextRequired: status.github.nextRequired || '',
     }
   }
@@ -124,6 +130,7 @@ function connectorSummaryFromStatus(status, toolId) {
       reachable: Boolean(status.vercel.reachable),
       status: status.vercel.status,
       latestProductionDeployment: status.vercel.latestProductionDeployment,
+      latestDeployments: (status.vercel.latestDeployments || []).slice(0, 3),
       nextRequired: status.vercel.nextRequired || '',
     }
   }
@@ -179,6 +186,58 @@ function buildCapabilityDetail(item) {
   return `   Classe: ${item.executionClass}. Status: ${item.configured ? 'available' : 'unavailable'}. Faltando: ${missing}.`
 }
 
+function buildGithubDetail(result) {
+  const lines = []
+  lines.push(`   Status: ${redact(result.status || 'unavailable')}.`)
+  if (result.repository) lines.push(`   Repositório: ${redact(result.repository)}.`)
+  if (result.branch) lines.push(`   Branch: ${redact(result.branch)}.`)
+  if (result.defaultBranch && result.defaultBranch !== result.branch) lines.push(`   Branch padrão: ${redact(result.defaultBranch)}.`)
+  if (result.reachable) lines.push('   Repositório acessível: sim.')
+  if (result.latestCommit) {
+    const c = result.latestCommit
+    lines.push(`   Último commit: ${redact(c.shortSha)} — ${redact(c.message)}.`)
+    if (c.author || c.date) lines.push(`   Autor/data: ${redact(c.author || '—')} | ${redact(c.date || '—')}.`)
+  }
+  const prs = result.openPRs || []
+  if (prs.length) {
+    lines.push(`   PRs abertos (${prs.length}):`)
+    for (const pr of prs) lines.push(`     #${pr.number} ${redact(pr.title)} [${redact(pr.branch)}]`)
+  }
+  const wf = result.latestWorkflowRun
+  if (wf) {
+    const wfStatus = [wf.status, wf.conclusion].filter(Boolean).join('/')
+    lines.push(`   Último workflow: ${redact(wf.name)} — ${redact(wfStatus)}.`)
+  }
+  if (result.nextRequired) lines.push(`   Próximo: ${result.nextRequired}`)
+  return lines
+}
+
+function buildVercelDetail(result) {
+  const lines = []
+  lines.push(`   Status: ${redact(result.status || 'unavailable')}.`)
+  if (result.projectId) lines.push(`   Projeto: ${redact(result.projectId)}.`)
+  if (result.projectName) lines.push(`   Nome: ${redact(result.projectName)}.`)
+  if (result.productionDomain) lines.push(`   Domínio de produção: ${redact(result.productionDomain)}.`)
+  if (result.reachable) lines.push('   Projeto acessível: sim.')
+  const prod = result.latestProductionDeployment
+  if (prod) {
+    lines.push(`   Último deploy produção: ${redact(prod.state || 'status indisponível')}.`)
+    if (prod.url) lines.push(`   URL do deploy: ${redact(prod.url)}.`)
+    if (prod.createdAt) lines.push(`   Criado em: ${redact(prod.createdAt)}.`)
+    if (prod.commitMessage) lines.push(`   Commit: ${redact(prod.commitSha || '')} — ${redact(prod.commitMessage)}.`)
+    if (prod.creator) lines.push(`   Criador: ${redact(prod.creator)}.`)
+  } else {
+    const deploys = result.latestDeployments || []
+    if (deploys.length) {
+      const d = deploys[0]
+      lines.push(`   Último deployment: ${redact(d.state || 'status indisponível')}.`)
+      if (d.url) lines.push(`   URL: ${redact(d.url)}.`)
+    }
+  }
+  if (result.nextRequired) lines.push(`   Próximo: ${result.nextRequired}`)
+  return lines
+}
+
 function buildToolExecutionReply({ requestTools = [], executions = [] } = {}) {
   if (!requestTools.length) {
     return [
@@ -191,8 +250,8 @@ function buildToolExecutionReply({ requestTools = [], executions = [] } = {}) {
 
   const count = requestTools.length
   const header = count > 1
-    ? `Apex AI Copilot [H5.0D] — análise multi-ferramenta (${count} intenções detectadas):`
-    : `Apex AI Copilot [H5.0D] — análise de ferramenta H5:`
+    ? `Apex AI Copilot [H5.1B] — análise multi-ferramenta (${count} intenções detectadas):`
+    : `Apex AI Copilot [H5.1B] — análise de ferramenta H5:`
 
   const lines = [header]
 
@@ -203,14 +262,18 @@ function buildToolExecutionReply({ requestTools = [], executions = [] } = {}) {
     lines.push(buildCapabilityDetail(item))
 
     const exec = executions.find(e => e.toolId === item.id)
-    if (exec?.executed) {
-      if (exec.result?.status) lines.push(`   Status conector: ${redact(exec.result.status)}.`)
-      if (exec.result?.repository) lines.push(`   Repositório: ${redact(exec.result.repository)}.`)
-      if (exec.result?.branch) lines.push(`   Branch: ${redact(exec.result.branch)}.`)
-      if (exec.result?.projectId) lines.push(`   Projeto: ${redact(exec.result.projectId)}.`)
-      if (exec.result?.productionDomain) lines.push(`   Domínio: ${redact(exec.result.productionDomain)}.`)
-      if (exec.result?.latestCommit?.shortSha) lines.push(`   Último commit: ${redact(exec.result.latestCommit.shortSha)}.`)
-      if (exec.result?.latestProductionDeployment?.state) lines.push(`   Último deploy produção: ${redact(exec.result.latestProductionDeployment.state)}.`)
+    if (exec?.executed && exec.result) {
+      if (item.id === 'github.status') {
+        lines.push(...buildGithubDetail(exec.result))
+      } else if (item.id === 'vercel.status') {
+        lines.push(...buildVercelDetail(exec.result))
+      } else {
+        if (exec.result?.status) lines.push(`   Status conector: ${redact(exec.result.status)}.`)
+        if (exec.result?.projectId) lines.push(`   Projeto: ${redact(exec.result.projectId)}.`)
+        if (exec.result?.productionDomain) lines.push(`   Domínio: ${redact(exec.result.productionDomain)}.`)
+      }
+    } else if (!exec?.executed && item.executionClass === 'mutation_requires_confirmation') {
+      lines.push(`   Ação: nenhum deploy, migration, push ou mutação foi executado. Confirmação explícita, evidência e rollback exigidos.`)
     }
   }
 
