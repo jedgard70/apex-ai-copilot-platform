@@ -1,6 +1,7 @@
 /**
- * Apex AI Copilot — Local Worker (H5.2A)
+ * Apex AI Copilot — Local Worker (H5.2B)
  * Secure whitelist-only executor for controlled Windows PC operations.
+ * Auto-discovers node/npm/git — no manual PATH config required.
  * Runs at localhost:8787 (or LOCAL_WORKER_PORT).
  * All routes require Bearer token auth.
  * No free shell. No destructive commands. No secrets in responses.
@@ -8,12 +9,13 @@
 
 import { createServer } from 'node:http'
 import { spawn } from 'node:child_process'
-import { readFile } from 'node:fs/promises'
-import { join, resolve } from 'node:path'
+import { readFile, access } from 'node:fs/promises'
+import { constants as fsConstants } from 'node:fs'
+import { join, dirname, resolve } from 'node:path'
+import { homedir, platform } from 'node:os'
 
-// ─── Configuration ────────────────────────────────────────────────────────────
+// ─── Load .env at startup (no external deps) ──────────────────────────────────
 
-// Load .env at startup (no external deps)
 const envRaw = await readFile(new URL('.env', import.meta.url), 'utf8').catch(() => '')
 for (const line of envRaw.split('\n')) {
   const trimmed = line.trim()
@@ -28,68 +30,214 @@ for (const line of envRaw.split('\n')) {
 const TOKEN = process.env.LOCAL_WORKER_TOKEN || ''
 const PORT = Number(process.env.LOCAL_WORKER_PORT) || 8787
 const PROJECT_PATH = resolve(process.env.APEX_PROJECT_PATH || process.cwd())
+const IS_WINDOWS = platform() === 'win32'
 
 if (!TOKEN) {
   console.error('[apex-worker] FATAL: LOCAL_WORKER_TOKEN is not set. Set it in .env before starting.')
   process.exit(1)
 }
 
-// ─── Whitelisted actions ───────────────────────────────────────────────────────
+// ─── Tool auto-discovery ───────────────────────────────────────────────────────
 
-const COMMAND_TIMEOUT_MS = 15000
-
-const ACTION_MAP = {
-  'system.info': {
-    label: 'System info (Node/npm/git versions)',
-    commands: [
-      { cmd: 'node', args: ['--version'] },
-      { cmd: 'npm', args: ['--version'] },
-      { cmd: 'git', args: ['--version'] },
-    ],
-    cwd: PROJECT_PATH,
-  },
-  'node.version': {
-    label: 'Node.js version',
-    commands: [{ cmd: 'node', args: ['--version'] }],
-    cwd: PROJECT_PATH,
-  },
-  'npm.version': {
-    label: 'npm version',
-    commands: [{ cmd: 'npm', args: ['--version'] }],
-    cwd: PROJECT_PATH,
-  },
-  'git.version': {
-    label: 'Git version',
-    commands: [{ cmd: 'git', args: ['--version'] }],
-    cwd: PROJECT_PATH,
-  },
-  'project.git_status': {
-    label: 'Git status of project',
-    commands: [{ cmd: 'git', args: ['status', '--short'] }],
-    cwd: PROJECT_PATH,
-  },
-  'project.git_log': {
-    label: 'Recent git log (last 5 commits)',
-    commands: [{ cmd: 'git', args: ['log', '--oneline', '-5'] }],
-    cwd: PROJECT_PATH,
-  },
-  'project.build_check': {
-    label: 'npm run build (build check)',
-    commands: [{ cmd: 'npm', args: ['run', 'build'] }],
-    cwd: PROJECT_PATH,
-  },
-  'project.validate_h44': {
-    label: 'Validate CP15X-H4.4',
-    commands: [{ cmd: 'node', args: ['scripts/validate-cp15x-h44.mjs'] }],
-    cwd: PROJECT_PATH,
-  },
-  'project.validate_h5': {
-    label: 'Validate CP15X-H5',
-    commands: [{ cmd: 'node', args: ['scripts/validate-cp15x-h5.mjs'] }],
-    cwd: PROJECT_PATH,
-  },
+async function fileExists(filePath) {
+  try {
+    await access(filePath, fsConstants.X_OK)
+    return true
+  } catch (_) {
+    try {
+      await access(filePath, fsConstants.F_OK)
+      return true
+    } catch (_) {
+      return false
+    }
+  }
 }
 
+function probeVersion(bin, timeoutMs = 4000) {
+  return new Promise(res => {
+    const proc = spawn(bin, ['--version'], {
+      shell: false,
+      stdio: ['ignore', 'pipe', 'pipe'],
+      windowsHide: true,
+    })
+    let out = ''
+    proc.stdout.on('data', d => { out += d.toString() })
+    proc.stderr.on('data', d => { out += d.toString() })
+    const timer = setTimeout(() => { proc.kill(); res(null) }, timeoutMs)
+    proc.on('close', code => {
+      clearTimeout(timer)
+      res(code === 0 ? out.trim().split('\n')[0].trim() : null)
+    })
+    proc.on('error', () => { clearTimeout(timer); res(null) })
+  })
+}
+
+function nodeDir() {
+  return dirname(process.execPath)
+}
+
+function npmCandidates() {
+  const candidates = []
+  // .env override
+  if (process.env.NPM_BIN) candidates.push(process.env.NPM_BIN)
+  if (IS_WINDOWS) {
+    const nd = nodeDir()
+    // npm.cmd sits next to node.exe on Windows Node installs
+    candidates.push(join(nd, 'npm.cmd'))
+    candidates.push(join(nd, 'npm.exe'))
+    candidates.push(join(nd, 'npm'))
+    // Global fallbacks
+    candidates.push('npm.cmd')
+    candidates.push('npm.exe')
+  }
+  candidates.push('npm')
+  return [...new Set(candidates)]
+}
+
+function gitCandidates() {
+  const candidates = []
+  // .env override
+  if (process.env.GIT_BIN) candidates.push(process.env.GIT_BIN)
+  if (IS_WINDOWS) {
+    const home = homedir()
+    // Git for Windows standard paths
+    candidates.push('C:\\Program Files\\Git\\cmd\\git.exe')
+    candidates.push('C:\\Program Files\\Git\\bin\\git.exe')
+    candidates.push('C:\\Program Files (x86)\\Git\\cmd\\git.exe')
+    candidates.push('C:\\Program Files (x86)\\Git\\bin\\git.exe')
+    // GitHub Desktop bundled git — glob-like expansion
+    const ghDesktopBase = join(home, 'AppData', 'Local', 'GitHubDesktop')
+    // We'll check common version patterns; actual glob resolved at discovery time
+    candidates.push(join(ghDesktopBase, 'app-*', 'resources', 'app', 'git', 'cmd', 'git.exe'))
+    candidates.push('git.exe')
+    candidates.push('git.cmd')
+  }
+  candidates.push('git')
+  return [...new Set(candidates)]
+}
+
+function nodeCandidates() {
+  const candidates = []
+  if (process.env.NODE_BIN) candidates.push(process.env.NODE_BIN)
+  // process.execPath is the running Node binary — always reliable
+  candidates.push(process.execPath)
+  if (IS_WINDOWS) {
+    candidates.push('node.exe')
+  }
+  candidates.push('node')
+  return [...new Set(candidates)]
+}
+
+async function expandGlob(pattern) {
+  // Simple glob expansion for patterns like path/app-*/sub/git.exe
+  // Only handles a single * segment
+  const starIdx = pattern.indexOf('*')
+  if (starIdx === -1) return [pattern]
+  const dir = dirname(pattern.slice(0, starIdx + 1))
+  const rest = pattern.slice(starIdx + 1)
+  try {
+    const { readdir } = await import('node:fs/promises')
+    const entries = await readdir(dir)
+    return entries.map(e => join(dir, e) + rest).sort().reverse() // newest version first
+  } catch (_) {
+    return []
+  }
+}
+
+async function discoverBin(candidates) {
+  for (const candidate of candidates) {
+    const expanded = await expandGlob(candidate)
+    for (const path of expanded) {
+      const version = await probeVersion(path)
+      if (version !== null) return { path, version }
+    }
+  }
+  return null
+}
+
+// Run discovery once at startup
+console.log('[apex-worker] Discovering tools...')
+const [nodeDiscovered, npmDiscovered, gitDiscovered] = await Promise.all([
+  discoverBin(nodeCandidates()),
+  discoverBin(npmCandidates()),
+  discoverBin(gitCandidates()),
+])
+
+const TOOLS = {
+  node: nodeDiscovered ? { available: true, path: nodeDiscovered.path, version: nodeDiscovered.version } : { available: false, path: null, version: null },
+  npm:  npmDiscovered  ? { available: true, path: npmDiscovered.path,  version: npmDiscovered.version  } : { available: false, path: null, version: null },
+  git:  gitDiscovered  ? { available: true, path: gitDiscovered.path,  version: gitDiscovered.version  } : { available: false, path: null, version: null },
+}
+
+console.log(`[apex-worker] node: ${TOOLS.node.available ? `✓ ${TOOLS.node.path} (${TOOLS.node.version})` : '✗ not found'}`)
+console.log(`[apex-worker] npm:  ${TOOLS.npm.available  ? `✓ ${TOOLS.npm.path}  (${TOOLS.npm.version})`  : '✗ not found — set NPM_BIN in .env'}`)
+console.log(`[apex-worker] git:  ${TOOLS.git.available  ? `✓ ${TOOLS.git.path}  (${TOOLS.git.version})`  : '✗ not found — set GIT_BIN in .env or install Git for Windows'}`)
+
+// ─── Command timeout ───────────────────────────────────────────────────────────
+
+const COMMAND_TIMEOUT_MS = 30000
+
+// ─── Whitelisted actions ───────────────────────────────────────────────────────
+
+function requireTool(name) {
+  const tool = TOOLS[name]
+  if (!tool?.available) {
+    const hints = {
+      git: 'Instale Git for Windows (https://git-scm.com) ou defina GIT_BIN no .env.',
+      npm: 'Reinstale Node.js (https://nodejs.org) ou defina NPM_BIN no .env.',
+      node: 'Verifique a instalação do Node.js ou defina NODE_BIN no .env.',
+    }
+    return { ok: false, unavailable: true, reason: `"${name}" não encontrado automaticamente. ${hints[name] || ''}` }
+  }
+  return { ok: true, bin: tool.path }
+}
+
+function buildActionMap() {
+  return {
+    'system.info': {
+      label: 'System info (Node/npm/git versions)',
+      build: () => [
+        { ...requireTool('node'), args: ['--version'], tag: 'node' },
+        { ...requireTool('npm'),  args: ['--version'], tag: 'npm'  },
+        { ...requireTool('git'),  args: ['--version'], tag: 'git'  },
+      ],
+    },
+    'node.version': {
+      label: 'Node.js version',
+      build: () => [{ ...requireTool('node'), args: ['--version'], tag: 'node' }],
+    },
+    'npm.version': {
+      label: 'npm version',
+      build: () => [{ ...requireTool('npm'), args: ['--version'], tag: 'npm' }],
+    },
+    'git.version': {
+      label: 'Git version',
+      build: () => [{ ...requireTool('git'), args: ['--version'], tag: 'git' }],
+    },
+    'project.git_status': {
+      label: 'Git status of project',
+      build: () => [{ ...requireTool('git'), args: ['status', '--short'], tag: 'git' }],
+    },
+    'project.git_log': {
+      label: 'Recent git log (last 5 commits)',
+      build: () => [{ ...requireTool('git'), args: ['log', '--oneline', '-5'], tag: 'git' }],
+    },
+    'project.build_check': {
+      label: 'npm run build (build check)',
+      build: () => [{ ...requireTool('npm'), args: ['run', 'build'], tag: 'npm' }],
+    },
+    'project.validate_h44': {
+      label: 'Validate CP15X-H4.4',
+      build: () => [{ ...requireTool('node'), args: ['scripts/validate-cp15x-h44.mjs'], tag: 'node' }],
+    },
+    'project.validate_h5': {
+      label: 'Validate CP15X-H5',
+      build: () => [{ ...requireTool('node'), args: ['scripts/validate-cp15x-h5.mjs'], tag: 'node' }],
+    },
+  }
+}
+
+const ACTION_MAP = buildActionMap()
 const ALLOWED_ACTION_IDS = new Set(Object.keys(ACTION_MAP))
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
@@ -100,14 +248,12 @@ function checkAuth(req) {
   if (!auth.startsWith('Bearer ')) return { ok: false, status: 401, reason: 'Authorization must use Bearer scheme.' }
   const provided = auth.slice(7).trim()
   if (!provided) return { ok: false, status: 401, reason: 'Bearer token empty.' }
-  // Constant-time compare to avoid timing attacks
   if (!timingSafeEqual(provided, TOKEN)) return { ok: false, status: 403, reason: 'Invalid token.' }
   return { ok: true }
 }
 
 function timingSafeEqual(a, b) {
   if (a.length !== b.length) {
-    // still iterate to avoid timing leak
     let diff = 0
     for (let i = 0; i < Math.max(a.length, b.length); i++) diff |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0)
     return false
@@ -119,14 +265,15 @@ function timingSafeEqual(a, b) {
 
 // ─── Executor ─────────────────────────────────────────────────────────────────
 
-function runCommand(cmd, args, cwd, timeoutMs = COMMAND_TIMEOUT_MS) {
+function runCommand(bin, args, timeoutMs = COMMAND_TIMEOUT_MS) {
   return new Promise(res => {
     const start = Date.now()
-    const proc = spawn(cmd, args, {
-      cwd,
+    const proc = spawn(bin, args, {
+      cwd: PROJECT_PATH,
       shell: false,
-      env: { ...process.env, FORCE_COLOR: '0' },
+      env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
       stdio: ['ignore', 'pipe', 'pipe'],
+      windowsHide: true,
     })
 
     let stdout = ''
@@ -161,17 +308,32 @@ async function executeAction(actionId) {
   }
 
   const def = ACTION_MAP[actionId]
+  const commands = def.build()
   const results = []
 
-  for (const { cmd, args } of def.commands) {
-    const r = await runCommand(cmd, args, def.cwd)
-    results.push({ cmd, args, ...r })
+  for (const cmd of commands) {
+    if (!cmd.ok) {
+      results.push({
+        tag: cmd.tag,
+        bin: null,
+        args: [],
+        exitCode: -1,
+        stdout: '',
+        stderr: cmd.reason,
+        durationMs: 0,
+        unavailable: true,
+      })
+      continue
+    }
+    const r = await runCommand(cmd.bin, cmd.args)
+    results.push({ tag: cmd.tag, bin: cmd.bin, args: cmd.args, ...r })
   }
 
   const allOk = results.every(r => r.exitCode === 0)
-  const combined = results.map(r =>
-    `$ ${r.cmd} ${r.args.join(' ')}\n${r.stdout}${r.stderr ? `[stderr] ${r.stderr}` : ''}`.trim()
-  ).join('\n\n')
+  const combined = results.map(r => {
+    const label = r.bin ? `$ ${r.bin} ${r.args.join(' ')}` : `[${r.tag}: unavailable]`
+    return `${label}\n${r.stdout || ''}${r.stderr ? `[stderr] ${r.stderr}` : ''}`.trim()
+  }).join('\n\n')
 
   return {
     ok: allOk,
@@ -214,7 +376,6 @@ async function handleRequest(req, res) {
   const url = new URL(req.url || '/', `http://127.0.0.1:${PORT}`)
   const path = url.pathname
 
-  // CORS for local use only
   res.setHeader('Access-Control-Allow-Origin', '127.0.0.1')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type')
@@ -233,8 +394,10 @@ async function handleRequest(req, res) {
       ok: true,
       service: 'apex-local-worker',
       version: '1.0.0',
-      checkpoint: 'H5.2A',
+      checkpoint: 'H5.2B',
       projectPath: PROJECT_PATH,
+      platform: platform(),
+      discoveredTools: TOOLS,
       allowedActions: [...ALLOWED_ACTION_IDS],
       port: PORT,
       secretsExposed: false,
@@ -249,6 +412,7 @@ async function handleRequest(req, res) {
       ok: true,
       service: 'apex-local-worker',
       projectPath: PROJECT_PATH,
+      discoveredTools: TOOLS,
       allowedActions: [...ALLOWED_ACTION_IDS],
       secretsExposed: false,
     })
@@ -288,9 +452,11 @@ const server = createServer((req, res) => {
 })
 
 server.listen(PORT, '127.0.0.1', () => {
-  console.log(`[apex-worker] Apex Local Worker H5.2A running on http://127.0.0.1:${PORT}`)
+  console.log(`[apex-worker] Apex Local Worker H5.2B running on http://127.0.0.1:${PORT}`)
   console.log(`[apex-worker] Project path: ${PROJECT_PATH}`)
+  console.log(`[apex-worker] node: ${TOOLS.node.available ? TOOLS.node.version : 'NOT FOUND'}`)
+  console.log(`[apex-worker] npm:  ${TOOLS.npm.available  ? TOOLS.npm.version  : 'NOT FOUND — set NPM_BIN in .env'}`)
+  console.log(`[apex-worker] git:  ${TOOLS.git.available  ? TOOLS.git.version  : 'NOT FOUND — set GIT_BIN in .env'}`)
   console.log(`[apex-worker] Allowed actions: ${[...ALLOWED_ACTION_IDS].join(', ')}`)
-  console.log(`[apex-worker] Token configured: yes (not printed)`)
-  console.log(`[apex-worker] Free shell: BLOCKED`)
+  console.log('[apex-worker] Free shell: BLOCKED')
 })
