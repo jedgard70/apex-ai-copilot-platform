@@ -184,11 +184,21 @@ assert.ok(Array.isArray(status.connectors) && status.connectors.length >= 5)
 const connectorIds = status.connectors.map(c => c.id)
 assert.ok(connectorIds.includes('image_generation'), `connectors must include image_generation: ${connectorIds}`)
 assert.ok(connectorIds.includes('revit_bim_mcp'), `connectors must include revit_bim_mcp: ${connectorIds}`)
+assert.ok(connectorIds.includes('background_tasks'), `connectors must include background_tasks: ${connectorIds}`)
 
 const summary = summarizeProductionOperatorStatus(status)
 assert.ok(typeof summary === 'string' && summary.length > 30)
 
 console.log(`GREEN H17 Production Status — ${status.connectors.length} connectors, ${Object.keys(status.capabilities).length} capabilities.`)
+
+// ─── H23 — Background Tasks & Multi-Agent ─────────────────────────────────────
+import { classifyBackgroundTasksQuery } from '../server/agent/backgroundTasksConnector.mjs'
+import { classifyProductionConversationIntent } from '../server/agent/productionConversationRouter.mjs'
+
+assert.ok(classifyBackgroundTasksQuery('agende a análise de colisão para rodar de noite'))
+assert.equal(classifyProductionConversationIntent('rode a análise de incompatibilidades MEP vs Estrutura em segundo plano durante a noite'), 'production_background_agent_task_request')
+
+console.log('GREEN H23 Background Tasks — query classifier, conversation router intent.')
 
 // ─── Final ────────────────────────────────────────────────────────────────────
 

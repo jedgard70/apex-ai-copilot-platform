@@ -37,3 +37,14 @@ Open:
 `http://127.0.0.1:4177`
 
 `npm run dev` also builds and starts the local API-backed server. Use `npm run dev:ui` only for UI-only Vite development.
+
+Reality Audit / Current State
+-----------------------------
+
+This repository contains an ongoing audit and a current-state snapshot in docs/. See:
+
+- docs/APEX_REALITY_AUDIT.md
+- docs/APEX_PLATFORM_CURRENT_STATE.md
+- docs/APEX_MODULE_AUDIT.md
+- docs/APEX_OPEN_BUGS_AND_NEXT_ACTIONS.md
+- docs/APEX_PLATFORM_FINAL_OBJECTIVE.md

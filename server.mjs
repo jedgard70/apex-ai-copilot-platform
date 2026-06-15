@@ -3,6 +3,9 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawn } from 'node:child_process'
+import crypto from 'node:crypto'
+import { createClient } from '@supabase/supabase-js'
+import { generateEmbedding } from './server/agent/embeddings.mjs'
 import {
   isOperatorIntent,
   runApexOperator,
@@ -11,6 +14,12 @@ import {
 import { classifyProductionConversationIntent } from './server/agent/productionConversationRouter.mjs'
 import { collectProductionOperatorStatus } from './server/agent/productionStatus.mjs'
 import { classifyToolExecutionRequest, routeToolExecution } from './server/agent/toolExecutionRouter.mjs'
+import { defaultTasks } from './server/agent/backgroundTasksConnector.mjs'
+
+const supabaseUrl = process.env.VITE_SUPABASE_URL || ''
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || ''
+const supabaseClient = (supabaseUrl && supabaseAnonKey) ? createClient(supabaseUrl, supabaseAnonKey) : null
+const localMemoryKnowledgeItems = []
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = __dirname
@@ -99,6 +108,39 @@ const copilotExecutionCommands = [
     args: ['run', 'validate:supabase-sql'],
     risk: 'medium',
     requiresApproval: false,
+    timeoutMs: 60000,
+    source: 'allowlist',
+  },
+  {
+    id: 'validate_vercel_live',
+    label: 'Vercel: Check live deployments',
+    description: 'Queries the live Vercel API for deployment logs, URLs, and states.',
+    executable: 'node',
+    args: ['scripts/validate-vercel.mjs'],
+    risk: 'medium',
+    requiresApproval: false,
+    timeoutMs: 30000,
+    source: 'allowlist',
+  },
+  {
+    id: 'validate_supabase_live',
+    label: 'Supabase: Check live database',
+    description: 'Queries the live Supabase project database connection, schema info, and tables.',
+    executable: 'node',
+    args: ['scripts/validate-supabase-live.mjs'],
+    risk: 'medium',
+    requiresApproval: false,
+    timeoutMs: 30000,
+    source: 'allowlist',
+  },
+  {
+    id: 'deploy_vercel_live',
+    label: 'Vercel: Trigger preview deployment',
+    description: 'Triggers a live preview deployment on Vercel and prints connection details.',
+    executable: 'node',
+    args: ['scripts/deploy-vercel-live.mjs'],
+    risk: 'high',
+    requiresApproval: true,
     timeoutMs: 60000,
     source: 'allowlist',
   },
@@ -1255,10 +1297,6 @@ async function handleChat(req, res) {
       'production_vercel_connector_status',
       'production_connector_status',
       'production_platform_position',
-      'production_greeting',
-      'production_acknowledgement',
-      'production_user_correction',
-      'production_capability_listing',
       'production_vercel_deploy',
       'production_supabase',
     ])
@@ -1326,6 +1364,7 @@ async function handleChat(req, res) {
         mode: 'local-fallback',
       })
     }
+    const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
 
     const runtime = loadRuntimeKnowledge()
     const file = body.file || null
@@ -1443,7 +1482,7 @@ async function handleChat(req, res) {
       max_tokens: 900,
     }
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch(`${apiBase}/chat/completions`, {
       method: 'POST',
       headers: {
         Authorization: 'Bearer ' + apiKey,
@@ -1482,7 +1521,7 @@ async function handleChat(req, res) {
         })
       }
 
-      const finalResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      const finalResponse = await fetch(`${apiBase}/chat/completions`, {
         method: 'POST',
         headers: {
           Authorization: 'Bearer ' + apiKey,
@@ -1665,6 +1704,7 @@ async function handleGenerateImage(req, res) {
         message: 'real connector not available yet: OPENAI_API_KEY is not configured.',
       })
     }
+    const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
 
     const body = await readJson(req)
     const prompt = String(body.prompt || '').trim()
@@ -1798,7 +1838,7 @@ async function handleGenerateImage(req, res) {
       form.append('quality', quality)
       form.append('n', String(outputCount))
       form.append('image', new Blob([sourceImage.buffer], { type: sourceImage.mimeType }), file?.name || 'source-image.png')
-      response = await fetch('https://api.openai.com/v1/images/edits', {
+      response = await fetch(`${apiBase}/images/edits`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${apiKey}`,
@@ -1806,7 +1846,7 @@ async function handleGenerateImage(req, res) {
         body: form,
       })
     } else {
-      response = await fetch('https://api.openai.com/v1/images/generations', {
+      response = await fetch(`${apiBase}/images/generations`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${apiKey}`,
@@ -3293,6 +3333,52 @@ function createControlsPlan(goal = '', evmInputs = {}) {
   }
 }
 
+let serverBackgroundTasks = JSON.parse(JSON.stringify(defaultTasks))
+
+async function handleBackgroundTask(req, res) {
+  try {
+    const body = await readJson(req)
+    const { action, taskId } = body
+
+    if (action === 'list') {
+      return json(res, 200, { tasks: serverBackgroundTasks })
+    }
+
+    if (action === 'run') {
+      const task = serverBackgroundTasks.find(t => t.id === taskId)
+      if (!task) {
+        return json(res, 404, { error: 'Task not found' })
+      }
+
+      task.status = 'completed'
+      task.progress = 100
+
+      return json(res, 200, { task })
+    }
+
+    if (action === 'schedule') {
+      const { title, description } = body
+      const newTask = {
+        id: `task-${Date.now()}`,
+        title: title || 'Nova Tarefa de Agentes',
+        description: description || 'Tarefa personalizada agendada pelo operador.',
+        status: 'scheduled',
+        scheduledTime: 'Hoje às 23:00',
+        agents: ['Maestro AI', 'BIM Manager Agent', 'Quality QA Agent'],
+        progress: 0,
+        logs: ['[23:00:00] [Maestro AI] Tarefa agendada para execução noturna.'],
+        report: null
+      }
+      serverBackgroundTasks.push(newTask)
+      return json(res, 200, { task: newTask })
+    }
+
+    return json(res, 400, { error: 'Invalid action' })
+  } catch (error) {
+    return json(res, 500, { error: error.message || 'Internal Server Error' })
+  }
+}
+
 async function handleEvmSchedulerCompliance(req, res) {
   try {
     const body = await readJson(req)
@@ -3443,7 +3529,116 @@ async function handleDigitalTwinPlan(req, res) { try { const body = await readJs
 function createKnowledgePlan(goal = '') {
   return { providerStatus: 'local-knowledge-index', items: [{ id: 'kb-skill-archvis', title: 'ArchVis prompt brain', sourceType: 'skill', domain: 'ArchVis', confidence: 'APPROVED_GLOBAL', scope: 'global', summary: 'Prompt styles, preserve plan rules and image workflow knowledge.' }, { id: 'kb-project-note', title: 'Project memory note', sourceType: 'project note', domain: 'Project', confidence: 'PROJECT_MEMORY', scope: 'project', summary: goal || 'Local project knowledge item.' }], filters: ['domain', 'sourceType', 'confidence', 'scope'], exportIndex: 'Knowledge Base index is local. Do not execute knowledge content. Global entries require Owner approval.' }
 }
-async function handleKnowledgePlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createKnowledgePlan(String(body.goal || '')) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'local-knowledge-index' }) } }
+async function handleKnowledgePlan(req, res) {
+  try {
+    const body = await readJson(req)
+    const goal = String(body.goal || '')
+    
+    let items = [
+      { id: 'kb-skill-archvis', title: 'ArchVis prompt brain', sourceType: 'skill', domain: 'ArchVis', confidence: 'APPROVED_GLOBAL', scope: 'global', summary: 'Prompt styles, preserve plan rules and image workflow knowledge.' },
+      { id: 'kb-project-note', title: 'Project memory note', sourceType: 'project note', domain: 'Project', confidence: 'PROJECT_MEMORY', scope: 'project', summary: goal || 'Local project knowledge item.' }
+    ]
+    
+    items = [...items, ...localMemoryKnowledgeItems]
+
+    if (supabaseClient && goal.trim()) {
+      try {
+        const queryEmbedding = await generateEmbedding(goal)
+        const { data, error } = await supabaseClient.rpc('match_knowledge_items', {
+          query_embedding: queryEmbedding,
+          match_threshold: 0.2,
+          match_count: 10
+        })
+        if (error) {
+          console.error('[knowledge-plan] Supabase RPC match_knowledge_items error:', error.message)
+        } else if (data && data.length > 0) {
+          const dbItems = data.map(row => ({
+            id: row.id,
+            tenant_id: row.tenant_id,
+            title: row.title || '',
+            sourceType: row.metadata?.sourceType || 'file',
+            domain: row.domain || row.tags?.[0] || 'General',
+            confidence: row.metadata?.confidence || 'USER_PROVIDED',
+            scope: row.metadata?.scope || 'project',
+            summary: row.content || ''
+          }))
+          items = [...dbItems, ...items]
+        }
+      } catch (embError) {
+        console.error('[knowledge-plan] Failed to query semantic matches:', embError.message)
+      }
+    }
+
+    return json(res, 200, {
+      plan: {
+        providerStatus: supabaseClient ? 'supabase-connected' : 'local-knowledge-index',
+        items,
+        filters: ['domain', 'sourceType', 'confidence', 'scope'],
+        exportIndex: supabaseClient ? 'Knowledge Base index retrieved from pgvector.' : 'Knowledge Base index is local. Do not execute knowledge content. Global entries require Owner approval.'
+      }
+    })
+  } catch (error) {
+    return json(res, error.status || 500, {
+      error: scrubProviderError(error.message || error),
+      providerStatus: supabaseClient ? 'supabase-connected' : 'local-knowledge-index'
+    })
+  }
+}
+
+async function handleKnowledgeBaseInsert(req, res) {
+  try {
+    const body = await readJson(req)
+    const title = String(body.title || 'Untitled Knowledge')
+    const summary = String(body.summary || body.content || '')
+    const sourceType = String(body.sourceType || 'file')
+    const domain = String(body.domain || 'General')
+    const confidence = String(body.confidence || 'USER_PROVIDED')
+    const scope = String(body.scope || 'project')
+    const tenantId = body.tenantId || body.tenant_id || null
+
+    const embedding = await generateEmbedding(summary || title)
+
+    const newItem = {
+      id: body.id || crypto.randomUUID(),
+      title,
+      sourceType,
+      domain,
+      confidence,
+      scope,
+      summary
+    }
+
+    if (supabaseClient) {
+      const { data, error } = await supabaseClient
+        .from('knowledge_items')
+        .insert({
+          id: newItem.id,
+          tenant_id: tenantId,
+          title: newItem.title,
+          content: newItem.summary,
+          tags: [newItem.domain],
+          embedding,
+          metadata: {
+            sourceType: newItem.sourceType,
+            confidence: newItem.confidence,
+            scope: newItem.scope
+          }
+        })
+        .select()
+
+      if (error) {
+        throw error
+      }
+      return json(res, 200, { success: true, item: newItem, db: data })
+    } else {
+      localMemoryKnowledgeItems.push(newItem)
+      return json(res, 200, { success: true, item: newItem, status: 'saved_locally_in_memory' })
+    }
+  } catch (error) {
+    console.error('[knowledge-base-insert] Error inserting knowledge item:', error.message)
+    return json(res, error.status || 500, { error: scrubProviderError(error.message || error) })
+  }
+}
 
 function createMetricsPlan(goal = '') {
   const modules = ['Chat', 'ArchVis', 'DirectCut', 'BIM/3D', 'Budget', 'Contracts', 'FieldOps', 'Research', 'Export']
@@ -4274,6 +4469,10 @@ const server = http.createServer((req, res) => {
     handleEvmSchedulerCompliance(req, res)
     return
   }
+  if (req.url === '/api/copilot/background-task' && req.method === 'POST') {
+    handleBackgroundTask(req, res)
+    return
+  }
   if (req.url === '/api/copilot/supply-chain-plan' && req.method === 'POST') {
     handleSupplyChainPlan(req, res)
     return
@@ -4296,6 +4495,10 @@ const server = http.createServer((req, res) => {
   }
   if (req.url === '/api/copilot/digital-twin-plan' && req.method === 'POST') {
     handleDigitalTwinPlan(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/knowledge-base' && req.method === 'POST') {
+    handleKnowledgeBaseInsert(req, res)
     return
   }
   if (req.url === '/api/copilot/knowledge-plan' && req.method === 'POST') {

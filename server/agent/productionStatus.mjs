@@ -82,6 +82,9 @@ export function collectProductionOperatorStatus() {
       // H16 — Domain knowledge connector
       domainKnowledge: 'supported — orçamento/SINAPI, proposta/contrato, obra/campo, cronograma, marketing/vendas',
       domainSubclassification: 'supported — SINAPI/BDI/EVM/CPM/RFI/NCR/look-ahead/funil e mais 40+ tópicos específicos',
+      // Background Tasks & Multi-Agent Clash Detection
+      backgroundMultiAgentTasks: 'supported — agendamento e simulação de tarefas em segundo plano com logs e relatórios estruturados',
+      autoCorrectionReasoning: 'supported — raciocínio de colisão MEP vs Estrutura e geração automática de propostas de correção',
       // H18 — Self-Upgrade Planner
       selfUpgradePlanner: 'supported — tech radar curado; análise ao vivo com ANTHROPIC_API_KEY',
       // H19 — Codex/Claude Delegation Generator

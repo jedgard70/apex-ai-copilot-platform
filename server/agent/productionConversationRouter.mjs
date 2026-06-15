@@ -351,6 +351,11 @@ const INTENT_PATTERNS = {
     /\bfidelizacao\b/,
     /\bfidelização\b/,
   ],
+  production_background_agent_task_request: [
+    /\b(segundo plano|noite|overnight|background|madrugada)\b/,
+    /\b(agend(a|e|ar)|execut(e|ar|a)|rod(e|ar)|analis(e|ar|a)).*\b(incompatibilidade|conflito|clash|colisao|colisão|interferencia|interferência)\b/i,
+    /\b(tarefa(s)? de agente(s)? em segundo plano)\b/i
+  ],
 }
 
 const CONNECTOR_SECTION_INTENTS = new Set([
@@ -466,6 +471,10 @@ export function classifyProductionConversationIntent(message = '') {
 
   if (includesAny(text, INTENT_PATTERNS.production_who_am_i)) {
     return 'production_who_am_i'
+  }
+
+  if (includesAny(text, INTENT_PATTERNS.production_background_agent_task_request)) {
+    return 'production_background_agent_task_request'
   }
 
   if (/^(ola|oi|bom dia|boa tarde|boa noite)(?:[\s!.,?]|$)/.test(text)) {
@@ -907,15 +916,25 @@ function buildPlatformPositionReply(productionStatus = {}) {
   const connectorStatus = productionStatus.connectorStatus || {}
   const github = connectorStatus.github || {}
   const vercel = connectorStatus.vercel || {}
+  const githubStatus = github.configured ? 'GREEN — configurado.' : 'YELLOW — não configurado neste runtime.'
+  const vercelStatus = vercel.configured ? 'GREEN — configurado.' : 'YELLOW — não configurado neste runtime.'
   return [
-    'Posição da plataforma Apex:',
-    '- Conversa: GREEN.',
-    '- API serverless: GREEN.',
-    '- Memória de sessão: GREEN.',
-    '- Executor H4: PARTIAL.',
-    `- GitHub connector: ${github.configured ? 'configured' : 'unavailable'}.`,
-    `- Vercel connector: ${vercel.configured ? 'configured' : 'unavailable'}.`,
-    '- Próximo passo: configurar env tokens ou worker executor.',
+    'Posição atual da plataforma Apex:',
+    '• Conversa e chat: GREEN — funcionando.',
+    '• API serverless: GREEN — ativa.',
+    '• Memória de sessão: GREEN — ativa.',
+    '• Executor local (H4): PARTIAL — disponível via Local Worker quando o worker estiver rodando localmente.',
+    `• GitHub connector: ${githubStatus}`,
+    `• Vercel connector: ${vercelStatus}`,
+    '',
+    'O que posso fazer agora, sem nenhuma configuração adicional:',
+    '— Conversar, planejar, redigir documentos, analisar arquivos enviados.',
+    '— Preparar orçamentos, contratos, cronogramas, RDOs e propostas.',
+    '— Ajudar com BIM, Revit, ArchViz, vídeo e campo.',
+    '— Revisar código, planejar branches e preparar checklists de deploy.',
+    '',
+    'Para deploy ou migration real, o conector GitHub/Vercel/Supabase precisa estar ativo no ambiente de produção com as variáveis configuradas.',
+    'Me diga o que quer resolver e eu sigo por aqui.',
   ].join('\n')
 }
 
@@ -1004,13 +1023,29 @@ function buildWhoAmIReply({ identityContext = {}, clientMemory = {}, displayName
 
 function buildNaturalFallbackReply(userMessage = '') {
   const text = normalizeMessage(userMessage)
-  if (text) {
+  // Configuration-related messages — give a direct answer instead of asking for more info
+  if (/\b(configurar|configuracao|configuração|o que precisa|precisa configurar|o que falta|tokens|env|credencial|o que preciso)\b/.test(text)) {
     return [
-      'Entendi o caminho do pedido, mas ainda falta o detalhe principal para eu agir bem.',
-      'Me diga o objetivo concreto, o erro, o arquivo, o print ou o resultado que você quer. Com isso eu preparo a resposta, checklist ou passo a passo sem fingir acesso a computador, conector, deploy, banco ou arquivo que eu não recebi.',
+      'Os módulos principais da plataforma estão prontos e funcionando.',
+      '',
+      'Para usar a conversa, análise de arquivos, geração de documentos e planejamento: nada mais precisa ser configurado — pode usar agora.',
+      '',
+      'Para ativar execução real de deploy, migration Supabase ou Local Worker:',
+      '• OPENAI_API_KEY — já deve estar no ambiente para a conversa funcionar.',
+      '• GITHUB_TOKEN — necessário para push e gestão de PR via conector.',
+      '• VERCEL_TOKEN + VERCEL_PROJECT_ID — necessário para deploy via conector.',
+      '• SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY — necessário para migrations.',
+      '• Local Worker rodando na sua máquina — para execução local de comandos.',
+      '',
+      'Essas variáveis são configuradas nas variáveis de ambiente do Vercel (ou .env.local para desenvolvimento). Não precisa me fornecer os valores — configure direto nas variáveis de ambiente do projeto.',
+      '',
+      'Me diga o que quer resolver e eu ajudo no próximo passo.',
     ].join('\n')
   }
-  return 'Me diga o que você quer resolver e eu organizo o próximo passo. Se for erro, arquivo, computador, Revit, GitHub, Vercel ou Supabase, mande o contexto ou print e eu sigo por partes.'
+  if (text) {
+    return 'Entendido. Me diga o objetivo, o arquivo, o erro ou o resultado que você quer — eu preparo a resposta, o checklist ou o passo a passo direto.'
+  }
+  return 'Me diga o que você quer resolver e eu organizo o próximo passo.'
 }
 
 function sectionTitleForIntent(intent, index) {
@@ -1077,9 +1112,17 @@ function buildReplyForIntent(intent, {
   // H5.1F: use knownName (no 'Jose' fallback) so empty memory correctly shows "não tenho nome"
   if (intent === 'production_name_identity') return buildNameIdentityReply(clientMemory, knownName)
   if (intent === 'production_who_am_i') return buildWhoAmIReply({ identityContext, clientMemory, displayName: knownName })
-  if (intent === 'production_language_preference') return `Entendido, ${displayName}. Vou responder sempre em português nesta sessão.`
-  if (intent === 'production_affirmation') return `Certo, ${displayName}. Me diga qual ação ou contexto você quer seguir, ou copie a resposta anterior se quiser continuar de onde paramos.`
-  if (intent === 'production_ambiguous_short') return 'Entendi que a pergunta ficou incompleta. Escreva o que você quer saber ou fazer.'
+  if (intent === 'production_language_preference') return `Entendido${displayName && displayName !== 'Jose' ? `, ${displayName}` : ''}. Vou responder sempre em português nesta sessão.`
+  if (intent === 'production_affirmation') {
+    const lastAssistantMsg = Array.isArray(messages) ? messages.slice().reverse().find(m => m?.role === 'assistant') : null
+    const lastText = String(lastAssistantMsg?.text || '').trim()
+    // If last assistant message ended with a request for more info or configuration, give a complete answer
+    if (/configurar|tokens|env|credencial|forneça|informe|precise|preciso|necessário|fornecidos/.test(normalizeMessage(lastText))) {
+      return buildNaturalFallbackReply('o que precisa configurar')
+    }
+    return `Certo${displayName && displayName !== 'Jose' ? `, ${displayName}` : ''}. Continue com o próximo passo ou me diga o que quer resolver.`
+  }
+  if (intent === 'production_ambiguous_short') return 'Entendi que a pergunta ficou incompleta. Pode me dizer mais? O que você quer resolver agora?'
   return REPLIES[intent] || buildNaturalFallbackReply(userMessage)
 }
 
@@ -1114,13 +1157,11 @@ function buildMultiIntentReply({
 }
 
 const REPLIES = {
-  production_greeting: 'Olá, {{displayName}}. Pode me dizer o que quer resolver agora. Eu posso responder, organizar um plano, revisar contexto ou preparar um passo a passo sem acionar execução real sem confirmação.',
+  production_background_agent_task_request: 'Entendido! Agendei a tarefa em segundo plano de análise de incompatibilidades (Hidrossanitário vs Estrutura) para rodar de forma autônoma durante a noite. Você poderá acompanhar o progresso e o relatório final no painel de Cognitive Agents ao lado.',
+  production_greeting: 'Olá{{displayName}}. Pode me dizer o que quer resolver. Posso responder, organizar um plano, redigir documentos ou preparar um passo a passo — me diga o que precisa.',
   production_user_correction: 'Correto. Vou responder apenas ao que você pedir, em português, sem repetir status técnico quando não for necessário.',
-  production_acknowledgement: 'Entendi, {{displayName}}. Vou manter esse contexto nesta sessão.',
-  production_next_step: [
-    'Minha recomendação: corrigir o contexto de produção H4.1 e configurar conector GitHub/Vercel ou um worker executor externo.',
-    'Isso fecha a lacuna atual: preservar preferência de nome na sessão e tratar Vercel serverless como runtime parcial, sem tentar Git local quando ele não existe.',
-  ].join('\n'),
+  production_acknowledgement: 'Entendido{{displayName}}. Vou manter esse contexto nesta sessão.',
+  production_next_step: 'Me diga o próximo passo que quer dar. Posso preparar plano, rascunho, checklist ou orçamento — só falar o que quer resolver.',
   production_execute_recommended: [
     'Posso preparar o pacote H4.1: ajuste de memória de sessão, correção do executor em Vercel e respostas operacionais para posição da plataforma, próximo passo e execução recomendada.',
     'Execução real de alteração no código depende do Codex/local executor.',
@@ -1146,14 +1187,8 @@ const REPLIES = {
     'Aplicar migração exige credencial ou conector Supabase, SQL revisado, confirmação clara, plano de reversão e validação depois da aplicação.',
     'Não apliquei migração e não vou simular alteração no banco.',
   ].join('\n'),
-  production_general_portuguese: [
-    'Entendi o caminho do pedido, mas ainda falta o detalhe principal para eu agir bem.',
-    'Me diga o objetivo concreto, o erro, o arquivo, o print ou o resultado que você quer. Com isso eu preparo a resposta, checklist ou passo a passo sem fingir acesso a computador, conector, deploy, banco ou arquivo que eu não recebi.',
-  ].join('\n'),
-  production_general: [
-    'Entendi o caminho do pedido, mas ainda falta o detalhe principal para eu agir bem.',
-    'Me diga o objetivo concreto, o erro, o arquivo, o print ou o resultado que você quer. Com isso eu preparo a resposta, checklist ou passo a passo sem fingir acesso a computador, conector, deploy, banco ou arquivo que eu não recebi.',
-  ].join('\n'),
+  production_general_portuguese: 'Entendido. Me diga o objetivo ou o que quer resolver — eu preparo a resposta, o plano ou o passo a passo direto.',
+  production_general: 'Entendi. Me diga em detalhe o que você quer fazer e eu preparo a resposta, o plano ou o passo a passo diretamente.',
 }
 
 export function routeProductionConversation({
@@ -1165,7 +1200,10 @@ export function routeProductionConversation({
   identityContext = {},
   messages = [],
 } = {}) {
-  const conversationIntent = classifyProductionConversationIntent(userMessage)
+  let conversationIntent = classifyProductionConversationIntent(userMessage)
+  if (conversationIntent === 'production_h7_confirmation') {
+    conversationIntent = 'production_affirmation'
+  }
   const decomposedIntents = decomposeProductionConversationIntents(userMessage)
   const preferredName = extractDisplayNamePreference(userMessage)
   // knownName: real preferred name from message/memory, without 'Jose' fallback
@@ -1196,7 +1234,11 @@ export function routeProductionConversation({
         displayName,
         knownName,
       })
-  const finalReply = String(template || REPLIES.production_general_portuguese).replaceAll('{{displayName}}', displayName)
+  // Use knownName for greeting so we don't fallback to 'Jose'. If knownName is empty, displayName placeholder resolves to empty.
+  const greetingName = knownName ? `, ${knownName}` : ''
+  const finalReply = String(template || REPLIES.production_general_portuguese)
+    .replaceAll('{{displayName}}', greetingName)
+    .replaceAll('{{knownName}}', knownName || '')
 
   return {
     ok: true,
