@@ -3,9 +3,12 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { runApexOperatorProductionSafe } from '../../server/agent/apexOperatorRuntime.mjs'
 import { collectProductionOperatorStatus } from '../../server/agent/productionStatus.mjs'
-import { classifyToolExecutionRequest, routeToolExecution } from '../../server/agent/toolExecutionRouter.mjs'
+import { classifyToolExecutionRequest, routeToolExecution, routeH6ActionRequest } from '../../server/agent/toolExecutionRouter.mjs'
 import { isConfirmationSignal, isCancelSignal, hasPendingAction } from '../../server/agent/confirmationStateMachine.mjs'
 import { classifyProductionConversationIntent } from '../../server/agent/productionConversationRouter.mjs'
+
+// PDF summary pattern — triggers local extraction-based summary
+const PDF_SUMMARY_PATTERN = /\b(resuma|analise|analisa|resume|sumari[sz]|principais?|pontos?|extraia|extrair|o que (fala|diz|trata)|me (conta|diga|fale)|sobre o que|resumo|síntese|sinopse)\b/i
 
 // H5.0D: action tools that must always bypass conversation/connector router
 const H5_ACTION_TOOLS = new Set([
@@ -30,6 +33,9 @@ const productionRouterIntents = new Set([
   'production_platform_position',
   'production_vercel_deploy',
   'production_supabase',
+  'production_execute_recommended',
+  'production_h7_confirmation',
+  'production_next_step',
 ])
 
 const __filename = fileURLToPath(import.meta.url)
@@ -77,10 +83,15 @@ function buildIdentityReply(userText, identity) {
   return `Sim. Você está logado como ${identity.email || 'email não disponível'}, com role ${identity.role || 'não disponível'}, no workspace ${identity.workspaceName || 'não disponível'}, usando persistence ${identity.persistenceMode || 'não disponível'}.${ownerLine}${missingLine} Ainda não vou inventar dados além do que está disponível na sessão.`
 }
 
-function buildChatFallbackReply(userText, identity) {
+function buildChatFallbackReply(userText, identity, file = null) {
   const identityReply = buildIdentityReply(userText, identity)
   if (identityReply) return identityReply
   const pt = prefersPortugueseText(userText)
+  if (file && file.extractedText && isCapabilitiesQuestionText(userText)) {
+    return pt
+      ? 'Com este arquivo ativo, posso resumir o PDF, extrair pontos principais, responder perguntas sobre o conteúdo, organizar os tópicos em lista, transformar trechos em briefing ou relatório e identificar próximos passos práticos.'
+      : 'With this file active, I can summarize the PDF, extract key points, answer questions about the content, turn it into a list, convert passages into a briefing or report, and suggest practical next steps.'
+  }
   if (isCapabilitiesQuestionText(userText)) {
     return pt
       ? 'A Apex AI Copilot ajuda em BIM 5D/6D/7D, visualização 3D e ArchViz, CFD e simulações, agentes de IA, DirectCut, vendas, marketing, contabilidade, financeiro, alvarás, contratos, jurídico, documentos, propostas, engenharia e operações de campo. Você pode conversar comigo, enviar arquivos, pedir análise de projeto e transformar isso em ações dentro da plataforma.'
@@ -91,15 +102,70 @@ function buildChatFallbackReply(userText, identity) {
       ? 'Posso ajudar a preparar a consulta. Envie nome, email, telefone, cidade, tipo de projeto e o que precisa: BIM, 3D, contrato, alvará, proposta, financeiro, marketing ou operação de campo.'
       : 'I can help prepare the consultation. Send name, email, phone, city, project type and what you need: BIM, 3D, contract, permit, proposal, finance, marketing or field operations.'
   }
-  if (isUploadQuestionText(userText)) {
-    return pt
-      ? 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar. Eu uso o arquivo como contexto da conversa e sigo com uma resposta direta.'
-      : 'You can upload a file, PDF, image, plan or screenshot with the attach button. I will use it as conversation context and continue with a direct answer.'
+    if (isUploadQuestionText(userText)) {
+      if (file && file.kind === 'pdf' && file.extractionStatus === 'ready' && String(file.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(userText || '')) {
+      return buildLocalPdfSummary(file.name, file.pageCount || 0, file.extractedText || '')
+    }
+    return 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar. Eu uso o arquivo como contexto da conversa e sigo com uma resposta direta.'
   }
   return pt
     ? 'Tive um problema ao gerar a resposta completa, mas posso continuar. Reformule o pedido ou envie um arquivo/screenshot para eu analisar.'
     : 'I had trouble generating the full response, but I can continue. Rephrase the request or upload a file/screenshot for me to analyze.'
 }
+
+function buildLocalPdfSummary(fileName, pageCount, extractedText) {
+  const text = String(extractedText || '').trim()
+  const snippet = text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).slice(0,6).join(' ').replace(/\s+/g, ' ').slice(0,800)
+  const tipo = /certida/i.test(text) ? 'Certidão' : /relat/i.test(text) ? 'Relatório' : 'Documento'
+  const numberMatch = text.match(/(?:Certid[aã]o\s*(?:n[oº]?\.?|n[oº]?|\:)?\s*([\w\-\/\.]+))/i) || text.match(/\b(n[oº]\s*[:\-]?\s*([\d\-\/\.]+))/i)
+  const certNumber = numberMatch ? (numberMatch[1] || numberMatch[2]) : undefined
+  const dateMatches = Array.from(new Set([...(text.match(/\b\d{1,2}\/\d{1,2}\/\d{4}\b/g) || []), ...(text.match(/\b\d{1,2}\s+de\s+[A-Za-zçãéíóú]+\s+de\s+\d{4}\b/gi) || [])])).slice(0,5)
+  const nameFromFile = fileName ? fileName.replace(/\.pdf$/i,'').split('-').pop().trim() : null
+  const orgMatch = text.match(/\b(Servi[cç]o P[uú]blico Federal|Servi[cç]o P[uú]blico|Prefeitura|Cart[oó]rio|Tribunal|Secretaria|Minist[eé]rio|Junta|Cartorio|Conselho|Registro)\b/i)
+  const org = orgMatch ? orgMatch[0] : undefined
+
+  const mainPoints = []
+  if (snippet) mainPoints.push(snippet)
+  if (certNumber) mainPoints.push(`Número: ${certNumber}`)
+  if (dateMatches.length) mainPoints.push(`Datas relevantes: ${dateMatches.join(', ')}`)
+  if (org) mainPoints.push(`Órgão emissor: ${org}`)
+
+  const conclusion = /certida/i.test(text)
+    ? 'Documento de natureza administrativa/registral. Recomenda-se verificar assinaturas e autenticidade no cartório/órgão emissor quando necessário.'
+    : 'Resumo gerado a partir do texto extraído; revisar o documento completo para decisões finais.'
+
+  const parts = []
+  parts.push('Resumo do PDF:')
+  parts.push('')
+  parts.push('Tipo de documento:')
+  parts.push(tipo)
+  parts.push('')
+  parts.push('Finalidade:')
+  parts.push(/certida/i.test(text) ? 'Certificar/atestar informação legal registrada.' : 'Informar/registrar dados oficiais contidos no documento.')
+  parts.push('')
+  parts.push('Principais informações:')
+  if (mainPoints.length) {
+    mainPoints.forEach(p => parts.push(`- ${p}`))
+  } else {
+    parts.push('- Conteúdo extraído disponível, mas sem pontos claros identificáveis automaticamente.')
+  }
+  parts.push('')
+  parts.push('Dados relevantes identificados:')
+  parts.push(`- Nome: ${nameFromFile || 'Não identificado'}`)
+  parts.push(`- Órgão: ${org || 'Não identificado'}`)
+  parts.push(`- Número da certidão: ${certNumber || 'Não identificado'}`)
+  parts.push(`- Datas: ${dateMatches.length ? dateMatches.join(', ') : 'Não identificadas'}`)
+  parts.push(`- Registro / identificação profissional: Não identificado`)
+  parts.push('')
+  parts.push('Conclusão:')
+  parts.push(conclusion)
+  parts.push('')
+  parts.push('Limitações:')
+  parts.push('Resumo gerado a partir do texto extraído automaticamente.')
+
+  return parts.join('\n')
+}
+
 
 function detectIntent(userText) {
   const normalized = String(userText || '').toLowerCase()
@@ -354,14 +420,19 @@ function buildLocalSkillContext(userText, file) {
 
 function buildFileContext(file) {
   if (!file) return 'No uploaded file.'
-  return [
+  const lines = [
     'Uploaded file metadata:',
     `- name: ${file.name || 'unknown'}`,
     `- type: ${file.type || 'unknown'}`,
     `- kind: ${file.kind || 'unknown'}`,
     `- size: ${file.size || 'unknown'}`,
     file.dataUrl ? '- image content: supplied as data URL for vision analysis' : '- image/file content: not supplied; use metadata honestly',
-  ].join('\n')
+  ]
+  if (file.pageCount) lines.push(`- pageCount: ${file.pageCount}`)
+  if (file.extractedText) {
+    lines.push('', 'Extracted text from the active file:', String(file.extractedText).slice(0, 3000))
+  }
+  return lines.join('\n')
 }
 
 function buildLiveAgentToolDefinitions() {
@@ -468,8 +539,51 @@ export default async function handler(req, res) {
   try {
     const body = await readJsonBody(req)
     const userMessage = String(body.message || '').slice(0, 12000)
+    // When PDF context is injected into body.message, extract only the actual user query
+    // for intent routing — prevents PDF keywords from triggering unrelated production routes
+    const pdfUserQueryMatch = userMessage.match(/Pedido do usu[aá]rio:\s*(.+?)(?:\n|$)/i)
+    const routingMessage = pdfUserQueryMatch ? pdfUserQueryMatch[1].trim() : userMessage
     const clientMemory = body.clientMemory || {}
     const productionStatus = collectProductionOperatorStatus()
+    const fileCandidate = body.file || null
+    const hasReadyPdfText = Boolean(
+      fileCandidate &&
+      fileCandidate.kind === 'pdf' &&
+      fileCandidate.extractionStatus === 'ready' &&
+      String(fileCandidate.extractedText || '').trim().length >= 20
+    )
+    const looksLikePdfSummary = hasReadyPdfText && PDF_SUMMARY_PATTERN.test(routingMessage || '')
+
+    // Fast-path: greeting in Portuguese — no file context needed
+    if (/^\s*(ol[aá]|oi|ola)\s*$/i.test(userMessage)) {
+      const name = clientMemory.displayName ? `, ${clientMemory.displayName}` : ''
+      const greeting = `Olá${name}. Como posso ajudar agora?`
+      return sendJson(res, 200, {
+        finalReply: greeting,
+        reply: greeting,
+        memoryPatch: null,
+        mode: 'apex-greeting-pt',
+        operator: { intent: 'production_affirmation' },
+        confirmation: null,
+        productionStatus,
+      })
+    }
+
+    // Fast-path: PDF summary when text is ready — use local extraction, bypass operator
+    if (looksLikePdfSummary) {
+      const summary = buildLocalPdfSummary(fileCandidate?.name || '', fileCandidate?.pageCount || 0, fileCandidate?.extractedText || '')
+      if (summary) {
+        return sendJson(res, 200, {
+          finalReply: summary,
+          reply: summary,
+          memoryPatch: null,
+          mode: 'apex-pdf-summary-local',
+          operator: { intent: 'production_pdf_summary' },
+          confirmation: null,
+          productionStatus,
+        })
+      }
+    }
 
     // H7: if user says "sim" and there's a pending action, skip H5 bypass and go straight to runtime
     const hasPending = hasPendingAction(clientMemory)
@@ -491,7 +605,7 @@ export default async function handler(req, res) {
 
     // H5.0D: hard override — but skip if user is confirming a pending H7 action or if it's a mutation tool
     if (!(isConfirm && hasPending)) {
-      const h5ToolIds = classifyToolExecutionRequest(userMessage)
+      const h5ToolIds = classifyToolExecutionRequest(routingMessage)
       const MUTATION_TOOLS = new Set(['vercel.deploy', 'supabase.migration'])
       const hasMutationTool = h5ToolIds.some(id => MUTATION_TOOLS.has(id))
 
@@ -509,9 +623,63 @@ export default async function handler(req, res) {
       }
     }
 
-    const productionConversationIntent = classifyProductionConversationIntent(userMessage)
+    const productionConversationIntent = classifyProductionConversationIntent(routingMessage)
 
-    if (productionRouterIntents.has(productionConversationIntent)) {
+    // Short-circuit: If the request includes an active PDF with ready extraction and
+    // the user's latest message is a PDF-summary/analysis intent, bypass the production
+    // conversation routing and proceed to the LLM conversational flow with the file
+    // context attached. This prevents very short Portuguese inputs (eg. "resuma") from
+    // being classified as ambiguous and returning "Pergunta incompleta".
+    try {
+      const innerFileCandidate = body.file || null
+      const looksLikePdfSummary = Boolean(innerFileCandidate && innerFileCandidate.kind === 'pdf' && innerFileCandidate.extractionStatus === 'ready' && String(innerFileCandidate.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(routingMessage || ''))
+ if (!looksLikePdfSummary && productionRouterIntents.has(productionConversationIntent)) {
+        const pdfText = String(innerFileCandidate.extractedText || '')
+        const pdfSummaryPattern = /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i
+        if (pdfSummaryPattern.test(userMessage || '')) {
+          // Force a conversational path by ensuring productionConversationIntent does not
+          // trigger the productionRouterIntents branch. We simply fall through to the
+          // conversational LLM flow below with body.file present.
+          // No further action required here; leaving this block documents the short-circuit.
+        }
+      }
+    } catch (err) {
+      // Non-fatal: continue normal routing
+    }
+
+    // If this message looks like an H6 action (git, npm, etc.), route it directly
+    // to the operator runtime so it can prepare a confirmation and set pendingH6Action.
+    const h6Route = routeH6ActionRequest({ userMessage: routingMessage })
+    if (h6Route) {
+      const result = await runApexOperatorProductionSafe({
+        userMessage,
+        identityContext: normalizeIdentityContext(body.identityContext || {}),
+        workspaceContext: body.workspaceContext || {},
+        repoPath: process.cwd(),
+        permissions: {},
+        productionStatus,
+        clientMemory,
+        messages: Array.isArray(body.messages) ? body.messages : [],
+      })
+
+      return sendJson(res, 200, {
+        finalReply: result.finalReply,
+        reply: result.finalReply,
+        memoryPatch: result.memoryPatch || null,
+        mode: 'apex-operator-production-safe',
+        operator: result,
+        confirmation: buildConfirmationUi(result),
+        productionStatus,
+      })
+    }
+
+    // If the message appears to be a short PDF-summary request and the request
+    // included a ready PDF with extractedText, avoid routing through the production
+    // operator which may classify very short inputs as ambiguous. Instead, allow the
+    // conversational flow below to handle the request with file context.
+    const fileCandidate2 = body.file || null
+    const looksLikePdfSummary2 = Boolean(fileCandidate2 && fileCandidate2.kind === 'pdf' && fileCandidate2.extractionStatus === 'ready' && String(fileCandidate2.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(routingMessage || ''))
+    if (!looksLikePdfSummary2 && productionRouterIntents.has(productionConversationIntent)) {
       const result = await runApexOperatorProductionSafe({
         userMessage,
         identityContext: normalizeIdentityContext(body.identityContext || {}),
@@ -547,9 +715,23 @@ export default async function handler(req, res) {
       })
     }
 
-    const apiKey = process.env.OPENAI_API_KEY
+    // Portuguese-only greeting short-circuit for 'ola'/'oi' single-word greetings.
+    if (/^\s*(ola|oi|ol[aá])\s*[.!?]?\s*$/i.test(userMessage || '')) {
+      const greeting = 'Olá, Dr Edgard. Como posso ajudar agora?'
+      return sendJson(res, 200, {
+        finalReply: greeting,
+        reply: greeting,
+        mode: 'greeting-short-circuit',
+        confirmation: null,
+        productionStatus,
+      })
+    }
+
+    const anthropicKey = process.env.ANTHROPIC_API_KEY
+    const openaiKey = process.env.OPENAI_API_KEY
+    const apiKey = anthropicKey || openaiKey
     if (!apiKey) {
-      const fallbackReply = buildChatFallbackReply(userMessage, identityContext)
+      const fallbackReply = buildChatFallbackReply(userMessage, identityContext, body.file || null)
       return sendJson(res, 200, {
         finalReply: fallbackReply,
         reply: fallbackReply,
@@ -559,6 +741,7 @@ export default async function handler(req, res) {
       })
     }
 
+    const useAnthropic = Boolean(anthropicKey)
     const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
     const runtime = loadRuntimeKnowledge()
     const file = body.file || null
@@ -567,6 +750,11 @@ export default async function handler(req, res) {
     
     const intentInstruction = buildIntentInstruction(userMessage, file, conversation, preferredLanguage)
     const toolSummary = buildToolSummary(runtime.tools)
+        const looksLikePdfSummaryRequest = Boolean(file && file.kind === 'pdf' && file.extractionStatus === 'ready' && String(file.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(routingMessage || ''))
+        let specialIntentInstruction = intentInstruction
+        if (looksLikePdfSummaryRequest) {
+          specialIntentInstruction = 'Resuma o documento em português em 5 a 8 tópicos. Não copie o texto bruto. Identifique tipo do documento, partes envolvidas, finalidade, dados principais, datas, órgão emissor e conclusão.\n' + specialIntentInstruction
+        }
     
     const systemPrompt = [
       runtime.systemPrompt.join('\n'),
@@ -609,7 +797,7 @@ export default async function handler(req, res) {
       'When image content is supplied, mention 2 to 4 concrete visible project details before suggesting paths.',
       'Do not ask unnecessary next-step questions. Ask only when truly blocked or when the user explicitly wants exploration.',
       '',
-      intentInstruction,
+      specialIntentInstruction,
     ].join('\n')
 
     const userContent = []
@@ -665,6 +853,123 @@ export default async function handler(req, res) {
       messagesPayload[messagesPayload.length - 1],
     ]
 
+    // ── Anthropic Claude path ─────────────────────────────────────────────
+    if (useAnthropic) {
+      const claudeModel = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-6'
+      // Extract system message and build Anthropic-format messages
+      const systemText = liveAgentMessages
+        .filter(m => m.role === 'system')
+        .map(m => (typeof m.content === 'string' ? m.content : JSON.stringify(m.content)))
+        .join('\n\n')
+      const anthropicMessages = liveAgentMessages
+        .filter(m => m.role === 'user' || m.role === 'assistant')
+        .map(m => ({ role: m.role, content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content) }))
+
+      // Anthropic tool format
+      const anthropicTools = [
+        {
+          name: 'run_safe_local_command',
+          description: 'Run a safe allowlisted local Apex project command when live project evidence is needed.',
+          input_schema: {
+            type: 'object',
+            properties: {
+              commandId: {
+                type: 'string',
+                enum: ['git_status', 'git_diff_stat', 'build', 'validate_supabase_sql', 'check_server'],
+                description: 'Safe command to execute in the authorized Apex repo.',
+              },
+              reason: { type: 'string', description: 'Brief natural reason why this command is needed.' },
+            },
+            required: ['commandId', 'reason'],
+          },
+        },
+      ]
+
+      const claudeResp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': anthropicKey,
+          'anthropic-version': '2023-06-01',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: claudeModel,
+          max_tokens: 1024,
+          system: systemText,
+          messages: anthropicMessages,
+          tools: anthropicTools,
+        }),
+      })
+
+      const claudeData = await claudeResp.json().catch(() => ({}))
+      if (!claudeResp.ok) {
+        console.error('[Anthropic] error', claudeData?.error)
+        return sendJson(res, 200, {
+          finalReply: buildChatFallbackReply(userMessage, identityContext, file),
+          reply: buildChatFallbackReply(userMessage, identityContext, file),
+          mode: 'local-fallback',
+          confirmation: null,
+          productionStatus,
+        })
+      }
+
+      const contentBlocks = Array.isArray(claudeData.content) ? claudeData.content : []
+      const toolUseBlocks = contentBlocks.filter(b => b.type === 'tool_use')
+
+      if (toolUseBlocks.length && claudeData.stop_reason === 'tool_use') {
+        // Execute tools and follow up
+        const toolResultContents = []
+        for (const block of toolUseBlocks) {
+          const fakeToolCall = { function: { name: block.name }, id: block.id, arguments: JSON.stringify(block.input || {}) }
+          const result = await executeLiveAgentToolCall(fakeToolCall)
+          toolResultContents.push({ type: 'tool_result', tool_use_id: block.id, content: JSON.stringify(result) })
+        }
+
+        const followUpMessages = [
+          ...anthropicMessages,
+          { role: 'assistant', content: contentBlocks },
+          { role: 'user', content: toolResultContents },
+        ]
+
+        const finalResp = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'x-api-key': anthropicKey,
+            'anthropic-version': '2023-06-01',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: claudeModel,
+            max_tokens: 1024,
+            system: systemText,
+            messages: followUpMessages,
+          }),
+        })
+        const finalData = await finalResp.json().catch(() => ({}))
+        const finalReply = (Array.isArray(finalData.content) ? finalData.content : []).filter(b => b.type === 'text').map(b => b.text).join('') || ''
+        return sendJson(res, 200, {
+          finalReply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
+          reply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
+          model: claudeModel,
+          mode: 'apex-claude-tool-calling',
+          toolCalls: toolUseBlocks.map(b => b.name),
+          confirmation: null,
+          productionStatus,
+        })
+      }
+
+      const reply = contentBlocks.filter(b => b.type === 'text').map(b => b.text).join('') || ''
+      return sendJson(res, 200, {
+        finalReply: reply || buildChatFallbackReply(userMessage, identityContext, file),
+        reply: reply || buildChatFallbackReply(userMessage, identityContext, file),
+        model: claudeModel,
+        mode: 'apex-claude-chat',
+        confirmation: null,
+        productionStatus,
+      })
+    }
+
+    // ── OpenAI fallback path ──────────────────────────────────────────────
     const requestPayload = {
       model: process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
       messages: liveAgentMessages,
@@ -678,7 +983,7 @@ export default async function handler(req, res) {
     const response = await fetch(`${apiBase}/chat/completions`, {
       method: 'POST',
       headers: {
-        Authorization: 'Bearer ' + apiKey,
+        Authorization: 'Bearer ' + openaiKey,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(requestPayload),
@@ -687,8 +992,8 @@ export default async function handler(req, res) {
     const data = await response.json().catch(() => ({}))
     if (!response.ok) {
       return sendJson(res, 200, {
-        finalReply: buildChatFallbackReply(userMessage, identityContext),
-        reply: buildChatFallbackReply(userMessage, identityContext),
+        finalReply: buildChatFallbackReply(userMessage, identityContext, file),
+        reply: buildChatFallbackReply(userMessage, identityContext, file),
         mode: 'local-fallback',
         confirmation: null,
         productionStatus,
@@ -701,56 +1006,25 @@ export default async function handler(req, res) {
     if (toolCalls.length) {
       const followUpMessages = [
         ...liveAgentMessages,
-        {
-          role: 'assistant',
-          content: assistantMessage.content || '',
-          tool_calls: toolCalls,
-        },
+        { role: 'assistant', content: assistantMessage.content || '', tool_calls: toolCalls },
       ]
-
       for (const toolCall of toolCalls) {
         const toolResult = await executeLiveAgentToolCall(toolCall)
-        followUpMessages.push({
-          role: 'tool',
-          tool_call_id: toolCall.id,
-          content: JSON.stringify(toolResult),
-        })
+        followUpMessages.push({ role: 'tool', tool_call_id: toolCall.id, content: JSON.stringify(toolResult) })
       }
-
       const finalResponse = await fetch(`${apiBase}/chat/completions`, {
         method: 'POST',
-        headers: {
-          Authorization: 'Bearer ' + apiKey,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
-          messages: followUpMessages,
-          temperature: 0.45,
-          frequency_penalty: 0.1,
-          max_tokens: 900,
-        }),
+        headers: { Authorization: 'Bearer ' + openaiKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: process.env.OPENAI_MODEL || 'gpt-4o-mini', messages: followUpMessages, temperature: 0.45, max_tokens: 900 }),
       })
-
       const finalData = await finalResponse.json().catch(() => ({}))
-      if (!finalResponse.ok) {
-        return sendJson(res, 200, {
-          finalReply: buildChatFallbackReply(userMessage, identityContext),
-          reply: buildChatFallbackReply(userMessage, identityContext),
-          mode: 'local-fallback-after-tool',
-          confirmation: null,
-          productionStatus,
-        })
-      }
-
-      const finalReply = finalData && finalData.choices && finalData.choices[0] ? finalData.choices[0].message.content || '' : ''
+      const finalReply = finalData?.choices?.[0]?.message?.content || ''
       return sendJson(res, 200, {
-        finalReply: finalReply || buildChatFallbackReply(userMessage, identityContext),
-        reply: finalReply || buildChatFallbackReply(userMessage, identityContext),
+        finalReply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
+        reply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
         model: finalData.model,
-        usage: finalData.usage,
         mode: 'live-agent-tool-calling',
-        toolCalls: toolCalls.map(call => call && call.function ? call.function.name : 'unknown'),
+        toolCalls: toolCalls.map(c => c?.function?.name || 'unknown'),
         confirmation: null,
         productionStatus,
       })
@@ -758,8 +1032,8 @@ export default async function handler(req, res) {
 
     const reply = assistantMessage.content || ''
     return sendJson(res, 200, {
-      finalReply: reply || buildChatFallbackReply(userMessage, identityContext),
-      reply: reply || buildChatFallbackReply(userMessage, identityContext),
+      finalReply: reply || buildChatFallbackReply(userMessage, identityContext, file),
+      reply: reply || buildChatFallbackReply(userMessage, identityContext, file),
       model: data.model,
       usage: data.usage,
       mode: 'live-agent-chat',

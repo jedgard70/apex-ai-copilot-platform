@@ -1104,9 +1104,7 @@ function buildChatFallbackReply(userText, identity) {
       : 'I can help prepare the consultation. Send name, email, phone, city, project type and what you need: BIM, 3D, contract, permit, proposal, finance, marketing or field operations.'
   }
   if (isUploadQuestionText(userText)) {
-    return pt
-      ? 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar. Eu uso o arquivo como contexto da conversa e sigo com uma resposta direta.'
-      : 'You can upload a file, PDF, image, plan or screenshot with the attach button. I will use it as conversation context and continue with a direct answer.'
+    return 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar. Eu uso o arquivo como contexto da conversa e sigo com uma resposta direta.'
   }
   return pt
     ? 'Tive um problema ao gerar a resposta completa, mas posso continuar. Reformule o pedido ou envie um arquivo/screenshot para eu analisar.'

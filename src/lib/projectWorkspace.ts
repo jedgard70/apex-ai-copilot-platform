@@ -4,7 +4,12 @@ export type ProjectFileRecord = {
   type: string
   size: number
   kind: string
+  lastModified?: number
   dataUrl?: string
+  extractedText?: string
+  pageCount?: number
+  extractionStatus?: 'idle' | 'extracting' | 'ready' | 'failed'
+  extractedAt?: string
   dimensions?: {
     width: number
     height: number
