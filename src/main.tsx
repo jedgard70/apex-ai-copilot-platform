@@ -1274,6 +1274,16 @@ function App() {
     const clean = text.trim()
     const pendingForSend = explicitAttachment || pendingAttachment
     if ((!clean && !pendingForSend) || loading) return
+
+    // Fast-path: Portuguese greeting — respond immediately without touching file context or calling API
+    if (/^\s*(ol[aá]|oi|ola)\s*$/i.test(clean) && !pendingForSend) {
+      const displayName = clientMemory.displayName ? `, ${clientMemory.displayName}` : ''
+      const greetMsg: Message = { id: id(), role: 'user', text: clean }
+      setMessages(prev => [...prev, greetMsg, { id: id(), role: 'assistant', text: `Olá${displayName}. Como posso ajudar agora?` }])
+      setInput('')
+      return
+    }
+
     const isPlatformQuestion = Boolean(clean && isPlatformCapabilitiesIntent(clean))
     const wantsFileContext = Boolean(pendingForSend) || Boolean(clean && !isPlatformQuestion && (
       isPdfAnalysisIntent(clean)
@@ -1967,7 +1977,8 @@ function App() {
   }
 
   async function handleFile(file: File) {
-    if (file.size === 0) return
+    // Allow 0-byte size if file has a name/type — some browsers (Android, cloud pickers) report 0 for valid files
+    if (file.size === 0 && !file.name && !file.type) return
     const kind = classifyFile(file)
     const dataUrl = kind === 'image' ? await readFileAsDataUrl(file) : undefined
     const previewUrl = kind === 'image' || kind === 'pdf' ? URL.createObjectURL(file) : undefined
