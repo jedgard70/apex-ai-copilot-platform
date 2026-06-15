@@ -124,7 +124,7 @@ describe('analyze API — fallback responses', () => {
     const result = fallback('contracts-review', {})
     expect(result.mode).toBe('planning-only')
     expect(result.risks).toEqual([])
-    expect(result.suggestions.length).toBeGreaterThan(0)
+    expect((result as any).suggestions.length).toBeGreaterThan(0)
     expect(result.missingClauses).toEqual([])
   })
 
