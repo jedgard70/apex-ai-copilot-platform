@@ -109,6 +109,7 @@ type Message = {
   role: 'user' | 'assistant'
   text: string
   attachment?: IntakeFile
+  attachmentFileId?: string
   toolCards?: H5ToolCard[]
   confirmation?: H7Confirmation | null
 }
@@ -255,6 +256,45 @@ function revisionChatLabel(text: string) {
   if (/(piscina|pool)/i.test(lower)) return 'manter a piscina no local, tamanho e proporção originais'
   if (/(banheiro|bathroom)/i.test(lower)) return 'manter o banheiro como está na planta'
   return text.trim()
+}
+
+function getFileRecordId(file: IntakeFile) {
+  return `${file.file.name}-${file.file.size}-${file.file.lastModified || 0}`
+}
+
+function hasPersistentFileContext(record?: ProjectFileRecord) {
+  if (!record) return false
+  const extracted = String(record.extractedText || '').trim().length
+  return Boolean(record.dataUrl || extracted >= 20)
+}
+
+function getActivePdfContext(file?: IntakeFile) {
+  if (!file || file.kind !== 'pdf' || file.extractionStatus !== 'ready') return null
+  const extractedText = String(file.extractedText || '').trim()
+  if (extractedText.length < 20) return null
+  return {
+    fileName: file.file.name,
+    pageCount: file.pageCount || 0,
+    extractedText,
+  }
+}
+
+function buildChatFilePayload(file?: IntakeFile | null) {
+  if (!file) return null
+  return {
+    name: file.file.name,
+    type: file.file.type,
+    size: file.file.size,
+    kind: file.kind,
+    dataUrl: file.kind === 'image' ? file.dataUrl : undefined,
+    pageCount: file.pageCount,
+    extractionStatus: file.extractionStatus,
+    extractedText: file.extractedText,
+  }
+}
+
+function isPlatformCapabilitiesIntent(text: string) {
+  return /\b(liste o que vc tem de funcionalidades|lista de funcionalidades|funcionalidades|o que (vc|voce|você) faz|quais módulos existem|quais modulos existem|quais funcionalidades|what can you do|what do you do|features)\b/i.test(text)
 }
 
 function id() {
@@ -609,7 +649,7 @@ function isUploadQuestion(text: string) {
   return /\b(upload|arquivo|anexar|mandar imagem|enviar arquivo|screenshot|planta|pdf|file|attach)\b/i.test(text.trim())
 }
 
-function buildProductFallbackAnswer(userText: string, identity: ChatIdentityContext) {
+function buildProductFallbackAnswer(userText: string, identity: ChatIdentityContext, attachment?: IntakeFile) {
   // H5.1F: multi-line messages are handled by the backend conversational router.
   // Only apply local fallbacks for single-line messages to prevent interception.
   const nonEmptyLines = userText.trim().split(/\n/).filter(l => l.trim()).length
@@ -740,7 +780,12 @@ function fileToRecord(file: IntakeFile): ProjectFileRecord {
     type: file.file.type,
     size: file.file.size,
     kind: file.kind,
+    lastModified: file.file.lastModified || 0,
     dataUrl: file.kind === 'image' ? file.dataUrl : undefined,
+    extractedText: file.extractedText,
+    pageCount: file.pageCount,
+    extractionStatus: file.extractionStatus,
+    extractedAt: file.extractionStatus === 'ready' && file.extractedText ? new Date().toISOString() : undefined,
     dimensions: file.dimensions,
     addedAt: new Date().toISOString(),
   }
@@ -748,26 +793,36 @@ function fileToRecord(file: IntakeFile): ProjectFileRecord {
 
 function recordToIntakeFile(record?: ProjectFileRecord): IntakeFile | undefined {
   if (!record) return undefined
+  const extractedText = String(record.extractedText || '').trim()
+  if (!record.dataUrl && extractedText.length < 20) return undefined
   const file = record.dataUrl
-    ? dataUrlToFile(record.dataUrl, record.name, record.type)
-    : new File([''], record.name, { type: record.type || 'application/octet-stream' })
+    ? dataUrlToFile(record.dataUrl, record.name, record.type, record.lastModified)
+    : new File([''], record.name, { type: record.type || 'application/octet-stream', lastModified: record.lastModified || Date.now() })
   return {
     file,
     kind: record.kind as IntakeFile['kind'],
     dataUrl: record.dataUrl,
+    extractedText: extractedText || undefined,
+    pageCount: record.pageCount,
+    extractionStatus: record.extractionStatus || (extractedText.length >= 20 ? 'ready' : undefined),
     previewUrl: record.dataUrl,
     url: record.dataUrl,
     dimensions: record.dimensions,
   }
 }
 
-function dataUrlToFile(dataUrl: string, name: string, type: string) {
+function getProjectFileRecordById(project: ProjectWorkspace, fileId?: string) {
+  if (!fileId) return undefined
+  return project.files.find(file => file.id === fileId)
+}
+
+function dataUrlToFile(dataUrl: string, name: string, type: string, lastModified?: number) {
   const [header, base64 = ''] = dataUrl.split(',')
   const mime = type || header.match(/data:([^;]+)/)?.[1] || 'application/octet-stream'
   const binary = atob(base64)
   const bytes = new Uint8Array(binary.length)
   for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index)
-  return new File([bytes], name, { type: mime })
+  return new File([bytes], name, { type: mime, lastModified: lastModified || Date.now() })
 }
 
 function App() {
@@ -1076,7 +1131,7 @@ function App() {
         id: message.id,
         role: message.role,
         text: message.text,
-        attachmentFileId: message.attachment ? activeRecord?.id : undefined,
+        attachmentFileId: message.attachmentFileId,
       })),
       revisionConstraints: archVisRevisionConstraints,
       projectMemory: activeProject.projectMemory,
@@ -1178,40 +1233,45 @@ function App() {
   async function askCopilot(text = input, explicitAttachment?: IntakeFile) {
     const clean = text.trim()
     const pendingForSend = explicitAttachment || pendingAttachment
-    const attachment = pendingForSend || activeFile
     if ((!clean && !pendingForSend) || loading) return
-    const sentAttachment = pendingForSend
-      ? pendingForSend.kind === 'pdf'
-        ? { ...pendingForSend, extractionStatus: 'extracting' as const }
-        : pendingForSend
-      : clean
-        ? attachment
-        : undefined
+    const isPlatformQuestion = Boolean(clean && isPlatformCapabilitiesIntent(clean))
+    const wantsFileContext = Boolean(pendingForSend) || Boolean(clean && !isPlatformQuestion && (
+      isPdfAnalysisIntent(clean)
+      || isBimStudioCommand(clean)
+      || isArchVisIntent(clean, activeFile)
+      || isDirectCutIntent(clean)
+      || isBudgetIntent(clean)
+      || isContractsIntent(clean)
+      || isFieldOpsIntent(clean, activeFile)
+      || isResearchIntent(clean)
+      || isBusinessLayerIntent(clean)
+    ))
+    const attachment = pendingForSend || (wantsFileContext ? activeFile : undefined)
+    const sentAttachment = pendingForSend || undefined
     if (pendingForSend) {
       setActiveFile(pendingForSend)
       setPendingAttachment(null)
       if (pendingForSend.kind === 'pdf') beginPdfExtraction(pendingForSend)
     }
-    const userText = clean || (attachment ? `Uploaded ${attachment.file.name}` : '')
-    // When user sends a follow-up about an active PDF (resuma, analise, etc.), inject the extracted text as context
-    const hasPdfContext = attachment?.kind === 'pdf' && attachment.extractedText
-    const isFollowUpAboutPdf = clean && hasPdfContext && isPdfAnalysisIntent(clean)
+    const userText = clean || (sentAttachment ? `Uploaded ${sentAttachment.file.name}` : '')
+    const activePdfContext = getActivePdfContext(attachment)
+    const isFollowUpAboutPdf = clean && Boolean(activePdfContext) && isPdfAnalysisIntent(clean)
     const modelText = (() => {
       if (!clean) {
         // Initial upload — include PDF content if available
-        if (hasPdfContext) {
-          return `O usuário enviou o arquivo PDF "${attachment!.file.name}" (${attachment!.pageCount ?? '?'} páginas). Conteúdo extraído:\n\n${attachment!.extractedText}\n\nResponda de forma direta e conversacional com base no conteúdo acima. Não faça relatório nem lista de tópicos.`
+        if (activePdfContext) {
+          return `O usuário enviou o arquivo PDF "${activePdfContext.fileName}" (${activePdfContext.pageCount} páginas). Conteúdo extraído:\n\n${activePdfContext.extractedText}\n\nResponda de forma direta e conversacional com base no conteúdo acima. Não faça relatório nem lista de tópicos.`
         }
         if (attachment) return 'User uploaded this file. Analyze it as project context and continue naturally in a short conversational reply. Do not write a report, heading, observations list, or capabilities list.'
         return ''
       }
       if (isFollowUpAboutPdf) {
         // Follow-up request (resuma, analise, etc.) — inject PDF context before the user question
-        return `Arquivo PDF ativo: "${attachment!.file.name}" (${attachment!.pageCount ?? '?'} páginas).\nConteúdo extraído:\n\n${attachment!.extractedText}\n\nPedido do usuário: ${clean}\n\nResponda diretamente com base no conteúdo do PDF acima.`
+        return `Arquivo PDF ativo: "${activePdfContext!.fileName}" (${activePdfContext!.pageCount} páginas)\nConteúdo extraído:\n\n${activePdfContext!.extractedText}\n\nPedido do usuário: ${clean}\n\nResponda somente com base no conteúdo real do PDF. Não diga que não tem acesso ao conteúdo.`
       }
       return clean
     })()
-    const userMessage: Message = { id: id(), role: 'user', text: userText, attachment: sentAttachment }
+    const userMessage: Message = { id: id(), role: 'user', text: userText, attachment: sentAttachment, attachmentFileId: sentAttachment ? getFileRecordId(sentAttachment) : undefined }
     if (pendingForSend && !clean) {
       setMessages(prev => [...prev, userMessage])
       setInput('')
@@ -1231,7 +1291,7 @@ function App() {
       return
     }
     const identityContext = buildChatIdentityContext(accountState)
-    if (clean && attachment?.kind === 'pdf' && isPdfAnalysisIntent(clean) && attachment.extractionStatus !== 'ready') {
+    if (clean && attachment?.kind === 'pdf' && isPdfAnalysisIntent(clean) && attachment.extractionStatus === 'extracting') {
       setMessages(prev => [
         ...prev,
         userMessage,
@@ -1239,6 +1299,19 @@ function App() {
           id: id(),
           role: 'assistant',
           text: 'Estou extraindo o PDF. Aguarde concluir e envie novamente.',
+        },
+      ])
+      setInput('')
+      return
+    }
+    if (clean && attachment?.kind === 'pdf' && isPdfAnalysisIntent(clean) && attachment.extractionStatus === 'ready' && !activePdfContext) {
+      setMessages(prev => [
+        ...prev,
+        userMessage,
+        {
+          id: id(),
+          role: 'assistant',
+          text: 'Falhei ao resumir o PDF apesar de o texto estar extraído. Tente novamente.',
         },
       ])
       setInput('')
@@ -1268,8 +1341,8 @@ function App() {
       return
     }
     // Skip generic fallback when user is asking about an active ready PDF — let API handle it with injected context
-    const shouldSkipFallback = hasPdfContext && attachment?.extractionStatus === 'ready' && isPdfAnalysisIntent(clean)
-    const localProductAnswer = shouldSkipFallback ? null : buildProductFallbackAnswer(userText, identityContext)
+    const shouldSkipFallback = Boolean(activePdfContext && isPdfAnalysisIntent(clean))
+    const localProductAnswer = shouldSkipFallback ? null : buildProductFallbackAnswer(userText, identityContext, isPlatformQuestion ? undefined : attachment)
     if (localProductAnswer) {
       setMessages(prev => [
         ...prev,
@@ -1402,7 +1475,9 @@ function App() {
     }
     // M3 — DOCX generation intent: open Contracts Studio and trigger draft + download
     if (shouldGenerateDocx) {
-      const pdfContext = hasPdfContext ? `\n\nContexto do PDF ativo "${attachment!.file.name}":\n${attachment!.extractedText?.slice(0, 3000)}` : ''
+      const pdfContext = attachment?.kind === 'pdf' && attachment.extractionStatus === 'ready'
+        ? `\n\nContexto do PDF ativo "${attachment.file.name}":\n${attachment.extractedText?.slice(0, 3000)}`
+        : ''
       closeAllPanels()
       setMessages(prev => [
         ...prev,
@@ -1740,15 +1815,7 @@ function App() {
               text: modelText,
             },
           ],
-          file: attachment
-            ? {
-                name: attachment.file.name,
-                type: attachment.file.type,
-                size: attachment.file.size,
-                kind: attachment.kind,
-                dataUrl: attachment.kind === 'image' ? attachment.dataUrl : undefined,
-              }
-            : null,
+          file: buildChatFilePayload(attachment),
         }),
       })
       const data = await response.json().catch(() => ({}))
@@ -1762,8 +1829,10 @@ function App() {
         })
       }
       const reply = response.ok
-  ? pickCanonicalReply(data, buildCopilotFailureMessage(userText))
-  : buildCopilotFailureMessage(userText)
+        ? pickCanonicalReply(data, buildCopilotFailureMessage(userText))
+        : (activePdfContext && isPdfAnalysisIntent(clean)
+          ? 'Falhei ao resumir o PDF apesar de o texto estar extraído. Tente novamente.'
+          : buildCopilotFailureMessage(userText))
       // H5.1C/H5.1B: extract tool cards from H5 tool execution response
       const rawToolExec = (data?.operator as Record<string, unknown> | undefined)?.toolExecution
       const toolsArr = rawToolExec && typeof rawToolExec === 'object' ? (rawToolExec as Record<string, unknown>).tools : undefined
@@ -1815,7 +1884,9 @@ function App() {
         {
           id: id(),
           role: 'assistant',
-          text: buildProductFallbackAnswer(userText, identityContext) || buildCopilotFailureMessage(userText),
+          text: (activePdfContext && isPdfAnalysisIntent(clean)
+            ? 'Falhei ao resumir o PDF apesar de o texto estar extraído. Tente novamente.'
+            : buildProductFallbackAnswer(userText, identityContext, isPlatformQuestion ? undefined : attachment)) || buildCopilotFailureMessage(userText),
         },
       ])
     } finally {
@@ -1975,7 +2046,8 @@ function App() {
       id: message.id,
       role: message.role,
       text: message.text,
-      attachment: message.attachmentFileId ? restored : undefined,
+      attachment: recordToIntakeFile(getProjectFileRecordById(project, message.attachmentFileId)),
+      attachmentFileId: message.attachmentFileId,
     })) : [{ id: id(), role: 'assistant', text: `Project "${project.name}" loaded.` }])
     const state = project.appState || {}
     const restoredArchVis = state.archVisOutput as { output?: string; conversationContext?: string[] } | null | undefined

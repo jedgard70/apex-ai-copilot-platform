@@ -3,7 +3,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { runApexOperatorProductionSafe } from '../../server/agent/apexOperatorRuntime.mjs'
 import { collectProductionOperatorStatus } from '../../server/agent/productionStatus.mjs'
-import { classifyToolExecutionRequest, routeToolExecution } from '../../server/agent/toolExecutionRouter.mjs'
+import { classifyToolExecutionRequest, routeToolExecution, routeH6ActionRequest } from '../../server/agent/toolExecutionRouter.mjs'
 import { isConfirmationSignal, isCancelSignal, hasPendingAction } from '../../server/agent/confirmationStateMachine.mjs'
 import { classifyProductionConversationIntent } from '../../server/agent/productionConversationRouter.mjs'
 
@@ -30,6 +30,9 @@ const productionRouterIntents = new Set([
   'production_platform_position',
   'production_vercel_deploy',
   'production_supabase',
+  'production_execute_recommended',
+  'production_h7_confirmation',
+  'production_next_step',
 ])
 
 const __filename = fileURLToPath(import.meta.url)
@@ -77,10 +80,15 @@ function buildIdentityReply(userText, identity) {
   return `Sim. Você está logado como ${identity.email || 'email não disponível'}, com role ${identity.role || 'não disponível'}, no workspace ${identity.workspaceName || 'não disponível'}, usando persistence ${identity.persistenceMode || 'não disponível'}.${ownerLine}${missingLine} Ainda não vou inventar dados além do que está disponível na sessão.`
 }
 
-function buildChatFallbackReply(userText, identity) {
+function buildChatFallbackReply(userText, identity, file = null) {
   const identityReply = buildIdentityReply(userText, identity)
   if (identityReply) return identityReply
   const pt = prefersPortugueseText(userText)
+  if (file && file.extractedText && isCapabilitiesQuestionText(userText)) {
+    return pt
+      ? 'Com este arquivo ativo, posso resumir o PDF, extrair pontos principais, responder perguntas sobre o conteúdo, organizar os tópicos em lista, transformar trechos em briefing ou relatório e identificar próximos passos práticos.'
+      : 'With this file active, I can summarize the PDF, extract key points, answer questions about the content, turn it into a list, convert passages into a briefing or report, and suggest practical next steps.'
+  }
   if (isCapabilitiesQuestionText(userText)) {
     return pt
       ? 'A Apex AI Copilot ajuda em BIM 5D/6D/7D, visualização 3D e ArchViz, CFD e simulações, agentes de IA, DirectCut, vendas, marketing, contabilidade, financeiro, alvarás, contratos, jurídico, documentos, propostas, engenharia e operações de campo. Você pode conversar comigo, enviar arquivos, pedir análise de projeto e transformar isso em ações dentro da plataforma.'
@@ -354,14 +362,19 @@ function buildLocalSkillContext(userText, file) {
 
 function buildFileContext(file) {
   if (!file) return 'No uploaded file.'
-  return [
+  const lines = [
     'Uploaded file metadata:',
     `- name: ${file.name || 'unknown'}`,
     `- type: ${file.type || 'unknown'}`,
     `- kind: ${file.kind || 'unknown'}`,
     `- size: ${file.size || 'unknown'}`,
     file.dataUrl ? '- image content: supplied as data URL for vision analysis' : '- image/file content: not supplied; use metadata honestly',
-  ].join('\n')
+  ]
+  if (file.pageCount) lines.push(`- pageCount: ${file.pageCount}`)
+  if (file.extractedText) {
+    lines.push('', 'Extracted text from the active file:', String(file.extractedText).slice(0, 3000))
+  }
+  return lines.join('\n')
 }
 
 function buildLiveAgentToolDefinitions() {
@@ -511,6 +524,32 @@ export default async function handler(req, res) {
 
     const productionConversationIntent = classifyProductionConversationIntent(userMessage)
 
+    // If this message looks like an H6 action (git, npm, etc.), route it directly
+    // to the operator runtime so it can prepare a confirmation and set pendingH6Action.
+    const h6Route = routeH6ActionRequest({ userMessage })
+    if (h6Route) {
+      const result = await runApexOperatorProductionSafe({
+        userMessage,
+        identityContext: normalizeIdentityContext(body.identityContext || {}),
+        workspaceContext: body.workspaceContext || {},
+        repoPath: process.cwd(),
+        permissions: {},
+        productionStatus,
+        clientMemory,
+        messages: Array.isArray(body.messages) ? body.messages : [],
+      })
+
+      return sendJson(res, 200, {
+        finalReply: result.finalReply,
+        reply: result.finalReply,
+        memoryPatch: result.memoryPatch || null,
+        mode: 'apex-operator-production-safe',
+        operator: result,
+        confirmation: buildConfirmationUi(result),
+        productionStatus,
+      })
+    }
+
     if (productionRouterIntents.has(productionConversationIntent)) {
       const result = await runApexOperatorProductionSafe({
         userMessage,
@@ -549,7 +588,7 @@ export default async function handler(req, res) {
 
     const apiKey = process.env.OPENAI_API_KEY
     if (!apiKey) {
-      const fallbackReply = buildChatFallbackReply(userMessage, identityContext)
+      const fallbackReply = buildChatFallbackReply(userMessage, identityContext, body.file || null)
       return sendJson(res, 200, {
         finalReply: fallbackReply,
         reply: fallbackReply,
@@ -687,8 +726,8 @@ export default async function handler(req, res) {
     const data = await response.json().catch(() => ({}))
     if (!response.ok) {
       return sendJson(res, 200, {
-        finalReply: buildChatFallbackReply(userMessage, identityContext),
-        reply: buildChatFallbackReply(userMessage, identityContext),
+        finalReply: buildChatFallbackReply(userMessage, identityContext, file),
+        reply: buildChatFallbackReply(userMessage, identityContext, file),
         mode: 'local-fallback',
         confirmation: null,
         productionStatus,
@@ -735,8 +774,8 @@ export default async function handler(req, res) {
       const finalData = await finalResponse.json().catch(() => ({}))
       if (!finalResponse.ok) {
         return sendJson(res, 200, {
-          finalReply: buildChatFallbackReply(userMessage, identityContext),
-          reply: buildChatFallbackReply(userMessage, identityContext),
+          finalReply: buildChatFallbackReply(userMessage, identityContext, file),
+          reply: buildChatFallbackReply(userMessage, identityContext, file),
           mode: 'local-fallback-after-tool',
           confirmation: null,
           productionStatus,
@@ -745,8 +784,8 @@ export default async function handler(req, res) {
 
       const finalReply = finalData && finalData.choices && finalData.choices[0] ? finalData.choices[0].message.content || '' : ''
       return sendJson(res, 200, {
-        finalReply: finalReply || buildChatFallbackReply(userMessage, identityContext),
-        reply: finalReply || buildChatFallbackReply(userMessage, identityContext),
+        finalReply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
+        reply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
         model: finalData.model,
         usage: finalData.usage,
         mode: 'live-agent-tool-calling',
@@ -758,8 +797,8 @@ export default async function handler(req, res) {
 
     const reply = assistantMessage.content || ''
     return sendJson(res, 200, {
-      finalReply: reply || buildChatFallbackReply(userMessage, identityContext),
-      reply: reply || buildChatFallbackReply(userMessage, identityContext),
+      finalReply: reply || buildChatFallbackReply(userMessage, identityContext, file),
+      reply: reply || buildChatFallbackReply(userMessage, identityContext, file),
       model: data.model,
       usage: data.usage,
       mode: 'live-agent-chat',

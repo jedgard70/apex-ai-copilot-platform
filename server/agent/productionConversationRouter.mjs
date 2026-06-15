@@ -1122,7 +1122,7 @@ function buildReplyForIntent(intent, {
     }
     return `Certo${displayName && displayName !== 'Jose' ? `, ${displayName}` : ''}. Continue com o próximo passo ou me diga o que quer resolver.`
   }
-  if (intent === 'production_ambiguous_short') return 'Pode me dizer mais? O que você quer resolver agora?'
+  if (intent === 'production_ambiguous_short') return 'Entendi que a pergunta ficou incompleta. Pode me dizer mais? O que você quer resolver agora?'
   return REPLIES[intent] || buildNaturalFallbackReply(userMessage)
 }
 
@@ -1188,7 +1188,7 @@ const REPLIES = {
     'Não apliquei migração e não vou simular alteração no banco.',
   ].join('\n'),
   production_general_portuguese: 'Entendido. Me diga o objetivo ou o que quer resolver — eu preparo a resposta, o plano ou o passo a passo direto.',
-  production_general: 'Understood. Tell me what you want to accomplish and I will prepare the answer, plan or step-by-step directly.',
+  production_general: 'Entendi. Me diga em detalhe o que você quer fazer e eu preparo a resposta, o plano ou o passo a passo diretamente.',
 }
 
 export function routeProductionConversation({
