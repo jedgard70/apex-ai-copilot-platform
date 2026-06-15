@@ -2,6 +2,8 @@
 
 Generated: 2026-06-13
 
+Updated: 2026-06-15 after auditoria H1-H22 + M2/M3/M5/M6. See `docs/APEX_MODULE_AUDIT.md` and `docs/APEX_PLATFORM_CURRENT_STATE.md` for the current source-of-truth status matrix.
+
 ## Product Core
 
 | Module / area | Status | Evidence | Next validation |

@@ -2,6 +2,8 @@
 
 Generated: 2026-06-13
 
+Updated: 2026-06-15 after auditoria H1-H22 + M2/M3/M5/M6. The highest-leverage next checkpoint is now attach/composer/side-panel UX because M2 PDF, M3 DOCX, M5 Budget/XLSX and M6 IFC all depend on reliable active-file state and a single clear active workflow surface.
+
 ## Highest-Leverage Next Action
 
 Run a controlled local runtime QA with an approved real `OPENAI_API_KEY`, then update the validation matrix with actual API/UI evidence.
