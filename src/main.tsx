@@ -55,8 +55,9 @@ import {
   upsertProject,
 } from './lib/projectWorkspace'
 import { syncProjectLocalToRemote } from './lib/projectPersistenceAdapter'
-import { SupabaseAccountState, loadSupabaseAccountState } from './lib/supabaseAuthBootstrap'
+import { SupabaseAccountState, attemptProfileBootstrap, loadSupabaseAccountState } from './lib/supabaseAuthBootstrap'
 import { getBrowserSupabaseClient, getSupabaseProviderStatus } from './lib/supabaseClient'
+import { uploadProjectFileToSupabase } from './lib/supabaseStorage'
 import { isSkillUpdateIntent, ProjectMemoryUpdate, SkillUpdateApplyResult } from './lib/skillUpdateEngine'
 import { isSkillExportIntent } from './lib/skillExportFactory'
 import { BudgetPlan } from './lib/budgetKnowledge'
@@ -1033,6 +1034,17 @@ function App() {
 
     try {
       const state = await loadSupabaseAccountState()
+      // Phase 1.4 — auto-bootstrap profile when signed in but profile missing
+      if (state.bootstrapStatus === 'needs-profile-bootstrap') {
+        try {
+          const bootstrapped = await attemptProfileBootstrap()
+          setAccountState(bootstrapped)
+          setAuthMessage(bootstrapped.message)
+          return bootstrapped
+        } catch {
+          // bootstrap failed — fall through to set the original state
+        }
+      }
       setAccountState(state)
       setAuthMessage(state.message)
       return state
@@ -1960,6 +1972,11 @@ function App() {
           : null
         setMessages(prev => [...prev, { id: id(), role: 'assistant', text: reply, toolCards, confirmation }])
       }
+      // Phase 1.2 — sync conversation to Supabase after each copilot response (fire-and-forget)
+      if (accountState?.bootstrapStatus === 'ready') {
+        const snapshot = buildProjectSnapshot()
+        syncProjectLocalToRemote(snapshot).catch(console.warn)
+      }
     } catch (error) {
       setMessages(prev => [
         ...prev,
@@ -1994,6 +2011,15 @@ function App() {
     }
     setPendingAttachment(intake)
     if (fileInput.current) fileInput.current.value = ''
+    // Phase 1.3 — upload file to Supabase Storage (fire-and-forget)
+    if (accountState?.bootstrapStatus === 'ready' && accountState.tenant) {
+      uploadProjectFileToSupabase({
+        file,
+        tenantId: accountState.tenant.id,
+        projectId: activeProject.id,
+        kind,
+      }).catch(console.warn)
+    }
     return
   }
 
