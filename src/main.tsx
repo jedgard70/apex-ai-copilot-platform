@@ -1754,7 +1754,7 @@ function App() {
           return next
         })
       }
-      const localFallback = buildProductFallbackAnswer(userText, identityContext)
+       const apiFallback = shouldSkipFallback
       const reply = response.ok
         ? pickCanonicalReply(data, localFallback || buildCopilotFailureMessage(userText))
         : localFallback || buildCopilotFailureMessage(userText)
