@@ -2979,7 +2979,7 @@ body {
 
 .workspace.studio-open {
   max-width: none;
-  grid-template-columns: 76px minmax(0, 1fr) minmax(420px, 0.44fr);
+  grid-template-columns: 76px minmax(0, 1fr) minmax(560px, 1fr);
   align-items: stretch;
 }
 
