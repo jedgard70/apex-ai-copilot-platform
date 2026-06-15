@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { exportContractDocx } from '../lib/contractsDocxExport'
 import {
   AlertTriangle,
@@ -42,6 +42,7 @@ type ContractsPanelProps = {
   source?: IntakeFile
   goal: string
   conversationContext: string[]
+  autoGenerate?: boolean
   onSendToBudget?: (summary: string) => void
   onSaveToProject?: (payload: ContractsPlan) => void
   onClear: () => void
@@ -120,11 +121,15 @@ function planText(plan: ContractsPlan) {
   ].join('\n')
 }
 
-export function ContractsPanel({ source, goal, conversationContext, onSendToBudget, onSaveToProject, onClear }: ContractsPanelProps) {
+export function ContractsPanel({ source, goal, conversationContext, autoGenerate, onSendToBudget, onSaveToProject, onClear }: ContractsPanelProps) {
   const [context, setContext] = useState<ContractContext>(() => initialContext(goal))
   const [plan, setPlan] = useState<ContractsPlan | null>(null)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+
+  useEffect(() => {
+    if (autoGenerate && !plan && !loading) generatePlan('draft')
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const [draftClause, setDraftClause] = useState('Payment schedule and scope clarity')
   const [draftDocument, setDraftDocument] = useState('Site plan / architectural drawing set')
 

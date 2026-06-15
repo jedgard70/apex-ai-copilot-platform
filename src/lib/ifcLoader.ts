@@ -8,11 +8,25 @@ export type IfcMeshData = {
 
 let api: IfcAPI | null = null
 
+async function probeWasmPath(): Promise<string> {
+  const candidates = ['/web-ifc.wasm', '/wasm/web-ifc.wasm', '/assets/web-ifc.wasm']
+  for (const candidate of candidates) {
+    try {
+      const res = await fetch(candidate, { method: 'HEAD' })
+      if (res.ok) return candidate
+    } catch {
+      // try next
+    }
+  }
+  return candidates[0]
+}
+
 async function getApi(): Promise<IfcAPI> {
   if (api) return api
   const { IfcAPI: IFC } = await import('web-ifc')
   api = new IFC()
-  await api.Init((path: string, prefix: string) => prefix + path)
+  const wasmPath = await probeWasmPath()
+  await api.Init(() => wasmPath)
   return api
 }
 

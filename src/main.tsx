@@ -152,12 +152,14 @@ type BudgetOutput = {
   source?: IntakeFile
   goal: string
   conversationContext: string[]
+  autoGenerate?: boolean
 }
 
 type ContractsOutput = {
   source?: IntakeFile
   goal: string
   conversationContext: string[]
+  autoGenerate?: boolean
 }
 
 type ResearchOutput = {
@@ -1180,7 +1182,9 @@ function App() {
       setInput('')
       return
     }
-    const localProductAnswer = buildProductFallbackAnswer(userText, identityContext)
+    // Skip generic fallback when user is asking about an active ready PDF — let API handle it with injected context
+    const shouldSkipFallback = hasPdfContext && attachment?.extractionStatus === 'ready' && isPdfAnalysisIntent(clean)
+    const localProductAnswer = shouldSkipFallback ? null : buildProductFallbackAnswer(userText, identityContext)
     if (localProductAnswer) {
       setMessages(prev => [
         ...prev,
@@ -1318,7 +1322,7 @@ function App() {
         userMessage,
         { id: id(), role: 'assistant', text: `Abrindo Contracts Studio para gerar documento DOCX. Use o botão **Generate contract draft** e depois **Download DOCX** para baixar o arquivo.${pdfContext ? ' O conteúdo do PDF foi incluído como contexto.' : ''}` },
       ])
-      setContractsOutput({ source: attachment, goal: clean, conversationContext: [...messages, userMessage].slice(-6).map(m => `${m.role}: ${m.text}`) })
+      setContractsOutput({ source: attachment, goal: clean, conversationContext: [...messages, userMessage].slice(-6).map(m => `${m.role}: ${m.text}`), autoGenerate: true })
       setInput('')
       return
     }
@@ -1328,9 +1332,9 @@ function App() {
       setMessages(prev => [
         ...prev,
         userMessage,
-        { id: id(), role: 'assistant', text: 'Abrindo Budget Studio. Gere o orçamento estimativo e use o botão **Download XLSX (com BDI)** para exportar a planilha. Para aplicar preços SINAPI, use **Importar tabela SINAPI (CSV/XLSX)**.' },
+        { id: id(), role: 'assistant', text: 'Abrindo Budget Studio com geração automática do orçamento. Use o botão **Download XLSX (com BDI)** para exportar a planilha.' },
       ])
-      setBudgetOutput({ source: attachment, goal: clean, conversationContext: [...messages, userMessage].slice(-6).map(m => `${m.role}: ${m.text}`) })
+      setBudgetOutput({ source: attachment, goal: clean, conversationContext: [...messages, userMessage].slice(-6).map(m => `${m.role}: ${m.text}`), autoGenerate: true })
       setInput('')
       return
     }
@@ -1707,17 +1711,24 @@ function App() {
   }
 
   async function handleFile(file: File) {
+    // Guard against phantom 0-byte entries from double-fire events
+    if (file.size === 0) return
     const kind = classifyFile(file)
     const dataUrl = kind === 'image' ? await readFileAsDataUrl(file) : undefined
     const previewUrl = kind === 'image' || kind === 'pdf' ? URL.createObjectURL(file) : undefined
 
     let extractedText: string | undefined
     let pageCount: number | undefined
+    let extractionStatus: IntakeFile['extractionStatus'] = 'idle'
     if (kind === 'pdf') {
+      extractionStatus = 'extracting'
       const result = await extractPdfText(file).catch(() => null)
       if (result) {
         extractedText = result.text
         pageCount = result.pageCount
+        extractionStatus = 'ready'
+      } else {
+        extractionStatus = 'failed'
       }
     }
 
@@ -1729,6 +1740,7 @@ function App() {
       dataUrl,
       extractedText,
       pageCount,
+      extractionStatus,
       dimensions: dataUrl ? await readImageDimensions(dataUrl).catch(() => undefined) : undefined,
     }
     setActiveFile(intake)
@@ -2558,6 +2570,7 @@ function App() {
               source={budgetOutput.source}
               goal={budgetOutput.goal}
               conversationContext={budgetOutput.conversationContext}
+              autoGenerate={budgetOutput.autoGenerate}
               onSaveToProject={saveBudgetToProject}
               onSendToDirectCut={summary => {
                 setDirectCutOutput({
@@ -2593,6 +2606,7 @@ function App() {
               source={contractsOutput.source}
               goal={contractsOutput.goal}
               conversationContext={contractsOutput.conversationContext}
+              autoGenerate={contractsOutput.autoGenerate}
               onSaveToProject={saveContractsToProject}
               onSendToBudget={summary => {
                 setBudgetOutput({
