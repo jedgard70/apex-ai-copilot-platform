@@ -3,6 +3,24 @@ import { collectProductionOperatorStatus } from '../../server/agent/productionSt
 import { classifyToolExecutionRequest, routeToolExecution } from '../../server/agent/toolExecutionRouter.mjs'
 import { isConfirmationSignal, isCancelSignal, hasPendingAction } from '../../server/agent/confirmationStateMachine.mjs'
 
+// PDF summary pattern — triggers local extraction-based summary
+const PDF_SUMMARY_PATTERN = /\b(resuma|analise|analisa|resume|sumari[sz]|principais?|pontos?|extraia|extrair|o que (fala|diz|trata)|me (conta|diga|fale)|sobre o que|resumo|síntese|sinopse)\b/i
+
+function buildLocalPdfSummary(file) {
+  const text = String(file.extractedText || '').trim()
+  if (text.length < 20) return null
+  const preview = text.slice(0, 1600).replace(/\s+/g, ' ').trim()
+  const pageInfo = file.pageCount ? ` (${file.pageCount} páginas)` : ''
+  return [
+    `**Resumo do PDF: ${file.name}**${pageInfo}`,
+    '',
+    'Com base no conteúdo extraído:',
+    '',
+    preview,
+    text.length > 1600 ? '\n\n_[Conteúdo truncado — o documento é longo. Faça perguntas específicas para mais detalhes.]_' : '',
+  ].filter(l => l !== undefined).join('\n').trim()
+}
+
 // H5.0D: action tools that must always bypass conversation/connector router
 const H5_ACTION_TOOLS = new Set([
   'local_worker.status',
@@ -63,6 +81,45 @@ export default async function handler(req, res) {
     const userMessage = String(body.message || '').slice(0, 12000)
     const clientMemory = body.clientMemory || {}
     const productionStatus = collectProductionOperatorStatus()
+    const fileCandidate = body.file || null
+    const hasReadyPdfText = Boolean(
+      fileCandidate &&
+      fileCandidate.kind === 'pdf' &&
+      fileCandidate.extractionStatus === 'ready' &&
+      String(fileCandidate.extractedText || '').trim().length >= 20
+    )
+    const looksLikePdfSummary = hasReadyPdfText && PDF_SUMMARY_PATTERN.test(userMessage || '')
+
+    // Fast-path: greeting in Portuguese — no file context needed
+    if (/^\s*(ol[aá]|oi|ola)\s*$/i.test(userMessage)) {
+      const name = clientMemory.displayName ? `, ${clientMemory.displayName}` : ''
+      const greeting = `Olá${name}. Como posso ajudar agora?`
+      return sendJson(res, 200, {
+        finalReply: greeting,
+        reply: greeting,
+        memoryPatch: null,
+        mode: 'apex-greeting-pt',
+        operator: { intent: 'production_affirmation' },
+        confirmation: null,
+        productionStatus,
+      })
+    }
+
+    // Fast-path: PDF summary when text is ready — use local extraction, bypass operator
+    if (looksLikePdfSummary) {
+      const summary = buildLocalPdfSummary(fileCandidate)
+      if (summary) {
+        return sendJson(res, 200, {
+          finalReply: summary,
+          reply: summary,
+          memoryPatch: null,
+          mode: 'apex-pdf-summary-local',
+          operator: { intent: 'production_pdf_summary' },
+          confirmation: null,
+          productionStatus,
+        })
+      }
+    }
 
     // H7: if user says "sim" and there's a pending action, skip H5 bypass and go straight to runtime
     const hasPending = hasPendingAction(clientMemory)

@@ -5,6 +5,8 @@ export type ProjectFileRecord = {
   size: number
   kind: string
   dataUrl?: string
+  extractedText?: string
+  pageCount?: number
   dimensions?: {
     width: number
     height: number
