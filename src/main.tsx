@@ -2733,6 +2733,9 @@ function App() {
             <KnowledgeBasePanel
               goal={knowledgeBaseOutput.goal}
               conversationContext={knowledgeBaseOutput.conversationContext}
+              tenantId={accountState?.tenant?.id || accountState?.profile?.default_tenant_id || undefined}
+              projectId={activeProject?.id}
+              isOwnerAdmin={isOwnerUser}
               onSaveToProject={saveKnowledgeBaseToProject}
               onClear={() => setKnowledgeBaseOutput(null)}
             />

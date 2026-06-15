@@ -255,6 +255,51 @@ async function handleKnowledge(payload, apiKey) {
   }
 }
 
+async function handleBimTour(body, apiKey) {
+  const { modelMetadata, corrections = [], savedViews = [], tourSteps = [], animationSteps = [], target = 'report' } = body
+  if (!apiKey) {
+    return {
+      mode: 'planning-only',
+      tourTitle: 'Tour BIM (planejamento)',
+      objective: 'Revisar modelo BIM e preparar roteiro de apresentação.',
+      audience: 'Equipe de obra',
+      orderedSteps: tourSteps.length ? tourSteps : [{ name: 'Vista geral', description: 'Visão completa do modelo' }],
+      cameraPath: [],
+      narration: 'Configure ANTHROPIC_API_KEY para geração inteligente de tour BIM.',
+      storyboard: '',
+      durationEstimate: '5-10 min',
+      exportNotes: `Destino: ${target}`,
+    }
+  }
+  const system = `Você é especialista em BIM e visualização 3D de construção civil.
+Gere um roteiro de tour/apresentação BIM estruturado para o destino solicitado.
+Responda SEMPRE em JSON puro sem markdown, com o formato:
+{
+  "tourTitle": "...",
+  "objective": "...",
+  "audience": "...",
+  "orderedSteps": [{"name": "...", "description": "...", "cameraMode": "...", "duration": "..."}],
+  "cameraPath": [{"keyframe": "...", "position": "...", "target": "..."}],
+  "narration": "...",
+  "storyboard": "...",
+  "durationEstimate": "...",
+  "exportNotes": "..."
+}`
+  const userMsg = [
+    `Destino: ${target}`,
+    modelMetadata ? `Modelo: ${JSON.stringify(modelMetadata)}` : '',
+    corrections.length ? `Correções (${corrections.length}): ${JSON.stringify(corrections.slice(0, 10))}` : '',
+    savedViews.length ? `Vistas salvas: ${JSON.stringify(savedViews.slice(0, 10))}` : '',
+    tourSteps.length ? `Passos do tour: ${JSON.stringify(tourSteps.slice(0, 20))}` : '',
+  ].filter(Boolean).join('\n')
+  try {
+    const result = await callClaude(apiKey, system, userMsg, 2048)
+    return { mode: 'claude-generated', ...result }
+  } catch {
+    return { mode: 'planning-only', tourTitle: 'Tour BIM', objective: '', audience: '', orderedSteps: tourSteps, cameraPath: [], narration: '', storyboard: '', durationEstimate: '', exportNotes: '' }
+  }
+}
+
 // ── Main handler ───────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
@@ -287,6 +332,7 @@ export default async function handler(req, res) {
     else if (path.includes('fieldops-plan')) studioAction = 'field-ops'
     else if (path.includes('research-plan')) studioAction = 'research'
     else if (path.includes('knowledge-plan')) studioAction = 'knowledge'
+    else if (path.includes('bim-tour-plan')) studioAction = 'bim-tour'
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY
@@ -299,6 +345,7 @@ export default async function handler(req, res) {
       case 'field-ops': result = await handleFieldOps(body, apiKey); break
       case 'research': result = await handleResearch(body, apiKey); break
       case 'knowledge': result = await handleKnowledge(body, apiKey); break
+      case 'bim-tour': result = await handleBimTour(body, apiKey); break
       default: return sendJson(res, 400, { error: `studioAction inválido: ${studioAction}` })
     }
     return sendJson(res, 200, result)
