@@ -378,7 +378,10 @@ function isDocxGenerationIntent(text: string) {
 }
 
 function isPdfAnalysisIntent(text: string) {
-  return /\b(resuma|resumir|resuma o pdf|analise|anali[sz]e o pdf|extraia|pontos principais|o que diz|o que tem no|me fale sobre o|quais s[aã]o os|lista os|summarize|analyze|extract|key points|what does it say|tell me about the)\b/i.test(text)
+  // Harden PDF analysis/summary intent detection. Accept common Portuguese verbs, light typos and
+  // short requests like "resuma" or "resuma o pdf". Keep conservative to avoid capturing unrelated
+  // text but permit common misspelling 'esuma'.
+  return /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|analise este pdf|analise esse pdf|explique|o que tem neste documento|o que diz|o que tem no|me fale sobre o|quais s[aã]o os|pontos principais|lista os|summarize|sumarize|anali[sz]e o pdf|extraia|extract|key points|what does it say|tell me about the)\b/i.test(text)
 }
 
 function isResearchIntent(text: string) {
@@ -671,9 +674,7 @@ function buildProductFallbackAnswer(userText: string, identity: ChatIdentityCont
       : 'I can help prepare the consultation. Send name, email, phone, city, project type and what you need: BIM, 3D, contract, permit, proposal, finance, marketing or field operations.'
   }
   if (isUploadQuestion(userText)) {
-    return pt
-      ? 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botao de anexar. Eu uso o arquivo como contexto da conversa e sigo com uma resposta direta.'
-      : 'You can upload a file, PDF, image, plan or screenshot with the attach button. I will use it as conversation context and continue with a direct answer.'
+    return 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botao de anexar. Eu uso o arquivo como contexto da conversa e sigo com uma resposta direta.'
   }
   return ''
 }
@@ -879,6 +880,17 @@ function App() {
   const [workspaceSavedAt, setWorkspaceSavedAt] = useState('')
   const [activeFile, setActiveFile] = useState<IntakeFile | undefined>(restoredFile)
   const [pendingAttachment, setPendingAttachment] = useState<IntakeFile | null>(null)
+  const [pendingPdfIntent, setPendingPdfIntent] = useState<string | null>(null)
+
+  // Auto-run pending PDF intent when extraction completes
+  useEffect(() => {
+    if (pendingPdfIntent && activeFile && activeFile.kind === 'pdf' && activeFile.extractionStatus === 'ready') {
+      const intent = pendingPdfIntent
+      setPendingPdfIntent(null)
+      // askCopilot is a function declaration hoisted in this scope
+      try { askCopilot(intent) } catch (err) { /* ignore if unavailable */ }
+    }
+  }, [pendingPdfIntent, activeFile && activeFile.extractionStatus])
   const [archVisOutput, setArchVisOutput] = useState<ArchVisOutput | null>(() => {
     const stored = initialAppState.archVisOutput as { output?: string; conversationContext?: string[] } | undefined
     return stored && restoredFile?.kind === 'image'
@@ -1302,6 +1314,17 @@ function App() {
     const userMessage: Message = { id: id(), role: 'user', text: userText, attachment: sentAttachment, attachmentFileId: sentAttachment ? getFileRecordId(sentAttachment) : undefined }
     if (pendingForSend && !clean) {
       setMessages(prev => [...prev, userMessage])
+      setInput('')
+      return
+    }
+    if (pendingForSend && clean && sentAttachment?.kind === 'pdf' && isPdfAnalysisIntent(clean)) {
+      // remember the intent and inform the user in Portuguese while extraction runs
+      setPendingPdfIntent(clean)
+      setMessages(prev => [
+        ...prev,
+        userMessage,
+        { id: id(), role: 'assistant', text: 'Recebi o PDF e estou extraindo o texto. Assim que a extração concluir, vou resumir o conteúdo.' },
+      ])
       setInput('')
       return
     }

@@ -118,14 +118,69 @@ function buildChatFallbackReply(userText, identity, file = null) {
       : 'I can help prepare the consultation. Send name, email, phone, city, project type and what you need: BIM, 3D, contract, permit, proposal, finance, marketing or field operations.'
   }
   if (isUploadQuestionText(userText)) {
-    return pt
-      ? 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar. Eu uso o arquivo como contexto da conversa e sigo com uma resposta direta.'
-      : 'You can upload a file, PDF, image, plan or screenshot with the attach button. I will use it as conversation context and continue with a direct answer.'
+    if (file && file.kind === 'pdf' && file.extractionStatus === 'ready' && String(file.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(userText || '')) {
+      return buildLocalPdfSummary(file.name, file.pageCount || 0, file.extractedText || '')
+    }
+    return 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar. Eu uso o arquivo como contexto da conversa e sigo com uma resposta direta.'
   }
   return pt
     ? 'Tive um problema ao gerar a resposta completa, mas posso continuar. Reformule o pedido ou envie um arquivo/screenshot para eu analisar.'
     : 'I had trouble generating the full response, but I can continue. Rephrase the request or upload a file/screenshot for me to analyze.'
 }
+
+function buildLocalPdfSummary(fileName, pageCount, extractedText) {
+  const text = String(extractedText || '').trim()
+  const snippet = text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).slice(0,6).join(' ').replace(/\s+/g, ' ').slice(0,800)
+  const tipo = /certida/i.test(text) ? 'Certidão' : /relat/i.test(text) ? 'Relatório' : 'Documento'
+  const numberMatch = text.match(/(?:Certid[aã]o\s*(?:n[oº]?\.?|n[oº]?|\:)?\s*([\w\-\/\.]+))/i) || text.match(/\b(n[oº]\s*[:\-]?\s*([\d\-\/\.]+))/i)
+  const certNumber = numberMatch ? (numberMatch[1] || numberMatch[2]) : undefined
+  const dateMatches = Array.from(new Set([...(text.match(/\b\d{1,2}\/\d{1,2}\/\d{4}\b/g) || []), ...(text.match(/\b\d{1,2}\s+de\s+[A-Za-zçãéíóú]+\s+de\s+\d{4}\b/gi) || [])])).slice(0,5)
+  const nameFromFile = fileName ? fileName.replace(/\.pdf$/i,'').split('-').pop().trim() : null
+  const orgMatch = text.match(/\b(Servi[cç]o P[uú]blico Federal|Servi[cç]o P[uú]blico|Prefeitura|Cart[oó]rio|Tribunal|Secretaria|Minist[eé]rio|Junta|Cartorio|Conselho|Registro)\b/i)
+  const org = orgMatch ? orgMatch[0] : undefined
+
+  const mainPoints = []
+  if (snippet) mainPoints.push(snippet)
+  if (certNumber) mainPoints.push(`Número: ${certNumber}`)
+  if (dateMatches.length) mainPoints.push(`Datas relevantes: ${dateMatches.join(', ')}`)
+  if (org) mainPoints.push(`Órgão emissor: ${org}`)
+
+  const conclusion = /certida/i.test(text)
+    ? 'Documento de natureza administrativa/registral. Recomenda-se verificar assinaturas e autenticidade no cartório/órgão emissor quando necessário.'
+    : 'Resumo gerado a partir do texto extraído; revisar o documento completo para decisões finais.'
+
+  const parts = []
+  parts.push('Resumo do PDF:')
+  parts.push('')
+  parts.push('Tipo de documento:')
+  parts.push(tipo)
+  parts.push('')
+  parts.push('Finalidade:')
+  parts.push(/certida/i.test(text) ? 'Certificar/atestar informação legal registrada.' : 'Informar/registrar dados oficiais contidos no documento.')
+  parts.push('')
+  parts.push('Principais informações:')
+  if (mainPoints.length) {
+    mainPoints.forEach(p => parts.push(`- ${p}`))
+  } else {
+    parts.push('- Conteúdo extraído disponível, mas sem pontos claros identificáveis automaticamente.')
+  }
+  parts.push('')
+  parts.push('Dados relevantes identificados:')
+  parts.push(`- Nome: ${nameFromFile || 'Não identificado'}`)
+  parts.push(`- Órgão: ${org || 'Não identificado'}`)
+  parts.push(`- Número da certidão: ${certNumber || 'Não identificado'}`)
+  parts.push(`- Datas: ${dateMatches.length ? dateMatches.join(', ') : 'Não identificadas'}`)
+  parts.push(`- Registro / identificação profissional: Não identificado`)
+  parts.push('')
+  parts.push('Conclusão:')
+  parts.push(conclusion)
+  parts.push('')
+  parts.push('Limitações:')
+  parts.push('Resumo gerado a partir do texto extraído automaticamente.')
+
+  return parts.join('\n')
+}
+
 
 function detectIntent(userText) {
   const normalized = String(userText || '').toLowerCase()
@@ -581,6 +636,28 @@ export default async function handler(req, res) {
 
     const productionConversationIntent = classifyProductionConversationIntent(userMessage)
 
+    // Short-circuit: If the request includes an active PDF with ready extraction and
+    // the user's latest message is a PDF-summary/analysis intent, bypass the production
+    // conversation routing and proceed to the LLM conversational flow with the file
+    // context attached. This prevents very short Portuguese inputs (eg. "resuma") from
+    // being classified as ambiguous and returning "Pergunta incompleta".
+    try {
+      const fileCandidate = body.file || null
+      const looksLikePdfSummary = Boolean(fileCandidate && fileCandidate.kind === 'pdf' && fileCandidate.extractionStatus === 'ready' && String(fileCandidate.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(userMessage || ''))
+if (!looksLikePdfSummary && productionRouterIntents.has(productionConversationIntent)) {
+        const pdfText = String(fileCandidate.extractedText || '')
+        const pdfSummaryPattern = /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i
+        if (pdfSummaryPattern.test(userMessage || '')) {
+          // Force a conversational path by ensuring productionConversationIntent does not
+          // trigger the productionRouterIntents branch. We simply fall through to the
+          // conversational LLM flow below with body.file present.
+          // No further action required here; leaving this block documents the short-circuit.
+        }
+      }
+    } catch (err) {
+      // Non-fatal: continue normal routing
+    }
+
     // If this message looks like an H6 action (git, npm, etc.), route it directly
     // to the operator runtime so it can prepare a confirmation and set pendingH6Action.
     const h6Route = routeH6ActionRequest({ userMessage })
@@ -607,7 +684,13 @@ export default async function handler(req, res) {
       })
     }
 
-    if (productionRouterIntents.has(productionConversationIntent)) {
+    // If the message appears to be a short PDF-summary request and the request
+    // included a ready PDF with extractedText, avoid routing through the production
+    // operator which may classify very short inputs as ambiguous. Instead, allow the
+    // conversational flow below to handle the request with file context.
+    const fileCandidate = body.file || null
+    const looksLikePdfSummary = Boolean(fileCandidate && fileCandidate.kind === 'pdf' && fileCandidate.extractionStatus === 'ready' && String(fileCandidate.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(userMessage || ''))
+    if (!looksLikePdfSummary && productionRouterIntents.has(productionConversationIntent)) {
       const result = await runApexOperatorProductionSafe({
         userMessage,
         identityContext: normalizeIdentityContext(body.identityContext || {}),
@@ -643,6 +726,18 @@ export default async function handler(req, res) {
       })
     }
 
+    // Portuguese-only greeting short-circuit for 'ola'/'oi' single-word greetings.
+    if (/^\s*(ola|oi|ol[aá])\s*[.!?]?\s*$/i.test(userMessage || '')) {
+      const greeting = 'Olá, Dr Edgard. Como posso ajudar agora?'
+      return sendJson(res, 200, {
+        finalReply: greeting,
+        reply: greeting,
+        mode: 'greeting-short-circuit',
+        confirmation: null,
+        productionStatus,
+      })
+    }
+
     const apiKey = process.env.OPENAI_API_KEY
     if (!apiKey) {
       const fallbackReply = buildChatFallbackReply(userMessage, identityContext, body.file || null)
@@ -663,6 +758,11 @@ export default async function handler(req, res) {
     
     const intentInstruction = buildIntentInstruction(userMessage, file, conversation, preferredLanguage)
     const toolSummary = buildToolSummary(runtime.tools)
+        const looksLikePdfSummaryRequest = Boolean(file && file.kind === 'pdf' && file.extractionStatus === 'ready' && String(file.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(userMessage || ''))
+        let specialIntentInstruction = intentInstruction
+        if (looksLikePdfSummaryRequest) {
+          specialIntentInstruction = 'Resuma o documento em português em 5 a 8 tópicos. Não copie o texto bruto. Identifique tipo do documento, partes envolvidas, finalidade, dados principais, datas, órgão emissor e conclusão.\n' + specialIntentInstruction
+        }
     
     const systemPrompt = [
       runtime.systemPrompt.join('\n'),
@@ -705,7 +805,7 @@ export default async function handler(req, res) {
       'When image content is supplied, mention 2 to 4 concrete visible project details before suggesting paths.',
       'Do not ask unnecessary next-step questions. Ask only when truly blocked or when the user explicitly wants exploration.',
       '',
-      intentInstruction,
+      specialIntentInstruction,
     ].join('\n')
 
     const userContent = []
