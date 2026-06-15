@@ -32,9 +32,6 @@ import {
   ZoomIn,
 } from 'lucide-react'
 import { formatSize, IntakeFile } from '../lib/fileIntake'
-import { getBrowserSupabaseClient } from '../lib/supabaseClient'
-import { loadSupabaseAccountState } from '../lib/supabaseAuthBootstrap'
-import { loadActiveProject } from '../lib/projectWorkspace'
 
 type Bim3DPanelProps = {
   source: IntakeFile
@@ -132,27 +129,8 @@ const twinmotionControls = [
 ]
 
 function id() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0
-    const v = c === 'x' ? r : (r & 0x3) | 0x8
-    return v.toString(16)
-  })
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
-
-function mapStatusToDb(status: CorrectionStatus): string {
-  if (status === 'Open') return 'open'
-  if (status === 'In Review') return 'in_review'
-  if (status === 'Resolved') return 'resolved'
-  return 'open'
-}
-
-function mapStatusFromDb(status: string): CorrectionStatus {
-  if (status === 'open') return 'Open'
-  if (status === 'in_review') return 'In Review'
-  if (status === 'resolved') return 'Resolved'
-  return 'Open'
-}
-
 
 function fileExtension(fileName: string) {
   return fileName.toLowerCase().split('.').pop() || 'unknown'
@@ -402,130 +380,6 @@ export function Bim3DPanel({ source, externalCommand, onSendTourToDirectCut, onS
     transition: 'Smooth' as TransitionType,
   })
 
-  const [tenantId, setTenantId] = useState<string | null>(null)
-  const [remoteProjectId, setRemoteProjectId] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-
-  const localCorrectionsKey = useMemo(() => `apex_bim_corrections_${source.file.name}`, [source.file.name])
-  const localSavedViewsKey = useMemo(() => `apex_bim_saved_views_${source.file.name}`, [source.file.name])
-
-  useEffect(() => {
-    let active = true
-
-    async function loadData() {
-      setLoading(true)
-      const { client } = getBrowserSupabaseClient()
-      const localActiveProj = loadActiveProject()
-      
-      const localCorrData = localStorage.getItem(localCorrectionsKey)
-      const localViewsData = localStorage.getItem(localSavedViewsKey)
-      const initialCorr = localCorrData ? JSON.parse(localCorrData) : []
-      const initialViews = localViewsData ? JSON.parse(localViewsData) : []
-
-      if (!client) {
-        if (active) {
-          setCorrections(initialCorr)
-          setSavedViews(initialViews)
-          setLoading(false)
-        }
-        return
-      }
-
-      try {
-        const account = await loadSupabaseAccountState()
-        if (!active) return
-
-        if (account.bootstrapStatus === 'ready' && account.tenant) {
-          setTenantId(account.tenant.id)
-
-          const { data: projectRow, error: projectError } = await client
-            .from('projects')
-            .select('id')
-            .eq('tenant_id', account.tenant.id)
-            .contains('metadata', { local_project_id: localActiveProj.id })
-            .maybeSingle()
-
-          if (!projectError && projectRow) {
-            setRemoteProjectId(projectRow.id)
-
-            const { data: correctionsData, error: corrError } = await client
-              .from('bim_corrections')
-              .select('*')
-              .eq('project_id', projectRow.id)
-
-            const { data: viewsData, error: viewsError } = await client
-              .from('bim_saved_views')
-              .select('*')
-              .eq('project_id', projectRow.id)
-
-            if (active) {
-              if (!corrError && correctionsData) {
-                const mappedCorr: CorrectionItem[] = correctionsData.map(row => ({
-                  id: row.id,
-                  kind: (row.metadata?.kind || 'Issue') as CorrectionKind,
-                  title: row.title,
-                  description: row.description || '',
-                  category: (row.metadata?.category || 'Architecture') as CorrectionCategory,
-                  priority: (row.priority || 'Medium') as Priority,
-                  evidenceLevel: (row.evidence_level || 'UNKNOWN') as EvidenceLevel,
-                  relatedViewId: row.metadata?.relatedViewId || undefined,
-                  timestamp: row.metadata?.timestamp || row.created_at,
-                  status: mapStatusFromDb(row.status),
-                }))
-                setCorrections(mappedCorr)
-                localStorage.setItem(localCorrectionsKey, JSON.stringify(mappedCorr))
-              } else {
-                setCorrections(initialCorr)
-              }
-
-              if (!viewsError && viewsData) {
-                const mappedViews: SavedView[] = viewsData.map(row => ({
-                  id: row.id,
-                  name: row.name,
-                  description: row.description || '',
-                  cameraMode: (row.metadata?.cameraMode || 'Orbit') as CameraMode,
-                  purpose: (row.purpose || 'Review') as ScenePurpose,
-                  linkedCorrections: row.metadata?.linkedCorrections || [],
-                  timestamp: row.metadata?.timestamp || row.created_at,
-                }))
-                setSavedViews(mappedViews)
-                localStorage.setItem(localSavedViewsKey, JSON.stringify(mappedViews))
-              } else {
-                setSavedViews(initialViews)
-              }
-            }
-          } else {
-            if (active) {
-              setCorrections(initialCorr)
-              setSavedViews(initialViews)
-            }
-          }
-        } else {
-          if (active) {
-            setCorrections(initialCorr)
-            setSavedViews(initialViews)
-          }
-        }
-      } catch (err) {
-        console.error('Error loading Supabase data for BIM panel:', err)
-        if (active) {
-          setCorrections(initialCorr)
-          setSavedViews(initialViews)
-        }
-      } finally {
-        if (active) {
-          setLoading(false)
-        }
-      }
-    }
-
-    loadData()
-
-    return () => {
-      active = false
-    }
-  }, [localCorrectionsKey, localSavedViewsKey])
-
   const facts = useMemo(() => confirmedFacts(source), [source])
   const issues = useMemo(() => detectedIssues(ext), [ext])
   const assumptionItems = useMemo(() => assumptions(ext), [ext])
@@ -582,63 +436,25 @@ export function Bim3DPanel({ source, externalCommand, onSendTourToDirectCut, onS
     setSelectedControls(prev => prev.includes(label) ? prev.filter(item => item !== label) : [...prev, label])
   }
 
-  async function addCorrection() {
+  function addCorrection() {
     if (!newCorrection.title.trim()) return
-    const newId = id()
-    const item: CorrectionItem = {
-      ...newCorrection,
-      id: newId,
-      title: newCorrection.title.trim(),
-      description: newCorrection.description.trim() || 'No description provided yet.',
-      relatedViewId: selectedViewId || undefined,
-      timestamp: new Date().toISOString(),
-    }
-
-    const updated = [...corrections, item]
-    setCorrections(updated)
-    localStorage.setItem(localCorrectionsKey, JSON.stringify(updated))
+    setCorrections(prev => [
+      ...prev,
+      {
+        ...newCorrection,
+        id: id(),
+        title: newCorrection.title.trim(),
+        description: newCorrection.description.trim() || 'No description provided yet.',
+        relatedViewId: selectedViewId || undefined,
+        timestamp: new Date().toISOString(),
+      },
+    ])
     setNewCorrection(prev => ({ ...prev, title: '', description: '' }))
-
-    if (remoteProjectId && tenantId) {
-      const { client } = getBrowserSupabaseClient()
-      if (client) {
-        await client.from('bim_corrections').insert({
-          id: newId,
-          tenant_id: tenantId,
-          project_id: remoteProjectId,
-          title: item.title,
-          description: item.description,
-          priority: item.priority,
-          evidence_level: item.evidenceLevel,
-          status: mapStatusToDb(item.status),
-          metadata: {
-            kind: item.kind,
-            category: item.category,
-            relatedViewId: item.relatedViewId,
-            timestamp: item.timestamp,
-          }
-        })
-      }
-    }
   }
 
-  async function removeCorrection(correctionId: string) {
-    const updated = corrections.filter(correction => correction.id !== correctionId)
-    setCorrections(updated)
-    localStorage.setItem(localCorrectionsKey, JSON.stringify(updated))
-
-    if (remoteProjectId) {
-      const { client } = getBrowserSupabaseClient()
-      if (client) {
-        await client.from('bim_corrections').delete().eq('id', correctionId)
-      }
-    }
-  }
-
-  async function addSavedView() {
-    const newId = id()
+  function addSavedView() {
     const view: SavedView = {
-      id: newId,
+      id: id(),
       name: newView.name.trim() || `Scene ${savedViews.length + 1}`,
       description: newView.description.trim() || 'Saved BIM scene from current planning context.',
       cameraMode: newView.cameraMode,
@@ -646,48 +462,9 @@ export function Bim3DPanel({ source, externalCommand, onSendTourToDirectCut, onS
       linkedCorrections: corrections.filter(item => item.status !== 'Resolved').map(item => item.id),
       timestamp: new Date().toISOString(),
     }
-
-    const updated = [...savedViews, view]
-    setSavedViews(updated)
-    localStorage.setItem(localSavedViewsKey, JSON.stringify(updated))
+    setSavedViews(prev => [...prev, view])
     setSelectedViewId(view.id)
     setNewView(prev => ({ ...prev, name: `Scene ${savedViews.length + 2}` }))
-
-    if (remoteProjectId && tenantId) {
-      const { client } = getBrowserSupabaseClient()
-      if (client) {
-        await client.from('bim_saved_views').insert({
-          id: newId,
-          tenant_id: tenantId,
-          project_id: remoteProjectId,
-          name: view.name,
-          description: view.description,
-          camera_state: {},
-          purpose: view.purpose,
-          metadata: {
-            cameraMode: view.cameraMode,
-            linkedCorrections: view.linkedCorrections,
-            timestamp: view.timestamp,
-          }
-        })
-      }
-    }
-  }
-
-  async function removeSavedView(viewId: string) {
-    const updated = savedViews.filter(view => view.id !== viewId)
-    setSavedViews(updated)
-    localStorage.setItem(localSavedViewsKey, JSON.stringify(updated))
-    if (selectedViewId === viewId) {
-      setSelectedViewId(updated[0]?.id || '')
-    }
-
-    if (remoteProjectId) {
-      const { client } = getBrowserSupabaseClient()
-      if (client) {
-        await client.from('bim_saved_views').delete().eq('id', viewId)
-      }
-    }
   }
 
   function addViewToTour(viewId = selectedViewId) {
@@ -724,11 +501,10 @@ export function Bim3DPanel({ source, externalCommand, onSendTourToDirectCut, onS
     setNewAnimation(prev => ({ ...prev, name: `Camera keyframe ${animationSteps.length + 2}` }))
   }
 
-  async function addCommandCorrection(text: string) {
+  function addCommandCorrection(text: string) {
     const lower = text.toLowerCase()
-    const newId = id()
     const item: CorrectionItem = {
-      id: newId,
+      id: id(),
       kind: /sugest|suggest/i.test(lower) ? 'Suggestion' : /melhor|improv/i.test(lower) ? 'Improvement' : /observ/i.test(lower) ? 'Observation' : 'Issue',
       title: /errado|wrong|problema|issue/i.test(lower) ? 'User-marked BIM issue' : 'User BIM review note',
       description: text,
@@ -749,39 +525,13 @@ export function Bim3DPanel({ source, externalCommand, onSendTourToDirectCut, onS
       timestamp: new Date().toISOString(),
       status: 'Open',
     }
-
-    const updated = [...corrections, item]
-    setCorrections(updated)
-    localStorage.setItem(localCorrectionsKey, JSON.stringify(updated))
-
-    if (remoteProjectId && tenantId) {
-      const { client } = getBrowserSupabaseClient()
-      if (client) {
-        await client.from('bim_corrections').insert({
-          id: newId,
-          tenant_id: tenantId,
-          project_id: remoteProjectId,
-          title: item.title,
-          description: item.description,
-          priority: item.priority,
-          evidence_level: item.evidenceLevel,
-          status: mapStatusToDb(item.status),
-          metadata: {
-            kind: item.kind,
-            category: item.category,
-            relatedViewId: item.relatedViewId,
-            timestamp: item.timestamp,
-          }
-        })
-      }
-    }
+    setCorrections(prev => [...prev, item])
   }
 
-  async function ensureTourSeed() {
+  function ensureTourSeed() {
     if (savedViews.length || tourStepIds.length) return
-    const newId = id()
     const overview: SavedView = {
-      id: newId,
+      id: id(),
       name: 'Model overview',
       description: 'BIM overview scene created from chat command. Planning-only until real viewer loads geometry.',
       cameraMode: 'Orbit',
@@ -789,32 +539,9 @@ export function Bim3DPanel({ source, externalCommand, onSendTourToDirectCut, onS
       linkedCorrections: corrections.map(item => item.id),
       timestamp: new Date().toISOString(),
     }
-
-    const updated = [overview]
-    setSavedViews(updated)
+    setSavedViews([overview])
     setSelectedViewId(overview.id)
     setTourStepIds([overview.id])
-    localStorage.setItem(localSavedViewsKey, JSON.stringify(updated))
-
-    if (remoteProjectId && tenantId) {
-      const { client } = getBrowserSupabaseClient()
-      if (client) {
-        await client.from('bim_saved_views').insert({
-          id: newId,
-          tenant_id: tenantId,
-          project_id: remoteProjectId,
-          name: overview.name,
-          description: overview.description,
-          camera_state: {},
-          purpose: overview.purpose,
-          metadata: {
-            cameraMode: overview.cameraMode,
-            linkedCorrections: overview.linkedCorrections,
-            timestamp: overview.timestamp,
-          }
-        })
-      }
-    }
   }
 
   useEffect(() => {
@@ -940,7 +667,7 @@ export function Bim3DPanel({ source, externalCommand, onSendTourToDirectCut, onS
       <div className="bim3d-stage">
         {ext === 'ifc' ? (
           <Suspense fallback={<div className="bim3d-viewer-shell"><Box size={42} /><span>Carregando IFC…</span></div>}>
-            <IfcViewer file={source.file} viewerCommand={externalCommand} />
+            <IfcViewer file={source.file} />
           </Suspense>
         ) : (
           <div className="bim3d-viewer-shell">
@@ -1026,7 +753,7 @@ export function Bim3DPanel({ source, externalCommand, onSendTourToDirectCut, onS
                 <strong>{item.title}</strong>
                 <p>{item.kind} · {item.category} · {item.priority} · {item.status}</p>
                 <small>{item.description}</small>
-                <button type="button" onClick={() => removeCorrection(item.id)}><Trash2 size={14} /> Remove</button>
+                <button type="button" onClick={() => setCorrections(prev => prev.filter(correction => correction.id !== item.id))}><Trash2 size={14} /> Remove</button>
               </article>
             ))}
           </div>
@@ -1052,7 +779,6 @@ export function Bim3DPanel({ source, externalCommand, onSendTourToDirectCut, onS
                 <p>{item.purpose} · {new Date(item.timestamp).toLocaleString()}</p>
                 <small>{item.description}</small>
                 <button type="button" onClick={() => setSelectedViewId(item.id)}><Aperture size={14} /> Select</button>
-                <button type="button" onClick={() => removeSavedView(item.id)}><Trash2 size={14} /> Remove</button>
               </article>
             ))}
           </div>

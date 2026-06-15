@@ -17,7 +17,4 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['web-ifc'],
   },
-  worker: {
-    format: 'es',
-  },
 })

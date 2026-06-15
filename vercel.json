@@ -1,6 +1,13 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/api/copilot/contracts-plan", "destination": "/api/copilot/plan" },
+    { "source": "/api/copilot/supply-chain-plan", "destination": "/api/copilot/plan" },
+    { "source": "/api/copilot/fieldops-plan", "destination": "/api/copilot/plan" },
+    { "source": "/api/copilot/research-plan", "destination": "/api/copilot/plan" },
+    { "source": "/api/copilot/knowledge-plan", "destination": "/api/copilot/plan" }
+  ],
   "crons": [
     {
       "path": "/api/cron/upgrade-check",

@@ -55,9 +55,8 @@ import {
   upsertProject,
 } from './lib/projectWorkspace'
 import { syncProjectLocalToRemote } from './lib/projectPersistenceAdapter'
-import { SupabaseAccountState, attemptProfileBootstrap, loadSupabaseAccountState } from './lib/supabaseAuthBootstrap'
+import { SupabaseAccountState, loadSupabaseAccountState } from './lib/supabaseAuthBootstrap'
 import { getBrowserSupabaseClient, getSupabaseProviderStatus } from './lib/supabaseClient'
-import { uploadProjectFileToSupabase } from './lib/supabaseStorage'
 import { isSkillUpdateIntent, ProjectMemoryUpdate, SkillUpdateApplyResult } from './lib/skillUpdateEngine'
 import { isSkillExportIntent } from './lib/skillExportFactory'
 import { BudgetPlan } from './lib/budgetKnowledge'
@@ -110,7 +109,6 @@ type Message = {
   role: 'user' | 'assistant'
   text: string
   attachment?: IntakeFile
-  attachmentFileId?: string
   toolCards?: H5ToolCard[]
   confirmation?: H7Confirmation | null
 }
@@ -154,14 +152,12 @@ type BudgetOutput = {
   source?: IntakeFile
   goal: string
   conversationContext: string[]
-  autoGenerate?: boolean
 }
 
 type ContractsOutput = {
   source?: IntakeFile
   goal: string
   conversationContext: string[]
-  autoGenerate?: boolean
 }
 
 type ResearchOutput = {
@@ -259,45 +255,6 @@ function revisionChatLabel(text: string) {
   return text.trim()
 }
 
-function getFileRecordId(file: IntakeFile) {
-  return `${file.file.name}-${file.file.size}-${file.file.lastModified || 0}`
-}
-
-function hasPersistentFileContext(record?: ProjectFileRecord) {
-  if (!record) return false
-  const extracted = String(record.extractedText || '').trim().length
-  return Boolean(record.dataUrl || extracted >= 20)
-}
-
-function getActivePdfContext(file?: IntakeFile) {
-  if (!file || file.kind !== 'pdf' || file.extractionStatus !== 'ready') return null
-  const extractedText = String(file.extractedText || '').trim()
-  if (extractedText.length < 20) return null
-  return {
-    fileName: file.file.name,
-    pageCount: file.pageCount || 0,
-    extractedText,
-  }
-}
-
-function buildChatFilePayload(file?: IntakeFile | null) {
-  if (!file) return null
-  return {
-    name: file.file.name,
-    type: file.file.type,
-    size: file.file.size,
-    kind: file.kind,
-    dataUrl: file.kind === 'image' ? file.dataUrl : undefined,
-    pageCount: file.pageCount,
-    extractionStatus: file.extractionStatus,
-    extractedText: file.extractedText,
-  }
-}
-
-function isPlatformCapabilitiesIntent(text: string) {
-  return /\b(liste o que vc tem de funcionalidades|lista de funcionalidades|funcionalidades|o que (vc|voce|você) faz|quais módulos existem|quais modulos existem|quais funcionalidades|what can you do|what do you do|features)\b/i.test(text)
-}
-
 function id() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
@@ -366,23 +323,8 @@ function isBudgetIntent(text: string) {
   return /\b(or[cç]amento|orcamento|quantitativo|estimativa|materiais|proposta|quanto custa|custo de obra|memorial de compra|budget|estimate|quantity|takeoff|materials|proposal|construction cost)\b/i.test(text)
 }
 
-function isBudgetXlsxIntent(text: string) {
-  return /\b(xlsx|planilha.*or[cç]amento|or[cç]amento.*xlsx|bdi|sinapi|exportar.*or[cç]amento|gerar.*or[cç]amento|or[cç]amento.*sinapi|sinapi.*or[cç]amento|budget.*xlsx|xlsx.*budget|gerar.*planilha|planilha.*or[cç]amento)\b/i.test(text)
-}
-
 function isContractsIntent(text: string) {
   return /\b(contrato|contrato simples|revisar contrato|jur[ií]dico|juridico|cl[aá]usula|clausula|proposta jur[ií]dica|memorial|memorial descritivo|alvar[aá]|licen[cç]a|permits?|permits americanos|documentos para aprova[cç][aã]o nos eua|us permits?|european permits?|eu building permit|planning permission|ahj|certificate of occupancy|fire marshal|ada|building control|compliance|endossos|endosso|art|rrt|habite-se|scope agreement|addendum|lawyer|legal|contract)\b/i.test(text)
-}
-
-function isDocxGenerationIntent(text: string) {
-  return /\b(docx|gerar.*docx|docx.*contrato|contrato.*docx|gerar.*proposta.*doc|proposta.*docx|gerar.*documento|exportar.*contrato|gerar.*contrato|download.*contrato|gerar.*proposta\b)\b/i.test(text)
-}
-
-function isPdfAnalysisIntent(text: string) {
-  // Harden PDF analysis/summary intent detection. Accept common Portuguese verbs, light typos and
-  // short requests like "resuma" or "resuma o pdf". Keep conservative to avoid capturing unrelated
-  // text but permit common misspelling 'esuma'.
-  return /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|analise este pdf|analise esse pdf|explique|o que tem neste documento|o que diz|o que tem no|me fale sobre o|quais s[aã]o os|pontos principais|lista os|summarize|sumarize|anali[sz]e o pdf|extraia|extract|key points|what does it say|tell me about the)\b/i.test(text)
 }
 
 function isResearchIntent(text: string) {
@@ -653,7 +595,7 @@ function isUploadQuestion(text: string) {
   return /\b(upload|arquivo|anexar|mandar imagem|enviar arquivo|screenshot|planta|pdf|file|attach)\b/i.test(text.trim())
 }
 
-function buildProductFallbackAnswer(userText: string, identity: ChatIdentityContext, attachment?: IntakeFile) {
+function buildProductFallbackAnswer(userText: string, identity: ChatIdentityContext) {
   // H5.1F: multi-line messages are handled by the backend conversational router.
   // Only apply local fallbacks for single-line messages to prevent interception.
   const nonEmptyLines = userText.trim().split(/\n/).filter(l => l.trim()).length
@@ -675,7 +617,9 @@ function buildProductFallbackAnswer(userText: string, identity: ChatIdentityCont
       : 'I can help prepare the consultation. Send name, email, phone, city, project type and what you need: BIM, 3D, contract, permit, proposal, finance, marketing or field operations.'
   }
   if (isUploadQuestion(userText)) {
-    return 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botao de anexar. Eu uso o arquivo como contexto da conversa e sigo com uma resposta direta.'
+    return pt
+      ? 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botao de anexar. Eu uso o arquivo como contexto da conversa e sigo com uma resposta direta.'
+      : 'You can upload a file, PDF, image, plan or screenshot with the attach button. I will use it as conversation context and continue with a direct answer.'
   }
   return ''
 }
@@ -691,8 +635,8 @@ function fileExtension(fileName: string) {
   return fileName.toLowerCase().split('.').pop() || ''
 }
 
-function isBim3DIntent(text: string) {
-  return /\b(visualizar ifc|abrir bim 3d|abrir viewer ifc|viewer ifc|visualizar modelo|abrir modelo|open ifc|ifc viewer|open bim 3d|3d studio|clash|compatibiliza[cç][aã]o)\b/i.test(text)
+function isBim3DIntent(text: string, attachment?: IntakeFile) {
+  return attachment?.kind === 'bim-cad' || /\b(ifc|glb|gltf|obj|stl|fbx|rvt|dwg|dxf|skp|bim|cad|3d studio|viewer|visualizar modelo|clash|compatibiliza[cç][aã]o)\b/i.test(text)
 }
 
 function isInternalViewerFormat(fileName: string) {
@@ -764,35 +708,11 @@ function asksExplicit3D(text: string) {
 }
 
 function isBimStudioCommand(text: string) {
-  return /\b(marque esse problema|isso est[aá] errado|criar tour|fazer anima[cç][aã]o|gerar passeio|roteiro 3d|mandar para directcut|enviar para directcut|mandar para archvis|enviar para archvis|add issue|save view|tour|animation|directcut|archvis|rotacione|rotacionar|gire|girar|câmera|camera|isolar|isole|focar|foca|destacar|inconsistência|inconsistencia|zoom|viga|pilar|tubo|laje)\b/i.test(text)
-}
-
-function sameIntakeFile(left?: IntakeFile, right?: IntakeFile) {
-  return Boolean(left && right && left.file.name === right.file.name && left.file.size === right.file.size && (left.file.lastModified || 0) === (right.file.lastModified || 0))
+  return /\b(marque esse problema|isso est[aá] errado|criar tour|fazer anima[cç][aã]o|gerar passeio|roteiro 3d|mandar para directcut|enviar para directcut|mandar para archvis|enviar para archvis|add issue|save view|tour|animation|directcut|archvis)\b/i.test(text)
 }
 
 function isProjectWorkspaceCommand(text: string) {
   return /\b(salvar projeto|novo projeto|exportar projeto|importar projeto|abrir projeto|renomear projeto|project workspace|save project|new project|export project|import project|open project|rename project)\b/i.test(text)
-}
-
-function isUsableProjectFileRecord(record?: ProjectFileRecord): boolean {
-  if (!record) return false
-  const extractedText = String(record.extractedText || '').trim()
-  const hasRealDataUrl = Boolean(record.dataUrl && record.dataUrl.includes(',') && record.dataUrl.length > 50)
-  const hasUsefulPdfText = record.kind === 'pdf' && extractedText.length >= 20
-  if (record.size === 0 && !hasRealDataUrl && !hasUsefulPdfText) return false
-  if (record.kind === 'pdf') return hasUsefulPdfText || hasRealDataUrl
-  return hasRealDataUrl || record.size > 0
-}
-
-function isUsableIntakeFile(file?: IntakeFile | null): boolean {
-  if (!file) return false
-  const extractedText = String(file.extractedText || '').trim()
-  const hasRealDataUrl = Boolean(file.dataUrl && file.dataUrl.includes(',') && file.dataUrl.length > 50)
-  const hasUsefulPdfText = file.kind === 'pdf' && extractedText.length >= 20
-  if (file.file.size === 0 && !hasRealDataUrl && !hasUsefulPdfText) return false
-  if (file.kind === 'pdf') return hasUsefulPdfText || file.file.size > 0
-  return hasRealDataUrl || file.file.size > 0
 }
 
 function fileToRecord(file: IntakeFile): ProjectFileRecord {
@@ -802,53 +722,34 @@ function fileToRecord(file: IntakeFile): ProjectFileRecord {
     type: file.file.type,
     size: file.file.size,
     kind: file.kind,
-    lastModified: file.file.lastModified || 0,
     dataUrl: file.kind === 'image' ? file.dataUrl : undefined,
-    extractedText: file.extractedText,
-    pageCount: file.pageCount,
-    extractionStatus: file.extractionStatus,
-    extractedAt: file.extractionStatus === 'ready' && file.extractedText ? new Date().toISOString() : undefined,
     dimensions: file.dimensions,
     addedAt: new Date().toISOString(),
   }
 }
 
 function recordToIntakeFile(record?: ProjectFileRecord): IntakeFile | undefined {
-  if (!isUsableProjectFileRecord(record)) return undefined
-  const extractedText = String(record!.extractedText || '').trim()
-  const hasRealDataUrl = Boolean(record!.dataUrl && record!.dataUrl.includes(',') && record!.dataUrl.length > 50)
-  const isPdfPlaceholder = record!.kind === 'pdf' && !hasRealDataUrl && extractedText.length >= 20
-
-  const file = hasRealDataUrl
-    ? dataUrlToFile(record!.dataUrl!, record!.name, record!.type, record!.lastModified)
-    : new File([''], record!.name, { type: record!.type || 'application/octet-stream', lastModified: record!.lastModified || Date.now() })
-
+  if (!record) return undefined
+  const file = record.dataUrl
+    ? dataUrlToFile(record.dataUrl, record.name, record.type)
+    : new File([''], record.name, { type: record.type || 'application/octet-stream' })
   return {
     file,
-    kind: record!.kind as IntakeFile['kind'],
-    dataUrl: record!.dataUrl,
-    previewUrl: record!.dataUrl,
-    url: record!.dataUrl,
-    extractedText: extractedText || undefined,
-    pageCount: record!.pageCount,
-    extractionStatus: record!.extractionStatus || (extractedText.length >= 20 ? 'ready' : 'idle'),
-    dimensions: record!.dimensions,
-    contextOnly: isPdfPlaceholder,
+    kind: record.kind as IntakeFile['kind'],
+    dataUrl: record.dataUrl,
+    previewUrl: record.dataUrl,
+    url: record.dataUrl,
+    dimensions: record.dimensions,
   }
 }
 
-function getProjectFileRecordById(project: ProjectWorkspace, fileId?: string) {
-  if (!fileId) return undefined
-  return project.files.find(file => file.id === fileId)
-}
-
-function dataUrlToFile(dataUrl: string, name: string, type: string, lastModified?: number) {
+function dataUrlToFile(dataUrl: string, name: string, type: string) {
   const [header, base64 = ''] = dataUrl.split(',')
   const mime = type || header.match(/data:([^;]+)/)?.[1] || 'application/octet-stream'
   const binary = atob(base64)
   const bytes = new Uint8Array(binary.length)
   for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index)
-  return new File([bytes], name, { type: mime, lastModified: lastModified || Date.now() })
+  return new File([bytes], name, { type: mime })
 }
 
 function App() {
@@ -867,11 +768,7 @@ function App() {
   }
   const initialProject = useMemo(() => loadActiveProject() || createProject('Apex Project'), [])
   const initialAppState = initialProject.appState || {}
-  const restoredFile = recordToIntakeFile(
-    initialProject.activeFileId
-      ? initialProject.files.find(file => file.id === initialProject.activeFileId)
-      : undefined
-  )
+  const restoredFile = recordToIntakeFile(initialProject.files.find(file => file.id === initialProject.activeFileId) || initialProject.files[initialProject.files.length - 1])
   const [input, setInput] = useState('')
   const [projects, setProjects] = useState<ProjectWorkspace[]>(() => {
     const existing = loadProjects()
@@ -880,18 +777,6 @@ function App() {
   const [activeProject, setActiveProject] = useState<ProjectWorkspace>(initialProject)
   const [workspaceSavedAt, setWorkspaceSavedAt] = useState('')
   const [activeFile, setActiveFile] = useState<IntakeFile | undefined>(restoredFile)
-  const [pendingAttachment, setPendingAttachment] = useState<IntakeFile | null>(null)
-  const [pendingPdfIntent, setPendingPdfIntent] = useState<string | null>(null)
-
-  // Auto-run pending PDF intent when extraction completes
-  useEffect(() => {
-    if (pendingPdfIntent && activeFile && activeFile.kind === 'pdf' && activeFile.extractionStatus === 'ready') {
-      const intent = pendingPdfIntent
-      setPendingPdfIntent(null)
-      // askCopilot is a function declaration hoisted in this scope
-      try { askCopilot(intent) } catch (err) { /* ignore if unavailable */ }
-    }
-  }, [pendingPdfIntent, activeFile && activeFile.extractionStatus])
   const [archVisOutput, setArchVisOutput] = useState<ArchVisOutput | null>(() => {
     const stored = initialAppState.archVisOutput as { output?: string; conversationContext?: string[] } | undefined
     return stored && restoredFile?.kind === 'image'
@@ -1034,17 +919,6 @@ function App() {
 
     try {
       const state = await loadSupabaseAccountState()
-      // Phase 1.4 — auto-bootstrap profile when signed in but profile missing
-      if (state.bootstrapStatus === 'needs-profile-bootstrap') {
-        try {
-          const bootstrapped = await attemptProfileBootstrap()
-          setAccountState(bootstrapped)
-          setAuthMessage(bootstrapped.message)
-          return bootstrapped
-        } catch {
-          // bootstrap failed — fall through to set the original state
-        }
-      }
       setAccountState(state)
       setAuthMessage(state.message)
       return state
@@ -1080,55 +954,7 @@ function App() {
     setAuthOutput(null)
     setExportCenterOpen(false)
     setActiveFile(undefined)
-    setPendingAttachment(null)
     setInput('')
-  }
-
-  function closeAllPanels() {
-    setArchVisOutput(null)
-    setDirectCutOutput(null)
-    setBim3DOutput(null)
-    setBudgetOutput(null)
-    setContractsOutput(null)
-    setResearchOutput(null)
-    setFieldOpsOutput(null)
-    setBusinessOutput(null)
-    setAgentsOutput(null)
-    setEvmSchedulerComplianceOutput(null)
-    setSupplyChainOutput(null)
-    setNotificationsOutput(null)
-    setAiCostOutput(null)
-    setMultiTenantOutput(null)
-    setPwaMobileOutput(null)
-    setDigitalTwinOutput(null)
-    setKnowledgeBaseOutput(null)
-    setMetricsOutput(null)
-    setCopilotExecutionOutput(null)
-    setAuthOutput(null)
-    setExportCenterOpen(false)
-  }
-
-  function beginPdfExtraction(file: IntakeFile) {
-    if (file.kind !== 'pdf' || file.extractionStatus === 'extracting' || file.extractionStatus === 'ready') return
-    const extractingFile: IntakeFile = { ...file, extractionStatus: 'extracting' }
-    setActiveFile(current => sameIntakeFile(current, file) ? extractingFile : current)
-    setMessages(prev => prev.map(message => sameIntakeFile(message.attachment, file) ? { ...message, attachment: extractingFile } : message))
-    extractPdfText(file.file)
-      .then(result => {
-        const readyFile: IntakeFile = {
-          ...extractingFile,
-          extractedText: result.text,
-          pageCount: result.pageCount,
-          extractionStatus: 'ready',
-        }
-        setActiveFile(current => sameIntakeFile(current, file) ? readyFile : current)
-        setMessages(prev => prev.map(message => sameIntakeFile(message.attachment, file) ? { ...message, attachment: readyFile } : message))
-      })
-      .catch(() => {
-        const failedFile: IntakeFile = { ...extractingFile, extractionStatus: 'failed' }
-        setActiveFile(current => sameIntakeFile(current, file) ? failedFile : current)
-        setMessages(prev => prev.map(message => sameIntakeFile(message.attachment, file) ? { ...message, attachment: failedFile } : message))
-      })
   }
 
   async function signOutFromShell() {
@@ -1183,7 +1009,7 @@ function App() {
         id: message.id,
         role: message.role,
         text: message.text,
-        attachmentFileId: message.attachmentFileId,
+        attachmentFileId: message.attachment ? activeRecord?.id : undefined,
       })),
       revisionConstraints: archVisRevisionConstraints,
       projectMemory: activeProject.projectMemory,
@@ -1282,74 +1108,16 @@ function App() {
     messagesEnd.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [messages, loading])
 
-  async function askCopilot(text = input, explicitAttachment?: IntakeFile) {
+  async function askCopilot(text = input, attachment = activeFile) {
     const clean = text.trim()
-    const pendingForSend = explicitAttachment || pendingAttachment
-    if ((!clean && !pendingForSend) || loading) return
-
-    // Fast-path: Portuguese greeting — respond immediately without touching file context or calling API
-    if (/^\s*(ol[aá]|oi|ola)\s*$/i.test(clean) && !pendingForSend) {
-      const displayName = clientMemory.displayName ? `, ${clientMemory.displayName}` : ''
-      const greetMsg: Message = { id: id(), role: 'user', text: clean }
-      setMessages(prev => [...prev, greetMsg, { id: id(), role: 'assistant', text: `Olá${displayName}. Como posso ajudar agora?` }])
-      setInput('')
-      return
-    }
-
-    const isPlatformQuestion = Boolean(clean && isPlatformCapabilitiesIntent(clean))
-    const wantsFileContext = Boolean(pendingForSend) || Boolean(clean && !isPlatformQuestion && (
-      isPdfAnalysisIntent(clean)
-      || isBimStudioCommand(clean)
-      || isArchVisIntent(clean, activeFile)
-      || isDirectCutIntent(clean)
-      || isBudgetIntent(clean)
-      || isContractsIntent(clean)
-      || isFieldOpsIntent(clean, activeFile)
-      || isResearchIntent(clean)
-      || isBusinessLayerIntent(clean)
-    ))
-    const attachment = pendingForSend || (wantsFileContext ? activeFile : undefined)
-    const sentAttachment = pendingForSend || undefined
-    if (pendingForSend) {
-      setActiveFile(pendingForSend)
-      setPendingAttachment(null)
-      if (pendingForSend.kind === 'pdf') beginPdfExtraction(pendingForSend)
-    }
-    const userText = clean || (sentAttachment ? `Uploaded ${sentAttachment.file.name}` : '')
-    const activePdfContext = getActivePdfContext(attachment)
-    const isFollowUpAboutPdf = clean && Boolean(activePdfContext) && isPdfAnalysisIntent(clean)
-    const modelText = (() => {
-      if (!clean) {
-        // Initial upload — include PDF content if available
-        if (activePdfContext) {
-          return `O usuário enviou o arquivo PDF "${activePdfContext.fileName}" (${activePdfContext.pageCount} páginas). Conteúdo extraído:\n\n${activePdfContext.extractedText}\n\nResponda de forma direta e conversacional com base no conteúdo acima. Não faça relatório nem lista de tópicos.`
-        }
-        if (attachment) return 'User uploaded this file. Analyze it as project context and continue naturally in a short conversational reply. Do not write a report, heading, observations list, or capabilities list.'
-        return ''
-      }
-      if (isFollowUpAboutPdf) {
-        // Follow-up request (resuma, analise, etc.) — inject PDF context before the user question
-        return `Arquivo PDF ativo: "${activePdfContext!.fileName}" (${activePdfContext!.pageCount} páginas)\nConteúdo extraído:\n\n${activePdfContext!.extractedText}\n\nPedido do usuário: ${clean}\n\nResponda somente com base no conteúdo real do PDF. Não diga que não tem acesso ao conteúdo.`
-      }
-      return clean
-    })()
-    const userMessage: Message = { id: id(), role: 'user', text: userText, attachment: sentAttachment, attachmentFileId: sentAttachment ? getFileRecordId(sentAttachment) : undefined }
-    if (pendingForSend && !clean) {
-      setMessages(prev => [...prev, userMessage])
-      setInput('')
-      return
-    }
-    if (pendingForSend && clean && sentAttachment?.kind === 'pdf' && isPdfAnalysisIntent(clean)) {
-      // remember the intent and inform the user in Portuguese while extraction runs
-      setPendingPdfIntent(clean)
-      setMessages(prev => [
-        ...prev,
-        userMessage,
-        { id: id(), role: 'assistant', text: 'Recebi o PDF e estou extraindo o texto. Assim que a extração concluir, vou resumir o conteúdo.' },
-      ])
-      setInput('')
-      return
-    }
+    if ((!clean && !attachment) || loading) return
+    const userText = clean || (attachment ? `Uploaded ${attachment.file.name}` : '')
+    const modelText = clean || (attachment
+      ? attachment.extractedText
+        ? `O usuário enviou o arquivo PDF "${attachment.file.name}" (${attachment.pageCount ?? '?'} páginas). Conteúdo extraído:\n\n${attachment.extractedText}\n\nResponda de forma direta e conversacional com base no conteúdo acima. Não faça relatório nem lista de tópicos.`
+        : 'User uploaded this file. Analyze it as project context and continue naturally in a short conversational reply. Do not write a report, heading, observations list, or capabilities list.'
+      : '')
+    const userMessage: Message = { id: id(), role: 'user', text: userText, attachment }
     if (!isSignedIn) {
       setMessages(prev => [
         ...prev,
@@ -1364,32 +1132,6 @@ function App() {
       return
     }
     const identityContext = buildChatIdentityContext(accountState)
-    if (clean && attachment?.kind === 'pdf' && isPdfAnalysisIntent(clean) && attachment.extractionStatus === 'extracting') {
-      setMessages(prev => [
-        ...prev,
-        userMessage,
-        {
-          id: id(),
-          role: 'assistant',
-          text: 'Estou extraindo o PDF. Aguarde concluir e envie novamente.',
-        },
-      ])
-      setInput('')
-      return
-    }
-    if (clean && attachment?.kind === 'pdf' && isPdfAnalysisIntent(clean) && attachment.extractionStatus === 'ready' && !activePdfContext) {
-      setMessages(prev => [
-        ...prev,
-        userMessage,
-        {
-          id: id(),
-          role: 'assistant',
-          text: 'Falhei ao resumir o PDF apesar de o texto estar extraído. Tente novamente.',
-        },
-      ])
-      setInput('')
-      return
-    }
     if (clean && isOwnerConsoleIntent(clean)) {
       if (!isOwnerUser) {
         setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'This tool is restricted to workspace owners/admins.' }])
@@ -1413,9 +1155,7 @@ function App() {
       setInput('')
       return
     }
-    // Skip generic fallback when user is asking about an active ready PDF — let API handle it with injected context
-    const shouldSkipFallback = Boolean(activePdfContext && isPdfAnalysisIntent(clean))
-    const localProductAnswer = shouldSkipFallback ? null : buildProductFallbackAnswer(userText, identityContext, isPlatformQuestion ? undefined : attachment)
+    const localProductAnswer = buildProductFallbackAnswer(userText, identityContext)
     if (localProductAnswer) {
       setMessages(prev => [
         ...prev,
@@ -1429,16 +1169,10 @@ function App() {
       setInput('')
       return
     }
-    // M3/M5 explicit product module intents — checked before generic business fallback
-    const shouldGenerateDocx = clean && isDocxGenerationIntent(clean)
-    const shouldOpenBudgetXlsx = clean && isBudgetXlsxIntent(clean)
-
     const shouldOpenArchVis = isArchVisIntent(clean || modelText, attachment)
     const shouldOpenDirectCut = clean && isDirectCutIntent(clean)
-    // M3 DOCX intent takes priority over generic contracts intent
-    const shouldOpenContracts = clean && !shouldGenerateDocx && /\b(abrir contracts|contracts studio|abrir contratos|abrir contrato|revisar contrato|revisar proposta|gerar contrato|gerar proposta|gerar proposta docx|gerar contrato docx)\b/i.test(clean) && isContractsIntent(clean)
-    // M5 XLSX intent takes priority over generic budget intent
-    const shouldOpenBudget = clean && !shouldOpenBudgetXlsx && /\b(abrir budget|budget studio|gerar or[cç]amento|or[cç]amento xlsx|bdi|sinapi|gerar planilha|planilha de or[cç]amento)\b/i.test(clean) && isBudgetIntent(clean)
+    const shouldOpenContracts = clean && isContractsIntent(clean)
+    const shouldOpenBudget = clean && isBudgetIntent(clean)
     const shouldOpenResearch = clean && isResearchIntent(clean)
     const shouldOpenFieldOps = clean && isFieldOpsIntent(clean, attachment)
     const shouldOpenAuth = clean && isAuthIntent(clean)
@@ -1454,13 +1188,12 @@ function App() {
     const shouldOpenMetrics = clean && isMetricsIntent(clean)
     const shouldOpenCopilotExecution = clean && isCopilotExecutionIntent(clean)
     const shouldOpenAgents = clean && isAgentIntent(clean)
-    const shouldOpenBim3D = clean && isBim3DIntent(clean)
+    const shouldOpenBim3D = isBim3DIntent(clean || modelText, attachment)
     const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
     const shouldTreatAsConversation = clean && isOperationalGovernancePrompt(clean)
     const shouldOpenSkillExport = clean && !shouldTreatAsConversation && (isSkillExportIntent(clean) || isSkillExportFactoryAlias(clean))
     const shouldOpenExportCenter = clean && isExportIntent(clean)
     if (shouldOpenExportCenter) {
-      closeAllPanels()
       setExportCenterOpen(true)
       setMessages(prev => [
         ...prev,
@@ -1519,7 +1252,6 @@ function App() {
     }
     if (shouldOpenAuth) {
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
-      closeAllPanels()
       setAuthOutput({ goal: clean, conversationContext: context })
       if (isOwnerUser) setOwnerConsoleOpen(true)
       setMessages(prev => [...prev, userMessage])
@@ -1547,37 +1279,6 @@ function App() {
       setInput('')
       return
     }
-    // M3 — DOCX generation intent: open Contracts Studio and trigger draft + download
-    if (shouldGenerateDocx) {
-      const pdfContext = attachment?.kind === 'pdf' && attachment.extractionStatus === 'ready'
-        ? `\n\nContexto do PDF ativo "${attachment.file.name}":\n${attachment.extractedText?.slice(0, 3000)}`
-        : ''
-      closeAllPanels()
-      setMessages(prev => [
-        ...prev,
-        userMessage,
-        { id: id(), role: 'assistant', text: `Abrindo Contracts Studio para gerar documento DOCX. Use o botão **Generate contract draft** e depois **Download DOCX** para baixar o arquivo.${pdfContext ? ' O conteúdo do PDF foi incluído como contexto.' : ''}` },
-      ])
-      closeAllPanels()
-      setContractsOutput({ source: attachment, goal: clean, conversationContext: [...messages, userMessage].slice(-6).map(m => `${m.role}: ${m.text}`), autoGenerate: true })
-      setInput('')
-      return
-    }
-
-    // M5 — XLSX Budget intent: open Budget Studio with XLSX export focus
-    if (shouldOpenBudgetXlsx) {
-      closeAllPanels()
-      setMessages(prev => [
-        ...prev,
-        userMessage,
-        { id: id(), role: 'assistant', text: 'Abrindo Budget Studio com geração automática do orçamento. Use o botão **Download XLSX (com BDI)** para exportar a planilha.' },
-      ])
-      closeAllPanels()
-      setBudgetOutput({ source: attachment, goal: clean, conversationContext: [...messages, userMessage].slice(-6).map(m => `${m.role}: ${m.text}`), autoGenerate: true })
-      setInput('')
-      return
-    }
-
     if (shouldOpenBusiness) {
       const context = [...messages, userMessage]
         .slice(-8)
@@ -1588,83 +1289,65 @@ function App() {
         : focus === 'crm-sales'
           ? 'Abri o CRM / Sales layer ao lado. Vou estruturar leads, pipeline, proposta comercial e follow-up em modo local, sem banco de dados real ainda.'
           : focus === 'admin'
-          ? 'Abri o SaaS Admin / Client Workspace ao lado. Vou modelar usuários, permissões, planos e dashboards em modo local, sem auth real ainda.'
+            ? 'Abri o SaaS Admin / Client Workspace ao lado. Vou modelar usuários, permissões, planos e dashboards em modo local, sem auth real ainda.'
             : 'Abri a camada SaaS/CRM/Finance ao lado. Tudo está em Local demo mode: sem auth, sem database e sem payment connector.'
-      closeAllPanels()
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: responseText }])
-      closeAllPanels()
       setBusinessOutput({ goal: clean, focus, conversationContext: context })
       setInput('')
       return
     }
     if (shouldOpenSupplyChain) {
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
-      closeAllPanels()
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Supply Chain / Suppliers Studio ao lado. Vou organizar fornecedores, cotações e compras em modo local, sem fingir preço, disponibilidade ou verificação de fornecedor.' }])
-      closeAllPanels()
       setSupplyChainOutput({ goal: clean, conversationContext: context })
       setInput('')
       return
     }
     if (shouldOpenNotifications) {
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
-      closeAllPanels()
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Notifications / Alerts Center ao lado. Estes são alertas locais; conector de push, email ou SMS ainda não está conectado.' }])
-      closeAllPanels()
       setNotificationsOutput({ goal: clean, conversationContext: context })
       setInput('')
       return
     }
     if (shouldOpenAiCost) {
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
-      closeAllPanels()
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o AI Cost Dashboard ao lado. Vou mostrar estimativas locais de uso/custo, sem fingir billing real da OpenAI ou de outro provedor.' }])
-      closeAllPanels()
       setAiCostOutput({ goal: clean, conversationContext: context })
       setInput('')
       return
     }
     if (shouldOpenMultiTenant) {
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
-      closeAllPanels()
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Multi-tenant Readiness ao lado. É planejamento local-first: sem fingir isolamento real de Supabase/auth/RLS.' }])
-      closeAllPanels()
       setMultiTenantOutput({ goal: clean, conversationContext: context })
       setInput('')
       return
     }
     if (shouldOpenPwaMobile) {
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
-      closeAllPanels()
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o PWA / Mobile Field Mode ao lado. Vou preparar checklist e fluxo mobile/offline, sem fingir PWA instalado.' }])
-      closeAllPanels()
       setPwaMobileOutput({ goal: clean, conversationContext: context })
       setInput('')
       return
     }
     if (shouldOpenDigitalTwin) {
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
-      closeAllPanels()
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Digital Twin UI ao lado. É estado local/planning-only: sem IoT em tempo real e sem sync vivo de modelo.' }])
-      closeAllPanels()
       setDigitalTwinOutput({ goal: clean, conversationContext: context })
       setInput('')
       return
     }
     if (shouldOpenKnowledgeBase) {
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
-      closeAllPanels()
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri a Knowledge Base ao lado. Vou indexar conhecimento local/projeto sem executar conteúdo e sem marcar global sem aprovação do Owner.' }])
-      closeAllPanels()
       setKnowledgeBaseOutput({ goal: clean, conversationContext: context })
       setInput('')
       return
     }
     if (shouldOpenMetrics) {
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
-      closeAllPanels()
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Metrics Dashboard ao lado. Métricas são LOCAL_DEMO/ESTIMATED_LOCAL até existir telemetria real.' }])
-      closeAllPanels()
       setMetricsOutput({ goal: clean, conversationContext: context })
       setInput('')
       return
@@ -1676,9 +1359,7 @@ function App() {
         return
       }
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
-      closeAllPanels()
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Apex Copilot Local Execution v0. Ele executa comandos reais apenas pela allowlist do server.mjs, sem comando livre.' }])
-      closeAllPanels()
       setCopilotExecutionOutput({ goal: clean, conversationContext: context })
       setOwnerConsoleOpen(true)
       setInput('')
@@ -1688,7 +1369,6 @@ function App() {
       const context = [...messages, userMessage]
         .slice(-8)
         .map(message => `${message.role}: ${message.text}`)
-      closeAllPanels()
       setMessages(prev => [
         ...prev,
         userMessage,
@@ -1698,7 +1378,6 @@ function App() {
           text: 'Abri o painel CP11C com EVM Analyst, Scheduler e NR Compliance. Vou calcular somente com dados fornecidos/localizados e manter o restante como UNKNOWN, GENERAL_GUIDANCE ou NEEDS_SAFETY_REVIEW.',
         },
       ])
-      closeAllPanels()
       setEvmSchedulerComplianceOutput({ goal: clean, conversationContext: context })
       setInput('')
       return
@@ -1707,7 +1386,6 @@ function App() {
       const context = [...messages, userMessage]
         .slice(-8)
         .map(message => `${message.role}: ${message.text}`)
-      closeAllPanels()
       setMessages(prev => [
         ...prev,
         userMessage,
@@ -1717,26 +1395,18 @@ function App() {
           text: 'Abri o painel dos 8 Cognitive Agents ao lado. EVM, Scheduler e NR Compliance agora aparecem como implementados local-first, com limites claros: sem dados em tempo real falsos e sem aprovação oficial de compliance.',
         },
       ])
-      closeAllPanels()
       setAgentsOutput({ goal: clean, conversationContext: context })
       setInput('')
       return
     }
     if (clean && bim3DOutput && isBimStudioCommand(clean)) {
-      let responseText = 'Feito. Adicionei isso no BIM / 3D Studio e atualizei o tour/correções ao lado.'
-      const lower = clean.toLowerCase()
-      if (lower.includes('rotacione') || lower.includes('rotacionar') || lower.includes('gire') || lower.includes('girar') || lower.includes('camera') || lower.includes('câmera')) {
-        responseText = 'Rotacionando a câmera do visualizador 3D para ajustar a vista do modelo.'
-      } else if (lower.includes('isolar') || lower.includes('isole') || lower.includes('focar') || lower.includes('foca') || lower.includes('inconsistencia') || lower.includes('inconsistência') || lower.includes('zoom') || lower.includes('destacar')) {
-        responseText = 'Isolando os elementos do modelo em modo X-Ray e destacando a inconsistência.'
-      }
       setMessages(prev => [
         ...prev,
         userMessage,
         {
           id: id(),
           role: 'assistant',
-          text: responseText,
+          text: 'Feito. Adicionei isso no BIM / 3D Studio e atualizei o tour/correções ao lado.',
         },
       ])
       setBimCommand({ id: id(), text: clean })
@@ -1762,7 +1432,6 @@ function App() {
       const context = [...messages, userMessage]
         .slice(-8)
         .map(message => `${message.role}: ${message.text}`)
-      closeAllPanels()
       setMessages(prev => [
         ...prev,
         userMessage,
@@ -1772,7 +1441,6 @@ function App() {
           text: 'Abri o DirectCut Studio ao lado com o plano de vídeo, roteiro, shot list e prompt ajustável. Ainda não há conector de vídeo real, então vou trabalhar em modo planning-only.',
         },
       ])
-      closeAllPanels()
       setDirectCutOutput({
         source: attachment,
         goal: clean,
@@ -1786,7 +1454,6 @@ function App() {
       const context = [...messages, userMessage]
         .slice(-8)
         .map(message => `${message.role}: ${message.text}`)
-      closeAllPanels()
       setMessages(prev => [
         ...prev,
         userMessage,
@@ -1796,7 +1463,6 @@ function App() {
           text: 'Abri o Contracts / Permits Studio ao lado. Vou preparar rascunho, checklist ou revisão com evidência por item, sem fingir aprovação jurídica.',
         },
       ])
-      closeAllPanels()
       setContractsOutput({
         source: attachment,
         goal: clean,
@@ -1809,7 +1475,6 @@ function App() {
       const context = [...messages, userMessage]
         .slice(-8)
         .map(message => `${message.role}: ${message.text}`)
-      closeAllPanels()
       setMessages(prev => [
         ...prev,
         userMessage,
@@ -1819,7 +1484,6 @@ function App() {
           text: 'Abri o Research / Market Intelligence Studio ao lado. Vou montar um plano com fontes e confiança, sem inventar web, SINAPI, preços ou dados atuais.',
         },
       ])
-      closeAllPanels()
       setResearchOutput({
         goal: clean,
         conversationContext: context,
@@ -1831,7 +1495,6 @@ function App() {
       const context = [...messages, userMessage]
         .slice(-8)
         .map(message => `${message.role}: ${message.text}`)
-      closeAllPanels()
       setMessages(prev => [
         ...prev,
         userMessage,
@@ -1841,7 +1504,6 @@ function App() {
           text: 'Abri o Field Operations / RDO Studio ao lado. Vou preparar RDO, progresso, segurança, qualidade e punch list com evidência por item, sem fingir clima ou aprovação de inspeção.',
         },
       ])
-      closeAllPanels()
       setFieldOpsOutput({
         source: attachment,
         goal: clean,
@@ -1854,7 +1516,6 @@ function App() {
       const context = [...messages, userMessage]
         .slice(-8)
         .map(message => `${message.role}: ${message.text}`)
-      closeAllPanels()
       setMessages(prev => [
         ...prev,
         userMessage,
@@ -1864,7 +1525,6 @@ function App() {
           text: 'Abri o Budget / Quantity Studio ao lado. Vou montar um orçamento preliminar com confiança e fonte por item, sem fingir precisão nem integração SINAPI.',
         },
       ])
-      closeAllPanels()
       setBudgetOutput({
         source: attachment,
         goal: clean,
@@ -1880,9 +1540,7 @@ function App() {
         : isInternalImportFormat(fileName)
           ? 'Abri o fluxo de importação 3D da Apex. Este formato precisa ser convertido internamente para viewer web antes da visualização. Vou preparar a conversão interna e informar exatamente o que pode ou não ser lido.'
           : 'Abri o BIM / 3D Studio ao lado para revisar o arquivo e preparar o próximo fluxo interno.'
-      closeAllPanels()
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: studioMessage }])
-      closeAllPanels()
       setBim3DOutput({ source: attachment })
       setInput('')
       return
@@ -1909,7 +1567,15 @@ function App() {
               text: modelText,
             },
           ],
-          file: buildChatFilePayload(attachment),
+          file: attachment
+            ? {
+                name: attachment.file.name,
+                type: attachment.file.type,
+                size: attachment.file.size,
+                kind: attachment.kind,
+                dataUrl: attachment.kind === 'image' ? attachment.dataUrl : undefined,
+              }
+            : null,
         }),
       })
       const data = await response.json().catch(() => ({}))
@@ -1922,11 +1588,10 @@ function App() {
           return next
         })
       }
+      const localFallback = buildProductFallbackAnswer(userText, identityContext)
       const reply = response.ok
-        ? pickCanonicalReply(data, buildCopilotFailureMessage(userText))
-        : (activePdfContext && isPdfAnalysisIntent(clean)
-          ? 'Falhei ao resumir o PDF apesar de o texto estar extraído. Tente novamente.'
-          : buildCopilotFailureMessage(userText))
+        ? pickCanonicalReply(data, localFallback || buildCopilotFailureMessage(userText))
+        : localFallback || buildCopilotFailureMessage(userText)
       // H5.1C/H5.1B: extract tool cards from H5 tool execution response
       const rawToolExec = (data?.operator as Record<string, unknown> | undefined)?.toolExecution
       const toolsArr = rawToolExec && typeof rawToolExec === 'object' ? (rawToolExec as Record<string, unknown>).tools : undefined
@@ -1957,7 +1622,6 @@ function App() {
           ? 'Abri o ArchVis Studio ao lado para render 3D/perspectiva. Você pode ajustar câmera, prompt e gerar pelo painel.'
           : 'Vou humanizar a planta baixa em vista superior. Se quiser render 3D em perspectiva, me peça 3D. Abri o ArchVis Studio ao lado com a imagem e o prompt ajustável.'
         setMessages(prev => [...prev, { id: id(), role: 'assistant', text: studioMessage }])
-        closeAllPanels()
         setArchVisOutput({
           source: attachment,
           output: reply,
@@ -1972,20 +1636,13 @@ function App() {
           : null
         setMessages(prev => [...prev, { id: id(), role: 'assistant', text: reply, toolCards, confirmation }])
       }
-      // Phase 1.2 — sync conversation to Supabase after each copilot response (fire-and-forget)
-      if (accountState?.bootstrapStatus === 'ready') {
-        const snapshot = buildProjectSnapshot()
-        syncProjectLocalToRemote(snapshot).catch(console.warn)
-      }
     } catch (error) {
       setMessages(prev => [
         ...prev,
         {
           id: id(),
           role: 'assistant',
-          text: (activePdfContext && isPdfAnalysisIntent(clean)
-            ? 'Falhei ao resumir o PDF apesar de o texto estar extraído. Tente novamente.'
-            : buildProductFallbackAnswer(userText, identityContext, isPlatformQuestion ? undefined : attachment)) || buildCopilotFailureMessage(userText),
+          text: buildProductFallbackAnswer(userText, identityContext) || buildCopilotFailureMessage(userText),
         },
       ])
     } finally {
@@ -1994,11 +1651,19 @@ function App() {
   }
 
   async function handleFile(file: File) {
-    // Allow 0-byte size if file has a name/type — some browsers (Android, cloud pickers) report 0 for valid files
-    if (file.size === 0 && !file.name && !file.type) return
     const kind = classifyFile(file)
     const dataUrl = kind === 'image' ? await readFileAsDataUrl(file) : undefined
     const previewUrl = kind === 'image' || kind === 'pdf' ? URL.createObjectURL(file) : undefined
+
+    let extractedText: string | undefined
+    let pageCount: number | undefined
+    if (kind === 'pdf') {
+      const result = await extractPdfText(file).catch(() => null)
+      if (result) {
+        extractedText = result.text
+        pageCount = result.pageCount
+      }
+    }
 
     const intake: IntakeFile = {
       file,
@@ -2006,37 +1671,28 @@ function App() {
       previewUrl,
       url: previewUrl,
       dataUrl,
-      extractionStatus: kind === 'pdf' ? 'idle' : undefined,
+      extractedText,
+      pageCount,
       dimensions: dataUrl ? await readImageDimensions(dataUrl).catch(() => undefined) : undefined,
     }
-    setPendingAttachment(intake)
-    if (fileInput.current) fileInput.current.value = ''
-    // Phase 1.3 — upload file to Supabase Storage (fire-and-forget)
-    if (accountState?.bootstrapStatus === 'ready' && accountState.tenant) {
-      uploadProjectFileToSupabase({
-        file,
-        tenantId: accountState.tenant.id,
-        projectId: activeProject.id,
-        kind,
-      }).catch(console.warn)
-    }
-    return
+    setActiveFile(intake)
+    await askCopilot('', intake)
   }
 
   async function handlePaste(event: React.ClipboardEvent<HTMLElement>) {
-    const pastedFile = Array.from(event.clipboardData?.files || [])[0]
     const items = Array.from(event.clipboardData?.items || [])
-    const fileItem = !pastedFile ? items.find(item => item.kind === 'file') : undefined
-    const blob = pastedFile || fileItem?.getAsFile()
+    const imageItem = items.find(item => item.kind === 'file' && /^image\/(png|jpeg|webp)$/i.test(item.type))
+    if (!imageItem) return
+
+    const blob = imageItem.getAsFile()
     if (!blob) return
+
     event.preventDefault()
-    const extension = blob.name?.split('.').pop() || (blob.type === 'image/jpeg' ? 'jpg' : blob.type.split('/')[1] || 'file')
-    const file = pastedFile && pastedFile.name
-      ? pastedFile
-      : new File([blob], `pasted-file-${timestampForFileName()}.${extension}`, {
-          type: blob.type,
-          lastModified: Date.now(),
-        })
+    const extension = imageItem.type === 'image/jpeg' ? 'jpg' : imageItem.type.split('/')[1] || 'png'
+    const file = new File([blob], `pasted-screenshot-${timestampForFileName()}.${extension}`, {
+      type: imageItem.type,
+      lastModified: Date.now(),
+    })
     await handleFile(file)
   }
 
@@ -2062,7 +1718,6 @@ function App() {
       '',
       payload.exportNotes,
     ].join('\n')
-    closeAllPanels()
     setDirectCutOutput({
       source: bim3DOutput?.source,
       goal,
@@ -2117,7 +1772,6 @@ function App() {
     setProjects(loadProjects())
     setActiveProjectId(saved.id)
     setActiveFile(undefined)
-    setPendingAttachment(null)
     setArchVisOutput(null)
     setDirectCutOutput(null)
     setBim3DOutput(null)
@@ -2146,19 +1800,14 @@ function App() {
   function applyProject(project: ProjectWorkspace) {
     setActiveProjectId(project.id)
     setActiveProject(project)
-    const restored = recordToIntakeFile(
-      project.activeFileId
-        ? project.files.find(file => file.id === project.activeFileId)
-        : undefined
-    )
-    setActiveFile(isUsableIntakeFile(restored) ? restored : undefined)
+    const restored = recordToIntakeFile(project.files.find(file => file.id === project.activeFileId) || project.files[project.files.length - 1])
+    setActiveFile(restored)
     setArchVisRevisionConstraints(project.revisionConstraints || [])
     setMessages(project.chatMessages.length ? project.chatMessages.map(message => ({
       id: message.id,
       role: message.role,
       text: message.text,
-      attachment: recordToIntakeFile(getProjectFileRecordById(project, message.attachmentFileId)),
-      attachmentFileId: message.attachmentFileId,
+      attachment: message.attachmentFileId ? restored : undefined,
     })) : [{ id: id(), role: 'assistant', text: `Project "${project.name}" loaded.` }])
     const state = project.appState || {}
     const restoredArchVis = state.archVisOutput as { output?: string; conversationContext?: string[] } | null | undefined
@@ -2233,7 +1882,6 @@ function App() {
     setProjects([project])
     setActiveProject(project)
     setActiveFile(undefined)
-    setPendingAttachment(null)
     setArchVisOutput(null)
     setDirectCutOutput(null)
     setBim3DOutput(null)
@@ -2601,16 +2249,11 @@ function App() {
                 <div className="avatar">{message.role === 'assistant' ? <Bot size={18} /> : <Building2 size={18} />}</div>
                 <div className={`bubble ${message.text.length > 900 || message.text.includes('\n') ? 'long-text' : ''}`}>
                   <div className="message-body">{renderMessageText(message.text)}</div>
-                  {message.attachment && !message.attachment.contextOnly && (
+                  {message.attachment && (
                     <div className="attachment-chip">
                       <Paperclip size={15} />
                       {message.attachment.file.name}
-                      <span>
-                        {message.attachment.kind} · {formatSize(message.attachment.file.size)}
-                        {message.attachment.extractionStatus === 'extracting' ? ' · extraindo PDF' : ''}
-                        {message.attachment.extractionStatus === 'failed' ? ' · extração falhou' : ''}
-                        {message.attachment.pageCount ? ` · ${message.attachment.pageCount}p extraídas` : ''}
-                      </span>
+                      <span>{message.attachment.kind} · {formatSize(message.attachment.file.size)}</span>
                     </div>
                   )}
                   {message.toolCards && message.toolCards.length > 0 && (
@@ -2754,16 +2397,15 @@ function App() {
           </div>
 
           <div className="composer">
-            {pendingAttachment && (
+            {activeFile && (
               <div className="composer-file">
                 <Paperclip size={16} />
-                <span>{pendingAttachment.file.name}</span>
+                <span>{activeFile.file.name}</span>
                 <small>
-                  {pendingAttachment.kind} · {formatSize(pendingAttachment.file.size)}
+                  {activeFile.kind} · {formatSize(activeFile.file.size)}
+                  {activeFile.pageCount ? ` · ${activeFile.pageCount}p extraídas` : ''}
+                  {activeFile.extractedText && !activeFile.pageCount ? ' · texto extraído' : ''}
                 </small>
-                <button type="button" className="composer-file-remove" onClick={() => setPendingAttachment(null)} aria-label={uiLanguage === 'EN' ? 'Remove attachment' : 'Remover anexo'}>
-                  <X size={15} />
-                </button>
               </div>
             )}
             <div className="input-row">
@@ -2789,7 +2431,7 @@ function App() {
               <button className="icon-button" type="button" onClick={() => setVoiceNotice(current => !current)} aria-label={uiLanguage === 'EN' ? 'Voice input' : 'Entrada por voz'}>
                 <Mic size={19} />
               </button>
-              <button className="send-button" onClick={() => askCopilot()} aria-label={loading ? 'Stop' : 'Send message'} disabled={!loading && !input.trim() && !pendingAttachment}>
+              <button className="send-button" onClick={() => askCopilot()} aria-label={loading ? 'Stop' : 'Send message'} disabled={!loading && !input.trim() && !activeFile}>
                 {loading ? <Square size={17} /> : <ArrowUp size={20} />}
               </button>
             </div>
@@ -2860,10 +2502,8 @@ function App() {
               source={budgetOutput.source}
               goal={budgetOutput.goal}
               conversationContext={budgetOutput.conversationContext}
-              autoGenerate={budgetOutput.autoGenerate}
               onSaveToProject={saveBudgetToProject}
               onSendToDirectCut={summary => {
-                closeAllPanels()
                 setDirectCutOutput({
                   source: budgetOutput.source,
                   goal: summary,
@@ -2897,10 +2537,8 @@ function App() {
               source={contractsOutput.source}
               goal={contractsOutput.goal}
               conversationContext={contractsOutput.conversationContext}
-              autoGenerate={contractsOutput.autoGenerate}
               onSaveToProject={saveContractsToProject}
               onSendToBudget={summary => {
-                closeAllPanels()
                 setBudgetOutput({
                   source: contractsOutput.source,
                   goal: summary,
@@ -2935,7 +2573,6 @@ function App() {
               conversationContext={fieldOpsOutput.conversationContext}
               onSaveToProject={saveFieldOpsToProject}
               onSendToBudget={summary => {
-                closeAllPanels()
                 setBudgetOutput({
                   source: fieldOpsOutput.source,
                   goal: summary,
@@ -2951,7 +2588,6 @@ function App() {
                 ])
               }}
               onSendToContracts={summary => {
-                closeAllPanels()
                 setContractsOutput({
                   source: fieldOpsOutput.source,
                   goal: summary,
@@ -2967,7 +2603,6 @@ function App() {
                 ])
               }}
               onSendToDirectCut={summary => {
-                closeAllPanels()
                 setDirectCutOutput({
                   source: fieldOpsOutput.source,
                   goal: summary,
