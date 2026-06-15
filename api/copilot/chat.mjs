@@ -10,21 +10,6 @@ import { classifyProductionConversationIntent } from '../../server/agent/product
 // PDF summary pattern — triggers local extraction-based summary
 const PDF_SUMMARY_PATTERN = /\b(resuma|analise|analisa|resume|sumari[sz]|principais?|pontos?|extraia|extrair|o que (fala|diz|trata)|me (conta|diga|fale)|sobre o que|resumo|síntese|sinopse)\b/i
 
-function buildLocalPdfSummary(file) {
-  const text = String(file.extractedText || '').trim()
-  if (text.length < 20) return null
-  const preview = text.slice(0, 1600).replace(/\s+/g, ' ').trim()
-  const pageInfo = file.pageCount ? ` (${file.pageCount} páginas)` : ''
-  return [
-    `**Resumo do PDF: ${file.name}**${pageInfo}`,
-    '',
-    'Com base no conteúdo extraído:',
-    '',
-    preview,
-    text.length > 1600 ? '\n\n_[Conteúdo truncado — o documento é longo. Faça perguntas específicas para mais detalhes.]_' : '',
-  ].filter(l => l !== undefined).join('\n').trim()
-}
-
 // H5.0D: action tools that must always bypass conversation/connector router
 const H5_ACTION_TOOLS = new Set([
   'local_worker.status',
@@ -117,8 +102,8 @@ function buildChatFallbackReply(userText, identity, file = null) {
       ? 'Posso ajudar a preparar a consulta. Envie nome, email, telefone, cidade, tipo de projeto e o que precisa: BIM, 3D, contrato, alvará, proposta, financeiro, marketing ou operação de campo.'
       : 'I can help prepare the consultation. Send name, email, phone, city, project type and what you need: BIM, 3D, contract, permit, proposal, finance, marketing or field operations.'
   }
-  if (isUploadQuestionText(userText)) {
-    if (file && file.kind === 'pdf' && file.extractionStatus === 'ready' && String(file.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(userText || '')) {
+    if (isUploadQuestionText(userText)) {
+      if (file && file.kind === 'pdf' && file.extractionStatus === 'ready' && String(file.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(userText || '')) {
       return buildLocalPdfSummary(file.name, file.pageCount || 0, file.extractedText || '')
     }
     return 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar. Eu uso o arquivo como contexto da conversa e sigo com uma resposta direta.'
@@ -582,7 +567,7 @@ export default async function handler(req, res) {
 
     // Fast-path: PDF summary when text is ready — use local extraction, bypass operator
     if (looksLikePdfSummary) {
-      const summary = buildLocalPdfSummary(fileCandidate)
+      const summary = buildLocalPdfSummary(fileCandidate?.name || '', fileCandidate?.pageCount || 0, fileCandidate?.extractedText || '')
       if (summary) {
         return sendJson(res, 200, {
           finalReply: summary,
@@ -642,10 +627,10 @@ export default async function handler(req, res) {
     // context attached. This prevents very short Portuguese inputs (eg. "resuma") from
     // being classified as ambiguous and returning "Pergunta incompleta".
     try {
-      const fileCandidate = body.file || null
-      const looksLikePdfSummary = Boolean(fileCandidate && fileCandidate.kind === 'pdf' && fileCandidate.extractionStatus === 'ready' && String(fileCandidate.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(userMessage || ''))
-if (!looksLikePdfSummary && productionRouterIntents.has(productionConversationIntent)) {
-        const pdfText = String(fileCandidate.extractedText || '')
+      const innerFileCandidate = body.file || null
+      const looksLikePdfSummary = Boolean(innerFileCandidate && innerFileCandidate.kind === 'pdf' && innerFileCandidate.extractionStatus === 'ready' && String(innerFileCandidate.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(userMessage || ''))
+ if (!looksLikePdfSummary && productionRouterIntents.has(productionConversationIntent)) {
+        const pdfText = String(innerFileCandidate.extractedText || '')
         const pdfSummaryPattern = /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i
         if (pdfSummaryPattern.test(userMessage || '')) {
           // Force a conversational path by ensuring productionConversationIntent does not
@@ -688,9 +673,9 @@ if (!looksLikePdfSummary && productionRouterIntents.has(productionConversationIn
     // included a ready PDF with extractedText, avoid routing through the production
     // operator which may classify very short inputs as ambiguous. Instead, allow the
     // conversational flow below to handle the request with file context.
-    const fileCandidate = body.file || null
-    const looksLikePdfSummary = Boolean(fileCandidate && fileCandidate.kind === 'pdf' && fileCandidate.extractionStatus === 'ready' && String(fileCandidate.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(userMessage || ''))
-    if (!looksLikePdfSummary && productionRouterIntents.has(productionConversationIntent)) {
+    const fileCandidate2 = body.file || null
+    const looksLikePdfSummary2 = Boolean(fileCandidate2 && fileCandidate2.kind === 'pdf' && fileCandidate2.extractionStatus === 'ready' && String(fileCandidate2.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(userMessage || ''))
+    if (!looksLikePdfSummary2 && productionRouterIntents.has(productionConversationIntent)) {
       const result = await runApexOperatorProductionSafe({
         userMessage,
         identityContext: normalizeIdentityContext(body.identityContext || {}),
