@@ -1111,6 +1111,8 @@ function App() {
   async function askCopilot(text = input, attachment = activeFile) {
     const clean = text.trim()
     if ((!clean && !attachment) || loading) return
+    setActiveFile(undefined)
+    setInput('')
     const userText = clean || (attachment ? `Uploaded ${attachment.file.name}` : '')
     const modelText = clean || (attachment
       ? attachment.extractedText

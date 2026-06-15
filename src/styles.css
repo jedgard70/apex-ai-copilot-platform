@@ -465,8 +465,8 @@ textarea {
 }
 
 .workspace.studio-open {
-  max-width: 1780px;
-  grid-template-columns: minmax(520px, 0.92fr) minmax(560px, 0.78fr);
+  max-width: 1920px;
+  grid-template-columns: minmax(440px, 1fr) minmax(640px, 1.2fr);
   align-items: start;
 }
 
@@ -1021,7 +1021,7 @@ textarea {
 }
 
 .bim3d-viewer-shell {
-  min-height: 250px;
+  min-height: 520px;
   display: grid;
   place-items: center;
   text-align: center;
@@ -1038,7 +1038,7 @@ textarea {
 
 .ifc-viewer-canvas-wrap {
   position: relative;
-  height: 480px;
+  height: 560px;
   border-radius: 16px;
   overflow: hidden;
   border: 1px solid #dfe7f2;
