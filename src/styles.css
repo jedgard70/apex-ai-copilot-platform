@@ -3326,6 +3326,23 @@ body {
   word-break: break-word;
 }
 
+.composer-file-remove {
+  margin-left: auto;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: #07183f;
+  background: #e8edf5;
+  cursor: pointer;
+}
+
+.composer-file-remove:hover {
+  background: #dfe6f1;
+}
+
 .input-row {
   display: grid;
   grid-template-columns: 46px 1fr 46px;
@@ -3383,7 +3400,7 @@ body {
 }
 
 .send-button:disabled {
-  cursor: wait;
+  cursor: not-allowed;
   opacity: 0.65;
 }
 
@@ -5392,5 +5409,38 @@ body {
   .business-service-grid,
   .business-two-col {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Focused composer/side-panel stabilization for PR #24. */
+.workspace.studio-open {
+  grid-template-columns: 76px minmax(640px, 1fr) minmax(420px, 520px);
+}
+
+@media (max-width: 1180px) {
+  .workspace.studio-open {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+
+  .workspace.studio-open .right-panel {
+    position: fixed;
+    z-index: 60;
+    inset: 76px 0 0 auto;
+    width: min(520px, 100%);
+    max-height: calc(100vh - 76px);
+    overflow-y: auto;
+    box-shadow: -18px 0 60px rgba(7, 24, 63, 0.16);
+  }
+}
+
+@media (max-width: 720px) {
+  .workspace.studio-open {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace.studio-open .right-panel {
+    inset: 68px 0 50px 0;
+    width: 100%;
+    max-height: none;
   }
 }
