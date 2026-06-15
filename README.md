@@ -38,13 +38,13 @@ Open:
 
 `npm run dev` also builds and starts the local API-backed server. Use `npm run dev:ui` only for UI-only Vite development.
 
-Reality Audit / Current State
------------------------------
+## Current Platform State
 
-This repository contains an ongoing audit and a current-state snapshot in docs/. See:
+Current audit docs:
 
-- docs/APEX_REALITY_AUDIT.md
-- docs/APEX_PLATFORM_CURRENT_STATE.md
-- docs/APEX_MODULE_AUDIT.md
-- docs/APEX_OPEN_BUGS_AND_NEXT_ACTIONS.md
-- docs/APEX_PLATFORM_FINAL_OBJECTIVE.md
+- `docs/APEX_PLATFORM_CURRENT_STATE.md`
+- `docs/APEX_PLATFORM_FINAL_OBJECTIVE.md`
+- `docs/APEX_MODULE_AUDIT.md`
+- `docs/APEX_OPEN_BUGS_AND_NEXT_ACTIONS.md`
+
+Latest audit note: documentation was updated after the H1-H22 + M2/M3/M5/M6 audit on branch `feature/image-generation-connector`. The platform is local-first with several YELLOW/RED integration gates still open; do not treat panels or routing labels as proof of real execution without validation evidence.
