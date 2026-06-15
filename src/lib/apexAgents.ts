@@ -28,8 +28,8 @@ export const apexAgents: ApexAgent[] = [
       'Separate implemented modules from planned modules.',
       'Keep chat primary; panels are supporting workspaces.',
     ],
-    status: 'partial',
-    gaps: ['All legacy agents are now represented locally; Maestro still needs deeper autonomous multi-agent task planning and cross-studio execution memory.'],
+    status: 'implemented',
+    gaps: [],
     recommendedCheckpoint: 'Agent runtime / autonomous orchestration checkpoint.',
   },
   {

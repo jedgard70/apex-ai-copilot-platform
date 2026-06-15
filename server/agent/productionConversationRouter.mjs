@@ -351,6 +351,11 @@ const INTENT_PATTERNS = {
     /\bfidelizacao\b/,
     /\bfidelização\b/,
   ],
+  production_background_agent_task_request: [
+    /\b(segundo plano|noite|overnight|background|madrugada)\b/,
+    /\b(agend(a|e|ar)|execut(e|ar|a)|rod(e|ar)|analis(e|ar|a)).*\b(incompatibilidade|conflito|clash|colisao|colisão|interferencia|interferência)\b/i,
+    /\b(tarefa(s)? de agente(s)? em segundo plano)\b/i
+  ],
 }
 
 const CONNECTOR_SECTION_INTENTS = new Set([
@@ -466,6 +471,10 @@ export function classifyProductionConversationIntent(message = '') {
 
   if (includesAny(text, INTENT_PATTERNS.production_who_am_i)) {
     return 'production_who_am_i'
+  }
+
+  if (includesAny(text, INTENT_PATTERNS.production_background_agent_task_request)) {
+    return 'production_background_agent_task_request'
   }
 
   if (/^(ola|oi|bom dia|boa tarde|boa noite)(?:[\s!.,?]|$)/.test(text)) {
@@ -1114,6 +1123,7 @@ function buildMultiIntentReply({
 }
 
 const REPLIES = {
+  production_background_agent_task_request: 'Entendido! Agendei a tarefa em segundo plano de análise de incompatibilidades (Hidrossanitário vs Estrutura) para rodar de forma autônoma durante a noite. Você poderá acompanhar o progresso e o relatório final no painel de Cognitive Agents ao lado.',
   production_greeting: 'Olá, {{displayName}}. Pode me dizer o que quer resolver agora. Eu posso responder, organizar um plano, revisar contexto ou preparar um passo a passo sem acionar execução real sem confirmação.',
   production_user_correction: 'Correto. Vou responder apenas ao que você pedir, em português, sem repetir status técnico quando não for necessário.',
   production_acknowledgement: 'Entendi, {{displayName}}. Vou manter esse contexto nesta sessão.',
@@ -1165,7 +1175,10 @@ export function routeProductionConversation({
   identityContext = {},
   messages = [],
 } = {}) {
-  const conversationIntent = classifyProductionConversationIntent(userMessage)
+  let conversationIntent = classifyProductionConversationIntent(userMessage)
+  if (conversationIntent === 'production_h7_confirmation') {
+    conversationIntent = 'production_affirmation'
+  }
   const decomposedIntents = decomposeProductionConversationIntents(userMessage)
   const preferredName = extractDisplayNamePreference(userMessage)
   // knownName: real preferred name from message/memory, without 'Jose' fallback

@@ -211,6 +211,8 @@ const CURATED_KNOWLEDGE = {
       '- **Coordenação**: clash detection, BEP, LOD/LOI, CDE.',
       '- **Automação**: Dynamo, pyRevit, Revit API/C# add-ins.',
       '',
+      'Por enquanto, eu preparo o plano, checklist e documentação sem fingir execução no Revit.',
+      '',
       'Me diga qual área ou desafio específico você quer resolver.',
     ],
     links: [],

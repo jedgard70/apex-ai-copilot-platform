@@ -1,5 +1,5 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
-import { Canvas } from '@react-three/fiber'
+import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls, GizmoHelper, GizmoViewport } from '@react-three/drei'
 import * as THREE from 'three'
 import { loadIfcGeometry, type IfcMeshData } from '../lib/ifcLoader'
@@ -49,9 +49,108 @@ function Scene({ meshes }: { meshes: IfcMeshData[] }) {
   )
 }
 
+function CameraController({ viewerCommand, meshes }: { viewerCommand?: { id: string; text: string }; meshes: IfcMeshData[] }) {
+  const { camera, scene } = useThree()
+  const originalColorsRef = useRef<Map<THREE.Mesh, THREE.Color>>(new Map())
+
+  useEffect(() => {
+    originalColorsRef.current.clear()
+  }, [meshes])
+
+  useEffect(() => {
+    if (!viewerCommand?.text) return
+    const text = viewerCommand.text.toLowerCase()
+
+    const sceneMeshes: THREE.Mesh[] = []
+    scene.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        sceneMeshes.push(child)
+      }
+    })
+
+    if (originalColorsRef.current.size === 0) {
+      sceneMeshes.forEach((mesh) => {
+        const mat = mesh.material as THREE.MeshLambertMaterial
+        if (mat && mat.color) {
+          originalColorsRef.current.set(mesh, mat.color.clone())
+        }
+      })
+    }
+
+    sceneMeshes.forEach((mesh) => {
+      const mat = mesh.material as THREE.MeshLambertMaterial
+      if (mat) {
+        const origColor = originalColorsRef.current.get(mesh)
+        if (origColor) mat.color.copy(origColor)
+        mat.transparent = false
+        mat.opacity = 1
+        mat.needsUpdate = true
+      }
+    })
+
+    let targetPos = new THREE.Vector3(20, 20, 40)
+    let lookAtPos = new THREE.Vector3(0, 0, 0)
+    let animate = false
+
+    if (text.includes('topo') || text.includes('top')) {
+      targetPos.set(0, 50, 0.1)
+      animate = true
+    } else if (text.includes('frente') || text.includes('front') || text.includes('frontal')) {
+      targetPos.set(0, 0, 50)
+      animate = true
+    } else if (text.includes('lateral') || text.includes('lado') || text.includes('side')) {
+      targetPos.set(50, 0, 0)
+      animate = true
+    } else if (text.includes('rotacione') || text.includes('rotacionar') || text.includes('gire') || text.includes('girar') || text.includes('camera') || text.includes('câmera') || text.includes('orbitar')) {
+      targetPos.set(30, 30, 30)
+      animate = true
+    } else if (text.includes('inconsistencia') || text.includes('inconsistência') || text.includes('isole') || text.includes('isolar') || text.includes('foca') || text.includes('focar') || text.includes('zoom') || text.includes('destacar')) {
+      targetPos.set(12, 12, 12)
+      animate = true
+    }
+
+    if (animate) {
+      let count = 0
+      const startPos = camera.position.clone()
+      const duration = 30
+      const animateCamera = () => {
+        if (count >= duration) return
+        count++
+        camera.position.lerpVectors(startPos, targetPos, count / duration)
+        camera.lookAt(lookAtPos)
+        requestAnimationFrame(animateCamera)
+      }
+      animateCamera()
+    }
+
+    const isIsolation = text.includes('isole') || text.includes('isolar') || text.includes('inconsistencia') || text.includes('inconsistência') || text.includes('foca') || text.includes('focar') || text.includes('destacar')
+    
+    if (isIsolation && sceneMeshes.length > 0) {
+      const highlightIndices = [Math.floor(sceneMeshes.length / 3), Math.floor(sceneMeshes.length / 2)].filter(i => i < sceneMeshes.length)
+      
+      sceneMeshes.forEach((mesh, index) => {
+        const mat = mesh.material as THREE.MeshLambertMaterial
+        if (mat) {
+          if (highlightIndices.includes(index) || highlightIndices.length === 0) {
+            mat.color.setRGB(1.0, 0.2, 0.2)
+            mat.transparent = false
+            mat.opacity = 1.0
+          } else {
+            mat.transparent = true
+            mat.opacity = 0.15
+          }
+          mat.needsUpdate = true
+        }
+      })
+    }
+  }, [viewerCommand?.id, camera, scene, meshes])
+
+  return null
+}
+
 type Status = 'idle' | 'loading' | 'ready' | 'error'
 
-export function IfcViewer({ file }: { file: File }) {
+export function IfcViewer({ file, viewerCommand }: { file: File; viewerCommand?: { id: string; text: string } }) {
   const [meshes, setMeshes] = useState<IfcMeshData[]>([])
   const [status, setStatus] = useState<Status>('idle')
   const [error, setError] = useState<string | null>(null)
@@ -104,6 +203,7 @@ export function IfcViewer({ file }: { file: File }) {
         <directionalLight position={[50, 100, 50]} intensity={0.8} castShadow />
         <Suspense fallback={null}>
           <Scene meshes={meshes} />
+          <CameraController viewerCommand={viewerCommand} meshes={meshes} />
         </Suspense>
         <OrbitControls makeDefault />
         <GizmoHelper alignment="bottom-right" margin={[60, 60]}>

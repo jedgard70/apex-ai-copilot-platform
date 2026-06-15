@@ -1,4 +1,4 @@
-import { useRef, useMemo, useState } from 'react'
+import { useEffect, useRef, useMemo, useState } from 'react'
 import { exportBudgetXlsx, parseSinapiFile, applySinapiPrices } from '../lib/budgetXlsx'
 import {
   Calculator,
@@ -35,6 +35,7 @@ type BudgetPanelProps = {
   source?: IntakeFile
   goal: string
   conversationContext: string[]
+  autoGenerate?: boolean
   onSaveToProject?: (payload: BudgetPlan) => void
   onSendToDirectCut?: (summary: string) => void
   onClear: () => void
@@ -131,6 +132,7 @@ export function BudgetPanel({
   source,
   goal,
   conversationContext,
+  autoGenerate,
   onSaveToProject,
   onSendToDirectCut,
   onClear,
@@ -150,6 +152,10 @@ export function BudgetPanel({
 
   const currentItems = plan?.estimateItems || []
   const total = useMemo(() => planTotal(currentItems), [currentItems])
+
+  useEffect(() => {
+    if (autoGenerate && !plan && !loading) generateEstimate()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   function updateAssumption<K extends keyof BudgetAssumptions>(key: K, value: BudgetAssumptions[K]) {
     setAssumptions(prev => ({ ...prev, [key]: value }))

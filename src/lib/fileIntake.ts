@@ -9,6 +9,7 @@ export type IntakeFile = {
     width: number
     height: number
   }
+  extractionStatus?: 'idle' | 'extracting' | 'ready' | 'failed'
   kind: 'image' | 'pdf' | 'bim-cad' | 'video' | 'spreadsheet' | 'document' | 'unknown'
 }
 

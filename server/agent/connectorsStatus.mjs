@@ -424,6 +424,13 @@ export function connectorsAsProductionList(status = collectConnectorsStatus()) {
         ? 'Autodesk Platform Services configurado — busca ao vivo na Autodesk Help disponível.'
         : 'Operando com base de conhecimento curada. Configure AUTODESK_ACCESS_TOKEN para busca ao vivo.',
     },
+    {
+      id: 'background_tasks',
+      label: 'Background Multi-Agent Tasks',
+      status: 'configured',
+      configured: true,
+      detail: 'Agenciamento e simulação de tarefas overnight de detecção de conflitos ativada.',
+    },
   ]
 }
 
