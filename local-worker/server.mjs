@@ -494,6 +494,44 @@ function buildActionMap() {
         return [{ ...requireTool('git'), args: ['push', '--force-with-lease', 'origin', branch] }]
       },
     },
+    'mcp.run_stdio': {
+      label: 'Executar Servidor MCP Local via Stdio',
+      risk: RISK_CLASS.WRITE,
+      requiresConfirmation: false,
+      build: (params = {}) => {
+        const cmd = String(params.command || '').trim()
+        const input = String(params.input || '')
+        if (!cmd) {
+          return [{ ok: false, tag: 'mcp', reason: 'command parameter is required' }]
+        }
+        const tokens = cmd.split(/\s+/)
+        const exe = tokens[0]
+        const args = tokens.slice(1)
+        const allowedExes = ['node', 'python', 'python3', 'npx']
+        const exeName = exe.toLowerCase().endsWith('.exe') ? exe.slice(0, -4) : exe
+        if (!allowedExes.includes(exeName.toLowerCase())) {
+          return [{ ok: false, tag: 'mcp', reason: `Executable "${exe}" is not allowed. Whitelist: ${allowedExes.join(', ')}` }]
+        }
+        if (cmd.includes('|') || cmd.includes('&') || cmd.includes(';') || cmd.includes('>') || cmd.includes('<')) {
+          return [{ ok: false, tag: 'mcp', reason: 'Command chaining or redirection is not allowed.' }]
+        }
+        let toolBin = exe
+        if (exe === 'node') {
+          toolBin = requireTool('node').bin
+        } else if (exe === 'npm' || exe === 'npx') {
+          toolBin = requireTool('npm').bin.replace(/npm(\.cmd)?$/i, 'npx$1')
+        } else if (exe === 'git') {
+          toolBin = requireTool('git').bin
+        }
+        return [{
+          ok: true,
+          tag: 'mcp',
+          bin: toolBin,
+          args,
+          input: input || null
+        }]
+      }
+    },
   }
 }
 
@@ -522,7 +560,7 @@ function timingSafeEqual(a, b) {
 
 // ─── Executor ─────────────────────────────────────────────────────────────────
 
-function runCommand(bin, args, timeoutMs = COMMAND_TIMEOUT_MS) {
+function runCommand(bin, args, timeoutMs = COMMAND_TIMEOUT_MS, input = null) {
   return new Promise(res => {
     let proc
     try {
@@ -543,9 +581,13 @@ function runCommand(bin, args, timeoutMs = COMMAND_TIMEOUT_MS) {
         cwd: PROJECT_PATH,
         shell: false,
         env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
-        stdio: ['ignore', 'pipe', 'pipe'],
+        stdio: [input !== null ? 'pipe' : 'ignore', 'pipe', 'pipe'],
         windowsHide: true,
       })
+      if (input !== null) {
+        proc.stdin.write(input)
+        proc.stdin.end()
+      }
     } catch (err) {
       return res({ exitCode: -1, stdout: '', stderr: err.message, durationMs: 0 })
     }
@@ -627,7 +669,7 @@ async function executeAction(actionId, { confirmed = false, rollbackAcknowledged
       })
       continue
     }
-    const r = await runCommand(cmd.bin, cmd.args)
+    const r = await runCommand(cmd.bin, cmd.args, COMMAND_TIMEOUT_MS, cmd.input ?? null)
     results.push({ tag: cmd.tag, bin: cmd.bin, args: cmd.args, ...r })
   }
 

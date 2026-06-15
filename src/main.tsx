@@ -722,7 +722,7 @@ function asksExplicit3D(text: string) {
 }
 
 function isBimStudioCommand(text: string) {
-  return /\b(marque esse problema|isso est[aá] errado|criar tour|fazer anima[cç][aã]o|gerar passeio|roteiro 3d|mandar para directcut|enviar para directcut|mandar para archvis|enviar para archvis|add issue|save view|tour|animation|directcut|archvis)\b/i.test(text)
+  return /\b(marque esse problema|isso est[aá] errado|criar tour|fazer anima[cç][aã]o|gerar passeio|roteiro 3d|mandar para directcut|enviar para directcut|mandar para archvis|enviar para archvis|add issue|save view|tour|animation|directcut|archvis|rotacione|rotacionar|gire|girar|câmera|camera|isolar|isole|focar|foca|destacar|inconsistência|inconsistencia|zoom|viga|pilar|tubo|laje)\b/i.test(text)
 }
 
 function sameIntakeFile(left?: IntakeFile, right?: IntakeFile) {
@@ -1560,13 +1560,20 @@ function App() {
       return
     }
     if (clean && bim3DOutput && isBimStudioCommand(clean)) {
+      let responseText = 'Feito. Adicionei isso no BIM / 3D Studio e atualizei o tour/correções ao lado.'
+      const lower = clean.toLowerCase()
+      if (lower.includes('rotacione') || lower.includes('rotacionar') || lower.includes('gire') || lower.includes('girar') || lower.includes('camera') || lower.includes('câmera')) {
+        responseText = 'Rotacionando a câmera do visualizador 3D para ajustar a vista do modelo.'
+      } else if (lower.includes('isolar') || lower.includes('isole') || lower.includes('focar') || lower.includes('foca') || lower.includes('inconsistencia') || lower.includes('inconsistência') || lower.includes('zoom') || lower.includes('destacar')) {
+        responseText = 'Isolando os elementos do modelo em modo X-Ray e destacando a inconsistência.'
+      }
       setMessages(prev => [
         ...prev,
         userMessage,
         {
           id: id(),
           role: 'assistant',
-          text: 'Feito. Adicionei isso no BIM / 3D Studio e atualizei o tour/correções ao lado.',
+          text: responseText,
         },
       ])
       setBimCommand({ id: id(), text: clean })
@@ -1754,10 +1761,9 @@ function App() {
           return next
         })
       }
-       const apiFallback = shouldSkipFallback
       const reply = response.ok
-  ? pickCanonicalReply(data, apiFallback || buildCopilotFailureMessage(userText))
-  : apiFallback || buildCopilotFailureMessage(userText)
+  ? pickCanonicalReply(data, buildCopilotFailureMessage(userText))
+  : buildCopilotFailureMessage(userText)
       // H5.1C/H5.1B: extract tool cards from H5 tool execution response
       const rawToolExec = (data?.operator as Record<string, unknown> | undefined)?.toolExecution
       const toolsArr = rawToolExec && typeof rawToolExec === 'object' ? (rawToolExec as Record<string, unknown>).tools : undefined
