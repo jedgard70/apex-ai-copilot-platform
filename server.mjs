@@ -1297,10 +1297,6 @@ async function handleChat(req, res) {
       'production_vercel_connector_status',
       'production_connector_status',
       'production_platform_position',
-      'production_greeting',
-      'production_acknowledgement',
-      'production_user_correction',
-      'production_capability_listing',
       'production_vercel_deploy',
       'production_supabase',
     ])
