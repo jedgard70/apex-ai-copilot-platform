@@ -723,7 +723,9 @@ export default async function handler(req, res) {
       })
     }
 
-    const apiKey = process.env.OPENAI_API_KEY
+    const anthropicKey = process.env.ANTHROPIC_API_KEY
+    const openaiKey = process.env.OPENAI_API_KEY
+    const apiKey = anthropicKey || openaiKey
     if (!apiKey) {
       const fallbackReply = buildChatFallbackReply(userMessage, identityContext, body.file || null)
       return sendJson(res, 200, {
@@ -735,6 +737,7 @@ export default async function handler(req, res) {
       })
     }
 
+    const useAnthropic = Boolean(anthropicKey)
     const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
     const runtime = loadRuntimeKnowledge()
     const file = body.file || null
@@ -846,6 +849,123 @@ export default async function handler(req, res) {
       messagesPayload[messagesPayload.length - 1],
     ]
 
+    // ── Anthropic Claude path ─────────────────────────────────────────────
+    if (useAnthropic) {
+      const claudeModel = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-6'
+      // Extract system message and build Anthropic-format messages
+      const systemText = liveAgentMessages
+        .filter(m => m.role === 'system')
+        .map(m => (typeof m.content === 'string' ? m.content : JSON.stringify(m.content)))
+        .join('\n\n')
+      const anthropicMessages = liveAgentMessages
+        .filter(m => m.role === 'user' || m.role === 'assistant')
+        .map(m => ({ role: m.role, content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content) }))
+
+      // Anthropic tool format
+      const anthropicTools = [
+        {
+          name: 'run_safe_local_command',
+          description: 'Run a safe allowlisted local Apex project command when live project evidence is needed.',
+          input_schema: {
+            type: 'object',
+            properties: {
+              commandId: {
+                type: 'string',
+                enum: ['git_status', 'git_diff_stat', 'build', 'validate_supabase_sql', 'check_server'],
+                description: 'Safe command to execute in the authorized Apex repo.',
+              },
+              reason: { type: 'string', description: 'Brief natural reason why this command is needed.' },
+            },
+            required: ['commandId', 'reason'],
+          },
+        },
+      ]
+
+      const claudeResp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': anthropicKey,
+          'anthropic-version': '2023-06-01',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: claudeModel,
+          max_tokens: 1024,
+          system: systemText,
+          messages: anthropicMessages,
+          tools: anthropicTools,
+        }),
+      })
+
+      const claudeData = await claudeResp.json().catch(() => ({}))
+      if (!claudeResp.ok) {
+        console.error('[Anthropic] error', claudeData?.error)
+        return sendJson(res, 200, {
+          finalReply: buildChatFallbackReply(userMessage, identityContext, file),
+          reply: buildChatFallbackReply(userMessage, identityContext, file),
+          mode: 'local-fallback',
+          confirmation: null,
+          productionStatus,
+        })
+      }
+
+      const contentBlocks = Array.isArray(claudeData.content) ? claudeData.content : []
+      const toolUseBlocks = contentBlocks.filter(b => b.type === 'tool_use')
+
+      if (toolUseBlocks.length && claudeData.stop_reason === 'tool_use') {
+        // Execute tools and follow up
+        const toolResultContents = []
+        for (const block of toolUseBlocks) {
+          const fakeToolCall = { function: { name: block.name }, id: block.id, arguments: JSON.stringify(block.input || {}) }
+          const result = await executeLiveAgentToolCall(fakeToolCall)
+          toolResultContents.push({ type: 'tool_result', tool_use_id: block.id, content: JSON.stringify(result) })
+        }
+
+        const followUpMessages = [
+          ...anthropicMessages,
+          { role: 'assistant', content: contentBlocks },
+          { role: 'user', content: toolResultContents },
+        ]
+
+        const finalResp = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'x-api-key': anthropicKey,
+            'anthropic-version': '2023-06-01',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: claudeModel,
+            max_tokens: 1024,
+            system: systemText,
+            messages: followUpMessages,
+          }),
+        })
+        const finalData = await finalResp.json().catch(() => ({}))
+        const finalReply = (Array.isArray(finalData.content) ? finalData.content : []).filter(b => b.type === 'text').map(b => b.text).join('') || ''
+        return sendJson(res, 200, {
+          finalReply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
+          reply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
+          model: claudeModel,
+          mode: 'apex-claude-tool-calling',
+          toolCalls: toolUseBlocks.map(b => b.name),
+          confirmation: null,
+          productionStatus,
+        })
+      }
+
+      const reply = contentBlocks.filter(b => b.type === 'text').map(b => b.text).join('') || ''
+      return sendJson(res, 200, {
+        finalReply: reply || buildChatFallbackReply(userMessage, identityContext, file),
+        reply: reply || buildChatFallbackReply(userMessage, identityContext, file),
+        model: claudeModel,
+        mode: 'apex-claude-chat',
+        confirmation: null,
+        productionStatus,
+      })
+    }
+
+    // ── OpenAI fallback path ──────────────────────────────────────────────
     const requestPayload = {
       model: process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
       messages: liveAgentMessages,
@@ -859,7 +979,7 @@ export default async function handler(req, res) {
     const response = await fetch(`${apiBase}/chat/completions`, {
       method: 'POST',
       headers: {
-        Authorization: 'Bearer ' + apiKey,
+        Authorization: 'Bearer ' + openaiKey,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(requestPayload),
@@ -882,56 +1002,25 @@ export default async function handler(req, res) {
     if (toolCalls.length) {
       const followUpMessages = [
         ...liveAgentMessages,
-        {
-          role: 'assistant',
-          content: assistantMessage.content || '',
-          tool_calls: toolCalls,
-        },
+        { role: 'assistant', content: assistantMessage.content || '', tool_calls: toolCalls },
       ]
-
       for (const toolCall of toolCalls) {
         const toolResult = await executeLiveAgentToolCall(toolCall)
-        followUpMessages.push({
-          role: 'tool',
-          tool_call_id: toolCall.id,
-          content: JSON.stringify(toolResult),
-        })
+        followUpMessages.push({ role: 'tool', tool_call_id: toolCall.id, content: JSON.stringify(toolResult) })
       }
-
       const finalResponse = await fetch(`${apiBase}/chat/completions`, {
         method: 'POST',
-        headers: {
-          Authorization: 'Bearer ' + apiKey,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
-          messages: followUpMessages,
-          temperature: 0.45,
-          frequency_penalty: 0.1,
-          max_tokens: 900,
-        }),
+        headers: { Authorization: 'Bearer ' + openaiKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: process.env.OPENAI_MODEL || 'gpt-4o-mini', messages: followUpMessages, temperature: 0.45, max_tokens: 900 }),
       })
-
       const finalData = await finalResponse.json().catch(() => ({}))
-      if (!finalResponse.ok) {
-        return sendJson(res, 200, {
-          finalReply: buildChatFallbackReply(userMessage, identityContext, file),
-          reply: buildChatFallbackReply(userMessage, identityContext, file),
-          mode: 'local-fallback-after-tool',
-          confirmation: null,
-          productionStatus,
-        })
-      }
-
-      const finalReply = finalData && finalData.choices && finalData.choices[0] ? finalData.choices[0].message.content || '' : ''
+      const finalReply = finalData?.choices?.[0]?.message?.content || ''
       return sendJson(res, 200, {
         finalReply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
         reply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
         model: finalData.model,
-        usage: finalData.usage,
         mode: 'live-agent-tool-calling',
-        toolCalls: toolCalls.map(call => call && call.function ? call.function.name : 'unknown'),
+        toolCalls: toolCalls.map(c => c?.function?.name || 'unknown'),
         confirmation: null,
         productionStatus,
       })
