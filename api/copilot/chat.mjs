@@ -47,7 +47,7 @@ function loadRuntimeKnowledge() {
 }
 
 function prefersPortugueseText(text = '') {
-  return /\b(vc|voce|você|quem sou|o que|serviços|servicos|orçamento|orcamento|consultoria|arquivo|anexar|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra)\b|[ãõçáéíóú]/i.test(text)
+  return /\b(vc|voce|você|quem sou|o que|serviços|servicos|orçamento|orcamento|consultoria|arquivo|anexar|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra|tudo|bem|bom|boa|sim|nao|não|oi|olá|ola|obrigado|obrigada|verdade|certo|ok|pode|vou|quero|preciso|tenho|tenho|aqui|agora|fazer|fazer|faz|feito|qual|quando|onde|como|por que|porque|mas|então|entao|assim|isso|este|esta|esse|essa|para|com|sem|por|pelo|pela|sobre|mais|menos|muito|pouco|grande|pequeno|novo|velha|primeiro|segundo|terceiro|ajuda|ajudar|saber|pode|consegue|tem|veja|veja|olha|olhe|me|nos|te|se|lhe)\b|[ãõçáéíóú]/i.test(text)
 }
 
 function isCapabilitiesQuestionText(text = '') {
@@ -745,7 +745,12 @@ export default async function handler(req, res) {
     const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
     const runtime = loadRuntimeKnowledge()
     const file = body.file || null
-    const conversation = Array.isArray(body.messages) ? body.messages.slice(-10) : []
+    // The client includes the current user message in body.messages as the last item.
+    // Drop it here — we add it separately as userContent to avoid consecutive user messages.
+    const rawMessages = Array.isArray(body.messages) ? body.messages.slice(-10) : []
+    const conversation = rawMessages.length && rawMessages[rawMessages.length - 1]?.role === 'user'
+      ? rawMessages.slice(0, -1)
+      : rawMessages
     const preferredLanguage = String(body.language || body.locale || '').slice(0, 40)
     
     const intentInstruction = buildIntentInstruction(userMessage, file, conversation, preferredLanguage)
