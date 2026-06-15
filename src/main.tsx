@@ -1756,8 +1756,8 @@ function App() {
       }
        const apiFallback = shouldSkipFallback
       const reply = response.ok
-        ? pickCanonicalReply(data, localFallback || buildCopilotFailureMessage(userText))
-        : localFallback || buildCopilotFailureMessage(userText)
+  ? pickCanonicalReply(data, apiFallback || buildCopilotFailureMessage(userText))
+  : apiFallback || buildCopilotFailureMessage(userText)
       // H5.1C/H5.1B: extract tool cards from H5 tool execution response
       const rawToolExec = (data?.operator as Record<string, unknown> | undefined)?.toolExecution
       const toolsArr = rawToolExec && typeof rawToolExec === 'object' ? (rawToolExec as Record<string, unknown>).tools : undefined
