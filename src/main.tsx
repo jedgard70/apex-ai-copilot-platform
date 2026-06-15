@@ -323,8 +323,20 @@ function isBudgetIntent(text: string) {
   return /\b(or[cç]amento|orcamento|quantitativo|estimativa|materiais|proposta|quanto custa|custo de obra|memorial de compra|budget|estimate|quantity|takeoff|materials|proposal|construction cost)\b/i.test(text)
 }
 
+function isBudgetXlsxIntent(text: string) {
+  return /\b(xlsx|planilha.*or[cç]amento|or[cç]amento.*xlsx|bdi|sinapi|exportar.*or[cç]amento|gerar.*or[cç]amento|or[cç]amento.*sinapi|sinapi.*or[cç]amento|budget.*xlsx|xlsx.*budget|gerar.*planilha|planilha.*or[cç]amento)\b/i.test(text)
+}
+
 function isContractsIntent(text: string) {
   return /\b(contrato|contrato simples|revisar contrato|jur[ií]dico|juridico|cl[aá]usula|clausula|proposta jur[ií]dica|memorial|memorial descritivo|alvar[aá]|licen[cç]a|permits?|permits americanos|documentos para aprova[cç][aã]o nos eua|us permits?|european permits?|eu building permit|planning permission|ahj|certificate of occupancy|fire marshal|ada|building control|compliance|endossos|endosso|art|rrt|habite-se|scope agreement|addendum|lawyer|legal|contract)\b/i.test(text)
+}
+
+function isDocxGenerationIntent(text: string) {
+  return /\b(docx|gerar.*docx|docx.*contrato|contrato.*docx|gerar.*proposta.*doc|proposta.*docx|gerar.*documento|exportar.*contrato|gerar.*contrato|download.*contrato|gerar.*proposta\b)\b/i.test(text)
+}
+
+function isPdfAnalysisIntent(text: string) {
+  return /\b(resuma|resumir|resuma o pdf|analise|anali[sz]e o pdf|extraia|pontos principais|o que diz|o que tem no|me fale sobre o|quais s[aã]o os|lista os|summarize|analyze|extract|key points|what does it say|tell me about the)\b/i.test(text)
 }
 
 function isResearchIntent(text: string) {
@@ -1112,11 +1124,24 @@ function App() {
     const clean = text.trim()
     if ((!clean && !attachment) || loading) return
     const userText = clean || (attachment ? `Uploaded ${attachment.file.name}` : '')
-    const modelText = clean || (attachment
-      ? attachment.extractedText
-        ? `O usuário enviou o arquivo PDF "${attachment.file.name}" (${attachment.pageCount ?? '?'} páginas). Conteúdo extraído:\n\n${attachment.extractedText}\n\nResponda de forma direta e conversacional com base no conteúdo acima. Não faça relatório nem lista de tópicos.`
-        : 'User uploaded this file. Analyze it as project context and continue naturally in a short conversational reply. Do not write a report, heading, observations list, or capabilities list.'
-      : '')
+    // When user sends a follow-up about an active PDF (resuma, analise, etc.), inject the extracted text as context
+    const hasPdfContext = attachment?.kind === 'pdf' && attachment.extractedText
+    const isFollowUpAboutPdf = clean && hasPdfContext && isPdfAnalysisIntent(clean)
+    const modelText = (() => {
+      if (!clean) {
+        // Initial upload — include PDF content if available
+        if (hasPdfContext) {
+          return `O usuário enviou o arquivo PDF "${attachment!.file.name}" (${attachment!.pageCount ?? '?'} páginas). Conteúdo extraído:\n\n${attachment!.extractedText}\n\nResponda de forma direta e conversacional com base no conteúdo acima. Não faça relatório nem lista de tópicos.`
+        }
+        if (attachment) return 'User uploaded this file. Analyze it as project context and continue naturally in a short conversational reply. Do not write a report, heading, observations list, or capabilities list.'
+        return ''
+      }
+      if (isFollowUpAboutPdf) {
+        // Follow-up request (resuma, analise, etc.) — inject PDF context before the user question
+        return `Arquivo PDF ativo: "${attachment!.file.name}" (${attachment!.pageCount ?? '?'} páginas).\nConteúdo extraído:\n\n${attachment!.extractedText}\n\nPedido do usuário: ${clean}\n\nResponda diretamente com base no conteúdo do PDF acima.`
+      }
+      return clean
+    })()
     const userMessage: Message = { id: id(), role: 'user', text: userText, attachment }
     if (!isSignedIn) {
       setMessages(prev => [
@@ -1169,10 +1194,16 @@ function App() {
       setInput('')
       return
     }
+    // M3/M5 explicit product module intents — checked before generic business fallback
+    const shouldGenerateDocx = clean && isDocxGenerationIntent(clean)
+    const shouldOpenBudgetXlsx = clean && isBudgetXlsxIntent(clean)
+
     const shouldOpenArchVis = isArchVisIntent(clean || modelText, attachment)
     const shouldOpenDirectCut = clean && isDirectCutIntent(clean)
-    const shouldOpenContracts = clean && isContractsIntent(clean)
-    const shouldOpenBudget = clean && isBudgetIntent(clean)
+    // M3 DOCX intent takes priority over generic contracts intent
+    const shouldOpenContracts = clean && !shouldGenerateDocx && isContractsIntent(clean)
+    // M5 XLSX intent takes priority over generic budget intent
+    const shouldOpenBudget = clean && !shouldOpenBudgetXlsx && isBudgetIntent(clean)
     const shouldOpenResearch = clean && isResearchIntent(clean)
     const shouldOpenFieldOps = clean && isFieldOpsIntent(clean, attachment)
     const shouldOpenAuth = clean && isAuthIntent(clean)
@@ -1279,6 +1310,31 @@ function App() {
       setInput('')
       return
     }
+    // M3 — DOCX generation intent: open Contracts Studio and trigger draft + download
+    if (shouldGenerateDocx) {
+      const pdfContext = hasPdfContext ? `\n\nContexto do PDF ativo "${attachment!.file.name}":\n${attachment!.extractedText?.slice(0, 3000)}` : ''
+      setMessages(prev => [
+        ...prev,
+        userMessage,
+        { id: id(), role: 'assistant', text: `Abrindo Contracts Studio para gerar documento DOCX. Use o botão **Generate contract draft** e depois **Download DOCX** para baixar o arquivo.${pdfContext ? ' O conteúdo do PDF foi incluído como contexto.' : ''}` },
+      ])
+      setContractsOutput({ source: attachment, goal: clean, conversationContext: [...messages, userMessage].slice(-6).map(m => `${m.role}: ${m.text}`) })
+      setInput('')
+      return
+    }
+
+    // M5 — XLSX Budget intent: open Budget Studio with XLSX export focus
+    if (shouldOpenBudgetXlsx) {
+      setMessages(prev => [
+        ...prev,
+        userMessage,
+        { id: id(), role: 'assistant', text: 'Abrindo Budget Studio. Gere o orçamento estimativo e use o botão **Download XLSX (com BDI)** para exportar a planilha. Para aplicar preços SINAPI, use **Importar tabela SINAPI (CSV/XLSX)**.' },
+      ])
+      setBudgetOutput({ source: attachment, goal: clean, conversationContext: [...messages, userMessage].slice(-6).map(m => `${m.role}: ${m.text}`) })
+      setInput('')
+      return
+    }
+
     if (shouldOpenBusiness) {
       const context = [...messages, userMessage]
         .slice(-8)
