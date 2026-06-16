@@ -509,9 +509,10 @@ function prefersPortuguese(text: string) {
 }
 
 function buildCopilotFailureMessage(userText: string) {
-  const preserved = userText.trim()
-  const suffix = preserved ? `\n\n${prefersPortuguese(userText) ? 'Sua mensagem foi preservada:' : 'Your message was preserved:'}\n${preserved.slice(0, 2000)}` : ''
-  return `Tive um problema ao gerar a resposta completa, mas posso continuar. Reformule o pedido ou envie um arquivo/screenshot para eu analisar.${suffix}`
+  const pt = prefersPortuguese(userText) || true // default to Portuguese
+  return pt
+    ? 'Desculpe, não consegui processar sua mensagem agora. Tente novamente ou reformule o pedido.'
+    : 'Sorry, I could not process your message right now. Please try again or rephrase your request.'
 }
 
 function isIdentityQuestion(text: string) {
@@ -595,11 +596,26 @@ function isUploadQuestion(text: string) {
   return /\b(upload|arquivo|anexar|mandar imagem|enviar arquivo|screenshot|planta|pdf|file|attach)\b/i.test(text.trim())
 }
 
+function isGreeting(text: string) {
+  return /^(ol[aá]|oi|hey|hello|hi|bom dia|boa tarde|boa noite|e a[ií]|eai|e a\?|salve|tudo bem|tudo bom|como vai|como est[aá]|boa|tamo junto|valeu|obrigad[oa]|ok|certo|entendi|sim|n[aã]o|pode|tá|ta|blz|bl[ée]z|👋|🙏)[\s!?]*$/i.test(text.trim())
+}
+
+function buildGreetingReply(text: string) {
+  const lower = text.trim().toLowerCase()
+  if (/obrigad|valeu|tamo junto/.test(lower)) return 'Por nada! Se precisar de mais alguma coisa, é só falar.'
+  if (/bom dia/.test(lower)) return 'Bom dia! Como posso ajudar hoje? Pode enviar um arquivo, pedir análise de projeto ou qualquer outra tarefa da plataforma.'
+  if (/boa tarde/.test(lower)) return 'Boa tarde! Em que posso ajudar?'
+  if (/boa noite/.test(lower)) return 'Boa noite! Como posso ajudar?'
+  if (/tudo bem|tudo bom|como vai|como est/.test(lower)) return 'Tudo ótimo! Pronto para ajudar. Pode me enviar um projeto, fazer uma pergunta ou pedir análise de BIM, contrato, orçamento, campo ou marketing.'
+  return 'Olá! Como posso ajudar? Pode me enviar um arquivo, fazer uma pergunta ou pedir análise de BIM, contrato, orçamento, campo, imagem ou qualquer tarefa da plataforma.'
+}
+
 function buildProductFallbackAnswer(userText: string, identity: ChatIdentityContext) {
   // H5.1F: multi-line messages are handled by the backend conversational router.
   // Only apply local fallbacks for single-line messages to prevent interception.
   const nonEmptyLines = userText.trim().split(/\n/).filter(l => l.trim()).length
   if (nonEmptyLines === 1) {
+    if (isGreeting(userText)) return buildGreetingReply(userText)
     const identityAnswer = buildIdentityAnswer(userText, identity)
     if (identityAnswer) return identityAnswer
     const operationalAnswer = buildOperationalSkillResponse(userText)
