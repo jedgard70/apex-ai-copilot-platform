@@ -1695,7 +1695,6 @@ function App() {
       dimensions: dataUrl ? await readImageDimensions(dataUrl).catch(() => undefined) : undefined,
     }
     setActiveFile(intake)
-    await askCopilot('', intake)
   }
 
   async function handlePaste(event: React.ClipboardEvent<HTMLElement>) {
