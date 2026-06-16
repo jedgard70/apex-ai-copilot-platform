@@ -730,9 +730,10 @@ function fileToRecord(file: IntakeFile): ProjectFileRecord {
 
 function recordToIntakeFile(record?: ProjectFileRecord): IntakeFile | undefined {
   if (!record) return undefined
-  const file = record.dataUrl
-    ? dataUrlToFile(record.dataUrl, record.name, record.type)
-    : new File([''], record.name, { type: record.type || 'application/octet-stream' })
+  // Non-image files (IFC, PDF, etc.) are not stored as dataUrl — skip restoring them
+  // to avoid showing a "0 bytes" phantom file in the composer
+  if (!record.dataUrl) return undefined
+  const file = dataUrlToFile(record.dataUrl, record.name, record.type)
   return {
     file,
     kind: record.kind as IntakeFile['kind'],
