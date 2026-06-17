@@ -532,6 +532,16 @@ function buildActionMap() {
         }]
       }
     },
+    'project.raw_shell': {
+      label: 'Executar comando raw shell',
+      risk: RISK_CLASS.WRITE,
+      requiresConfirmation: true,
+      build: (params = {}) => {
+        const cmd = String(params.command || '').trim()
+        if (!cmd) return [{ ok: false, tag: 'shell', reason: 'command parameter is required' }]
+        return [{ ok: true, bin: cmd, args: [], tag: 'shell', shell: true }]
+      }
+    },
   }
 }
 
@@ -560,7 +570,7 @@ function timingSafeEqual(a, b) {
 
 // ─── Executor ─────────────────────────────────────────────────────────────────
 
-function runCommand(bin, args, timeoutMs = COMMAND_TIMEOUT_MS, input = null) {
+function runCommand(bin, args, timeoutMs = COMMAND_TIMEOUT_MS, input = null, useShell = false) {
   return new Promise(res => {
     let proc
     try {
@@ -579,7 +589,7 @@ function runCommand(bin, args, timeoutMs = COMMAND_TIMEOUT_MS, input = null) {
       }
       proc = spawn(spawnBin, spawnArgs, {
         cwd: PROJECT_PATH,
-        shell: false,
+        shell: useShell,
         env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
         stdio: [input !== null ? 'pipe' : 'ignore', 'pipe', 'pipe'],
         windowsHide: true,
@@ -669,7 +679,7 @@ async function executeAction(actionId, { confirmed = false, rollbackAcknowledged
       })
       continue
     }
-    const r = await runCommand(cmd.bin, cmd.args, COMMAND_TIMEOUT_MS, cmd.input ?? null)
+    const r = await runCommand(cmd.bin, cmd.args, COMMAND_TIMEOUT_MS, cmd.input ?? null, cmd.shell === true)
     results.push({ tag: cmd.tag, bin: cmd.bin, args: cmd.args, ...r })
   }
 

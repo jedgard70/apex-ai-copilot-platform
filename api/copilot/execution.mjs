@@ -151,14 +151,40 @@ export default async function handler(req, res) {
       return res.status(405).json({ error: 'Method not allowed' })
     }
 
-    const { commandId, cwd } = req.body || {}
+    const { commandId, cwd, rawCommand } = req.body || {}
 
     let workerAction = ''
-    if (commandId === 'git_status') workerAction = 'project.git_status'
-    else if (commandId === 'git_log_recent') workerAction = 'project.git_log'
-    else if (commandId === 'git_diff_stat') workerAction = 'project.git_diff_stat'
-    else if (commandId === 'git_diff_name_only') workerAction = 'project.git_diff'
-    else if (commandId === 'build') workerAction = 'project.build_check'
+    let params = {}
+
+    if (commandId === 'git_status') {
+      workerAction = 'project.git_status'
+    } else if (commandId === 'git_log_recent') {
+      workerAction = 'project.git_log'
+    } else if (commandId === 'git_diff_stat') {
+      workerAction = 'project.git_diff_stat'
+    } else if (commandId === 'git_diff_name_only') {
+      workerAction = 'project.git_diff'
+    } else if (commandId === 'build') {
+      workerAction = 'project.build_check'
+    } else if (commandId === 'raw_shell') {
+      workerAction = 'project.raw_shell'
+      params = { command: rawCommand }
+    } else if (commandId === 'validate_supabase_sql') {
+      workerAction = 'project.raw_shell'
+      params = { command: 'npm run validate:supabase-sql' }
+    } else if (commandId === 'validate_vercel_live') {
+      workerAction = 'project.raw_shell'
+      params = { command: 'node scripts/validate-vercel.mjs' }
+    } else if (commandId === 'validate_supabase_live') {
+      workerAction = 'project.raw_shell'
+      params = { command: 'node scripts/validate-supabase-live.mjs' }
+    } else if (commandId === 'deploy_vercel_live') {
+      workerAction = 'project.raw_shell'
+      params = { command: 'node scripts/deploy-vercel-live.mjs' }
+    } else if (commandId === 'check_server') {
+      workerAction = 'project.raw_shell'
+      params = { command: 'node --check server.mjs' }
+    }
 
     if (!workerAction) {
       return res.status(400).json({
@@ -171,7 +197,7 @@ export default async function handler(req, res) {
     const startedAtMs = Date.now()
 
     try {
-      const result = await runLocalWorkerAction(workerAction, { confirmed: true })
+      const result = await runLocalWorkerAction(workerAction, { confirmed: true, params })
 
       const finishedAt = new Date().toISOString()
       const durationMs = Date.now() - startedAtMs
@@ -183,12 +209,18 @@ export default async function handler(req, res) {
         })
       }
 
+      const cmdDef = copilotExecutionCommands.find(c => c.id === commandId)
+      const label = cmdDef ? cmdDef.label : (COMMAND_LABELS[commandId] || commandId)
+      const args = commandId === 'raw_shell' ? [rawCommand || ''] : (cmdDef ? cmdDef.args : (COMMAND_ARGS[commandId] || []))
+      const risk = cmdDef ? cmdDef.risk : 'low'
+      const requiresApproval = cmdDef ? cmdDef.requiresApproval : false
+
       const executionResult = {
         id: `execution-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
         commandId,
-        label: COMMAND_LABELS[commandId] || commandId,
+        label,
         cwd: result.projectPath || cwd || 'D:\\AI-constr\\apex-ai-copilot-platform',
-        args: COMMAND_ARGS[commandId] || [],
+        args,
         shell: true,
         status: result.ok ? 'completed' : 'failed',
         stdout: result.stdout || '',
@@ -198,8 +230,8 @@ export default async function handler(req, res) {
         finishedAt,
         durationMs: result.durationMs || durationMs,
         createdBy: 'User',
-        risk: commandId === 'build' ? 'medium' : 'low',
-        requiresApproval: false,
+        risk,
+        requiresApproval,
         redactedOutput: false,
       }
 

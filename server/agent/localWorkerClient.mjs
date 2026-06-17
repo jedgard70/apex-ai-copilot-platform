@@ -20,13 +20,14 @@ const READ_ACTIONS = new Set([
 const VALIDATE_ACTIONS = new Set([
   'project.build_check', 'npm.test', 'npm.lint',
   'project.validate_h44', 'project.validate_h5', 'project.validate_h6',
+  'project.validate_h7', 'project.validate_final',
 ])
 
 // WRITE — require confirmed:true
 const WRITE_ACTIONS = new Set([
   'project.git_add', 'project.git_commit', 'project.git_push', 'project.git_push_u',
   'project.git_fetch', 'project.git_stash', 'project.git_stash_pop',
-  'npm.install',
+  'npm.install', 'project.raw_shell', 'mcp.run_stdio',
 ])
 
 // DANGEROUS — require confirmed:true + rollbackAcknowledged:true
