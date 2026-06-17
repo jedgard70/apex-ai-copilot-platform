@@ -9,3 +9,5 @@ dist
 supabase/.temp/
 .vercel/
 .claude/
+.vercel
+.env*.local

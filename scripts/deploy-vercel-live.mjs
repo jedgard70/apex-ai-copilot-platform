@@ -19,7 +19,6 @@ function loadEnvLocal() {
 
 const token = process.env.VERCEL_TOKEN
 const projectId = process.env.APEX_VERCEL_PROJECT_ID || process.env.VERCEL_PROJECT_ID
-const teamId = process.env.VERCEL_TEAM_ID
 
 console.log('═══════════════════════════════════════════════════════════════')
 console.log('TRIGGER VERCEL LIVE PREVIEW DEPLOYMENT')
@@ -31,16 +30,44 @@ if (!token || !projectId) {
 }
 
 try {
-  const url = `https://api.vercel.com/v13/deployments${teamId ? `?teamId=${encodeURIComponent(teamId)}` : ''}`
-  console.log(`Disparando deploy de Preview na Vercel para o projeto: ${projectId}...`)
+  console.log(`Buscando configurações do projeto Vercel: ${projectId}...`)
+  const projectUrl = `https://api.vercel.com/v9/projects/${projectId}`
+  const projectRes = await fetch(projectUrl, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
 
-  const body = {
-    name: projectId,
-    target: 'preview',
-    source: 'api',
+  if (!projectRes.ok) {
+    const errData = await projectRes.json().catch(() => ({}))
+    console.error(`[VERCEL ERROR] Falha ao obter dados do projeto: ${errData?.error?.message || 'erro desconhecido'}`)
+    process.exit(1)
   }
 
-  const response = await fetch(url, {
+  const projectData = await projectRes.json()
+  const projectName = projectData.name
+  const teamId = projectData.accountId?.startsWith('team_') ? projectData.accountId : null
+
+  const gitSource = projectData.link && projectData.link.repoId ? {
+    type: projectData.link.type || 'github',
+    repoId: String(projectData.link.repoId),
+    ref: 'main',
+  } : undefined
+
+  if (!gitSource) {
+    console.error(`[VERCEL ERROR] O projeto Vercel não possui integração Git configurada.`)
+    process.exit(1)
+  }
+
+  const deployUrl = `https://api.vercel.com/v13/deployments${teamId ? `?teamId=${encodeURIComponent(teamId)}` : ''}`
+  console.log(`Disparando deploy de Preview na Vercel para o projeto: ${projectName} (Team: ${teamId || 'nenhum'})...`)
+
+  const body = {
+    name: projectName,
+    gitSource,
+  }
+
+  const response = await fetch(deployUrl, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
