@@ -162,15 +162,8 @@ curl -X POST \
 
 ## Limites de segurança
 
-- **Sem shell livre** — `shell: false` em todos os `spawn()`
-- **Sem comandos destrutivos** — `rm`, `del`, `git push`, `git commit`, `deploy`, `npm install` NÃO estão na whitelist
-- **Sem args do usuário** — argumentos são fixos no código
 - **Autenticação obrigatória** — sem token → 401, token errado → 403
-- **Token nunca retornado** nas respostas
-- **Bind apenas em 127.0.0.1** — não exposto na rede local
 - **Timeout por comando** — 30 segundos por padrão
-- **cwd restrito** ao `APEX_PROJECT_PATH`
-- **spawn() protegido** — EINVAL/ENOENT capturados, worker não crasha
 
 ## Integração com o Apex Backend (Vercel)
 

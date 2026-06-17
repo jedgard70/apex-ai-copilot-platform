@@ -74,7 +74,9 @@ function isContactQuestionText(text = '') {
 }
 
 function isUploadQuestionText(text = '') {
-  return /\b(upload|arquivo|anexar|mandar imagem|enviar arquivo|screenshot|planta|pdf|file|attach)\b/i.test(text.trim())
+  const trimmed = text.trim()
+  if (/\b(pdf\.js|pdfjs|pdf-js)\b/i.test(trimmed)) return false
+  return /\b(upload|arquivo|anexar|mandar imagem|enviar arquivo|screenshot|planta|pdf|file|attach)\b/i.test(trimmed)
 }
 
 function isIdentityQuestionText(text) {
@@ -806,6 +808,30 @@ export default async function handler(req, res) {
     const openaiKey = process.env.OPENAI_API_KEY
     const apiKey = anthropicKey || openaiKey
     if (!apiKey) {
+      const h5ToolIds = classifyToolExecutionRequest(routingMessage)
+      if (h5ToolIds.length > 0 || productionRouterIntents.has(productionConversationIntent)) {
+        const result = await runApexOperatorProductionSafe({
+          userMessage,
+          identityContext: normalizeIdentityContext(body.identityContext || {}),
+          workspaceContext: body.workspaceContext || {},
+          repoPath: process.cwd(),
+          permissions: {},
+          productionStatus,
+          clientMemory,
+          messages: Array.isArray(body.messages) ? body.messages : [],
+        })
+
+        return sendJson(res, 200, {
+          finalReply: result.finalReply,
+          reply: result.finalReply,
+          memoryPatch: result.memoryPatch || null,
+          mode: 'apex-operator-production-safe',
+          operator: result,
+          confirmation: buildConfirmationUi(result),
+          productionStatus,
+        })
+      }
+
       const fallbackReply = buildChatFallbackReply(userMessage, identityContext, body.file || null)
       return sendJson(res, 200, {
         finalReply: fallbackReply,

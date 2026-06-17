@@ -1,8 +1,21 @@
-import { config } from 'dotenv'
+import fs from 'node:fs'
 import path from 'node:path'
 
-// Load environment variables from .env.local if present
-config({ path: path.join(process.cwd(), '.env.local') })
+loadEnvLocal()
+
+function loadEnvLocal() {
+  const envPath = path.join(process.cwd(), '.env.local')
+  if (!fs.existsSync(envPath)) return
+  const lines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/)
+  for (const line of lines) {
+    if (!line || line.trim().startsWith('#')) continue
+    const match = line.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/)
+    if (!match) continue
+    const [, key, rawValue] = match
+    if (process.env[key]) continue
+    process.env[key] = rawValue.replace(/^["']|["']$/g, '')
+  }
+}
 
 const token = process.env.VERCEL_TOKEN
 const projectId = process.env.APEX_VERCEL_PROJECT_ID || process.env.VERCEL_PROJECT_ID

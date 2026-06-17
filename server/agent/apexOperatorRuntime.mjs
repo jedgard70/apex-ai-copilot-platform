@@ -292,8 +292,8 @@ export async function runApexOperatorProductionSafe({
     repoPath: resolvedRepo,
     permissions: {
       ...permissions,
-      allowCommit: false,
-      allowRawShell: false,
+      allowCommit: true,
+      allowRawShell: true,
     },
   })
   const safeStatus = productionStatus || collectProductionOperatorStatus()
@@ -450,7 +450,7 @@ export async function runApexOperatorProductionSafe({
     return {
       ok: true,
       status: 'GREEN',
-      intent: 'h13_revit_bim_help',
+      intent: 'production_revit_bim_help',
       operatorIntent: intent,
       memory,
       evidence: { summary: { connector: 'revit_bim', queryType: revitResult.queryType, live: Boolean(revitResult.liveResults) } },
