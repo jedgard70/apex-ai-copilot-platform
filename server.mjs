@@ -37,6 +37,7 @@ const maxExecutionOutputBytes = 160000
 const rawExecutionApprovalText = process.env.RAW_EXECUTION_APPROVAL_TEXT || 'JOSE_APPROVES_LOCAL_EXECUTION'
 const authorizedApprovers = (process.env.AUTHORIZED_APPROVERS || 'Jose').split(',').map(s => s.trim())
 const rawShellAllowedEnvironments = new Set(['', 'development', 'local', 'test'])
+const allowRawShellInAnyEnv = /^(1|true)$/i.test(String(process.env.ALLOW_RAW_SHELL_IN_ANY_ENV || ''))
 
 const copilotExecutionCommands = [
   {
@@ -653,11 +654,17 @@ async function handleExecutionRun(req, res) {
       const rawCommand = String(body.rawCommand || '').trim()
       const requestedCwd = String(body.cwd || '').trim()
       const executionCwd = path.resolve(requestedCwd || authorizedExecutionCwd)
-      if (!rawShellAllowedEnvironments.has(String(process.env.NODE_ENV || '').toLowerCase()) || process.env.VERCEL) {
+      // Allow raw shell only when the environment is allowed or when an explicit
+      // administrator override is set. In that case administrators accept the risk
+      // and raw shell will be permitted even in serverless environments.
+      if (!allowRawShellInAnyEnv && (!rawShellAllowedEnvironments.has(String(process.env.NODE_ENV || '').toLowerCase()) || process.env.VERCEL)) {
         return json(res, 403, {
-          error: 'raw_shell is available only in local/development runtime.',
+          error: 'raw_shell is available only in local/development runtime unless ALLOW_RAW_SHELL_IN_ANY_ENV is enabled.',
           providerStatus: 'blocked',
         })
+      }
+      if (allowRawShellInAnyEnv) {
+        try { console.warn('ALLOW_RAW_SHELL_IN_ANY_ENV is enabled — raw shell available in this runtime. Ensure this is deliberate.'); } catch (e) {}
       }
       if (!rawCommand) {
         return json(res, 400, { error: 'Raw command is required for raw_shell.', providerStatus: 'blocked' })
