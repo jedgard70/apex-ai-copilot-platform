@@ -1,28 +1,31 @@
 # APEX Open Bugs And Next Actions
 
-Blockers and next actions (honest, ordered):
+Audit date: 2026-06-15
 
-1. Corrigir build/preview do PR #24 se ainda estiver quebrado
-   - Motivo: sem build/preview não é possível provar mudanças no fluxo UI/prod
+Branch: `feature/image-generation-connector`
 
-2. Corrigir validate-vercel.mjs e validate-supabase-live.mjs por falta de `dotenv`
-   - Motivo: validadores live exigem variáveis de ambiente para conectar a Vercel/Supabase
+Commit audited: `7a788f2`
 
-3. Corrigir fallback/idioma do productionConversationRouter
-   - Motivo: validação validate-cp15x-h44 revelou problemas com respostas curtas/ambíguas em português
+## Ordered Fix Plan
 
-4. Provar upload PDF → "resuma este pdf" com conteúdo real
-   - Motivo: extração e envio do conteúdo para o backend devem ser validados end-to-end
+### A. UX attach / composer / side panel
 
-5. Provar geração DOCX real (ContractsPanel)
+Status: open.
 
-6. Provar export XLSX / integração SINAPI (BudgetPanel)
+Bug:
 
-7. Provar IFC / web-ifc.wasm no browser com arquivo IFC real (IfcViewer, ifcWorker)
+- Upload currently executes automatically because `handleFile()` sets the active file and calls `askCopilot('', intake)`.
+- Composer does not reliably clear stale attachment context after send.
+- Side panels can squeeze chat, and more than one workflow can feel active too early.
 
-8. Provar H7 HTTP path com provider key (Local Worker / approval gated execution)
+Acceptance:
 
-9. Provar Supabase remote round-trip (upload → storage → retrieval → file context preserved)
+- Attach only places a pending file in the composer.
+- Execution happens only after Enter/send.
+- After send, composer text and active attachment clear deterministically.
+- Old PDF/file cannot be reused accidentally.
+- One active drawer/panel is visible at a time.
+- Chat keeps a usable minimum width on desktop and mobile.
 
 10. Separar claramente simulação de background agents / WebGPU da comunicação de produto — Motivo: evitar que demos/simulações confundam testes de produção
 

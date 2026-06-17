@@ -440,15 +440,7 @@ export async function runApexOperatorProductionSafe({
       executedActions: [],
       toolExecution,
       finalReply: toolExecution.finalReply,
-      memoryPatch: toolExecution.tools.some(tool => tool.executionClass === 'mutation_requires_confirmation')
-        ? {
-            pendingH6Action: {
-              actionId: h5ToolIds.includes('vercel.deploy') ? 'vercel.deploy_prod' : 'supabase.db_push',
-              params: {},
-              planText: toolExecution.finalReply,
-            }
-          }
-        : null,
+      memoryPatch: null,
     }
   }
   // H13 — Revit/BIM live connector
@@ -458,7 +450,7 @@ export async function runApexOperatorProductionSafe({
     return {
       ok: true,
       status: 'GREEN',
-      intent: 'production_revit_bim_help',
+      intent: 'h13_revit_bim_help',
       operatorIntent: intent,
       memory,
       evidence: { summary: { connector: 'revit_bim', queryType: revitResult.queryType, live: Boolean(revitResult.liveResults) } },
@@ -491,24 +483,6 @@ export async function runApexOperatorProductionSafe({
         memoryPatch: null,
         secretsExposed: false,
       }
-    }
-  }
-
-  // Background Tasks Connector
-  if (productionConversationIntent === 'production_background_agent_task_request') {
-    const finalReply = 'Entendido! Agendei a tarefa em segundo plano de análise de incompatibilidades (Hidrossanitário vs Estrutura) para rodar de forma autônoma durante a noite. Você poderá acompanhar o progresso e o relatório final no painel de Cognitive Agents ao lado.'
-    return {
-      ok: true,
-      status: 'GREEN',
-      intent: 'production_background_agent_task_request',
-      operatorIntent: intent,
-      memory,
-      evidence: { summary: { connector: 'background_tasks', task: 'mep-structural-clash', scheduled: true } },
-      decision: finalReply,
-      requiresApproval: false,
-      finalReply,
-      memoryPatch: null,
-      secretsExposed: false,
     }
   }
 

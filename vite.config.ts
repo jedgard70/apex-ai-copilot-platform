@@ -9,7 +9,8 @@ export default defineConfig({
       targets: [
         {
           src: 'node_modules/web-ifc/web-ifc.wasm',
-          dest: '.',
+          dest: '',
+          rename: { stripBase: 2 },
         },
       ],
     }),

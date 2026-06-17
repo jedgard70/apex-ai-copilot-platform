@@ -614,6 +614,10 @@ export default async function handler(req, res) {
   try {
     const body = await readJsonBody(req)
     const userMessage = String(body.message || '').slice(0, 12000)
+    // When PDF context is injected into body.message, extract only the actual user query
+    // for intent routing — prevents PDF keywords from triggering unrelated production routes
+    const pdfUserQueryMatch = userMessage.match(/Pedido do usu[aá]rio:\s*(.+?)(?:\n|$)/i)
+    const routingMessage = pdfUserQueryMatch ? pdfUserQueryMatch[1].trim() : userMessage
     const clientMemory = body.clientMemory || {}
     const productionStatus = collectProductionOperatorStatus()
     const fileCandidate = body.file || null
@@ -623,7 +627,7 @@ export default async function handler(req, res) {
       fileCandidate.extractionStatus === 'ready' &&
       String(fileCandidate.extractedText || '').trim().length >= 20
     )
-    const looksLikePdfSummary = hasReadyPdfText && PDF_SUMMARY_PATTERN.test(userMessage || '')
+    const looksLikePdfSummary = hasReadyPdfText && PDF_SUMMARY_PATTERN.test(routingMessage || '')
 
     // Fast-path: greeting in Portuguese — no file context needed
     if (!APEX_FREE_AGENT && /^\s*(ol[aá]|oi|ola)\s*$/i.test(userMessage)) {
@@ -676,7 +680,7 @@ export default async function handler(req, res) {
 
     // H5.0D: hard override — but skip if user is confirming a pending H7 action or if it's a mutation tool
     if (!(isConfirm && hasPending)) {
-      const h5ToolIds = classifyToolExecutionRequest(userMessage)
+      const h5ToolIds = classifyToolExecutionRequest(routingMessage)
       const MUTATION_TOOLS = new Set(['vercel.deploy', 'supabase.migration'])
       const hasMutationTool = h5ToolIds.some(id => MUTATION_TOOLS.has(id))
 
@@ -694,7 +698,7 @@ export default async function handler(req, res) {
       }
     }
 
-    const productionConversationIntent = classifyProductionConversationIntent(userMessage)
+    const productionConversationIntent = classifyProductionConversationIntent(routingMessage)
 
     // Short-circuit: If the request includes an active PDF with ready extraction and
     // the user's latest message is a PDF-summary/analysis intent, bypass the production
@@ -703,7 +707,7 @@ export default async function handler(req, res) {
     // being classified as ambiguous and returning "Pergunta incompleta".
     try {
       const innerFileCandidate = body.file || null
-      const looksLikePdfSummary = Boolean(innerFileCandidate && innerFileCandidate.kind === 'pdf' && innerFileCandidate.extractionStatus === 'ready' && String(innerFileCandidate.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(userMessage || ''))
+      const looksLikePdfSummary = Boolean(innerFileCandidate && innerFileCandidate.kind === 'pdf' && innerFileCandidate.extractionStatus === 'ready' && String(innerFileCandidate.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(routingMessage || ''))
  if (!looksLikePdfSummary && productionRouterIntents.has(productionConversationIntent)) {
         const pdfText = String(innerFileCandidate.extractedText || '')
         const pdfSummaryPattern = /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i
@@ -720,7 +724,7 @@ export default async function handler(req, res) {
 
     // If this message looks like an H6 action (git, npm, etc.), route it directly
     // to the operator runtime so it can prepare a confirmation and set pendingH6Action.
-    const h6Route = routeH6ActionRequest({ userMessage })
+    const h6Route = routeH6ActionRequest({ userMessage: routingMessage })
     if (h6Route) {
       const result = await runApexOperatorProductionSafe({
         userMessage,
@@ -798,7 +802,9 @@ export default async function handler(req, res) {
       })
     }
 
-    const apiKey = process.env.OPENAI_API_KEY
+    const anthropicKey = process.env.ANTHROPIC_API_KEY
+    const openaiKey = process.env.OPENAI_API_KEY
+    const apiKey = anthropicKey || openaiKey
     if (!apiKey) {
       const fallbackReply = buildChatFallbackReply(userMessage, identityContext, body.file || null)
       return sendJson(res, 200, {
@@ -810,15 +816,21 @@ export default async function handler(req, res) {
       })
     }
 
+    const useAnthropic = Boolean(anthropicKey)
     const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
     const runtime = loadRuntimeKnowledge()
     const file = body.file || null
-    const conversation = Array.isArray(body.messages) ? body.messages.slice(-10) : []
+    // The client includes the current user message in body.messages as the last item.
+    // Drop it here — we add it separately as userContent to avoid consecutive user messages.
+    const rawMessages = Array.isArray(body.messages) ? body.messages.slice(-10) : []
+    const conversation = rawMessages.length && rawMessages[rawMessages.length - 1]?.role === 'user'
+      ? rawMessages.slice(0, -1)
+      : rawMessages
     const preferredLanguage = String(body.language || body.locale || '').slice(0, 40)
     
     const intentInstruction = buildIntentInstruction(userMessage, file, conversation, preferredLanguage)
     const toolSummary = buildToolSummary(runtime.tools)
-        const looksLikePdfSummaryRequest = Boolean(file && file.kind === 'pdf' && file.extractionStatus === 'ready' && String(file.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(userMessage || ''))
+        const looksLikePdfSummaryRequest = Boolean(file && file.kind === 'pdf' && file.extractionStatus === 'ready' && String(file.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(routingMessage || ''))
         let specialIntentInstruction = intentInstruction
         if (looksLikePdfSummaryRequest) {
           specialIntentInstruction = 'Resuma o documento em português em 5 a 8 tópicos. Não copie o texto bruto. Identifique tipo do documento, partes envolvidas, finalidade, dados principais, datas, órgão emissor e conclusão.\n' + specialIntentInstruction
