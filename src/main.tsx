@@ -593,7 +593,9 @@ function isContactQuestion(text: string) {
 }
 
 function isUploadQuestion(text: string) {
-  return /\b(upload|arquivo|anexar|mandar imagem|enviar arquivo|screenshot|planta|pdf|file|attach)\b/i.test(text.trim())
+  const trimmed = text.trim()
+  if (/\b(pdf\.js|pdfjs|pdf-js)\b/i.test(trimmed)) return false
+  return /\b(upload|arquivo|anexar|mandar imagem|enviar arquivo|screenshot|planta|pdf|file|attach)\b/i.test(trimmed)
 }
 
 function isGreeting(text: string) {
