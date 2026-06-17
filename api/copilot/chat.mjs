@@ -66,11 +66,11 @@ function prefersPortugueseText(text = '') {
 }
 
 function isCapabilitiesQuestionText(text = '') {
-  return /\b(o que (mais )?(vc|voce|você)?\s*sabe( fazer)?|o que (vc|voce|você)?\s*faz|o que mais (vc|voce|você)?\s*faz|quais servi[cç]os|servi[cç]os|capabilities|what else can you do|what can you do|what do you do|features)\b/i.test(text.trim())
+  return /\b(o que (mais )?(vc|voce|você)?\s*sabe( fazer)?|o que (vc|voce|você)?\s*faz|o que mais (vc|voce|você)?\s*faz|quais (são os )?servi[cç]os|lista de servi[cç]os|seus servi[cç]os|funcionalidades|habilidades|capabilities|what else can you do|what can you do|what do you do|features)\b/i.test(text.trim())
 }
 
 function isContactQuestionText(text = '') {
-  return /\b(or[cç]amento|consultoria|contato|falar com|proposal|quote|estimate|consultation|contact)\b/i.test(text.trim())
+  return /\b(como entrar em contato|falar com o suporte|falar com a equipe|telefone de contato|e-mail de contato|consultoria de contato|falar com|contact information|how to contact|contact support)\b/i.test(text.trim())
 }
 
 function isUploadQuestionText(text = '') {
