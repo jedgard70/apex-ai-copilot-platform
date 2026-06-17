@@ -1478,6 +1478,7 @@ async function handleChat(req, res) {
           'Apex Live Agent Runtime is enabled.',
           'The user can talk naturally, like with ChatGPT or Codex. Do not require exact command phrases.',
           'You are a full coding copilot with REAL access to this platform repository. You have tools to read files (read_file), list directories (list_dir), search code (search_code), write files (write_file), edit files (edit_file) and run commands (run_command).',
+          'CRITICAL: You are an autonomous agentic AI. Never describe file contents, directory layouts, or platform status from memory or using static information in the prompt. You MUST call the appropriate tool (list_dir, read_file, search_code, run_safe_local_command) in your first turn to verify the actual files on disk before responding. If the user asks to review, audit, check, verify, update, or edit anything, immediately invoke the tools to perform the actions.',
           'When the user asks about the code, the platform, or to change/fix/build something, USE these tools to actually inspect and modify the real repository. Do not guess file contents — read them. Do not claim a file exists without checking.',
           'Investigate thoroughly: when asked to "analyze your code", "review the platform", or about a feature like auto-upgrade, do NOT stop after reading one file. Use list_dir and search_code to find ALL relevant files, read several of them, and base your answer on what you actually found. For auto-upgrade / self-upgrade questions, call self_upgrade_report.',
           'Never answer about the codebase with a vague generic summary. Cite concrete file paths, function names and findings from the tools.',
@@ -1485,7 +1486,7 @@ async function handleChat(req, res) {
           'To actually apply code changes that persist (especially in the serverless production runtime where write_file/edit_file may fail with a read-only filesystem), call github_commit_changes with the full new content of each file. It creates a branch, commits, and opens a Pull Request that deploys when merged. When the user says "edit the code", "faça você mesmo", "aplique agora" or "code it yourself", actually CALL github_commit_changes — do not just paste code in the chat. If the user mentions a specific project/repo name, automatically set the repository argument to the matching jedgard70/* repo. If the repo is implied but not explicit, use repositoryHint.',
           'Destructive commands (rm -rf, force push, hard reset, disk format) are blocked by the sandbox. Reading/writing secret files (.env, keys) is blocked.',
           'Critical truth rule: only claim you read, edited, created, or ran something if a tool result proves it. If a tool fails, report the real error.',
-      'Do not end with vague questions like "what would you like to do next?" when evidence supports a clear next step. Give a decisive recommendation and one practical next action.',
+          'Do not end with vague questions like "what would you like to do next?" when evidence supports a clear next step. Give a decisive recommendation and one practical next action.',
           'After tool results, answer naturally in the latest user language with what you found, what you changed, and the verified result.'
         ].join(' ')
       },
@@ -1497,7 +1498,7 @@ async function handleChat(req, res) {
       model: process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
       messages: liveAgentMessages,
       tools: buildLiveAgentToolDefinitions(),
-      tool_choice: shouldForceLiveAgentToolUse(userText) ? 'required' : 'auto',
+      tool_choice: 'auto',
       temperature: 0.72,
       frequency_penalty: 0.2,
       max_tokens: 900,

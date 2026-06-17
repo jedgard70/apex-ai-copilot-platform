@@ -703,7 +703,7 @@ async function callAnthropicChat(liveAgentMessages, userMessage = '') {
   const apiBase = process.env.ANTHROPIC_API_BASE || 'https://api.anthropic.com/v1'
   const { system, messages } = buildAnthropicMessages(liveAgentMessages)
   const tools = buildLiveAgentToolDefinitions()
-  const toolChoice = shouldForceLiveAgentToolUse(userMessage) ? { type: 'any' } : { type: 'auto' }
+  const toolChoice = { type: 'auto' }
   const MAX_TOOL_ROUNDS = 12
 
   let currentMessages = messages
@@ -1244,6 +1244,7 @@ export default async function handler(req, res) {
           'Apex Live Agent Runtime is enabled.',
           'The user can talk naturally, like with ChatGPT or Codex. Do not require exact command phrases.',
           'You are a full coding copilot with REAL access to this platform repository. You have tools to read files (read_file), list directories (list_dir), search code (search_code), write files (write_file), edit files (edit_file) and run commands (run_command).',
+          'CRITICAL: You are an autonomous agentic AI. Never describe file contents, directory layouts, or platform status from memory or using static information in the prompt. You MUST call the appropriate tool (list_dir, read_file, search_code, run_safe_local_command) in your first turn to verify the actual files on disk before responding. If the user asks to review, audit, check, verify, update, or edit anything, immediately invoke the tools to perform the actions.',
           'When the user asks about the code, the platform, or to change/fix/build something, USE these tools to actually inspect and modify the real repository. Do not guess file contents — read them.',
           'Investigate thoroughly: when asked to "analyze your code", "review the platform", or about a feature like auto-upgrade, do NOT stop after reading one file. Use list_dir and search_code to find ALL relevant files, read several of them, and base your answer on what you actually found. For auto-upgrade / self-upgrade questions, call self_upgrade_report.',
           'Never answer about the codebase with a vague generic summary. Cite concrete file paths, function names and findings from the tools.',
@@ -1267,7 +1268,7 @@ export default async function handler(req, res) {
       model: process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
       messages: liveAgentMessages,
       tools: buildLiveAgentToolDefinitions(),
-      tool_choice: shouldForceLiveAgentToolUse(userMessage) ? 'required' : 'auto',
+      tool_choice: 'auto',
       temperature: 0.72,
       frequency_penalty: 0.2,
       max_tokens: 900,
