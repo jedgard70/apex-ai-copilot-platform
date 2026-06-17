@@ -823,12 +823,11 @@ function detectLanguage(userText, conversation, preferredLanguage = '') {
       .slice(-3)
       .map(item => String(item.text || '')),
   ].join(' ')
-  const portuguesePattern = /\b(o que|vc|você|voce|sabe|fazer|fa[cç]a|crie|criar|gere|gerar|liste|lista|habilidades|capacidades|para mim|me ajude|ajude|planta|projeto|quero|posso|opcoes|opções|mostre|portugu[eê]s|render|or[cç]amento|an[uú]ncio|cliente|contrato|programar|componente|c[oó]digo|traduza|traduzir)\b/i
   const englishSwitchPattern = /\b(answer in english|speak english|in english|english please)\b/i
-  const hiddenUploadMessage = /^user uploaded this file\./i.test(String(userText || '').trim())
   if (englishSwitchPattern.test(userText)) return 'English'
-  if ((!String(userText || '').trim() || hiddenUploadMessage) && /^pt\b/i.test(String(preferredLanguage || ''))) return 'Portuguese'
-  if (portuguesePattern.test(latestUserText)) return 'Portuguese'
+  const isPtLocale = /^pt\b/i.test(String(preferredLanguage || ''))
+  const hasPtKeywords = /\b(o que|vc|você|voce|sabe|fazer|fa[cç]a|crie|criar|gere|gerar|liste|lista|habilidades|capacidades|para mim|me ajude|ajude|planta|projeto|quero|posso|opcoes|opções|mostre|portugu[eê]s|render|or[cç]amento|an[uú]ncio|cliente|contrato|programar|componente|c[oó]digo|traduza|traduzir|quem|sou|verifique|verificar|auditar|auditoria|revisar|revisao|codigo|arquivos|erro|erros|teste|testar|rodar|executar|deploy|branch|main|github|vercel|supabase|sim|nao|não|olá|oi|ola|bom dia|boa tarde|boa noite)\b/i.test(latestUserText) || /[ãõçáéíóú]/i.test(latestUserText)
+  if (isPtLocale || hasPtKeywords) return 'Portuguese'
   return 'English'
 }
 
