@@ -1,14 +1,15 @@
-APEX Reality Audit
-===================
+# APEX Reality Audit
 
 Date da auditoria: 2026-06-15
 Branch auditada: fix/m2-m3-m5-m6-deep
 Commit auditado (informado): 7ae36ab3e5c595c3ab79c7eaf53528f2eeffc14e
 
-Limitação importante: o executável `git` não estava disponível neste ambiente de auditoria. A branch e o commit acima foram inferidos a partir de metadados locais (arquivos .git). Não foi possível executar comandos git (status, diff, commits) aqui.
+## Limitação importante
 
-Resumo objetivo
----------------
+O executável `git` não estava disponível neste ambiente de auditoria. A branch e o commit acima foram inferidos a partir de metadados locais (arquivos .git). Não foi possível executar comandos git (`status`, `diff`, `commits`) aqui.
+
+## Resumo objetivo
+
 - Build: PASSOU (tsc + vite build)
 - Validações locais que passaram (executadas durante a auditoria):
   - validate-cp15x-h5
@@ -22,14 +23,13 @@ Resumo objetivo
   - validate-supabase-live: falhou por falta de `dotenv`
   - validate-cp15x-h7: a via HTTP só foi parcialmente comprovada sem provider key; requer ambiente com chaves/worker para execução completa
 
-Observações centrais
---------------------
+## Observações centrais
+
 - Muitos módulos estão implementados no código, porém não foram comprovados em preview ou produção (ainda precisam de validação de runtime real).
 - Background agents e WebGPU aparecem no código como camadas de simulação/demonstração, não como execução de produção comprovada.
 - Algumas integrações dependem de variáveis de ambiente (ex: LOCAL_WORKER_URL/TOKEN, VERCEL/SUPABASE keys, OPENAI_API_KEY). Sem essas variáveis, os validadores live/report falham ou retornam modo "unavailable".
 
-Matriz de módulo (resumo)
-------------------------
+## Matriz de módulo (resumo)
 
 Formato: Módulo | Implementado | Validado | Comprovado Preview | Comprovado Produção | Simulado | Status | Evidência | Próxima ação
 
@@ -55,7 +55,8 @@ pgvector integration | N/A | FOUNDATION (esqueleto) | NÃO COMPROVADO | NÃO COM
 MCP stdio | N/A | FOUNDATION | NÃO COMPROVADO | NÃO COMPROVADO | NÃO | FOUNDATION | implementação inicial | Provar com ambiente MCP/desktop
 OPENAI_API_BASE / Ollama / vLLM | N/A | NÃO PROVADO | NÃO COMPROVADO | NÃO COMPROVADO | NÃO | NÃO PROVADO | variável presente, provedores não testados | Provar com backends locais (Ollama/vLLM) ou configuração API
 
-Próximas ações recomendadas (breve):
+## Próximas ações recomendadas (breve)
+
 - Executar testes manuais no browser para upload PDF → extração → resumo.
 - Configurar variáveis de ambiente necessárias para validar Vercel/Supabase/Local Worker.
 - Testar H7 HTTP path com provider key / Local Worker executando ações (commit/push pipeline).

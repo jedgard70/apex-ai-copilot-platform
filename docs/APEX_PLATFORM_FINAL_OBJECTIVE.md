@@ -1,4 +1,4 @@
-# Apex Platform Final Objective
+# APEX Platform — Final Objective (evidence ruler)
 
 Audit date: 2026-06-15
 
@@ -58,3 +58,6 @@ The platform already has a strong local-first foundation: chat shell, module pan
 
 The missing jump is reliable execution continuity: attach state, real file parsing, real IFC rendering, automatic first draft generation, Local Worker connection, Revit bridge, remote persistence restore, and production API proof.
 
+Observação:
+
+- Antes de marcar qualquer PR como Ready, toda prova (3–5 acima) deve estar anexada ao PR e às docs de auditoria.

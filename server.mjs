@@ -15,6 +15,12 @@ import { classifyProductionConversationIntent } from './server/agent/productionC
 import { collectProductionOperatorStatus } from './server/agent/productionStatus.mjs'
 import { classifyToolExecutionRequest, routeToolExecution } from './server/agent/toolExecutionRouter.mjs'
 import { defaultTasks } from './server/agent/backgroundTasksConnector.mjs'
+import { buildCodeToolDefinitions, executeCodeToolCall, CODE_TOOL_NAMES } from './server/agent/codeTools.mjs'
+
+// APEX_FREE_AGENT (default ON): when enabled, conversational messages bypass the
+// canned production-intent router and go straight to the LLM for free responses.
+// Set APEX_FREE_AGENT=0 to restore the old template-router behavior.
+const APEX_FREE_AGENT = !/^(0|false|off)$/i.test(String(process.env.APEX_FREE_AGENT ?? '1'))
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || ''
@@ -27,10 +33,17 @@ const dist = path.join(root, 'dist')
 const runtimeKnowledgePath = path.join(root, 'src', 'lib', 'runtimeKnowledge.json')
 const skillUpdateLogPath = path.join(root, 'docs', 'SKILL_UPDATE_LOG.md')
 const copilotExecutionCwd = path.resolve(root)
-const authorizedExecutionCwd = path.resolve('D:\\AI-constr\\apex-ai-copilot-platform')
+// Allow configuring the authorized repo cwd via environment for portability.
+// Defaults to the current repo root when not provided.
+const authorizedExecutionCwd = process.env.AUTHORIZED_EXECUTION_CWD
+  ? path.resolve(process.env.AUTHORIZED_EXECUTION_CWD)
+  : path.resolve(root)
 const maxExecutionOutputBytes = 160000
-const rawExecutionApprovalText = 'JOSE_APPROVES_LOCAL_EXECUTION'
+// Approval token/text and approvers can be configured via ENV for teams.
+const rawExecutionApprovalText = process.env.RAW_EXECUTION_APPROVAL_TEXT || 'JOSE_APPROVES_LOCAL_EXECUTION'
+const authorizedApprovers = (process.env.AUTHORIZED_APPROVERS || 'Jose').split(',').map(s => s.trim())
 const rawShellAllowedEnvironments = new Set(['', 'development', 'local', 'test'])
+const allowRawShellInAnyEnv = /^(1|true)$/i.test(String(process.env.ALLOW_RAW_SHELL_IN_ANY_ENV || ''))
 
 const copilotExecutionCommands = [
   {
@@ -93,7 +106,7 @@ const copilotExecutionCommands = [
     id: 'build',
     label: 'Build',
     description: 'Run the local Vite production build.',
-    executable: 'npm.cmd',
+    executable: process.platform === 'win32' ? 'npm.cmd' : 'npm',
     args: ['run', 'build'],
     risk: 'medium',
     requiresApproval: false,
@@ -104,7 +117,7 @@ const copilotExecutionCommands = [
     id: 'validate_supabase_sql',
     label: 'Validate Supabase SQL',
     description: 'Run the local read-only Supabase SQL validation script.',
-    executable: 'npm.cmd',
+    executable: process.platform === 'win32' ? 'npm.cmd' : 'npm',
     args: ['run', 'validate:supabase-sql'],
     risk: 'medium',
     requiresApproval: false,
@@ -584,7 +597,7 @@ async function runCopilotExecutionCommand(command, body) {
         createdBy: 'Jose',
         risk: command.risk,
         requiresApproval: command.requiresApproval,
-        approvedBy: body?.approvedBy || 'Jose',
+        approvedBy: body?.approvedBy || null,
         redactedOutput: cleanStdout !== stdout || cleanStderr !== stderr,
       })
     }
@@ -647,11 +660,17 @@ async function handleExecutionRun(req, res) {
       const rawCommand = String(body.rawCommand || '').trim()
       const requestedCwd = String(body.cwd || '').trim()
       const executionCwd = path.resolve(requestedCwd || authorizedExecutionCwd)
-      if (!rawShellAllowedEnvironments.has(String(process.env.NODE_ENV || '').toLowerCase()) || process.env.VERCEL) {
+      // Allow raw shell only when the environment is allowed or when an explicit
+      // administrator override is set. In that case administrators accept the risk
+      // and raw shell will be permitted even in serverless environments.
+      if (!allowRawShellInAnyEnv && (!rawShellAllowedEnvironments.has(String(process.env.NODE_ENV || '').toLowerCase()) || process.env.VERCEL)) {
         return json(res, 403, {
-          error: 'raw_shell is available only in local/development runtime.',
+          error: 'raw_shell is available only in local/development runtime unless ALLOW_RAW_SHELL_IN_ANY_ENV is enabled.',
           providerStatus: 'blocked',
         })
+      }
+      if (allowRawShellInAnyEnv) {
+        try { console.warn('ALLOW_RAW_SHELL_IN_ANY_ENV is enabled — raw shell available in this runtime. Ensure this is deliberate.'); } catch (e) {}
       }
       if (!rawCommand) {
         return json(res, 400, { error: 'Raw command is required for raw_shell.', providerStatus: 'blocked' })
@@ -667,11 +686,14 @@ async function handleExecutionRun(req, res) {
       if (!fs.existsSync(executionCwd) || !fs.statSync(executionCwd).isDirectory()) {
         return json(res, 400, { error: 'Requested cwd does not exist or is not a directory.', cwd: executionCwd, providerStatus: 'blocked' })
       }
-      if (body.approvedBy !== 'Jose' || body.approvalText !== rawExecutionApprovalText) {
+      const approver = String(body.approvedBy || '').trim()
+      const approvalText = String(body.approvalText || '').trim()
+      if (!authorizedApprovers.includes(approver) || approvalText !== rawExecutionApprovalText) {
         return json(res, 403, {
-          error: 'Jose approval is required before executing a raw shell command.',
+          error: 'Approval required before executing a raw shell command.',
           providerStatus: 'approval-required',
           requiredApprovalText: rawExecutionApprovalText,
+          authorizedApprovers,
         })
       }
     }
@@ -1074,11 +1096,11 @@ function buildIdentityReply(userText, identity) {
 }
 
 function prefersPortugueseText(text = '') {
-  return /\b(vc|voce|você|quem sou|o que|serviços|servicos|orçamento|orcamento|consultoria|arquivo|anexar|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra)\b|[ãõçáéíóú]/i.test(text)
+  return /\b(vc|voce|você|quem sou|o que|serviços|servicos|preciso|ajuda|ajudar|me ajuda|orçamento|orcamento|consultoria|arquivo|anexar|upload|cronograma|marketing|vendas|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra)\b|[ãõçáéíóú]/i.test(text)
 }
 
 function isCapabilitiesQuestionText(text = '') {
-  return /\b(o que (vc|voce|você) sabe fazer|o que faz|quais servi[cç]os|servi[cç]os|capabilities|what can you do|what do you do|features)\b/i.test(text.trim())
+  return /\b(o que (mais )?(vc|voce|você)?\s*sabe( fazer)?|o que (vc|voce|você)?\s*faz|o que mais (vc|voce|você)?\s*faz|quais servi[cç]os|servi[cç]os|capabilities|what else can you do|what can you do|what do you do|features)\b/i.test(text.trim())
 }
 
 function isContactQuestionText(text = '') {
@@ -1144,7 +1166,8 @@ function buildLiveAgentToolDefinitions() {
           required: ['commandId', 'reason']
         }
       }
-    }
+    },
+    ...buildCodeToolDefinitions(),
   ]
 }
 
@@ -1157,6 +1180,12 @@ function compactLiveAgentToolText(value) {
 
 async function executeLiveAgentToolCall(toolCall) {
   const name = toolCall && toolCall.function ? String(toolCall.function.name || '') : ''
+
+  // Real code/filesystem/command tools (read/list/search/write/edit/run).
+  if (CODE_TOOL_NAMES.has(name)) {
+    return await executeCodeToolCall(toolCall, authorizedExecutionCwd)
+  }
+
   if (name !== 'run_safe_local_command') {
     return { providerStatus: 'blocked', error: 'Unknown Apex live agent tool.' }
   }
@@ -1295,11 +1324,20 @@ async function handleChat(req, res) {
       'production_vercel_connector_status',
       'production_connector_status',
       'production_platform_position',
+      'production_capability_listing',
+      'production_capability_repair',
+      'production_capability_continuation',
+      'production_orcamento_sinapi_help',
+      'production_proposta_contrato_help',
+      'production_obra_campo_help',
+      'production_cronograma_help',
+      'production_archviz_help',
+      'production_marketing_vendas_help',
       'production_vercel_deploy',
       'production_supabase',
     ])
 
-    if (productionRouterIntents.has(productionConversationIntent)) {
+    if (!APEX_FREE_AGENT && productionRouterIntents.has(productionConversationIntent)) {
       const productionStatus = collectProductionOperatorStatus()
       const operatorResult = await runApexOperatorProductionSafe({
         userMessage: userText,
@@ -1455,15 +1493,16 @@ async function handleChat(req, res) {
         content: [
           'Apex Live Agent Runtime is enabled.',
           'The user can talk naturally, like with ChatGPT or Codex. Do not require exact command phrases.',
-          'You are not a button router. You are a live project copilot: infer intent from context, decide whether evidence is needed, use safe tools when useful, then give a concrete recommendation.',
-          'When live evidence about this local repo is useful, decide by yourself whether to call run_safe_local_command.',
-          'Use tools only when useful. Do not use tools for normal writing, explanation, strategy, design or business answers.',
-          'Never call raw shell. Never deploy. Never migrate Supabase. Never push. Never modify files from this tool.',
-          'Critical truth rule: never claim that you committed, pushed, deployed, migrated, edited files, installed packages, or changed production unless a tool result explicitly proves that exact action.',
-          'The live tool can validate status/build/checks only. It cannot commit. If the user says faca, ok, pode, segue, continua, infer the next safe action from context. If the next action is commit, recommend it and provide the exact command or ask for an explicit approved commit tool; do not claim it was done.',
+          'You are a full coding copilot with REAL access to this platform repository. You have tools to read files (read_file), list directories (list_dir), search code (search_code), write files (write_file), edit files (edit_file) and run commands (run_command).',
+          'When the user asks about the code, the platform, or to change/fix/build something, USE these tools to actually inspect and modify the real repository. Do not guess file contents — read them. Do not claim a file exists without checking.',
+          'Investigate thoroughly: when asked to "analyze your code", "review the platform", or about a feature like auto-upgrade, do NOT stop after reading one file. Use list_dir and search_code to find ALL relevant files, read several of them, and base your answer on what you actually found. For auto-upgrade / self-upgrade questions, call self_upgrade_report.',
+          'Never answer about the codebase with a vague generic summary. Cite concrete file paths, function names and findings from the tools.',
+          'Work iteratively: explore with read_file/list_dir/search_code, make changes with write_file/edit_file, then verify with run_command (e.g. build or tests).',
+          'To actually apply code changes that persist (especially in the serverless production runtime where write_file/edit_file may fail with a read-only filesystem), call github_commit_changes with the full new content of each file. It creates a branch, commits, and opens a Pull Request that deploys when merged. When the user says "edit the code", "faça você mesmo", "aplique agora" or "code it yourself", actually CALL github_commit_changes — do not just paste code in the chat.',
+          'Destructive commands (rm -rf, force push, hard reset, disk format) are blocked by the sandbox. Reading/writing secret files (.env, keys) is blocked.',
+          'Critical truth rule: only claim you read, edited, created, or ran something if a tool result proves it. If a tool fails, report the real error.',
           'Do not end with vague questions like "what would you like to do next?" when evidence supports a clear next step. Give a decisive recommendation and one practical next action.',
-          'Use status language: GREEN for proven OK, YELLOW for pending/review, BLOCKED for unsafe/unavailable. Be confident only when evidence exists.',
-          'After tool results, answer naturally in the latest user language with clear status, what is proven, what is not proven, and the recommended next execution.'
+          'After tool results, answer naturally in the latest user language with what you found, what you changed, and the verified result.'
         ].join(' ')
       },
       ...(liveAgentPreflightContext ? [{ role: 'system', content: liveAgentPreflightContext }] : []),
@@ -1501,54 +1540,73 @@ async function handleChat(req, res) {
     const toolCalls = Array.isArray(assistantMessage.tool_calls) ? assistantMessage.tool_calls : []
 
     if (toolCalls.length) {
-      const followUpMessages = [
-        ...liveAgentMessages,
-        {
+      const conversationMessages = [...liveAgentMessages]
+      let currentAssistant = assistantMessage
+      let currentToolCalls = toolCalls
+      const usedToolNames = []
+      const MAX_TOOL_ROUNDS = 12
+
+      for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+        conversationMessages.push({
           role: 'assistant',
-          content: assistantMessage.content || '',
-          tool_calls: toolCalls,
-        },
-      ]
-
-      for (const toolCall of toolCalls) {
-        const toolResult = await executeLiveAgentToolCall(toolCall)
-        followUpMessages.push({
-          role: 'tool',
-          tool_call_id: toolCall.id,
-          content: JSON.stringify(toolResult),
+          content: currentAssistant.content || '',
+          tool_calls: currentToolCalls,
         })
+
+        for (const toolCall of currentToolCalls) {
+          usedToolNames.push(toolCall?.function?.name || 'unknown')
+          const toolResult = await executeLiveAgentToolCall(toolCall)
+          conversationMessages.push({
+            role: 'tool',
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(toolResult),
+          })
+        }
+
+        const nextResponse = await fetch(`${apiBase}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer ' + apiKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
+            messages: conversationMessages,
+            tools: buildLiveAgentToolDefinitions(),
+            tool_choice: 'auto',
+            temperature: 0.45,
+            frequency_penalty: 0.1,
+            max_tokens: 1500,
+          }),
+        })
+
+        const nextData = await nextResponse.json().catch(() => ({}))
+        if (!nextResponse.ok) {
+          return chatJson(res, 200, {
+            finalReply: buildChatFallbackReply(userText, identityContext),
+            mode: 'local-fallback-after-tool',
+          })
+        }
+
+        currentAssistant = nextData?.choices?.[0]?.message || {}
+        currentToolCalls = Array.isArray(currentAssistant.tool_calls) ? currentAssistant.tool_calls : []
+
+        if (!currentToolCalls.length) {
+          return chatJson(res, 200, {
+            finalReply: currentAssistant.content || buildChatFallbackReply(userText, identityContext),
+            model: nextData.model,
+            usage: nextData.usage,
+            mode: 'live-agent-tool-calling',
+            toolCalls: usedToolNames,
+          })
+        }
       }
 
-      const finalResponse = await fetch(`${apiBase}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          Authorization: 'Bearer ' + apiKey,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
-          messages: followUpMessages,
-          temperature: 0.45,
-          frequency_penalty: 0.1,
-          max_tokens: 900,
-        }),
-      })
-
-      const finalData = await finalResponse.json().catch(() => ({}))
-      if (!finalResponse.ok) {
-        return chatJson(res, 200, {
-          finalReply: buildChatFallbackReply(userText, identityContext),
-          mode: 'local-fallback-after-tool',
-        })
-      }
-
-      const finalReply = finalData && finalData.choices && finalData.choices[0] ? finalData.choices[0].message.content || '' : ''
+      // Exceeded max rounds — return the last assistant content if any.
       return chatJson(res, 200, {
-        finalReply: finalReply || buildChatFallbackReply(userText, identityContext),
-        model: finalData.model,
-        usage: finalData.usage,
-        mode: 'live-agent-tool-calling',
-        toolCalls: toolCalls.map(call => call && call.function ? call.function.name : 'unknown'),
+        finalReply: currentAssistant.content || 'Atingi o limite de etapas de ferramentas nesta resposta. Posso continuar se você confirmar.',
+        mode: 'live-agent-tool-calling-maxed',
+        toolCalls: usedToolNames,
       })
     }
 
@@ -4152,8 +4210,8 @@ const OWNER_CODE_EXECUTOR_STATUS = {
 const OWNER_CODE_ALLOWED_COMMANDS = [
   'git status --short',
   'git diff --stat',
-  'npm.cmd run build',
-  'npm.cmd run validate:supabase-sql',
+  'npm run build',
+  'npm run validate:supabase-sql',
   'node --check server.mjs',
 ]
 

@@ -6,6 +6,12 @@ import { collectProductionOperatorStatus } from '../../server/agent/productionSt
 import { classifyToolExecutionRequest, routeToolExecution, routeH6ActionRequest } from '../../server/agent/toolExecutionRouter.mjs'
 import { isConfirmationSignal, isCancelSignal, hasPendingAction } from '../../server/agent/confirmationStateMachine.mjs'
 import { classifyProductionConversationIntent } from '../../server/agent/productionConversationRouter.mjs'
+import { buildCodeToolDefinitions, executeCodeToolCall, CODE_TOOL_NAMES } from '../../server/agent/codeTools.mjs'
+
+// APEX_FREE_AGENT (default ON): conversational messages bypass the canned
+// production-intent router and go straight to the LLM. Set APEX_FREE_AGENT=0
+// to restore the old template-router behavior.
+const APEX_FREE_AGENT = !/^(0|false|off)$/i.test(String(process.env.APEX_FREE_AGENT ?? '1'))
 
 // PDF summary pattern — triggers local extraction-based summary
 const PDF_SUMMARY_PATTERN = /\b(resuma|analise|analisa|resume|sumari[sz]|principais?|pontos?|extraia|extrair|o que (fala|diz|trata)|me (conta|diga|fale)|sobre o que|resumo|síntese|sinopse)\b/i
@@ -31,6 +37,15 @@ const productionRouterIntents = new Set([
   'production_vercel_connector_status',
   'production_connector_status',
   'production_platform_position',
+  'production_capability_listing',
+  'production_capability_repair',
+  'production_capability_continuation',
+  'production_orcamento_sinapi_help',
+  'production_proposta_contrato_help',
+  'production_obra_campo_help',
+  'production_cronograma_help',
+  'production_archviz_help',
+  'production_marketing_vendas_help',
   'production_vercel_deploy',
   'production_supabase',
   'production_execute_recommended',
@@ -47,11 +62,11 @@ function loadRuntimeKnowledge() {
 }
 
 function prefersPortugueseText(text = '') {
-  return /\b(vc|voce|você|quem sou|o que|serviços|servicos|orçamento|orcamento|consultoria|arquivo|anexar|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra|tudo|bem|bom|boa|sim|nao|não|oi|olá|ola|obrigado|obrigada|verdade|certo|ok|pode|vou|quero|preciso|tenho|tenho|aqui|agora|fazer|fazer|faz|feito|qual|quando|onde|como|por que|porque|mas|então|entao|assim|isso|este|esta|esse|essa|para|com|sem|por|pelo|pela|sobre|mais|menos|muito|pouco|grande|pequeno|novo|velha|primeiro|segundo|terceiro|ajuda|ajudar|saber|pode|consegue|tem|veja|veja|olha|olhe|me|nos|te|se|lhe)\b|[ãõçáéíóú]/i.test(text)
+  return /\b(vc|voce|você|quem sou|o que|serviços|servicos|preciso|ajuda|ajudar|me ajuda|orçamento|orcamento|consultoria|arquivo|anexar|upload|cronograma|marketing|vendas|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra)\b|[ãõçáéíóú]/i.test(text)
 }
 
 function isCapabilitiesQuestionText(text = '') {
-  return /\b(o que (vc|voce|você) sabe fazer|o que faz|quais servi[cç]os|servi[cç]os|capabilities|what can you do|what do you do|features)\b/i.test(text.trim())
+  return /\b(o que (mais )?(vc|voce|você)?\s*sabe( fazer)?|o que (vc|voce|você)?\s*faz|o que mais (vc|voce|você)?\s*faz|quais servi[cç]os|servi[cç]os|capabilities|what else can you do|what can you do|what do you do|features)\b/i.test(text.trim())
 }
 
 function isContactQuestionText(text = '') {
@@ -190,7 +205,7 @@ function detectLanguage(userText, conversation, preferredLanguage = '') {
       .slice(-3)
       .map(item => String(item.text || '')),
   ].join(' ')
-  const portuguesePattern = /\b(o que|vc|você|voce|sabe|fazer|fa[cç]a|crie|criar|gere|gerar|liste|lista|habilidades|capacidades|para mim|me ajude|ajude|planta|projeto|quero|posso|opcoes|opções|mostre|portugu[eê]s|render|or[cç]amento|an[uú]ncio|cliente|contrato|programar|componente|c[oó]digo|traduza|traduzir)\b/i
+  const portuguesePattern = /\b(o que|vc|você|voce|sabe|fazer|fa[cç]a|crie|criar|gere|gerar|liste|lista|habilidades|capacidades|servi[cç]os|preciso|ajuda|ajudar|me ajude|me ajuda|ajude|planta|projeto|quero|posso|opcoes|opções|mostre|portugu[eê]s|render|or[cç]amento|cronograma|marketing|vendas|upload|arquivo|an[uú]ncio|cliente|contrato|programar|componente|c[oó]digo|traduza|traduzir)\b/i
   const englishSwitchPattern = /\b(answer in english|speak english|in english|english please)\b/i
   const hiddenUploadMessage = /^user uploaded this file\./i.test(String(userText || '').trim())
   if (englishSwitchPattern.test(userText)) return 'English'
@@ -459,12 +474,72 @@ function buildLiveAgentToolDefinitions() {
           required: ['commandId', 'reason']
         }
       }
-    }
+    },
+    ...buildCodeToolDefinitions(),
   ]
+}
+
+function getChatProvider() {
+  if (process.env.OPENAI_API_KEY) return 'openai'
+  if (process.env.ANTHROPIC_API_KEY) return 'anthropic'
+  return null
+}
+
+function buildAnthropicMessages(messages) {
+  return (Array.isArray(messages) ? messages : []).map(msg => ({
+    role: msg.role === 'assistant' ? 'assistant' : msg.role === 'system' ? 'system' : 'user',
+    content: String(msg.content || ''),
+  }))
+}
+
+async function callOpenAIChat(requestPayload) {
+  const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
+  const response = await fetch(`${apiBase}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(requestPayload),
+  })
+  const data = await response.json().catch(() => ({}))
+  return { provider: 'openai', response, data }
+}
+
+async function callAnthropicChat(liveAgentMessages) {
+  const apiBase = process.env.ANTHROPIC_API_BASE || 'https://api.anthropic.com/v1'
+  const payload = {
+    model: process.env.ANTHROPIC_CHAT_MODEL || 'claude-sonnet-4-6',
+    messages: buildAnthropicMessages(liveAgentMessages),
+    max_tokens_to_sample: 900,
+    temperature: 0.72,
+    top_p: 1,
+  }
+  const response = await fetch(`${apiBase}/messages`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': process.env.ANTHROPIC_API_KEY,
+    },
+    body: JSON.stringify(payload),
+  })
+  const data = await response.json().catch(() => ({}))
+  return { provider: 'anthropic', response, data }
+}
+
+function pickAnthropicReply(data) {
+  return String(data?.completion || data?.content?.[0]?.text || (data?.message && data.message.content) || '').trim()
 }
 
 async function executeLiveAgentToolCall(toolCall) {
   const name = toolCall && toolCall.function ? String(toolCall.function.name || '') : ''
+
+  // Real code/filesystem/command tools (read/list/search/write/edit/run).
+  if (CODE_TOOL_NAMES.has(name)) {
+    const repoRoot = path.resolve(__dirname, '../../')
+    return await executeCodeToolCall(toolCall, repoRoot)
+  }
+
   if (name !== 'run_safe_local_command') {
     return { providerStatus: 'blocked', error: 'Unknown Apex live agent tool.' }
   }
@@ -555,7 +630,7 @@ export default async function handler(req, res) {
     const looksLikePdfSummary = hasReadyPdfText && PDF_SUMMARY_PATTERN.test(routingMessage || '')
 
     // Fast-path: greeting in Portuguese — no file context needed
-    if (/^\s*(ol[aá]|oi|ola)\s*$/i.test(userMessage)) {
+    if (!APEX_FREE_AGENT && /^\s*(ol[aá]|oi|ola)\s*$/i.test(userMessage)) {
       const name = clientMemory.displayName ? `, ${clientMemory.displayName}` : ''
       const greeting = `Olá${name}. Como posso ajudar agora?`
       return sendJson(res, 200, {
@@ -678,8 +753,8 @@ export default async function handler(req, res) {
     // operator which may classify very short inputs as ambiguous. Instead, allow the
     // conversational flow below to handle the request with file context.
     const fileCandidate2 = body.file || null
-    const looksLikePdfSummary2 = Boolean(fileCandidate2 && fileCandidate2.kind === 'pdf' && fileCandidate2.extractionStatus === 'ready' && String(fileCandidate2.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(routingMessage || ''))
-    if (!looksLikePdfSummary2 && productionRouterIntents.has(productionConversationIntent)) {
+    const looksLikePdfSummary2 = Boolean(fileCandidate2 && fileCandidate2.kind === 'pdf' && fileCandidate2.extractionStatus === 'ready' && String(fileCandidate2.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(userMessage || ''))
+    if (!APEX_FREE_AGENT && !looksLikePdfSummary2 && productionRouterIntents.has(productionConversationIntent)) {
       const result = await runApexOperatorProductionSafe({
         userMessage,
         identityContext: normalizeIdentityContext(body.identityContext || {}),
@@ -716,7 +791,7 @@ export default async function handler(req, res) {
     }
 
     // Portuguese-only greeting short-circuit for 'ola'/'oi' single-word greetings.
-    if (/^\s*(ola|oi|ol[aá])\s*[.!?]?\s*$/i.test(userMessage || '')) {
+    if (!APEX_FREE_AGENT && /^\s*(ola|oi|ol[aá])\s*[.!?]?\s*$/i.test(userMessage || '')) {
       const greeting = 'Olá, Dr Edgard. Como posso ajudar agora?'
       return sendJson(res, 200, {
         finalReply: greeting,
@@ -844,137 +919,24 @@ export default async function handler(req, res) {
         content: [
           'Apex Live Agent Runtime is enabled.',
           'The user can talk naturally, like with ChatGPT or Codex. Do not require exact command phrases.',
-          'You are not a button router. You are a live project copilot: infer intent from context, decide whether evidence is needed, use safe tools when useful, then give a recommendation.',
-          'When live evidence about this local repo is useful, decide by yourself whether to call run_safe_local_command.',
-          'Use tools only when useful. Do not use tools for normal writing, explanation, strategy, design or business answers.',
-          'Never call raw shell. Never deploy. Never migrate Supabase. Never push. Never modify files from this tool.',
-          'Critical truth rule: never claim that you committed, pushed, deployed, migrated, edited files, installed packages, or changed production unless a tool result explicitly proves that exact action.',
-          'The live tool can validate status/build/checks only. It cannot commit. If the user says faca, ok, pode, segue, continua, infer the next safe action from context. If the next action is commit, recommend it and provide the exact command or ask for an explicit approved commit tool; do not claim it was done.',
+          'You are a full coding copilot with REAL access to this platform repository. You have tools to read files (read_file), list directories (list_dir), search code (search_code), write files (write_file), edit files (edit_file) and run commands (run_command).',
+          'When the user asks about the code, the platform, or to change/fix/build something, USE these tools to actually inspect and modify the real repository. Do not guess file contents — read them.',
+          'Investigate thoroughly: when asked to "analyze your code", "review the platform", or about a feature like auto-upgrade, do NOT stop after reading one file. Use list_dir and search_code to find ALL relevant files, read several of them, and base your answer on what you actually found. For auto-upgrade / self-upgrade questions, call self_upgrade_report.',
+          'Never answer about the codebase with a vague generic summary. Cite concrete file paths, function names and findings from the tools.',
+          'Work iteratively: explore with read_file/list_dir/search_code, make changes with write_file/edit_file, then verify with run_command when available.',
+          'To actually apply code changes that persist (especially in the serverless production runtime where write_file/edit_file fail with a read-only filesystem), call github_commit_changes with the full new content of each file. It creates a branch, commits, and opens a Pull Request that deploys when merged. When the user says "edit the code", "faça você mesmo", "aplique agora" or "code it yourself", actually CALL github_commit_changes — do not just paste code in the chat.',
+          'Note: in the serverless cloud environment direct file writes and command execution are unavailable; read/list/search still work on the bundled code, and github_commit_changes is the correct way to persist code changes (it opens a PR).',
+          'Destructive commands and secret files (.env, keys) are blocked by the sandbox.',
+          'Critical truth rule: only claim you read, edited, created, or ran something if a tool result proves it. If a tool fails, report the real error.',
           'Do not end with vague questions like "what would you like to do next?" when evidence supports a clear next step. Give a decisive recommendation and one practical next action.',
-          'Use status language: GREEN for proven OK, YELLOW for pending/review, BLOCKED for unsafe/unavailable. Be confident only when evidence exists.',
-          'After tool results, answer naturally in the latest user language with clear status, what is proven, what is not proven, and the recommended next execution.'
+          'After tool results, answer naturally in the latest user language with what you found, what you changed, and the verified result.'
         ].join(' ')
       },
       messagesPayload[messagesPayload.length - 1],
     ]
 
-    // ── Anthropic Claude path ─────────────────────────────────────────────
-    if (useAnthropic) {
-      const claudeModel = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-6'
-      // Extract system message and build Anthropic-format messages
-      const systemText = liveAgentMessages
-        .filter(m => m.role === 'system')
-        .map(m => (typeof m.content === 'string' ? m.content : JSON.stringify(m.content)))
-        .join('\n\n')
-      const anthropicMessages = liveAgentMessages
-        .filter(m => m.role === 'user' || m.role === 'assistant')
-        .map(m => ({ role: m.role, content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content) }))
-
-      // Anthropic tool format
-      const anthropicTools = [
-        {
-          name: 'run_safe_local_command',
-          description: 'Run a safe allowlisted local Apex project command when live project evidence is needed.',
-          input_schema: {
-            type: 'object',
-            properties: {
-              commandId: {
-                type: 'string',
-                enum: ['git_status', 'git_diff_stat', 'build', 'validate_supabase_sql', 'check_server'],
-                description: 'Safe command to execute in the authorized Apex repo.',
-              },
-              reason: { type: 'string', description: 'Brief natural reason why this command is needed.' },
-            },
-            required: ['commandId', 'reason'],
-          },
-        },
-      ]
-
-      const claudeResp = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'x-api-key': anthropicKey,
-          'anthropic-version': '2023-06-01',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: claudeModel,
-          max_tokens: 1024,
-          system: systemText,
-          messages: anthropicMessages,
-          tools: anthropicTools,
-        }),
-      })
-
-      const claudeData = await claudeResp.json().catch(() => ({}))
-      if (!claudeResp.ok) {
-        console.error('[Anthropic] error', claudeData?.error)
-        return sendJson(res, 200, {
-          finalReply: buildChatFallbackReply(userMessage, identityContext, file),
-          reply: buildChatFallbackReply(userMessage, identityContext, file),
-          mode: 'local-fallback',
-          confirmation: null,
-          productionStatus,
-        })
-      }
-
-      const contentBlocks = Array.isArray(claudeData.content) ? claudeData.content : []
-      const toolUseBlocks = contentBlocks.filter(b => b.type === 'tool_use')
-
-      if (toolUseBlocks.length && claudeData.stop_reason === 'tool_use') {
-        // Execute tools and follow up
-        const toolResultContents = []
-        for (const block of toolUseBlocks) {
-          const fakeToolCall = { function: { name: block.name }, id: block.id, arguments: JSON.stringify(block.input || {}) }
-          const result = await executeLiveAgentToolCall(fakeToolCall)
-          toolResultContents.push({ type: 'tool_result', tool_use_id: block.id, content: JSON.stringify(result) })
-        }
-
-        const followUpMessages = [
-          ...anthropicMessages,
-          { role: 'assistant', content: contentBlocks },
-          { role: 'user', content: toolResultContents },
-        ]
-
-        const finalResp = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: {
-            'x-api-key': anthropicKey,
-            'anthropic-version': '2023-06-01',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: claudeModel,
-            max_tokens: 1024,
-            system: systemText,
-            messages: followUpMessages,
-          }),
-        })
-        const finalData = await finalResp.json().catch(() => ({}))
-        const finalReply = (Array.isArray(finalData.content) ? finalData.content : []).filter(b => b.type === 'text').map(b => b.text).join('') || ''
-        return sendJson(res, 200, {
-          finalReply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
-          reply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
-          model: claudeModel,
-          mode: 'apex-claude-tool-calling',
-          toolCalls: toolUseBlocks.map(b => b.name),
-          confirmation: null,
-          productionStatus,
-        })
-      }
-
-      const reply = contentBlocks.filter(b => b.type === 'text').map(b => b.text).join('') || ''
-      return sendJson(res, 200, {
-        finalReply: reply || buildChatFallbackReply(userMessage, identityContext, file),
-        reply: reply || buildChatFallbackReply(userMessage, identityContext, file),
-        model: claudeModel,
-        mode: 'apex-claude-chat',
-        confirmation: null,
-        productionStatus,
-      })
-    }
-
-    // ── OpenAI fallback path ──────────────────────────────────────────────
+    const provider = getChatProvider()
+    const chatSource = provider === 'anthropic' ? 'anthropic' : 'openai'
     const requestPayload = {
       model: process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
       messages: liveAgentMessages,
@@ -985,17 +947,7 @@ export default async function handler(req, res) {
       max_tokens: 900,
     }
 
-    const response = await fetch(`${apiBase}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + openaiKey,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestPayload),
-    })
-
-    const data = await response.json().catch(() => ({}))
-    if (!response.ok) {
+    if (!provider) {
       return sendJson(res, 200, {
         finalReply: buildChatFallbackReply(userMessage, identityContext, file),
         reply: buildChatFallbackReply(userMessage, identityContext, file),
@@ -1005,43 +957,128 @@ export default async function handler(req, res) {
       })
     }
 
-    const assistantMessage = data && data.choices && data.choices[0] ? data.choices[0].message || {} : {}
-    const toolCalls = Array.isArray(assistantMessage.tool_calls) ? assistantMessage.tool_calls : []
+    const chatResult = provider === 'anthropic'
+      ? await callAnthropicChat(liveAgentMessages)
+      : await callOpenAIChat(requestPayload)
 
-    if (toolCalls.length) {
-      const followUpMessages = [
-        ...liveAgentMessages,
-        { role: 'assistant', content: assistantMessage.content || '', tool_calls: toolCalls },
-      ]
-      for (const toolCall of toolCalls) {
-        const toolResult = await executeLiveAgentToolCall(toolCall)
-        followUpMessages.push({ role: 'tool', tool_call_id: toolCall.id, content: JSON.stringify(toolResult) })
-      }
-      const finalResponse = await fetch(`${apiBase}/chat/completions`, {
-        method: 'POST',
-        headers: { Authorization: 'Bearer ' + openaiKey, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: process.env.OPENAI_MODEL || 'gpt-4o-mini', messages: followUpMessages, temperature: 0.45, max_tokens: 900 }),
-      })
-      const finalData = await finalResponse.json().catch(() => ({}))
-      const finalReply = finalData?.choices?.[0]?.message?.content || ''
+    const response = chatResult.response
+    const data = chatResult.data
+
+    if (!response.ok) {
       return sendJson(res, 200, {
-        finalReply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
-        reply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
-        model: finalData.model,
-        mode: 'live-agent-tool-calling',
-        toolCalls: toolCalls.map(c => c?.function?.name || 'unknown'),
+        finalReply: buildChatFallbackReply(userMessage, identityContext, file),
+        reply: buildChatFallbackReply(userMessage, identityContext, file),
+        mode: 'local-fallback',
+        provider: provider,
         confirmation: null,
         productionStatus,
       })
     }
 
-    const reply = assistantMessage.content || ''
+    if (chatSource === 'openai') {
+      const assistantMessage = data && data.choices && data.choices[0] ? data.choices[0].message || {} : {}
+      const toolCalls = Array.isArray(assistantMessage.tool_calls) ? assistantMessage.tool_calls : []
+
+      if (toolCalls.length) {
+        const conversationMessages = [...liveAgentMessages]
+        let currentAssistant = assistantMessage
+        let currentToolCalls = toolCalls
+        const usedToolNames = []
+        const apiBaseUrl = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
+        const MAX_TOOL_ROUNDS = 12
+
+        for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+          conversationMessages.push({
+            role: 'assistant',
+            content: currentAssistant.content || '',
+            tool_calls: currentToolCalls,
+          })
+
+          for (const toolCall of currentToolCalls) {
+            usedToolNames.push(toolCall?.function?.name || 'unknown')
+            const toolResult = await executeLiveAgentToolCall(toolCall)
+            conversationMessages.push({
+              role: 'tool',
+              tool_call_id: toolCall.id,
+              content: JSON.stringify(toolResult),
+            })
+          }
+
+          const nextResponse = await fetch(`${apiBaseUrl}/chat/completions`, {
+            method: 'POST',
+            headers: {
+              Authorization: 'Bearer ' + process.env.OPENAI_API_KEY,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
+              messages: conversationMessages,
+              tools: buildLiveAgentToolDefinitions(),
+              tool_choice: 'auto',
+              temperature: 0.45,
+              frequency_penalty: 0.1,
+              max_tokens: 1500,
+            }),
+          })
+
+          const nextData = await nextResponse.json().catch(() => ({}))
+          if (!nextResponse.ok) {
+            return sendJson(res, 200, {
+              finalReply: buildChatFallbackReply(userMessage, identityContext, file),
+              reply: buildChatFallbackReply(userMessage, identityContext, file),
+              mode: 'local-fallback-after-tool',
+              confirmation: null,
+              productionStatus,
+            })
+          }
+
+          currentAssistant = nextData?.choices?.[0]?.message || {}
+          currentToolCalls = Array.isArray(currentAssistant.tool_calls) ? currentAssistant.tool_calls : []
+
+          if (!currentToolCalls.length) {
+            const finalReply = currentAssistant.content || ''
+            return sendJson(res, 200, {
+              finalReply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
+              reply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
+              model: nextData.model,
+              usage: nextData.usage,
+              mode: 'live-agent-tool-calling',
+              toolCalls: usedToolNames,
+              confirmation: null,
+              productionStatus,
+            })
+          }
+        }
+
+        return sendJson(res, 200, {
+          finalReply: currentAssistant.content || 'Atingi o limite de etapas de ferramentas nesta resposta. Posso continuar se você confirmar.',
+          reply: currentAssistant.content || 'Atingi o limite de etapas de ferramentas nesta resposta. Posso continuar se você confirmar.',
+          mode: 'live-agent-tool-calling-maxed',
+          toolCalls: usedToolNames,
+          confirmation: null,
+          productionStatus,
+        })
+      }
+
+      const reply = assistantMessage.content || ''
+      return sendJson(res, 200, {
+        finalReply: reply || buildChatFallbackReply(userMessage, identityContext, file),
+        reply: reply || buildChatFallbackReply(userMessage, identityContext, file),
+        model: data.model,
+        usage: data.usage,
+        mode: 'live-agent-chat',
+        confirmation: null,
+        productionStatus,
+      })
+    }
+
+    const anthropicReply = pickAnthropicReply(data)
     return sendJson(res, 200, {
-      finalReply: reply || buildChatFallbackReply(userMessage, identityContext, file),
-      reply: reply || buildChatFallbackReply(userMessage, identityContext, file),
-      model: data.model,
-      usage: data.usage,
-      mode: 'live-agent-chat',
+      finalReply: anthropicReply || buildChatFallbackReply(userMessage, identityContext, file),
+      reply: anthropicReply || buildChatFallbackReply(userMessage, identityContext, file),
+      model: data?.model || process.env.ANTHROPIC_CHAT_MODEL || 'claude-sonnet-4-6',
+      usage: data?.usage,
+      mode: 'live-agent-chat-anthropic',
       confirmation: null,
       productionStatus,
     })
