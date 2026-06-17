@@ -976,6 +976,30 @@ function App() {
     setInput('')
   }
 
+  function closeOtherPanels(except: string) {
+    if (except !== 'archVis') setArchVisOutput(null)
+    if (except !== 'directCut') setDirectCutOutput(null)
+    if (except !== 'bim3D') setBim3DOutput(null)
+    if (except !== 'budget') setBudgetOutput(null)
+    if (except !== 'contracts') setContractsOutput(null)
+    if (except !== 'research') setResearchOutput(null)
+    if (except !== 'fieldOps') setFieldOpsOutput(null)
+    if (except !== 'business') setBusinessOutput(null)
+    if (except !== 'agents') setAgentsOutput(null)
+    if (except !== 'evmScheduler') setEvmSchedulerComplianceOutput(null)
+    if (except !== 'supplyChain') setSupplyChainOutput(null)
+    if (except !== 'notifications') setNotificationsOutput(null)
+    if (except !== 'aiCost') setAiCostOutput(null)
+    if (except !== 'multiTenant') setMultiTenantOutput(null)
+    if (except !== 'pwaMobile') setPwaMobileOutput(null)
+    if (except !== 'digitalTwin') setDigitalTwinOutput(null)
+    if (except !== 'knowledgeBase') setKnowledgeBaseOutput(null)
+    if (except !== 'metrics') setMetricsOutput(null)
+    if (except !== 'copilotExecution') setCopilotExecutionOutput(null)
+    if (except !== 'auth') setAuthOutput(null)
+    if (except !== 'exportCenter') setExportCenterOpen(false)
+  }
+
   async function signOutFromShell() {
     if (!isSupabaseConfigured) return
     const { client } = getBrowserSupabaseClient()
@@ -1202,6 +1226,7 @@ function App() {
     const shouldOpenSkillExport = clean && !shouldTreatAsConversation && (isSkillExportIntent(clean) || isSkillExportFactoryAlias(clean))
     const shouldOpenExportCenter = clean && isExportIntent(clean)
     if (shouldOpenExportCenter) {
+      closeOtherPanels('exportCenter')
       setExportCenterOpen(true)
       setMessages(prev => [
         ...prev,
@@ -1259,6 +1284,7 @@ function App() {
       return
     }
     if (shouldOpenAuth) {
+      closeOtherPanels('auth')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setAuthOutput({ goal: clean, conversationContext: context })
       if (isOwnerUser) setOwnerConsoleOpen(true)
@@ -1288,6 +1314,7 @@ function App() {
       return
     }
     if (shouldOpenBusiness) {
+      closeOtherPanels('business')
       const context = [...messages, userMessage]
         .slice(-8)
         .map(message => `${message.role}: ${message.text}`)
@@ -1305,6 +1332,7 @@ function App() {
       return
     }
     if (shouldOpenSupplyChain) {
+      closeOtherPanels('supplyChain')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Supply Chain / Suppliers Studio ao lado. Vou organizar fornecedores, cotações e compras em modo local, sem fingir preço, disponibilidade ou verificação de fornecedor.' }])
       setSupplyChainOutput({ goal: clean, conversationContext: context })
@@ -1312,6 +1340,7 @@ function App() {
       return
     }
     if (shouldOpenNotifications) {
+      closeOtherPanels('notifications')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Notifications / Alerts Center ao lado. Estes são alertas locais; conector de push, email ou SMS ainda não está conectado.' }])
       setNotificationsOutput({ goal: clean, conversationContext: context })
@@ -1319,6 +1348,7 @@ function App() {
       return
     }
     if (shouldOpenAiCost) {
+      closeOtherPanels('aiCost')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o AI Cost Dashboard ao lado. Vou mostrar estimativas locais de uso/custo, sem fingir billing real da OpenAI ou de outro provedor.' }])
       setAiCostOutput({ goal: clean, conversationContext: context })
@@ -1326,6 +1356,7 @@ function App() {
       return
     }
     if (shouldOpenMultiTenant) {
+      closeOtherPanels('multiTenant')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Multi-tenant Readiness ao lado. É planejamento local-first: sem fingir isolamento real de Supabase/auth/RLS.' }])
       setMultiTenantOutput({ goal: clean, conversationContext: context })
@@ -1333,6 +1364,7 @@ function App() {
       return
     }
     if (shouldOpenPwaMobile) {
+      closeOtherPanels('pwaMobile')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o PWA / Mobile Field Mode ao lado. Vou preparar checklist e fluxo mobile/offline, sem fingir PWA instalado.' }])
       setPwaMobileOutput({ goal: clean, conversationContext: context })
@@ -1340,6 +1372,7 @@ function App() {
       return
     }
     if (shouldOpenDigitalTwin) {
+      closeOtherPanels('digitalTwin')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Digital Twin UI ao lado. É estado local/planning-only: sem IoT em tempo real e sem sync vivo de modelo.' }])
       setDigitalTwinOutput({ goal: clean, conversationContext: context })
@@ -1347,6 +1380,7 @@ function App() {
       return
     }
     if (shouldOpenKnowledgeBase) {
+      closeOtherPanels('knowledgeBase')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri a Knowledge Base ao lado. Vou indexar conhecimento local/projeto sem executar conteúdo e sem marcar global sem aprovação do Owner.' }])
       setKnowledgeBaseOutput({ goal: clean, conversationContext: context })
@@ -1354,6 +1388,7 @@ function App() {
       return
     }
     if (shouldOpenMetrics) {
+      closeOtherPanels('metrics')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Metrics Dashboard ao lado. Métricas são LOCAL_DEMO/ESTIMATED_LOCAL até existir telemetria real.' }])
       setMetricsOutput({ goal: clean, conversationContext: context })
@@ -1366,6 +1401,7 @@ function App() {
         setInput('')
         return
       }
+      closeOtherPanels('copilotExecution')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Apex Copilot Local Execution v0. Ele executa comandos reais apenas pela allowlist do server.mjs, sem comando livre.' }])
       setCopilotExecutionOutput({ goal: clean, conversationContext: context })
@@ -1374,6 +1410,7 @@ function App() {
       return
     }
     if (shouldOpenControlsAgents) {
+      closeOtherPanels('evmScheduler')
       const context = [...messages, userMessage]
         .slice(-8)
         .map(message => `${message.role}: ${message.text}`)
@@ -1391,6 +1428,7 @@ function App() {
       return
     }
     if (shouldOpenAgents) {
+      closeOtherPanels('agents')
       const context = [...messages, userMessage]
         .slice(-8)
         .map(message => `${message.role}: ${message.text}`)
@@ -1437,6 +1475,7 @@ function App() {
       return
     }
     if (shouldOpenDirectCut) {
+      closeOtherPanels('directCut')
       const context = [...messages, userMessage]
         .slice(-8)
         .map(message => `${message.role}: ${message.text}`)
@@ -1459,6 +1498,7 @@ function App() {
       return
     }
     if (shouldOpenContracts) {
+      closeOtherPanels('contracts')
       const context = [...messages, userMessage]
         .slice(-8)
         .map(message => `${message.role}: ${message.text}`)
@@ -1480,6 +1520,7 @@ function App() {
       return
     }
     if (shouldOpenResearch) {
+      closeOtherPanels('research')
       const context = [...messages, userMessage]
         .slice(-8)
         .map(message => `${message.role}: ${message.text}`)
@@ -1500,6 +1541,7 @@ function App() {
       return
     }
     if (shouldOpenFieldOps) {
+      closeOtherPanels('fieldOps')
       const context = [...messages, userMessage]
         .slice(-8)
         .map(message => `${message.role}: ${message.text}`)
@@ -1521,6 +1563,7 @@ function App() {
       return
     }
     if (shouldOpenBudget) {
+      closeOtherPanels('budget')
       const context = [...messages, userMessage]
         .slice(-8)
         .map(message => `${message.role}: ${message.text}`)
@@ -1549,6 +1592,7 @@ function App() {
           ? 'Abri o fluxo de importação 3D da Apex. Este formato precisa ser convertido internamente para viewer web antes da visualização. Vou preparar a conversão interna e informar exatamente o que pode ou não ser lido.'
           : 'Abri o BIM / 3D Studio ao lado para revisar o arquivo e preparar o próximo fluxo interno.'
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: studioMessage }])
+      closeOtherPanels('bim3D')
       setBim3DOutput({ source: attachment })
       setInput('')
       return
@@ -1631,6 +1675,7 @@ function App() {
           ? 'Abri o ArchVis Studio ao lado para render 3D/perspectiva. Você pode ajustar câmera, prompt e gerar pelo painel.'
           : 'Vou humanizar a planta baixa em vista superior. Se quiser render 3D em perspectiva, me peça 3D. Abri o ArchVis Studio ao lado com a imagem e o prompt ajustável.'
         setMessages(prev => [...prev, { id: id(), role: 'assistant', text: studioMessage }])
+        closeOtherPanels('archVis')
         setArchVisOutput({
           source: attachment,
           output: reply,
@@ -1726,6 +1771,7 @@ function App() {
       '',
       payload.exportNotes,
     ].join('\n')
+    closeOtherPanels('directCut')
     setDirectCutOutput({
       source: bim3DOutput?.source,
       goal,
@@ -2512,6 +2558,7 @@ function App() {
               conversationContext={budgetOutput.conversationContext}
               onSaveToProject={saveBudgetToProject}
               onSendToDirectCut={summary => {
+                closeOtherPanels('directCut')
                 setDirectCutOutput({
                   source: budgetOutput.source,
                   goal: summary,
@@ -2547,6 +2594,7 @@ function App() {
               conversationContext={contractsOutput.conversationContext}
               onSaveToProject={saveContractsToProject}
               onSendToBudget={summary => {
+                closeOtherPanels('budget')
                 setBudgetOutput({
                   source: contractsOutput.source,
                   goal: summary,
@@ -2581,6 +2629,7 @@ function App() {
               conversationContext={fieldOpsOutput.conversationContext}
               onSaveToProject={saveFieldOpsToProject}
               onSendToBudget={summary => {
+                closeOtherPanels('budget')
                 setBudgetOutput({
                   source: fieldOpsOutput.source,
                   goal: summary,
@@ -2596,6 +2645,7 @@ function App() {
                 ])
               }}
               onSendToContracts={summary => {
+                closeOtherPanels('contracts')
                 setContractsOutput({
                   source: fieldOpsOutput.source,
                   goal: summary,
@@ -2611,6 +2661,7 @@ function App() {
                 ])
               }}
               onSendToDirectCut={summary => {
+                closeOtherPanels('directCut')
                 setDirectCutOutput({
                   source: fieldOpsOutput.source,
                   goal: summary,
@@ -2700,6 +2751,7 @@ function App() {
               conversationContext={aiCostOutput.conversationContext}
               onSaveToProject={saveAiCostToProject}
               onCreateThresholdAlert={summary => {
+                closeOtherPanels('notifications')
                 setNotificationsOutput({
                   goal: summary,
                   conversationContext: [`assistant: ${summary}`],
