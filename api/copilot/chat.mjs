@@ -7,6 +7,7 @@ import { classifyToolExecutionRequest, routeToolExecution, routeH6ActionRequest 
 import { isConfirmationSignal, isCancelSignal, hasPendingAction } from '../../server/agent/confirmationStateMachine.mjs'
 import { classifyProductionConversationIntent } from '../../server/agent/productionConversationRouter.mjs'
 import { buildCodeToolDefinitions, executeCodeToolCall, CODE_TOOL_NAMES } from '../../server/agent/codeTools.mjs'
+import { runLocalWorkerAction } from '../../server/agent/localWorkerClient.mjs'
 
 // APEX_FREE_AGENT (default ON): conversational messages bypass the canned
 // production-intent router and go straight to the LLM. Set APEX_FREE_AGENT=0
@@ -556,11 +557,41 @@ async function executeLiveAgentToolCall(toolCall) {
   const commandId = String(args.commandId || '')
   const reason = String(args.reason || '').slice(0, 500)
 
+  const hasLocalWorker = Boolean(process.env.LOCAL_WORKER_URL && process.env.LOCAL_WORKER_TOKEN)
+  if (hasLocalWorker) {
+    let action = ''
+    if (commandId === 'git_status') action = 'project.git_status'
+    else if (commandId === 'git_diff_stat') action = 'project.git_diff_stat'
+    else if (commandId === 'build') action = 'project.build_check'
+    else if (commandId === 'check_server') action = 'system.info'
+
+    if (action) {
+      const result = await runLocalWorkerAction(action, { confirmed: true })
+      if (result.ok) {
+        return {
+          providerStatus: 'completed',
+          commandId,
+          reason,
+          stdout: result.stdout,
+          stderr: result.stderr,
+          exitCode: result.exitCode
+        }
+      } else {
+        return {
+          providerStatus: 'failed',
+          commandId,
+          reason,
+          error: result.reason || 'Local worker action execution failed.'
+        }
+      }
+    }
+  }
+
   return {
     providerStatus: 'unavailable',
     commandId,
     reason,
-    error: 'Local command execution is unavailable in the serverless cloud environment.'
+    error: 'Local command execution is unavailable in the serverless cloud environment. Start the local worker on your machine and configure LOCAL_WORKER_URL on Vercel to enable this.'
   }
 }
 
