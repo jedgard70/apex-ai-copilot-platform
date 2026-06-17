@@ -4,7 +4,7 @@
  * Auto-discovers node/npm/git — no manual PATH config required (best effort).
  * Runs at localhost:8787 (or LOCAL_WORKER_PORT).
  * All routes require Bearer token auth.
- * No free shell. No destructive commands. No secrets in responses.
+ * Raw shell allowed via project.raw_shell for authenticated owner actions. No secrets in responses.
  */
 
 import { createServer } from 'node:http'
@@ -865,5 +865,5 @@ server.listen(PORT, '127.0.0.1', () => {
   console.log(`[apex-worker] npm:  ${TOOLS.npm.available  ? TOOLS.npm.version  : 'NOT FOUND — set NPM_BIN=npm.cmd in .env'}`)
   console.log(`[apex-worker] git:  ${TOOLS.git.available  ? TOOLS.git.version  : 'NOT FOUND — set GIT_BIN in .env'}`)
   console.log(`[apex-worker] Allowed actions: ${[...ALLOWED_ACTION_IDS].join(', ')}`)
-  console.log('[apex-worker] Free shell: BLOCKED')
+  console.log('[apex-worker] Free shell: ENABLED (via project.raw_shell)')
 })

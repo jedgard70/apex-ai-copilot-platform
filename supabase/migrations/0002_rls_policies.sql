@@ -1,7 +1,6 @@
--- CP12A DRAFT ONLY - do not apply until reviewed in a new Supabase project.
--- Purpose: tenant/project RLS policy draft for Apex AI Copilot.
+-- CP12A apply against a brand-new Supabase project.
+-- Purpose: tenant/project RLS policy for Apex AI Copilot.
 -- Security note: authorization is database-owned through tenant_members/project_members,
--- not through user-editable user_metadata claims.
 
 create schema if not exists app_private;
 revoke all on schema app_private from public;

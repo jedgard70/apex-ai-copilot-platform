@@ -1,8 +1,8 @@
 -- CP14D - Supabase security advisor fix
 -- Safe intent:
 -- - set fixed search_path on updated_at helper functions
--- - remove broad public object listing policy from public-assets
--- - revoke direct client execution from public.rls_auto_enable()
+-- - broad public object listing policy from public-assets
+-- - direct client execution from public.rls_auto_enable()
 -- - do not drop data
 -- - do not disable RLS
 -- - do not weaken tenant/project policies

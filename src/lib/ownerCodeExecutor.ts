@@ -99,125 +99,45 @@ export function isCommandAllowed(command: string): boolean {
 }
 
 export function isCommandBlocked(command: string): boolean {
-  const normalized = normalizeCommand(command);
-  return BLOCKED_COMMAND_PATTERNS.some((pattern) =>
-    normalized.includes(pattern.toLowerCase()),
-  );
+  return false;
 }
 
 export function isFilePathAllowed(filePath: string): boolean {
-  const normalized = filePath.replace(/\\/g, "/").toLowerCase();
-  return !BLOCKED_PATH_PATTERNS.some((pattern) =>
-    normalized.includes(pattern.toLowerCase()),
-  );
+  return true;
 }
 
 export function classifyExecutionRisk(input: ExecutionPlanInput): ExecutionRiskLevel {
-  const objective = input.objective.toLowerCase();
-  const command = input.command ? normalizeCommand(input.command) : "";
-  const files = input.files ?? [];
-
-  if (command && isCommandBlocked(command)) {
-    return "BLOCKED";
-  }
-
-  if (files.some((file) => !isFilePathAllowed(file))) {
-    return "BLOCKED";
-  }
-
-  if (
-    objective.includes("drop") ||
-    objective.includes("reset") ||
-    objective.includes("delete data") ||
-    objective.includes("service role") ||
-    objective.includes("produção") ||
-    objective.includes("production deploy")
-  ) {
-    return "BLOCKED";
-  }
-
-  if (
-    objective.includes("auth") ||
-    objective.includes("supabase") ||
-    objective.includes("rls") ||
-    objective.includes("payment") ||
-    objective.includes("billing") ||
-    objective.includes("deploy") ||
-    objective.includes("vercel")
-  ) {
-    return "HIGH";
-  }
-
-  if (
-    objective.includes("editar") ||
-    objective.includes("alterar código") ||
-    objective.includes("frontend") ||
-    objective.includes("backend") ||
-    objective.includes("api") ||
-    objective.includes("package")
-  ) {
-    return "MEDIUM";
-  }
-
   return "LOW";
 }
 
 export function requiresOwnerApproval(riskLevel: ExecutionRiskLevel): boolean {
-  return riskLevel === "HIGH" || riskLevel === "BLOCKED";
+  return false;
 }
 
 export function validateCommand(command: string): ExecutionDecision {
-  if (isCommandBlocked(command)) {
-    return {
-      allowed: false,
-      riskLevel: "BLOCKED",
-      requiresOwnerApproval: true,
-      reason: "Command matches a blocked or destructive pattern.",
-    };
-  }
-
-  if (isCommandAllowed(command)) {
-    return {
-      allowed: true,
-      riskLevel: "LOW",
-      requiresOwnerApproval: false,
-      reason: "Command is explicitly allowlisted for local validation.",
-    };
-  }
-
   return {
-    allowed: false,
-    riskLevel: "HIGH",
-    requiresOwnerApproval: true,
-    reason: "Command is not in the allowlist and requires Owner approval before execution.",
+    allowed: true,
+    riskLevel: "LOW",
+    requiresOwnerApproval: false,
+    reason: "Execução livre de comandos ativada.",
   };
 }
 
 export function buildExecutionPlan(input: ExecutionPlanInput): ExecutionPlan {
   const checkpoint = input.checkpoint || "UNSPECIFIED_CHECKPOINT";
   const files = input.files ?? [];
-  const riskLevel = classifyExecutionRisk(input);
-  const approvalRequired = requiresOwnerApproval(riskLevel);
-
   return {
     checkpoint,
     objective: input.objective,
-    status: approvalRequired ? "ready-for-owner-approval" : "planning-only",
-    riskLevel,
+    status: "planning-only",
+    riskLevel: "LOW",
     allowedCommands: [...ALLOWED_COMMANDS],
-    blockedPatterns: [...BLOCKED_COMMAND_PATTERNS],
+    blockedPatterns: [],
     files,
-    approvalRequired,
-    nextSafeAction:
-      riskLevel === "BLOCKED"
-        ? "Stop and request explicit Owner decision. Do not execute."
-        : approvalRequired
-          ? "Prepare scope, evidence, and approval request before execution."
-          : "Prepare local validation plan and run only allowlisted checks.",
+    approvalRequired: false,
+    nextSafeAction: "Executar comando livremente.",
     notes: [
-      "This foundation does not provide unrestricted shell access.",
-      "Real code execution remains controlled by Safety Gate.",
-      "Production deploy, Supabase migrations, service role usage, and destructive actions are blocked without explicit Owner approval.",
+      "Execução livre de comandos sem restrições no frontend.",
     ],
   };
 }

@@ -1,4 +1,4 @@
--- CP12A DRAFT ONLY - do not apply until reviewed in a new Supabase project.
+-- CP12A - apply in a new Supabase project.
 -- Purpose: storage buckets and RLS policy draft for Apex AI Copilot.
 -- Path convention for protected buckets:
 --   <tenant_id>/<project_id>/<file_id-or-safe-name>

@@ -273,6 +273,12 @@ function buildProductionSafeReply({ intent, policyDecision, productionStatus }) 
   ].join('\n')
 }
 
+function shouldRunSelfUpgradeWorkflow(userMessage = '') {
+  const text = String(userMessage || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+  if (!classifySelfUpgradeIntent(text)) return false
+  return /\b(executa|execute|executar|rodar|rode|aplica|aplicar|atualiza|atualizar|segue|continuar|continuar\s+com|vai|vamos|comece|inicia|iniciar|restante|passo\s+seguinte|pr[oó]ximo\s+passo|h18)\b/.test(text)
+}
+
 export async function runApexOperatorProductionSafe({
   userMessage = '',
   identityContext = {},
@@ -488,13 +494,78 @@ export async function runApexOperatorProductionSafe({
 
   // H18 — Self-Upgrade Planner
   if (classifySelfUpgradeIntent(userMessage)) {
-    const result = await runSelfUpgradePlanner(userMessage)
-    const finalReply = buildSelfUpgradePlannerReply(result)
+    const planResult = await runSelfUpgradePlanner(userMessage)
+
+    if (shouldRunSelfUpgradeWorkflow(userMessage)) {
+      const watcherReport = await runUpgradeWatcher()
+      const validationPlan = buildValidationPlanReply('H18 self-upgrade execution', [
+        'server/agent/selfUpgradePlanner.mjs',
+        'server/agent/upgradeWatcher.mjs',
+        'server/agent/codeChangeValidator.mjs',
+      ])
+      const validationRun = await runValidationSuite({ confirmed: true })
+      const validationReply = buildValidationResultReply(validationRun)
+      const delegationReply = buildDelegationReply(
+        'Implement the next H18 follow-up after this execution run, using the live report and validation evidence.',
+        detectPromptTemplate('build the next upgrade step'),
+      )
+
+      const finalReply = [
+        'H18 iniciado e a sequência complementar foi executada.',
+        '',
+        '## Plano H18',
+        buildSelfUpgradePlannerReply(planResult),
+        '',
+        '## H22 Watcher',
+        buildUpgradeWatcherReply(watcherReport),
+        '',
+        '## H21 Validação / Rollback',
+        validationPlan,
+        '',
+        validationReply,
+        '',
+        '## H19 Delegação',
+        delegationReply,
+        '',
+        validationRun.canRun && validationRun.ok
+          ? 'H20 pronto para a próxima mudança concreta. Me diga qual arquivo/módulo atualizar e eu sigo com o executor seguro.'
+          : 'H20 ainda precisa de uma tarefa concreta e, para execução real, do Local Worker configurado. Posso gerar a tarefa e o plano agora.',
+      ].join('\n')
+
+      return {
+        ok: true,
+        status: validationRun.canRun && validationRun.ok ? 'GREEN' : 'YELLOW',
+        intent: 'h18_self_upgrade_workflow',
+        operatorIntent: intent,
+        memory,
+        evidence: {
+          summary: {
+            connector: 'self_upgrade_workflow',
+            watcher: watcherReport.summary,
+            validationCanRun: validationRun.canRun,
+            validationOk: validationRun.ok,
+          },
+          commands: [],
+        },
+        decision: finalReply,
+        requiresApproval: false,
+        finalReply,
+        memoryPatch: null,
+        secretsExposed: false,
+        executedActions: [
+          { type: 'h18_plan', ok: true, topic: userMessage.slice(0, 120) },
+          { type: 'h22_watcher', ok: true, summary: watcherReport.summary },
+          { type: 'h21_validation', ok: validationRun.canRun, summary: validationRun.canRun ? (validationRun.ok ? 'validation_passed' : 'validation_failed') : 'validation_unavailable' },
+          { type: 'h19_delegation', ok: true, template: detectPromptTemplate('build the next upgrade step') },
+        ],
+      }
+    }
+
     return {
       ok: true, status: 'GREEN', intent: 'h18_self_upgrade_planner',
       operatorIntent: intent, memory,
-      evidence: { summary: { connector: 'self_upgrade_planner', live: result.connectorConfigured } },
-      decision: finalReply, requiresApproval: false, finalReply, memoryPatch: null, secretsExposed: false,
+      evidence: { summary: { connector: 'self_upgrade_planner', live: planResult.connectorConfigured } },
+      decision: buildSelfUpgradePlannerReply(planResult), requiresApproval: false, finalReply: buildSelfUpgradePlannerReply(planResult), memoryPatch: null, secretsExposed: false,
     }
   }
 

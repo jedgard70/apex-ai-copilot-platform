@@ -6,11 +6,13 @@
 // reviews and merges; merging triggers a Vercel deploy.
 //
 // Auth: GITHUB_TOKEN or GH_TOKEN (needs `repo` scope / contents+PR write).
-// Repo: APEX_GITHUB_REPOSITORY or GITHUB_REPOSITORY (owner/name).
+// Repo: APEX_GITHUB_REPOSITORY or GITHUB_REPOSITORY (owner/name), or per-call
+// repository argument. All repositories must belong to the allowed owner.
 // Base: APEX_GITHUB_BASE_BRANCH or APEX_GITHUB_BRANCH or VERCEL_GIT_COMMIT_REF.
 //
 import { Buffer } from 'node:buffer'
 
+const DEFAULT_GITHUB_OWNER = 'jedgard70'
 const DEFAULT_REPOSITORY = 'jedgard70/apex-ai-copilot-platform'
 const DEFAULT_BASE_BRANCH = 'feature/image-generation-connector'
 const API = 'https://api.github.com'
@@ -26,15 +28,60 @@ function firstEnv(names) {
 function getToken() {
   return firstEnv(['GITHUB_TOKEN', 'GH_TOKEN'])
 }
-function getRepository() {
-  return firstEnv(['APEX_GITHUB_REPOSITORY', 'GITHUB_REPOSITORY']) || DEFAULT_REPOSITORY
+function getAllowedOwner() {
+  return firstEnv(['APEX_GITHUB_OWNER']) || DEFAULT_GITHUB_OWNER
+}
+function normalizeText(value = '') {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+}
+function parseRepository(value = '') {
+  const text = String(value || '').trim()
+  const match = text.match(/^([^/]+)\/([^/]+)$/)
+  if (!match) return null
+  return { owner: match[1], repo: match[2] }
+}
+function inferRepositoryFromText(text = '') {
+  const normalized = normalizeText(text)
+  const explicit = normalized.match(/\b(jedgard70\/[a-z0-9._-]+)\b/i)
+  if (explicit) return explicit[1]
+
+  const aliases = [
+    { patterns: [/\bapex-ai-copilot-platform\b/i, /\bapex ai copilot platform\b/i, /\bapex platform\b/i, /\bapex\b/i], repository: DEFAULT_REPOSITORY },
+  ]
+
+  for (const alias of aliases) {
+    if (alias.patterns.some(pattern => pattern.test(normalized))) return alias.repository
+  }
+
+  return ''
+}
+
+function resolveRepository(repositoryArg = '', hintText = '') {
+  const configured = firstEnv(['APEX_GITHUB_REPOSITORY', 'GITHUB_REPOSITORY'])
+  const candidate = String(repositoryArg || configured || inferRepositoryFromText(hintText) || DEFAULT_REPOSITORY).trim()
+  const parsed = parseRepository(candidate)
+  if (!parsed) {
+    return { ok: false, error: 'GitHub repository must be in owner/repo format.' }
+  }
+  const allowedOwner = getAllowedOwner()
+  if (parsed.owner !== allowedOwner) {
+    return { ok: false, error: `Repository owner must be ${allowedOwner}.` }
+  }
+  return { ok: true, repository: `${parsed.owner}/${parsed.repo}` }
+}
+function getRepository(repositoryArg = '') {
+  const resolved = resolveRepository(repositoryArg)
+  return resolved.ok ? resolved.repository : ''
 }
 function getBaseBranch() {
   return firstEnv(['APEX_GITHUB_BASE_BRANCH', 'APEX_GITHUB_BRANCH', 'VERCEL_GIT_COMMIT_REF']) || DEFAULT_BASE_BRANCH
 }
 
 export function isGithubConfigured() {
-  return Boolean(getToken() && getRepository())
+  return Boolean(getToken())
 }
 
 const SECRET_FILE_PATTERN = /(^|[\\/])\.env(\.|$)|\.env\.local$|\.pem$|\.key$|id_rsa|\.p12$|\.pfx$/i
@@ -66,8 +113,8 @@ async function gh(method, pathname, body) {
   return data
 }
 
-function repoPath(suffix) {
-  return `/repos/${getRepository()}${suffix}`
+function repoPath(suffix, repository) {
+  return `/repos/${repository}${suffix}`
 }
 
 function sanitizeBranchName(name) {
@@ -76,28 +123,28 @@ function sanitizeBranchName(name) {
 }
 
 // Get the SHA of the base branch tip.
-async function getBaseSha(baseBranch) {
-  const ref = await gh('GET', repoPath(`/git/ref/heads/${encodeURIComponent(baseBranch)}`))
+async function getBaseSha(baseBranch, repository) {
+  const ref = await gh('GET', repoPath(`/git/ref/heads/${encodeURIComponent(baseBranch)}`, repository))
   return ref.object.sha
 }
 
 // Ensure a working branch exists (create from base if missing).
-async function ensureBranch(branch, baseBranch) {
+async function ensureBranch(branch, baseBranch, repository) {
   try {
-    await gh('GET', repoPath(`/git/ref/heads/${encodeURIComponent(branch)}`))
+    await gh('GET', repoPath(`/git/ref/heads/${encodeURIComponent(branch)}`, repository))
     return { created: false }
   } catch (err) {
     if (err.status !== 404) throw err
-    const baseSha = await getBaseSha(baseBranch)
-    await gh('POST', repoPath('/git/refs'), { ref: `refs/heads/${branch}`, sha: baseSha })
+    const baseSha = await getBaseSha(baseBranch, repository)
+    await gh('POST', repoPath('/git/refs', repository), { ref: `refs/heads/${branch}`, sha: baseSha })
     return { created: true }
   }
 }
 
 // Read current file SHA on a branch (needed to update existing files).
-async function getFileSha(path, branch) {
+async function getFileSha(path, branch, repository) {
   try {
-    const data = await gh('GET', repoPath(`/contents/${encodeURIComponent(path).replace(/%2F/g, '/')}?ref=${encodeURIComponent(branch)}`))
+    const data = await gh('GET', repoPath(`/contents/${encodeURIComponent(path).replace(/%2F/g, '/')}?ref=${encodeURIComponent(branch)}`, repository))
     return Array.isArray(data) ? null : data.sha || null
   } catch (err) {
     if (err.status === 404) return null
@@ -106,15 +153,15 @@ async function getFileSha(path, branch) {
 }
 
 // Commit a single file (create or update) to a branch.
-async function putFile({ path, content, message, branch }) {
-  const sha = await getFileSha(path, branch)
+async function putFile({ path, content, message, branch, repository }) {
+  const sha = await getFileSha(path, branch, repository)
   const body = {
     message,
     content: Buffer.from(String(content ?? ''), 'utf8').toString('base64'),
     branch,
   }
   if (sha) body.sha = sha
-  const data = await gh('PUT', repoPath(`/contents/${encodeURIComponent(path).replace(/%2F/g, '/')}`), body)
+  const data = await gh('PUT', repoPath(`/contents/${encodeURIComponent(path).replace(/%2F/g, '/')}`, repository), body)
   return { path, action: sha ? 'updated' : 'created', commit: data.commit?.sha }
 }
 
@@ -126,11 +173,13 @@ export function buildGithubToolDefinitions() {
       type: 'function',
       function: {
         name: 'github_commit_changes',
-        description: 'Edit the Apex platform source code by committing one or more file changes to a new branch on GitHub and opening a Pull Request. Use this to ACTUALLY apply code changes in production (the serverless filesystem is read-only, so write_file/edit_file cannot persist there). After the PR is merged, Vercel redeploys automatically. Provide complete file contents for each file you create or modify.',
+        description: 'Edit the Apex platform source code by committing one or more file changes to a new branch on GitHub and opening a Pull Request. Use this to ACTUALLY apply code changes in production (the serverless filesystem is read-only, so write_file/edit_file cannot persist there). After the PR is merged, Vercel redeploys automatically. Provide complete file contents for each file you create or modify. If the user mentions a specific repo/project name, set repository automatically when it belongs to the allowed owner. If the repo is implied by context, use repositoryHint.',
         parameters: {
           type: 'object',
           additionalProperties: false,
           properties: {
+            repository: { type: 'string', description: 'Target repository in owner/repo format. Defaults to the configured repository. Must belong to the allowed owner.' },
+            repositoryHint: { type: 'string', description: 'Free-text hint for inferring the repository when the user mentions a project name instead of an exact owner/repo string.' },
             branch: { type: 'string', description: 'Name for the new working branch, e.g. "apex/add-pdfjs". A unique suffix is added if it exists.' },
             commitMessage: { type: 'string', description: 'Commit/PR title describing the change.' },
             prBody: { type: 'string', description: 'Optional PR description (markdown).' },
@@ -187,20 +236,25 @@ export async function executeGithubToolCall(toolCall) {
     }
   }
 
+  const repoResolution = resolveRepository(args.repository, [args.repositoryHint, args.branch, args.commitMessage, args.prBody, ...(files.map(f => f.path).filter(Boolean))].join('\n'))
+  if (!repoResolution.ok) {
+    return { ok: false, error: repoResolution.error }
+  }
+  const repository = repoResolution.repository
   const baseBranch = getBaseBranch()
   const branch = sanitizeBranchName(args.branch) + '-' + Math.random().toString(36).slice(2, 7)
   const commitMessage = String(args.commitMessage || 'chore: apex live-agent code change').slice(0, 200)
 
   try {
-    await ensureBranch(branch, baseBranch)
+    await ensureBranch(branch, baseBranch, repository)
 
     const committed = []
     for (const f of files) {
-      const r = await putFile({ path: f.path, content: f.content, message: commitMessage, branch })
+      const r = await putFile({ path: f.path, content: f.content, message: commitMessage, branch, repository })
       committed.push(r)
     }
 
-    const pr = await gh('POST', repoPath('/pulls'), {
+    const pr = await gh('POST', repoPath('/pulls', repository), {
       title: commitMessage,
       head: branch,
       base: baseBranch,
@@ -209,7 +263,7 @@ export async function executeGithubToolCall(toolCall) {
 
     return {
       ok: true,
-      repository: getRepository(),
+      repository,
       baseBranch,
       branch,
       files: committed,

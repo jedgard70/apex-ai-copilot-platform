@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { AlertTriangle, Brain, Check, FileText, ShieldCheck, X } from 'lucide-react'
 import {
   buildProjectMemoryUpdate,
+  classifySkillUpdateStorageLayer,
   buildSkillUpdatePayload,
   isSkillUpdateSupported,
   ProjectMemoryUpdate,
@@ -13,6 +14,9 @@ import { formatSize, IntakeFile } from '../lib/fileIntake'
 type SkillUpdatePanelProps = {
   source?: IntakeFile
   openSignal?: string
+  autoAnalyzeSignal?: string
+  autoApplyProjectMemory?: boolean
+  autoApplyGlobal?: boolean
   onApproveProjectMemory: (update: ProjectMemoryUpdate) => void
   onAppliedGlobal: (result: SkillUpdateApplyResult) => void
   onClose: () => void
@@ -21,6 +25,9 @@ type SkillUpdatePanelProps = {
 export function SkillUpdatePanel({
   source,
   openSignal,
+  autoAnalyzeSignal,
+  autoApplyProjectMemory,
+  autoApplyGlobal,
   onApproveProjectMemory,
   onAppliedGlobal,
   onClose,
@@ -31,8 +38,13 @@ export function SkillUpdatePanel({
   const [analysis, setAnalysis] = useState<SkillUpdateAnalysis | null>(null)
   const [editedContent, setEditedContent] = useState('')
   const [applyResult, setApplyResult] = useState<SkillUpdateApplyResult | null>(null)
+  const [autoHandledSignal, setAutoHandledSignal] = useState('')
 
   const supported = useMemo(() => source ? isSkillUpdateSupported(source.file.name) : false, [source])
+  const storageLayer = useMemo(() => {
+    if (!source) return 'project-memory' as const
+    return classifySkillUpdateStorageLayer(source.file.name, source.sourcePath || source.file.webkitRelativePath || '')
+  }, [source])
 
   useEffect(() => {
     if (openSignal) {
@@ -46,7 +58,29 @@ export function SkillUpdatePanel({
     setEditedContent('')
     setError('')
     setApplyResult(null)
+    setAutoHandledSignal('')
   }, [source?.file.name, source?.file.size])
+
+  useEffect(() => {
+    if (!source || !supported || !autoAnalyzeSignal) return
+    if (autoHandledSignal === autoAnalyzeSignal) return
+    setAutoHandledSignal(autoAnalyzeSignal)
+    void analyze()
+  }, [source, supported, autoAnalyzeSignal, autoHandledSignal])
+
+  useEffect(() => {
+    if (!analysis || !autoApplyProjectMemory) return
+    if (analysis.riskLevel === 'high') return
+    if (applyResult?.approvalType === 'project-memory') return
+    approveProjectMemory()
+  }, [analysis, autoApplyProjectMemory])
+
+  useEffect(() => {
+    if (!analysis || !autoApplyGlobal) return
+    if (analysis.riskLevel === 'high') return
+    if (applyResult?.approvalType === 'global-skill-update') return
+    void approveGlobalUpdate()
+  }, [analysis, autoApplyGlobal])
 
   async function analyze() {
     if (!source || !supported) return
@@ -75,17 +109,18 @@ export function SkillUpdatePanel({
     if (!analysis) return
     const update = buildProjectMemoryUpdate(analysis, editedContent)
     onApproveProjectMemory(update)
-    setApplyResult({
-      updateId: update.updateId,
-      timestamp: update.timestamp,
-      approvalType: 'project-memory',
-      sourceFilename: update.sourceFilename,
-      summary: update.summary,
-      targetDomain: update.targetDomain,
-      affectedFiles: ['localStorage: active Project Workspace memory'],
-      rollbackNote: 'Remove this memory item from the active Project Workspace.',
-      applied: true,
-    })
+      setApplyResult({
+        updateId: update.updateId,
+        timestamp: update.timestamp,
+        approvalType: 'project-memory',
+        sourceFilename: update.sourceFilename,
+        summary: update.summary,
+        targetDomain: update.targetDomain,
+        affectedFiles: ['localStorage: active Project Workspace memory'],
+        storageTargets: ['Project Workspace localStorage', `Layer: ${storageLayer}`],
+        rollbackNote: 'Remove this memory item from the active Project Workspace.',
+        applied: true,
+      })
   }
 
   async function approveGlobalUpdate() {
@@ -150,7 +185,7 @@ export function SkillUpdatePanel({
           <FileText size={20} />
           <div>
             <strong>{source.file.name}</strong>
-            <span>{source.file.type || 'unknown type'} · {formatSize(source.file.size)}</span>
+            <span>{source.sourcePath || source.file.webkitRelativePath || source.file.type || 'unknown type'} · {formatSize(source.file.size)}</span>
           </div>
         </div>
       )}
@@ -167,6 +202,14 @@ export function SkillUpdatePanel({
           <ShieldCheck size={17} />
           {loading ? 'Analyzing safely...' : 'Analyze before updating'}
         </button>
+      )}
+
+      {source && supported && (
+        <div className="skill-update-summary">
+          <span>Layer</span>
+          <strong>{storageLayer}</strong>
+          <small>{storageLayer === 'trusted' ? 'Auto-global trusted source' : storageLayer === 'global-skill' ? 'Auto-global skills folder source' : 'Project memory source'}</small>
+        </div>
       )}
 
       {error && <div className="skill-update-error">{error}</div>}
@@ -218,6 +261,7 @@ export function SkillUpdatePanel({
           <strong>Applied: {applyResult.approvalType}</strong>
           <span>{applyResult.summary}</span>
           <small>Affected: {applyResult.affectedFiles.join(', ')}</small>
+          <small>Saved to: {applyResult.storageTargets.join(' · ')}</small>
         </div>
       )}
     </section>

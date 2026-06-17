@@ -1,3 +1,4 @@
+const DEFAULT_GITHUB_OWNER = 'jedgard70'
 const DEFAULT_GITHUB_REPOSITORY = 'jedgard70/apex-ai-copilot-platform'
 const DEFAULT_GITHUB_BRANCH = 'feature/image-generation-connector'
 const DEFAULT_VERCEL_PROJECT_ID = 'prj_uVRjNyFprz8NyzVcb8NTdnALr1Xm'
@@ -116,6 +117,7 @@ export function classifyConnectorStatusIntent(message = '') {
 export function collectConnectorsStatus() {
   const githubToken = firstEnv(['GITHUB_TOKEN', 'GH_TOKEN'])
   const githubTokenPresent = Boolean(githubToken)
+  const githubOwner = firstEnv(['APEX_GITHUB_OWNER']) || DEFAULT_GITHUB_OWNER
   const githubRepository = firstEnv(['APEX_GITHUB_REPOSITORY', 'GITHUB_REPOSITORY']) || DEFAULT_GITHUB_REPOSITORY
   const githubBranch = firstEnv(['APEX_GITHUB_BRANCH', 'VERCEL_GIT_COMMIT_REF']) || DEFAULT_GITHUB_BRANCH
   const githubKnownCommit = firstEnv(['APEX_GITHUB_COMMIT_SHA', 'VERCEL_GIT_COMMIT_SHA', 'GITHUB_SHA'])
@@ -139,6 +141,7 @@ export function collectConnectorsStatus() {
       status: boolStatus(githubConfigured),
       configured: githubConfigured,
       tokenPresent: githubTokenPresent,
+      owner: githubOwner,
       reachable: false,
       repository: githubRepository,
       branch: githubBranch,

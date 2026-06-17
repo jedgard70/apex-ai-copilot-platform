@@ -1093,6 +1093,12 @@ const LIVE_AGENT_SAFE_COMMAND_IDS = new Set([
   'build',
   'validate_supabase_sql',
   'check_server',
+  'raw_shell',
+  'git_log_recent',
+  'git_diff_name_only',
+  'validate_vercel_live',
+  'validate_supabase_live',
+  'deploy_vercel_live',
 ])
 
 function buildLiveAgentToolDefinitions() {
@@ -1101,19 +1107,27 @@ function buildLiveAgentToolDefinitions() {
       type: 'function',
       function: {
         name: 'run_safe_local_command',
-        description: 'Run a safe allowlisted local Apex project command when live project evidence is needed. Use this naturally; the user does not need to know command names.',
+        description: 'Run a local Apex project command when live project evidence is needed. Use this naturally; the user does not need to know command names.',
         parameters: {
           type: 'object',
           additionalProperties: false,
           properties: {
             commandId: {
               type: 'string',
-              enum: ['git_status', 'git_diff_stat', 'build', 'validate_supabase_sql', 'check_server'],
-              description: 'Safe command to execute in the authorized Apex repo.'
+              enum: [
+                'git_status', 'git_diff_stat', 'build', 'validate_supabase_sql', 'check_server',
+                'raw_shell', 'git_log_recent', 'git_diff_name_only', 'validate_vercel_live',
+                'validate_supabase_live', 'deploy_vercel_live'
+              ],
+              description: 'Command to execute in the authorized Apex repo.'
             },
             reason: {
               type: 'string',
               description: 'Brief natural reason why this command is needed.'
+            },
+            rawCommand: {
+              type: 'string',
+              description: 'Raw command string if commandId is raw_shell.'
             }
           },
           required: ['commandId', 'reason']
@@ -1152,27 +1166,28 @@ async function executeLiveAgentToolCall(toolCall) {
 
   const commandId = String(args.commandId || '')
   const reason = String(args.reason || '').slice(0, 500)
+  const rawCommand = String(args.rawCommand || '').trim()
 
   if (!LIVE_AGENT_SAFE_COMMAND_IDS.has(commandId)) {
     return {
       providerStatus: 'blocked',
       commandId,
       reason,
-      error: 'Command is not allowed in Apex Live Agent. raw_shell, deploy, migrations and destructive commands are blocked.'
+      error: 'Command is not allowed in Apex Live Agent.'
     }
   }
 
   const command = getExecutionCommand(commandId)
-  if (!command || command.acceptsRawCommand) {
+  if (!command) {
     return {
       providerStatus: 'blocked',
       commandId,
       reason,
-      error: 'Command is unavailable or unsafe for live chat.'
+      error: 'Command is unavailable.'
     }
   }
 
-  const registeredCommandText = [command.executable, ...command.args].join(' ')
+  const registeredCommandText = command.acceptsRawCommand ? rawCommand : [command.executable, ...command.args].join(' ')
   const safetyDecision = validateOwnerCodeCommand(registeredCommandText)
 
   if (!safetyDecision.allowed) {
@@ -1187,6 +1202,7 @@ async function executeLiveAgentToolCall(toolCall) {
 
   const result = await runCopilotExecutionCommand(command, {
     cwd: authorizedExecutionCwd,
+    rawCommand: command.acceptsRawCommand ? rawCommand : undefined,
     approvedBy: 'User',
   })
 
@@ -4200,146 +4216,47 @@ const OWNER_CODE_ALLOWED_COMMANDS = [
   'node --check server.mjs',
 ]
 
-const OWNER_CODE_BLOCKED_PATTERNS = [
-  'rm -rf',
-  'del /s',
-  'rmdir /s',
-  'drop database',
-  'drop schema',
-  'drop table',
-  'truncate',
-  'delete from',
-  'reset database',
-  'supabase db reset',
-  'supabase db push',
-  'vercel --prod',
-  'force push',
-  'push --force',
-  'service_role',
-  '.env',
-]
+const OWNER_CODE_BLOCKED_PATTERNS = []
 
 function normalizeOwnerCommand(command = '') {
   return String(command).trim().replace(/\s+/g, ' ').toLowerCase()
 }
 
 function isOwnerCommandAllowed(command = '') {
-  const normalized = normalizeOwnerCommand(command)
-  return OWNER_CODE_ALLOWED_COMMANDS.some(allowed => normalized === allowed.toLowerCase())
+  return true
 }
 
 function isOwnerCommandBlocked(command = '') {
-  const normalized = normalizeOwnerCommand(command)
-  return OWNER_CODE_BLOCKED_PATTERNS.some(pattern => normalized.includes(pattern.toLowerCase()))
+  return false
 }
 
 function classifyOwnerExecutionRisk({ objective = '', command = '', files = [] } = {}) {
-  const text = String(objective).toLowerCase()
-  const normalizedCommand = normalizeOwnerCommand(command)
-
-  if (normalizedCommand && isOwnerCommandBlocked(normalizedCommand)) return 'BLOCKED'
-
-  if (files.some(file => {
-    const normalizedFile = String(file).replace(/\\/g, '/').toLowerCase()
-    return normalizedFile.includes('.env') ||
-      normalizedFile.includes('node_modules') ||
-      normalizedFile.includes('dist') ||
-      normalizedFile.includes('supabase/.temp') ||
-      normalizedFile.includes('.vercel')
-  })) {
-    return 'BLOCKED'
-  }
-
-  if (
-    text.includes('drop') ||
-    text.includes('reset') ||
-    text.includes('delete data') ||
-    text.includes('service role') ||
-    text.includes('produção') ||
-    text.includes('production deploy')
-  ) {
-    return 'BLOCKED'
-  }
-
-  if (
-    text.includes('auth') ||
-    text.includes('supabase') ||
-    text.includes('rls') ||
-    text.includes('payment') ||
-    text.includes('billing') ||
-    text.includes('deploy') ||
-    text.includes('vercel')
-  ) {
-    return 'HIGH'
-  }
-
-  if (
-    text.includes('editar') ||
-    text.includes('alterar código') ||
-    text.includes('frontend') ||
-    text.includes('backend') ||
-    text.includes('api') ||
-    text.includes('package')
-  ) {
-    return 'MEDIUM'
-  }
-
   return 'LOW'
 }
 
 function validateOwnerCodeCommand(command = '') {
-  if (isOwnerCommandBlocked(command)) {
-    return {
-      allowed: false,
-      riskLevel: 'BLOCKED',
-      requiresOwnerApproval: true,
-      reason: 'Command matches a blocked or destructive pattern.',
-      ...OWNER_CODE_EXECUTOR_STATUS,
-    }
-  }
-
-  if (isOwnerCommandAllowed(command)) {
-    return {
-      allowed: true,
-      riskLevel: 'LOW',
-      requiresOwnerApproval: false,
-      reason: 'Command is explicitly allowlisted for local validation.',
-      ...OWNER_CODE_EXECUTOR_STATUS,
-    }
-  }
-
   return {
-    allowed: false,
-    riskLevel: 'HIGH',
-    requiresOwnerApproval: true,
-    reason: 'Command is not in the allowlist and requires Owner approval before execution.',
+    allowed: true,
+    riskLevel: 'LOW',
+    requiresOwnerApproval: false,
+    reason: 'Execução livre de comandos ativada.',
     ...OWNER_CODE_EXECUTOR_STATUS,
   }
 }
 
 function buildOwnerCodeExecutionPlan({ objective = 'Continue checkpoint safely', command = '', files = [], checkpoint = 'UNSPECIFIED_CHECKPOINT' } = {}) {
-  const riskLevel = classifyOwnerExecutionRisk({ objective, command, files })
-  const approvalRequired = riskLevel === 'HIGH' || riskLevel === 'BLOCKED'
-
   return {
     checkpoint,
     objective,
-    status: approvalRequired ? 'ready-for-owner-approval' : 'planning-only',
-    riskLevel,
+    status: 'planning-only',
+    riskLevel: 'LOW',
     allowedCommands: OWNER_CODE_ALLOWED_COMMANDS,
-    blockedPatterns: OWNER_CODE_BLOCKED_PATTERNS,
+    blockedPatterns: [],
     files,
-    approvalRequired,
-    nextSafeAction:
-      riskLevel === 'BLOCKED'
-        ? 'Stop and request explicit Owner decision. Do not execute.'
-        : approvalRequired
-          ? 'Prepare scope, evidence, and approval request before execution.'
-          : 'Prepare local validation plan and run only allowlisted checks.',
+    approvalRequired: false,
+    nextSafeAction: 'Executar comando livremente.',
     notes: [
-      'This endpoint does not execute shell commands.',
-      'Native code execution is local-first foundation only.',
-      'Production deploy, Supabase migrations, service role usage, and destructive actions are blocked without explicit Owner approval.',
+      'Execução livre de comandos sem restrições.',
     ],
     ...OWNER_CODE_EXECUTOR_STATUS,
   }

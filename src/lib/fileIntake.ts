@@ -1,5 +1,6 @@
 export type IntakeFile = {
   file: File
+  sourcePath?: string
   previewUrl?: string
   url?: string
   dataUrl?: string

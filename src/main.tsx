@@ -57,7 +57,7 @@ import {
 import { syncProjectLocalToRemote } from './lib/projectPersistenceAdapter'
 import { SupabaseAccountState, loadSupabaseAccountState } from './lib/supabaseAuthBootstrap'
 import { getBrowserSupabaseClient, getSupabaseProviderStatus } from './lib/supabaseClient'
-import { isSkillUpdateIntent, ProjectMemoryUpdate, SkillUpdateApplyResult } from './lib/skillUpdateEngine'
+import { isSkillUpdateIntent, isTrustedGlobalSkillSource, ProjectMemoryUpdate, SkillUpdateApplyResult } from './lib/skillUpdateEngine'
 import { isSkillExportIntent } from './lib/skillExportFactory'
 import { BudgetPlan } from './lib/budgetKnowledge'
 import type { CopilotExecutionResult } from './lib/copilotExecutionModel'
@@ -885,6 +885,9 @@ function App() {
   const [bimCommand, setBimCommand] = useState<BimCommand | undefined>()
   const [workspaceOpenSignal, setWorkspaceOpenSignal] = useState('')
   const [skillUpdateOpenSignal, setSkillUpdateOpenSignal] = useState('')
+  const [skillUpdateAutoAnalyzeSignal, setSkillUpdateAutoAnalyzeSignal] = useState('')
+  const [skillUpdateAutoApplyProjectMemory, setSkillUpdateAutoApplyProjectMemory] = useState(false)
+  const [skillUpdateAutoApplyGlobal, setSkillUpdateAutoApplyGlobal] = useState(false)
   const [skillExportOpenSignal, setSkillExportOpenSignal] = useState('')
   const [exportCenterOpen, setExportCenterOpen] = useState(false)
   const [ownerConsoleOpen, setOwnerConsoleOpen] = useState(false)
@@ -896,7 +899,7 @@ function App() {
     {
       id: id(),
       role: 'assistant',
-      text: "I'm Apex Copilot. Upload a file, paste a screenshot, or tell me what you need.",
+      text: "Sou a Apex. Me diga o que quer fazer que eu começo por aqui.",
     },
   ])
 
@@ -1708,6 +1711,7 @@ function App() {
     const kind = classifyFile(file)
     const dataUrl = kind === 'image' ? await readFileAsDataUrl(file) : undefined
     const previewUrl = kind === 'image' || kind === 'pdf' ? URL.createObjectURL(file) : undefined
+    const extension = file.name.toLowerCase().split('.').pop() || ''
 
     let extractedText: string | undefined
     let pageCount: number | undefined
@@ -1722,6 +1726,7 @@ function App() {
     const intake: IntakeFile = {
       file,
       kind,
+      sourcePath: file.webkitRelativePath || undefined,
       previewUrl,
       url: previewUrl,
       dataUrl,
@@ -1730,6 +1735,21 @@ function App() {
       dimensions: dataUrl ? await readImageDimensions(dataUrl).catch(() => undefined) : undefined,
     }
     setActiveFile(intake)
+
+    if (extension === 'md') {
+      const signal = id()
+      setSkillUpdateOpenSignal(signal)
+      setSkillUpdateAutoAnalyzeSignal(signal)
+      const trustedGlobal = isTrustedGlobalSkillSource(file.name, '', file.webkitRelativePath || '')
+      setSkillUpdateAutoApplyProjectMemory(!trustedGlobal)
+      setSkillUpdateAutoApplyGlobal(trustedGlobal)
+      setMessages(prev => [...prev, { id: id(), role: 'assistant', text: trustedGlobal ? `Recebi ${file.name}. Vou analisar e aplicar como skill global automaticamente.` : `Recebi ${file.name}. Vou analisar e incorporar o conteúdo como memória do projeto automaticamente.` }])
+      return
+    }
+
+    setSkillUpdateAutoAnalyzeSignal('')
+    setSkillUpdateAutoApplyProjectMemory(false)
+    setSkillUpdateAutoApplyGlobal(false)
   }
 
   async function handlePaste(event: React.ClipboardEvent<HTMLElement>) {
@@ -2503,6 +2523,7 @@ function App() {
             type="file"
             accept="*/*"
             hidden
+            {...({ webkitdirectory: '' } as any)}
             onChange={event => {
               const file = event.target.files?.[0]
               if (file) handleFile(file)
@@ -2899,6 +2920,9 @@ function App() {
             <SkillUpdatePanel
               source={activeFile}
               openSignal={skillUpdateOpenSignal}
+              autoAnalyzeSignal={skillUpdateAutoAnalyzeSignal}
+              autoApplyProjectMemory={skillUpdateAutoApplyProjectMemory}
+              autoApplyGlobal={skillUpdateAutoApplyGlobal}
               onApproveProjectMemory={approveProjectMemory}
               onAppliedGlobal={handleGlobalSkillApplied}
               onClose={() => setSkillUpdateOpenSignal('')}

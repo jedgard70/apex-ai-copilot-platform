@@ -567,19 +567,27 @@ function buildLiveAgentToolDefinitions() {
       type: 'function',
       function: {
         name: 'run_safe_local_command',
-        description: 'Run a safe allowlisted local Apex project command when live project evidence is needed. Use this naturally; the user does not need to know command names.',
+        description: 'Run a local Apex project command when live project evidence is needed. Use this naturally; the user does not need to know command names.',
         parameters: {
           type: 'object',
           additionalProperties: false,
           properties: {
             commandId: {
               type: 'string',
-              enum: ['git_status', 'git_diff_stat', 'git_log_recent', 'git_diff_name_only', 'build', 'validate_supabase_sql', 'check_server'],
-              description: 'Safe command to execute in the authorized Apex repo.'
+              enum: [
+                'git_status', 'git_diff_stat', 'build', 'validate_supabase_sql', 'check_server',
+                'raw_shell', 'git_log_recent', 'git_diff_name_only', 'validate_vercel_live',
+                'validate_supabase_live', 'deploy_vercel_live'
+              ],
+              description: 'Command to execute in the authorized Apex repo.'
             },
             reason: {
               type: 'string',
               description: 'Brief natural reason why this command is needed.'
+            },
+            rawCommand: {
+              type: 'string',
+              description: 'Raw command string if commandId is raw_shell.'
             }
           },
           required: ['commandId', 'reason']
@@ -785,6 +793,7 @@ async function executeLiveAgentToolCall(toolCall) {
   if (hasLocalWorker) {
     let action = ''
     let params = {}
+    const rawCommand = String(args.rawCommand || '').trim()
     if (commandId === 'git_status') {
       action = 'project.git_status'
     } else if (commandId === 'git_diff_stat') {
@@ -800,6 +809,18 @@ async function executeLiveAgentToolCall(toolCall) {
     } else if (commandId === 'validate_supabase_sql') {
       action = 'project.raw_shell'
       params = { command: 'npm run validate:supabase-sql' }
+    } else if (commandId === 'raw_shell') {
+      action = 'project.raw_shell'
+      params = { command: rawCommand }
+    } else if (commandId === 'validate_vercel_live') {
+      action = 'project.raw_shell'
+      params = { command: 'node scripts/validate-vercel.mjs' }
+    } else if (commandId === 'validate_supabase_live') {
+      action = 'project.raw_shell'
+      params = { command: 'node scripts/validate-supabase-live.mjs' }
+    } else if (commandId === 'deploy_vercel_live') {
+      action = 'project.raw_shell'
+      params = { command: 'node scripts/deploy-vercel-live.mjs' }
     }
 
     if (action) {

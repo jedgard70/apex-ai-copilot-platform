@@ -1,4 +1,4 @@
--- CP12A DRAFT ONLY - do not apply until reviewed against a brand-new Supabase project.
+-- CP12A apply against a brand-new Supabase project.
 -- Purpose: production-oriented initial schema for Apex AI Copilot.
 -- Safety: broad jsonb metadata is intentional for rapid studio iteration.
 

@@ -11,6 +11,7 @@ export function classifyOperatorIntent(message = '') {
   if (/\b(git\s+push|push|subir\s+branch|manda\s+pro\s+github|github)\b/i.test(text)) return 'push_request'
   if (/\b(aprovado,\s*commita|sim,\s*pode\s+commitar|commit\s+aprovado|pode\s+fazer\s+o\s+commit|pode\s+commitar|commita|faz\s+o\s+commit|fecha\s+com\s+commit)\b/i.test(text)) return 'approved_commit_request'
   if (/\b(shell livre|raw shell|terminal livre|comando livre|executar shell|executa(?:r)?\s+(?:esse|este|o)?\s*comando)\b/i.test(text)) return 'raw_shell_request'
+  if (/\b(h18|h19|h20|h21|h22|auto-?upgrade|self-?upgrade|upgrade planner|planejador de auto-?upgrade|atualizar o apex|vamos para h18|vamos para o h18|execute h18|executar h18|comece pelo h18|start h18|start with h18)\b/i.test(text)) return 'code_implementation_request'
   if (/\b(status|plataforma|como est[aá]|tudo certo|ficou certo|git status|diff|log)\b/i.test(text)) return 'status_request'
   if (/\b(valida|validar|build|check|teste|testar|verifica|verificar)\b/i.test(text)) return 'validation_request'
   if (/\b(executa|execute|faz|fazer|segue|seguir|continua|continuar).*\b(pr[oó]ximo|proximo|passo|checkpoint)\b/i.test(text)) return 'natural_execution_request'

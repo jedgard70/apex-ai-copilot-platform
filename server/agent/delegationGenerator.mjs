@@ -10,8 +10,11 @@ import { snapshotCurrentArchitecture } from './selfUpgradePlanner.mjs'
 
 function buildRepoContext() {
   const arch = snapshotCurrentArchitecture()
+  const owner = process.env.APEX_GITHUB_OWNER || 'jedgard70'
+  const configuredRepo = process.env.APEX_GITHUB_REPOSITORY || process.env.GITHUB_REPOSITORY || ''
   return {
-    repo: process.env.APEX_GITHUB_REPOSITORY || 'jedgard70/apex-ai-copilot-platform',
+    repo: configuredRepo || `${owner}/<select-repo-per-task>`,
+    owner,
     stack: arch.stack,
     checkpoints: arch.checkpointsCompleted,
     keyFiles: {

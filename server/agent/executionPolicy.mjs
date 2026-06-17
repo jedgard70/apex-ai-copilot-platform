@@ -152,9 +152,9 @@ const H6_ACTION_PATTERNS = [
   { pattern: /\b(valida|validar|validate|check)\s+h5\b/, actionId: 'validate.h5' },
   { pattern: /\b(valida|validar|validate|check)\s+h6\b/, actionId: 'validate.h6' },
   // READ
-  { pattern: /\b(mostra|ver|verifique|cheque|git\s+)?status\b(?!.*vercel|supabase|github)/, actionId: 'git.status' },
+  { pattern: /\b(mostra|ver|verifique|cheque|git\s+)?status\b(?!.*vercel|supabase|github)|\b(verificar|verifique|checar|cheque|mostra|mostre|ver)\s+(seu\s+)?(codigo|código|repositorio|repositório|estado do projeto)\b/i, actionId: 'git.status' },
   { pattern: /\bgit\s+log\b|\b(historico|histórico|commits recentes)\b/, actionId: 'git.log' },
-  { pattern: /\bgit\s+diff\b|\b(diferenca|diferença|o que mudou)\b/, actionId: 'git.diff' },
+  { pattern: /\bgit\s+diff\b|\b(diferenca|diferença|o que mudou)\b|\b(verificar|verifique|checar|cheque|mostra|mostre|ver)\s+(as\s+)?(alteracoes|alterações|mudancas|mudanças)\b/i, actionId: 'git.diff' },
   // DEPLOY
   { pattern: /\b(faz|fazer|faca|execute|executa|roda|rodar|publica|publicar|sobe|subir)\b.*\bdeploy\b.*\b(producao|vercel|prod)\b|\bvercel deploy\b|\bdeploy.*\bproducao\b|\bdeploy.*\bprod\b/, actionId: 'vercel.deploy_prod' },
   { pattern: /\bpreview\s+deploy\b|\bvercel.*preview\b/, actionId: 'vercel.deploy_preview' },

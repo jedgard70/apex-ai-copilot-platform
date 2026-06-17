@@ -1,9 +1,3 @@
-/**
- * Apex AI Copilot — H18 Self-Upgrade Planner
- * Uses Anthropic API to research AI advancements, compare with current architecture,
- * and generate a structured upgrade plan. Falls back to curated tech radar without API key.
- */
-
 import { collectProductionOperatorStatus } from './productionStatus.mjs'
 
 const ANTHROPIC_API = 'https://api.anthropic.com/v1/messages'
@@ -17,10 +11,7 @@ function hasAnthropicConfig() {
 
 export const TECH_RADAR = {
   ai_models: [
-    { item: 'Claude claude-sonnet-4-6 (Sonnet 4.6)', status: 'ATUAL', relevance: 'modelo atual em uso', action: 'monitorar claude-opus-4-8 para tarefas complexas' },
-    { item: 'Claude claude-opus-4-8 (Opus 4.8)', status: 'DISPONÍVEL', relevance: 'mais capaz para planejamento complexo', action: 'usar para Self-Upgrade Planner e análise de arquitetura' },
-    { item: 'Claude claude-fable-5 (Fable 5)', status: 'NOVO', relevance: 'modelo mais recente Anthropic', action: 'avaliar para substituição quando estável' },
-    { item: 'GPT-4o mini', status: 'DISPONÍVEL', relevance: 'barato para tarefas simples', action: 'avaliar para classificação de intents de baixo custo' },
+       { item: 'GPT-4o mini', status: 'DISPONÍVEL', relevance: 'barato para tarefas simples', action: 'avaliar para classificação de intents de baixo custo' },
   ],
   frameworks: [
     { item: 'Vite 6.x', status: 'MONITORAR', relevance: 'build mais rápido', action: 'verificar breaking changes antes de upgrade' },
@@ -164,5 +155,5 @@ export function buildSelfUpgradePlannerReply(result) {
 
 export function classifySelfUpgradeIntent(message = '') {
   const t = String(message || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
-  return /\b(novidade|upgrade|atualiza|novo em ia|tecnologia nova|melhora a plataforma|self.upgrade|plano de upgrade|o que ha de novo)\b/.test(t)
+  return /\b(novidade|upgrade|atualiza|novo em ia|tecnologia nova|melhora a plataforma|self.upgrade|plano de upgrade|o que ha de novo|h18|auto-upgrade|auto upgrade|self-upgrade|planejador de auto-upgrade|vamos para h18|execute h18|executar h18|comece pelo h18)\b/.test(t)
 }

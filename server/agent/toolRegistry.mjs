@@ -28,7 +28,7 @@ export const TOOL_REGISTRY = [
     provider: 'github',
     executionClass: EXECUTION_CLASSES.READ_ONLY,
     capability: 'remote_repository_status',
-    env: ['GITHUB_TOKEN or GH_TOKEN', 'APEX_GITHUB_REPOSITORY optional', 'APEX_GITHUB_BRANCH optional'],
+    env: ['GITHUB_TOKEN or GH_TOKEN', 'APEX_GITHUB_OWNER optional', 'APEX_GITHUB_REPOSITORY optional', 'APEX_GITHUB_BRANCH optional'],
     isConfigured: () => hasAnyEnv(['GITHUB_TOKEN', 'GH_TOKEN']),
     missing: () => hasAnyEnv(['GITHUB_TOKEN', 'GH_TOKEN']) ? [] : ['GITHUB_TOKEN or GH_TOKEN'],
     mutates: false,
@@ -72,8 +72,7 @@ export const TOOL_REGISTRY = [
     id: 'local_worker.status',
     label: 'Controlled local PC worker',
     provider: 'local_worker',
-    // READ_ONLY when both URL and TOKEN are configured (health check only); otherwise requires local worker setup
-    get executionClass() {
+       get executionClass() {
       return hasEnv('LOCAL_WORKER_URL') && hasEnv('LOCAL_WORKER_TOKEN')
         ? EXECUTION_CLASSES.READ_ONLY
         : EXECUTION_CLASSES.EXTERNAL_DESKTOP_REQUIRES_LOCAL_WORKER

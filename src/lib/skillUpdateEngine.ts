@@ -54,6 +54,7 @@ export type SkillUpdateApplyResult = {
   summary: string
   targetDomain: string
   affectedFiles: string[]
+  storageTargets: string[]
   rollbackNote: string
   applied: boolean
 }
@@ -68,6 +69,28 @@ export type ProjectMemoryUpdate = {
   content: string
   warnings: string[]
 }
+
+export type SkillUpdateStorageLayer = 'trusted' | 'project-memory' | 'global-skill' | 'learned-file'
+
+const TRUSTED_GLOBAL_SKILL_NAME_PATTERNS = [
+  /(^|[\/])skill\.md$/i,
+  /(^|[\/])skills?\.md$/i,
+  /(^|[\/])apex.*skill.*\.md$/i,
+  /(^|[\/])global.*skill.*\.md$/i,
+  /(^|[\/])copilot.*skill.*\.md$/i,
+  /(^|[\/])(governance|permissions|platform-status|support-skills-map|evaluation-harness-sample|copilot-advanced|mcp-builder-guide|folder-structure|analyzer-agent)\.md$/i,
+  /(^|[\/])(skill-update-log|runtime-knowledge|knowledge-pack|readme-import|reference-index|handoff|prompt|rules)\.md$/i,
+]
+
+const TRUSTED_GLOBAL_SKILL_PATH_PATTERNS = [
+  /(^|[\/])skills[\/].*\.md$/i,
+  /(^|[\/])skills[\/].*([\/])skill\.md$/i,
+  /(^|[\/])skills[\/].*([\/])references[\/].*\.md$/i,
+  /(^|[\/])skills[\/].*([\/])(integracao.*|.*-drafts.*|.*-knowledge.*)\.md$/i,
+  /(^|[\/])skills[\/].*([\/])(?:governance|permissions|platform-status|support-skills-map|evaluation-harness-sample|copilot-advanced|mcp-builder-guide|folder-structure|analyzer-agent)\.md$/i,
+  /(^|[\/])skills[\/]approved[\/].*\.md$/i,
+  /(^|[\/])skills[\/]trusted[\/].*\.md$/i,
+]
 
 const SUPPORTED_EXTENSIONS = new Set(['txt', 'md', 'json', 'pdf', 'py', 'js', 'ts', 'tsx', 'zip'])
 const TEXT_EXTENSIONS = new Set(['txt', 'md', 'json', 'py', 'js', 'ts', 'tsx'])
@@ -87,6 +110,23 @@ export function isSkillTextReadable(fileName: string) {
 export function isSkillUpdateIntent(text: string) {
   // H5.1F: removed mem[oó]ria/memoria/brain/prompt — too broad, triggers on memory conversations
   return /\b(atualiza(?:r)? skill|incorpora(?:r)? skill|aprend(?:er|a) skill|adiciona(?:r)? skill|skill update|update.*skill|add.*memory|ingest.*skill|skill.*export|aprenda isso|incorpore isso|adicione isso)\b/i.test(text)
+}
+
+export function isTrustedGlobalSkillSource(fileName: string, text = '', relativePath = '') {
+  const normalized = `${fileName || ''}\n${text || ''}`.toLowerCase()
+  const pathText = String(relativePath || '').replace(/\\/g, '/')
+  return TRUSTED_GLOBAL_SKILL_NAME_PATTERNS.some(pattern => pattern.test(normalized))
+    || TRUSTED_GLOBAL_SKILL_PATH_PATTERNS.some(pattern => pattern.test(pathText))
+    || /\b(references|reference|handoffs?|governance|permissions|platform status|skills map|skill map)\b/i.test(normalized)
+}
+
+export function classifySkillUpdateStorageLayer(fileName: string, relativePath = ''): SkillUpdateStorageLayer {
+  const pathText = String(relativePath || '').replace(/\\/g, '/')
+  if (/skills\/(approved|trusted)\//i.test(pathText)) return 'trusted'
+  if (/\bskills\//i.test(pathText)) return 'global-skill'
+  if (/\blearned\//i.test(pathText)) return 'learned-file'
+  if (/\.md$/i.test(fileName) && pathText) return 'project-memory'
+  return 'project-memory'
 }
 
 export function redactSensitiveText(value: string) {
