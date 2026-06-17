@@ -14,6 +14,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
+import { runSelfUpgradePlanner, buildSelfUpgradePlannerReply } from './selfUpgradePlanner.mjs'
 
 const MAX_READ_BYTES = 200_000
 const MAX_OUTPUT_BYTES = 160_000
@@ -174,12 +175,27 @@ export function buildCodeToolDefinitions() {
     })
   }
 
+  tools.push({
+    type: 'function',
+    function: {
+      name: 'self_upgrade_report',
+      description: 'Get the Apex platform self-upgrade / auto-upgrade report: current architecture snapshot, completed checkpoints, configured/pending connectors, pending modules, a curated AI tech radar, and (if ANTHROPIC_API_KEY is set) live research. Call this whenever the user asks about auto-upgrade, self-upgrade, what is new, or how the platform improves itself.',
+      parameters: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          topic: { type: 'string', description: 'Optional focus topic for the live research, e.g. "novidades em IA para construção".' },
+        },
+      },
+    },
+  })
+
   return tools
 }
 
 // Convenience: the set of tool names this module handles.
 export const CODE_TOOL_NAMES = new Set([
-  'read_file', 'list_dir', 'search_code', 'write_file', 'edit_file', 'run_command',
+  'read_file', 'list_dir', 'search_code', 'write_file', 'edit_file', 'run_command', 'self_upgrade_report',
 ])
 
 // ---- Tool execution ----
@@ -398,6 +414,10 @@ export async function executeCodeToolCall(toolCall, rootDir) {
       case 'write_file': return toolWriteFile(rootDir, args)
       case 'edit_file': return toolEditFile(rootDir, args)
       case 'run_command': return await toolRunCommand(rootDir, args)
+      case 'self_upgrade_report': {
+        const result = await runSelfUpgradePlanner(args.topic || undefined)
+        return { ok: true, report: buildSelfUpgradePlannerReply(result), connectorConfigured: result.connectorConfigured }
+      }
       default: return { ok: false, error: `Unknown code tool: ${name}` }
     }
   } catch (err) {

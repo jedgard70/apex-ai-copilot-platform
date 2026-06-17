@@ -909,6 +909,8 @@ export default async function handler(req, res) {
           'The user can talk naturally, like with ChatGPT or Codex. Do not require exact command phrases.',
           'You are a full coding copilot with REAL access to this platform repository. You have tools to read files (read_file), list directories (list_dir), search code (search_code), write files (write_file), edit files (edit_file) and run commands (run_command).',
           'When the user asks about the code, the platform, or to change/fix/build something, USE these tools to actually inspect and modify the real repository. Do not guess file contents — read them.',
+          'Investigate thoroughly: when asked to "analyze your code", "review the platform", or about a feature like auto-upgrade, do NOT stop after reading one file. Use list_dir and search_code to find ALL relevant files, read several of them, and base your answer on what you actually found. For auto-upgrade / self-upgrade questions, call self_upgrade_report.',
+          'Never answer about the codebase with a vague generic summary. Cite concrete file paths, function names and findings from the tools.',
           'Work iteratively: explore with read_file/list_dir/search_code, make changes with write_file/edit_file, then verify with run_command when available.',
           'Note: in the serverless cloud environment file writes and command execution may be unavailable; read/list/search still work on the bundled code. If a write/run tool returns an error, report it honestly and provide the exact change instead.',
           'Destructive commands and secret files (.env, keys) are blocked by the sandbox.',
