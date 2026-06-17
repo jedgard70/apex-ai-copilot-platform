@@ -368,6 +368,76 @@ function buildIdentityContextSummary(identity) {
   ].join('\n')
 }
 
+function parseFrontmatter(content) {
+  const match = content.match(/^---\r?\n([\s\S]+?)\r?\n---/)
+  if (!match) return { metadata: {}, body: content }
+  const yaml = match[1]
+  const body = content.slice(match[0].length)
+  const metadata = {}
+  for (const line of yaml.split('\n')) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith('#')) continue
+    const colon = trimmed.indexOf(':')
+    if (colon === -1) continue
+    const key = trimmed.slice(0, colon).trim()
+    const valStr = trimmed.slice(colon + 1).trim()
+    
+    let val = valStr
+    if (valStr.startsWith('"') && valStr.endsWith('"')) {
+      val = valStr.slice(1, -1)
+    } else if (valStr.startsWith("'") && valStr.endsWith("'")) {
+      val = valStr.slice(1, -1)
+    } else if (valStr.startsWith('[') && valStr.endsWith(']')) {
+      try {
+        val = JSON.parse(valStr.replace(/'/g, '"'))
+      } catch (_) {
+        val = valStr.slice(1, -1).split(',').map(s => s.trim().replace(/^["']|["']$/g, ''))
+      }
+    }
+    metadata[key] = val
+  }
+  return { metadata, body }
+}
+
+let cachedSkills = null
+
+function loadDynamicSkills() {
+  if (cachedSkills) return cachedSkills
+
+  const skills = []
+  const dirs = [
+    path.resolve(__dirname, '../../docs'),
+    path.resolve(__dirname, '../../skills')
+  ]
+
+  for (const dir of dirs) {
+    if (!fs.existsSync(dir)) continue
+    try {
+      const files = fs.readdirSync(dir)
+      for (const file of files) {
+        if (file.toLowerCase().endsWith('_skill.md') || (file.toLowerCase().endsWith('.md') && file.toLowerCase().includes('skill'))) {
+          const filepath = path.join(dir, file)
+          const content = fs.readFileSync(filepath, 'utf8')
+          const { metadata, body } = parseFrontmatter(content)
+          skills.push({
+            filepath,
+            filename: file,
+            title: metadata.title || file.replace(/\.md$/i, ''),
+            description: metadata.description || '',
+            tags: Array.isArray(metadata.tags) ? metadata.tags : [],
+            body: body.trim()
+          })
+        }
+      }
+    } catch (err) {
+      console.error(`[chat-api] Erro ao ler diretório de skills ${dir}:`, err)
+    }
+  }
+
+  cachedSkills = skills
+  return skills
+}
+
 function buildLocalSkillContext(userText, file) {
   const text = `${userText || ''} ${file?.name || ''} ${file?.kind || ''}`.toLowerCase()
   const contexts = []
@@ -430,10 +500,25 @@ function buildLocalSkillContext(userText, file) {
   if (/(custo de ia|gasto com ia|tokens|observabilidade|custo openai|ai cost|billing|usage dashboard)/.test(text)) {
     contexts.push('CP11E AI Cost / Observability: local estimated usage and cost only. Do not claim provider billing accuracy. Use ESTIMATED_LOCAL until real billing/usage API is connected.')
   }
+
+  // Load dynamic skills
+  try {
+    const dynamicSkills = loadDynamicSkills()
+    for (const skill of dynamicSkills) {
+      const matchesTag = skill.tags.some(tag => text.includes(tag.toLowerCase()))
+      const matchesTitle = skill.title.toLowerCase().split(/\s+/).some(word => word.length > 3 && text.includes(word))
+      if (matchesTag || matchesTitle) {
+        contexts.push(`Skill [${skill.title}]: ${skill.description}\nRules and Guidelines:\n${skill.body}`)
+      }
+    }
+  } catch (err) {
+    console.error('[chat-api] Erro ao carregar skills dinâmicas:', err)
+  }
+
   if (!contexts.length) {
     contexts.push('Platform: Apex AI Copilot is a command-first full AI assistant. Chat is primary; modules and connectors are optional execution paths.')
   }
-  return contexts.slice(0, 6).join('\n')
+  return contexts.slice(0, 8).join('\n\n')
 }
 
 function buildFileContext(file) {
@@ -466,7 +551,7 @@ function buildLiveAgentToolDefinitions() {
           properties: {
             commandId: {
               type: 'string',
-              enum: ['git_status', 'git_diff_stat', 'build', 'validate_supabase_sql', 'check_server'],
+              enum: ['git_status', 'git_diff_stat', 'git_log_recent', 'git_diff_name_only', 'build', 'validate_supabase_sql', 'check_server'],
               description: 'Safe command to execute in the authorized Apex repo.'
             },
             reason: {
@@ -560,13 +645,26 @@ async function executeLiveAgentToolCall(toolCall) {
   const hasLocalWorker = Boolean(process.env.LOCAL_WORKER_URL && process.env.LOCAL_WORKER_TOKEN)
   if (hasLocalWorker) {
     let action = ''
-    if (commandId === 'git_status') action = 'project.git_status'
-    else if (commandId === 'git_diff_stat') action = 'project.git_diff_stat'
-    else if (commandId === 'build') action = 'project.build_check'
-    else if (commandId === 'check_server') action = 'system.info'
+    let params = {}
+    if (commandId === 'git_status') {
+      action = 'project.git_status'
+    } else if (commandId === 'git_diff_stat') {
+      action = 'project.git_diff_stat'
+    } else if (commandId === 'git_log_recent') {
+      action = 'project.git_log'
+    } else if (commandId === 'git_diff_name_only') {
+      action = 'project.git_diff'
+    } else if (commandId === 'build') {
+      action = 'project.build_check'
+    } else if (commandId === 'check_server') {
+      action = 'system.info'
+    } else if (commandId === 'validate_supabase_sql') {
+      action = 'project.raw_shell'
+      params = { command: 'npm run validate:supabase-sql' }
+    }
 
     if (action) {
-      const result = await runLocalWorkerAction(action, { confirmed: true })
+      const result = await runLocalWorkerAction(action, { confirmed: true, params })
       if (result.ok) {
         return {
           providerStatus: 'completed',
@@ -916,6 +1014,7 @@ export default async function handler(req, res) {
       'General capability rule: Apex AI Copilot is not limited by topic or domain. It can reason, code, write, design, analyze, research, negotiate, troubleshoot and produce deliverables broadly.',
       'Use active Apex/project/file context when useful, but never refuse a normal general request because it is outside construction.',
       'Connectors are optional execution paths. They are invoked after understanding the user request, not before. Do not force every answer into a connector or service.',
+      'If the user asks to verify, check, or see the status of the repository, code, changes, or files, you MUST use the `run_safe_local_command` tool with `git_status` or `git_diff_stat` to fetch live status, rather than responding with a static explanation of the project structure.',
       'Always answer in the same language as the user latest message.',
       'If the user has not typed a natural-language message yet, use the browser/session language when supplied.',
       'Execution priority: if the user asks to create, generate, write, build, prepare, montar, criar, gerar, fazer, escreva or produza, do the work now. Do not explain the process unless asked.',
