@@ -1,8 +1,21 @@
-import { config } from 'dotenv'
+import fs from 'node:fs'
 import path from 'node:path'
 
-// Load environment variables from .env.local if present
-config({ path: path.join(process.cwd(), '.env.local') })
+loadEnvLocal()
+
+function loadEnvLocal() {
+  const envPath = path.join(process.cwd(), '.env.local')
+  if (!fs.existsSync(envPath)) return
+  const lines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/)
+  for (const line of lines) {
+    if (!line || line.trim().startsWith('#')) continue
+    const match = line.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/)
+    if (!match) continue
+    const [, key, rawValue] = match
+    if (process.env[key]) continue
+    process.env[key] = rawValue.replace(/^["']|["']$/g, '')
+  }
+}
 
 const accessToken = process.env.SUPABASE_ACCESS_TOKEN
 const projectRef = process.env.SUPABASE_PROJECT_REF || process.env.NEXT_PUBLIC_SUPABASE_PROJECT_REF
