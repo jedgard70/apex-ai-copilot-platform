@@ -57,8 +57,8 @@ export const OWNER_CODE_EXECUTOR_STATUS = {
 export const ALLOWED_COMMANDS = [
   "git status --short",
   "git diff --stat",
-  "npm.cmd run build",
-  "npm.cmd run validate:supabase-sql",
+  "npm run build",
+  "npm run validate:supabase-sql",
   "node --check server.mjs",
 ] as const;
 

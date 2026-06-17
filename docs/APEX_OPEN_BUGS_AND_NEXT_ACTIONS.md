@@ -1,5 +1,4 @@
-APEX Open Bugs And Next Actions
-===============================
+# APEX Open Bugs And Next Actions
 
 Blockers and next actions (honest, ordered):
 
@@ -25,9 +24,9 @@ Blockers and next actions (honest, ordered):
 
 9. Provar Supabase remote round-trip (upload → storage → retrieval → file context preserved)
 
-10. Separar claramente simulação de background agents / WebGPU da comunicação de produto
-    - Motivo: evitar que demos/simulações confundam testes de produção
+10. Separar claramente simulação de background agents / WebGPU da comunicação de produto — Motivo: evitar que demos/simulações confundam testes de produção
 
 Notes on priority
+
 - Highest priority: (1) build/preview reproducible locally and (2) M2 PDF real flow
 - Next: (3) H7 proof with worker and keys, (4) Supabase round-trip, (5) DOCX/XLSX/IFC proofs

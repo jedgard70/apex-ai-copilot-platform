@@ -98,7 +98,7 @@ const CONTROLLED_COMMANDS = {
     label: 'validação da rota de conectores',
   },
   build_validation: {
-    executable: 'npm.cmd',
+    executable: process.platform === 'win32' ? 'npm.cmd' : 'npm',
     args: ['run', 'build'],
     timeoutMs: 120000,
     label: 'validação de compilação',

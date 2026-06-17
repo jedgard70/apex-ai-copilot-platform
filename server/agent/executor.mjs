@@ -21,7 +21,7 @@ export const COMMANDS = {
   check_build_tools: { executable: 'node', args: ['--check', 'server/agent/tools/buildTools.mjs'], timeoutMs: 30000, optionalFile: 'server/agent/tools/buildTools.mjs' },
   check_file_tools: { executable: 'node', args: ['--check', 'server/agent/tools/fileTools.mjs'], timeoutMs: 30000, optionalFile: 'server/agent/tools/fileTools.mjs' },
   check_git_tools: { executable: 'node', args: ['--check', 'server/agent/tools/gitTools.mjs'], timeoutMs: 30000, optionalFile: 'server/agent/tools/gitTools.mjs' },
-  build: { executable: 'npm.cmd', args: ['run', 'build'], timeoutMs: 120000 },
+  build: { executable: process.platform === 'win32' ? 'npm.cmd' : 'npm', args: ['run', 'build'], timeoutMs: 120000 },
 }
 
 function resolveExecutable(executable) {

@@ -1,5 +1,4 @@
-APEX Platform — Final Objective (evidence ruler)
-===============================================
+# APEX Platform — Final Objective (evidence ruler)
 
 Régua definitiva para considerar uma feature/objetivo como "Feito":
 
@@ -18,4 +17,5 @@ Objetivo final (uma frase):
 "Dr Edgard autoriza; Apex executa, valida, mostra evidência, registra e sabe o próximo passo."
 
 Observação:
+
 - Antes de marcar qualquer PR como Ready, toda prova (3–5 acima) deve estar anexada ao PR e às docs de auditoria.

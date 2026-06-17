@@ -562,7 +562,7 @@ function isOperationalGovernancePrompt(text: string) {
 }
 
 function prefersPortuguese(text: string) {
-  return /\b(vc|voce|você|quem sou|o que|serviços|servicos|orçamento|orcamento|consultoria|arquivo|anexar|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra)\b|[ãõçáéíóú]/i.test(text)
+  return /\b(vc|voce|você|quem sou|o que|serviços|servicos|preciso|ajuda|ajudar|me ajuda|orçamento|orcamento|consultoria|arquivo|anexar|upload|cronograma|marketing|vendas|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra)\b|[ãõçáéíóú]/i.test(text)
 }
 
 function buildCopilotFailureMessage(userText: string) {
@@ -641,7 +641,7 @@ function buildIdentityAnswer(text: string, identity: ChatIdentityContext) {
 }
 
 function isCapabilitiesQuestion(text: string) {
-  return /\b(o que (vc|voce|você) sabe fazer|o que faz|quais servi[cç]os|servi[cç]os|capabilities|what can you do|what do you do|features)\b/i.test(text.trim())
+  return /\b(o que (mais )?(vc|voce|você)?\s*sabe( fazer)?|o que (vc|voce|você)?\s*faz|o que mais (vc|voce|você)?\s*faz|quais servi[cç]os|servi[cç]os|capabilities|what else can you do|what can you do|what do you do|features)\b/i.test(text.trim())
 }
 
 function isContactQuestion(text: string) {
@@ -1893,6 +1893,7 @@ function App() {
       const data = await response.json().catch(() => ({}))
       // H5.0D: log response mode so version is visible in browser console
       if (data?.mode) console.log('[Apex H5] response mode:', data.mode)
+      if (data?.provider) console.log('[Apex H5] provider:', data.provider)
       if (data?.memoryPatch && typeof data.memoryPatch === 'object') {
         setClientMemory(current => {
           const next = { ...current, ...data.memoryPatch }

@@ -1,4 +1,12 @@
-# Apex Revit Customization Skill
+---
+title: "Apex Revit Customization Skill"
+description: "Helps customize Revit, automate BIM workflows, and develop Revit plugins integrated with Apex."
+tags: ["revit","bim","automation","pyrevit","revit-api","integration"]
+owner: "platform-team"
+version: "0.1.0"
+---
+
+## Apex Revit Customization Skill
 
 ## Purpose
 

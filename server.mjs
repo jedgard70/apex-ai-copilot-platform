@@ -27,9 +27,15 @@ const dist = path.join(root, 'dist')
 const runtimeKnowledgePath = path.join(root, 'src', 'lib', 'runtimeKnowledge.json')
 const skillUpdateLogPath = path.join(root, 'docs', 'SKILL_UPDATE_LOG.md')
 const copilotExecutionCwd = path.resolve(root)
-const authorizedExecutionCwd = path.resolve('D:\\AI-constr\\apex-ai-copilot-platform')
+// Allow configuring the authorized repo cwd via environment for portability.
+// Defaults to the current repo root when not provided.
+const authorizedExecutionCwd = process.env.AUTHORIZED_EXECUTION_CWD
+  ? path.resolve(process.env.AUTHORIZED_EXECUTION_CWD)
+  : path.resolve(root)
 const maxExecutionOutputBytes = 160000
-const rawExecutionApprovalText = 'JOSE_APPROVES_LOCAL_EXECUTION'
+// Approval token/text and approvers can be configured via ENV for teams.
+const rawExecutionApprovalText = process.env.RAW_EXECUTION_APPROVAL_TEXT || 'JOSE_APPROVES_LOCAL_EXECUTION'
+const authorizedApprovers = (process.env.AUTHORIZED_APPROVERS || 'Jose').split(',').map(s => s.trim())
 const rawShellAllowedEnvironments = new Set(['', 'development', 'local', 'test'])
 
 const copilotExecutionCommands = [
@@ -93,7 +99,7 @@ const copilotExecutionCommands = [
     id: 'build',
     label: 'Build',
     description: 'Run the local Vite production build.',
-    executable: 'npm.cmd',
+    executable: process.platform === 'win32' ? 'npm.cmd' : 'npm',
     args: ['run', 'build'],
     risk: 'medium',
     requiresApproval: false,
@@ -104,7 +110,7 @@ const copilotExecutionCommands = [
     id: 'validate_supabase_sql',
     label: 'Validate Supabase SQL',
     description: 'Run the local read-only Supabase SQL validation script.',
-    executable: 'npm.cmd',
+    executable: process.platform === 'win32' ? 'npm.cmd' : 'npm',
     args: ['run', 'validate:supabase-sql'],
     risk: 'medium',
     requiresApproval: false,
@@ -584,7 +590,7 @@ async function runCopilotExecutionCommand(command, body) {
         createdBy: 'Jose',
         risk: command.risk,
         requiresApproval: command.requiresApproval,
-        approvedBy: body?.approvedBy || 'Jose',
+        approvedBy: body?.approvedBy || null,
         redactedOutput: cleanStdout !== stdout || cleanStderr !== stderr,
       })
     }
@@ -667,11 +673,14 @@ async function handleExecutionRun(req, res) {
       if (!fs.existsSync(executionCwd) || !fs.statSync(executionCwd).isDirectory()) {
         return json(res, 400, { error: 'Requested cwd does not exist or is not a directory.', cwd: executionCwd, providerStatus: 'blocked' })
       }
-      if (body.approvedBy !== 'Jose' || body.approvalText !== rawExecutionApprovalText) {
+      const approver = String(body.approvedBy || '').trim()
+      const approvalText = String(body.approvalText || '').trim()
+      if (!authorizedApprovers.includes(approver) || approvalText !== rawExecutionApprovalText) {
         return json(res, 403, {
-          error: 'Jose approval is required before executing a raw shell command.',
+          error: 'Approval required before executing a raw shell command.',
           providerStatus: 'approval-required',
           requiredApprovalText: rawExecutionApprovalText,
+          authorizedApprovers,
         })
       }
     }
@@ -1074,11 +1083,11 @@ function buildIdentityReply(userText, identity) {
 }
 
 function prefersPortugueseText(text = '') {
-  return /\b(vc|voce|você|quem sou|o que|serviços|servicos|orçamento|orcamento|consultoria|arquivo|anexar|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra)\b|[ãõçáéíóú]/i.test(text)
+  return /\b(vc|voce|você|quem sou|o que|serviços|servicos|preciso|ajuda|ajudar|me ajuda|orçamento|orcamento|consultoria|arquivo|anexar|upload|cronograma|marketing|vendas|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra)\b|[ãõçáéíóú]/i.test(text)
 }
 
 function isCapabilitiesQuestionText(text = '') {
-  return /\b(o que (vc|voce|você) sabe fazer|o que faz|quais servi[cç]os|servi[cç]os|capabilities|what can you do|what do you do|features)\b/i.test(text.trim())
+  return /\b(o que (mais )?(vc|voce|você)?\s*sabe( fazer)?|o que (vc|voce|você)?\s*faz|o que mais (vc|voce|você)?\s*faz|quais servi[cç]os|servi[cç]os|capabilities|what else can you do|what can you do|what do you do|features)\b/i.test(text.trim())
 }
 
 function isContactQuestionText(text = '') {
@@ -1295,6 +1304,15 @@ async function handleChat(req, res) {
       'production_vercel_connector_status',
       'production_connector_status',
       'production_platform_position',
+      'production_capability_listing',
+      'production_capability_repair',
+      'production_capability_continuation',
+      'production_orcamento_sinapi_help',
+      'production_proposta_contrato_help',
+      'production_obra_campo_help',
+      'production_cronograma_help',
+      'production_archviz_help',
+      'production_marketing_vendas_help',
       'production_vercel_deploy',
       'production_supabase',
     ])
@@ -4152,8 +4170,8 @@ const OWNER_CODE_EXECUTOR_STATUS = {
 const OWNER_CODE_ALLOWED_COMMANDS = [
   'git status --short',
   'git diff --stat',
-  'npm.cmd run build',
-  'npm.cmd run validate:supabase-sql',
+  'npm run build',
+  'npm run validate:supabase-sql',
   'node --check server.mjs',
 ]
 

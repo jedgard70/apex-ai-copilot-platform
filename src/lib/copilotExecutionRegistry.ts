@@ -1,6 +1,7 @@
 import type { CopilotExecutionCommand } from './copilotExecutionModel'
 
-export const COPILOT_EXECUTION_CWD = 'D:\\AI-constr\\apex-ai-copilot-platform'
+// Use Vite env var for authorized execution CWD to avoid hard-coded platform paths.
+export const COPILOT_EXECUTION_CWD = import.meta.env.VITE_AUTHORIZED_EXECUTION_CWD || ''
 
 export const copilotExecutionCommands: CopilotExecutionCommand[] = [
   {
@@ -69,7 +70,7 @@ export const copilotExecutionCommands: CopilotExecutionCommand[] = [
     label: 'Build',
     description: 'Run the local Vite production build.',
     cwd: COPILOT_EXECUTION_CWD,
-    executable: 'npm.cmd',
+    executable: 'npm',
     args: ['run', 'build'],
     risk: 'medium',
     requiresApproval: false,
@@ -81,7 +82,7 @@ export const copilotExecutionCommands: CopilotExecutionCommand[] = [
     label: 'Validate Supabase SQL',
     description: 'Run the local read-only Supabase SQL validation script.',
     cwd: COPILOT_EXECUTION_CWD,
-    executable: 'npm.cmd',
+    executable: 'npm',
     args: ['run', 'validate:supabase-sql'],
     risk: 'medium',
     requiresApproval: false,

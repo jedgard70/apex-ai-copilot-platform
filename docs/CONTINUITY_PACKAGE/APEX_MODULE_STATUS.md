@@ -1,5 +1,4 @@
-APEX Module Status — Continuity Package
-======================================
+# APEX Module Status — Continuity Package
 
 Checkpoint: CP-LIVE-1
 

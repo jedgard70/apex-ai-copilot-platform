@@ -31,6 +31,15 @@ const productionRouterIntents = new Set([
   'production_vercel_connector_status',
   'production_connector_status',
   'production_platform_position',
+  'production_capability_listing',
+  'production_capability_repair',
+  'production_capability_continuation',
+  'production_orcamento_sinapi_help',
+  'production_proposta_contrato_help',
+  'production_obra_campo_help',
+  'production_cronograma_help',
+  'production_archviz_help',
+  'production_marketing_vendas_help',
   'production_vercel_deploy',
   'production_supabase',
   'production_execute_recommended',
@@ -47,11 +56,11 @@ function loadRuntimeKnowledge() {
 }
 
 function prefersPortugueseText(text = '') {
-  return /\b(vc|voce|você|quem sou|o que|serviços|servicos|orçamento|orcamento|consultoria|arquivo|anexar|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra)\b|[ãõçáéíóú]/i.test(text)
+  return /\b(vc|voce|você|quem sou|o que|serviços|servicos|preciso|ajuda|ajudar|me ajuda|orçamento|orcamento|consultoria|arquivo|anexar|upload|cronograma|marketing|vendas|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra)\b|[ãõçáéíóú]/i.test(text)
 }
 
 function isCapabilitiesQuestionText(text = '') {
-  return /\b(o que (vc|voce|você) sabe fazer|o que faz|quais servi[cç]os|servi[cç]os|capabilities|what can you do|what do you do|features)\b/i.test(text.trim())
+  return /\b(o que (mais )?(vc|voce|você)?\s*sabe( fazer)?|o que (vc|voce|você)?\s*faz|o que mais (vc|voce|você)?\s*faz|quais servi[cç]os|servi[cç]os|capabilities|what else can you do|what can you do|what do you do|features)\b/i.test(text.trim())
 }
 
 function isContactQuestionText(text = '') {
@@ -190,7 +199,7 @@ function detectLanguage(userText, conversation, preferredLanguage = '') {
       .slice(-3)
       .map(item => String(item.text || '')),
   ].join(' ')
-  const portuguesePattern = /\b(o que|vc|você|voce|sabe|fazer|fa[cç]a|crie|criar|gere|gerar|liste|lista|habilidades|capacidades|para mim|me ajude|ajude|planta|projeto|quero|posso|opcoes|opções|mostre|portugu[eê]s|render|or[cç]amento|an[uú]ncio|cliente|contrato|programar|componente|c[oó]digo|traduza|traduzir)\b/i
+  const portuguesePattern = /\b(o que|vc|você|voce|sabe|fazer|fa[cç]a|crie|criar|gere|gerar|liste|lista|habilidades|capacidades|servi[cç]os|preciso|ajuda|ajudar|me ajude|me ajuda|ajude|planta|projeto|quero|posso|opcoes|opções|mostre|portugu[eê]s|render|or[cç]amento|cronograma|marketing|vendas|upload|arquivo|an[uú]ncio|cliente|contrato|programar|componente|c[oó]digo|traduza|traduzir)\b/i
   const englishSwitchPattern = /\b(answer in english|speak english|in english|english please)\b/i
   const hiddenUploadMessage = /^user uploaded this file\./i.test(String(userText || '').trim())
   if (englishSwitchPattern.test(userText)) return 'English'
@@ -461,6 +470,58 @@ function buildLiveAgentToolDefinitions() {
       }
     }
   ]
+}
+
+function getChatProvider() {
+  if (process.env.OPENAI_API_KEY) return 'openai'
+  if (process.env.ANTHROPIC_API_KEY) return 'anthropic'
+  return null
+}
+
+function buildAnthropicMessages(messages) {
+  return (Array.isArray(messages) ? messages : []).map(msg => ({
+    role: msg.role === 'assistant' ? 'assistant' : msg.role === 'system' ? 'system' : 'user',
+    content: String(msg.content || ''),
+  }))
+}
+
+async function callOpenAIChat(requestPayload) {
+  const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
+  const response = await fetch(`${apiBase}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(requestPayload),
+  })
+  const data = await response.json().catch(() => ({}))
+  return { provider: 'openai', response, data }
+}
+
+async function callAnthropicChat(liveAgentMessages) {
+  const apiBase = process.env.ANTHROPIC_API_BASE || 'https://api.anthropic.com/v1'
+  const payload = {
+    model: process.env.ANTHROPIC_CHAT_MODEL || 'claude-sonnet-4-6',
+    messages: buildAnthropicMessages(liveAgentMessages),
+    max_tokens_to_sample: 900,
+    temperature: 0.72,
+    top_p: 1,
+  }
+  const response = await fetch(`${apiBase}/messages`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': process.env.ANTHROPIC_API_KEY,
+    },
+    body: JSON.stringify(payload),
+  })
+  const data = await response.json().catch(() => ({}))
+  return { provider: 'anthropic', response, data }
+}
+
+function pickAnthropicReply(data) {
+  return String(data?.completion || data?.content?.[0]?.text || (data?.message && data.message.content) || '').trim()
 }
 
 async function executeLiveAgentToolCall(toolCall) {
@@ -846,6 +907,8 @@ export default async function handler(req, res) {
       messagesPayload[messagesPayload.length - 1],
     ]
 
+    const provider = getChatProvider()
+    const chatSource = provider === 'anthropic' ? 'anthropic' : 'openai'
     const requestPayload = {
       model: process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
       messages: liveAgentMessages,
@@ -856,17 +919,7 @@ export default async function handler(req, res) {
       max_tokens: 900,
     }
 
-    const response = await fetch(`${apiBase}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + apiKey,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestPayload),
-    })
-
-    const data = await response.json().catch(() => ({}))
-    if (!response.ok) {
+    if (!provider) {
       return sendJson(res, 200, {
         finalReply: buildChatFallbackReply(userMessage, identityContext, file),
         reply: buildChatFallbackReply(userMessage, identityContext, file),
@@ -876,74 +929,105 @@ export default async function handler(req, res) {
       })
     }
 
-    const assistantMessage = data && data.choices && data.choices[0] ? data.choices[0].message || {} : {}
-    const toolCalls = Array.isArray(assistantMessage.tool_calls) ? assistantMessage.tool_calls : []
+    const chatResult = provider === 'anthropic'
+      ? await callAnthropicChat(liveAgentMessages)
+      : await callOpenAIChat(requestPayload)
 
-    if (toolCalls.length) {
-      const followUpMessages = [
-        ...liveAgentMessages,
-        {
-          role: 'assistant',
-          content: assistantMessage.content || '',
-          tool_calls: toolCalls,
-        },
-      ]
+    const response = chatResult.response
+    const data = chatResult.data
 
-      for (const toolCall of toolCalls) {
-        const toolResult = await executeLiveAgentToolCall(toolCall)
-        followUpMessages.push({
-          role: 'tool',
-          tool_call_id: toolCall.id,
-          content: JSON.stringify(toolResult),
-        })
-      }
-
-      const finalResponse = await fetch(`${apiBase}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          Authorization: 'Bearer ' + apiKey,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
-          messages: followUpMessages,
-          temperature: 0.45,
-          frequency_penalty: 0.1,
-          max_tokens: 900,
-        }),
-      })
-
-      const finalData = await finalResponse.json().catch(() => ({}))
-      if (!finalResponse.ok) {
-        return sendJson(res, 200, {
-          finalReply: buildChatFallbackReply(userMessage, identityContext, file),
-          reply: buildChatFallbackReply(userMessage, identityContext, file),
-          mode: 'local-fallback-after-tool',
-          confirmation: null,
-          productionStatus,
-        })
-      }
-
-      const finalReply = finalData && finalData.choices && finalData.choices[0] ? finalData.choices[0].message.content || '' : ''
+    if (!response.ok) {
       return sendJson(res, 200, {
-        finalReply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
-        reply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
-        model: finalData.model,
-        usage: finalData.usage,
-        mode: 'live-agent-tool-calling',
-        toolCalls: toolCalls.map(call => call && call.function ? call.function.name : 'unknown'),
+        finalReply: buildChatFallbackReply(userMessage, identityContext, file),
+        reply: buildChatFallbackReply(userMessage, identityContext, file),
+        mode: 'local-fallback',
+        provider: provider,
         confirmation: null,
         productionStatus,
       })
     }
 
-    const reply = assistantMessage.content || ''
+    if (chatSource === 'openai') {
+      const assistantMessage = data && data.choices && data.choices[0] ? data.choices[0].message || {} : {}
+      const toolCalls = Array.isArray(assistantMessage.tool_calls) ? assistantMessage.tool_calls : []
+
+      if (toolCalls.length) {
+        const followUpMessages = [
+          ...liveAgentMessages,
+          {
+            role: 'assistant',
+            content: assistantMessage.content || '',
+            tool_calls: toolCalls,
+          },
+        ]
+
+        for (const toolCall of toolCalls) {
+          const toolResult = await executeLiveAgentToolCall(toolCall)
+          followUpMessages.push({
+            role: 'tool',
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(toolResult),
+          })
+        }
+
+        const finalResponse = await fetch(`${process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer ' + process.env.OPENAI_API_KEY,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
+            messages: followUpMessages,
+            temperature: 0.45,
+            frequency_penalty: 0.1,
+            max_tokens: 900,
+          }),
+        })
+
+        const finalData = await finalResponse.json().catch(() => ({}))
+        if (!finalResponse.ok) {
+          return sendJson(res, 200, {
+            finalReply: buildChatFallbackReply(userMessage, identityContext, file),
+            reply: buildChatFallbackReply(userMessage, identityContext, file),
+            mode: 'local-fallback-after-tool',
+            confirmation: null,
+            productionStatus,
+          })
+        }
+
+        const finalReply = finalData && finalData.choices && finalData.choices[0] ? finalData.choices[0].message.content || '' : ''
+        return sendJson(res, 200, {
+          finalReply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
+          reply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
+          model: finalData.model,
+          usage: finalData.usage,
+          mode: 'live-agent-tool-calling',
+          toolCalls: toolCalls.map(call => call && call.function ? call.function.name : 'unknown'),
+          confirmation: null,
+          productionStatus,
+        })
+      }
+
+      const reply = assistantMessage.content || ''
+      return sendJson(res, 200, {
+        finalReply: reply || buildChatFallbackReply(userMessage, identityContext, file),
+        reply: reply || buildChatFallbackReply(userMessage, identityContext, file),
+        model: data.model,
+        usage: data.usage,
+        mode: 'live-agent-chat',
+        confirmation: null,
+        productionStatus,
+      })
+    }
+
+    const anthropicReply = pickAnthropicReply(data)
     return sendJson(res, 200, {
-      finalReply: reply || buildChatFallbackReply(userMessage, identityContext, file),
-      reply: reply || buildChatFallbackReply(userMessage, identityContext, file),
-      model: data.model,
-      usage: data.usage,
-      mode: 'live-agent-chat',
+      finalReply: anthropicReply || buildChatFallbackReply(userMessage, identityContext, file),
+      reply: anthropicReply || buildChatFallbackReply(userMessage, identityContext, file),
+      model: data?.model || process.env.ANTHROPIC_CHAT_MODEL || 'claude-sonnet-4-6',
+      usage: data?.usage,
+      mode: 'live-agent-chat-anthropic',
       confirmation: null,
       productionStatus,
     })
