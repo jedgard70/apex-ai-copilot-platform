@@ -401,6 +401,26 @@ function parseFrontmatter(content) {
 
 let cachedSkills = null
 
+function scanDirRecursive(dir) {
+  let results = []
+  if (!fs.existsSync(dir)) return results
+  try {
+    const list = fs.readdirSync(dir)
+    for (const file of list) {
+      const filepath = path.join(dir, file)
+      const stat = fs.statSync(filepath)
+      if (stat && stat.isDirectory()) {
+        results = results.concat(scanDirRecursive(filepath))
+      } else if (file.toLowerCase().endsWith('.md') && (file.toLowerCase().endsWith('_skill.md') || file.toLowerCase().includes('skill'))) {
+        results.push(filepath)
+      }
+    }
+  } catch (err) {
+    console.error(`[chat-api] Erro ao escanear diretório ${dir}:`, err)
+  }
+  return results
+}
+
 function loadDynamicSkills() {
   if (cachedSkills) return cachedSkills
 
@@ -413,24 +433,22 @@ function loadDynamicSkills() {
   for (const dir of dirs) {
     if (!fs.existsSync(dir)) continue
     try {
-      const files = fs.readdirSync(dir)
-      for (const file of files) {
-        if (file.toLowerCase().endsWith('_skill.md') || (file.toLowerCase().endsWith('.md') && file.toLowerCase().includes('skill'))) {
-          const filepath = path.join(dir, file)
-          const content = fs.readFileSync(filepath, 'utf8')
-          const { metadata, body } = parseFrontmatter(content)
-          skills.push({
-            filepath,
-            filename: file,
-            title: metadata.title || file.replace(/\.md$/i, ''),
-            description: metadata.description || '',
-            tags: Array.isArray(metadata.tags) ? metadata.tags : [],
-            body: body.trim()
-          })
-        }
+      const filepaths = scanDirRecursive(dir)
+      for (const filepath of filepaths) {
+        const file = path.basename(filepath)
+        const content = fs.readFileSync(filepath, 'utf8')
+        const { metadata, body } = parseFrontmatter(content)
+        skills.push({
+          filepath,
+          filename: file,
+          title: metadata.title || file.replace(/\.md$/i, ''),
+          description: metadata.description || '',
+          tags: Array.isArray(metadata.tags) ? metadata.tags : [],
+          body: body.trim()
+        })
       }
     } catch (err) {
-      console.error(`[chat-api] Erro ao ler diretório de skills ${dir}:`, err)
+      console.error(`[chat-api] Erro ao carregar skills do diretório ${dir}:`, err)
     }
   }
 
