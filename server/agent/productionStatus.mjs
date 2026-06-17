@@ -15,17 +15,17 @@ export function collectProductionOperatorStatus() {
     {
       id: 'serverless_operator_preview_route',
       status: 'GREEN',
-      evidence: '/api/copilot/operator-preview esta implementada como Vercel Function.',
+      evidence: '/api/copilot/operator-preview esta implementada via rota unificada /api/copilot/operator.',
     },
     {
       id: 'serverless_operator_status_route',
       status: 'GREEN',
-      evidence: '/api/copilot/operator-status esta implementada como rota de status sem mutacao.',
+      evidence: '/api/copilot/operator-status esta implementada via rota unificada /api/copilot/operator.',
     },
     {
       id: 'serverless_operator_execute_route',
       status: 'GREEN',
-      evidence: '/api/copilot/operator-execute esta implementada para execucao controlada de leitura e validacao.',
+      evidence: '/api/copilot/operator-execute esta implementada via rota unificada /api/copilot/operator.',
     },
     {
       id: 'local_execution_boundary',

@@ -32,6 +32,7 @@ const root = __dirname
 const dist = path.join(root, 'dist')
 const runtimeKnowledgePath = path.join(root, 'src', 'lib', 'runtimeKnowledge.json')
 const skillUpdateLogPath = path.join(root, 'docs', 'SKILL_UPDATE_LOG.md')
+const learnedSkillsDir = path.join(root, 'skills', 'learned')
 const copilotExecutionCwd = path.resolve(root)
 // Allow configuring the authorized repo cwd via environment for portability.
 // Defaults to the current repo root when not provided.
@@ -191,6 +192,15 @@ function loadRuntimeKnowledge() {
 
 function saveRuntimeKnowledge(runtime) {
   fs.writeFileSync(runtimeKnowledgePath, `${JSON.stringify(runtime, null, 2)}\n`, 'utf8')
+}
+
+function slugifySkillFileName(value = '') {
+  const base = String(value || 'skill-update')
+    .replace(/\.[^.]+$/, '')
+    .replace(/[^a-zA-Z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .toLowerCase()
+  return base || 'skill-update'
 }
 
 function safeId(prefix = 'update') {
@@ -844,7 +854,7 @@ function buildStyleInstruction(userText, file) {
       'Style for this first upload reply: answer in one short natural paragraph.',
       'Do not create a plan, checklist, bullet list or numbered list.',
       'Mention only 2 to 4 concrete things visible or inferable from the file.',
-      'Ask one practical question at the end.',
+      'Do not ask a question unless the task is genuinely blocked.',
     ].join('\n')
   }
   if (intent.asksExecution || (intent.asksSalesOutput && file)) {
@@ -880,7 +890,7 @@ function buildStyleInstruction(userText, file) {
     'Do not use bullet or numbered lists.',
     'Do not write "Here are a few observations", "Aqui estao algumas observacoes", "Observations", "Capabilities", or similar report framing.',
     'If an image is supplied, mention 2 to 4 concrete visible details in natural prose.',
-    'Ask exactly one practical next-step question.',
+    'Do not end with a question if a practical first action can be stated.',
     fileContext,
   ].join('\n')
 }
@@ -1060,8 +1070,8 @@ function buildChatFallbackReply(userText, identity) {
   const pt = prefersPortugueseText(userText)
   if (isCapabilitiesQuestionText(userText)) {
     return pt
-      ? 'A Apex AI Copilot ajuda em BIM 5D/6D/7D, visualização 3D e ArchViz, CFD e simulações, agentes de IA, DirectCut, vendas, marketing, contabilidade, financeiro, alvarás, contratos, jurídico, documentos, propostas, engenharia e operações de campo. Você pode conversar comigo, enviar arquivos, pedir análise de projeto e transformar isso em ações dentro da plataforma.'
-      : 'Apex AI Copilot helps with BIM 5D/6D/7D, 3D and ArchViz, CFD and simulations, AI agents, DirectCut, sales, marketing, accounting, finance, permits, contracts, legal, documents, proposals, engineering and field operations. You can chat, upload files, request project analysis and turn that into platform actions.'
+      ? 'Posso ler, explicar, resumir, editar, validar e executar fluxos seguros dentro da Apex. Se você me pedir uma ação, eu tento fazer direto e retorno com evidência. Também cubro BIM, 3D, ArchViz, código, dados, vendas, marketing, contratos, financeiro e campo.'
+      : 'I can read, explain, summarize, edit, validate and execute safe workflows inside Apex. If you ask for an action, I try to do it directly and report back with evidence. I also cover BIM, 3D, ArchViz, code, data, sales, marketing, contracts, finance and field operations.'
   }
   if (isContactQuestionText(userText)) {
     return pt
@@ -1072,8 +1082,8 @@ function buildChatFallbackReply(userText, identity) {
     return 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar. Eu uso o arquivo como contexto da conversa e sigo com uma resposta direta.'
   }
   return pt
-    ? 'Tive um problema ao gerar a resposta completa, mas posso continuar. Reformule o pedido ou envie um arquivo/screenshot para eu analisar.'
-    : 'I had trouble generating the full response, but I can continue. Rephrase the request or upload a file/screenshot for me to analyze.'
+    ? 'Tive um problema ao gerar a resposta completa, mas ainda posso agir. Diga a tarefa de forma direta ou envie um arquivo e eu continuo daqui.'
+    : 'I had trouble generating the full response, but I can still act. State the task directly or upload a file and I will continue from there.'
 }
 
 
@@ -1237,6 +1247,11 @@ async function buildLiveAgentPreflightContext(userText) {
   ].join('\n')
 }
 
+function shouldForceLiveAgentToolUse(text = '') {
+  const value = String(text || '').toLowerCase()
+  return /\b(implementar|corrigir|editar|alterar|ajustar|criar|gerar|build|testar|validar|commit|push|deploy|migration|supabase|vercel|github|executar|execute|rodar|run|aplicar)\b/.test(value)
+}
+
 async function handleChat(req, res) {
   try {
     const body = await readJson(req)
@@ -1280,7 +1295,7 @@ async function handleChat(req, res) {
       'production_supabase',
     ])
 
-    if (!APEX_FREE_AGENT && productionRouterIntents.has(productionConversationIntent)) {
+    if (!APEX_FREE_AGENT) {
       const productionStatus = collectProductionOperatorStatus()
       const operatorResult = await runApexOperatorProductionSafe({
         userMessage: userText,
@@ -1374,6 +1389,8 @@ async function handleChat(req, res) {
       'General capability rule: Apex AI Copilot is not limited by topic or domain. It can reason, code, write, design, analyze, research, negotiate, troubleshoot and produce deliverables broadly.',
       'Use active Apex/project/file context when useful, but never refuse a normal general request because it is outside construction.',
       'Connectors are optional execution paths. They are invoked after understanding the user request, not before. Do not force every answer into a connector or service.',
+      'Treat broad or vague requests as tasks to start, not as prompts to interrogate the user. Choose the smallest useful first action and state the assumption briefly.',
+      'Do not ask for clarification unless there is no safe or meaningful first step at all.',
       'Always answer in the same language as the user latest message.',
       'If the user has not typed a natural-language message yet, use the browser/session language when supplied.',
       'Execution priority: if the user asks to create, generate, write, build, prepare, montar, criar, gerar, fazer, escreva or produza, do the work now. Do not explain the process unless asked.',
@@ -1390,7 +1407,7 @@ async function handleChat(req, res) {
       'Highest priority style rule: unless the user explicitly asks for a report/checklist/table, do not answer with headings, bullets, numbered lists, or "observations" sections.',
       'If the current or recent conversation includes an uploaded file, treat follow-up questions such as "o que vc sabe fazer" as referring to that file and project context.',
       'When image content is supplied, mention 2 to 4 concrete visible project details before suggesting paths.',
-      'Do not ask unnecessary next-step questions. Ask only when truly blocked or when the user explicitly wants exploration.',
+      'Do not ask unnecessary next-step questions. Assume the most likely next step and proceed unless the task is genuinely blocked.',
       '',
       intentInstruction,
     ].join('\n')
@@ -1441,10 +1458,10 @@ async function handleChat(req, res) {
           'Investigate thoroughly: when asked to "analyze your code", "review the platform", or about a feature like auto-upgrade, do NOT stop after reading one file. Use list_dir and search_code to find ALL relevant files, read several of them, and base your answer on what you actually found. For auto-upgrade / self-upgrade questions, call self_upgrade_report.',
           'Never answer about the codebase with a vague generic summary. Cite concrete file paths, function names and findings from the tools.',
           'Work iteratively: explore with read_file/list_dir/search_code, make changes with write_file/edit_file, then verify with run_command (e.g. build or tests).',
-          'To actually apply code changes that persist (especially in the serverless production runtime where write_file/edit_file may fail with a read-only filesystem), call github_commit_changes with the full new content of each file. It creates a branch, commits, and opens a Pull Request that deploys when merged. When the user says "edit the code", "faça você mesmo", "aplique agora" or "code it yourself", actually CALL github_commit_changes — do not just paste code in the chat.',
+          'To actually apply code changes that persist (especially in the serverless production runtime where write_file/edit_file may fail with a read-only filesystem), call github_commit_changes with the full new content of each file. It creates a branch, commits, and opens a Pull Request that deploys when merged. When the user says "edit the code", "faça você mesmo", "aplique agora" or "code it yourself", actually CALL github_commit_changes — do not just paste code in the chat. If the user mentions a specific project/repo name, automatically set the repository argument to the matching jedgard70/* repo. If the repo is implied but not explicit, use repositoryHint.',
           'Destructive commands (rm -rf, force push, hard reset, disk format) are blocked by the sandbox. Reading/writing secret files (.env, keys) is blocked.',
           'Critical truth rule: only claim you read, edited, created, or ran something if a tool result proves it. If a tool fails, report the real error.',
-          'Do not end with vague questions like "what would you like to do next?" when evidence supports a clear next step. Give a decisive recommendation and one practical next action.',
+      'Do not end with vague questions like "what would you like to do next?" when evidence supports a clear next step. Give a decisive recommendation and one practical next action.',
           'After tool results, answer naturally in the latest user language with what you found, what you changed, and the verified result.'
         ].join(' ')
       },
@@ -1456,7 +1473,7 @@ async function handleChat(req, res) {
       model: process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
       messages: liveAgentMessages,
       tools: buildLiveAgentToolDefinitions(),
-      tool_choice: 'auto',
+      tool_choice: shouldForceLiveAgentToolUse(userText) ? 'required' : 'auto',
       temperature: 0.72,
       frequency_penalty: 0.2,
       max_tokens: 900,
@@ -4081,6 +4098,30 @@ async function handleApplySkillUpdate(req, res) {
     runtime.memorySummary.push(`Owner-approved skill update ${updateEntry.updateId}: ${updateEntry.summary}`)
     saveRuntimeKnowledge(runtime)
 
+    fs.mkdirSync(learnedSkillsDir, { recursive: true })
+    const learnedSkillFile = path.join(learnedSkillsDir, `${slugifySkillFileName(updateEntry.sourceFilename)}.md`)
+    const learnedSkillContent = [
+      `# ${updateEntry.sourceFilename}`,
+      '',
+      `- updateId: ${updateEntry.updateId}`,
+      `- timestamp: ${timestamp}`,
+      `- source: ${updateEntry.sourceFilename}`,
+      `- targetDomain: ${updateEntry.targetDomain}`,
+      `- category: ${updateEntry.category}`,
+      `- approvalType: global-skill-update`,
+      '',
+      '## Summary',
+      updateEntry.summary,
+      '',
+      '## Content',
+      editedContent,
+      '',
+      '## Rollback',
+      updateEntry.rollbackNote,
+      '',
+    ].join('\n')
+    fs.writeFileSync(learnedSkillFile, learnedSkillContent, 'utf8')
+
     fs.mkdirSync(path.dirname(skillUpdateLogPath), { recursive: true })
     const logEntry = [
       '',
@@ -4090,7 +4131,7 @@ async function handleApplySkillUpdate(req, res) {
       `- Domain: ${updateEntry.targetDomain}`,
       `- Category: ${updateEntry.category}`,
       `- Summary: ${updateEntry.summary}`,
-      `- Affected files: src/lib/runtimeKnowledge.json, docs/SKILL_UPDATE_LOG.md`,
+      `- Affected files: src/lib/runtimeKnowledge.json, docs/SKILL_UPDATE_LOG.md, skills/learned/${path.basename(learnedSkillFile)}`,
       `- Rollback: ${updateEntry.rollbackNote}`,
     ].join('\n')
     if (!fs.existsSync(skillUpdateLogPath)) {
@@ -4106,7 +4147,8 @@ async function handleApplySkillUpdate(req, res) {
         sourceFilename: updateEntry.sourceFilename,
         summary: updateEntry.summary,
         targetDomain: updateEntry.targetDomain,
-        affectedFiles: ['src/lib/runtimeKnowledge.json', 'docs/SKILL_UPDATE_LOG.md'],
+        affectedFiles: ['src/lib/runtimeKnowledge.json', 'docs/SKILL_UPDATE_LOG.md', `skills/learned/${path.basename(learnedSkillFile)}`],
+        storageTargets: ['runtime knowledge', 'skill update log', `skills/learned/${path.basename(learnedSkillFile)}`],
         rollbackNote: updateEntry.rollbackNote,
         applied: true,
       },

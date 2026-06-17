@@ -69,26 +69,19 @@ const CONTROLLED_COMMANDS = {
     optionalFile: 'api/copilot/chat.mjs',
     label: 'validação da rota de conversa',
   },
-  check_operator_preview_route: {
+  check_operator_unified_route: {
     executable: 'node',
-    args: ['--check', 'api/copilot/operator-preview.mjs'],
+    args: ['--check', 'api/copilot/operator.mjs'],
     timeoutMs: 30000,
-    optionalFile: 'api/copilot/operator-preview.mjs',
-    label: 'validação da rota de prévia',
+    optionalFile: 'api/copilot/operator.mjs',
+    label: 'validação da rota unificada do operador',
   },
-  check_operator_status_route: {
+  check_execution_unified_route: {
     executable: 'node',
-    args: ['--check', 'api/copilot/operator-status.mjs'],
+    args: ['--check', 'api/copilot/execution.mjs'],
     timeoutMs: 30000,
-    optionalFile: 'api/copilot/operator-status.mjs',
-    label: 'validação da rota de status',
-  },
-  check_operator_execute_route: {
-    executable: 'node',
-    args: ['--check', 'api/copilot/operator-execute.mjs'],
-    timeoutMs: 30000,
-    optionalFile: 'api/copilot/operator-execute.mjs',
-    label: 'validação da rota de execução controlada',
+    optionalFile: 'api/copilot/execution.mjs',
+    label: 'validação da rota unificada de execução',
   },
   check_connector_status_route: {
     executable: 'node',

@@ -80,6 +80,11 @@ function isUploadQuestionText(text = '') {
   return /\b(upload|arquivo|anexar|mandar imagem|enviar arquivo|screenshot|planta|pdf|file|attach)\b/i.test(trimmed)
 }
 
+function shouldForceLiveAgentToolUse(text = '') {
+  const value = String(text || '').toLowerCase()
+  return /\b(implementar|corrigir|editar|alterar|ajustar|criar|gerar|build|testar|validar|commit|push|deploy|migration|supabase|vercel|github|executar|execute|rodar|run|aplicar)\b/.test(value)
+}
+
 function isIdentityQuestionText(text) {
   return /\b(vc sabe quem sou eu|você sabe quem sou eu|voce sabe quem sou eu|quem sou eu|do you know who i am|who am i)\b/i.test(String(text || '').trim())
 }
@@ -107,13 +112,13 @@ function buildChatFallbackReply(userText, identity, file = null) {
   const pt = prefersPortugueseText(userText)
   if (file && file.extractedText && isCapabilitiesQuestionText(userText)) {
     return pt
-      ? 'Com este arquivo ativo, posso resumir o PDF, extrair pontos principais, responder perguntas sobre o conteúdo, organizar os tópicos em lista, transformar trechos em briefing ou relatório e identificar próximos passos práticos.'
-      : 'With this file active, I can summarize the PDF, extract key points, answer questions about the content, turn it into a list, convert passages into a briefing or report, and suggest practical next steps.'
+      ? 'Com este arquivo ativo, posso resumir, extrair pontos, responder perguntas, transformar em briefing/relatório e partir para uma ação prática sem enrolar.'
+      : 'With this file active, I can summarize, extract points, answer questions, turn it into a briefing/report, and move straight into a practical action.'
   }
   if (isCapabilitiesQuestionText(userText)) {
     return pt
-      ? 'A Apex AI Copilot ajuda em BIM 5D/6D/7D, visualização 3D e ArchViz, CFD e simulações, agentes de IA, DirectCut, vendas, marketing, contabilidade, financeiro, alvarás, contratos, jurídico, documentos, propostas, engenharia e operações de campo. Você pode conversar comigo, enviar arquivos, pedir análise de projeto e transformar isso em ações dentro da plataforma.'
-      : 'Apex AI Copilot helps with BIM 5D/6D/7D, 3D and ArchViz, CFD and simulations, AI agents, DirectCut, sales, marketing, accounting, finance, permits, contracts, legal, documents, proposals, engineering and field operations. You can chat, upload files, request project analysis and turn that into platform actions.'
+      ? 'Posso ler, explicar, resumir, editar, validar e executar fluxos seguros dentro da Apex. Se você me pedir uma ação, eu tento fazer direto e retorno com evidência. Também cubro BIM, 3D, ArchViz, código, dados, vendas, marketing, contratos, financeiro e campo.'
+      : 'I can read, explain, summarize, edit, validate and execute safe workflows inside Apex. If you ask for an action, I try to do it directly and report back with evidence. I also cover BIM, 3D, ArchViz, code, data, sales, marketing, contracts, finance and field operations.'
   }
   if (isContactQuestionText(userText)) {
     return pt
@@ -124,11 +129,11 @@ function buildChatFallbackReply(userText, identity, file = null) {
       if (file && file.kind === 'pdf' && file.extractionStatus === 'ready' && String(file.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(userText || '')) {
       return buildLocalPdfSummary(file.name, file.pageCount || 0, file.extractedText || '')
     }
-    return 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar. Eu uso o arquivo como contexto da conversa e sigo com uma resposta direta.'
+    return 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar. Eu uso o arquivo como contexto e continuo com a ação em vez de parar para explicar o processo.'
   }
   return pt
-    ? 'Tive um problema ao gerar a resposta completa, mas posso continuar. Reformule o pedido ou envie um arquivo/screenshot para eu analisar.'
-    : 'I had trouble generating the full response, but I can continue. Rephrase the request or upload a file/screenshot for me to analyze.'
+    ? 'Tive um problema ao gerar a resposta completa, mas ainda posso agir. Diga a tarefa de forma direta ou envie um arquivo e eu continuo daqui.'
+    : 'I had trouble generating the full response, but I can still act. State the task directly or upload a file and I will continue from there.'
 }
 
 function buildLocalPdfSummary(fileName, pageCount, extractedText) {
@@ -368,6 +373,94 @@ function buildIdentityContextSummary(identity) {
   ].join('\n')
 }
 
+function parseFrontmatter(content) {
+  const match = content.match(/^---\r?\n([\s\S]+?)\r?\n---/)
+  if (!match) return { metadata: {}, body: content }
+  const yaml = match[1]
+  const body = content.slice(match[0].length)
+  const metadata = {}
+  for (const line of yaml.split('\n')) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith('#')) continue
+    const colon = trimmed.indexOf(':')
+    if (colon === -1) continue
+    const key = trimmed.slice(0, colon).trim()
+    const valStr = trimmed.slice(colon + 1).trim()
+    
+    let val = valStr
+    if (valStr.startsWith('"') && valStr.endsWith('"')) {
+      val = valStr.slice(1, -1)
+    } else if (valStr.startsWith("'") && valStr.endsWith("'")) {
+      val = valStr.slice(1, -1)
+    } else if (valStr.startsWith('[') && valStr.endsWith(']')) {
+      try {
+        val = JSON.parse(valStr.replace(/'/g, '"'))
+      } catch (_) {
+        val = valStr.slice(1, -1).split(',').map(s => s.trim().replace(/^["']|["']$/g, ''))
+      }
+    }
+    metadata[key] = val
+  }
+  return { metadata, body }
+}
+
+let cachedSkills = null
+
+function scanDirRecursive(dir) {
+  let results = []
+  if (!fs.existsSync(dir)) return results
+  try {
+    const list = fs.readdirSync(dir)
+    for (const file of list) {
+      const filepath = path.join(dir, file)
+      const stat = fs.statSync(filepath)
+      if (stat && stat.isDirectory()) {
+        results = results.concat(scanDirRecursive(filepath))
+      } else if (file.toLowerCase().endsWith('.md') && (file.toLowerCase().endsWith('_skill.md') || file.toLowerCase().includes('skill'))) {
+        results.push(filepath)
+      }
+    }
+  } catch (err) {
+    console.error(`[chat-api] Erro ao escanear diretório ${dir}:`, err)
+  }
+  return results
+}
+
+function loadDynamicSkills() {
+  if (cachedSkills) return cachedSkills
+
+  const skills = []
+  const dirs = [
+    path.resolve(__dirname, '../../docs'),
+    path.resolve(__dirname, '../../skills')
+  ]
+
+  for (const dir of dirs) {
+    if (!fs.existsSync(dir)) continue
+    try {
+      const filepaths = scanDirRecursive(dir)
+      for (const filepath of filepaths) {
+        const file = path.basename(filepath)
+        const content = fs.readFileSync(filepath, 'utf8')
+        const { metadata, body } = parseFrontmatter(content)
+        skills.push({
+          filepath,
+          filename: file,
+          title: metadata.title || file.replace(/\.md$/i, ''),
+          description: metadata.description || '',
+          tags: Array.isArray(metadata.tags) ? metadata.tags : [],
+          body: body.trim()
+        })
+      }
+    } catch (err) {
+      console.error(`[chat-api] Erro ao carregar skills do diretório ${dir}:`, err)
+    }
+  }
+
+  cachedSkills = skills
+  return skills
+}
+
 function buildLocalSkillContext(userText, file) {
   const text = `${userText || ''} ${file?.name || ''} ${file?.kind || ''}`.toLowerCase()
   const contexts = []
@@ -430,10 +523,25 @@ function buildLocalSkillContext(userText, file) {
   if (/(custo de ia|gasto com ia|tokens|observabilidade|custo openai|ai cost|billing|usage dashboard)/.test(text)) {
     contexts.push('CP11E AI Cost / Observability: local estimated usage and cost only. Do not claim provider billing accuracy. Use ESTIMATED_LOCAL until real billing/usage API is connected.')
   }
+
+  // Load dynamic skills
+  try {
+    const dynamicSkills = loadDynamicSkills()
+    for (const skill of dynamicSkills) {
+      const matchesTag = skill.tags.some(tag => text.includes(tag.toLowerCase()))
+      const matchesTitle = skill.title.toLowerCase().split(/\s+/).some(word => word.length > 3 && text.includes(word))
+      if (matchesTag || matchesTitle) {
+        contexts.push(`Skill [${skill.title}]: ${skill.description}\nRules and Guidelines:\n${skill.body}`)
+      }
+    }
+  } catch (err) {
+    console.error('[chat-api] Erro ao carregar skills dinâmicas:', err)
+  }
+
   if (!contexts.length) {
     contexts.push('Platform: Apex AI Copilot is a command-first full AI assistant. Chat is primary; modules and connectors are optional execution paths.')
   }
-  return contexts.slice(0, 6).join('\n')
+  return contexts.slice(0, 8).join('\n\n')
 }
 
 function buildFileContext(file) {
@@ -466,7 +574,7 @@ function buildLiveAgentToolDefinitions() {
           properties: {
             commandId: {
               type: 'string',
-              enum: ['git_status', 'git_diff_stat', 'build', 'validate_supabase_sql', 'check_server'],
+              enum: ['git_status', 'git_diff_stat', 'git_log_recent', 'git_diff_name_only', 'build', 'validate_supabase_sql', 'check_server'],
               description: 'Safe command to execute in the authorized Apex repo.'
             },
             reason: {
@@ -488,11 +596,62 @@ function getChatProvider() {
   return null
 }
 
+function flattenMessageText(messages = []) {
+  return (Array.isArray(messages) ? messages : [])
+    .map(msg => {
+      if (!msg) return ''
+      if (typeof msg.content === 'string') return msg.content
+      if (Array.isArray(msg.content)) {
+        return msg.content
+          .map(block => {
+            if (!block) return ''
+            if (block.type === 'text') return String(block.text || '')
+            if (block.type === 'image_url') return ''
+            return String(block.text || block.content || '')
+          })
+          .join('\n')
+      }
+      return String(msg.content || '')
+    })
+    .join('\n')
+}
+
+function normalizeAnthropicContent(content) {
+  if (typeof content === 'string') return [{ type: 'text', text: content }]
+  if (!Array.isArray(content)) return [{ type: 'text', text: String(content || '') }]
+  return content
+    .map(block => {
+      if (!block) return null
+      if (block.type === 'text') return { type: 'text', text: String(block.text || '') }
+      if (block.type === 'image_url') return null
+      if (typeof block.text === 'string') return { type: 'text', text: block.text }
+      return null
+    })
+    .filter(Boolean)
+}
+
 function buildAnthropicMessages(messages) {
-  return (Array.isArray(messages) ? messages : []).map(msg => ({
-    role: msg.role === 'assistant' ? 'assistant' : msg.role === 'system' ? 'system' : 'user',
-    content: String(msg.content || ''),
-  }))
+  const systemParts = []
+  const anthropicMessages = []
+
+  for (const msg of Array.isArray(messages) ? messages : []) {
+    if (!msg) continue
+    if (msg.role === 'system') {
+      const systemText = flattenMessageText([msg]).trim()
+      if (systemText) systemParts.push(systemText)
+      continue
+    }
+
+    anthropicMessages.push({
+      role: msg.role === 'assistant' ? 'assistant' : 'user',
+      content: normalizeAnthropicContent(msg.content),
+    })
+  }
+
+  return {
+    system: systemParts.join('\n\n'),
+    messages: anthropicMessages,
+  }
 }
 
 async function callOpenAIChat(requestPayload) {
@@ -509,29 +668,94 @@ async function callOpenAIChat(requestPayload) {
   return { provider: 'openai', response, data }
 }
 
-async function callAnthropicChat(liveAgentMessages) {
+function extractAnthropicText(data) {
+  if (typeof data?.completion === 'string') return data.completion.trim()
+  const blocks = Array.isArray(data?.content) ? data.content : []
+  return blocks
+    .filter(block => block?.type === 'text' && typeof block.text === 'string')
+    .map(block => block.text)
+    .join('')
+    .trim()
+}
+
+function extractAnthropicToolUses(data) {
+  const blocks = Array.isArray(data?.content) ? data.content : []
+  return blocks.filter(block => block?.type === 'tool_use' && block.id && block.name)
+}
+
+async function callAnthropicChat(liveAgentMessages, userMessage = '') {
   const apiBase = process.env.ANTHROPIC_API_BASE || 'https://api.anthropic.com/v1'
-  const payload = {
-    model: process.env.ANTHROPIC_CHAT_MODEL || 'claude-sonnet-4-6',
-    messages: buildAnthropicMessages(liveAgentMessages),
-    max_tokens_to_sample: 900,
-    temperature: 0.72,
-    top_p: 1,
+  const { system, messages } = buildAnthropicMessages(liveAgentMessages)
+  const tools = buildLiveAgentToolDefinitions()
+  const toolChoice = shouldForceLiveAgentToolUse(userMessage) ? { type: 'any' } : { type: 'auto' }
+  const MAX_TOOL_ROUNDS = 12
+
+  let currentMessages = messages
+  let lastResponse = null
+  let lastData = null
+
+  for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+    const payload = {
+      model: process.env.ANTHROPIC_CHAT_MODEL || 'claude-sonnet-4-6',
+      system,
+      messages: currentMessages,
+      max_tokens: 900,
+      temperature: 0.72,
+      top_p: 1,
+      tools,
+      tool_choice: toolChoice,
+    }
+
+    const response = await fetch(`${apiBase}/messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify(payload),
+    })
+
+    const data = await response.json().catch(() => ({}))
+    lastResponse = response
+    lastData = data
+    if (!response.ok) break
+
+    const toolUses = extractAnthropicToolUses(data)
+    if (!toolUses.length) break
+
+    currentMessages = [
+      ...currentMessages,
+      { role: 'assistant', content: Array.isArray(data.content) ? data.content : [] },
+    ]
+
+    const resolvedToolResults = []
+    for (const toolUse of toolUses) {
+      const toolCall = {
+        function: {
+          name: toolUse.name,
+          arguments: JSON.stringify(toolUse.input || {}),
+        },
+      }
+      const toolResult = await executeLiveAgentToolCall(toolCall)
+      resolvedToolResults.push({
+        type: 'tool_result',
+        tool_use_id: toolUse.id,
+        content: JSON.stringify(toolResult),
+      })
+    }
+
+    currentMessages.push({
+      role: 'user',
+      content: resolvedToolResults,
+    })
   }
-  const response = await fetch(`${apiBase}/messages`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': process.env.ANTHROPIC_API_KEY,
-    },
-    body: JSON.stringify(payload),
-  })
-  const data = await response.json().catch(() => ({}))
-  return { provider: 'anthropic', response, data }
+
+  return { provider: 'anthropic', response: lastResponse || { ok: false }, data: lastData || {} }
 }
 
 function pickAnthropicReply(data) {
-  return String(data?.completion || data?.content?.[0]?.text || (data?.message && data.message.content) || '').trim()
+  return extractAnthropicText(data)
 }
 
 async function executeLiveAgentToolCall(toolCall) {
@@ -560,13 +784,26 @@ async function executeLiveAgentToolCall(toolCall) {
   const hasLocalWorker = Boolean(process.env.LOCAL_WORKER_URL && process.env.LOCAL_WORKER_TOKEN)
   if (hasLocalWorker) {
     let action = ''
-    if (commandId === 'git_status') action = 'project.git_status'
-    else if (commandId === 'git_diff_stat') action = 'project.git_diff_stat'
-    else if (commandId === 'build') action = 'project.build_check'
-    else if (commandId === 'check_server') action = 'system.info'
+    let params = {}
+    if (commandId === 'git_status') {
+      action = 'project.git_status'
+    } else if (commandId === 'git_diff_stat') {
+      action = 'project.git_diff_stat'
+    } else if (commandId === 'git_log_recent') {
+      action = 'project.git_log'
+    } else if (commandId === 'git_diff_name_only') {
+      action = 'project.git_diff'
+    } else if (commandId === 'build') {
+      action = 'project.build_check'
+    } else if (commandId === 'check_server') {
+      action = 'system.info'
+    } else if (commandId === 'validate_supabase_sql') {
+      action = 'project.raw_shell'
+      params = { command: 'npm run validate:supabase-sql' }
+    }
 
     if (action) {
-      const result = await runLocalWorkerAction(action, { confirmed: true })
+      const result = await runLocalWorkerAction(action, { confirmed: true, params })
       if (result.ok) {
         return {
           providerStatus: 'completed',
@@ -741,7 +978,7 @@ export default async function handler(req, res) {
     try {
       const innerFileCandidate = body.file || null
       const looksLikePdfSummary = Boolean(innerFileCandidate && innerFileCandidate.kind === 'pdf' && innerFileCandidate.extractionStatus === 'ready' && String(innerFileCandidate.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(routingMessage || ''))
- if (!looksLikePdfSummary && productionRouterIntents.has(productionConversationIntent)) {
+  if (!looksLikePdfSummary) {
         const pdfText = String(innerFileCandidate.extractedText || '')
         const pdfSummaryPattern = /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i
         if (pdfSummaryPattern.test(userMessage || '')) {
@@ -787,7 +1024,7 @@ export default async function handler(req, res) {
     // conversational flow below to handle the request with file context.
     const fileCandidate2 = body.file || null
     const looksLikePdfSummary2 = Boolean(fileCandidate2 && fileCandidate2.kind === 'pdf' && fileCandidate2.extractionStatus === 'ready' && String(fileCandidate2.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(userMessage || ''))
-    if (!APEX_FREE_AGENT && !looksLikePdfSummary2 && productionRouterIntents.has(productionConversationIntent)) {
+    if (!APEX_FREE_AGENT && !looksLikePdfSummary2) {
       const result = await runApexOperatorProductionSafe({
         userMessage,
         identityContext: normalizeIdentityContext(body.identityContext || {}),
@@ -840,7 +1077,7 @@ export default async function handler(req, res) {
     const apiKey = anthropicKey || openaiKey
     if (!apiKey) {
       const h5ToolIds = classifyToolExecutionRequest(routingMessage)
-      if (h5ToolIds.length > 0 || productionRouterIntents.has(productionConversationIntent)) {
+      if (h5ToolIds.length > 0) {
         const result = await runApexOperatorProductionSafe({
           userMessage,
           identityContext: normalizeIdentityContext(body.identityContext || {}),
@@ -884,15 +1121,15 @@ export default async function handler(req, res) {
       ? rawMessages.slice(0, -1)
       : rawMessages
     const preferredLanguage = String(body.language || body.locale || '').slice(0, 40)
-    
+
     const intentInstruction = buildIntentInstruction(userMessage, file, conversation, preferredLanguage)
     const toolSummary = buildToolSummary(runtime.tools)
-        const looksLikePdfSummaryRequest = Boolean(file && file.kind === 'pdf' && file.extractionStatus === 'ready' && String(file.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(routingMessage || ''))
-        let specialIntentInstruction = intentInstruction
-        if (looksLikePdfSummaryRequest) {
-          specialIntentInstruction = 'Resuma o documento em português em 5 a 8 tópicos. Não copie o texto bruto. Identifique tipo do documento, partes envolvidas, finalidade, dados principais, datas, órgão emissor e conclusão.\n' + specialIntentInstruction
-        }
-    
+    const looksLikePdfSummaryRequest = Boolean(file && file.kind === 'pdf' && file.extractionStatus === 'ready' && String(file.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(routingMessage || ''))
+    let specialIntentInstruction = intentInstruction
+    if (looksLikePdfSummaryRequest) {
+      specialIntentInstruction = 'Resuma o documento em português em 5 a 8 tópicos. Não copie o texto bruto. Identifique tipo do documento, partes envolvidas, finalidade, dados principais, datas, órgão emissor e conclusão.\n' + specialIntentInstruction
+    }
+
     const systemPrompt = [
       runtime.systemPrompt.join('\n'),
       '',
@@ -916,6 +1153,7 @@ export default async function handler(req, res) {
       'General capability rule: Apex AI Copilot is not limited by topic or domain. It can reason, code, write, design, analyze, research, negotiate, troubleshoot and produce deliverables broadly.',
       'Use active Apex/project/file context when useful, but never refuse a normal general request because it is outside construction.',
       'Connectors are optional execution paths. They are invoked after understanding the user request, not before. Do not force every answer into a connector or service.',
+      'If the user asks to verify, check, or see the status of the repository, code, changes, or files, you MUST use the `run_safe_local_command` tool with `git_status` or `git_diff_stat` to fetch live status, rather than responding with a static explanation of the project structure.',
       'Always answer in the same language as the user latest message.',
       'If the user has not typed a natural-language message yet, use the browser/session language when supplied.',
       'Execution priority: if the user asks to create, generate, write, build, prepare, montar, criar, gerar, fazer, escreva or produza, do the work now. Do not explain the process unless asked.',
@@ -981,7 +1219,9 @@ export default async function handler(req, res) {
           'Investigate thoroughly: when asked to "analyze your code", "review the platform", or about a feature like auto-upgrade, do NOT stop after reading one file. Use list_dir and search_code to find ALL relevant files, read several of them, and base your answer on what you actually found. For auto-upgrade / self-upgrade questions, call self_upgrade_report.',
           'Never answer about the codebase with a vague generic summary. Cite concrete file paths, function names and findings from the tools.',
           'Work iteratively: explore with read_file/list_dir/search_code, make changes with write_file/edit_file, then verify with run_command when available.',
-          'To actually apply code changes that persist (especially in the serverless production runtime where write_file/edit_file fail with a read-only filesystem), call github_commit_changes with the full new content of each file. It creates a branch, commits, and opens a Pull Request that deploys when merged. When the user says "edit the code", "faça você mesmo", "aplique agora" or "code it yourself", actually CALL github_commit_changes — do not just paste code in the chat.',
+          'Treat vague task requests as real tasks. Choose the smallest useful first action, state the assumption briefly, and proceed instead of asking the user to restate the goal.',
+          'Do not ask a clarifying question just because the request is broad. Ask only if there is truly no safe or meaningful first step.',
+          'To actually apply code changes that persist (especially in the serverless production runtime where write_file/edit_file fail with a read-only filesystem), call github_commit_changes with the full new content of each file. It creates a branch, commits, and opens a Pull Request that deploys when merged. When the user says "edit the code", "faça você mesmo", "aplique agora" or "code it yourself", actually CALL github_commit_changes — do not just paste code in the chat. If the user mentions a specific project/repo name, automatically set the repository argument to the matching jedgard70/* repo. If the repo is implied but not explicit, use repositoryHint.',
           'Note: in the serverless cloud environment direct file writes and command execution are unavailable; read/list/search still work on the bundled code, and github_commit_changes is the correct way to persist code changes (it opens a PR).',
           'Destructive commands and secret files (.env, keys) are blocked by the sandbox.',
           'Critical truth rule: only claim you read, edited, created, or ran something if a tool result proves it. If a tool fails, report the real error.',
@@ -998,7 +1238,7 @@ export default async function handler(req, res) {
       model: process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
       messages: liveAgentMessages,
       tools: buildLiveAgentToolDefinitions(),
-      tool_choice: 'auto',
+      tool_choice: shouldForceLiveAgentToolUse(userMessage) ? 'required' : 'auto',
       temperature: 0.72,
       frequency_penalty: 0.2,
       max_tokens: 900,
@@ -1015,7 +1255,7 @@ export default async function handler(req, res) {
     }
 
     const chatResult = provider === 'anthropic'
-      ? await callAnthropicChat(liveAgentMessages)
+      ? await callAnthropicChat(liveAgentMessages, userMessage)
       : await callOpenAIChat(requestPayload)
 
     const response = chatResult.response
