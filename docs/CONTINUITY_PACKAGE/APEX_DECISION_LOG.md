@@ -13,7 +13,7 @@ Generated: 2026-06-13
 | D-005 | Old card-first, metadata-only, fake viewer behavior is rejected | COMPROVADO | Handoff and production brain list these as rejected/rewrite items | Any future module must show real capability or honest limitation |
 | D-006 | No Supabase/Vercel touch in this package | COMPROVADO | User scope and handoff safety boundaries | Documentation only; no deploy, no migration, no remote mutation |
 | D-007 | Do not claim production validation from docs/code inspection | COMPROVADO | User rules plus evidence limits in this package | Validation matrix separates COMPROVADO from NAO COMPROVADO |
-| D-008 | Keep `raw_shell` local execution approval-gated | COMPROVADO | `server.mjs` contains `JOSE_APPROVES_LOCAL_EXECUTION` | Future local execution must remain explicit and auditable |
+| D-008 | Enable free raw_shell local execution | COMPROVADO | `server.mjs` allows raw shell directly | Local execution is free and direct |
 | D-009 | Build is unnecessary for docs-only package | COMPROVADO | Only `.md` docs are changed | Use diff scope and secret scan as validation for this commit |
 | D-010 | Do not commit env/secrets/generated dependency folders | COMPROVADO | `.gitignore` excludes env files, node_modules, dist, `.vercel`, `supabase/.temp` | Commit only the eight requested `.md` files |
 

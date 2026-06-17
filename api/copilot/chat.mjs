@@ -806,6 +806,30 @@ export default async function handler(req, res) {
     const openaiKey = process.env.OPENAI_API_KEY
     const apiKey = anthropicKey || openaiKey
     if (!apiKey) {
+      const h5ToolIds = classifyToolExecutionRequest(routingMessage)
+      if (h5ToolIds.length > 0 || productionRouterIntents.has(productionConversationIntent)) {
+        const result = await runApexOperatorProductionSafe({
+          userMessage,
+          identityContext: normalizeIdentityContext(body.identityContext || {}),
+          workspaceContext: body.workspaceContext || {},
+          repoPath: process.cwd(),
+          permissions: {},
+          productionStatus,
+          clientMemory,
+          messages: Array.isArray(body.messages) ? body.messages : [],
+        })
+
+        return sendJson(res, 200, {
+          finalReply: result.finalReply,
+          reply: result.finalReply,
+          memoryPatch: result.memoryPatch || null,
+          mode: 'apex-operator-production-safe',
+          operator: result,
+          confirmation: buildConfirmationUi(result),
+          productionStatus,
+        })
+      }
+
       const fallbackReply = buildChatFallbackReply(userMessage, identityContext, body.file || null)
       return sendJson(res, 200, {
         finalReply: fallbackReply,

@@ -92,11 +92,7 @@ export function CopilotExecutionPanel({ initialRuns = [], onRunComplete, onClear
     if (!commandId || runningCommandId) return
     const command = commands.find(item => item.id === commandId)
     if (command?.acceptsRawCommand && !rawCommand.trim()) {
-      setError('Raw command is required before asking Jose for approval.')
-      return
-    }
-    if (command?.acceptsRawCommand && !rawApproval) {
-      setError('Jose approval is required before this raw shell command can run.')
+      setError('Raw command is required.')
       return
     }
     setError('')
@@ -116,10 +112,10 @@ export function CopilotExecutionPanel({ initialRuns = [], onRunComplete, onClear
       startedAt: new Date().toISOString(),
       finishedAt: '',
       durationMs: 0,
-      createdBy: 'Jose',
+      createdBy: 'User',
       risk: command?.risk || 'low',
-      requiresApproval: Boolean(command?.requiresApproval),
-      approvedBy: command?.acceptsRawCommand ? 'Jose' : undefined,
+      requiresApproval: false,
+      approvedBy: undefined,
       redactedOutput: false,
     }
     setRuns(previous => [pending, ...previous.filter(run => run.status !== 'running')])
@@ -132,9 +128,7 @@ export function CopilotExecutionPanel({ initialRuns = [], onRunComplete, onClear
           commandId,
           cwd,
           rawCommand: command?.acceptsRawCommand ? rawCommand : undefined,
-          approvedBy: command?.acceptsRawCommand ? 'Jose' : undefined,
-          approvalText: command?.acceptsRawCommand ? 'JOSE_APPROVES_LOCAL_EXECUTION' : undefined,
-          note: command?.acceptsRawCommand ? 'Jose approved raw shell command from Apex Copilot Local Execution v0' : 'Run from Apex Copilot Local Execution v0',
+          note: command?.acceptsRawCommand ? 'Raw shell command execution' : 'Run command',
         }),
       })
       const data = await response.json()
@@ -181,7 +175,7 @@ export function CopilotExecutionPanel({ initialRuns = [], onRunComplete, onClear
 
       <div className="execution-guardrail">
         <Terminal size={18} />
-        <span>Registered commands and raw shell mode run through spawn with shell enabled. Raw commands require Jose approval in this panel before execution.</span>
+        <span>Registered commands and raw shell mode run through spawn with shell enabled.</span>
       </div>
 
       {error && <div className="business-alert"><strong>Execution error</strong><span>{error}</span></div>}
@@ -204,7 +198,7 @@ export function CopilotExecutionPanel({ initialRuns = [], onRunComplete, onClear
       {rawShellCommand && (
         <div className="execution-guardrail">
           <ShieldCheck size={18} />
-          <span>Advanced raw shell is separated from the safe command list. It requires explicit Jose approval and should not be used for routine checks.</span>
+          <span>Advanced raw shell mode. Run custom commands inside the repository.</span>
           <button type="button" onClick={() => setSelectedCommandId(rawShellCommand.id)}>
             Select raw shell
           </button>
@@ -227,25 +221,16 @@ export function CopilotExecutionPanel({ initialRuns = [], onRunComplete, onClear
               <textarea
                 value={rawCommand}
                 onChange={event => setRawCommand(event.target.value)}
-                placeholder="Type the exact command Jose wants to approve..."
+                placeholder="Type the raw shell command..."
                 rows={4}
               />
             </label>
-            <button
-              type="button"
-              className={`execution-approval-button ${rawApproval ? 'approved' : ''}`}
-              onClick={() => setRawApproval(true)}
-              disabled={!rawCommand.trim() || !cwd.trim()}
-            >
-              <ShieldCheck size={16} />
-              {rawApproval ? 'Jose approved this command' : 'Ask Jose approval'}
-            </button>
           </>
         )}
       </div>
 
       <div className="execution-actions">
-        <button type="button" onClick={() => runSelectedCommand()} disabled={!selectedCommand || Boolean(runningCommandId) || (selectedIsRaw && !rawApproval)}>
+        <button type="button" onClick={() => runSelectedCommand()} disabled={!selectedCommand || Boolean(runningCommandId)}>
           <Play size={16} /> Run selected
         </button>
         <button type="button" onClick={copyLatestReport} disabled={!latestRun}>

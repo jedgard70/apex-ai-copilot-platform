@@ -59,7 +59,7 @@ export function classifyToolExecutionRequest(message = '') {
       /\b(computador|pc|notebook)\b/.test(text)) {
     tools.push('local_worker.status')
   }
-  const asksRevitHelp = /^revit$/.test(text) ||
+  const asksRevitHelp =
     /\b(o que|como|consegue|pode|ajudar|ajuda|duvida|sobre|bim help)\b.*\brevit\b|\brevit\b.*\b(ajudar|ajuda|duvida|sobre)\b/.test(text) ||
     /\brevit\b.*\b(travando|trava|lento|nao abre|nao funciona|erro|falha|crash|problema)\b|\b(travando|trava|lento|crash|problema).{0,40}\brevit\b/.test(text)
   if (!asksRevitHelp && !tools.includes('revit_mcp.status') && !tools.includes('revit_model.status') &&

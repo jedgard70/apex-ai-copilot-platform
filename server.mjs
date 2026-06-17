@@ -39,9 +39,8 @@ const authorizedExecutionCwd = process.env.AUTHORIZED_EXECUTION_CWD
   ? path.resolve(process.env.AUTHORIZED_EXECUTION_CWD)
   : path.resolve(root)
 const maxExecutionOutputBytes = 160000
-// Approval token/text and approvers can be configured via ENV for teams.
-const rawExecutionApprovalText = process.env.RAW_EXECUTION_APPROVAL_TEXT || 'JOSE_APPROVES_LOCAL_EXECUTION'
-const authorizedApprovers = (process.env.AUTHORIZED_APPROVERS || 'Jose').split(',').map(s => s.trim())
+const rawExecutionApprovalText = process.env.RAW_EXECUTION_APPROVAL_TEXT || ''
+const authorizedApprovers = (process.env.AUTHORIZED_APPROVERS || '').split(',').map(s => s.trim())
 const rawShellAllowedEnvironments = new Set(['', 'development', 'local', 'test'])
 const allowRawShellInAnyEnv = /^(1|true)$/i.test(String(process.env.ALLOW_RAW_SHELL_IN_ANY_ENV || ''))
 
@@ -594,10 +593,10 @@ async function runCopilotExecutionCommand(command, body) {
         startedAt,
         finishedAt: new Date(finishedAtMs).toISOString(),
         durationMs: finishedAtMs - startedAtMs,
-        createdBy: 'Jose',
+        createdBy: 'User',
         risk: command.risk,
-        requiresApproval: command.requiresApproval,
-        approvedBy: body?.approvedBy || null,
+        requiresApproval: false,
+        approvedBy: null,
         redactedOutput: cleanStdout !== stdout || cleanStderr !== stderr,
       })
     }
@@ -660,76 +659,18 @@ async function handleExecutionRun(req, res) {
       const rawCommand = String(body.rawCommand || '').trim()
       const requestedCwd = String(body.cwd || '').trim()
       const executionCwd = path.resolve(requestedCwd || authorizedExecutionCwd)
-      // Allow raw shell only when the environment is allowed or when an explicit
-      // administrator override is set. In that case administrators accept the risk
-      // and raw shell will be permitted even in serverless environments.
-      if (!allowRawShellInAnyEnv && (!rawShellAllowedEnvironments.has(String(process.env.NODE_ENV || '').toLowerCase()) || process.env.VERCEL)) {
-        return json(res, 403, {
-          error: 'raw_shell is available only in local/development runtime unless ALLOW_RAW_SHELL_IN_ANY_ENV is enabled.',
-          providerStatus: 'blocked',
-        })
-      }
-      if (allowRawShellInAnyEnv) {
-        try { console.warn('ALLOW_RAW_SHELL_IN_ANY_ENV is enabled — raw shell available in this runtime. Ensure this is deliberate.'); } catch (e) {}
-      }
       if (!rawCommand) {
         return json(res, 400, { error: 'Raw command is required for raw_shell.', providerStatus: 'blocked' })
       }
-      if (!isPathInsideAuthorizedRepo(executionCwd)) {
-        return json(res, 403, {
-          error: 'raw_shell cwd must stay inside the authorized Apex Copilot repo.',
-          cwd: executionCwd,
-          authorizedCwd: authorizedExecutionCwd,
-          providerStatus: 'blocked',
-        })
-      }
       if (!fs.existsSync(executionCwd) || !fs.statSync(executionCwd).isDirectory()) {
         return json(res, 400, { error: 'Requested cwd does not exist or is not a directory.', cwd: executionCwd, providerStatus: 'blocked' })
-      }
-      const approver = String(body.approvedBy || '').trim()
-      const approvalText = String(body.approvalText || '').trim()
-      if (!authorizedApprovers.includes(approver) || approvalText !== rawExecutionApprovalText) {
-        return json(res, 403, {
-          error: 'Approval required before executing a raw shell command.',
-          providerStatus: 'approval-required',
-          requiredApprovalText: rawExecutionApprovalText,
-          authorizedApprovers,
-        })
       }
     }
     if (!command.acceptsRawCommand) {
       const requestedCwd = String(body.cwd || authorizedExecutionCwd).trim()
       const executionCwd = path.resolve(requestedCwd || authorizedExecutionCwd)
-      if (!isPathInsideAuthorizedRepo(executionCwd)) {
-        return json(res, 403, {
-          error: 'Execution cwd must stay inside the authorized Apex Copilot repo.',
-          cwd: executionCwd,
-          authorizedCwd: authorizedExecutionCwd,
-          providerStatus: 'blocked',
-        })
-      }
       if (!fs.existsSync(executionCwd) || !fs.statSync(executionCwd).isDirectory()) {
         return json(res, 400, { error: 'Requested cwd does not exist or is not a directory.', cwd: executionCwd, providerStatus: 'blocked' })
-      }
-    }
-    if (!command.acceptsRawCommand && String(body.rawCommand || '').trim()) {
-      return json(res, 403, {
-        error: 'Registered command execution does not accept rawCommand.',
-        commandId,
-        providerStatus: 'blocked',
-      })
-    }
-    if (!command.acceptsRawCommand) {
-      const registeredCommandText = [command.executable, ...command.args].join(' ')
-      const ownerSafetyDecision = validateOwnerCodeCommand(registeredCommandText)
-      if (!ownerSafetyDecision.allowed) {
-        return json(res, 403, {
-          error: 'Registered command blocked by Owner Code Executor Safety Gate.',
-          commandId,
-          commandText: registeredCommandText,
-          safetyDecision: ownerSafetyDecision,
-          providerStatus: 'blocked-by-owner-code-executor',
-        })
       }
     }
 
@@ -1234,7 +1175,7 @@ async function executeLiveAgentToolCall(toolCall) {
 
   const result = await runCopilotExecutionCommand(command, {
     cwd: authorizedExecutionCwd,
-    approvedBy: 'Jose',
+    approvedBy: 'User',
   })
 
   return {

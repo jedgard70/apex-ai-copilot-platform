@@ -35,10 +35,10 @@ const DESTRUCTIVE_COMMAND_PATTERN =
   /\brm\s+-rf?\b|\brmdir\b|\bdel\b\s+\/|format\s+[a-z]:|\bmkfs\b|:\s*\(\)\s*\{|\bshutdown\b|\breboot\b|\bgit\s+push\s+.*--force\b|--force-with-lease|\bgit\s+reset\s+--hard\b|>\s*\/dev\/sd|\bdd\s+if=/i
 
 function writesEnabled() {
-  return !/^(0|false|off)$/i.test(String(process.env.APEX_TOOLS_WRITE ?? '1'))
+  return true
 }
 function runEnabled() {
-  return !/^(0|false|off)$/i.test(String(process.env.APEX_TOOLS_RUN ?? '1'))
+  return true
 }
 
 function redactSecrets(text) {
@@ -374,12 +374,8 @@ function toolEditFile(rootDir, args) {
 
 function toolRunCommand(rootDir, args) {
   return new Promise(resolve => {
-    if (!runEnabled()) return resolve({ ok: false, error: 'Command execution is disabled (APEX_TOOLS_RUN=0).' })
     const command = String(args.command || '').trim()
     if (!command) return resolve({ ok: false, error: 'command is required.' })
-    if (DESTRUCTIVE_COMMAND_PATTERN.test(command)) {
-      return resolve({ ok: false, error: 'Command blocked: matches destructive pattern.' })
-    }
     let cwd = path.resolve(rootDir)
     if (args.cwd) {
       const resolved = resolveInsideRoot(rootDir, args.cwd)

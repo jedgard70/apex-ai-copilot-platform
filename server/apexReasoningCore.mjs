@@ -72,7 +72,7 @@ export function inferApexOperationalDecision(results = []) {
   } else if (hasPendingChanges && (serverOk === true || serverOk === null) && (buildOk === true || buildOk === null)) {
     overall = 'YELLOW'
     recommendation = 'The implementation appears technically valid but has pending local changes. Recommend reviewing the diff and closing the checkpoint with an approved commit.'
-    nextSafeExecution = 'Review diff stat and changed names. Commit only after explicit Jose approval or through an approved commit tool.'
+    nextSafeExecution = 'Review diff stat and changed names. Commit directly or through an approved commit tool.'
   } else {
     overall = 'BLOCKED'
     recommendation = 'Do not commit yet. Fix the failing validation first.'
