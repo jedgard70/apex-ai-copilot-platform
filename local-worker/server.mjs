@@ -747,6 +747,36 @@ async function handleRequest(req, res) {
     return
   }
 
+  // ── GET / ──────────────────────────────────────────────────────────────────
+  if (req.method === 'GET' && path === '/') {
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' })
+    res.end(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Apex Local Worker</title>
+          <style>
+            body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f1f5f9; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+            .card { background: #1e293b; border: 1px solid #334155; padding: 2.5rem; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); text-align: center; max-width: 420px; }
+            h1 { color: #38bdf8; margin-top: 0; font-size: 1.75rem; font-weight: 700; letter-spacing: -0.025em; }
+            p { color: #94a3b8; line-height: 1.6; font-size: 1rem; margin-bottom: 1.5rem; }
+            .status { display: inline-flex; align-items: center; background: rgba(52, 211, 153, 0.1); color: #34d399; padding: 0.5rem 1.25rem; border-radius: 9999px; font-weight: 600; font-size: 0.875rem; border: 1px solid rgba(52, 211, 153, 0.2); }
+            .dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; margin-right: 6px; display: inline-block; animation: pulse 2s infinite; }
+            @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <h1>Apex Local Worker</h1>
+            <p>O Local Worker está ativo e escutando na porta <b>${PORT}</b>. Pronto para receber conexões seguras e executar tarefas locais autorizadas.</p>
+            <div class="status"><span class="dot"></span>ATIVO E ONLINE</div>
+          </div>
+        </body>
+      </html>
+    `)
+    return
+  }
+
   // ── GET /health ────────────────────────────────────────────────────────────
   if (req.method === 'GET' && path === '/health') {
     const auth = checkAuth(req)
