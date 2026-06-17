@@ -2,6 +2,11 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
+    { "source": "/api/copilot/operator-preview", "destination": "/api/copilot/operator?action=preview" },
+    { "source": "/api/copilot/operator-status", "destination": "/api/copilot/operator?action=status" },
+    { "source": "/api/copilot/operator-execute", "destination": "/api/copilot/operator?action=execute" },
+    { "source": "/api/copilot/execution/commands", "destination": "/api/copilot/execution?action=commands" },
+    { "source": "/api/copilot/execution/run", "destination": "/api/copilot/execution?action=run" },
     { "source": "/api/copilot/contracts-plan", "destination": "/api/copilot/plan" },
     { "source": "/api/copilot/supply-chain-plan", "destination": "/api/copilot/plan" },
     { "source": "/api/copilot/fieldops-plan", "destination": "/api/copilot/plan" },
