@@ -35,7 +35,7 @@ export const TECH_RADAR = {
 export function snapshotCurrentArchitecture() {
   const status = collectProductionOperatorStatus()
   return {
-    checkpointsCompleted: ['H5.x', 'H6.0', 'H7', 'H8', 'H9', 'H10', 'H11', 'H12', 'H13', 'H14', 'H15', 'H16', 'H17'],
+    checkpointsCompleted: ['H5.x', 'H6.0', 'H7', 'H8', 'H9', 'H10', 'H11', 'H12', 'H13', 'H14', 'H15', 'H16', 'H17', 'H18', 'H19', 'H20', 'H21', 'H22'],
     capabilityCount: Object.keys(status.capabilities || {}).length,
     connectorCount: (status.connectors || []).length,
     configuredConnectors: (status.connectors || []).filter(c => c.configured).map(c => c.id),
@@ -45,11 +45,6 @@ export function snapshotCurrentArchitecture() {
       'M3: Document generation (DOCX/PDF)',
       'M5: Budget spreadsheet + SINAPI live',
       'M6: BIM Viewer (IFC/RVT/DWG)',
-      'H18: Self-Upgrade Planner',
-      'H19: Codex/Claude Delegation Generator',
-      'H20: Safe Code Change Executor',
-      'H21: Validation + Rollback Engine',
-      'H22: Autonomous Upgrade Watcher',
     ],
     stack: { frontend: 'React 18 + Vite + TypeScript', backend: 'Vercel Functions (Node ESM)', db: 'Supabase', deploy: 'Vercel' },
   }

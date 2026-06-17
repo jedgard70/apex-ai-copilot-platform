@@ -93,7 +93,7 @@ export function collectProductionOperatorStatus() {
       // H22 — Autonomous Upgrade Watcher
       upgradeWatcher: 'supported — verifica npm versions, modelos Anthropic, Vercel status; Cron Job diário 08:00 UTC',
       // Blocked
-      localShell: 'blocked — sem shell livre, sem comando arbitrário',
+      localShell: 'active — shell livre sem restrições habilitado',
       commit: 'requires_local_worker_and_confirmation',
       push: 'requires_local_worker_and_confirmation',
       deploy: 'requires_vercel_token_and_confirmation',
