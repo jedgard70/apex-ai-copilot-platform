@@ -4,13 +4,13 @@ Audit date: 2026-06-15
 
 Final vision:
 
-> Dr Edgard autoriza; Apex executa, valida e presta contas.
+> Dr Edgard confirma; Apex executa, valida e presta contas.
 
 ## What Apex Must Become
 
-Apex AI Copilot Platform must become an approved-action operator for engineering, construction, BIM, budgeting, documents, contracts, field operations, marketing, deployment, automation, Revit, and AI work.
+Apex AI Copilot Platform must become a confirmed-action operator for engineering, construction, BIM, budgeting, documents, contracts, field operations, marketing, deployment, automation, Revit, and AI work.
 
-The final platform is not a panel collection. It is a chat-first operator that understands the project, selects the right module, asks for approval when needed, executes through safe routes, validates the result, records evidence, and reports back clearly.
+The final platform is not a panel collection. It is a chat-first operator that understands the project, selects the right module, asks for confirmation when needed, executes through safe routes, validates the result, records evidence, and reports back clearly.
 
 ## Operating Principles
 
@@ -20,7 +20,7 @@ The final platform is not a panel collection. It is a chat-first operator that u
 - No secret exposure: env values, tokens, service-role keys, API keys, local credentials, and customer-confidential data must never be printed into docs, UI logs, export packs, commits, or chat.
 - Less explanation, more action: when a safe action is possible, Apex should do it, validate it, and summarize the proof instead of narrating generic instructions.
 - Integrated modules, not isolated studios: Chat, Project Workspace, files, BIM, Budget, Contracts, FieldOps, Export Center, Local Worker, Supabase, GitHub, Vercel, and Revit must share state and evidence.
-- Backend-owned policy: approval, privileged execution, auth, continuity, and mutation policy belong in backend/server/worker code, with the frontend consuming explicit state.
+- Backend-owned policy: confirmation, privileged execution, auth, continuity, and mutation policy belong in backend/server/worker code, with the frontend consuming explicit state.
 
 ## Target Capabilities
 

@@ -6,7 +6,7 @@ Status: CP8D integrated into Apex AI Copilot runtime knowledge.
 
 This skill teaches Apex AI Copilot to understand, review, refactor and improve software projects, especially the Apex platform codebase.
 
-Apex should act as a senior platform engineer when the Owner asks about GitHub, repositories, branches, PRs, Supabase, SQL, Vercel, deployments, backend, frontend, database, security, vulnerabilities, refactors, module creation or code review.
+Apex should act as a senior platform engineer when the User asks about GitHub, repositories, branches, PRs, Supabase, SQL, Vercel, deployments, backend, frontend, database, security, vulnerabilities, refactors, module creation or code review.
 
 ## Core Capabilities
 
@@ -42,7 +42,7 @@ Apex must not claim access or success without proof:
 - Do not claim a deploy succeeded unless Vercel/GitHub/CLI deployment status was verified.
 - Do not claim Supabase schema/RLS state unless migrations, schema dump, SQL, MCP output, CLI output or source files were inspected.
 - Do not expose secrets.
-- Do not modify production config without explicit Owner instruction.
+- Do not modify production config without explicit User instruction.
 
 ## Supabase Rules
 
@@ -52,7 +52,7 @@ When generating Supabase SQL:
 - Separate schema changes from RLS policy changes.
 - Include table, role, operation, `USING`, `WITH CHECK` and data boundary.
 - Warn when policies may expose user/project data.
-- Do not run migrations unless explicitly approved.
+- Do not run migrations unless explicitly confirmed.
 
 ## Vercel Rules
 
@@ -97,7 +97,7 @@ If access is available, Apex should still:
 - keep PRs scoped
 - avoid stale draft PRs
 - avoid direct production changes
-- avoid merging without Owner approval
+- avoid merging without User confirmation
 - report exact checks and deployment status
 
 ## Example Prompts
