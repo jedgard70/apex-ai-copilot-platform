@@ -15,6 +15,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
 import { runSelfUpgradePlanner, buildSelfUpgradePlannerReply } from './selfUpgradePlanner.mjs'
+import { buildGithubToolDefinitions, executeGithubToolCall, GITHUB_TOOL_NAMES, isGithubConfigured } from './githubTools.mjs'
 
 const MAX_READ_BYTES = 200_000
 const MAX_OUTPUT_BYTES = 160_000
@@ -190,12 +191,16 @@ export function buildCodeToolDefinitions() {
     },
   })
 
+  // GitHub commit/PR tool — the way to actually edit the codebase in production.
+  tools.push(...buildGithubToolDefinitions())
+
   return tools
 }
 
 // Convenience: the set of tool names this module handles.
 export const CODE_TOOL_NAMES = new Set([
   'read_file', 'list_dir', 'search_code', 'write_file', 'edit_file', 'run_command', 'self_upgrade_report',
+  'github_commit_changes',
 ])
 
 // ---- Tool execution ----
@@ -306,6 +311,16 @@ function toolSearchCode(rootDir, args) {
   return { ok: true, query: args.query, count: results.length, matches: results }
 }
 
+function readOnlyFsHint(err) {
+  const code = err?.code || ''
+  if (code === 'EROFS' || code === 'EACCES' || code === 'EPERM') {
+    return isGithubConfigured()
+      ? 'The runtime filesystem is read-only (serverless). To actually change the code, call github_commit_changes to commit the file(s) and open a Pull Request.'
+      : 'The runtime filesystem is read-only (serverless) and GitHub is not configured, so the change cannot be persisted here.'
+  }
+  return null
+}
+
 function toolWriteFile(rootDir, args) {
   if (!writesEnabled()) return { ok: false, error: 'File writes are disabled (APEX_TOOLS_WRITE=0).' }
   const resolved = resolveInsideRoot(rootDir, args.path)
@@ -313,15 +328,20 @@ function toolWriteFile(rootDir, args) {
   if (SECRET_FILE_PATTERN.test(args.path || '')) {
     return { ok: false, error: 'Writing secret/credential files is blocked.' }
   }
-  const dir = path.dirname(resolved.target)
-  fs.mkdirSync(dir, { recursive: true })
-  const existed = fs.existsSync(resolved.target)
-  fs.writeFileSync(resolved.target, String(args.content ?? ''), 'utf8')
-  return {
-    ok: true,
-    path: args.path,
-    action: existed ? 'overwritten' : 'created',
-    bytes: Buffer.byteLength(String(args.content ?? ''), 'utf8'),
+  try {
+    const dir = path.dirname(resolved.target)
+    fs.mkdirSync(dir, { recursive: true })
+    const existed = fs.existsSync(resolved.target)
+    fs.writeFileSync(resolved.target, String(args.content ?? ''), 'utf8')
+    return {
+      ok: true,
+      path: args.path,
+      action: existed ? 'overwritten' : 'created',
+      bytes: Buffer.byteLength(String(args.content ?? ''), 'utf8'),
+    }
+  } catch (err) {
+    const hint = readOnlyFsHint(err)
+    return { ok: false, error: hint || `Write failed: ${err?.message || String(err)}`, useGithubTool: Boolean(hint && isGithubConfigured()) }
   }
 }
 
@@ -343,8 +363,13 @@ function toolEditFile(rootDir, args) {
     return { ok: false, error: 'oldString is not unique. Provide more surrounding context.' }
   }
   const updated = original.slice(0, first) + newString + original.slice(first + oldString.length)
-  fs.writeFileSync(resolved.target, updated, 'utf8')
-  return { ok: true, path: args.path, action: 'edited' }
+  try {
+    fs.writeFileSync(resolved.target, updated, 'utf8')
+    return { ok: true, path: args.path, action: 'edited' }
+  } catch (err) {
+    const hint = readOnlyFsHint(err)
+    return { ok: false, error: hint || `Edit failed: ${err?.message || String(err)}`, useGithubTool: Boolean(hint && isGithubConfigured()) }
+  }
 }
 
 function toolRunCommand(rootDir, args) {
@@ -400,6 +425,9 @@ function toolRunCommand(rootDir, args) {
 // rootDir: absolute path of the authorized repository root.
 export async function executeCodeToolCall(toolCall, rootDir) {
   const name = toolCall && toolCall.function ? String(toolCall.function.name || '') : ''
+  if (GITHUB_TOOL_NAMES.has(name)) {
+    return await executeGithubToolCall(toolCall)
+  }
   let args = {}
   try {
     args = JSON.parse(toolCall.function.arguments || '{}')
