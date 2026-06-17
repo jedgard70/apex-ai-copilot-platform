@@ -1053,7 +1053,10 @@ export default async function handler(req, res) {
     // conversational flow below to handle the request with file context.
     const fileCandidate2 = body.file || null
     const looksLikePdfSummary2 = Boolean(fileCandidate2 && fileCandidate2.kind === 'pdf' && fileCandidate2.extractionStatus === 'ready' && String(fileCandidate2.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(userMessage || ''))
-    if (!APEX_FREE_AGENT && !looksLikePdfSummary2) {
+    const isProductionRoute = productionRouterIntents.has(productionConversationIntent) ||
+                              productionConversationIntent === 'production_language_preference' ||
+                              productionConversationIntent === 'production_affirmation'
+    if ((!APEX_FREE_AGENT || isProductionRoute) && !looksLikePdfSummary2) {
       const result = await runApexOperatorProductionSafe({
         userMessage,
         identityContext: normalizeIdentityContext(body.identityContext || {}),

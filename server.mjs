@@ -1319,7 +1319,10 @@ async function handleChat(req, res) {
       'production_supabase',
     ])
 
-    if (!APEX_FREE_AGENT) {
+    const isProductionRoute = productionRouterIntents.has(productionConversationIntent) ||
+                              productionConversationIntent === 'production_language_preference' ||
+                              productionConversationIntent === 'production_affirmation'
+    if (!APEX_FREE_AGENT || isProductionRoute) {
       const productionStatus = collectProductionOperatorStatus()
       const operatorResult = await runApexOperatorProductionSafe({
         userMessage: userText,
