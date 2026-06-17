@@ -6,6 +6,12 @@ import { collectProductionOperatorStatus } from '../../server/agent/productionSt
 import { classifyToolExecutionRequest, routeToolExecution, routeH6ActionRequest } from '../../server/agent/toolExecutionRouter.mjs'
 import { isConfirmationSignal, isCancelSignal, hasPendingAction } from '../../server/agent/confirmationStateMachine.mjs'
 import { classifyProductionConversationIntent } from '../../server/agent/productionConversationRouter.mjs'
+import { buildCodeToolDefinitions, executeCodeToolCall, CODE_TOOL_NAMES } from '../../server/agent/codeTools.mjs'
+
+// APEX_FREE_AGENT (default ON): conversational messages bypass the canned
+// production-intent router and go straight to the LLM. Set APEX_FREE_AGENT=0
+// to restore the old template-router behavior.
+const APEX_FREE_AGENT = !/^(0|false|off)$/i.test(String(process.env.APEX_FREE_AGENT ?? '1'))
 
 // PDF summary pattern — triggers local extraction-based summary
 const PDF_SUMMARY_PATTERN = /\b(resuma|analise|analisa|resume|sumari[sz]|principais?|pontos?|extraia|extrair|o que (fala|diz|trata)|me (conta|diga|fale)|sobre o que|resumo|síntese|sinopse)\b/i
@@ -468,7 +474,8 @@ function buildLiveAgentToolDefinitions() {
           required: ['commandId', 'reason']
         }
       }
-    }
+    },
+    ...buildCodeToolDefinitions(),
   ]
 }
 
@@ -526,6 +533,13 @@ function pickAnthropicReply(data) {
 
 async function executeLiveAgentToolCall(toolCall) {
   const name = toolCall && toolCall.function ? String(toolCall.function.name || '') : ''
+
+  // Real code/filesystem/command tools (read/list/search/write/edit/run).
+  if (CODE_TOOL_NAMES.has(name)) {
+    const repoRoot = path.resolve(__dirname, '../../')
+    return await executeCodeToolCall(toolCall, repoRoot)
+  }
+
   if (name !== 'run_safe_local_command') {
     return { providerStatus: 'blocked', error: 'Unknown Apex live agent tool.' }
   }
@@ -612,7 +626,7 @@ export default async function handler(req, res) {
     const looksLikePdfSummary = hasReadyPdfText && PDF_SUMMARY_PATTERN.test(userMessage || '')
 
     // Fast-path: greeting in Portuguese — no file context needed
-    if (/^\s*(ol[aá]|oi|ola)\s*$/i.test(userMessage)) {
+    if (!APEX_FREE_AGENT && /^\s*(ol[aá]|oi|ola)\s*$/i.test(userMessage)) {
       const name = clientMemory.displayName ? `, ${clientMemory.displayName}` : ''
       const greeting = `Olá${name}. Como posso ajudar agora?`
       return sendJson(res, 200, {
@@ -736,7 +750,7 @@ export default async function handler(req, res) {
     // conversational flow below to handle the request with file context.
     const fileCandidate2 = body.file || null
     const looksLikePdfSummary2 = Boolean(fileCandidate2 && fileCandidate2.kind === 'pdf' && fileCandidate2.extractionStatus === 'ready' && String(fileCandidate2.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(userMessage || ''))
-    if (!looksLikePdfSummary2 && productionRouterIntents.has(productionConversationIntent)) {
+    if (!APEX_FREE_AGENT && !looksLikePdfSummary2 && productionRouterIntents.has(productionConversationIntent)) {
       const result = await runApexOperatorProductionSafe({
         userMessage,
         identityContext: normalizeIdentityContext(body.identityContext || {}),
@@ -773,7 +787,7 @@ export default async function handler(req, res) {
     }
 
     // Portuguese-only greeting short-circuit for 'ola'/'oi' single-word greetings.
-    if (/^\s*(ola|oi|ol[aá])\s*[.!?]?\s*$/i.test(userMessage || '')) {
+    if (!APEX_FREE_AGENT && /^\s*(ola|oi|ol[aá])\s*[.!?]?\s*$/i.test(userMessage || '')) {
       const greeting = 'Olá, Dr Edgard. Como posso ajudar agora?'
       return sendJson(res, 200, {
         finalReply: greeting,
@@ -893,15 +907,14 @@ export default async function handler(req, res) {
         content: [
           'Apex Live Agent Runtime is enabled.',
           'The user can talk naturally, like with ChatGPT or Codex. Do not require exact command phrases.',
-          'You are not a button router. You are a live project copilot: infer intent from context, decide whether evidence is needed, use safe tools when useful, then give a recommendation.',
-          'When live evidence about this local repo is useful, decide by yourself whether to call run_safe_local_command.',
-          'Use tools only when useful. Do not use tools for normal writing, explanation, strategy, design or business answers.',
-          'Never call raw shell. Never deploy. Never migrate Supabase. Never push. Never modify files from this tool.',
-          'Critical truth rule: never claim that you committed, pushed, deployed, migrated, edited files, installed packages, or changed production unless a tool result explicitly proves that exact action.',
-          'The live tool can validate status/build/checks only. It cannot commit. If the user says faca, ok, pode, segue, continua, infer the next safe action from context. If the next action is commit, recommend it and provide the exact command or ask for an explicit approved commit tool; do not claim it was done.',
+          'You are a full coding copilot with REAL access to this platform repository. You have tools to read files (read_file), list directories (list_dir), search code (search_code), write files (write_file), edit files (edit_file) and run commands (run_command).',
+          'When the user asks about the code, the platform, or to change/fix/build something, USE these tools to actually inspect and modify the real repository. Do not guess file contents — read them.',
+          'Work iteratively: explore with read_file/list_dir/search_code, make changes with write_file/edit_file, then verify with run_command when available.',
+          'Note: in the serverless cloud environment file writes and command execution may be unavailable; read/list/search still work on the bundled code. If a write/run tool returns an error, report it honestly and provide the exact change instead.',
+          'Destructive commands and secret files (.env, keys) are blocked by the sandbox.',
+          'Critical truth rule: only claim you read, edited, created, or ran something if a tool result proves it. If a tool fails, report the real error.',
           'Do not end with vague questions like "what would you like to do next?" when evidence supports a clear next step. Give a decisive recommendation and one practical next action.',
-          'Use status language: GREEN for proven OK, YELLOW for pending/review, BLOCKED for unsafe/unavailable. Be confident only when evidence exists.',
-          'After tool results, answer naturally in the latest user language with clear status, what is proven, what is not proven, and the recommended next execution.'
+          'After tool results, answer naturally in the latest user language with what you found, what you changed, and the verified result.'
         ].join(' ')
       },
       messagesPayload[messagesPayload.length - 1],
@@ -952,58 +965,81 @@ export default async function handler(req, res) {
       const toolCalls = Array.isArray(assistantMessage.tool_calls) ? assistantMessage.tool_calls : []
 
       if (toolCalls.length) {
-        const followUpMessages = [
-          ...liveAgentMessages,
-          {
+        const conversationMessages = [...liveAgentMessages]
+        let currentAssistant = assistantMessage
+        let currentToolCalls = toolCalls
+        const usedToolNames = []
+        const apiBaseUrl = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
+        const MAX_TOOL_ROUNDS = 12
+
+        for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+          conversationMessages.push({
             role: 'assistant',
-            content: assistantMessage.content || '',
-            tool_calls: toolCalls,
-          },
-        ]
-
-        for (const toolCall of toolCalls) {
-          const toolResult = await executeLiveAgentToolCall(toolCall)
-          followUpMessages.push({
-            role: 'tool',
-            tool_call_id: toolCall.id,
-            content: JSON.stringify(toolResult),
+            content: currentAssistant.content || '',
+            tool_calls: currentToolCalls,
           })
+
+          for (const toolCall of currentToolCalls) {
+            usedToolNames.push(toolCall?.function?.name || 'unknown')
+            const toolResult = await executeLiveAgentToolCall(toolCall)
+            conversationMessages.push({
+              role: 'tool',
+              tool_call_id: toolCall.id,
+              content: JSON.stringify(toolResult),
+            })
+          }
+
+          const nextResponse = await fetch(`${apiBaseUrl}/chat/completions`, {
+            method: 'POST',
+            headers: {
+              Authorization: 'Bearer ' + process.env.OPENAI_API_KEY,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
+              messages: conversationMessages,
+              tools: buildLiveAgentToolDefinitions(),
+              tool_choice: 'auto',
+              temperature: 0.45,
+              frequency_penalty: 0.1,
+              max_tokens: 1500,
+            }),
+          })
+
+          const nextData = await nextResponse.json().catch(() => ({}))
+          if (!nextResponse.ok) {
+            return sendJson(res, 200, {
+              finalReply: buildChatFallbackReply(userMessage, identityContext, file),
+              reply: buildChatFallbackReply(userMessage, identityContext, file),
+              mode: 'local-fallback-after-tool',
+              confirmation: null,
+              productionStatus,
+            })
+          }
+
+          currentAssistant = nextData?.choices?.[0]?.message || {}
+          currentToolCalls = Array.isArray(currentAssistant.tool_calls) ? currentAssistant.tool_calls : []
+
+          if (!currentToolCalls.length) {
+            const finalReply = currentAssistant.content || ''
+            return sendJson(res, 200, {
+              finalReply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
+              reply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
+              model: nextData.model,
+              usage: nextData.usage,
+              mode: 'live-agent-tool-calling',
+              toolCalls: usedToolNames,
+              confirmation: null,
+              productionStatus,
+            })
+          }
         }
 
-        const finalResponse = await fetch(`${process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'}/chat/completions`, {
-          method: 'POST',
-          headers: {
-            Authorization: 'Bearer ' + process.env.OPENAI_API_KEY,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
-            messages: followUpMessages,
-            temperature: 0.45,
-            frequency_penalty: 0.1,
-            max_tokens: 900,
-          }),
-        })
-
-        const finalData = await finalResponse.json().catch(() => ({}))
-        if (!finalResponse.ok) {
-          return sendJson(res, 200, {
-            finalReply: buildChatFallbackReply(userMessage, identityContext, file),
-            reply: buildChatFallbackReply(userMessage, identityContext, file),
-            mode: 'local-fallback-after-tool',
-            confirmation: null,
-            productionStatus,
-          })
-        }
-
-        const finalReply = finalData && finalData.choices && finalData.choices[0] ? finalData.choices[0].message.content || '' : ''
         return sendJson(res, 200, {
-          finalReply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
-          reply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
-          model: finalData.model,
-          usage: finalData.usage,
-          mode: 'live-agent-tool-calling',
-          toolCalls: toolCalls.map(call => call && call.function ? call.function.name : 'unknown'),
+          finalReply: currentAssistant.content || 'Atingi o limite de etapas de ferramentas nesta resposta. Posso continuar se você confirmar.',
+          reply: currentAssistant.content || 'Atingi o limite de etapas de ferramentas nesta resposta. Posso continuar se você confirmar.',
+          mode: 'live-agent-tool-calling-maxed',
+          toolCalls: usedToolNames,
           confirmation: null,
           productionStatus,
         })

@@ -15,6 +15,12 @@ import { classifyProductionConversationIntent } from './server/agent/productionC
 import { collectProductionOperatorStatus } from './server/agent/productionStatus.mjs'
 import { classifyToolExecutionRequest, routeToolExecution } from './server/agent/toolExecutionRouter.mjs'
 import { defaultTasks } from './server/agent/backgroundTasksConnector.mjs'
+import { buildCodeToolDefinitions, executeCodeToolCall, CODE_TOOL_NAMES } from './server/agent/codeTools.mjs'
+
+// APEX_FREE_AGENT (default ON): when enabled, conversational messages bypass the
+// canned production-intent router and go straight to the LLM for free responses.
+// Set APEX_FREE_AGENT=0 to restore the old template-router behavior.
+const APEX_FREE_AGENT = !/^(0|false|off)$/i.test(String(process.env.APEX_FREE_AGENT ?? '1'))
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || ''
@@ -1160,7 +1166,8 @@ function buildLiveAgentToolDefinitions() {
           required: ['commandId', 'reason']
         }
       }
-    }
+    },
+    ...buildCodeToolDefinitions(),
   ]
 }
 
@@ -1173,6 +1180,12 @@ function compactLiveAgentToolText(value) {
 
 async function executeLiveAgentToolCall(toolCall) {
   const name = toolCall && toolCall.function ? String(toolCall.function.name || '') : ''
+
+  // Real code/filesystem/command tools (read/list/search/write/edit/run).
+  if (CODE_TOOL_NAMES.has(name)) {
+    return await executeCodeToolCall(toolCall, authorizedExecutionCwd)
+  }
+
   if (name !== 'run_safe_local_command') {
     return { providerStatus: 'blocked', error: 'Unknown Apex live agent tool.' }
   }
@@ -1324,7 +1337,7 @@ async function handleChat(req, res) {
       'production_supabase',
     ])
 
-    if (productionRouterIntents.has(productionConversationIntent)) {
+    if (!APEX_FREE_AGENT && productionRouterIntents.has(productionConversationIntent)) {
       const productionStatus = collectProductionOperatorStatus()
       const operatorResult = await runApexOperatorProductionSafe({
         userMessage: userText,
@@ -1480,15 +1493,13 @@ async function handleChat(req, res) {
         content: [
           'Apex Live Agent Runtime is enabled.',
           'The user can talk naturally, like with ChatGPT or Codex. Do not require exact command phrases.',
-          'You are not a button router. You are a live project copilot: infer intent from context, decide whether evidence is needed, use safe tools when useful, then give a concrete recommendation.',
-          'When live evidence about this local repo is useful, decide by yourself whether to call run_safe_local_command.',
-          'Use tools only when useful. Do not use tools for normal writing, explanation, strategy, design or business answers.',
-          'Never call raw shell. Never deploy. Never migrate Supabase. Never push. Never modify files from this tool.',
-          'Critical truth rule: never claim that you committed, pushed, deployed, migrated, edited files, installed packages, or changed production unless a tool result explicitly proves that exact action.',
-          'The live tool can validate status/build/checks only. It cannot commit. If the user says faca, ok, pode, segue, continua, infer the next safe action from context. If the next action is commit, recommend it and provide the exact command or ask for an explicit approved commit tool; do not claim it was done.',
+          'You are a full coding copilot with REAL access to this platform repository. You have tools to read files (read_file), list directories (list_dir), search code (search_code), write files (write_file), edit files (edit_file) and run commands (run_command).',
+          'When the user asks about the code, the platform, or to change/fix/build something, USE these tools to actually inspect and modify the real repository. Do not guess file contents — read them. Do not claim a file exists without checking.',
+          'Work iteratively: explore with read_file/list_dir/search_code, make changes with write_file/edit_file, then verify with run_command (e.g. build or tests).',
+          'Destructive commands (rm -rf, force push, hard reset, disk format) are blocked by the sandbox. Reading/writing secret files (.env, keys) is blocked.',
+          'Critical truth rule: only claim you read, edited, created, or ran something if a tool result proves it. If a tool fails, report the real error.',
           'Do not end with vague questions like "what would you like to do next?" when evidence supports a clear next step. Give a decisive recommendation and one practical next action.',
-          'Use status language: GREEN for proven OK, YELLOW for pending/review, BLOCKED for unsafe/unavailable. Be confident only when evidence exists.',
-          'After tool results, answer naturally in the latest user language with clear status, what is proven, what is not proven, and the recommended next execution.'
+          'After tool results, answer naturally in the latest user language with what you found, what you changed, and the verified result.'
         ].join(' ')
       },
       ...(liveAgentPreflightContext ? [{ role: 'system', content: liveAgentPreflightContext }] : []),
@@ -1526,54 +1537,73 @@ async function handleChat(req, res) {
     const toolCalls = Array.isArray(assistantMessage.tool_calls) ? assistantMessage.tool_calls : []
 
     if (toolCalls.length) {
-      const followUpMessages = [
-        ...liveAgentMessages,
-        {
+      const conversationMessages = [...liveAgentMessages]
+      let currentAssistant = assistantMessage
+      let currentToolCalls = toolCalls
+      const usedToolNames = []
+      const MAX_TOOL_ROUNDS = 12
+
+      for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+        conversationMessages.push({
           role: 'assistant',
-          content: assistantMessage.content || '',
-          tool_calls: toolCalls,
-        },
-      ]
-
-      for (const toolCall of toolCalls) {
-        const toolResult = await executeLiveAgentToolCall(toolCall)
-        followUpMessages.push({
-          role: 'tool',
-          tool_call_id: toolCall.id,
-          content: JSON.stringify(toolResult),
+          content: currentAssistant.content || '',
+          tool_calls: currentToolCalls,
         })
+
+        for (const toolCall of currentToolCalls) {
+          usedToolNames.push(toolCall?.function?.name || 'unknown')
+          const toolResult = await executeLiveAgentToolCall(toolCall)
+          conversationMessages.push({
+            role: 'tool',
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(toolResult),
+          })
+        }
+
+        const nextResponse = await fetch(`${apiBase}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer ' + apiKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
+            messages: conversationMessages,
+            tools: buildLiveAgentToolDefinitions(),
+            tool_choice: 'auto',
+            temperature: 0.45,
+            frequency_penalty: 0.1,
+            max_tokens: 1500,
+          }),
+        })
+
+        const nextData = await nextResponse.json().catch(() => ({}))
+        if (!nextResponse.ok) {
+          return chatJson(res, 200, {
+            finalReply: buildChatFallbackReply(userText, identityContext),
+            mode: 'local-fallback-after-tool',
+          })
+        }
+
+        currentAssistant = nextData?.choices?.[0]?.message || {}
+        currentToolCalls = Array.isArray(currentAssistant.tool_calls) ? currentAssistant.tool_calls : []
+
+        if (!currentToolCalls.length) {
+          return chatJson(res, 200, {
+            finalReply: currentAssistant.content || buildChatFallbackReply(userText, identityContext),
+            model: nextData.model,
+            usage: nextData.usage,
+            mode: 'live-agent-tool-calling',
+            toolCalls: usedToolNames,
+          })
+        }
       }
 
-      const finalResponse = await fetch(`${apiBase}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          Authorization: 'Bearer ' + apiKey,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
-          messages: followUpMessages,
-          temperature: 0.45,
-          frequency_penalty: 0.1,
-          max_tokens: 900,
-        }),
-      })
-
-      const finalData = await finalResponse.json().catch(() => ({}))
-      if (!finalResponse.ok) {
-        return chatJson(res, 200, {
-          finalReply: buildChatFallbackReply(userText, identityContext),
-          mode: 'local-fallback-after-tool',
-        })
-      }
-
-      const finalReply = finalData && finalData.choices && finalData.choices[0] ? finalData.choices[0].message.content || '' : ''
+      // Exceeded max rounds — return the last assistant content if any.
       return chatJson(res, 200, {
-        finalReply: finalReply || buildChatFallbackReply(userText, identityContext),
-        model: finalData.model,
-        usage: finalData.usage,
-        mode: 'live-agent-tool-calling',
-        toolCalls: toolCalls.map(call => call && call.function ? call.function.name : 'unknown'),
+        finalReply: currentAssistant.content || 'Atingi o limite de etapas de ferramentas nesta resposta. Posso continuar se você confirmar.',
+        mode: 'live-agent-tool-calling-maxed',
+        toolCalls: usedToolNames,
       })
     }
 
