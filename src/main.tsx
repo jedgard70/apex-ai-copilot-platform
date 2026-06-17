@@ -1176,20 +1176,7 @@ function App() {
       setInput('')
       return
     }
-    const localProductAnswer = buildProductFallbackAnswer(userText, identityContext)
-    if (localProductAnswer) {
-      setMessages(prev => [
-        ...prev,
-        userMessage,
-        {
-          id: id(),
-          role: 'assistant',
-          text: localProductAnswer,
-        },
-      ])
-      setInput('')
-      return
-    }
+    // Let natural conversations go to the server, so they are processed by the live AI agent (or fall back to local answers on failure)
     const shouldOpenArchVis = isArchVisIntent(clean || modelText, attachment)
     const shouldOpenDirectCut = clean && isDirectCutIntent(clean)
     const shouldOpenContracts = clean && isContractsIntent(clean)
