@@ -17,6 +17,14 @@ import { classifyToolExecutionRequest, routeToolExecution } from './server/agent
 import { defaultTasks } from './server/agent/backgroundTasksConnector.mjs'
 import { buildCodeToolDefinitions, executeCodeToolCall, CODE_TOOL_NAMES } from './server/agent/codeTools.mjs'
 
+// Normalize custom router variable casing/names
+if (process.env.OPENAI_API_BASEROUTER && !process.env.OPENAI_API_BASE) {
+  process.env.OPENAI_API_BASE = process.env.OPENAI_API_BASEROUTER
+}
+if (process.env.OPENAI_API_KEYROUTER && !process.env.OPENAI_API_KEY) {
+  process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEYROUTER
+}
+
 // APEX_FREE_AGENT (default ON): when enabled, conversational messages bypass the
 // canned production-intent router and go straight to the LLM for free responses.
 // Set APEX_FREE_AGENT=0 to restore the old template-router behavior.
@@ -1353,25 +1361,53 @@ function shouldForceLiveAgentToolUse(text = '') {
 async function handleModelsList(req, res) {
   try {
     const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
-    if (apiBase.includes('openrouter.ai')) {
-      const response = await fetch('https://openrouter.ai/api/v1/models', {
-        headers: {
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-        }
-      })
-      if (response.ok) {
-        const data = await response.json()
-        const formatted = (data.data || []).map(m => ({
-          id: m.id,
-          name: m.name || m.id
-        }))
-        return chatJson(res, 200, {
-          ok: true,
-          provider: 'openrouter',
-          models: formatted
+    const isOpenRouterConfigured = apiBase.includes('openrouter.ai') || 
+      (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_BASEROUTER.includes('openrouter.ai'))
+    
+    if (isOpenRouterConfigured) {
+      const openRouterBase = apiBase.includes('openrouter.ai') ? apiBase : process.env.OPENAI_API_BASEROUTER
+      const openRouterKey = apiBase.includes('openrouter.ai') ? process.env.OPENAI_API_KEY : process.env.OPENAI_API_KEYROUTER
+      
+      try {
+        const response = await fetch(`${openRouterBase}/models`, {
+          headers: {
+            'Authorization': `Bearer ${openRouterKey}`
+          }
         })
+        if (response.ok) {
+          const data = await response.json()
+          const formatted = (data.data || []).map(m => ({
+            id: m.id,
+            name: m.name || m.id
+          }))
+          
+          if (apiBase.includes('generativelanguage.googleapis.com')) {
+            const geminiModels = [
+              { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' },
+              { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' },
+              { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
+              { id: 'gemini-2.0-pro', name: 'Gemini 2.0 Pro' },
+              { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' }
+            ]
+            const openRouterIds = new Set(formatted.map(m => m.id))
+            geminiModels.forEach(gm => {
+              if (!openRouterIds.has(gm.id)) {
+                formatted.unshift(gm)
+              }
+            })
+          }
+          
+          return chatJson(res, 200, {
+            ok: true,
+            provider: 'openrouter',
+            models: formatted
+          })
+        }
+      } catch (err) {
+        console.error('Fetch OpenRouter models failed:', err)
       }
     }
+
     if (apiBase.includes('generativelanguage.googleapis.com')) {
       return chatJson(res, 200, {
         ok: true,
@@ -1385,6 +1421,7 @@ async function handleModelsList(req, res) {
         ]
       })
     }
+
     return chatJson(res, 200, {
       ok: true,
       provider: 'openai',
@@ -1505,14 +1542,25 @@ async function handleChat(req, res) {
       }
     }
 
-    const apiKey = process.env.OPENAI_API_KEY
+    let apiKey = process.env.OPENAI_API_KEY
+    let apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
+
+    const model = body.model || process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini'
+    const isDirectGeminiModel = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.0-pro', 'gemini-2.5-flash'].includes(model)
+
+    if (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_KEYROUTER) {
+      if (model.includes('/') || !isDirectGeminiModel) {
+        apiBase = process.env.OPENAI_API_BASEROUTER
+        apiKey = process.env.OPENAI_API_KEYROUTER
+      }
+    }
+
     if (!apiKey) {
       return chatJson(res, 200, {
         finalReply: buildChatFallbackReply(userText, identityContext),
         mode: 'local-fallback',
       })
     }
-    const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
 
     const runtime = loadRuntimeKnowledge()
     const file = body.file || null

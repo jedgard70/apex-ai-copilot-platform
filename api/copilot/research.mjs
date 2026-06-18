@@ -2,6 +2,14 @@
 // Consolidates 2 functions into 1 to stay within Vercel Hobby 12-function limit.
 // POST { action: 'search'|'embed', ...payload }
 
+// Normalize custom router variable casing/names
+if (process.env.OPENAI_API_BASEROUTER && !process.env.OPENAI_API_BASE) {
+  process.env.OPENAI_API_BASE = process.env.OPENAI_API_BASEROUTER
+}
+if (process.env.OPENAI_API_KEYROUTER && !process.env.OPENAI_API_KEY) {
+  process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEYROUTER
+}
+
 function sendJson(res, status, body) {
   res.writeHead(status, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
   res.end(JSON.stringify(body))
