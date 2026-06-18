@@ -11,3 +11,4 @@ supabase/.temp/
 .claude/
 .vercel
 .env*.local
+dist_electron
