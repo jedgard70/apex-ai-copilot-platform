@@ -168,6 +168,17 @@ const copilotExecutionCommands = [
     timeoutMs: 30000,
     source: 'allowlist',
   },
+  {
+    id: 'skill_audit',
+    label: 'Audit skills',
+    description: 'Execute active audits for platform skills, checking folder structures, clones, Revit MCP and documentation.',
+    executable: 'node',
+    args: ['scripts/execute-skill-audit.mjs'],
+    risk: 'low',
+    requiresApproval: false,
+    timeoutMs: 30000,
+    source: 'allowlist',
+  },
 ]
 
 loadEnvLocal()
@@ -1098,6 +1109,7 @@ const LIVE_AGENT_SAFE_COMMAND_IDS = new Set([
   'validate_vercel_live',
   'validate_supabase_live',
   'deploy_vercel_live',
+  'skill_audit',
 ])
 
 function buildLiveAgentToolDefinitions() {
@@ -1116,7 +1128,7 @@ function buildLiveAgentToolDefinitions() {
               enum: [
                 'git_status', 'git_diff_stat', 'build', 'validate_supabase_sql', 'check_server',
                 'raw_shell', 'git_log_recent', 'git_diff_name_only', 'validate_vercel_live',
-                'validate_supabase_live', 'deploy_vercel_live'
+                'validate_supabase_live', 'deploy_vercel_live', 'skill_audit'
               ],
               description: 'Command to execute in the authorized Apex repo.'
             },

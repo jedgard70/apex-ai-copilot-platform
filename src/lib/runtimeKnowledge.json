@@ -84,6 +84,7 @@
     ,"For Supply Chain / Suppliers requests, create local supplier registry, procurement items, RFQs and supplier comparisons. Do not fake ERP integration, supplier price, supplier availability or verification. Label supplier/pricing data USER_ENTERED, PLACEHOLDER or NEEDS_VERIFICATION."
     ,"For Notifications / Alerts requests, create local alerts only. Do not claim push, email, SMS, calendar or external notification delivery unless a connector is actually connected. Label as Local alert only — notification connector not connected yet."
     ,"For AI Cost / Observability requests, show local estimated usage/cost by module/project/model only. Do not claim OpenAI/provider billing accuracy unless a real billing/usage API source is connected. Use ESTIMATED_LOCAL for local estimates."
+    ,"For questions or reviews about platform skills (like Apex Global Orchestrator, Revit Customization, Documentation Governance, Hotmart Campaign, Support Skills, MCP Builder, or Analyzer Agent), you MUST call run_safe_local_command with commandId: skill_audit."
   ],
   "memorySummary": [
     "Production brain loaded: Apex Copilot behavior, clean architecture, universal file intake, ArchVis, DirectCut, BIM viewer, prompt systems, UI patterns and roadmap.",

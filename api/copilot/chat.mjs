@@ -584,7 +584,7 @@ function buildLiveAgentToolDefinitions() {
               enum: [
                 'git_status', 'git_diff_stat', 'build', 'validate_supabase_sql', 'check_server',
                 'raw_shell', 'git_log_recent', 'git_diff_name_only', 'validate_vercel_live',
-                'validate_supabase_live', 'deploy_vercel_live'
+                'validate_supabase_live', 'deploy_vercel_live', 'skill_audit'
               ],
               description: 'Command to execute in the authorized Apex repo.'
             },
@@ -828,6 +828,8 @@ async function executeLiveAgentToolCall(toolCall) {
     } else if (commandId === 'deploy_vercel_live') {
       action = 'project.raw_shell'
       params = { command: 'node scripts/deploy-vercel-live.mjs' }
+    } else if (commandId === 'skill_audit') {
+      action = 'project.skill_audit'
     }
 
     if (action) {

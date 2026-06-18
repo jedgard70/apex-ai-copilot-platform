@@ -482,6 +482,12 @@ function buildActionMap() {
       requiresConfirmation: false,
       build: () => [{ ...requireTool('node'), args: ['scripts/validate-cp15x-final.mjs'] }],
     },
+    'project.skill_audit': {
+      label: 'Auditar Habilidades e Skills (scripts/execute-skill-audit.mjs)',
+      risk: RISK_CLASS.VALIDATE,
+      requiresConfirmation: false,
+      build: () => [{ ...requireTool('node'), args: ['scripts/execute-skill-audit.mjs'] }],
+    },
     // DANGEROUS — requires confirmed:true + rollbackAcknowledged:true
     'project.git_push_force': {
       label: 'git push --force-with-lease origin <branch>',
