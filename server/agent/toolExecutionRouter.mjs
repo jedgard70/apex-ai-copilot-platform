@@ -94,7 +94,7 @@ function capabilityStatus(tool) {
     }
   }
   return {
-    available: configured && tool.executionClass === EXECUTION_CLASSES.READ_ONLY,
+    available: configured && tool.executionClass !== EXECUTION_CLASSES.BLOCKED,
     status: configured ? 'available' : 'unavailable',
     missing: tool.missing(),
   }
