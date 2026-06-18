@@ -37,7 +37,15 @@ function startServers() {
   try {
     serverProcess = utilityProcess.fork(serverPath, [], {
       env: { ...process.env, PORT: '4177', NODE_ENV: 'production' },
-      stdio: 'inherit'
+      stdio: 'pipe'
+    });
+
+    serverProcess.stdout.on('data', (chunk) => {
+      log(`[server-stdout] ${chunk.toString().trim()}`);
+    });
+
+    serverProcess.stderr.on('data', (chunk) => {
+      log(`[server-stderr] ${chunk.toString().trim()}`);
     });
 
     serverProcess.on('spawn', () => {
@@ -58,7 +66,15 @@ function startServers() {
   try {
     workerProcess = utilityProcess.fork(workerPath, [], {
       env: { ...process.env, LOCAL_WORKER_PORT: '8787' },
-      stdio: 'inherit'
+      stdio: 'pipe'
+    });
+
+    workerProcess.stdout.on('data', (chunk) => {
+      log(`[worker-stdout] ${chunk.toString().trim()}`);
+    });
+
+    workerProcess.stderr.on('data', (chunk) => {
+      log(`[worker-stderr] ${chunk.toString().trim()}`);
     });
 
     workerProcess.on('spawn', () => {

@@ -1520,9 +1520,11 @@ export default async function handler(req, res) {
     console.error('Apex production chat route failed safely:', error?.message || error)
     const finalReply = [
       'YELLOW - Apex Copilot esta em producao, mas a rota serverless encontrou uma falha segura.',
+      `Erro: ${error?.message || error}`,
+      error?.stack ? `Stack: ${error.stack.split('\n').slice(0, 3).join(' | ')}` : '',
       'Nao executei acoes locais, deploy, push ou migration.',
       'O chat continua operacional em modo seguro; revisar logs da funcao Vercel para corrigir a causa.',
-    ].join('\n')
+    ].filter(Boolean).join('\n')
     return sendJson(res, 200, {
       finalReply,
       reply: finalReply,
