@@ -57,6 +57,13 @@
     "directories": {
       "output": "dist_electron"
     },
+    "asar": true,
+    "asarUnpack": [
+      "server.mjs",
+      "local-worker/**/*",
+      "server/**/*",
+      "api/**/*"
+    ],
     "files": [
       "dist/**/*",
       "api/**/*",

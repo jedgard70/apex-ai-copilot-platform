@@ -6,17 +6,23 @@ let mainWindow = null;
 let serverProcess = null;
 let workerProcess = null;
 
-function startServers() {
+function getUnpackedPath(relativeFile) {
   const root = __dirname;
+  if (root.includes('app.asar')) {
+    return path.join(root.replace('app.asar', 'app.asar.unpacked'), relativeFile);
+  }
+  return path.join(root, relativeFile);
+}
 
+function startServers() {
   console.log('[electron-main] Starting backend server...');
-  serverProcess = fork(path.join(root, 'server.mjs'), [], {
+  serverProcess = fork(getUnpackedPath('server.mjs'), [], {
     env: { ...process.env, PORT: '4177', NODE_ENV: 'production' },
     stdio: 'inherit'
   });
 
   console.log('[electron-main] Starting local worker...');
-  workerProcess = fork(path.join(root, 'local-worker', 'server.mjs'), [], {
+  workerProcess = fork(getUnpackedPath(path.join('local-worker', 'server.mjs')), [], {
     env: { ...process.env, LOCAL_WORKER_PORT: '8787' },
     stdio: 'inherit'
   });
