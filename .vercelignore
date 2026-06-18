@@ -1,0 +1,26 @@
+# Ignore version control and IDE settings
+.git
+.github
+.vscode
+
+# Ignore dependency and build directories
+node_modules
+dist
+*.tsbuildinfo
+.vercel
+
+# Ignore local environments
+.venv
+venv
+env
+
+# Ignore directories not used in the Vercel app build
+local-worker
+my-sandbox-app
+supabase
+docsedgard
+docs
+scripts
+skill
+skills
+*.log
