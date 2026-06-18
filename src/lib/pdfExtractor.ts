@@ -1,7 +1,7 @@
 // PDF text extraction using PDF.js (client-side, no server needed)
 // Extracted text is used as context for the AI operator
 
-const MAX_CHARS = 12_000 // keeps within typical context limits
+const MAX_CHARS = 120_000 // keeps within typical context limits
 
 export type PdfExtractResult = {
   text: string

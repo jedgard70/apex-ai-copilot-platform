@@ -563,7 +563,7 @@ function buildFileContext(file) {
   ]
   if (file.pageCount) lines.push(`- pageCount: ${file.pageCount}`)
   if (file.extractedText) {
-    lines.push('', 'Extracted text from the active file:', String(file.extractedText).slice(0, 3000))
+    lines.push('', 'Extracted text from the active file:', String(file.extractedText).slice(0, 120000))
   }
   return lines.join('\n')
 }
@@ -584,7 +584,8 @@ function buildLiveAgentToolDefinitions() {
               enum: [
                 'git_status', 'git_diff_stat', 'build', 'validate_supabase_sql', 'check_server',
                 'raw_shell', 'git_log_recent', 'git_diff_name_only', 'validate_vercel_live',
-                'validate_supabase_live', 'deploy_vercel_live', 'skill_audit'
+                'validate_supabase_live', 'deploy_vercel_live', 'skill_audit',
+                'revit_generate', 'marketing_generate', 'legacy_import', 'mcp_generate', 'code_analyze'
               ],
               description: 'Command to execute in the authorized Apex repo.'
             },
@@ -594,10 +595,28 @@ function buildLiveAgentToolDefinitions() {
             },
             rawCommand: {
               type: 'string',
-              description: 'Raw command string if commandId is raw_shell.'
+              description: 'Raw command string, script name, or parameter value.'
             }
           },
           required: ['commandId', 'reason']
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'web_search',
+        description: 'Search the internet for real-time market data, competitor information, prices, standards, or general technical resources.',
+        parameters: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            query: {
+              type: 'string',
+              description: 'The search query to execute on the web.'
+            }
+          },
+          required: ['query']
         }
       }
     },
@@ -671,12 +690,18 @@ function buildAnthropicMessages(messages) {
 
 async function callOpenAIChat(requestPayload) {
   const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
+  const headers = {
+    Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+    'Content-Type': 'application/json',
+  }
+  if (apiBase.includes('openrouter.ai')) {
+    headers['HTTP-Referer'] = 'https://apex-ai-copilot-platform.vercel.app'
+    headers['X-Title'] = 'Apex AI Copilot'
+  }
+
   const response = await fetch(`${apiBase}/chat/completions`, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify(requestPayload),
   })
   const data = await response.json().catch(() => ({}))
@@ -776,6 +801,45 @@ function pickAnthropicReply(data) {
 async function executeLiveAgentToolCall(toolCall) {
   const name = toolCall && toolCall.function ? String(toolCall.function.name || '') : ''
 
+  if (name === 'web_search') {
+    let args = {}
+    try {
+      args = JSON.parse(toolCall.function.arguments || '{}')
+    } catch {
+      return { error: 'Invalid tool arguments.' }
+    }
+    const query = String(args.query || '').trim()
+    const tavilyKey = process.env.TAVILY_API_KEY
+    if (!tavilyKey) {
+      return {
+        results: [],
+        message: 'TAVILY_API_KEY is not configured on the server. Please tell the user to add TAVILY_API_KEY to their .env.local file to enable real-time web searches.'
+      }
+    }
+    try {
+      const resp = await fetch('https://api.tavily.com/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tavilyKey}` },
+        body: JSON.stringify({
+          query: query.slice(0, 400),
+          search_depth: 'basic',
+          max_results: 5,
+          include_answer: true
+        }),
+      })
+      const data = await resp.json()
+      if (!resp.ok) {
+        return { error: data?.error?.message || `Tavily API returned HTTP ${resp.status}` }
+      }
+      return {
+        results: (data.results || []).map(r => ({ title: r.title, url: r.url, content: r.content })),
+        answer: data.answer || null
+      }
+    } catch (err) {
+      return { error: 'Failed to execute web search: ' + err.message }
+    }
+  }
+
   // Real code/filesystem/command tools (read/list/search/write/edit/run).
   if (CODE_TOOL_NAMES.has(name)) {
     const repoRoot = path.resolve(__dirname, '../../')
@@ -830,6 +894,20 @@ async function executeLiveAgentToolCall(toolCall) {
       params = { command: 'node scripts/deploy-vercel-live.mjs' }
     } else if (commandId === 'skill_audit') {
       action = 'project.skill_audit'
+    } else if (commandId === 'revit_generate') {
+      action = 'project.revit_generate'
+      params = { name: rawCommand }
+    } else if (commandId === 'marketing_generate') {
+      action = 'project.marketing_generate'
+      params = { type: rawCommand }
+    } else if (commandId === 'legacy_import') {
+      action = 'project.legacy_import'
+      params = { name: rawCommand }
+    } else if (commandId === 'mcp_generate') {
+      action = 'project.mcp_generate'
+      params = { name: rawCommand }
+    } else if (commandId === 'code_analyze') {
+      action = 'project.code_analyze'
     }
 
     if (action) {
@@ -1057,7 +1135,7 @@ export default async function handler(req, res) {
     const isProductionRoute = productionRouterIntents.has(productionConversationIntent) ||
                               productionConversationIntent === 'production_language_preference' ||
                               productionConversationIntent === 'production_affirmation'
-    if ((!APEX_FREE_AGENT || isProductionRoute) && !looksLikePdfSummary2) {
+    if ((!APEX_FREE_AGENT || isProductionRoute) && !looksLikePdfSummary2 && !body.file) {
       const result = await runApexOperatorProductionSafe({
         userMessage,
         identityContext: normalizeIdentityContext(body.identityContext || {}),
@@ -1269,7 +1347,7 @@ export default async function handler(req, res) {
     const provider = getChatProvider()
     const chatSource = provider === 'anthropic' ? 'anthropic' : 'openai'
     const requestPayload = {
-      model: process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
+      model: body.model || process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
       messages: liveAgentMessages,
       tools: buildLiveAgentToolDefinitions(),
       tool_choice: 'auto',
@@ -1335,14 +1413,20 @@ export default async function handler(req, res) {
             })
           }
 
+          const nextHeaders = {
+            Authorization: 'Bearer ' + process.env.OPENAI_API_KEY,
+            'Content-Type': 'application/json',
+          }
+          if (apiBaseUrl.includes('openrouter.ai')) {
+            nextHeaders['HTTP-Referer'] = 'https://apex-ai-copilot-platform.vercel.app'
+            nextHeaders['X-Title'] = 'Apex AI Copilot'
+          }
+
           const nextResponse = await fetch(`${apiBaseUrl}/chat/completions`, {
             method: 'POST',
-            headers: {
-              Authorization: 'Bearer ' + process.env.OPENAI_API_KEY,
-              'Content-Type': 'application/json',
-            },
+            headers: nextHeaders,
             body: JSON.stringify({
-              model: process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
+              model: body.model || process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
               messages: conversationMessages,
               tools: buildLiveAgentToolDefinitions(),
               tool_choice: 'auto',

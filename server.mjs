@@ -179,6 +179,61 @@ const copilotExecutionCommands = [
     timeoutMs: 30000,
     source: 'allowlist',
   },
+  {
+    id: 'revit_generate',
+    label: 'Generate pyRevit/C# add-in boilerplate',
+    description: 'Generates pyRevit extension folders and boilerplate code.',
+    executable: 'node',
+    args: ['scripts/execute-skill-action.mjs', 'revit-generate'],
+    risk: 'medium',
+    requiresApproval: true,
+    timeoutMs: 30000,
+    source: 'allowlist',
+  },
+  {
+    id: 'marketing_generate',
+    label: 'Generate campaign copy',
+    description: 'Generates campaign planner copy templates in EBOOK_APEX_HOTMART.',
+    executable: 'node',
+    args: ['scripts/execute-skill-action.mjs', 'marketing-generate'],
+    risk: 'medium',
+    requiresApproval: true,
+    timeoutMs: 30000,
+    source: 'allowlist',
+  },
+  {
+    id: 'legacy_import',
+    label: 'Import legacy skill',
+    description: 'Import legacy scripts and assets from D:\\AI Jedgard.',
+    executable: 'node',
+    args: ['scripts/execute-skill-action.mjs', 'legacy-import'],
+    risk: 'medium',
+    requiresApproval: true,
+    timeoutMs: 30000,
+    source: 'allowlist',
+  },
+  {
+    id: 'mcp_generate',
+    label: 'Generate MCP server template',
+    description: 'Generates a node-mcp server template under local-worker.',
+    executable: 'node',
+    args: ['scripts/execute-skill-action.mjs', 'mcp-generate'],
+    risk: 'medium',
+    requiresApproval: true,
+    timeoutMs: 30000,
+    source: 'allowlist',
+  },
+  {
+    id: 'code_analyze',
+    label: 'Analyze code complexity',
+    description: 'Analyzes project files size and TODO count.',
+    executable: 'node',
+    args: ['scripts/execute-skill-action.mjs', 'code-analyze'],
+    risk: 'low',
+    requiresApproval: false,
+    timeoutMs: 30000,
+    source: 'allowlist',
+  },
 ]
 
 loadEnvLocal()
@@ -575,8 +630,10 @@ async function runCopilotExecutionCommand(command, body) {
     const startedAt = new Date(startedAtMs).toISOString()
     const requestedCwd = command.acceptsRawCommand ? String(body?.cwd || '').trim() : String(body?.cwd || authorizedExecutionCwd).trim()
     const executionCwd = path.resolve(requestedCwd || authorizedExecutionCwd)
-    const rawCommand = command.acceptsRawCommand ? String(body?.rawCommand || '').trim() : ''
-    const commandText = command.acceptsRawCommand ? rawCommand : buildRegisteredCommandText(command)
+    const rawCommand = String(body?.rawCommand || '').trim()
+    const commandText = command.acceptsRawCommand
+      ? rawCommand
+      : [buildRegisteredCommandText(command), rawCommand ? shellQuote(rawCommand) : ''].filter(Boolean).join(' ')
     let stdout = ''
     let stderr = ''
     let exitCode = null
@@ -1110,6 +1167,11 @@ const LIVE_AGENT_SAFE_COMMAND_IDS = new Set([
   'validate_supabase_live',
   'deploy_vercel_live',
   'skill_audit',
+  'revit_generate',
+  'marketing_generate',
+  'legacy_import',
+  'mcp_generate',
+  'code_analyze',
 ])
 
 function buildLiveAgentToolDefinitions() {
@@ -1128,7 +1190,8 @@ function buildLiveAgentToolDefinitions() {
               enum: [
                 'git_status', 'git_diff_stat', 'build', 'validate_supabase_sql', 'check_server',
                 'raw_shell', 'git_log_recent', 'git_diff_name_only', 'validate_vercel_live',
-                'validate_supabase_live', 'deploy_vercel_live', 'skill_audit'
+                'validate_supabase_live', 'deploy_vercel_live', 'skill_audit',
+                'revit_generate', 'marketing_generate', 'legacy_import', 'mcp_generate', 'code_analyze'
               ],
               description: 'Command to execute in the authorized Apex repo.'
             },
@@ -1138,7 +1201,7 @@ function buildLiveAgentToolDefinitions() {
             },
             rawCommand: {
               type: 'string',
-              description: 'Raw command string if commandId is raw_shell.'
+              description: 'Raw command string, script name, or parameter value.'
             }
           },
           required: ['commandId', 'reason']
@@ -1287,6 +1350,56 @@ function shouldForceLiveAgentToolUse(text = '') {
   return /\b(implementar|corrigir|editar|alterar|ajustar|criar|gerar|build|testar|validar|commit|push|deploy|migration|supabase|vercel|github|executar|execute|rodar|run|aplicar|verificar|checar|revisar|revisao|auditar|auditoria|atualizar|codigo|arquivo|arquivos|repositorio|modulo|modulos|integracao|mostrar|mostra|ver|analisar|analise|mcp|conector|conectores|git|status|branch|projeto|plataforma|habilidade|habilidades|capacidade|capacidades|fazer|faz)\b/.test(value)
 }
 
+async function handleModelsList(req, res) {
+  try {
+    const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
+    if (apiBase.includes('openrouter.ai')) {
+      const response = await fetch('https://openrouter.ai/api/v1/models', {
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        const formatted = (data.data || []).map(m => ({
+          id: m.id,
+          name: m.name || m.id
+        }))
+        return chatJson(res, 200, {
+          ok: true,
+          provider: 'openrouter',
+          models: formatted
+        })
+      }
+    }
+    if (apiBase.includes('generativelanguage.googleapis.com')) {
+      return chatJson(res, 200, {
+        ok: true,
+        provider: 'gemini',
+        models: [
+          { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' },
+          { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' },
+          { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
+          { id: 'gemini-2.0-pro', name: 'Gemini 2.0 Pro' },
+          { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' }
+        ]
+      })
+    }
+    return chatJson(res, 200, {
+      ok: true,
+      provider: 'openai',
+      models: [
+        { id: 'gpt-4o-mini', name: 'GPT-4o Mini' },
+        { id: 'gpt-4o', name: 'GPT-4o' },
+        { id: 'o1-mini', name: 'o1-mini' },
+        { id: 'o1-preview', name: 'o1-preview' }
+      ]
+    })
+  } catch (err) {
+    return chatJson(res, 500, { error: err.message })
+  }
+}
+
 async function handleChat(req, res) {
   try {
     const body = await readJson(req)
@@ -1336,7 +1449,7 @@ async function handleChat(req, res) {
     const isProductionRoute = productionRouterIntents.has(productionConversationIntent) ||
                               productionConversationIntent === 'production_language_preference' ||
                               productionConversationIntent === 'production_affirmation'
-    if (!APEX_FREE_AGENT || isProductionRoute) {
+    if ((!APEX_FREE_AGENT || isProductionRoute) && !body.file) {
       const productionStatus = collectProductionOperatorStatus()
       const operatorResult = await runApexOperatorProductionSafe({
         userMessage: userText,
@@ -1512,7 +1625,7 @@ async function handleChat(req, res) {
     ]
 
     const requestPayload = {
-      model: process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
+      model: body.model || process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
       messages: liveAgentMessages,
       tools: buildLiveAgentToolDefinitions(),
       tool_choice: 'auto',
@@ -1521,17 +1634,24 @@ async function handleChat(req, res) {
       max_tokens: 900,
     }
 
+    const headers = {
+      Authorization: 'Bearer ' + apiKey,
+      'Content-Type': 'application/json',
+    }
+    if (apiBase.includes('openrouter.ai')) {
+      headers['HTTP-Referer'] = 'https://apex-ai-copilot-platform.vercel.app'
+      headers['X-Title'] = 'Apex AI Copilot'
+    }
+
     const response = await fetch(`${apiBase}/chat/completions`, {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + apiKey,
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(requestPayload),
     })
 
     const data = await response.json().catch(() => ({}))
     if (!response.ok) {
+      console.error('[OpenAI Error response]:', response.status, data)
       return chatJson(res, 200, {
         finalReply: buildChatFallbackReply(userText, identityContext),
         mode: 'local-fallback',
@@ -1557,22 +1677,31 @@ async function handleChat(req, res) {
 
         for (const toolCall of currentToolCalls) {
           usedToolNames.push(toolCall?.function?.name || 'unknown')
+          console.log(`[ROUND ${round}] Tool Call:`, toolCall?.function?.name, toolCall?.function?.arguments)
           const toolResult = await executeLiveAgentToolCall(toolCall)
+          const toolResultStr = JSON.stringify(toolResult)
+          console.log(`[ROUND ${round}] Tool Result Length:`, toolResultStr.length)
           conversationMessages.push({
             role: 'tool',
             tool_call_id: toolCall.id,
-            content: JSON.stringify(toolResult),
+            content: toolResultStr,
           })
+        }
+
+        const nextHeaders = {
+          Authorization: 'Bearer ' + apiKey,
+          'Content-Type': 'application/json',
+        }
+        if (apiBase.includes('openrouter.ai')) {
+          nextHeaders['HTTP-Referer'] = 'https://apex-ai-copilot-platform.vercel.app'
+          nextHeaders['X-Title'] = 'Apex AI Copilot'
         }
 
         const nextResponse = await fetch(`${apiBase}/chat/completions`, {
           method: 'POST',
-          headers: {
-            Authorization: 'Bearer ' + apiKey,
-            'Content-Type': 'application/json',
-          },
+          headers: nextHeaders,
           body: JSON.stringify({
-            model: process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
+            model: body.model || process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
             messages: conversationMessages,
             tools: buildLiveAgentToolDefinitions(),
             tool_choice: 'auto',
@@ -1584,6 +1713,7 @@ async function handleChat(req, res) {
 
         const nextData = await nextResponse.json().catch(() => ({}))
         if (!nextResponse.ok) {
+          console.error('[OpenAI Error nextResponse]:', nextResponse.status, nextData)
           return chatJson(res, 200, {
             finalReply: buildChatFallbackReply(userText, identityContext),
             mode: 'local-fallback-after-tool',
@@ -4395,6 +4525,10 @@ const server = http.createServer((req, res) => {
   }
   if (req.url === '/api/copilot/tool-execute' && req.method === 'POST') {
     handleToolExecute(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/models' && req.method === 'GET') {
+    handleModelsList(req, res)
     return
   }
   if (req.url === '/api/copilot/chat' && req.method === 'POST') {

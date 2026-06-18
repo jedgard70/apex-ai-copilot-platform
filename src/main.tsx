@@ -771,6 +771,13 @@ function dataUrlToFile(dataUrl: string, name: string, type: string) {
   return new File([bytes], name, { type: mime })
 }
 
+type ChatConversation = {
+  id: string
+  title: string
+  createdAt: string
+  messages: Message[]
+}
+
 function App() {
   const fileInput = useRef<HTMLInputElement | null>(null)
   const composerTextarea = useRef<HTMLTextAreaElement | null>(null)
@@ -903,6 +910,160 @@ function App() {
     },
   ])
 
+  const [conversations, setConversations] = useState<ChatConversation[]>(() => {
+    try {
+      const saved = localStorage.getItem('apex_conversations_v1')
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed
+      }
+    } catch {}
+    return [
+      {
+        id: 'default',
+        title: 'Conversa Inicial',
+        createdAt: new Date().toISOString(),
+        messages: [
+          {
+            id: id(),
+            role: 'assistant' as const,
+            text: "Sou a Apex. Me diga o que quer fazer que eu começo por aqui.",
+          },
+        ],
+      },
+    ]
+  })
+  const [activeConversationId, setActiveConversationId] = useState<string>(() => {
+    return localStorage.getItem('apex_active_conversation_id') || 'default'
+  })
+  const [selectedModel, setSelectedModel] = useState<string>(() => {
+    return localStorage.getItem('apex_selected_model') || 'gpt-4o-mini'
+  })
+  const [availableModels, setAvailableModels] = useState<{ id: string, name: string }[]>([])
+
+  useEffect(() => {
+    fetch('/api/copilot/models')
+      .then(res => res.json())
+      .then(data => {
+        if (data?.ok && Array.isArray(data.models)) {
+          setAvailableModels(data.models)
+        }
+      })
+      .catch(() => undefined)
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem('apex_selected_model', selectedModel)
+  }, [selectedModel])
+
+  // 1. Sync messages FROM activeConversation when activeConversationId changes
+  useEffect(() => {
+    const active = conversations.find(c => c.id === activeConversationId)
+    if (active) {
+      setMessages(active.messages)
+    }
+  }, [activeConversationId])
+
+  // 2. Sync activeConversation messages TO conversations list when messages change
+  useEffect(() => {
+    if (!activeConversationId) return
+    setConversations(prev => {
+      let changed = false
+      const next = prev.map(c => {
+        if (c.id === activeConversationId) {
+          if (JSON.stringify(c.messages) !== JSON.stringify(messages)) {
+            changed = true
+            let nextTitle = c.title
+            if (c.title === 'Conversa Inicial' || c.title === 'Nova Conversa' || c.title === 'New Chat') {
+              const firstUserMessage = messages.find(m => m.role === 'user')
+              if (firstUserMessage) {
+                const cleanText = firstUserMessage.text.replace(/^[A-Za-z0-9\s]+:\s*/, '')
+                nextTitle = cleanText.slice(0, 24) + (cleanText.length > 24 ? '...' : '')
+              }
+            }
+            return { ...c, title: nextTitle, messages }
+          }
+        }
+        return c
+      })
+      if (changed) {
+        localStorage.setItem('apex_conversations_v1', JSON.stringify(next))
+        return next
+      }
+      return prev
+    })
+  }, [messages, activeConversationId])
+
+  useEffect(() => {
+    localStorage.setItem('apex_active_conversation_id', activeConversationId)
+  }, [activeConversationId])
+
+  function handleNewChat() {
+    const newId = `chat-${Date.now()}`
+    const newChat: ChatConversation = {
+      id: newId,
+      title: 'Nova Conversa',
+      createdAt: new Date().toISOString(),
+      messages: [
+        {
+          id: id(),
+          role: 'assistant' as const,
+          text: "Sou a Apex. Me diga o que quer fazer que eu começo por aqui.",
+        },
+      ],
+    }
+    setConversations(prev => {
+      const next = [...prev, newChat]
+      localStorage.setItem('apex_conversations_v1', JSON.stringify(next))
+      return next
+    })
+    setActiveConversationId(newId)
+  }
+
+  function handleDeleteChat(chatId: string, event: React.MouseEvent) {
+    event.stopPropagation()
+    setConversations((prev: ChatConversation[]) => {
+      const filtered = prev.filter(c => c.id !== chatId)
+      const fallbackChat: ChatConversation = {
+        id: 'default',
+        title: 'Conversa Inicial',
+        createdAt: new Date().toISOString(),
+        messages: [
+          {
+            id: id(),
+            role: 'assistant' as const,
+            text: "Sou a Apex. Me diga o que quer fazer que eu começo por aqui.",
+          },
+        ],
+      }
+      const next: ChatConversation[] = filtered.length > 0 ? filtered : [fallbackChat]
+      localStorage.setItem('apex_conversations_v1', JSON.stringify(next))
+      if (activeConversationId === chatId) {
+        setActiveConversationId(next[0].id)
+      }
+      return next
+    })
+  }
+
+  // Type safe defaultChat
+  function handleClearAllChats() {
+    const defaultChat: ChatConversation = {
+      id: 'default',
+      title: 'Conversa Inicial',
+      createdAt: new Date().toISOString(),
+      messages: [
+        {
+          id: id(),
+          role: 'assistant' as const,
+          text: "Sou a Apex. Me diga o que quer fazer que eu começo por aqui.",
+        },
+      ],
+    }
+    setConversations([defaultChat])
+    localStorage.setItem('apex_conversations_v1', JSON.stringify([defaultChat]))
+    setActiveConversationId('default')
+  }
+
   const activeTool = useMemo(() => selectTool(input, activeFile?.file.name), [input, activeFile])
   const debugEnabled = useMemo(() => isDebugEnabled(), [])
   const projectSummary = useMemo(() => ({
@@ -1001,6 +1162,65 @@ function App() {
     if (except !== 'copilotExecution') setCopilotExecutionOutput(null)
     if (except !== 'auth') setAuthOutput(null)
     if (except !== 'exportCenter') setExportCenterOpen(false)
+  }
+
+  function handleActivateService(serviceId: string) {
+    if (serviceId === 'svc-archvis') {
+      closeOtherPanels('archVis')
+      const sampleFloorPlanSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600"><rect width="100%" height="100%" fill="#0f172a"/><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(#grid)"/><rect x="100" y="100" width="600" height="400" fill="none" stroke="#38bdf8" stroke-width="6"/><line x1="300" y1="100" x2="300" y2="500" stroke="#38bdf8" stroke-width="4"/><line x1="300" y1="300" x2="700" y2="300" stroke="#38bdf8" stroke-width="4"/><line x1="100" y1="350" x2="300" y2="350" stroke="#38bdf8" stroke-width="4"/><text x="200" y="225" font-family="sans-serif" font-size="18" fill="#cbd5e1" text-anchor="middle" font-weight="bold">SUITE MASTER</text><text x="200" y="425" font-family="sans-serif" font-size="18" fill="#cbd5e1" text-anchor="middle" font-weight="bold">GARAGEM</text><text x="500" y="200" font-family="sans-serif" font-size="18" fill="#cbd5e1" text-anchor="middle" font-weight="bold">SALA / COZINHA</text><text x="500" y="400" font-family="sans-serif" font-size="18" fill="#cbd5e1" text-anchor="middle" font-weight="bold">PISCINA / DECK</text></svg>`
+      const sampleFloorPlanUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(sampleFloorPlanSvg)))
+      const sampleFloorPlanFile = {
+        file: new File([sampleFloorPlanSvg], 'planta_exemplo_apex.svg', { type: 'image/svg+xml' }),
+        url: sampleFloorPlanUrl,
+        dataUrl: sampleFloorPlanUrl,
+        previewUrl: sampleFloorPlanUrl,
+        kind: 'image' as const,
+        dimensions: { width: 800, height: 600 }
+      }
+      setArchVisOutput({
+        source: sampleFloorPlanFile,
+        output: 'Modelo de planta de amostra carregado. Pronto para humanização ou render 3D.',
+        conversationContext: ['assistant: Ativei o ArchVis Studio com um projeto de exemplo para você testar a renderização real.']
+      })
+    } else if (serviceId === 'svc-bim-revit') {
+      closeOtherPanels('bim3D')
+      const sampleBimFile = {
+        file: new File([''], 'projeto_exemplo_apex.ifc', { type: 'application/x-ifc' }),
+        url: 'mock-url',
+        dataUrl: '',
+        previewUrl: '',
+        kind: 'bim-cad' as const
+      }
+      setBim3DOutput({ source: sampleBimFile })
+    } else if (serviceId === 'svc-permit-docs') {
+      closeOtherPanels('contracts')
+      setContractsOutput({
+        goal: 'Prepare permit documentation package',
+        conversationContext: ['assistant: Ativei o Contracts / Permits Studio para você revisar e preparar o pacote de aprovação regional.']
+      })
+    } else if (serviceId === 'svc-video') {
+      closeOtherPanels('directCut')
+      setDirectCutOutput({
+        goal: 'Prepare video draft for project sales',
+        conversationContext: ['assistant: Ativei o DirectCut Studio com a configuração inicial de apresentação imobiliária.'],
+        initialConfig: {
+          videoMode: 'construction-presentation',
+          duration: '30s',
+          aspectRatio: '16:9',
+          audio: 'on',
+          voice: 'narrator',
+          style: 'professional-real-estate',
+          lighting: 'daylight',
+          cameraMovement: 'dolly-in',
+        }
+      })
+    } else if (serviceId === 'svc-saas') {
+      setBusinessOutput({
+        goal: 'Configure client workspace and user roles',
+        focus: 'admin',
+        conversationContext: []
+      })
+    }
   }
 
   async function signOutFromShell() {
@@ -1609,6 +1829,7 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: modelText,
+          model: selectedModel,
           language: navigator.language || 'en',
           identityContext,
           clientMemory,
@@ -1629,6 +1850,9 @@ function App() {
                 size: attachment.file.size,
                 kind: attachment.kind,
                 dataUrl: attachment.kind === 'image' ? attachment.dataUrl : undefined,
+                extractedText: attachment.extractedText || undefined,
+                extractionStatus: attachment.extractedText ? 'ready' : undefined,
+                pageCount: attachment.pageCount || undefined,
               }
             : null,
         }),
@@ -2316,225 +2540,393 @@ function App() {
           ))}
         </nav>
 
-        <section className="chat-shell" aria-label="Apex AI Copilot chat">
-          <div className="messages">
-            {messages.map(message => (
-              <article key={message.id} className={`message ${message.role}`}>
-                <div className="avatar">{message.role === 'assistant' ? <Bot size={18} /> : <Building2 size={18} />}</div>
-                <div className={`bubble ${message.text.length > 900 || message.text.includes('\n') ? 'long-text' : ''}`}>
-                  <div className="message-body">{renderMessageText(message.text)}</div>
-                  {message.attachment && (
-                    <div className="attachment-chip">
-                      <Paperclip size={15} />
-                      {message.attachment.file.name}
-                      <span>{message.attachment.kind} · {formatSize(message.attachment.file.size)}</span>
-                    </div>
-                  )}
-                  {message.toolCards && message.toolCards.length > 0 && (
-                    <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      {message.toolCards.map(card => {
-                        const cls = card.executionClass
-                        const isMutation = cls === 'mutation_requires_confirmation'
-                        const isBlocked = cls === 'blocked'
-                        const bg = card.available ? '#d1fae5' : isMutation ? '#fef3c7' : isBlocked ? '#fee2e2' : '#f3f4f6'
-                        const border = card.available ? '#10b981' : isMutation ? '#f59e0b' : isBlocked ? '#ef4444' : '#9ca3af'
-                        const badge = card.available ? 'disponível' : isMutation ? 'confirmação' : isBlocked ? 'bloqueado' : 'indisponível'
-                        return (
-                          <div key={card.id} style={{ background: bg, border: `1px solid ${border}`, borderRadius: '6px', padding: '8px 10px', fontSize: '12px', lineHeight: '1.5' }}>
-                            <div style={{ fontWeight: 600, marginBottom: '2px' }}>{card.label}</div>
-                            <div style={{ color: '#6b7280', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                              <span style={{ background: border, color: '#fff', borderRadius: '4px', padding: '1px 6px' }}>{badge}</span>
-                              <span>{cls}</span>
-                              {card.mutates && <span style={{ color: '#b45309' }}>⚠ mutação</span>}
-                            </div>
-                            {card.missing.length > 0 && (
-                              <div style={{ marginTop: '3px', color: '#6b7280', fontSize: '11px' }}>
-                                Faltando: {card.missing.join(', ')}
-                              </div>
-                            )}
-                            {card.id === 'github.status' && card.connectorDetail && (() => {
-                              const d = card.connectorDetail as Record<string, unknown>
-                              const commit = d.latestCommit as Record<string, unknown> | null
-                              const prs = d.openPRs as unknown[] | undefined
-                              const repo = String(d.repository || '')
-                              const branch = String(d.branch || '')
-                              const sha = commit ? String(commit.shortSha || '') : ''
-                              const msg = commit ? String(commit.message || '').slice(0, 60) : ''
-                              const author = commit ? String(commit.author || '') : ''
-                              return (
-                                <div style={{ marginTop: '4px', fontSize: '11px', color: '#374151' }}>
-                                  {repo && <div>{'Repo: ' + repo + ' / ' + branch}</div>}
-                                  {sha && <div>{'Commit: ' + sha + ' — ' + msg}</div>}
-                                  {author && <div>{'Autor: ' + author}</div>}
-                                  {prs && prs.length > 0 && <div>{'PRs abertos: ' + prs.length}</div>}
-                                </div>
-                              )
-                            })()}
-                            {card.id === 'vercel.status' && card.connectorDetail && (() => {
-                              const d = card.connectorDetail as Record<string, unknown>
-                              const prod = d.latestProductionDeployment as Record<string, unknown> | null
-                              const projectLabel = String(d.projectName || d.projectId || '')
-                              const domain = String(d.productionDomain || '')
-                              const deployState = prod ? String(prod.state || 'unknown') : ''
-                              const deployUrl = prod ? String(prod.url || '') : ''
-                              const deployAt = prod ? String(prod.createdAt || '').slice(0, 16).replace('T', ' ') : ''
-                              return (
-                                <div style={{ marginTop: '4px', fontSize: '11px', color: '#374151' }}>
-                                  {projectLabel && <div>{'Projeto: ' + projectLabel}</div>}
-                                  {domain && <div>{'Domínio: ' + domain}</div>}
-                                  {deployState && <div>{'Deploy: ' + deployState + (deployUrl ? ' — ' + deployUrl : '')}</div>}
-                                  {deployAt && <div>{'Em: ' + deployAt}</div>}
-                                </div>
-                              )
-                            })()}
-                          </div>
-                        )
-                      })}
-                      {(() => {
-                        const confirmState = toolConfirmState[message.id] || 'idle'
-                        const hasMutation = message.toolCards.some(c => c.executionClass === 'mutation_requires_confirmation')
-                        if (!hasMutation) return null
-                        if (confirmState === 'confirmed') return (
-                          <div style={{ marginTop: '4px', padding: '8px 10px', background: '#fffbeb', border: '1px solid #f59e0b', borderRadius: '6px', fontSize: '12px', color: '#92400e' }}>
-                            ✓ Confirmação registrada, mas execução real ainda exige conector dedicado.
-                          </div>
-                        )
-                        if (confirmState === 'cancelled') return (
-                          <div style={{ marginTop: '4px', padding: '8px 10px', background: '#f9fafb', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '12px', color: '#6b7280' }}>
-                            ✗ Ação cancelada.
-                          </div>
-                        )
-                        return (
-                          <div style={{ marginTop: '4px', display: 'flex', gap: '8px' }}>
-                            <button
-                              onClick={() => confirmToolAction(message.id, 'confirmed')}
-                              style={{ padding: '6px 14px', background: '#f59e0b', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}
-                            >
-                              Confirmar
-                            </button>
-                            <button
-                              onClick={() => confirmToolAction(message.id, 'cancelled')}
-                              style={{ padding: '6px 14px', background: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}
-                            >
-                              Cancelar
-                            </button>
-                          </div>
-                        )
-                      })()}
-                    </div>
-                  )}
-                  {/* H7 — Confirmation buttons for risk-gated actions */}
-                  {message.confirmation?.show && message.confirmation.buttons?.length > 0 && (
-                    <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        Apex aguarda confirmação
-                      </div>
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                        {message.confirmation.buttons.map(btn => btn.message && (
-                          <button
-                            key={btn.id}
-                            disabled={loading}
-                            onClick={() => {
-                              if (!btn.message) return
-                              setInput('')
-                              askCopilot(btn.message)
-                            }}
-                            style={{
-                              padding: '8px 18px',
-                              borderRadius: '8px',
-                              fontWeight: 600,
-                              fontSize: '13px',
-                              cursor: loading ? 'not-allowed' : 'pointer',
-                              opacity: loading ? 0.5 : 1,
-                              border: btn.variant === 'secondary' ? '1px solid #d1d5db' : 'none',
-                              background: btn.variant === 'primary' ? '#10b981' : btn.variant === 'secondary' ? '#f9fafb' : 'transparent',
-                              color: btn.variant === 'primary' ? '#fff' : '#374151',
-                              transition: 'opacity 0.15s',
-                            }}
-                          >
-                            {btn.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </article>
-            ))}
-            {loading && (
-              <article className="message assistant">
-                <div className="avatar"><Bot size={18} /></div>
-                <div className="bubble typing">Apex AI Copilot está pensando...</div>
-              </article>
-            )}
-            <div ref={messagesEnd} className="messages-end" aria-hidden="true" />
-          </div>
-
-          <div className="composer">
-            {activeFile && (
-              <div className="composer-file">
-                <Paperclip size={16} />
-                <span>{activeFile.file.name}</span>
-                <small>
-                  {activeFile.kind} · {formatSize(activeFile.file.size)}
-                  {activeFile.pageCount ? ` · ${activeFile.pageCount}p extraídas` : ''}
-                  {activeFile.extractedText && !activeFile.pageCount ? ' · texto extraído' : ''}
-                </small>
+        <section className="chat-shell" aria-label="Apex AI Copilot chat" style={{ display: 'flex', flexDirection: 'row', minHeight: 'calc(100vh - 130px)' }}>
+          {/* Conversation Sidebar */}
+          <aside className="chat-sidebar" style={{ width: '220px', borderRight: '1px solid rgba(150, 164, 195, 0.15)', display: 'flex', flexDirection: 'column', flexShrink: 0, background: '#121a2f' }}>
+            <div className="chat-sidebar-header" style={{ padding: '16px', borderBottom: '1px solid rgba(150, 164, 195, 0.15)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ color: '#fff', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Conversas</span>
+              <button
+                type="button"
+                onClick={handleNewChat}
+                style={{
+                  background: '#2563eb',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '4px 8px',
+                  fontSize: '11px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                <Plus size={11} /> Novo
+              </button>
+            </div>
+            <div className="chat-sidebar-model" style={{ padding: '12px 16px', borderBottom: '1px solid rgba(150, 164, 195, 0.15)' }}>
+              <label style={{ color: 'rgba(150, 164, 195, 0.7)', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '6px' }}>Modelo de IA</label>
+              <select
+                value={selectedModel}
+                onChange={e => setSelectedModel(e.target.value)}
+                style={{
+                  width: '100%',
+                  background: '#1a233d',
+                  color: '#fff',
+                  border: '1px solid rgba(150, 164, 195, 0.25)',
+                  borderRadius: '6px',
+                  padding: '6px 10px',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  outline: 'none',
+                }}
+              >
+                {availableModels.length === 0 ? (
+                  <>
+                    <option value="gpt-4o-mini">gpt-4o-mini</option>
+                    <option value="gpt-4o">gpt-4o</option>
+                  </>
+                ) : (
+                  availableModels.map(m => (
+                    <option key={m.id} value={m.id}>{m.name || m.id}</option>
+                  ))
+                )}
+              </select>
+            </div>
+            <div className="chat-sidebar-list" style={{ flex: 1, overflowY: 'auto', padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {conversations.map(conv => {
+                const isActive = conv.id === activeConversationId
+                return (
+                  <div
+                    key={conv.id}
+                    onClick={() => setActiveConversationId(conv.id)}
+                    className={`conversation-list-item ${isActive ? 'active' : ''}`}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '8px 10px',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      fontWeight: isActive ? 'bold' : 'normal',
+                      color: isActive ? '#fff' : '#b8c2d8',
+                      background: isActive ? 'rgba(37, 99, 235, 0.25)' : 'transparent',
+                      transition: 'background 0.2s, color 0.2s',
+                    }}
+                  >
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '8px', flex: 1 }}>{conv.title}</span>
+                    <button
+                      type="button"
+                      onClick={(e) => handleDeleteChat(conv.id, e)}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'rgba(239, 68, 68, 0.7)',
+                        cursor: 'pointer',
+                        padding: '2px',
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                      title="Excluir conversa"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+            {conversations.length > 1 && (
+              <div style={{ padding: '10px 16px', borderTop: '1px solid rgba(150, 164, 195, 0.15)' }}>
+                <button
+                  type="button"
+                  onClick={handleClearAllChats}
+                  style={{
+                    width: '100%',
+                    background: 'transparent',
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    color: '#ef4444',
+                    borderRadius: '6px',
+                    padding: '6px 0',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Limpar Histórico
+                </button>
               </div>
             )}
-            <div className="input-row">
-              <button className="icon-button" onClick={() => fileInput.current?.click()} aria-label={uiLanguage === 'EN' ? 'Attach file' : 'Anexar arquivo'}>
-                <Plus size={20} />
-              </button>
-              <textarea
-                ref={composerTextarea}
-                value={input}
-                onChange={event => setInput(event.target.value)}
-                onKeyDown={event => {
-                  if (event.key === 'Enter' && !event.shiftKey) {
-                    event.preventDefault()
-                    askCopilot()
+          </aside>
+
+          {/* Main Chat Area */}
+          <div className="chat-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative' }}>
+            <div className="messages">
+              {messages.map(message => (
+                <article key={message.id} className={`message ${message.role}`}>
+                  <div className="avatar">{message.role === 'assistant' ? <Bot size={18} /> : <Building2 size={18} />}</div>
+                  <div className={`bubble ${message.text.length > 900 || message.text.includes('\n') ? 'long-text' : ''}`}>
+                    <div className="message-body">{renderMessageText(message.text)}</div>
+                    {message.attachment && (
+                      <div className="attachment-chip">
+                        <Paperclip size={15} />
+                        {message.attachment.file.name}
+                        <span>{message.attachment.kind} · {formatSize(message.attachment.file.size)}</span>
+                      </div>
+                    )}
+                    {message.toolCards && message.toolCards.length > 0 && (
+                      <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {message.toolCards.map(card => {
+                          const cls = card.executionClass
+                          const isMutation = cls === 'mutation_requires_confirmation'
+                          const isBlocked = cls === 'blocked'
+                          const bg = card.available ? '#d1fae5' : isMutation ? '#fef3c7' : isBlocked ? '#fee2e2' : '#f3f4f6'
+                          const border = card.available ? '#10b981' : isMutation ? '#f59e0b' : isBlocked ? '#ef4444' : '#9ca3af'
+                          const badge = card.available ? 'disponível' : isMutation ? 'confirmação' : isBlocked ? 'bloqueado' : 'indisponível'
+                          return (
+                            <div key={card.id} style={{ background: bg, border: `1px solid ${border}`, borderRadius: '6px', padding: '8px 10px', fontSize: '12px', lineHeight: '1.5' }}>
+                              <div style={{ fontWeight: 600, marginBottom: '2px' }}>{card.label}</div>
+                              <div style={{ color: '#6b7280', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                <span style={{ background: border, color: '#fff', borderRadius: '4px', padding: '1px 6px' }}>{badge}</span>
+                                <span>{cls}</span>
+                                {card.mutates && <span style={{ color: '#b45309' }}>⚠ mutação</span>}
+                              </div>
+                              {card.missing.length > 0 && (
+                                <div style={{ marginTop: '3px', color: '#6b7280', fontSize: '11px' }}>
+                                  Faltando: {card.missing.join(', ')}
+                                </div>
+                              )}
+                              {card.id === 'github.status' && card.connectorDetail && (() => {
+                                const d = card.connectorDetail as Record<string, unknown>
+                                const commit = d.latestCommit as Record<string, unknown> | null
+                                const prs = d.openPRs as unknown[] | undefined
+                                const repo = String(d.repository || '')
+                                const branch = String(d.branch || '')
+                                const sha = commit ? String(commit.shortSha || '') : ''
+                                const msg = commit ? String(commit.message || '').slice(0, 60) : ''
+                                const author = commit ? String(commit.author || '') : ''
+                                return (
+                                  <div style={{ marginTop: '4px', fontSize: '11px', color: '#374151' }}>
+                                    {repo && <div>{'Repo: ' + repo + ' / ' + branch}</div>}
+                                    {sha && <div>{'Commit: ' + sha + ' — ' + msg}</div>}
+                                    {author && <div>{'Autor: ' + author}</div>}
+                                    {prs && prs.length > 0 && <div>{'PRs abertos: ' + prs.length}</div>}
+                                  </div>
+                                )
+                              })()}
+                              {card.id === 'vercel.status' && card.connectorDetail && (() => {
+                                const d = card.connectorDetail as Record<string, unknown>
+                                const prod = d.latestProductionDeployment as Record<string, unknown> | null
+                                const projectLabel = String(d.projectName || d.projectId || '')
+                                const domain = String(d.productionDomain || '')
+                                const deployState = prod ? String(prod.state || 'unknown') : ''
+                                const deployUrl = prod ? String(prod.url || '') : ''
+                                const deployAt = prod ? String(prod.createdAt || '').slice(0, 16).replace('T', ' ') : ''
+                                return (
+                                  <div style={{ marginTop: '4px', fontSize: '11px', color: '#374151' }}>
+                                    {projectLabel && <div>{'Projeto: ' + projectLabel}</div>}
+                                    {domain && <div>{'Domínio: ' + domain}</div>}
+                                    {deployState && <div>{'Deploy: ' + deployState + (deployUrl ? ' — ' + deployUrl : '')}</div>}
+                                    {deployAt && <div>{'Em: ' + deployAt}</div>}
+                                  </div>
+                                )
+                              })()}
+                            </div>
+                          )
+                        })}
+                        {(() => {
+                          const confirmState = toolConfirmState[message.id] || 'idle'
+                          const hasMutation = message.toolCards.some(c => c.executionClass === 'mutation_requires_confirmation')
+                          if (!hasMutation) return null
+                          if (confirmState === 'confirmed') return (
+                            <div style={{ marginTop: '4px', padding: '8px 10px', background: '#fffbeb', border: '1px solid #f59e0b', borderRadius: '6px', fontSize: '12px', color: '#92400e' }}>
+                              ✓ Confirmação registrada, mas execução real ainda exige conector dedicado.
+                            </div>
+                          )
+                          if (confirmState === 'cancelled') return (
+                            <div style={{ marginTop: '4px', padding: '8px 10px', background: '#f9fafb', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '12px', color: '#6b7280' }}>
+                              ✗ Ação cancelada.
+                            </div>
+                          )
+                          return (
+                            <div style={{ marginTop: '4px', display: 'flex', gap: '8px' }}>
+                              <button
+                                onClick={() => confirmToolAction(message.id, 'confirmed')}
+                                style={{ padding: '6px 14px', background: '#f59e0b', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}
+                              >
+                                Confirmar
+                              </button>
+                              <button
+                                onClick={() => confirmToolAction(message.id, 'cancelled')}
+                                style={{ padding: '6px 14px', background: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}
+                              >
+                                Cancelar
+                              </button>
+                            </div>
+                          )
+                        })()}
+                      </div>
+                    )}
+                    {/* H7 — Confirmation buttons for risk-gated actions */}
+                    {message.confirmation?.show && message.confirmation.buttons?.length > 0 && (
+                      <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          Apex aguarda confirmação
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          {message.confirmation.buttons.map(btn => btn.message && (
+                            <button
+                              key={btn.id}
+                              disabled={loading}
+                              onClick={() => {
+                                if (!btn.message) return
+                                setInput('')
+                                askCopilot(btn.message)
+                              }}
+                              style={{
+                                padding: '8px 18px',
+                                borderRadius: '8px',
+                                fontWeight: 600,
+                                fontSize: '13px',
+                                cursor: loading ? 'not-allowed' : 'pointer',
+                                opacity: loading ? 0.5 : 1,
+                                border: btn.variant === 'secondary' ? '1px solid #d1d5db' : 'none',
+                                background: btn.variant === 'primary' ? '#10b981' : btn.variant === 'secondary' ? '#f9fafb' : 'transparent',
+                                color: btn.variant === 'primary' ? '#fff' : '#374151',
+                                transition: 'opacity 0.15s',
+                              }}
+                            >
+                              {btn.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </article>
+              ))}
+              <div ref={messagesEnd} />
+            </div>
+
+            <div className="composer">
+              {activeFile && (
+                <div className="composer-file" style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '6px 10px',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(150, 164, 195, 0.15)',
+                  borderRadius: '10px',
+                  marginBottom: '10px',
+                  gap: '12px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                    {activeFile.kind === 'image' && activeFile.previewUrl ? (
+                      <img
+                        src={activeFile.previewUrl}
+                        alt="Attachment Preview"
+                        style={{
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '6px',
+                          objectFit: 'cover',
+                          border: '1px solid rgba(150, 164, 195, 0.2)'
+                        }}
+                      />
+                    ) : (
+                      <Paperclip size={16} style={{ color: '#8fa2cf', flexShrink: 0 }} />
+                    )}
+                    <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                      <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {activeFile.file.name}
+                      </span>
+                      <span style={{ fontSize: '9px', color: '#8fa2cf' }}>
+                        {activeFile.kind.toUpperCase()} · {formatSize(activeFile.file.size)}
+                        {activeFile.pageCount ? ` · ${activeFile.pageCount} pág.` : ''}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveFile(undefined)}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: 'rgba(239, 68, 68, 0.8)',
+                      cursor: 'pointer',
+                      padding: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '50%',
+                      transition: 'background 0.2s'
+                    }}
+                    title={uiLanguage === 'EN' ? 'Remove file' : 'Remover arquivo'}
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              )}
+              <div className="composer-row">
+                <textarea
+                  ref={composerTextarea}
+                  value={input}
+                  onChange={event => setInput(event.target.value)}
+                  onKeyDown={event => {
+                    if (event.key === 'Enter' && !event.shiftKey) {
+                      event.preventDefault()
+                      askCopilot()
+                    }
+                  }}
+                  onPaste={handlePaste}
+                  placeholder={
+                    activeFile
+                      ? `Ask about ${activeFile.file.name}...`
+                      : uiLanguage === 'EN'
+                        ? 'Type a message, run a command, or drag and drop files...'
+                        : 'Escreva uma mensagem, execute um comando ou arraste arquivos...'
                   }
-                }}
-                placeholder={uiLanguage === 'EN' ? 'Ask Apex Copilot anything...' : 'Pergunte qualquer coisa à Apex Copilot...'}
-                rows={1}
-              />
-              <button className="composer-language-button" type="button" onClick={() => setUiLanguage(current => current === 'EN' ? 'PT' : 'EN')}>
-                {uiLanguage}
-              </button>
-              <button className="icon-button" type="button" onClick={() => setVoiceNotice(current => !current)} aria-label={uiLanguage === 'EN' ? 'Voice input' : 'Entrada por voz'}>
-                <Mic size={19} />
-              </button>
-              <button className="send-button" onClick={() => askCopilot()} aria-label={loading ? 'Stop' : 'Send message'} disabled={!loading && !input.trim() && !activeFile}>
-                {loading ? <Square size={17} /> : <ArrowUp size={20} />}
-              </button>
+                  rows={1}
+                />
+                <button className="composer-language-button" type="button" onClick={() => setUiLanguage(current => current === 'EN' ? 'PT' : 'EN')}>
+                  {uiLanguage}
+                </button>
+                <button className="icon-button" type="button" onClick={() => setVoiceNotice(current => !current)} aria-label={uiLanguage === 'EN' ? 'Voice input' : 'Entrada por voz'}>
+                  <Mic size={19} />
+                </button>
+                <button className="send-button" onClick={() => askCopilot()} aria-label={loading ? 'Stop' : 'Send message'} disabled={!loading && !input.trim() && !activeFile}>
+                  {loading ? <Square size={17} /> : <ArrowUp size={20} />}
+                </button>
+              </div>
+              {voiceNotice && (
+                <div className="voice-notice">{uiLanguage === 'EN' ? 'Voice input coming soon.' : 'Entrada por voz em breve.'}</div>
+              )}
+              <div className="composer-hint">
+                {uiLanguage === 'EN'
+                  ? 'Apex Copilot can make mistakes. Verify critical project, legal, financial and engineering information.'
+                  : 'A Apex Copilot pode cometer erros. Verifique informações criticas de projeto, engenharia, legais e financeiras.'}
+              </div>
             </div>
-            {voiceNotice && (
-              <div className="voice-notice">{uiLanguage === 'EN' ? 'Voice input coming soon.' : 'Entrada por voz em breve.'}</div>
+            <input
+              ref={fileInput}
+              type="file"
+              accept="*/*"
+              hidden
+              {...({ webkitdirectory: '' } as any)}
+              onChange={event => {
+                const file = event.target.files?.[0]
+                if (file) handleFile(file)
+                event.currentTarget.value = ''
+              }}
+            />
+            {debugEnabled && (
+              <div className="debug-panel" aria-label="Debug mode">
+                Debug mode is enabled. Internal prompt and memory details remain server-side and are hidden from the end-user experience.
+              </div>
             )}
-            <div className="composer-hint">
-              {uiLanguage === 'EN'
-                ? 'Apex Copilot can make mistakes. Verify critical project, legal, financial and engineering information.'
-                : 'A Apex Copilot pode cometer erros. Verifique informações criticas de projeto, engenharia, legais e financeiras.'}
-            </div>
           </div>
-          <input
-            ref={fileInput}
-            type="file"
-            accept="*/*"
-            hidden
-            {...({ webkitdirectory: '' } as any)}
-            onChange={event => {
-              const file = event.target.files?.[0]
-              if (file) handleFile(file)
-              event.currentTarget.value = ''
-            }}
-          />
-          {debugEnabled && (
-            <div className="debug-panel" aria-label="Debug mode">
-              Debug mode is enabled. Internal prompt and memory details remain server-side and are hidden from the end-user experience.
-            </div>
-          )}
         </section>
 
         {hasOperationalPanel && (
@@ -2724,6 +3116,8 @@ function App() {
                   goal={businessOutput.goal}
                   conversationContext={businessOutput.conversationContext}
                   onSaveToProject={saveBusinessToProject}
+                  onActivateService={handleActivateService}
+                  onClear={() => setBusinessOutput(null)}
                 />
               )}
               {(businessOutput.focus === 'finance-accounting' || businessOutput.focus === 'all') && (
@@ -2731,6 +3125,7 @@ function App() {
                   goal={businessOutput.goal}
                   conversationContext={businessOutput.conversationContext}
                   onSaveToProject={saveBusinessToProject}
+                  onClear={() => setBusinessOutput(null)}
                 />
               )}
               {businessOutput.focus !== 'admin' && (

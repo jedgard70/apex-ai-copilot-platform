@@ -488,6 +488,52 @@ function buildActionMap() {
       requiresConfirmation: false,
       build: () => [{ ...requireTool('node'), args: ['scripts/execute-skill-audit.mjs'] }],
     },
+    'project.revit_generate': {
+      label: 'Gerar Boilerplate pyRevit / C# Add-in',
+      risk: RISK_CLASS.WRITE,
+      requiresConfirmation: true,
+      build: (params = {}) => {
+        const name = String(params.name || '').trim().replace(/[^a-zA-Z0-9_-]/g, '')
+        if (!name) return [{ ok: false, tag: 'node', reason: 'name parameter required' }]
+        return [{ ...requireTool('node'), args: ['scripts/execute-skill-action.mjs', 'revit-generate', name] }]
+      }
+    },
+    'project.marketing_generate': {
+      label: 'Gerar Campanha de Ebook/Marketing',
+      risk: RISK_CLASS.WRITE,
+      requiresConfirmation: true,
+      build: (params = {}) => {
+        const type = String(params.type || '').trim().replace(/[^a-zA-Z0-9_-]/g, '')
+        if (!type) return [{ ok: false, tag: 'node', reason: 'type parameter required' }]
+        return [{ ...requireTool('node'), args: ['scripts/execute-skill-action.mjs', 'marketing-generate', type] }]
+      }
+    },
+    'project.legacy_import': {
+      label: 'Importar Skill Legada de D:\\AI Jedgard',
+      risk: RISK_CLASS.WRITE,
+      requiresConfirmation: true,
+      build: (params = {}) => {
+        const name = String(params.name || '').trim().replace(/[^a-zA-Z0-9_-]/g, '')
+        if (!name) return [{ ok: false, tag: 'node', reason: 'name parameter required' }]
+        return [{ ...requireTool('node'), args: ['scripts/execute-skill-action.mjs', 'legacy-import', name] }]
+      }
+    },
+    'project.mcp_generate': {
+      label: 'Gerar Boilerplate de Servidor MCP',
+      risk: RISK_CLASS.WRITE,
+      requiresConfirmation: true,
+      build: (params = {}) => {
+        const name = String(params.name || '').trim().replace(/[^a-zA-Z0-9_-]/g, '')
+        if (!name) return [{ ok: false, tag: 'node', reason: 'name parameter required' }]
+        return [{ ...requireTool('node'), args: ['scripts/execute-skill-action.mjs', 'mcp-generate', name] }]
+      }
+    },
+    'project.code_analyze': {
+      label: 'Análise de Complexidade de Código',
+      risk: RISK_CLASS.VALIDATE,
+      requiresConfirmation: false,
+      build: () => [{ ...requireTool('node'), args: ['scripts/execute-skill-action.mjs', 'code-analyze'] }]
+    },
     // DANGEROUS — requires confirmed:true + rollbackAcknowledged:true
     'project.git_push_force': {
       label: 'git push --force-with-lease origin <branch>',

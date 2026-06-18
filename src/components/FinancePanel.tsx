@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Copy, DollarSign, RefreshCw, Save } from 'lucide-react'
+import { Copy, DollarSign, RefreshCw, Save, X } from 'lucide-react'
 import { BusinessCurrency, localDemoModeNotice, paymentConnectorNotice } from '../lib/saasBusinessModel'
 import { BusinessPlan, businessCurrencies, createBusinessPlan } from '../lib/crmFinanceKnowledge'
 
@@ -7,6 +7,7 @@ type FinancePanelProps = {
   goal: string
   conversationContext: string[]
   onSaveToProject?: (payload: BusinessPlan) => void
+  onClear?: () => void
 }
 
 function copyText(text: string) {
@@ -36,7 +37,7 @@ function financeText(plan: BusinessPlan) {
   ].join('\n')
 }
 
-export function FinancePanel({ goal, conversationContext, onSaveToProject }: FinancePanelProps) {
+export function FinancePanel({ goal, conversationContext, onSaveToProject, onClear }: FinancePanelProps) {
   const [currency, setCurrency] = useState<BusinessCurrency>('USD')
   const [plan, setPlan] = useState<BusinessPlan>(() => createBusinessPlan(goal || 'Finance layer setup', 'USD'))
   const [loading, setLoading] = useState(false)
@@ -64,13 +65,22 @@ export function FinancePanel({ goal, conversationContext, onSaveToProject }: Fin
 
   return (
     <section className="business-studio contracts-studio">
-      <div className="contracts-head">
+      <div className="contracts-heading">
         <div>
           <span><DollarSign size={16} /> Finance</span>
           <h2>Invoices, revenue placeholders and project profit</h2>
           <p>{localDemoModeNotice}. {paymentConnectorNotice}</p>
         </div>
-        <button onClick={() => generatePlan()} disabled={loading}><RefreshCw size={16} /> {loading ? 'Building...' : 'Generate'}</button>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
+          <button onClick={() => generatePlan()} disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', gap: '7px' }}>
+            <RefreshCw size={16} className={loading ? 'spin-icon' : ''} /> {loading ? 'Building...' : 'Generate'}
+          </button>
+          {onClear && (
+            <button className="ghost-action" type="button" onClick={onClear} aria-label="Close Finance Panel">
+              <X size={16} />
+            </button>
+          )}
+        </div>
       </div>
 
       {message && <div className="business-alert"><strong>Status</strong><span>{message}</span></div>}

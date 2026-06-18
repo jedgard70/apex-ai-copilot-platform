@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Copy, RefreshCw, Save, Target } from 'lucide-react'
+import { Copy, RefreshCw, Save, Target, X } from 'lucide-react'
 import { BusinessPlan, createBusinessPlan, pipelineStages, serviceCatalogDefaults } from '../lib/crmFinanceKnowledge'
 import { localDemoModeNotice } from '../lib/saasBusinessModel'
 
@@ -7,6 +7,8 @@ type CrmPanelProps = {
   goal: string
   conversationContext: string[]
   onSaveToProject?: (payload: BusinessPlan) => void
+  onActivateService?: (serviceId: string) => void
+  onClear?: () => void
 }
 
 function copyText(text: string) {
@@ -30,7 +32,7 @@ function proposalText(plan: BusinessPlan) {
   ].join('\n')
 }
 
-export function CrmPanel({ goal, conversationContext, onSaveToProject }: CrmPanelProps) {
+export function CrmPanel({ goal, conversationContext, onSaveToProject, onActivateService, onClear }: CrmPanelProps) {
   const [plan, setPlan] = useState<BusinessPlan>(() => createBusinessPlan(goal || 'CRM/Sales layer setup'))
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
@@ -57,13 +59,22 @@ export function CrmPanel({ goal, conversationContext, onSaveToProject }: CrmPane
 
   return (
     <section className="business-studio contracts-studio">
-      <div className="contracts-head">
+      <div className="contracts-heading">
         <div>
           <span><Target size={16} /> CRM / Sales</span>
           <h2>Pipeline, proposals and client follow-up</h2>
           <p>{localDemoModeNotice}. CRM records are local scaffolding until a database is approved.</p>
         </div>
-        <button onClick={generatePlan} disabled={loading}><RefreshCw size={16} /> {loading ? 'Building...' : 'Generate'}</button>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
+          <button onClick={generatePlan} disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', gap: '7px' }}>
+            <RefreshCw size={16} className={loading ? 'spin-icon' : ''} /> {loading ? 'Building...' : 'Generate'}
+          </button>
+          {onClear && (
+            <button className="ghost-action" type="button" onClick={onClear} aria-label="Close CRM Panel">
+              <X size={16} />
+            </button>
+          )}
+        </div>
       </div>
 
       {message && <div className="business-alert"><strong>Status</strong><span>{message}</span></div>}
@@ -109,11 +120,32 @@ export function CrmPanel({ goal, conversationContext, onSaveToProject }: CrmPane
         <h3>Service catalog</h3>
         <div className="business-service-grid">
           {serviceCatalogDefaults.map(service => (
-            <div key={service.id}>
-              <strong>{service.name}</strong>
-              <span>{service.category}</span>
-              <small>{service.description}</small>
-              <em>{service.priceConfidence}</em>
+            <div key={service.id} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div>
+                <strong>{service.name}</strong>
+                <span>{service.category}</span>
+                <small>{service.description}</small>
+              </div>
+              <div className="business-service-status-row" style={{ marginTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <em style={{ color: '#10b981', fontStyle: 'normal', fontWeight: 'bold' }}>✓ ATIVO</em>
+                <button
+                  type="button"
+                  onClick={() => onActivateService?.(service.id)}
+                  style={{
+                    background: '#2563eb',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '6px 12px',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    transition: 'background 0.2s'
+                  }}
+                >
+                  Ativar Studio
+                </button>
+              </div>
             </div>
           ))}
         </div>
