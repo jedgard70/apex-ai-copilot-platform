@@ -1316,6 +1316,9 @@ async function handleChat(req, res) {
       'production_marketing_vendas_help',
       'production_vercel_deploy',
       'production_supabase',
+      'production_execute_recommended',
+      'production_h7_confirmation',
+      'production_next_step',
     ])
 
     const isProductionRoute = productionRouterIntents.has(productionConversationIntent) ||
@@ -1350,7 +1353,7 @@ async function handleChat(req, res) {
       })
     }
 
-    if (isOperatorIntent(userText)) {
+    if (!APEX_FREE_AGENT && isOperatorIntent(userText)) {
       try {
         const operatorResult = await runApexOperator({
           userMessage: userText,
