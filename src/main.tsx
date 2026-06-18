@@ -940,6 +940,7 @@ function App() {
     return localStorage.getItem('apex_selected_model') || 'gpt-4o-mini'
   })
   const [availableModels, setAvailableModels] = useState<{ id: string, name: string }[]>([])
+  const [modelProvider, setModelProvider] = useState<string>('')
 
   useEffect(() => {
     fetch('/api/copilot/models')
@@ -947,6 +948,9 @@ function App() {
       .then(data => {
         if (data?.ok && Array.isArray(data.models)) {
           setAvailableModels(data.models)
+          if (data.provider) {
+            setModelProvider(data.provider)
+          }
         }
       })
       .catch(() => undefined)
@@ -2566,7 +2570,9 @@ function App() {
               </button>
             </div>
             <div className="chat-sidebar-model" style={{ padding: '12px 16px', borderBottom: '1px solid rgba(150, 164, 195, 0.15)' }}>
-              <label style={{ color: 'rgba(150, 164, 195, 0.7)', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '6px' }}>Modelo de IA</label>
+              <label style={{ color: 'rgba(150, 164, 195, 0.7)', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '6px' }}>
+                Modelo de IA {modelProvider ? `(${modelProvider === 'gemini' ? 'Google AI Studio' : modelProvider === 'openrouter' ? 'OpenRouter' : 'OpenAI'})` : ''}
+              </label>
               <select
                 value={selectedModel}
                 onChange={e => setSelectedModel(e.target.value)}
