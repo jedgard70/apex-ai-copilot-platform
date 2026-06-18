@@ -62,7 +62,8 @@
       "server.mjs",
       "local-worker/**/*",
       "server/**/*",
-      "api/**/*"
+      "api/**/*",
+      "dist/**/*"
     ],
     "files": [
       "dist/**/*",
