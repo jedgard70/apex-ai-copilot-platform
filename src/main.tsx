@@ -2571,7 +2571,11 @@ function App() {
             </div>
             <div className="chat-sidebar-model" style={{ padding: '12px 16px', borderBottom: '1px solid rgba(150, 164, 195, 0.15)' }}>
               <label style={{ color: 'rgba(150, 164, 195, 0.7)', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '6px' }}>
-                Modelo de IA {modelProvider ? `(${modelProvider === 'gemini' ? 'Google AI Studio' : modelProvider === 'openrouter' ? 'OpenRouter' : 'OpenAI'})` : ''}
+                Modelo de IA {(() => {
+                  const isDirectGemini = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.0-pro', 'gemini-2.5-flash'].includes(selectedModel);
+                  const providerToShow = isDirectGemini ? 'gemini' : modelProvider;
+                  return providerToShow ? `(${providerToShow === 'gemini' ? 'Google AI Studio' : providerToShow === 'openrouter' ? 'OpenRouter' : 'OpenAI'})` : '';
+                })()}
               </label>
               <select
                 value={selectedModel}

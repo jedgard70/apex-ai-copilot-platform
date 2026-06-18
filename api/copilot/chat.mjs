@@ -9,6 +9,22 @@ import { classifyProductionConversationIntent } from '../../server/agent/product
 import { buildCodeToolDefinitions, executeCodeToolCall, CODE_TOOL_NAMES } from '../../server/agent/codeTools.mjs'
 import { runLocalWorkerAction } from '../../server/agent/localWorkerClient.mjs'
 
+// Resolve base URL and API key based on the selected model
+export function getOpenAIConfig(model) {
+  let apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
+  let apiKey = process.env.OPENAI_API_KEY
+
+  const isDirectGeminiModel = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.0-pro', 'gemini-2.5-flash'].includes(model)
+
+  if (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_KEYROUTER) {
+    if (model?.includes('/') || !isDirectGeminiModel) {
+      apiBase = process.env.OPENAI_API_BASEROUTER
+      apiKey = process.env.OPENAI_API_KEYROUTER
+    }
+  }
+  return { apiBase, apiKey }
+}
+
 // APEX_FREE_AGENT (default ON): conversational messages bypass the canned
 // production-intent router and go straight to the LLM. Set APEX_FREE_AGENT=0
 // to restore the old template-router behavior.
@@ -689,9 +705,9 @@ function buildAnthropicMessages(messages) {
 }
 
 async function callOpenAIChat(requestPayload) {
-  const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
+  const { apiBase, apiKey } = getOpenAIConfig(requestPayload.model)
   const headers = {
-    Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+    Authorization: `Bearer ${apiKey}`,
     'Content-Type': 'application/json',
   }
   if (apiBase.includes('openrouter.ai')) {
@@ -1183,8 +1199,11 @@ export default async function handler(req, res) {
       })
     }
 
+    const model = body.model || process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini'
+    const { apiBase, apiKey: resolvedOpenAIKey } = getOpenAIConfig(model)
+
     const anthropicKey = process.env.ANTHROPIC_API_KEY
-    const openaiKey = process.env.OPENAI_API_KEY
+    const openaiKey = resolvedOpenAIKey
     const apiKey = anthropicKey || openaiKey
     if (!apiKey) {
       const h5ToolIds = classifyToolExecutionRequest(routingMessage)
@@ -1222,7 +1241,6 @@ export default async function handler(req, res) {
     }
 
     const useAnthropic = Boolean(anthropicKey)
-    const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
     const runtime = loadRuntimeKnowledge()
     const file = body.file || null
     // The client includes the current user message in body.messages as the last item.
@@ -1393,7 +1411,7 @@ export default async function handler(req, res) {
         let currentAssistant = assistantMessage
         let currentToolCalls = toolCalls
         const usedToolNames = []
-        const apiBaseUrl = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
+        const apiBaseUrl = apiBase
         const MAX_TOOL_ROUNDS = 12
 
         for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
@@ -1414,7 +1432,7 @@ export default async function handler(req, res) {
           }
 
           const nextHeaders = {
-            Authorization: 'Bearer ' + process.env.OPENAI_API_KEY,
+            Authorization: 'Bearer ' + openaiKey,
             'Content-Type': 'application/json',
           }
           if (apiBaseUrl.includes('openrouter.ai')) {

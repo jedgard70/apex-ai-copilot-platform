@@ -17,6 +17,14 @@
  *   3. Neither → planning-only response
  */
 
+// Normalize custom router variable casing/names
+if (process.env.OPENAI_API_BASEROUTER && !process.env.OPENAI_API_BASE) {
+  process.env.OPENAI_API_BASE = process.env.OPENAI_API_BASEROUTER
+}
+if (process.env.OPENAI_API_KEYROUTER && !process.env.OPENAI_API_KEY) {
+  process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEYROUTER
+}
+
 const CONNECTOR_TIMEOUT_MS = 45000
 
 function hasFalConfig() {
