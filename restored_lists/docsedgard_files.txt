@@ -1,0 +1,812 @@
+"docsedgard/skill/\360\237\214\261 PROMPT 1 \342\200\224 TERRENO (MANH\303\203 LIMPA).txt"
+"docsedgard/skill/\360\237\217\241 \360\237\214\236 VERS\303\203O DIA (REALISTA DE VENDA.txt"
+"docsedgard/skill/\360\237\217\241 PROMPTS E LINKS.txt"
+"docsedgard/skill/\360\237\247\240 LEITURA DA SUA PLANTA (isso muda.txt"
+"docsedgard/skill/# An\303\241lise Estrat\303\251gica do Seu CORE_S.txt"
+"docsedgard/skill/A plataforma Apex atingiu o est\303\241gio.txt"
+"docsedgard/skill/Apostila+Curso+de+Intelig\303\252ncia+Artificial.pdf"
+"docsedgard/skill/AULA B\303\224NUS 2 - TIMELAPSE DE CONDOM\303\215.txt"
+"docsedgard/skill/BACKLOG EXECUT\303\201VEL \342\200\224 AI Constructio.txt"
+"docsedgard/skill/Como Criar Esses Arquivos na Pr\303\241tica.docx"
+"docsedgard/skill/COMO USAR NA PR\303\201TICA.docx"
+"docsedgard/skill/Crie uma ferramenta de manipula\303\247\303\243o.txt"
+"docsedgard/skill/Engine Financeira Avan\303\247ada.json"
+"docsedgard/skill/Entendi o direcionamento \342\200\224 isso aqu.txt"
+"docsedgard/skill/instru\303\247\303\265es director cut.txt"
+"docsedgard/skill/isntru\303\247oes archvis.txt"
+"docsedgard/skill/MCP REVIT  Op\303\247\303\243o A Rodar Localmente.txt"
+"docsedgard/skill/Mood Board \342\200\224 Interiores Futuristas.pdf"
+"docsedgard/skill/Op\303\247\303\265es de Copywrite.txt"
+"docsedgard/skill/Perfeito. CP8C est\303\241 GREEN..txt"
+"docsedgard/skill/precifica\303\247\303\243o de trabalho de AI.htm"
+"docsedgard/skill/prompt restaura\303\247ao de precifica\303\247ao claude.png"
+"docsedgard/skill/Sem t\303\255tulo.txt"
+"docsedgard/skill/Solu\303\247\303\265es completas em.txt"
+docsedgard/acip-migrations/acip-migrations/README.md
+docsedgard/acip-migrations/acip-migrations/supabase/migrations/001_extensions.sql
+docsedgard/acip-migrations/acip-migrations/supabase/migrations/002_enums.sql
+docsedgard/acip-migrations/acip-migrations/supabase/migrations/003_profiles.sql
+docsedgard/acip-migrations/acip-migrations/supabase/migrations/004_roles_permissions.sql
+docsedgard/acip-migrations/acip-migrations/supabase/migrations/005_projects.sql
+docsedgard/acip-migrations/acip-migrations/supabase/migrations/006_memory_agents.sql
+docsedgard/acip-migrations/acip-migrations/supabase/migrations/007_audit_log.sql
+docsedgard/acip-migrations/acip-migrations/supabase/migrations/008_rls.sql
+docsedgard/acip-migrations/acip-migrations/supabase/migrations/009_seed_demo.sql
+docsedgard/landing-page-AI-Construction atlas/components/app.jsx
+docsedgard/landing-page-AI-Construction atlas/components/dashboard.jsx
+docsedgard/landing-page-AI-Construction atlas/components/data.jsx
+docsedgard/landing-page-AI-Construction atlas/components/nav-hero.jsx
+docsedgard/landing-page-AI-Construction atlas/components/sections.jsx
+docsedgard/landing-page-AI-Construction atlas/components/tweaks-panel.jsx
+docsedgard/landing-page-AI-Construction atlas/design-system/colors_and_type.css
+docsedgard/landing-page-AI-Construction atlas/design-system/fonts/NotoSansMono-VariableFont_wdth_wght.ttf
+docsedgard/landing-page-AI-Construction atlas/design-system/logo_apex_nova.jpeg
+docsedgard/landing-page-AI-Construction atlas/Landing Page.html
+docsedgard/landing-page-AI-Construction atlas/screenshots/01-01-hero.png
+docsedgard/landing-page-AI-Construction atlas/screenshots/02-01-hero.png
+docsedgard/landing-page-AI-Construction atlas/screenshots/03-01-hero.png
+docsedgard/landing-page-AI-Construction atlas/screenshots/04-01-hero.png
+docsedgard/landing-page-AI-Construction atlas/screenshots/05-01-hero.png
+docsedgard/landing-page-AI-Construction atlas/screenshots/06-01-hero.png
+docsedgard/landing-page-AI-Construction atlas/screenshots/07-01-hero.png
+docsedgard/landing-page-AI-Construction atlas/screenshots/08-01-hero.png
+docsedgard/landing-page-AI-Construction atlas/screenshots/09-01-hero.png
+docsedgard/landing-page-AI-Construction atlas/screenshots/10-01-hero.png
+docsedgard/landing-page-AI-Construction atlas/styles.css
+docsedgard/modelodedepartamentodevendas/modelo de departamento de vendas (1).png
+docsedgard/modelodedepartamentodevendas/modelo de departamento de vendas (2).png
+docsedgard/modelodedepartamentodevendas/modelo de departamento de vendas (3).png
+docsedgard/modelodedepartamentodevendas/modelo de departamento de vendas (4).png
+docsedgard/modelodedepartamentodevendas/modelo de departamento de vendas (5).png
+docsedgard/modelodedepartamentodevendas/modelo de departamento de vendas (6).png
+docsedgard/modelodedepartamentodevendas/modelo de departamento de vendas (7).png
+docsedgard/modelodedepartamentodevendas/modelo de departamento de vendas (8).png
+docsedgard/modelodedepartamentodevendas/modelo de departamento de vendas (9).png
+docsedgard/modelodedepartamentodevendas/sistema operacional.pdf
+docsedgard/outputs/ebook_custos/calculadora_hotmart_vs_systemeio.xlsx
+docsedgard/outputs/produtos_ebook/checklist_premium_imprimivel.pdf
+docsedgard/outputs/produtos_ebook/kit_contratos_sem_surpresa.docx
+docsedgard/outputs/produtos_ebook/planilha_controle_de_obra_premium_final.xlsx
+docsedgard/outputs/produtos_ebook/planilha_controle_de_obra.xlsx
+docsedgard/Revit/codex/Carimbo Edgard Padrao Revit.rfa
+docsedgard/Revit/codex/codex_config_example.toml
+docsedgard/Revit/codex/edgard_shared_parameters.txt
+docsedgard/Revit/codex/familias_portuguese_contagem_por_pasta.csv
+docsedgard/Revit/codex/familias_portuguese_exclusao_duplicados_exatos_log.csv
+docsedgard/Revit/codex/familias_portuguese_inventario.csv
+docsedgard/Revit/codex/familias_portuguese_mesmo_nome.csv
+docsedgard/Revit/codex/familias_portuguese_nomes_suspeitos.csv
+docsedgard/Revit/codex/familias_portuguese_plano_quarentena_duplicados_exatos.csv
+docsedgard/Revit/codex/familias_portuguese_suspeitos_duplicados_exatos.csv
+docsedgard/Revit/codex/familias_revit_2026_contagem_por_pasta.csv
+docsedgard/Revit/codex/familias_revit_2026_inventario.csv
+docsedgard/Revit/codex/familias_revit_2026_mesmo_nome.csv
+docsedgard/Revit/codex/familias_revit_2026_nomes_suspeitos.csv
+docsedgard/Revit/codex/principal_carimbos_removidos_20260526.csv
+docsedgard/Revit/codex/principal_familias_inventario_20260526_204849.csv
+docsedgard/Revit/codex/principal_familias_por_categoria_20260526_204849.csv
+docsedgard/Revit/codex/principal_filtros_20260526_204849.csv
+docsedgard/Revit/codex/principal_limpeza_removidos_20260526_2055.csv
+docsedgard/Revit/codex/principal_materiais_20260526_204849.csv
+docsedgard/Revit/codex/principal_plano_limpeza_familias_20260526_204849.csv
+docsedgard/Revit/codex/principal_vistas_20260526_204849.csv
+docsedgard/Revit/codex/pyrevit/CodexMCP.extension/CodexMCP.tab/MCP.panel/Start.pushbutton/__pycache__/script.cpython-314.pyc
+docsedgard/Revit/codex/pyrevit/CodexMCP.extension/CodexMCP.tab/MCP.panel/Start.pushbutton/bundle.yaml
+docsedgard/Revit/codex/pyrevit/CodexMCP.extension/CodexMCP.tab/MCP.panel/Start.pushbutton/script.py
+docsedgard/Revit/codex/pyrevit/CodexMCP.extension/CodexMCP.tab/MCP.panel/Stop.pushbutton/__pycache__/script.cpython-314.pyc
+docsedgard/Revit/codex/pyrevit/CodexMCP.extension/CodexMCP.tab/MCP.panel/Stop.pushbutton/bundle.yaml
+docsedgard/Revit/codex/pyrevit/CodexMCP.extension/CodexMCP.tab/MCP.panel/Stop.pushbutton/script.py
+docsedgard/Revit/codex/pyrevit/CodexMCP.extension/extension.json
+docsedgard/Revit/codex/pyrevit/CodexMCP.extension/extension.yaml
+docsedgard/Revit/codex/README.md
+docsedgard/Revit/codex/teste folha e carimbo.pdf
+docsedgard/Revit/revit-mcp-server/.gitignore
+docsedgard/Revit/revit-mcp-server/.python-version
+docsedgard/Revit/revit-mcp-server/extension.json
+docsedgard/Revit/revit-mcp-server/images/get_view_tool.png
+docsedgard/Revit/revit-mcp-server/images/list_model_tool.png
+docsedgard/Revit/revit-mcp-server/LICENSE
+docsedgard/Revit/revit-mcp-server/LLM.txt
+docsedgard/Revit/revit-mcp-server/main.py
+docsedgard/Revit/revit-mcp-server/pyproject.toml
+docsedgard/Revit/revit-mcp-server/README_UV.md
+docsedgard/Revit/revit-mcp-server/README.md
+docsedgard/Revit/revit-mcp-server/requirements.txt
+docsedgard/Revit/revit-mcp-server/revit_mcp/__init__.py
+docsedgard/Revit/revit-mcp-server/revit_mcp/analysis.py
+docsedgard/Revit/revit-mcp-server/revit_mcp/annotation.py
+docsedgard/Revit/revit-mcp-server/revit_mcp/building.py
+docsedgard/Revit/revit-mcp-server/revit_mcp/code_execution.py
+docsedgard/Revit/revit-mcp-server/revit_mcp/colors.py
+docsedgard/Revit/revit-mcp-server/revit_mcp/detail.py
+docsedgard/Revit/revit-mcp-server/revit_mcp/documentation.py
+docsedgard/Revit/revit-mcp-server/revit_mcp/editing.py
+docsedgard/Revit/revit-mcp-server/revit_mcp/interop.py
+docsedgard/Revit/revit-mcp-server/revit_mcp/mep.py
+docsedgard/Revit/revit-mcp-server/revit_mcp/model_info.py
+docsedgard/Revit/revit-mcp-server/revit_mcp/parameters.py
+docsedgard/Revit/revit-mcp-server/revit_mcp/placement.py
+docsedgard/Revit/revit-mcp-server/revit_mcp/rooms.py
+docsedgard/Revit/revit-mcp-server/revit_mcp/status.py
+docsedgard/Revit/revit-mcp-server/revit_mcp/structure.py
+docsedgard/Revit/revit-mcp-server/revit_mcp/tags.py
+docsedgard/Revit/revit-mcp-server/revit_mcp/transforms.py
+docsedgard/Revit/revit-mcp-server/revit_mcp/utils.py
+docsedgard/Revit/revit-mcp-server/revit_mcp/view_management.py
+docsedgard/Revit/revit-mcp-server/revit_mcp/views.py
+docsedgard/Revit/revit-mcp-server/startup.py
+docsedgard/Revit/revit-mcp-server/tools/__init__.py
+docsedgard/Revit/revit-mcp-server/tools/analysis_tools.py
+docsedgard/Revit/revit-mcp-server/tools/annotation_tools.py
+docsedgard/Revit/revit-mcp-server/tools/building_tools.py
+docsedgard/Revit/revit-mcp-server/tools/code_execution_tools.py
+docsedgard/Revit/revit-mcp-server/tools/colors_tools.py
+docsedgard/Revit/revit-mcp-server/tools/detail_tools.py
+docsedgard/Revit/revit-mcp-server/tools/documentation_tools.py
+docsedgard/Revit/revit-mcp-server/tools/editing_tools.py
+docsedgard/Revit/revit-mcp-server/tools/family_tools.py
+docsedgard/Revit/revit-mcp-server/tools/interop_tools.py
+docsedgard/Revit/revit-mcp-server/tools/mep_tools.py
+docsedgard/Revit/revit-mcp-server/tools/model_tools.py
+docsedgard/Revit/revit-mcp-server/tools/parameter_tools.py
+docsedgard/Revit/revit-mcp-server/tools/room_tools.py
+docsedgard/Revit/revit-mcp-server/tools/status_tools.py
+docsedgard/Revit/revit-mcp-server/tools/structure_tools.py
+docsedgard/Revit/revit-mcp-server/tools/tag_tools.py
+docsedgard/Revit/revit-mcp-server/tools/transform_tools.py
+docsedgard/Revit/revit-mcp-server/tools/utils.py
+docsedgard/Revit/revit-mcp-server/tools/view_management_tools.py
+docsedgard/Revit/revit-mcp-server/tools/view_tools.py
+docsedgard/Revit/revit-mcp-server/uv.lock
+docsedgard/schedule/SKILL.md
+docsedgard/setup-cowork/SKILL.md
+docsedgard/skill/__init__.py
+docsedgard/skill/-- DATABASE MIGRATION SCRIPT FOR ARchvisnovo.txt
+docsedgard/skill/(_lang)-dp6gv30z.css
+docsedgard/skill/# Blind Comparator Agent.txt
+docsedgard/skill/# Grader Agent.txt
+docsedgard/skill/# MCP Server Best Practices.txt
+docsedgard/skill/# NodeTypeScript MCP Server Impleme.txt
+docsedgard/skill/# Python MCP Server Implementation.txt
+docsedgard/skill/#!binbash.txt
+docsedgard/skill/#!binbash2.txt
+docsedgard/skill/#MCP Server Evaluation Guide.txt
+docsedgard/skill/+500+Melhores+Prompts+para+ChatGPT.pdf
+docsedgard/skill/23951ed1-0291-4395-ae05-691f4f4a21df.md
+docsedgard/skill/30--Prompts--Profissionais--para--Arquitetura--e--Design--de--Interiores.pdf
+docsedgard/skill/7b6b7a3b-ea5d-4e55-8af6-85aeebb603c0.png
+docsedgard/skill/abilities-integration.md
+docsedgard/skill/abilities-map.md
+docsedgard/skill/ADAVisualizationComponent-m14wkthf.css
+docsedgard/skill/Agent Registry.json
+docsedgard/skill/agente autonomo.json
+docsedgard/skill/agentes.docx
+docsedgard/skill/AGENTS.json
+docsedgard/skill/aggregate_benchmark.py
+docsedgard/skill/AI API ECOSYSTEM.json
+docsedgard/skill/Ai Construction Intelligence Platform V7 Autonomous Construction Brain.docx
+docsedgard/skill/Ai Construction Intelligence Platform V7 Autonomous Construction Brain.pdf
+docsedgard/skill/ai_construction_intelligence_platform_v_7_autonomous_construction_brain.md
+docsedgard/skill/AI_cost_control.json
+docsedgard/skill/AI_Prompt_Library ECOSSITEM.pdf
+docsedgard/skill/AI_Prompt_Library.pdf
+docsedgard/skill/ai-prompts-and-resources.md
+docsedgard/skill/ai-prompts-integration.md
+docsedgard/skill/algor.templet.txt
+docsedgard/skill/algorithmic-art/SKILL.md
+docsedgard/skill/algorithmic-art/templates/generator_template.js
+docsedgard/skill/algorithmic-art/templates/viewer.html
+docsedgard/skill/algorithmic.txt
+docsedgard/skill/Analise Estrategica Lote Triangulo Conceito Residencial Premium.pdf
+docsedgard/skill/analyzer.md
+docsedgard/skill/AnimatedMascot-dx2jnhv5.css
+docsedgard/skill/ansi-1f6vhsjh.css
+docsedgard/skill/anthropic=0.39.0.txt
+docsedgard/skill/Apex Copilot.txt
+docsedgard/skill/APEX GLOBAL MASTER PLAN v1.pdf
+docsedgard/skill/APEX_AI_COPILOT_MEMORY_INDEX.json
+docsedgard/skill/APEX_AI_COPILOT_NEW_CHAT_PROMPT.md.txt
+docsedgard/skill/APEX_AI_COPILOT_NEW_PLATFORM_BUILD_PLAN.md
+docsedgard/skill/APEX_AI_COPILOT_PRODUCTION_INDEX.json
+docsedgard/skill/APEX_AI_COPILOT_PRODUCTION_INDEX.md
+docsedgard/skill/APEX_AI_COPILOT_SYSTEM_PROMPT.md
+docsedgard/skill/APEX_AI_COPILOT_TOOL_REGISTRY.json
+docsedgard/skill/apex_codigos_memoria.md
+docsedgard/skill/Apex-AI-Copilot-chatgpt.zip-compatible.json
+docsedgard/skill/apex-global-orchestrator/agents/openai.yaml
+docsedgard/skill/apex-global-orchestrator/INTEGRACAO_SKILLS_TXT_FINALIZADAS.md
+docsedgard/skill/apex-global-orchestrator/references/brand-guidelines-playbook.md
+docsedgard/skill/apex-global-orchestrator/references/canvas-design-playbook.md
+docsedgard/skill/apex-global-orchestrator/references/copilot-advanced.md
+docsedgard/skill/apex-global-orchestrator/references/documentation-governance.md
+docsedgard/skill/apex-global-orchestrator/references/generative-viewer-template-guide.md
+docsedgard/skill/apex-global-orchestrator/references/handoff-claude.md
+docsedgard/skill/apex-global-orchestrator/references/handoff-codex.md
+docsedgard/skill/apex-global-orchestrator/references/mcp-builder-playbook.md
+docsedgard/skill/apex-global-orchestrator/references/permissions.md
+docsedgard/skill/apex-global-orchestrator/references/render-3d-humanization.md
+docsedgard/skill/apex-global-orchestrator/references/render-prompts-library.md
+docsedgard/skill/apex-global-orchestrator/references/roadmap-rules.md
+docsedgard/skill/apex-global-orchestrator/references/skill-creator.md
+docsedgard/skill/apex-global-orchestrator/references/support-skills-catalog.md
+docsedgard/skill/apex-global-orchestrator/references/theme-factory-playbook.md
+docsedgard/skill/apex-global-orchestrator/references/web-artifacts-builder-playbook.md
+docsedgard/skill/apex-global-orchestrator/SKILL.md
+docsedgard/skill/api claude.txt
+docsedgard/skill/API_LAYER.JSON
+docsedgard/skill/Aplicado o modelo final ArchVis dar.txt
+docsedgard/skill/applet_access_history.json
+docsedgard/skill/archvis-production.md
+docsedgard/skill/archvis.md
+docsedgard/skill/ArchVisPro-novo gemini api e url.txt
+docsedgard/skill/arquiterura_dados.json
+docsedgard/skill/AssistantMessage-lplwfziw.css
+docsedgard/skill/assistente-rafael-cursos.txt
+docsedgard/skill/Audiojedgard.mp4
+docsedgard/skill/AULA BONUS CAIXA EXPLODE DECORANDO.txt
+docsedgard/skill/Aula+15+-+Prompt+Agente.pdf
+docsedgard/skill/AUTOMATION_LAYER.json
+docsedgard/skill/AUTOMATION_MODULE.json
+docsedgard/skill/autonomoussalesagent.py
+docsedgard/skill/Avaliacao Core System Ai Construction Platform.docx
+docsedgard/skill/avaliacao_core_system_ai_construction_platform.md
+docsedgard/skill/Avatar-kw5t2dfu.css
+docsedgard/skill/BIM_AI_ASSISTANT.json
+docsedgard/skill/BIM_MODULE.json
+docsedgard/skill/bim_real_estate_lot_schema_v1.json
+docsedgard/skill/bim_schema_v7.json
+docsedgard/skill/bim-3d.md
+docsedgard/skill/bim-assistant.agent.json
+docsedgard/skill/bim-coordinator.agent.json
+docsedgard/skill/bim-viewer-production.md
+docsedgard/skill/brand-guidelines/SKILL.md
+docsedgard/skill/brand.txt
+docsedgard/skill/briefing de arquitetura.pdf
+docsedgard/skill/briefing de arquitetura.txt
+docsedgard/skill/budget.md
+docsedgard/skill/canvas-design/canvas-fonts/ArsenalSC-Regular.ttf
+docsedgard/skill/canvas-design/canvas-fonts/BigShoulders-Bold.ttf
+docsedgard/skill/canvas-design/canvas-fonts/BigShoulders-Regular.ttf
+docsedgard/skill/canvas-design/canvas-fonts/Boldonse-Regular.ttf
+docsedgard/skill/canvas-design/canvas-fonts/BricolageGrotesque-Bold.ttf
+docsedgard/skill/canvas-design/canvas-fonts/BricolageGrotesque-Regular.ttf
+docsedgard/skill/canvas-design/canvas-fonts/CrimsonPro-Bold.ttf
+docsedgard/skill/canvas-design/canvas-fonts/CrimsonPro-Italic.ttf
+docsedgard/skill/canvas-design/canvas-fonts/CrimsonPro-Regular.ttf
+docsedgard/skill/canvas-design/canvas-fonts/DMMono-Regular.ttf
+docsedgard/skill/canvas-design/canvas-fonts/EricaOne-Regular.ttf
+docsedgard/skill/canvas-design/canvas-fonts/GeistMono-Bold.ttf
+docsedgard/skill/canvas-design/canvas-fonts/GeistMono-Regular.ttf
+docsedgard/skill/canvas-design/canvas-fonts/Gloock-Regular.ttf
+docsedgard/skill/canvas-design/canvas-fonts/IBMPlexMono-Bold.ttf
+docsedgard/skill/canvas-design/canvas-fonts/IBMPlexMono-Regular.ttf
+docsedgard/skill/canvas-design/canvas-fonts/IBMPlexSerif-Bold.ttf
+docsedgard/skill/canvas-design/canvas-fonts/IBMPlexSerif-BoldItalic.ttf
+docsedgard/skill/canvas-design/canvas-fonts/IBMPlexSerif-Italic.ttf
+docsedgard/skill/canvas-design/canvas-fonts/IBMPlexSerif-Regular.ttf
+docsedgard/skill/canvas-design/canvas-fonts/InstrumentSans-Bold.ttf
+docsedgard/skill/canvas-design/canvas-fonts/InstrumentSans-BoldItalic.ttf
+docsedgard/skill/canvas-design/canvas-fonts/InstrumentSans-Italic.ttf
+docsedgard/skill/canvas-design/canvas-fonts/InstrumentSans-Regular.ttf
+docsedgard/skill/canvas-design/canvas-fonts/InstrumentSerif-Italic.ttf
+docsedgard/skill/canvas-design/canvas-fonts/InstrumentSerif-Regular.ttf
+docsedgard/skill/canvas-design/canvas-fonts/Italiana-Regular.ttf
+docsedgard/skill/canvas-design/canvas-fonts/JetBrainsMono-Bold.ttf
+docsedgard/skill/canvas-design/canvas-fonts/JetBrainsMono-Regular.ttf
+docsedgard/skill/canvas-design/canvas-fonts/Jura-Light.ttf
+docsedgard/skill/canvas-design/canvas-fonts/Jura-Medium.ttf
+docsedgard/skill/canvas-design/canvas-fonts/LibreBaskerville-Regular.ttf
+docsedgard/skill/canvas-design/canvas-fonts/Lora-Bold.ttf
+docsedgard/skill/canvas-design/canvas-fonts/Lora-BoldItalic.ttf
+docsedgard/skill/canvas-design/canvas-fonts/Lora-Italic.ttf
+docsedgard/skill/canvas-design/canvas-fonts/Lora-Regular.ttf
+docsedgard/skill/canvas-design/canvas-fonts/NationalPark-Bold.ttf
+docsedgard/skill/canvas-design/canvas-fonts/NationalPark-Regular.ttf
+docsedgard/skill/canvas-design/canvas-fonts/NothingYouCouldDo-Regular.ttf
+docsedgard/skill/canvas-design/canvas-fonts/Outfit-Bold.ttf
+docsedgard/skill/canvas-design/canvas-fonts/Outfit-Regular.ttf
+docsedgard/skill/canvas-design/canvas-fonts/PixelifySans-Medium.ttf
+docsedgard/skill/canvas-design/canvas-fonts/PoiretOne-Regular.ttf
+docsedgard/skill/canvas-design/canvas-fonts/RedHatMono-Bold.ttf
+docsedgard/skill/canvas-design/canvas-fonts/RedHatMono-Regular.ttf
+docsedgard/skill/canvas-design/canvas-fonts/Silkscreen-Regular.ttf
+docsedgard/skill/canvas-design/canvas-fonts/SmoochSans-Medium.ttf
+docsedgard/skill/canvas-design/canvas-fonts/Tektur-Medium.ttf
+docsedgard/skill/canvas-design/canvas-fonts/Tektur-Regular.ttf
+docsedgard/skill/canvas-design/canvas-fonts/WorkSans-Bold.ttf
+docsedgard/skill/canvas-design/canvas-fonts/WorkSans-BoldItalic.ttf
+docsedgard/skill/canvas-design/canvas-fonts/WorkSans-Italic.ttf
+docsedgard/skill/canvas-design/canvas-fonts/WorkSans-Regular.ttf
+docsedgard/skill/canvas-design/canvas-fonts/YoungSerif-Regular.ttf
+docsedgard/skill/canvas-design/SKILL.md
+docsedgard/skill/canvas.txt
+docsedgard/skill/capa proposta prompt.txt
+docsedgard/skill/Captura de tela 2026-05-20 195324.png
+docsedgard/skill/Captura de tela 2026-05-20 195358.png
+docsedgard/skill/Captura de tela 2026-05-20 195456.png
+docsedgard/skill/cd local-worker.txt
+docsedgard/skill/chamada venda online ebook.txt
+docsedgard/skill/ChatGPT Image 13 de mai. de 2026, 18_42_22.png
+docsedgard/skill/ChatGPT Image 15 de mai. de 2026, 15_41_25.png
+docsedgard/skill/checklist_interior_futurista.pdf
+docsedgard/skill/Checklist_Revit_Template_Edgard.pdf
+docsedgard/skill/claude comamndos.txt
+docsedgard/skill/code-block-dop2czwo.css
+docsedgard/skill/code-block-editor-fr02nk2r.css
+docsedgard/skill/code-block-viewer-bb2wmqiy.css
+docsedgard/skill/codebase-patterns.md
+docsedgard/skill/codigos_apex_edgard.md
+docsedgard/skill/COMMAND_LIBRARY.json
+docsedgard/skill/Como o Local Worker (que executa os.txt
+docsedgard/skill/comparator.md
+docsedgard/skill/consolidate-memory/SKILL.md
+docsedgard/skill/construction-manager.agent.json
+docsedgard/skill/contracts.md
+docsedgard/skill/conversation-small-mmomz9vs.css
+docsedgard/skill/conversation-small-mmomz9vs(1).css
+docsedgard/skill/copilot-behavior (2).md
+docsedgard/skill/copilot-behavior.md
+docsedgard/skill/CORE_SYSTEM_v5_2.json
+docsedgard/skill/CORE_SYSTEM.json
+docsedgard/skill/cost-engineer.agent.json
+docsedgard/skill/cot-message-mbvpc7rn.css
+docsedgard/skill/Crafting the Scene.txt
+docsedgard/skill/create_revit_checklist_pdf.py
+docsedgard/skill/criar_checklist_premium.py
+docsedgard/skill/criar_kit_contratos_premium_layout.py
+docsedgard/skill/criar_kit_contratos.py
+docsedgard/skill/criar_pdfs_personalizados.py
+docsedgard/skill/criar_pdfs_revisados.py
+docsedgard/skill/criar_planilha_controle_obra.mjs
+docsedgard/skill/criar_produtos_corrigidos_layout.py
+docsedgard/skill/criar_produtos_final_assets.py
+docsedgard/skill/Cronograma de Obra Residencial Detalhado prompt.txt
+docsedgard/skill/DatePicker-lvtkn77u.css
+docsedgard/skill/Decor Motion com CLONE.txt
+docsedgard/skill/descisao.json
+docsedgard/skill/design de prompt.txt
+docsedgard/skill/Design sem nome (5).png
+docsedgard/skill/design-prompts.html
+docsedgard/skill/directcut-production.md
+docsedgard/skill/directcut.md
+docsedgard/skill/directors cut link.txt
+docsedgard/skill/Doc-coauth.md
+docsedgard/skill/doc-coauthoring/SKILL.md
+docsedgard/skill/docx/scripts/__init__.py
+docsedgard/skill/docx/scripts/accept_changes.py
+docsedgard/skill/docx/scripts/comment.py
+docsedgard/skill/docx/scripts/office/helpers/__init__.py
+docsedgard/skill/docx/scripts/office/helpers/merge_runs.py
+docsedgard/skill/docx/scripts/office/helpers/simplify_redlines.py
+docsedgard/skill/docx/scripts/office/pack.py
+docsedgard/skill/docx/scripts/office/schemas/ecma/fouth-edition/opc-contentTypes.xsd
+docsedgard/skill/docx/scripts/office/schemas/ecma/fouth-edition/opc-coreProperties.xsd
+docsedgard/skill/docx/scripts/office/schemas/ecma/fouth-edition/opc-digSig.xsd
+docsedgard/skill/docx/scripts/office/schemas/ecma/fouth-edition/opc-relationships.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-chart.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-chartDrawing.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-diagram.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-lockedCanvas.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-main.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-picture.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-spreadsheetDrawing.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-wordprocessingDrawing.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/pml.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-additionalCharacteristics.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-bibliography.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-commonSimpleTypes.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-customXmlDataProperties.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-customXmlSchemaProperties.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-documentPropertiesCustom.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-documentPropertiesExtended.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-documentPropertiesVariantTypes.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-math.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-relationshipReference.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/sml.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-main.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-officeDrawing.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-presentationDrawing.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-spreadsheetDrawing.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-wordprocessingDrawing.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/wml.xsd
+docsedgard/skill/docx/scripts/office/schemas/ISO-IEC29500-4_2016/xml.xsd
+docsedgard/skill/docx/scripts/office/schemas/mce/mc.xsd
+docsedgard/skill/docx/scripts/office/schemas/microsoft/wml-2010.xsd
+docsedgard/skill/docx/scripts/office/schemas/microsoft/wml-2012.xsd
+docsedgard/skill/docx/scripts/office/schemas/microsoft/wml-2018.xsd
+docsedgard/skill/docx/scripts/office/schemas/microsoft/wml-cex-2018.xsd
+docsedgard/skill/docx/scripts/office/schemas/microsoft/wml-cid-2016.xsd
+docsedgard/skill/docx/scripts/office/schemas/microsoft/wml-sdtdatahash-2020.xsd
+docsedgard/skill/docx/scripts/office/schemas/microsoft/wml-symex-2015.xsd
+docsedgard/skill/docx/scripts/office/soffice.py
+docsedgard/skill/docx/scripts/office/unpack.py
+docsedgard/skill/docx/scripts/office/validate.py
+docsedgard/skill/docx/scripts/office/validators/__init__.py
+docsedgard/skill/docx/scripts/office/validators/base.py
+docsedgard/skill/docx/scripts/office/validators/docx.py
+docsedgard/skill/docx/scripts/office/validators/pptx.py
+docsedgard/skill/docx/scripts/office/validators/redlining.py
+docsedgard/skill/docx/scripts/templates/comments.xml
+docsedgard/skill/docx/scripts/templates/commentsExtended.xml
+docsedgard/skill/docx/scripts/templates/commentsExtensible.xml
+docsedgard/skill/docx/scripts/templates/commentsIds.xml
+docsedgard/skill/docx/scripts/templates/people.xml
+docsedgard/skill/docx/SKILL.md
+docsedgard/skill/ECONOMIC ENGINE.json
+docsedgard/skill/Entrada.txt
+docsedgard/skill/ENV LOCAL COPIA.txt
+docsedgard/skill/erro.md
+docsedgard/skill/evaluation.txt
+docsedgard/skill/examples_lot_neon_complete.json
+docsedgard/skill/executive_intelligence.json
+docsedgard/skill/EXEMPLOS_CORES.json
+docsedgard/skill/exportlayers-dgn-ISO13567.txt
+docsedgard/skill/favoritos_08_04_2026.html
+docsedgard/skill/favoritos_08_04_20261.html
+docsedgard/skill/field.md
+docsedgard/skill/file-intake (2).md
+docsedgard/skill/file-intake.md
+docsedgard/skill/floor-plan-humanizer.html
+docsedgard/skill/folder-jardim-sao-paulo.pdf
+docsedgard/skill/FORMS.md
+docsedgard/skill/frame.html
+docsedgard/skill/fullscreen-lxd7vmcm.css
+docsedgard/skill/GEMINI API KEY APEX AI.txt
+docsedgard/skill/gemini api key.txt
+docsedgard/skill/Gemini_Generated_Image_8awc128awc128awc.png
+docsedgard/skill/Gemini_Generated_Image_9w3q789w3q789w3q.png
+docsedgard/skill/gemini-code-1778512010790.txt
+docsedgard/skill/gemini-code-1779149557121.py
+docsedgard/skill/generate_report.py
+docsedgard/skill/generate_review.py
+docsedgard/skill/GLOBAL_RULES.json
+docsedgard/skill/global-modals-lji76bzy.css
+docsedgard/skill/global-modals-lji76bzy(1).css
+docsedgard/skill/gmail-assistant-apex.html
+docsedgard/skill/gmail-deep-cleaner.html
+docsedgard/skill/GOVERNANCE.json
+docsedgard/skill/grader.md
+docsedgard/skill/guia_cinematografico.pdf
+docsedgard/skill/GUIA_CORES.json
+docsedgard/skill/httpswa.memessageM7B46LX4FKH5O1.txt
+docsedgard/skill/humanizacao.md
+docsedgard/skill/humanizador-plantas.html
+docsedgard/skill/humanizar pessoas prompts.txt
+docsedgard/skill/humanize-floor-plan/references/ai-prompts-and-resources.md
+docsedgard/skill/humanize-floor-plan/SKILL.md
+docsedgard/skill/Image-nnxrmk5d.css
+docsedgard/skill/image-render-references.md
+docsedgard/skill/imovel-sem-arrependimento.html
+docsedgard/skill/import React, { useState, useEffect.txt
+docsedgard/skill/improve_description.py
+docsedgard/skill/Input-eusic68p.css
+docsedgard/skill/instagram.pdf
+docsedgard/skill/INTERFACE.json
+docsedgard/skill/internal-comms/examples/3p-updates.md
+docsedgard/skill/internal-comms/examples/company-newsletter.md
+docsedgard/skill/internal-comms/examples/faq-answers.md
+docsedgard/skill/internal-comms/examples/general-comms.md
+docsedgard/skill/internal-comms/SKILL.md
+docsedgard/skill/INVESTOR_MODULE.json
+docsedgard/skill/investor-pitch.agent.json
+docsedgard/skill/KNOWLEDGE GRAPH.json
+docsedgard/skill/KPI OPERACIONAL.json
+docsedgard/skill/Lightweight connection handling for.txt
+docsedgard/skill/Links - PDIA.docx
+docsedgard/skill/logo apex nova.jpeg
+docsedgard/skill/lot_identifier_generator.json
+docsedgard/skill/lot_neon_renderer.json
+docsedgard/skill/lot_neon_visualizer.json
+docsedgard/skill/magnific_o-char1-est-sentado-eum-u_2984851708.png
+docsedgard/skill/map-with-entities-hwk5oa65.css
+docsedgard/skill/mapbox-gl-l6rc2zka.css
+docsedgard/skill/marketing.md
+docsedgard/skill/MCP Server Evaluation Harness.txt
+docsedgard/skill/mcp-builder/reference/evaluation.md
+docsedgard/skill/mcp-builder/reference/mcp_best_practices.md
+docsedgard/skill/mcp-builder/reference/node_mcp_server.md
+docsedgard/skill/mcp-builder/reference/python_mcp_server.md
+docsedgard/skill/mcp-builder/scripts/connections.py
+docsedgard/skill/mcp-builder/scripts/evaluation.py
+docsedgard/skill/mcp-builder/scripts/example_evaluation.xml
+docsedgard/skill/mcp-builder/SKILL.md
+docsedgard/skill/mcp.json
+docsedgard/skill/mcp/# MCP Server Best Practices.txt
+docsedgard/skill/mcp/# NodeTypeScript MCP Server Impleme.txt
+docsedgard/skill/mcp/# Python MCP Server Implementation.txt
+docsedgard/skill/mcp/#MCP Server Evaluation Guide.txt
+docsedgard/skill/mcp/anthropic=0.39.0.txt
+docsedgard/skill/mcp/evaluation.txt
+docsedgard/skill/mcp/Lightweight connection handling for.txt
+docsedgard/skill/mcp/MCP Server Evaluation Harness.txt
+docsedgard/skill/mcp/mcpbuilder.txt
+docsedgard/skill/mcpbuilder.txt
+docsedgard/skill/MEMORY_SYSTEM.json
+docsedgard/skill/metadados.json
+docsedgard/skill/MODE_BIM.json
+docsedgard/skill/MODE_EXECUTIVE.json
+docsedgard/skill/MODE_INVESTOR.json
+docsedgard/skill/model-cursor-ivzj8m6u.css
+docsedgard/skill/motordeatracao.py
+docsedgard/skill/Notes prompt.docx
+docsedgard/skill/nova skil dentro do inde.json.txt
+docsedgard/skill/O QUE FALTAVA PARA VIRAR UMA VERDADEIRA AI CONSTRUCTION INTELLIGENCE PLATFORM.docx
+docsedgard/skill/OPEN AI KEY sk-svcacct-fuJqoSqdnJ6I.txt
+docsedgard/skill/openai.yaml
+docsedgard/skill/ORCHESTRATION ENGINE,json
+docsedgard/skill/ORCHESTRATION LAYER.json
+docsedgard/skill/orquestration_agent.json
+docsedgard/skill/package_skill.py
+docsedgard/skill/page-table-row-jqcxxl9q.css
+docsedgard/skill/pagina da plataforma.html
+docsedgard/skill/pdf-viewer.html
+docsedgard/skill/personalizar_planilha_controle_obra_revisada.mjs
+docsedgard/skill/personalizar_planilha_controle_obra.mjs
+docsedgard/skill/personalizar_planilha_final_assets.mjs
+docsedgard/skill/pipeline_plataforma_completo.html
+docsedgard/skill/pipeline_plataforma_completo1.html
+docsedgard/skill/Plataforma plugins Revit _260414_101706.pdf
+docsedgard/skill/PLATAFORMA_AUDIT_COMPLETO.md
+docsedgard/skill/platform-roadmap-integration.md
+docsedgard/skill/platform-roadmap.md
+docsedgard/skill/plugin revit castanhari - Atalho.lnk
+docsedgard/skill/plugin revit castanhari.txt
+docsedgard/skill/Popover-jjzuc9pc.css
+docsedgard/skill/pptx/editing.md
+docsedgard/skill/pptx/pptxgenjs.md
+docsedgard/skill/pptx/scripts/__init__.py
+docsedgard/skill/pptx/scripts/add_slide.py
+docsedgard/skill/pptx/scripts/clean.py
+docsedgard/skill/pptx/scripts/office/helpers/__init__.py
+docsedgard/skill/pptx/scripts/office/helpers/merge_runs.py
+docsedgard/skill/pptx/scripts/office/helpers/simplify_redlines.py
+docsedgard/skill/pptx/scripts/office/pack.py
+docsedgard/skill/pptx/scripts/office/schemas/ecma/fouth-edition/opc-contentTypes.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ecma/fouth-edition/opc-coreProperties.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ecma/fouth-edition/opc-digSig.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ecma/fouth-edition/opc-relationships.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-chart.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-chartDrawing.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-diagram.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-lockedCanvas.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-main.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-picture.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-spreadsheetDrawing.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-wordprocessingDrawing.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/pml.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-additionalCharacteristics.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-bibliography.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-commonSimpleTypes.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-customXmlDataProperties.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-customXmlSchemaProperties.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-documentPropertiesCustom.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-documentPropertiesExtended.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-documentPropertiesVariantTypes.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-math.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-relationshipReference.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/sml.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-main.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-officeDrawing.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-presentationDrawing.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-spreadsheetDrawing.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-wordprocessingDrawing.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/wml.xsd
+docsedgard/skill/pptx/scripts/office/schemas/ISO-IEC29500-4_2016/xml.xsd
+docsedgard/skill/pptx/scripts/office/schemas/mce/mc.xsd
+docsedgard/skill/pptx/scripts/office/schemas/microsoft/wml-2010.xsd
+docsedgard/skill/pptx/scripts/office/schemas/microsoft/wml-2012.xsd
+docsedgard/skill/pptx/scripts/office/schemas/microsoft/wml-2018.xsd
+docsedgard/skill/pptx/scripts/office/schemas/microsoft/wml-cex-2018.xsd
+docsedgard/skill/pptx/scripts/office/schemas/microsoft/wml-cid-2016.xsd
+docsedgard/skill/pptx/scripts/office/schemas/microsoft/wml-sdtdatahash-2020.xsd
+docsedgard/skill/pptx/scripts/office/schemas/microsoft/wml-symex-2015.xsd
+docsedgard/skill/pptx/scripts/office/soffice.py
+docsedgard/skill/pptx/scripts/office/unpack.py
+docsedgard/skill/pptx/scripts/office/validate.py
+docsedgard/skill/pptx/scripts/office/validators/__init__.py
+docsedgard/skill/pptx/scripts/office/validators/base.py
+docsedgard/skill/pptx/scripts/office/validators/docx.py
+docsedgard/skill/pptx/scripts/office/validators/pptx.py
+docsedgard/skill/pptx/scripts/office/validators/redlining.py
+docsedgard/skill/pptx/scripts/thumbnail.py
+docsedgard/skill/pptx/SKILL.md
+docsedgard/skill/product-variants-ga945uk2.css
+docsedgard/skill/production-architecture-integration.md
+docsedgard/skill/production-architecture.md
+docsedgard/skill/projeto-tecnico-jardim-sao-paulo.pdf
+docsedgard/skill/prompt das imagems ebook.txt
+docsedgard/skill/prompt de analise de projeto detalhada.png
+docsedgard/skill/PROMPT DE PLANTA HUMANIZADA PT.pdf
+docsedgard/skill/PROMPT DIVISAO DE LINHAS NEON ING.pdf
+docsedgard/skill/prompt e link ecossistema AI.txt
+docsedgard/skill/prompt gemini para realismo em plan mais importante para render.txt
+docsedgard/skill/Prompt Governance.json
+docsedgard/skill/prompt para fachada do revit.txt
+docsedgard/skill/prompt para substituir rostos de du.txt
+docsedgard/skill/PROMPT PLANTA HUMANIZADA ING.pdf
+docsedgard/skill/PROMPT POS PLANTA HUMANIZADA PT.pdf
+docsedgard/skill/Prompt utilizado criar briefing.txt
+docsedgard/skill/PROMPT--PARA--TOPOGRAFIA--E--CASA--HOLOGRAMA.pdf
+docsedgard/skill/prompt-systems.md
+docsedgard/skill/Prompts Arquitetonicos AI.pdf
+docsedgard/skill/Prompts_Arquitetonicos_AI.pdf
+docsedgard/skill/prompty e link ecossistema.docx
+docsedgard/skill/propt para planta baixa e outro da.txt
+docsedgard/skill/QUALQUER_COR_FUNCIONA.json
+docsedgard/skill/quantitativo-apex.html
+docsedgard/skill/quantitativo-xlsx.html
+docsedgard/skill/QUICK_START_NEON_DEMARCATION.json
+docsedgard/skill/quick_validate.py
+docsedgard/skill/RadioGroup-m8zapj2d.css
+docsedgard/skill/README_NEON_DEMARCATION.json
+docsedgard/skill/REAL_ESTATE_LOT_IDENTIFIER.json
+docsedgard/skill/real_time.json
+docsedgard/skill/REASONING_ENGINE.json
+docsedgard/skill/REFERENCE.md
+docsedgard/skill/render this scene as a film photogra.txt
+docsedgard/skill/renderapp.html
+docsedgard/skill/resultados.json
+docsedgard/skill/revit mcp.txt
+docsedgard/skill/revit_connection.json
+docsedgard/skill/REVIT_PROJETO_EDGARD_MEMORIA.md
+docsedgard/skill/risk_analysis.json
+docsedgard/skill/root-m1safcvj.css
+docsedgard/skill/root-m1safcvj(1).css
+docsedgard/skill/run_eval.py
+docsedgard/skill/run_loop.py
+docsedgard/skill/schemas.md
+docsedgard/skill/Screenshot_20250313_111410_Instagram.jpg
+docsedgard/skill/Screenshot_20250313_111410_Instagram.jpg.suppl.json
+docsedgard/skill/Screenshot_20250415_095637_Nova.jpg.supplement.json
+docsedgard/skill/Screenshot_20250418_175459_Instagram.jpg
+docsedgard/skill/Screenshot_20250418_175459_Instagram.jpg.suppl.json
+docsedgard/skill/Screenshot_20250505_075542_Facebook-editada.jpg
+docsedgard/skill/Screenshot_20250505_075542_Facebook.jpg
+docsedgard/skill/Screenshot_20250505_075542_Facebook.jpg.supple.json
+docsedgard/skill/Screenshot_20250505_075627_Facebook-editada.jpg
+docsedgard/skill/Screenshot_20250505_075627_Facebook.jpg
+docsedgard/skill/Screenshot_20250505_075627_Facebook.jpg.supple.json
+docsedgard/skill/scripts/check_bounding_boxes.py
+docsedgard/skill/scripts/check_fillable_fields.py
+docsedgard/skill/scripts/convert_pdf_to_images.py
+docsedgard/skill/scripts/create_validation_image.py
+docsedgard/skill/scripts/extract_form_field_info.py
+docsedgard/skill/scripts/extract_form_structure.py
+docsedgard/skill/scripts/fill_fillable_fields.py
+docsedgard/skill/scripts/fill_pdf_form_with_annotations.py
+docsedgard/skill/sdk.js.download
+docsedgard/skill/sdk(1).js.download
+docsedgard/skill/SegmentedControl-nay8rogw.css
+docsedgard/skill/Select-evd90x7j.css
+docsedgard/skill/sequencia para planta realista.txt
+docsedgard/skill/settings.json
+docsedgard/skill/silk-hq-jrmbfqt7.css
+docsedgard/skill/Sites para encontrar blocos.txt
+docsedgard/skill/Sites para encontrar texturas .txt
+docsedgard/skill/SKILL (2).md
+docsedgard/skill/SKILL (3).md
+docsedgard/skill/skill analiser.md
+docsedgard/skill/skill APEXAICOPILOT/apex-copilot-construction-intelligence/agents/openai.yaml
+docsedgard/skill/skill APEXAICOPILOT/apex-copilot-construction-intelligence/references/abilities-map.md
+docsedgard/skill/skill APEXAICOPILOT/apex-copilot-construction-intelligence/references/archvis.md
+docsedgard/skill/skill APEXAICOPILOT/apex-copilot-construction-intelligence/references/bim-3d.md
+docsedgard/skill/skill APEXAICOPILOT/apex-copilot-construction-intelligence/references/budget.md
+docsedgard/skill/skill APEXAICOPILOT/apex-copilot-construction-intelligence/references/contracts.md
+docsedgard/skill/skill APEXAICOPILOT/apex-copilot-construction-intelligence/references/copilot-behavior.md
+docsedgard/skill/skill APEXAICOPILOT/apex-copilot-construction-intelligence/references/directcut.md
+docsedgard/skill/skill APEXAICOPILOT/apex-copilot-construction-intelligence/references/field.md
+docsedgard/skill/skill APEXAICOPILOT/apex-copilot-construction-intelligence/references/file-intake.md
+docsedgard/skill/skill APEXAICOPILOT/apex-copilot-construction-intelligence/references/marketing.md
+docsedgard/skill/skill APEXAICOPILOT/apex-copilot-construction-intelligence/SKILL.md
+docsedgard/skill/SKILL-floor-plan-humanization.md
+docsedgard/skill/SKILL.json
+docsedgard/skill/SKILL.md
+docsedgard/skill/skillcreate.txt
+docsedgard/skill/SKILLrelatorioinstagram.md
+docsedgard/skill/source-truth-index.md
+docsedgard/skill/src-orw7pjxq.css
+docsedgard/skill/STATUS_REPORT_v2026-05-23-atualizado.html
+docsedgard/skill/STATUS_REPORT_v2026-05-23.html
+docsedgard/skill/STATUS_REPORT_v2026-05-23b.html
+docsedgard/skill/supabase novo.txt
+docsedgard/skill/SYSTEM PROMPT.docx
+docsedgard/skill/system_modes.json
+docsedgard/skill/table-components-ca43bz4f.css
+docsedgard/skill/TAREFAS.md
+docsedgard/skill/test_neon_system.json
+docsedgard/skill/test_unlimited_colors.json
+docsedgard/skill/teste_folha_carimbo_preview.png
+docsedgard/skill/TextLink-hyfuyd7n.css
+docsedgard/skill/theme-factory/SKILL.md
+docsedgard/skill/theme-factory/theme-showcase.pdf
+docsedgard/skill/theme-factory/themes/arctic-frost.md
+docsedgard/skill/theme-factory/themes/botanical-garden.md
+docsedgard/skill/theme-factory/themes/desert-rose.md
+docsedgard/skill/theme-factory/themes/forest-canopy.md
+docsedgard/skill/theme-factory/themes/golden-hour.md
+docsedgard/skill/theme-factory/themes/midnight-galaxy.md
+docsedgard/skill/theme-factory/themes/modern-minimalist.md
+docsedgard/skill/theme-factory/themes/ocean-depths.md
+docsedgard/skill/theme-factory/themes/sunset-boulevard.md
+docsedgard/skill/theme-factory/themes/tech-innovation.md
+docsedgard/skill/Theme.txt
+docsedgard/skill/TODAS_SKILLS_APEX_INVENTARIO.md
+docsedgard/skill/Tools_layer.json
+docsedgard/skill/ui-ux-patterns.md
+docsedgard/skill/unified_3in1_construction_screen.html
+docsedgard/skill/Untitled-1.agent.md
+docsedgard/skill/user-loqx9inc.css
+docsedgard/skill/utils.py
+docsedgard/skill/Venda EUA Edgard.pdf
+docsedgard/skill/viewerl.txt
+docsedgard/skill/VISUAL INTELLIGENCE.json
+docsedgard/skill/Visual Operacional,json
+docsedgard/skill/VISUAL_LOT_DEMARCATION.json
+docsedgard/skill/VISUAL_MODULE.json
+docsedgard/skill/visual-lot-demarcation.agent.json
+docsedgard/skill/Vou editar a ferramenta GitHub para.txt
+docsedgard/skill/web-artifacts-builder/scripts/bundle-artifact.sh
+docsedgard/skill/web-artifacts-builder/scripts/init-artifact.sh
+docsedgard/skill/web-artifacts-builder/scripts/shadcn-components.tar.gz
+docsedgard/skill/web-artifacts-builder/SKILL.md
+docsedgard/skill/Webbilder.txt
+docsedgard/skill/webbuilder/Webbilder.txt
+docsedgard/skill/WhatsApp Image 2026-05-08 at 09.42.40.jpeg
+docsedgard/skill/WORKFLOW_AUTOMATION_MODULE.json
+docsedgard/skill/WORKFLOW_BIM_ANALYSIS.json
+docsedgard/skill/WORKFLOW_INVESTOR_PITCH.json
+docsedgard/skill/WORKFLOW_VISUAL_GENERATION.json
+docsedgard/skill/writing-block-provider-jrx2mkvz.css
+docsedgard/skill/xlsx/scripts/office/helpers/__init__.py
+docsedgard/skill/xlsx/scripts/office/helpers/merge_runs.py
+docsedgard/skill/xlsx/scripts/office/helpers/simplify_redlines.py
+docsedgard/skill/xlsx/scripts/office/pack.py
+docsedgard/skill/xlsx/scripts/office/schemas/ecma/fouth-edition/opc-contentTypes.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ecma/fouth-edition/opc-coreProperties.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ecma/fouth-edition/opc-digSig.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ecma/fouth-edition/opc-relationships.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-chart.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-chartDrawing.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-diagram.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-lockedCanvas.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-main.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-picture.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-spreadsheetDrawing.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/dml-wordprocessingDrawing.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/pml.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-additionalCharacteristics.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-bibliography.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-commonSimpleTypes.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-customXmlDataProperties.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-customXmlSchemaProperties.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-documentPropertiesCustom.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-documentPropertiesExtended.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-documentPropertiesVariantTypes.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-math.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/shared-relationshipReference.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/sml.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-main.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-officeDrawing.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-presentationDrawing.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-spreadsheetDrawing.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/vml-wordprocessingDrawing.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/wml.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/ISO-IEC29500-4_2016/xml.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/mce/mc.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/microsoft/wml-2010.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/microsoft/wml-2012.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/microsoft/wml-2018.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/microsoft/wml-cex-2018.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/microsoft/wml-cid-2016.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/microsoft/wml-sdtdatahash-2020.xsd
+docsedgard/skill/xlsx/scripts/office/schemas/microsoft/wml-symex-2015.xsd
+docsedgard/skill/xlsx/scripts/office/soffice.py
+docsedgard/skill/xlsx/scripts/office/unpack.py
+docsedgard/skill/xlsx/scripts/office/validate.py
+docsedgard/skill/xlsx/scripts/office/validators/__init__.py
+docsedgard/skill/xlsx/scripts/office/validators/base.py
+docsedgard/skill/xlsx/scripts/office/validators/docx.py
+docsedgard/skill/xlsx/scripts/office/validators/pptx.py
+docsedgard/skill/xlsx/scripts/office/validators/redlining.py
+docsedgard/skill/xlsx/scripts/recalc.py
+docsedgard/skill/xlsx/SKILL.md

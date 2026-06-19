@@ -23,7 +23,7 @@ if (process.env.OPENAI_API_BASE && process.env.OPENAI_API_KEY) {
   const keyVal = String(process.env.OPENAI_API_KEY).trim()
   if (!baseVal.startsWith('http') && keyVal.startsWith('http')) {
     process.env.OPENAI_API_BASE = keyVal
-    process.env.[REDACTED]
+    process.env.OPENAI_API_KEY = baseVal
   }
 }
 
@@ -32,7 +32,7 @@ if (process.env.OPENAI_API_BASEROUTER && !process.env.OPENAI_API_BASE) {
   process.env.OPENAI_API_BASE = process.env.OPENAI_API_BASEROUTER
 }
 if (process.env.OPENAI_API_KEYROUTER && !process.env.OPENAI_API_KEY) {
-  process.env.[REDACTED]
+  process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEYROUTER
 }
 
 // Resolve base URL and API key based on the selected model

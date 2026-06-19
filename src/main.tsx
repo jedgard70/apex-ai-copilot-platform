@@ -3418,4 +3418,12 @@ function App() {
   )
 }
 
-createRoot(document.getElementById('root')!).render(<App />)
+
+import { Auth0Provider } from '@auth0/auth0-react';
+const _AUTH0_DOMAIN = (import.meta.env.VITE_AUTH0_DOMAIN || 'icfg-6yanelekncpdkv3rpxy4t1am.us.auth0.com');
+const _AUTH0_CLIENT_ID = (import.meta.env.VITE_AUTH0_CLIENT_ID || 'Ldyth7MciFnivVvNzg9WZa8PoFd63lfo');
+createRoot(document.getElementById('root')!).render(
+  <Auth0Provider domain={_AUTH0_DOMAIN} clientId={_AUTH0_CLIENT_ID} authorizationParams={{ redirect_uri: window.location.origin }}>
+    <App />
+  </Auth0Provider>
+)

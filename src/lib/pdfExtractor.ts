@@ -32,11 +32,8 @@ let workerSrcSet = false
 async function ensureWorker() {
   if (workerSrcSet) return
   const pdfjsLib = await import('pdfjs-dist')
-  // Use the bundled legacy worker via CDN-like path; Vite copies it via optimizeDeps
-  pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-    'pdfjs-dist/build/pdf.worker.min.mjs',
-    import.meta.url,
-  ).href
+  // Point worker to CDN to avoid bundling pdf.worker into the app
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js'
   workerSrcSet = true
 }
 

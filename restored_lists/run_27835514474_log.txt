@@ -1,0 +1,305 @@
+Validate build and Apex checks	Set up job	´╗┐2026-06-19T15:49:01.8793201Z Current runner version: '2.335.1'
+Validate build and Apex checks	Set up job	2026-06-19T15:49:01.8822636Z ##[group]Runner Image Provisioner
+Validate build and Apex checks	Set up job	2026-06-19T15:49:01.8823668Z Hosted Compute Agent
+Validate build and Apex checks	Set up job	2026-06-19T15:49:01.8824351Z Version: 20260611.554
+Validate build and Apex checks	Set up job	2026-06-19T15:49:01.8825404Z Commit: 5e0782fdc9014723d3be820dd114dd31555c2bd1
+Validate build and Apex checks	Set up job	2026-06-19T15:49:01.8826311Z Build Date: 2026-06-11T21:40:46Z
+Validate build and Apex checks	Set up job	2026-06-19T15:49:01.8827036Z Worker ID: {45f02e63-ca5c-4a6b-9c8f-7b33d1744ca0}
+Validate build and Apex checks	Set up job	2026-06-19T15:49:01.8827819Z Azure Region: eastus
+Validate build and Apex checks	Set up job	2026-06-19T15:49:01.8828456Z ##[endgroup]
+Validate build and Apex checks	Set up job	2026-06-19T15:49:01.8830424Z ##[group]Operating System
+Validate build and Apex checks	Set up job	2026-06-19T15:49:01.8831240Z Ubuntu
+Validate build and Apex checks	Set up job	2026-06-19T15:49:01.8831807Z 24.04.4
+Validate build and Apex checks	Set up job	2026-06-19T15:49:01.8832328Z LTS
+Validate build and Apex checks	Set up job	2026-06-19T15:49:01.8832948Z ##[endgroup]
+Validate build and Apex checks	Set up job	2026-06-19T15:49:01.8833531Z ##[group]Runner Image
+Validate build and Apex checks	Set up job	2026-06-19T15:49:01.8834268Z Image: ubuntu-24.04
+Validate build and Apex checks	Set up job	2026-06-19T15:49:01.8835060Z Version: 20260615.205.1
+Validate build and Apex checks	Set up job	2026-06-19T15:49:01.8836186Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260615.205/images/ubuntu/Ubuntu2404-Readme.md
+Validate build and Apex checks	Set up job	2026-06-19T15:49:01.8838079Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260615.205
+Validate build and Apex checks	Set up job	2026-06-19T15:49:01.8839135Z ##[endgroup]
+Validate build and Apex checks	Set up job	2026-06-19T15:49:01.8840431Z ##[group]GITHUB_TOKEN Permissions
+Validate build and Apex checks	Set up job	2026-06-19T15:49:01.8842931Z Contents: read
+Validate build and Apex checks	Set up job	2026-06-19T15:49:01.8843861Z Metadata: read
+Validate build and Apex checks	Set up job	2026-06-19T15:49:01.8844734Z Packages: read
+Validate build and Apex checks	Set up job	2026-06-19T15:49:01.8848159Z ##[endgroup]
+Validate build and Apex checks	Set up job	2026-06-19T15:49:01.8851076Z Secret source: Actions
+Validate build and Apex checks	Set up job	2026-06-19T15:49:01.8852381Z Prepare workflow directory
+Validate build and Apex checks	Set up job	2026-06-19T15:49:02.0076348Z Prepare all required actions
+Validate build and Apex checks	Set up job	2026-06-19T15:49:02.0135932Z Getting action download info
+Validate build and Apex checks	Set up job	2026-06-19T15:49:02.2962622Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+Validate build and Apex checks	Set up job	2026-06-19T15:49:02.5890586Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+Validate build and Apex checks	Set up job	2026-06-19T15:49:02.7791049Z Complete job name: Validate build and Apex checks
+Validate build and Apex checks	Checkout exact commit	´╗┐2026-06-19T15:49:02.8631148Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:02.8646523Z ##[group]Run actions/checkout@v4
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:02.8648278Z with:
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:02.8649468Z   repository: jedgard70/apex-ai-copilot-platform
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:02.8660212Z   token: ***
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:02.8661065Z   ssh-strict: true
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:02.8662063Z   ssh-user: git
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:02.8662852Z   persist-credentials: true
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:02.8663980Z   clean: true
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:02.8664775Z   sparse-checkout-cone-mode: true
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:02.8666186Z   fetch-depth: 1
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:02.8667236Z   fetch-tags: false
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:02.8668086Z   show-progress: true
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:02.8669174Z   lfs: false
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:02.8669926Z   submodules: false
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:02.8671117Z   set-safe-directory: true
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:02.8672656Z env:
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:02.8673421Z   NODE_VERSION: 20
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:02.8675001Z   VITE_APEX_BUILD_MARKER: github-adac13feebca26b0be68e6a12c08163fb5cb612f
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:02.8676919Z   APEX_BUILD_MARKER: github-adac13feebca26b0be68e6a12c08163fb5cb612f
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:02.8678391Z ##[endgroup]
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0345569Z Syncing repository: jedgard70/apex-ai-copilot-platform
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0348675Z ##[group]Getting Git version info
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0350282Z Working directory is '/home/runner/work/apex-ai-copilot-platform/apex-ai-copilot-platform'
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0352453Z [command]/usr/bin/git version
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0353301Z git version 2.54.0
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0388286Z ##[endgroup]
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0396262Z Temporarily overriding HOME='/home/runner/work/_temp/1901db4d-cca8-4a9e-90b3-0b35cec0dbd6' before making global git config changes
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0399013Z Adding repository directory to the temporary git global config as a safe directory
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0402215Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/apex-ai-copilot-platform/apex-ai-copilot-platform
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0406327Z Deleting the contents of '/home/runner/work/apex-ai-copilot-platform/apex-ai-copilot-platform'
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0408678Z ##[group]Initializing the repository
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0410323Z [command]/usr/bin/git init /home/runner/work/apex-ai-copilot-platform/apex-ai-copilot-platform
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0473327Z hint: Using 'master' as the name for the initial branch. This default branch name
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0475882Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0479686Z hint: to use in all of your new repositories, which will suppress this warning,
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0481039Z hint: call:
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0482877Z hint:
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0483829Z hint: 	git config --global init.defaultBranch <name>
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0485250Z hint:
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0486316Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0488010Z hint: 'development'. The just-created branch can be renamed via this command:
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0489312Z hint:
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0490015Z hint: 	git branch -m <name>
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0490869Z hint:
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0491978Z hint: Disable this message with "git config set advice.defaultBranchName false"
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0494121Z Initialized empty Git repository in /home/runner/work/apex-ai-copilot-platform/apex-ai-copilot-platform/.git/
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0500008Z [command]/usr/bin/git remote add origin https://github.com/jedgard70/apex-ai-copilot-platform
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0554491Z ##[endgroup]
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0556527Z ##[group]Disabling automatic garbage collection
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0558337Z [command]/usr/bin/git config --local gc.auto 0
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0596421Z ##[endgroup]
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0598014Z ##[group]Setting up auth
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0600502Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0628586Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.0992975Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.1060787Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.1310626Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.1348636Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.1598699Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.1637864Z ##[endgroup]
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.1639804Z ##[group]Fetching the repository
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.1648897Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +adac13feebca26b0be68e6a12c08163fb5cb612f:refs/remotes/pull/44/merge
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.5369394Z From https://github.com/jedgard70/apex-ai-copilot-platform
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.5371658Z  * [new ref]         adac13feebca26b0be68e6a12c08163fb5cb612f -> pull/44/merge
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.5390062Z ##[endgroup]
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.5392070Z ##[group]Determining the checkout info
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.5394486Z ##[endgroup]
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.5396154Z [command]/usr/bin/git sparse-checkout disable
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.5453719Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.5481663Z ##[group]Checking out the ref
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.5486506Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/44/merge
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.6012080Z Note: switching to 'refs/remotes/pull/44/merge'.
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.6016756Z 
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.6018459Z You are in 'detached HEAD' state. You can look around, make experimental
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.6022792Z changes and commit them, and you can discard any commits you make in this
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.6024438Z state without impacting any branches by switching back to a branch.
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.6025731Z 
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.6026444Z If you want to create a new branch to retain commits you create, you may
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.6028127Z do so (now or later) by using -c with the switch command. Example:
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.6029146Z 
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.6029781Z   git switch -c <new-branch-name>
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.6030649Z 
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.6031278Z Or undo this operation with:
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.6032087Z 
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.6032686Z   git switch -
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.6033423Z 
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.6034336Z Turn off this advice by setting config variable advice.detachedHead to false
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.6036175Z 
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.6037565Z HEAD is now at adac13f Merge a9cd5927bdc1697130318e7cd1491c213c1512c7 into c6b2efdc88b5bc3f9670004a11b1d810d8cb1b3f
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.6042234Z ##[endgroup]
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.6068599Z [command]/usr/bin/git log -1 --format=%H
+Validate build and Apex checks	Checkout exact commit	2026-06-19T15:49:03.6096619Z adac13feebca26b0be68e6a12c08163fb5cb612f
+Validate build and Apex checks	Show commit proof	´╗┐2026-06-19T15:49:03.6353309Z ##[group]Run echo "GITHUB_SHA=${GITHUB_SHA}"
+Validate build and Apex checks	Show commit proof	2026-06-19T15:49:03.6354541Z ^[[36;1mecho "GITHUB_SHA=${GITHUB_SHA}"^[[0m
+Validate build and Apex checks	Show commit proof	2026-06-19T15:49:03.6355974Z ^[[36;1mecho "GITHUB_REF=${GITHUB_REF}"^[[0m
+Validate build and Apex checks	Show commit proof	2026-06-19T15:49:03.6357061Z ^[[36;1mecho "GITHUB_HEAD_REF=${GITHUB_HEAD_REF}"^[[0m
+Validate build and Apex checks	Show commit proof	2026-06-19T15:49:03.6358191Z ^[[36;1mecho "GITHUB_BASE_REF=${GITHUB_BASE_REF}"^[[0m
+Validate build and Apex checks	Show commit proof	2026-06-19T15:49:03.6576188Z shell: /usr/bin/bash -e {0}
+Validate build and Apex checks	Show commit proof	2026-06-19T15:49:03.6577244Z env:
+Validate build and Apex checks	Show commit proof	2026-06-19T15:49:03.6578073Z   NODE_VERSION: 20
+Validate build and Apex checks	Show commit proof	2026-06-19T15:49:03.6579175Z   VITE_APEX_BUILD_MARKER: github-adac13feebca26b0be68e6a12c08163fb5cb612f
+Validate build and Apex checks	Show commit proof	2026-06-19T15:49:03.6580607Z   APEX_BUILD_MARKER: github-adac13feebca26b0be68e6a12c08163fb5cb612f
+Validate build and Apex checks	Show commit proof	2026-06-19T15:49:03.6581805Z ##[endgroup]
+Validate build and Apex checks	Show commit proof	2026-06-19T15:49:03.6677080Z GITHUB_SHA=adac13feebca26b0be68e6a12c08163fb5cb612f
+Validate build and Apex checks	Show commit proof	2026-06-19T15:49:03.6680207Z GITHUB_REF=refs/pull/44/merge
+Validate build and Apex checks	Show commit proof	2026-06-19T15:49:03.6686922Z GITHUB_HEAD_REF=restore/docsedgard-recovery-20260619124540
+Validate build and Apex checks	Show commit proof	2026-06-19T15:49:03.6694722Z GITHUB_BASE_REF=feature/image-generation-connector
+Validate build and Apex checks	Setup Node	´╗┐2026-06-19T15:49:03.6930545Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:03.6934106Z ##[group]Run actions/setup-node@v4
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:03.6935130Z with:
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:03.6935881Z   node-version: 20
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:03.6936651Z   cache: npm
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:03.6937410Z   always-auth: false
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:03.6938211Z   check-latest: false
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:03.6943540Z   token: ***
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:03.6944276Z env:
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:03.6945102Z   NODE_VERSION: 20
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:03.6946087Z   VITE_APEX_BUILD_MARKER: github-adac13feebca26b0be68e6a12c08163fb5cb612f
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:03.6947370Z   APEX_BUILD_MARKER: github-adac13feebca26b0be68e6a12c08163fb5cb612f
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:03.6948417Z ##[endgroup]
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:03.8544220Z Attempting to download 20...
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:03.8639783Z (node:2042) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:03.8642841Z (Use `node --trace-deprecation ...` to show where the warning was created)
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:04.2750317Z Acquiring 20.20.2 - x64 from https://github.com/actions/node-versions/releases/download/20.20.2-23521894959/node-20.20.2-linux-x64.tar.gz
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:04.7593682Z Extracting ...
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:04.7600386Z [command]/usr/bin/tar xz --strip 1 --warning=no-unknown-keyword --overwrite -C /home/runner/work/_temp/6746785a-1a29-44b3-8d4d-18912c062216 -f /home/runner/work/_temp/9c5a7adc-7451-4922-9959-e1c852879eb9
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:06.0366493Z Adding to the cache ...
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:07.9957370Z ##[group]Environment details
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:08.2696730Z node: v20.20.2
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:08.2713581Z npm: 10.8.2
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:08.2714134Z yarn: 1.22.22
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:08.2715239Z ##[endgroup]
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:08.2745892Z [command]/opt/hostedtoolcache/node/20.20.2/x64/bin/npm config get cache
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:08.3910989Z /home/runner/.npm
+Validate build and Apex checks	Setup Node	2026-06-19T15:49:08.4656580Z npm cache is not found
+Validate build and Apex checks	Install dependencies	´╗┐2026-06-19T15:49:08.4866748Z ##[group]Run npm install
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:08.4867101Z ^[[36;1mnpm install^[[0m
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:08.4906237Z shell: /usr/bin/bash -e {0}
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:08.4906560Z env:
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:08.4906794Z   NODE_VERSION: 20
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:08.4907161Z   VITE_APEX_BUILD_MARKER: github-adac13feebca26b0be68e6a12c08163fb5cb612f
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:08.4907675Z   APEX_BUILD_MARKER: github-adac13feebca26b0be68e6a12c08163fb5cb612f
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:08.4908061Z ##[endgroup]
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1755491Z npm warn EBADENGINE Unsupported engine {
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1782425Z npm warn EBADENGINE   package: '@electron-internal/extract-zip@1.0.3',
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1835773Z npm warn EBADENGINE   required: { node: '>=22.12.0' },
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1860246Z npm warn EBADENGINE   current: { node: 'v20.20.2', npm: '10.8.2' }
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1875394Z npm warn EBADENGINE }
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1876175Z npm warn EBADENGINE Unsupported engine {
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1877063Z npm warn EBADENGINE   package: '@electron/get@5.0.0',
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1877936Z npm warn EBADENGINE   required: { node: '>=22.12.0' },
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1878755Z npm warn EBADENGINE   current: { node: 'v20.20.2', npm: '10.8.2' }
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1879382Z npm warn EBADENGINE }
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1879899Z npm warn EBADENGINE Unsupported engine {
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1880644Z npm warn EBADENGINE   package: '@electron/rebuild@4.0.4',
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1881412Z npm warn EBADENGINE   required: { node: '>=22.12.0' },
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1882246Z npm warn EBADENGINE   current: { node: 'v20.20.2', npm: '10.8.2' }
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1882878Z npm warn EBADENGINE }
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1883384Z npm warn EBADENGINE Unsupported engine {
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1884044Z npm warn EBADENGINE   package: 'camera-controls@3.1.2',
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1885081Z npm warn EBADENGINE   required: { node: '>=22.0.0', npm: '>=10.5.1' },
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1886001Z npm warn EBADENGINE   current: { node: 'v20.20.2', npm: '10.8.2' }
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1886609Z npm warn EBADENGINE }
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1887100Z npm warn EBADENGINE Unsupported engine {
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1887719Z npm warn EBADENGINE   package: 'electron@42.4.1',
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1888390Z npm warn EBADENGINE   required: { node: '>= 22.12.0' },
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1889150Z npm warn EBADENGINE   current: { node: 'v20.20.2', npm: '10.8.2' }
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1889752Z npm warn EBADENGINE }
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1890204Z npm warn EBADENGINE Unsupported engine {
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1890676Z npm warn EBADENGINE   package: 'node-abi@4.31.0',
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1891110Z npm warn EBADENGINE   required: { node: '>=22.12.0' },
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1891591Z npm warn EBADENGINE   current: { node: 'v20.20.2', npm: '10.8.2' }
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1891998Z npm warn EBADENGINE }
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1892312Z npm warn EBADENGINE Unsupported engine {
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1892719Z npm warn EBADENGINE   package: 'pdfjs-dist@6.0.227',
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1893172Z npm warn EBADENGINE   required: { node: '>=22.13.0 || >=24' },
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1893666Z npm warn EBADENGINE   current: { node: 'v20.20.2', npm: '10.8.2' }
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1894048Z npm warn EBADENGINE }
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1894364Z npm warn EBADENGINE Unsupported engine {
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1921940Z npm warn EBADENGINE   package: 'vite-plugin-static-copy@4.1.1',
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1923029Z npm warn EBADENGINE   required: { node: '^22.0.0 || >=24.0.0' },
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1924371Z npm warn EBADENGINE   current: { node: 'v20.20.2', npm: '10.8.2' }
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:10.1925165Z npm warn EBADENGINE }
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:11.6414689Z npm warn deprecated rimraf@2.6.3: Rimraf versions prior to v4 are no longer supported
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:13.3422443Z npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:13.4629970Z npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:14.4134169Z npm warn deprecated boolean@3.2.0: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:22.9775605Z 
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:22.9796508Z added 570 packages, and audited 571 packages in 14s
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:22.9805525Z 
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:22.9806170Z 99 packages are looking for funding
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:22.9806916Z   run `npm fund` for details
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:22.9807527Z 
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:22.9807932Z 1 high severity vulnerability
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:22.9808397Z 
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:22.9808910Z Some issues need review, and may require choosing
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:22.9809662Z a different dependency.
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:22.9810098Z 
+Validate build and Apex checks	Install dependencies	2026-06-19T15:49:22.9810469Z Run `npm audit` for details.
+Validate build and Apex checks	Build	´╗┐2026-06-19T15:49:23.0160549Z ##[group]Run npm run build
+Validate build and Apex checks	Build	2026-06-19T15:49:23.0160868Z ^[[36;1mnpm run build^[[0m
+Validate build and Apex checks	Build	2026-06-19T15:49:23.0194200Z shell: /usr/bin/bash -e {0}
+Validate build and Apex checks	Build	2026-06-19T15:49:23.0194478Z env:
+Validate build and Apex checks	Build	2026-06-19T15:49:23.0194685Z   NODE_VERSION: 20
+Validate build and Apex checks	Build	2026-06-19T15:49:23.0195242Z   VITE_APEX_BUILD_MARKER: github-adac13feebca26b0be68e6a12c08163fb5cb612f
+Validate build and Apex checks	Build	2026-06-19T15:49:23.0195736Z   APEX_BUILD_MARKER: github-adac13feebca26b0be68e6a12c08163fb5cb612f
+Validate build and Apex checks	Build	2026-06-19T15:49:23.0196110Z ##[endgroup]
+Validate build and Apex checks	Build	2026-06-19T15:49:23.1447627Z 
+Validate build and Apex checks	Build	2026-06-19T15:49:23.1448638Z > apex-ai-copilot-platform@0.1.0 build
+Validate build and Apex checks	Build	2026-06-19T15:49:23.1449815Z > tsc -b && vite build
+Validate build and Apex checks	Build	2026-06-19T15:49:23.1450364Z 
+Validate build and Apex checks	Build	2026-06-19T15:49:35.2700598Z ^[[36mvite v6.4.3 ^[[32mbuilding for production...^[[36m^[[39m
+Validate build and Apex checks	Build	2026-06-19T15:49:35.3831429Z transforming...
+Validate build and Apex checks	Build	2026-06-19T15:49:53.9016871Z ^[[32mÔ£ô^[[39m 2294 modules transformed.
+Validate build and Apex checks	Build	2026-06-19T15:49:54.7126322Z rendering chunks...
+Validate build and Apex checks	Build	2026-06-19T15:49:55.2786216Z computing gzip size...
+Validate build and Apex checks	Build	2026-06-19T15:49:55.3848801Z ^[[36m[vite-plugin-static-copy]^[[39m ^[[32mCopied 1 items.^[[39m
+Validate build and Apex checks	Build	2026-06-19T15:49:55.6366958Z ^[[2mdist/^[[22m^[[32mindex.html                          ^[[39m^[[1m^[[2m    0.92 kB^[[22m^[[1m^[[22m^[[2m Ôöé gzip:   0.53 kB^[[22m
+Validate build and Apex checks	Build	2026-06-19T15:49:55.6405864Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[32mifcWorker-BHdwIlkv.js        ^[[39m^[[1m^[[2m    1.14 kB^[[22m^[[1m^[[22m
+Validate build and Apex checks	Build	2026-06-19T15:49:55.6446125Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[32mpdf.worker.min-CrMmvqMo.mjs  ^[[39m^[[1m^[[2m1,245.45 kB^[[22m^[[1m^[[22m
+Validate build and Apex checks	Build	2026-06-19T15:49:55.6495668Z ^[[33m
+Validate build and Apex checks	Build	2026-06-19T15:49:55.6496665Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[32mweb-ifc-api-BVoC2go8.js      ^[[39m^[[1m^[[2m3,607.72 kB^[[22m^[[1m^[[22m
+Validate build and Apex checks	Build	2026-06-19T15:49:55.6555868Z (!) Some chunks are larger than 500 kB after minification. Consider:
+Validate build and Apex checks	Build	2026-06-19T15:49:55.6557332Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[35mindex-Dt8roDlE.css           ^[[39m^[[1m^[[2m   77.76 kB^[[22m^[[1m^[[22m^[[2m Ôöé gzip:  13.17 kB^[[22m
+Validate build and Apex checks	Build	2026-06-19T15:49:55.6575666Z - Using dynamic import() to code-split the application
+Validate build and Apex checks	Build	2026-06-19T15:49:55.6577065Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mxlsx-CG417JVy.js             ^[[39m^[[1m^[[2m  424.82 kB^[[22m^[[1m^[[22m^[[2m Ôöé gzip: 141.79 kB^[[22m
+Validate build and Apex checks	Build	2026-06-19T15:49:55.6623205Z - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+Validate build and Apex checks	Build	2026-06-19T15:49:55.6625405Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mpdf-NkhGRooA.js              ^[[39m^[[1m^[[2m  472.12 kB^[[22m^[[1m^[[22m^[[2m Ôöé gzip: 140.34 kB^[[22m
+Validate build and Apex checks	Build	2026-06-19T15:49:55.6685969Z - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.^[[39m
+Validate build and Apex checks	Build	2026-06-19T15:49:55.6687891Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mindex-CgwkDEBi.js            ^[[39m^[[1m^[[33m1,914.63 kB^[[39m^[[22m^[[2m Ôöé gzip: 529.64 kB^[[22m
+Validate build and Apex checks	Build	2026-06-19T15:49:55.6705522Z ^[[32mÔ£ô built in 20.35s^[[39m
+Validate build and Apex checks	Validate H5	´╗┐2026-06-19T15:49:56.2506669Z ##[group]Run npm run validate:cp15x-h5
+Validate build and Apex checks	Validate H5	2026-06-19T15:49:56.2507232Z ^[[36;1mnpm run validate:cp15x-h5^[[0m
+Validate build and Apex checks	Validate H5	2026-06-19T15:49:56.2555467Z shell: /usr/bin/bash -e {0}
+Validate build and Apex checks	Validate H5	2026-06-19T15:49:56.2555886Z env:
+Validate build and Apex checks	Validate H5	2026-06-19T15:49:56.2556190Z   NODE_VERSION: 20
+Validate build and Apex checks	Validate H5	2026-06-19T15:49:56.2556750Z   VITE_APEX_BUILD_MARKER: github-adac13feebca26b0be68e6a12c08163fb5cb612f
+Validate build and Apex checks	Validate H5	2026-06-19T15:49:56.2557578Z   APEX_BUILD_MARKER: github-adac13feebca26b0be68e6a12c08163fb5cb612f
+Validate build and Apex checks	Validate H5	2026-06-19T15:49:56.2558172Z ##[endgroup]
+Validate build and Apex checks	Validate H5	2026-06-19T15:49:56.3865094Z 
+Validate build and Apex checks	Validate H5	2026-06-19T15:49:56.3866203Z > apex-ai-copilot-platform@0.1.0 validate:cp15x-h5
+Validate build and Apex checks	Validate H5	2026-06-19T15:49:56.3867506Z > node scripts/validate-cp15x-h5.mjs
+Validate build and Apex checks	Validate H5	2026-06-19T15:49:56.3868146Z 
+Validate build and Apex checks	Validate H5	2026-06-19T15:49:56.4321249Z file:///home/runner/work/apex-ai-copilot-platform/apex-ai-copilot-platform/api/copilot/chat.mjs:26
+Validate build and Apex checks	Validate H5	2026-06-19T15:49:56.4322474Z     process.env.[REDACTED]
+Validate build and Apex checks	Validate H5	2026-06-19T15:49:56.4325331Z                 ^
+Validate build and Apex checks	Validate H5	2026-06-19T15:49:56.4325840Z 
+Validate build and Apex checks	Validate H5	2026-06-19T15:49:56.4326239Z SyntaxError: Unexpected token '['
+Validate build and Apex checks	Validate H5	2026-06-19T15:49:56.4327167Z     at compileSourceTextModule (node:internal/modules/esm/utils:346:16)
+Validate build and Apex checks	Validate H5	2026-06-19T15:49:56.4328260Z     at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:146:18)
+Validate build and Apex checks	Validate H5	2026-06-19T15:49:56.4329183Z     at #translate (node:internal/modules/esm/loader:497:12)
+Validate build and Apex checks	Validate H5	2026-06-19T15:49:56.4330112Z     at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:544:27)
+Validate build and Apex checks	Validate H5	2026-06-19T15:49:56.4330767Z 
+Validate build and Apex checks	Validate H5	2026-06-19T15:49:56.4331073Z Node.js v20.20.2
+Validate build and Apex checks	Validate H5	2026-06-19T15:49:56.4426765Z ##[error]Process completed with exit code 1.
+Validate build and Apex checks	Post Checkout exact commit	´╗┐2026-06-19T15:49:56.4597301Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+Validate build and Apex checks	Post Checkout exact commit	2026-06-19T15:49:56.4598585Z Post job cleanup.
+Validate build and Apex checks	Post Checkout exact commit	2026-06-19T15:49:56.5545519Z [command]/usr/bin/git version
+Validate build and Apex checks	Post Checkout exact commit	2026-06-19T15:49:56.5590199Z git version 2.54.0
+Validate build and Apex checks	Post Checkout exact commit	2026-06-19T15:49:56.5664707Z Temporarily overriding HOME='/home/runner/work/_temp/b4ac5ffd-ff23-4652-843c-f5e2ff50ae80' before making global git config changes
+Validate build and Apex checks	Post Checkout exact commit	2026-06-19T15:49:56.5666762Z Adding repository directory to the temporary git global config as a safe directory
+Validate build and Apex checks	Post Checkout exact commit	2026-06-19T15:49:56.5672190Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/apex-ai-copilot-platform/apex-ai-copilot-platform
+Validate build and Apex checks	Post Checkout exact commit	2026-06-19T15:49:56.5725750Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Validate build and Apex checks	Post Checkout exact commit	2026-06-19T15:49:56.5776995Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Validate build and Apex checks	Post Checkout exact commit	2026-06-19T15:49:56.6055899Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Validate build and Apex checks	Post Checkout exact commit	2026-06-19T15:49:56.6091968Z http.https://github.com/.extraheader
+Validate build and Apex checks	Post Checkout exact commit	2026-06-19T15:49:56.6115714Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+Validate build and Apex checks	Post Checkout exact commit	2026-06-19T15:49:56.6149973Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Validate build and Apex checks	Post Checkout exact commit	2026-06-19T15:49:56.6426902Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Validate build and Apex checks	Post Checkout exact commit	2026-06-19T15:49:56.6464991Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Validate build and Apex checks	Complete job	´╗┐2026-06-19T15:49:56.6877593Z Cleaning up orphan processes
+Validate build and Apex checks	Complete job	2026-06-19T15:49:56.7141555Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
