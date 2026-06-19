@@ -13,12 +13,19 @@ export const EXECUTION_CLASSES = {
   H6_FORBIDDEN: 'h6_forbidden',
 }
 
+const ENV_ALIASES = {
+  LOCAL_WORKER_URL: ['Local_Worker_URL'],
+  LOCAL_WORKER_TOKEN: ['Local_Worker_TOKEN'],
+}
+
 function hasAnyEnv(names = []) {
-  return names.some(name => Boolean(process.env[name]))
+  return names.some(name => hasEnv(name))
 }
 
 function hasEnv(name) {
-  return Boolean(process.env[name])
+  if (process.env[name]) return true
+  const aliases = ENV_ALIASES[name] || []
+  return aliases.some(alias => Boolean(process.env[alias]))
 }
 
 export const TOOL_REGISTRY = [
