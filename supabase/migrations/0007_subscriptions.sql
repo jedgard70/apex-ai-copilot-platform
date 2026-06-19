@@ -93,8 +93,7 @@ alter table public.invoices enable row level security;
 
 -- Users can read their own tenant's billing data
 drop policy if exists "Users can read own tenant stripe customers" on public.stripe_customers;
-create policy "Users can read own tenant stripe customers"
-  on public.stripe_customers for select
+drop policy if exists Users can read own tenant stripe customers on public.stripe_customers for select;\ncreate policy Users can read own tenant stripe customers on public.stripe_customers for select
   to authenticated
   using (
     tenant_id in (
@@ -104,8 +103,7 @@ create policy "Users can read own tenant stripe customers"
   );
 
 drop policy if exists "Users can read own tenant subscriptions" on public.subscriptions;
-create policy "Users can read own tenant subscriptions"
-  on public.subscriptions for select
+drop policy if exists Users can read own tenant subscriptions on public.subscriptions for select;\ncreate policy Users can read own tenant subscriptions on public.subscriptions for select
   to authenticated
   using (
     tenant_id in (
@@ -115,8 +113,7 @@ create policy "Users can read own tenant subscriptions"
   );
 
 drop policy if exists "Users can read own tenant invoices" on public.invoices;
-create policy "Users can read own tenant invoices"
-  on public.invoices for select
+drop policy if exists Users can read own tenant invoices on public.invoices for select;\ncreate policy Users can read own tenant invoices on public.invoices for select
   to authenticated
   using (
     tenant_id in (
@@ -127,3 +124,4 @@ create policy "Users can read own tenant invoices"
 
 -- Only server (service role) can insert/update billing records
 -- No insert/update/delete policies for authenticated users on billing tables
+
