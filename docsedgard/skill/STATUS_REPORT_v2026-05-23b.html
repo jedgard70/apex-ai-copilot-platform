@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<title>AI Construction Intelligence Platform — Status Report v2026-05-23b</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#0d1117;color:#c9d1d9;line-height:1.6}
+.page{max-width:1100px;margin:0 auto;padding:32px 24px}
+/* Header */
+.header{background:linear-gradient(135deg,#0F4C81 0%,#185FA5 50%,#3B6D11 100%);border-radius:16px;padding:32px 36px;margin-bottom:28px}
+.header-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px}
+.brand{font-size:26px;font-weight:800;color:#fff;letter-spacing:.5px}
+.brand span{color:#a8d88a}
+.version-badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:5px 14px;font-size:12px;color:#fff;font-weight:600}
+.header-sub{margin-top:10px;font-size:14px;color:rgba(255,255,255,.75)}
+.deploy-url{margin-top:12px;background:rgba(0,0,0,.25);border-radius:8px;padding:8px 14px;font-size:12px;color:#a8d88a;font-family:monospace;word-break:break-all}
+/* Status grid */
+.status-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:28px}
+.stat-card{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:18px 20px}
+.stat-val{font-size:32px;font-weight:800;color:#58a6ff;margin-bottom:4px}
+.stat-val.green{color:#56d364}
+.stat-val.orange{color:#f0883e}
+.stat-val.red{color:#f85149}
+.stat-label{font-size:12px;color:#8b949e;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+/* Section */
+.section{background:#161b22;border:1px solid #30363d;border-radius:12px;margin-bottom:20px;overflow:hidden}
+.section-header{background:#21262d;padding:14px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #30363d}
+.section-title{font-size:14px;font-weight:700;color:#e6edf3}
+.section-body{padding:18px 20px}
+/* Feature list */
+.feat-list{display:flex;flex-direction:column;gap:8px}
+.feat-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;background:#0d1117;border:1px solid #21262d}
+.feat-status{flex-shrink:0;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-top:1px}
+.feat-status.done{background:#1a4731;color:#56d364}
+.feat-status.pending{background:#1c2128;color:#8b949e}
+.feat-status.wip{background:#1c2b1e;color:#f0883e}
+.feat-text{flex:1}
+.feat-title{font-size:13px;font-weight:600;color:#e6edf3}
+.feat-desc{font-size:11px;color:#8b949e;margin-top:2px}
+/* File fix table */
+.fix-table{width:100%;border-collapse:collapse;font-size:12px}
+.fix-table th{background:#21262d;color:#8b949e;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:8px 12px;text-align:left;border-bottom:1px solid #30363d}
+.fix-table td{padding:8px 12px;border-bottom:1px solid #21262d;vertical-align:top}
+.fix-table tr:last-child td{border-bottom:none}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}
+.badge.fixed{background:#1a4731;color:#56d364}
+.badge.pending{background:#1c2128;color:#8b949e}
+.badge.wip{background:#2d1b00;color:#f0883e}
+/* Flow diagram */
+.flow{display:flex;align-items:center;flex-wrap:wrap;gap:0}
+.flow-step{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:10px 14px;font-size:12px;font-weight:600;color:#e6edf3;text-align:center;min-width:120px}
+.flow-step.highlight{border-color:#58a6ff;background:#0c1a2e;color:#58a6ff}
+.flow-arrow{color:#58a6ff;font-size:16px;padding:0 6px;flex-shrink:0}
+/* Timeline */
+.timeline{display:flex;flex-direction:column;gap:0}
+.tl-item{display:flex;gap:12px;padding-bottom:16px;position:relative}
+.tl-item:not(:last-child)::before{content:'';position:absolute;left:10px;top:22px;bottom:0;width:1px;background:#30363d}
+.tl-dot{width:20px;height:20px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;z-index:1}
+.tl-dot.done{background:#1a4731;color:#56d364;border:1px solid #238636}
+.tl-dot.pending{background:#21262d;color:#8b949e;border:1px solid #30363d}
+.tl-content{flex:1;padding-top:1px}
+.tl-title{font-size:13px;font-weight:600;color:#e6edf3}
+.tl-desc{font-size:11px;color:#8b949e;margin-top:2px}
+/* Legal grid */
+.legal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.legal-card{border-radius:8px;padding:12px 14px;font-size:12px}
+.legal-card.br{background:#0c1a0a;border:1px solid #238636}
+.legal-card.us{background:#1a0a0a;border:1px solid #b22222}
+.legal-card-title{font-weight:700;margin-bottom:8px}
+.legal-card.br .legal-card-title{color:#56d364}
+.legal-card.us .legal-card-title{color:#f85149}
+.legal-norm{display:flex;gap:6px;margin-bottom:4px}
+.norm-code{font-weight:700;min-width:90px;flex-shrink:0}
+.legal-card.br .norm-code{color:#56d364}
+.legal-card.us .norm-code{color:#f85149}
+.norm-desc{color:#8b949e}
+/* Footer */
+.footer{margin-top:28px;padding-top:20px;border-top:1px solid #21262d;display:flex;justify-content:space-between;font-size:11px;color:#6e7681;flex-wrap:wrap;gap:8px}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div class="brand">🏛️ AI Construction <span>Intelligence Platform</span></div>
+        <div class="header-sub">JEDGARD Engenharia / Apex Global Ltda · Dr. Edgard · CEO</div>
+      </div>
+      <div class="version-badge">v2026-05-23b · Session Report</div>
+    </div>
+    <div class="deploy-url">
+      ✅ PRODUÇÃO: https://ai-construction-intelligence-platform-m9zwi8e4m.vercel.app
+    </div>
+  </div>
+
+  <!-- KPI cards -->
+  <div class="status-grid">
+    <div class="stat-card">
+      <div class="stat-val green">4/4</div>
+      <div class="stat-label">Arquivos Corrigidos</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val green">✅</div>
+      <div class="stat-label">Deploy Vercel Prod</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val green">ON</div>
+      <div class="stat-label">Upload Auto-Routing</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val green">BR+USA</div>
+      <div class="stat-label">Jurídico Automático</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val orange">3</div>
+      <div class="stat-label">Issues Pendentes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val">85</div>
+      <div class="stat-label">Tasks Completadas</div>
+    </div>
+  </div>
+
+  <!-- Files Fixed This Session -->
+  <div class="section">
+    <div class="section-header">
+      <span>🔧</span>
+      <span class="section-title">Arquivos Corrigidos Nesta Sessão</span>
+    </div>
+    <div class="section-body">
+      <table class="fix-table">
+        <tr>
+          <th>Arquivo</th>
+          <th>Problema</th>
+          <th>Solução</th>
+          <th>Resultado</th>
+          <th>Status</th>
+        </tr>
+        <tr>
+          <td style="font-family:monospace;color:#58a6ff">DashboardByRole.tsx</td>
+          <td style="color:#8b949e">Truncado na linha 3161 — upload-routing, NewProjectModal, NewClientModal, uploadToast ausentes</td>
+          <td>Bash append + normalização CRLF</td>
+          <td style="color:#56d364">3389 linhas · 251.819 bytes</td>
+          <td><span class="badge fixed">FIXED ✅</span></td>
+        </tr>
+        <tr>
+          <td style="font-family:monospace;color:#58a6ff">NewProjectModal.tsx</td>
+          <td style="color:#8b949e">Truncado na linha 223 — banner jurídico BR+USA + handleSubmit incompletos</td>
+          <td>Heredoc bash + Python CRLF copy</td>
+          <td style="color:#56d364">281 linhas · 12.432 bytes</td>
+          <td><span class="badge fixed">FIXED ✅</span></td>
+        </tr>
+        <tr>
+          <td style="font-family:monospace;color:#58a6ff">lib/supabase.ts</td>
+          <td style="color:#8b949e">Truncado em 451 bytes — missing return _client e closing brace</td>
+          <td>Heredoc bash completo reescrito</td>
+          <td style="color:#56d364">15 linhas · completo</td>
+          <td><span class="badge fixed">FIXED ✅</span></td>
+        </tr>
+        <tr>
+          <td style="font-family:monospace;color:#58a6ff">pages/rdo.tsx</td>
+          <td style="color:#8b949e">Faltava closing } na linha 329 — TS1005: } expected</td>
+          <td>Printf append \r\n}\r\n</td>
+          <td style="color:#56d364">330 linhas · completo</td>
+          <td><span class="badge fixed">FIXED ✅</span></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Upload Auto-Routing Flow -->
+  <div class="section">
+    <div class="section-header">
+      <span>⬆️</span>
+      <span class="section-title">Upload Auto-Routing — Fluxo Completo Implementado</span>
+    </div>
+    <div class="section-body">
+      <p style="font-size:12px;color:#8b949e;margin-bottom:14px">
+        Quando o usuário faz upload de uma imagem, PDF, DWG, IFC ou modelo 3D, o sistema automaticamente:
+      </p>
+      <div class="flow" style="flex-wrap:wrap;gap:4px">
+        <div class="flow-step">📎 Upload</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step highlight">🔀 Detecta tipo</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step highlight">🗂️ Tab correta<br/><span style="font-size:10px;color:#8b949e">BIM·Docs·Viewer</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step highlight">⚖️ Jurídico<br/><span style="font-size:10px;color:#8b949e">BR+USA auto</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step highlight">🏗️ Novo Projeto<br/><span style="font-size:10px;color:#8b949e">Modal auto-fill</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step highlight">👤 Novo Cliente<br/><span style="font-size:10px;color:#8b949e">Modal sequencial</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">💾 Supabase<br/><span style="font-size:10px;color:#8b949e">Salvo</span></div>
+      </div>
+      <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:10px 12px;font-size:11px">
+          <div style="color:#58a6ff;font-weight:700;margin-bottom:6px">📁 Tipos de arquivo roteados</div>
+          <div style="color:#8b949e">🏗️ .ifc · .rvt → <strong style="color:#56d364">BIM 3D tab</strong></div>
+          <div style="color:#8b949e">📐 .dwg · .dxf · .svg → <strong style="color:#56d364">Docs tab</strong></div>
+          <div style="color:#8b949e">🖼️ .jpg · .png · .pdf → <strong style="color:#56d364">Viewer tab</strong></div>
+          <div style="color:#8b949e">🎬 .mp4 · .glb · .obj → <strong style="color:#56d364">3D Viewer</strong></div>
+        </div>
+        <div style="background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:10px 12px;font-size:11px">
+          <div style="color:#f0883e;font-weight:700;margin-bottom:6px">💾 Dados gravados (localStorage + Supabase)</div>
+          <div style="color:#8b949e">juridico_project_id</div>
+          <div style="color:#8b949e">juridico_project_name</div>
+          <div style="color:#8b949e">juridico_jurisdiction = "BR+USA"</div>
+          <div style="color:#8b949e">atlas_projects (array)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Juridical Context -->
+  <div class="section">
+    <div class="section-header">
+      <span>⚖️</span>
+      <span class="section-title">Contexto Jurídico Automático — BR + USA</span>
+    </div>
+    <div class="section-body">
+      <p style="font-size:12px;color:#8b949e;margin-bottom:12px">
+        Todo projeto criado é automaticamente vinculado ao sistema jurídico duplo (NewProjectModal + DashboardByRole):
+      </p>
+      <div class="legal-grid">
+        <div class="legal-card br">
+          <div class="legal-card-title">🇧🇷 Normas Brasileiras</div>
+          <div class="legal-norm"><span class="norm-code">ABNT NBR 6118</span><span class="norm-desc">Estruturas de concreto</span></div>
+          <div class="legal-norm"><span class="norm-code">ABNT NBR 12721</span><span class="norm-desc">Avaliação de custos · CUB</span></div>
+          <div class="legal-norm"><span class="norm-code">ABNT NBR 9050</span><span class="norm-desc">Acessibilidade (≡ ADA)</span></div>
+          <div class="legal-norm"><span class="norm-code">CAU / CREA</span><span class="norm-desc">Responsabilidade técnica</span></div>
+          <div class="legal-norm"><span class="norm-code">NR-18</span><span class="norm-desc">Segurança na construção</span></div>
+        </div>
+        <div class="legal-card us">
+          <div class="legal-card-title">🇺🇸 US Standards</div>
+          <div class="legal-norm"><span class="norm-code">IBC 2021</span><span class="norm-desc">International Building Code</span></div>
+          <div class="legal-norm"><span class="norm-code">ADA</span><span class="norm-desc">Americans with Disabilities Act</span></div>
+          <div class="legal-norm"><span class="norm-code">LEED v4</span><span class="norm-desc">Green building certification</span></div>
+          <div class="legal-norm"><span class="norm-code">ASTM</span><span class="norm-desc">Materials &amp; testing standards</span></div>
+          <div class="legal-norm"><span class="norm-code">CSI MasterFormat</span><span class="norm-desc">Specifications divisions</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features Implemented -->
+  <div class="section">
+    <div class="section-header">
+      <span>✅</span>
+      <span class="section-title">Funcionalidades Implementadas (Esta Sessão)</span>
+    </div>
+    <div class="section-body">
+      <div class="feat-list">
+        <div class="feat-item">
+          <div class="feat-status done">✓</div>
+          <div class="feat-text">
+            <div class="feat-title">Upload → Tab correta automática</div>
+            <div class="feat-desc">triggerProjectChain() detecta extensão e navega para BIM·Docs·Viewer automaticamente</div>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-status done">✓</div>
+          <div class="feat-text">
+            <div class="feat-title">Toast de confirmação de upload</div>
+            <div class="feat-desc">Banner azul inferior com nome do arquivo e tipo detectado</div>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-status done">✓</div>
+          <div class="feat-text">
+            <div class="feat-title">NewProjectModal auto-abre com dados pré-preenchidos</div>
+            <div class="feat-desc">initialName e initialType injetados do arquivo carregado. Campo tipo mapeia extensão → categoria ABNT</div>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-status done">✓</div>
+          <div class="feat-text">
+            <div class="feat-title">Banner jurídico BR+USA no NewProjectModal</div>
+            <div class="feat-desc">Painel visual com normas brasileiras e americanas — aparece antes de criar o projeto</div>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-status done">✓</div>
+          <div class="feat-text">
+            <div class="feat-title">NewClientModal abre automaticamente após criar projeto</div>
+            <div class="feat-desc">setTimeout 400ms → sequência limpa Projeto → Cliente</div>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-status done">✓</div>
+          <div class="feat-text">
+            <div class="feat-title">Dados gravados no localStorage + Supabase</div>
+            <div class="feat-desc">juridico_project_id · juridico_project_name · juridico_jurisdiction='BR+USA' · atlas_projects</div>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-status done">✓</div>
+          <div class="feat-text">
+            <div class="feat-title">Toast de sucesso "Projeto + Cliente criados! Sistema jurídico BR+USA vinculado."</div>
+            <div class="feat-desc">6 segundos de exibição após conclusão do fluxo completo</div>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-status done">✓</div>
+          <div class="feat-text">
+            <div class="feat-title">Botão ⚖️ Jurídico no painel de análise</div>
+            <div class="feat-desc">Passa análise + imagem via localStorage para /juridico em nova aba</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pending Issues -->
+  <div class="section">
+    <div class="section-header">
+      <span>⚠️</span>
+      <span class="section-title">Issues Pendentes (Próxima Sessão)</span>
+    </div>
+    <div class="section-body">
+      <div class="feat-list">
+        <div class="feat-item">
+          <div class="feat-status wip">61</div>
+          <div class="feat-text">
+            <div class="feat-title">Login redirect loop</div>
+            <div class="feat-desc">Usuário autenticado fica em loop /login → /dashboard → /login. Middleware precisa verificar sessão Supabase corretamente.</div>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-status wip">62</div>
+          <div class="feat-text">
+            <div class="feat-title">/api/gemini retorna 404 em runtime</div>
+            <div class="feat-desc">Rota existe em pages/api/gemini.ts mas não está sendo encontrada. Verificar import e export default.</div>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-status pending">68</div>
+          <div class="feat-text">
+            <div class="feat-title">Persistência de arquivos entre tabs</div>
+            <div class="feat-desc">Arquivo carregado em uma aba deve estar disponível em todas as outras abas do dashboard.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Platform modules -->
+  <div class="section">
+    <div class="section-header">
+      <span>🏛️</span>
+      <span class="section-title">Módulos da Plataforma</span>
+    </div>
+    <div class="section-body">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px">
+        {['Dashboard','Login/Auth','BIM 3D Viewer','Plantas','Documentos','RDO','Qualidade','BIM-Ops','Investimentos','Jurídico BR+USA','Director Cut','ArchVis','Platform','US Brand','Jornada','Projetos','Clientes','Vendas'].map(m => `
+        <div style="background:#0d1117;border:1px solid #238636;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;color:#56d364;display:flex;align-items:center;gap:6px">
+          ✅ ${m}
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div>📅 Gerado: 2026-05-23 · Sessão de correção de truncamentos + deploy</div>
+    <div>🚀 Prod: ai-construction-intelligence-platform-m9zwi8e4m.vercel.app</div>
+    <div>🏛️ JEDGARD Engenharia / Apex Global Ltda · Dr. Edgard</div>
+  </div>
+
+</div>
+
+<script>
+// Render platform modules dynamically
+document.addEventListener('DOMContentLoaded', function() {
+  const modules = ['Dashboard','Login/Auth','BIM 3D Viewer','Plantas','Documentos','RDO','Qualidade','BIM-Ops','Investimentos','Jurídico BR+USA','Director Cut','ArchVis','Platform','US Brand','Jornada','Projetos','Clientes','Vendas']
+  const container = document.querySelector('.section:last-of-type .section-body > div')
+  if (container) {
+    container.innerHTML = modules.map(m => `
+      <div style="background:#0d1117;border:1px solid #238636;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;color:#56d364;display:flex;align-items:center;gap:6px">
+        ✅ ${m}
+      </div>`).join('')
+  }
+})
+</script>
+</body>
+</html>

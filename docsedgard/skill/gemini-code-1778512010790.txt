@@ -1,0 +1,28 @@
+/AI_Construction_Platform
+|
+|-- /01_Governanca_e_Comandos
+|   |-- CORE_SYSTEM.md 
+|   |-- COMMAND_LIBRARY.md
+|
+|-- /02_BIM_Intelligence
+|   |-- BIM_MODULE.md
+|   |-- /Revit_Interoperabilidade    # Para scripts de extração, templates e dados de plugins
+|   |-- /IFC_e_Clash_Detection       # Para relatórios de colisão e coordenação MEP
+|
+|-- /03_Orquestracao_Autonoma
+|   |-- automation_module.md
+|   |-- /n8n_workflows               # Arquivos JSON de exportação dos fluxos do n8n
+|   |-- /Make_scenarios              # Configurações de gatilhos e integrações ERP
+|
+|-- /04_Resultados_Outputs
+|   |-- resultados.md
+|   |-- /analises
+|   |   |-- /viabilidade_terrenos_irregulares
+|   |   |-- /gestao_preco_de_custo   # Planilhas e controles de desembolso transparentes
+|   |-- /relatorios
+|   |-- /pitches
+|   |   |-- /prospeccao_b2b          # Focado nas 20 empresas-alvo estratégicas
+|   |-- /render_prompts
+|   |   |-- /perspectivas_drone
+|   |   |-- /cinematicos_dia_noite
+|   |-- /cronogramas

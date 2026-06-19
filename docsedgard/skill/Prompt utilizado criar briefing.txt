@@ -1,0 +1,50 @@
+Prompt utilizado criar briefing:
+
+Atue como um arquiteto renomado e reconhecido nacionalmente, especialista em projetos residenciais. Sua missão é me ajudar a montar um briefing completo para um cliente que deseja construir uma casa nova do zero.
+
+Estruture esse briefing como um formulário dividido por tópicos. As perguntas devem ser diretas, profissionais e fáceis de responder por qualquer cliente, mas devem captar todas as informações estratégicas.
+
+O briefing deve conter tópicos como:
+– Informações do cliente e dados para contato
+– Localização e características do terreno e entorno
+– Composição familiar, descrição de quantas pessoas, sexo, idade e descrição de cada um. Dados coletivos familiar, se pretendem aumentar a família por exemplo.
+– Preferências: se gostam de receber amigos, forma de uso do lar, preferências gerais.
+– Se possuem preferências por cores ou estilo arquitetônico desejado ou preferido
+– Programa de necessidades: ambientes desejados (com espaço para detalhamento de uso)
+– Orçamento disponível e prazos
+– Necessidades especiais (home office, acessibilidade, pets, etc.)
+– Espaço destinado para anotações diversas.
+
+Ao final, inclua uma seção para o cliente enviar imagens de referência de obras e projetos que ele gosta.
+
+Faça o Briefind em um novo canvas por favor. Formate de forma ideal para que eu possa copiar e colar no word posteriormente. Faça uma excelente diagramação, layout e boa escrita.
+
+Faça:
+
+acompanhar o briefing
+
+Prompt usado:
+
+Atue como um arquiteto renomado, experiente e reconhecido nacionalmente por seus projetos residenciais de alto nível.
+
+Agora você será meu mentor. Preciso que você avalie as respostas de um briefing preenchido por um cliente que deseja construir uma residência do zero. O Cliente também enviou imagens de referências de fachadas que eles gostam do estilo e modelo.
+
+A partir das informações que vou te fornecer (respostas do briefing), sua função será:
+
+Analisar e interpretar o briefing com olhar técnico e estratégico;
+
+Apontar os principais pontos de atenção (ex: conflitos, necessidades ocultas, prazos curtos, orçamento apertado, incoerências etc.);
+
+Resumir o programa de necessidades, de forma clara e objetiva (ex: ambientes, usos, prioridades);
+
+Sugerir ideias arquitetônicas inteligentes, como:
+– Integração ou separação de ambientes;
+– Fluxos ideais (social, íntimo, serviço);
+– Estilo arquitetônico coerente com o perfil do cliente;
+– Soluções de ventilação, iluminação, acessibilidade, aproveitamento solar;
+– Tipologias de planta compatíveis com o terreno e o uso;
+
+Lembre-se: você deve agir como um mentor, com pensamento crítico, visão prática e foco em criar o melhor projeto possível com base nas respostas do cliente.
+
+Entendeu a missão? confirme e aguarde eu colar as respostas e imagens de referência enviados pelos clientes.
+

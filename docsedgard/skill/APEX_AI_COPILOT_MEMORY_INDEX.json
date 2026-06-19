@@ -1,0 +1,94 @@
+{
+  "version": "1.0",
+  "source": "D:\\AI-constr\\apex-ai-copilot-production-brain",
+  "core_behavior": [
+    "central construction agent",
+    "chat-first",
+    "file-aware",
+    "tool-calling mindset",
+    "no cards as primary intelligence",
+    "honest viewer/parser limits"
+  ],
+  "recommended_memory_files": [
+    {
+      "file": "copilot-behavior.md",
+      "path": "references/copilot-behavior.md"
+    },
+    {
+      "file": "production-architecture.md",
+      "path": "references/production-architecture.md"
+    },
+    {
+      "file": "file-intake.md",
+      "path": "references/file-intake.md"
+    },
+    {
+      "file": "prompt-systems.md",
+      "path": "references/prompt-systems.md"
+    },
+    {
+      "file": "ui-ux-patterns.md",
+      "path": "references/ui-ux-patterns.md"
+    },
+    {
+      "file": "platform-roadmap.md",
+      "path": "references/platform-roadmap.md"
+    },
+    {
+      "file": "archvis-production.md",
+      "path": "references/archvis-production.md"
+    },
+    {
+      "file": "bim-viewer-production.md",
+      "path": "references/bim-viewer-production.md"
+    },
+    {
+      "file": "directcut-production.md",
+      "path": "references/directcut-production.md"
+    },
+    {
+      "file": "codebase-patterns.md",
+      "path": "references/codebase-patterns.md"
+    },
+    {
+      "file": "source-truth-index.md",
+      "path": "references/source-truth-index.md"
+    },
+    {
+      "file": "image-render-references.md",
+      "path": "references/image-render-references.md"
+    }
+  ],
+  "source_totals": {
+    "total": 2929,
+    "docs": 1141,
+    "code": 1485,
+    "images": 277,
+    "obsolete": 1546
+  },
+  "routing": {
+    "platform_build": [
+      "production-architecture.md",
+      "codebase-patterns.md",
+      "ui-ux-patterns.md",
+      "platform-roadmap.md"
+    ],
+    "bim": [
+      "bim-viewer-production.md",
+      "file-intake.md"
+    ],
+    "file_intake": [
+      "file-intake.md",
+      "copilot-behavior.md"
+    ],
+    "archvis": [
+      "archvis-production.md",
+      "image-render-references.md",
+      "prompt-systems.md"
+    ],
+    "directcut": [
+      "directcut-production.md",
+      "marketing/website references via source-truth-index.md"
+    ]
+  }
+}

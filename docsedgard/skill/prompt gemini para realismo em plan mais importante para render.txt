@@ -1,0 +1,20 @@
+prompt gemini para realismo em plantas
+
+🧱 Your Perfect Image-to-Image Render Prompt
+Core Task: Perform a strict "image-to-image" enhancement of the attached 2D architectural floor plan. The goal is to add photorealistic textures, lighting, and realistic furniture while treating the original architectural lines as absolute and locked.
+
+Absolute Constraint - Lot & Geometry (CRITICAL): Do NOT alter the shape, size, or angle of the lot boundaries or property lines. In Brazilian real estate, the lot boundary is the most important constraint. You must strictly preserve the exact structural footprint, wall thicknesses, and room dimensions exactly as drawn in the source image. Do not move walls or change the layout.
+
+Style & Textures: Render the plan in a top-down, true orthographic 3D style suitable for a high-end residential presentation. Apply the following high-quality materials:
+
+Warm wood flooring in all bedrooms and closets.
+
+Large-format porcelain tiles in social areas (living, dining, kitchen, corridors).
+
+Realistic, dynamic water rendering for the pool.
+
+Detailed, lush landscaping and greenery in the garden and patio areas.
+
+Modern, appropriately scaled furniture that matches the provided layout without overcrowding the spaces. Keep vehicle placements exactly where indicated.
+
+Text & Labels: Replicate all room names, dimensions, and text labels exactly as they appear in the source image. Preserve all Portuguese terminology perfectly (e.g., "Garagem", "Sala / Cozinha", "Lavanderia", "Suíte"). Do not invent new labels, do not hallucinate file names onto the image, and double-check spelling before finalizing the render.

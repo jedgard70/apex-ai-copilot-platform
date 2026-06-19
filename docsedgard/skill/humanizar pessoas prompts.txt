@@ -1,0 +1,73 @@
+humanizar pessoas prompts
+prompt  dell-e
+
+Photorealistic top-down architectural rendering of a modern Brazilian residential floor plan on a triangular lot, approximately 200 sqm interior area. Show 8 human figures at exactly 1.70m scale:
+
+— Living/Kitchen (44 sqm): 3 people — 2 seated at dining table, 1 standing in kitchen preparing food
+— Pool area (27 sqm): 2 people — lying on sun loungers beside a rectangular pool
+— Master suite (19 sqm): 1 person — lying on bed reading
+— Bedroom 1 (11 sqm): 1 person — lying on bed
+— Bedroom 2 (13 sqm): 1 person — lying on bed
+
+Style: professional architectural visualization, warm natural lighting from skylights, realistic hardwood floor texture, soft shadows, clean and bright aesthetic. Top-down perspective, scale 1:50. All human figures must be proportionally correct at 1.70m height.
+
+
+prompt midjourney
+
+
+/imagine top-down architectural rendering of modern Brazilian residential floor plan, triangular lot, 200sqm, 8 human figures at 1.70m scale, living room dining table, pool area with loungers, bedrooms with occupants, warm natural lighting, hardwood floors, professional architectural visualization, photorealistic, scale 1:50 --ar 4:3 --quality 2 --style raw
+
+
+
+humanizar com paisagismo
+
+Photorealistic top-down architectural rendering of a modern Brazilian residential house on a distinctive triangular urban lot. The lot is cut diagonally by a wide stone-paved sidewalk (calçada) with 4 tall imperial palm trees casting soft shadows, and a two-lane asphalt road runs along the diagonal edge.
+
+LANDSCAPING:
+— Along the diagonal sidewalk: 4 tall imperial palm trees (Phoenix roebelenii), fan palms, tropical shrubs with lush green foliage
+— Pool area: rectangular blue swimming pool surrounded by a warm wooden deck, 2 sun loungers, tropical potted plants at corners
+— Interior garden strip between sidewalk and house: dense tropical plants, bromeliads, ornamental grasses
+
+INTERIOR — 8 human figures at exactly 1.70m scale (1:50):
+— Living/Kitchen 44sqm: 2 people seated at round dining table, 1 person standing at kitchen counter
+— Pool deck 27sqm: 2 people relaxing on wooden sun loungers beside pool
+— Master suite 19sqm: 1 person lying on bed reading
+— Bedroom 1 (11sqm): 1 person lying on bed
+— Bedroom 2 (13sqm): 1 person lying on bed
+
+STYLE: professional architectural visualization, warm afternoon sunlight, realistic hardwood floors inside, natural stone tiles in wet areas, soft realistic shadows, bright and clean aesthetic, top-down aerial perspective at slight angle, ultra-detailed, 8K quality.
+
+
+
+Prompt Midjourney refinado
+
+Midjourney — /imagine
+/imagine top-down aerial view modern Brazilian residential house on triangular lot, diagonal stone-paved sidewalk, 4 imperial palm trees casting shadows, tropical landscaping, rectangular swimming pool with wooden deck, 2 sun loungers, 8 human figures at 1.70m scale, dining table scene, bedrooms occupied, warm afternoon sunlight, hardwood floors, lush tropical vegetation, professional architectural visualization, photorealistic, ultra-detailed --ar 4:3 --quality 2 --style raw --v 6
+ 
+
+Prompt Stable Diffusion — versão alternativa
+
+Stable Diffusion — modelo RealisticVision
+aerial architectural floor plan render, triangular lot, tropical Brazilian house, diagonal sidewalk, imperial palm trees, swimming pool wooden deck, sun loungers, 8 people scale figures 1.70m, interior furnished rooms, warm natural light, photorealistic, 8k, architectural visualization, (masterpiece:1.2), professional render
+
+Negative: cartoon, sketch, blueprint, low quality, distorted proportions, oversized figures
+
+
+
+Photorealistic top-down architectural rendering of a modern Brazilian residential house, approximately 200 sqm, on a standard rectangular urban lot with sidewalk and street trees.
+
+SCALE: 1:50 — each human figure represents exactly 1.70m height (= 3.40cm on plan)
+
+LANDSCAPING:
+— imperial palm trees, tropical shrubs, bromeliads, dense tropical foliage
+— Natural lighting with soft realistic shadows
+
+HUMAN FIGURES — 6 people total at 1.70m scale:
+— Living room: 2 people seated on sofa watching TV
+— Kitchen/dining: 1 person cooking at counter
+— Master suite: 1 person lying on bed reading
+— Pool/outdoor area: 2 people on sun loungers beside pool
+
+RENDERING STYLE: photorealistic professional architectural visualization, warm natural lighting, soft realistic shadows, 8K quality
+
+IMPORTANT: use this floor plan as the base layout. All human figures must be proportionally correct at 1.70m height relative to doors (2.10m), furniture and corridors (min 0.90m clear width).

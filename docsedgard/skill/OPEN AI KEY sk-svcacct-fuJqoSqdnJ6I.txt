@@ -1,0 +1,19 @@
+OPEN AI KEY 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
+
+ANTHROPIC_API_KEY
+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
+
+FAL_KEY 9e94cfe4-0c8a-4461-87af-ace86d887c83:7aba837f1ba727de2042e154ba220c3b
+
+TAVILY_API_KEY   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
+
+groq key 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
+
+ SUPABASE_ACCESS_TOKEN = sb_secret_iS6pU8QHzdbQzMMQj8v9ag_kK3ZhIny
+   SUPABASE_PROJECT_REF = csvtkvyauusvtmrkqtzl
+   SUPABASE_DB_URL = postgresql://postgres:[senha]@db.[ref].supabase.co:5432/postgres
+                     https://csvtkvyauusvtmrkqtzl.supabase.co
+
+cron key f03607966d86ba95366703679452ca64f16c1e0e0273650236652fa1365b15ad
+
+Vercel_Token vcp_38BOxfp8q9npBBEQyw2PzVxs28zKifPPosvkNzqTCCqNeVnxGD0zaaep

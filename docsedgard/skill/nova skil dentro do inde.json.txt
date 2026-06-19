@@ -1,0 +1,10 @@
+nova skil dentro do inde.json
+
+{
+  "path": "docs/APEX_MINHA_NOVA_SKILL.md",
+  "title": "Minha Nova Skill",
+  "description": "Explicação breve do que esta skill ajuda o Copilot a realizar.",
+  "tags": ["tag1", "tag2"],
+  "owner": "platform-team",
+  "version": "0.1.0"
+}

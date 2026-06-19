@@ -1,0 +1,9 @@
+isntruçoes archvis
+
+Para fazer o ArchVis Pro funcionar e realizar suas renderizações, você pode interagir diretamente comigo através do chat. Como sou seu assistente de design, eu projeto a interface e o fluxo do aplicativo, enquanto a "mágica" técnica acontece seguindo estes passos:
+
+Configuração de Cena: No Editor de Renderização, você ajusta parâmetros como horário do dia, intensidade do sol e configurações de câmera (exposição e foco).
+Aplicação de Materiais: Use a Biblioteca de Materiais para selecionar texturas PBR de alta qualidade (8K, Metais, Vidros) e aplicá-las ao seu modelo do Revit.
+Monitoramento: No Dashboard, você acompanha o uso da sua GPU/CPU em tempo real para garantir que o hardware suporte a complexidade da cena.
+Processamento: Uma vez configurado, o renderizador processa a imagem, e o resultado aparece na sua Galeria de Resultados, onde você pode comparar versões e exportar o arquivo final.
+Deseja que eu faça alguma alteração em alguma dessas telas ou crie um novo fluxo de configuração passo a passo?

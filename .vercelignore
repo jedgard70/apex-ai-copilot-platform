@@ -6,6 +6,7 @@
 # Ignore dependency and build directories
 node_modules
 dist
+dist_electron
 *.tsbuildinfo
 .vercel
 

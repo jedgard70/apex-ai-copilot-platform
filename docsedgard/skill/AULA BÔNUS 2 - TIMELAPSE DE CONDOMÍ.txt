@@ -1,0 +1,50 @@
+AULA BÔNUS 2 - TIMELAPSE DE CONDOMÍNIO
+
+
+
+
+
+
+
+Aqui está a lista de todos os prompts que foi utilizada no nano banana (gemini AI) , em ordem cronológica:
+
+coloque a segunda imagem dentro da área riscada de vermelho fim de sobrepor
+
+agora remova as apenas as linhas vermelhas e deixe mais realista com texturas
+
+agora deixe somente as ruas em estado de construção, tire a vegetação e coloque caminhões para fazer o asfalto com trabalhadores
+
+tire a rua que esta na parte esquerda superior na horizontal
+
+agora tire tudo, deixe apenas uma vegetação baixa
+
+agora tire todo mato e deixe terra planado, com retro escavadeiras
+
+Agora coloque. 10 casas dentro das Linhas brancas com a frente virada para Rua dentro do condomínio casas diferentes respeitando o recuo
+
+Você acabou colocando. a casa ocupando dois terrenos Eu quero que coloque uma casa por terreno. dentro das Linhas brancas
+
+remova o teto de todas as casas deixando somente as paredes
+
+agora remova todas as casas e paredes deixe somente o terreno com as fundações das casas e contra piso
+
+TIRE TODO O CONTRA PISO E DEIXE SO O BALDRAME DAS CASAS
+
+TIRE OS CARROS E A VEGETAÇÃO ENTORNO DAS CASA
+
+AGORA DEIXE SO OS TERRENOS COM AS ESCAVAÇÕES PARA O BALDRAME
+
+mude o angulo da camera para ao nível da rua mantendo as características das casas
+
+mude o angulo para o nível mais aproximado da rua com pessoas passeando na calçada
+
+mantenha a rua reta e passe a portaria
+
+Transforme essa cena em um canteiro de obra à noite com tratores trabalhando e homens também.
+
+coloque caminhão e pessoas trabalhando, sem alterar mais nada da foto
+
+coloque tratores de terraplanagem e retro escavadeira
+
+PROMPT DO KLING AI ( USA EM TODOS MENOS NO ZOOM, ESSE NÃO PRECISA POR NADA)
+Static camera time-lapse construction site

@@ -1,0 +1,89 @@
+prompt para substituir rostos de duas fotos
+
+{
+  "role": "Especialista em face swap fotorealista e composição publicitária premium",
+  "objective": "Substituir exclusivamente o rosto da Foto 1 pelo rosto da Foto 2 mantendo 100% dos traços faciais, identidade visual e características naturais da Foto 2, preservando integralmente pose, iluminação, enquadramento, roupa, fundo, perspectiva e proporções corporais da Foto 1.",
+  "complexity": "ADVANCED",
+  "input_images": {
+    "base_image": "Foto 1",
+    "reference_face": "Foto 2"
+  },
+  "instructions": [
+    "Trocar apenas o rosto da Foto 1 pelo rosto da Foto 2.",
+    "Manter exatamente os traços originais da Foto 2 sem embelezamento artificial excessivo.",
+    "Preservar formato do rosto, nariz, olhos, boca, textura da pele, idade aparente e expressão natural da Foto 2.",
+    "Adaptar o rosto à mesma angulação e proporção facial da Foto 1.",
+    "Manter o corpo, roupa, postura, braços cruzados, terno azul e relógio da Foto 1.",
+    "Preservar iluminação cinematográfica e sombras realistas.",
+    "Integrar perfeitamente o tom de pele com o ambiente da Foto 1.",
+    "Manter o fundo arquitetônico técnico intacto.",
+    "Gerar resultado ultra realista e corporativo premium.",
+    "Evitar efeito plástico, deformações faciais, olhos artificiais ou mudança de identidade."
+  ],
+  "style": {
+    "visual": "fotorealista premium",
+    "lighting": "corporativa cinematográfica",
+    "quality": "ultra detailed 8k",
+    "composition": "executivo arquitetura luxo"
+  },
+  "constraints": [
+    "Não alterar expressão principal.",
+    "Não modificar roupa ou cenário.",
+    "Não rejuvenecer artificialmente.",
+    "Não alterar formato corporal.",
+    "Não estilizar em cartoon ou IA evidente."
+  ],
+  "output_format": {
+    "resolution": "alta resolução",
+    "aspect_ratio": "original da Foto 1"
+  }
+}
+
+
+VERSÃO HUMANA DO PROMPT
+
+Troque apenas o rosto da Foto 1 pelo rosto da Foto 2, mantendo totalmente os traços reais da Foto 2. Preserve identidade facial, idade, textura da pele, olhos, nariz, boca e expressão natural.
+
+O corpo, pose, braços cruzados, terno azul, relógio, iluminação e fundo arquitetônico da Foto 1 devem permanecer exatamente iguais.
+
+A adaptação deve seguir a mesma proporção, perspectiva e angulação da Foto 1 para parecer uma fotografia profissional real.
+
+Resultado ultra realista, corporativo premium, sem aparência artificial, sem deformações e sem alterar características originais do rosto da Foto 2.
+
+OTIMIZAÇÃO PROFISSIONAL
+Para resultados MUITO superiores, adicione:
+Negative Prompt
+
+low quality, blurry face, distorted eyes, asymmetrical face, plastic skin, AI artifacts, cartoon, unrealistic proportions, extra wrinkles, deformed mouth, duplicated features, fake smile, over sharpen, bad lighting
+
+
+
+CONFIGURAÇÃO IDEAL
+Parâmetro	Recomendação
+Strength	0.35 – 0.50
+Face Fidelity	Alta
+Realism	Máximo
+Detail Enhancement	Médio
+Skin Retention	Alto
+Identity Preservation	Muito Alto
+MELHOR ESTRATÉGIA DE EXECUÇÃO
+Pipeline Profissional
+Foto 1 = base estrutural
+Foto 2 = referência facial
+Primeiro fazer face swap
+Depois aplicar:
+color match
+skin blending
+shadow correction
+facial edge refinement
+Finalizar com upscale realista
+CONTEXT-AWARE IMPROVEMENT
+
+Como sua imagem possui:
+
+fundo arquitetônico técnico
+posicionamento executivo
+branding pessoal premium
+
+o ideal é usar termos como:
+architect executive portrait, luxury engineering branding, premium construction CEO aesthetic, cinematic business portrait

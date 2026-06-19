@@ -1,0 +1,46 @@
+ENV LOCAL COPIA 
+
+# Configurações Gerais e Supabase
+VITE_SUPABASE_URL=https://csvtkvyauusvtmrkqtzl.supabase.co
+VITE_SUPABASE_ANON_KEY=sb_publishable_QMXkDjATAl7B6SHmEvLvLQ_PY0ilGar
+LOCAL_WORKER_PORT=8787
+LOCAL_WORKER_URL=http://127.0.0.1:8787
+APEX_PROJECT_PATH=D:\AI-constr\apex-ai-copilot-platform
+LOCAL_WORKER_TOKEN=9819d3548fd86b9f81048e2cedcf7c6721702519975f6aa2413859bb54add084
+SUPABASE_SERVICE_ROLE_KEY=server-only-do-not-expose
+GOOGLE_OAUTH_STATUS=not-configured
+GITHUB_TOKEN=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
+VERCEL_TOKEN=vcp_38BOxfp8q9npBBEQyw2PzVxs28zKifPPosvkNzqTCCqNeVnxGD0zaaep
+APEX_VERCEL_PROJECT_ID=prj_uVRjNyFprz8NyzVcb8NTdnALr1Xm
+SUPABASE_ACCESS_TOKEN=sb_secret_iS6pU8QHzdbQzMMQj8v9ag_kK3ZhIny
+SUPABASE_DB_URL=https://csvtkvyauusvtmrkqtzl.supabase.co
+SUPABASE_PROJECT_REF=csvtkvyauusvtmrkqtzl
+REVIT_MCP_URL=http://127.0.0.1:8585
+REVIT_MCP_TOKEN=MCPSERVERREVIT290314@#$
+AUTHORIZED_EXECUTION_CWD=
+ALLOW_RAW_SHELL_IN_ANY_ENV=1
+TAVILY_API_KEY=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
+
+# ==========================================
+# OPENROUTER (Modelos Adicionais)
+# ==========================================
+# 1. Defina a base da API para apontar para o OpenRouter
+OPENAI_API_BASEROUTER=https://openrouter.ai/api/v1
+
+# 2. Insira a sua chave do OpenRouter (gerada em openrouter.ai/keys)
+OPENAI_API_KEYROUTER=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
+
+# 3. Escolha o modelo que deseja utilizar via OpenRouter
+OPENAI_MODELROUTER=openai/gpt-4o-mini
+
+# ==========================================
+# GEMINI DIRECT (Google AI Studio)
+# ==========================================
+# 1. Defina a base da API para o endpoint de compatibilidade do Google AI Studio
+OPENAI_API_BASE=https://generativelanguage.googleapis.com/v1beta/openai
+
+# 2. Insira a sua chave do Gemini gerada no Google AI Studio (aistudio.google.com)
+OPENAI_API_KEY=AQ.Ab8RN6KEN8QtIlwRUA4mpX1VCT1muK_p0s_UOu9gOFLkwPnDtA
+
+# 3. Defina o modelo inicial
+OPENAI_MODEL=gemini-1.5-flash
