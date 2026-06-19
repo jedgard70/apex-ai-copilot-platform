@@ -10,6 +10,7 @@ Details:
 - Validações locais: GREEN (parciais — veja lista abaixo)
 - Produto em browser / produção: NÃO COMPROVADO para múltiplos módulos (ver APEX_REALITY_AUDIT.md)
 - PR #24: mantém Draft (não marcar Ready)
+- Operating model: unified Apex surface across `apexglobalai.com` and `Apex.exe`, with mirrored secrets per environment and shared policy/state.
 
 Validações locais executadas com sucesso:
 
@@ -24,6 +25,7 @@ Validações que precisam de ambiente / corrigir:
 - validate-vercel: QUEBRADO por falta de dotenv / chaves
 - validate-supabase-live: QUEBRADO por falta de dotenv / chaves
 - validate-cp15x-h7: HTTP path não comprovado em ambiente sem provider key
+- GitHub/Vercel/Supabase access: depende das credenciais espelhadas no ambiente alvo; não assumir acesso sem prova do runtime.
 
 Resumo dos riscos e próximos passos imediatos:
 
