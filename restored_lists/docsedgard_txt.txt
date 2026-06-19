@@ -1,0 +1,79 @@
+docsedgard/Revit/codex/edgard_shared_parameters.txt
+docsedgard/Revit/revit-mcp-server/LLM.txt
+docsedgard/Revit/revit-mcp-server/requirements.txt
+docsedgard/skill/-- DATABASE MIGRATION SCRIPT FOR ARchvisnovo.txt
+docsedgard/skill/# Blind Comparator Agent.txt
+docsedgard/skill/# Grader Agent.txt
+docsedgard/skill/# MCP Server Best Practices.txt
+docsedgard/skill/# NodeTypeScript MCP Server Impleme.txt
+docsedgard/skill/# Python MCP Server Implementation.txt
+docsedgard/skill/#!binbash.txt
+docsedgard/skill/#!binbash2.txt
+docsedgard/skill/#MCP Server Evaluation Guide.txt
+docsedgard/skill/algor.templet.txt
+docsedgard/skill/algorithmic.txt
+docsedgard/skill/anthropic=0.39.0.txt
+docsedgard/skill/Apex Copilot.txt
+docsedgard/skill/APEX_AI_COPILOT_NEW_CHAT_PROMPT.md.txt
+docsedgard/skill/api claude.txt
+docsedgard/skill/Aplicado o modelo final ArchVis dar.txt
+docsedgard/skill/ArchVisPro-novo gemini api e url.txt
+docsedgard/skill/assistente-rafael-cursos.txt
+docsedgard/skill/AULA BONUS CAIXA EXPLODE DECORANDO.txt
+docsedgard/skill/brand.txt
+docsedgard/skill/briefing de arquitetura.txt
+docsedgard/skill/canvas.txt
+docsedgard/skill/capa proposta prompt.txt
+docsedgard/skill/cd local-worker.txt
+docsedgard/skill/chamada venda online ebook.txt
+docsedgard/skill/claude comamndos.txt
+docsedgard/skill/Como o Local Worker (que executa os.txt
+docsedgard/skill/Crafting the Scene.txt
+docsedgard/skill/Cronograma de Obra Residencial Detalhado prompt.txt
+docsedgard/skill/Decor Motion com CLONE.txt
+docsedgard/skill/design de prompt.txt
+docsedgard/skill/directors cut link.txt
+docsedgard/skill/Entrada.txt
+docsedgard/skill/ENV LOCAL COPIA.txt
+docsedgard/skill/evaluation.txt
+docsedgard/skill/exportlayers-dgn-ISO13567.txt
+docsedgard/skill/GEMINI API KEY APEX AI.txt
+docsedgard/skill/gemini api key.txt
+docsedgard/skill/gemini-code-1778512010790.txt
+docsedgard/skill/httpswa.memessageM7B46LX4FKH5O1.txt
+docsedgard/skill/humanizar pessoas prompts.txt
+docsedgard/skill/import React, { useState, useEffect.txt
+docsedgard/skill/Lightweight connection handling for.txt
+docsedgard/skill/MCP Server Evaluation Harness.txt
+docsedgard/skill/mcp/# MCP Server Best Practices.txt
+docsedgard/skill/mcp/# NodeTypeScript MCP Server Impleme.txt
+docsedgard/skill/mcp/# Python MCP Server Implementation.txt
+docsedgard/skill/mcp/#MCP Server Evaluation Guide.txt
+docsedgard/skill/mcp/anthropic=0.39.0.txt
+docsedgard/skill/mcp/evaluation.txt
+docsedgard/skill/mcp/Lightweight connection handling for.txt
+docsedgard/skill/mcp/MCP Server Evaluation Harness.txt
+docsedgard/skill/mcp/mcpbuilder.txt
+docsedgard/skill/mcpbuilder.txt
+docsedgard/skill/nova skil dentro do inde.json.txt
+docsedgard/skill/OPEN AI KEY sk-svcacct-fuJqoSqdnJ6I.txt
+docsedgard/skill/plugin revit castanhari.txt
+docsedgard/skill/prompt das imagems ebook.txt
+docsedgard/skill/prompt e link ecossistema AI.txt
+docsedgard/skill/prompt gemini para realismo em plan mais importante para render.txt
+docsedgard/skill/prompt para fachada do revit.txt
+docsedgard/skill/prompt para substituir rostos de du.txt
+docsedgard/skill/Prompt utilizado criar briefing.txt
+docsedgard/skill/propt para planta baixa e outro da.txt
+docsedgard/skill/render this scene as a film photogra.txt
+docsedgard/skill/revit mcp.txt
+docsedgard/skill/sequencia para planta realista.txt
+docsedgard/skill/Sites para encontrar blocos.txt
+docsedgard/skill/Sites para encontrar texturas .txt
+docsedgard/skill/skillcreate.txt
+docsedgard/skill/supabase novo.txt
+docsedgard/skill/Theme.txt
+docsedgard/skill/viewerl.txt
+docsedgard/skill/Vou editar a ferramenta GitHub para.txt
+docsedgard/skill/Webbilder.txt
+docsedgard/skill/webbuilder/Webbilder.txt

@@ -1,0 +1,6 @@
+{"headRefName":"ci/add-function-limit-check-20260619131143","number":46,"title":"Add serverless function limit check","url":"https://github.com/jedgard70/apex-ai-copilot-platform/pull/46"}
+{"headRefName":"fix/remove-recovered-artifacts-20260619130948","number":45,"title":"Remove recovered artifacts to reduce deploy size","url":"https://github.com/jedgard70/apex-ai-copilot-platform/pull/45"}
+{"headRefName":"restore/docsedgard-recovery-20260619124540","number":44,"title":"restore/docsedgard recovery 20260619124540","url":"https://github.com/jedgard70/apex-ai-copilot-platform/pull/44"}
+{"headRefName":"fix/identity-context-unknown-fields-103tq","number":43,"title":"fix: improve identity context summary to avoid showing unknown fields","url":"https://github.com/jedgard70/apex-ai-copilot-platform/pull/43"}
+{"headRefName":"apex/add-vercel-deploy-endpoint-odojy","number":42,"title":"Adiciona endpoint /api/vercel/deploy-status para consultar status de deploy no Vercel","url":"https://github.com/jedgard70/apex-ai-copilot-platform/pull/42"}
+{"headRefName":"apex/add-vercel-endpoint-gx4pe","number":41,"title":"Adiciona endpoint /api/vercel/deploy-status para consultar status de deploy no Vercel","url":"https://github.com/jedgard70/apex-ai-copilot-platform/pull/41"}
