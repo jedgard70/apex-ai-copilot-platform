@@ -25,8 +25,7 @@ set
 -- Protected project buckets: authenticated users can read/write only if they can access/write the project
 -- encoded in the object path.
 drop policy if exists protected_project_files_select on storage.objects;
-create policy protected_project_files_select
-on storage.objects for select
+drop policy if exists protected_project_files_select on storage.objects for select;\ncreate policy protected_project_files_select on storage.objects for select
 to authenticated
 using (
   bucket_id in (
@@ -47,8 +46,7 @@ using (
 );
 
 drop policy if exists protected_project_files_insert on storage.objects;
-create policy protected_project_files_insert
-on storage.objects for insert
+drop policy if exists protected_project_files_insert on storage.objects for insert;\ncreate policy protected_project_files_insert on storage.objects for insert
 to authenticated
 with check (
   bucket_id in (
@@ -69,8 +67,7 @@ with check (
 );
 
 drop policy if exists protected_project_files_update on storage.objects;
-create policy protected_project_files_update
-on storage.objects for update
+drop policy if exists protected_project_files_update on storage.objects for update;\ncreate policy protected_project_files_update on storage.objects for update
 to authenticated
 using (
   bucket_id in (
@@ -108,8 +105,7 @@ with check (
 );
 
 drop policy if exists protected_project_files_delete on storage.objects;
-create policy protected_project_files_delete
-on storage.objects for delete
+drop policy if exists protected_project_files_delete on storage.objects for delete;\ncreate policy protected_project_files_delete on storage.objects for delete
 to authenticated
 using (
   bucket_id in (
@@ -132,14 +128,12 @@ using (
 -- Public assets: public read is allowed for app branding/static material only.
 -- Public writes remain forbidden.
 drop policy if exists public_assets_read on storage.objects;
-create policy public_assets_read
-on storage.objects for select
+drop policy if exists public_assets_read on storage.objects for select;\ncreate policy public_assets_read on storage.objects for select
 to anon, authenticated
 using (bucket_id = 'public-assets');
 
 drop policy if exists public_assets_admin_write on storage.objects;
-create policy public_assets_admin_write
-on storage.objects for all
+drop policy if exists public_assets_admin_write on storage.objects for all;\ncreate policy public_assets_admin_write on storage.objects for all
 to authenticated
 using (
   bucket_id = 'public-assets'
@@ -155,3 +149,4 @@ with check (
     array['owner_admin']::public.user_role[]
   )
 );
+
