@@ -197,6 +197,14 @@ const H5_ACTION_TOOLS = new Set([
 const productionRouterIntents = new Set([
   'production_h7_confirmation',
   'production_execute_recommended',
+  'production_greeting',
+  'production_capability_listing',
+  'production_capability_repair',
+  'production_capability_continuation',
+  'production_name_identity',
+  'production_who_am_i',
+  'production_owner_assertion',
+  'production_source_of_information',
 ])
 
 const __filename = fileURLToPath(import.meta.url)
