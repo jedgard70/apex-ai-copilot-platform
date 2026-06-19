@@ -5,8 +5,9 @@ domains: [imported]
 entrypoint: ArchVisPro-novo gemini api e url.txt
 triggers: [imported]
 risk: low
-enabled: false
+enabled: true
 ---
 
 Imported original path: D:\AI-constr\apex-ai-copilot-platform\skills\imported\recovered_docsedgard\skill\ArchVisPro-novo gemini api e url.txt
+
 

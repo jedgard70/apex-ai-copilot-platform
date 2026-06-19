@@ -5,8 +5,9 @@ domains: [imported]
 entrypoint: tag_tools.py:main
 triggers: [imported]
 risk: low
-enabled: false
+enabled: true
 ---
 
 Imported original path: D:\AI-constr\apex-ai-copilot-platform\skills\imported\recovered_docsedgard\Revit\revit-mcp-server\tools\tag_tools.py
+
 

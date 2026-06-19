@@ -5,8 +5,9 @@ domains: [imported]
 entrypoint: python_mcp_server.md
 triggers: [imported]
 risk: low
-enabled: false
+enabled: true
 ---
 
 Imported original path: D:\AI-constr\apex-ai-copilot-platform\skills\imported\recovered_docsedgard\skill\mcp-builder\reference\python_mcp_server.md
+
 

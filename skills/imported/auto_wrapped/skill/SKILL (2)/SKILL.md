@@ -5,8 +5,9 @@ domains: [imported]
 entrypoint: SKILL (2).md
 triggers: [imported]
 risk: low
-enabled: false
+enabled: true
 ---
 
 Imported original path: D:\AI-constr\apex-ai-copilot-platform\skills\imported\recovered_docsedgard\skill\SKILL (2).md
+
 
