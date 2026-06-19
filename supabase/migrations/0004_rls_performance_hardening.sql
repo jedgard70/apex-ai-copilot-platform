@@ -344,19 +344,21 @@ begin
   ]
   loop
     execute format('drop policy if exists %I on public.%I', table_name || '_crm_write', table_name);
-
+    execute format('drop policy if exists %I on public.%I', table_name || '_crm_insert', table_name);
     execute format(
       'create policy %I on public.%I for insert to authenticated with check (app_private.can_access_crm(tenant_id))',
       table_name || '_crm_insert',
       table_name
     );
 
+    execute format('drop policy if exists %I on public.%I', table_name || '_crm_update', table_name);
     execute format(
       'create policy %I on public.%I for update to authenticated using (app_private.can_access_crm(tenant_id)) with check (app_private.can_access_crm(tenant_id))',
       table_name || '_crm_update',
       table_name
     );
 
+    execute format('drop policy if exists %I on public.%I', table_name || '_crm_delete', table_name);
     execute format(
       'create policy %I on public.%I for delete to authenticated using (app_private.can_access_crm(tenant_id))',
       table_name || '_crm_delete',
@@ -377,18 +379,21 @@ begin
   loop
     execute format('drop policy if exists %I on public.%I', table_name || '_finance_write', table_name);
 
+    execute format('drop policy if exists %I on public.%I', table_name || '_finance_insert', table_name);
     execute format(
       'create policy %I on public.%I for insert to authenticated with check (app_private.can_access_finance(tenant_id))',
       table_name || '_finance_insert',
       table_name
     );
 
+    execute format('drop policy if exists %I on public.%I', table_name || '_finance_update', table_name);
     execute format(
       'create policy %I on public.%I for update to authenticated using (app_private.can_access_finance(tenant_id)) with check (app_private.can_access_finance(tenant_id))',
       table_name || '_finance_update',
       table_name
     );
 
+    execute format('drop policy if exists %I on public.%I', table_name || '_finance_delete', table_name);
     execute format(
       'create policy %I on public.%I for delete to authenticated using (app_private.can_access_finance(tenant_id))',
       table_name || '_finance_delete',
