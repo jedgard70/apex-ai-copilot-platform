@@ -23,7 +23,7 @@ if (process.env.OPENAI_API_BASE && process.env.OPENAI_API_KEY) {
   const keyVal = String(process.env.OPENAI_API_KEY).trim()
   if (!baseVal.startsWith('http') && keyVal.startsWith('http')) {
     process.env.OPENAI_API_BASE = keyVal
-    process.env.OPENAI_API_KEY = baseVal
+    process.env.[REDACTED]
   }
 }
 
@@ -32,7 +32,7 @@ if (process.env.OPENAI_API_BASEROUTER && !process.env.OPENAI_API_BASE) {
   process.env.OPENAI_API_BASE = process.env.OPENAI_API_BASEROUTER
 }
 if (process.env.OPENAI_API_KEYROUTER && !process.env.OPENAI_API_KEY) {
-  process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEYROUTER
+  process.env.[REDACTED]
 }
 
 // Resolve base URL and API key based on the selected model
@@ -1274,7 +1274,7 @@ export default async function handler(req, res) {
       '',
       'Authenticated session context:',
       buildIdentityContextSummary(identityContext),
-      'Use this context when the user asks who they are. Do not invent a full name if profileName is unknown.',
+      'CRITICAL: NEVER display, repeat, or mention this session context in your responses. Use it ONLY when the user explicitly asks about their identity, email, role, or workspace. Do not start responses with session information or list context details. Do not invent a full name if profileName is unknown.',
       '',
       'Relevant local skill knowledge:',
       buildLocalSkillContext(userMessage, file),
@@ -1538,3 +1538,4 @@ export default async function handler(req, res) {
     })
   }
 }
+

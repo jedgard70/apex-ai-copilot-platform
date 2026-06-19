@@ -31,7 +31,7 @@ if (process.env.OPENAI_API_BASE && process.env.OPENAI_API_KEY) {
   const keyVal = String(process.env.OPENAI_API_KEY).trim()
   if (!baseVal.startsWith('http') && keyVal.startsWith('http')) {
     process.env.OPENAI_API_BASE = keyVal
-    process.env.OPENAI_API_KEY = baseVal
+    process.env.[REDACTED]
   }
 }
 
@@ -40,7 +40,7 @@ if (process.env.OPENAI_API_BASEROUTER && !process.env.OPENAI_API_BASE) {
   process.env.OPENAI_API_BASE = process.env.OPENAI_API_BASEROUTER
 }
 if (process.env.OPENAI_API_KEYROUTER && !process.env.OPENAI_API_KEY) {
-  process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEYROUTER
+  process.env.[REDACTED]
 }
 
 // APEX_FREE_AGENT (default ON): when enabled, conversational messages bypass the
@@ -3134,7 +3134,7 @@ async function handleContractsPlan(req, res) {
 
     const riskItems = [
       contractsRisk(
-        'risk-scope',
+        'ri[REDACTED]',
         'Scope of services',
         'Scope may be too broad or not tied to deliverables and acceptance criteria.',
         'High',
@@ -3143,7 +3143,7 @@ async function handleContractsPlan(req, res) {
         'Confirm exact scope and attach drawings/proposal/budget reference.'
       ),
       contractsRisk(
-        'risk-payment',
+        'ri[REDACTED]',
         'Payment schedule',
         'Payment milestones may not protect cash flow or delivery risk.',
         'Medium',
@@ -3152,7 +3152,7 @@ async function handleContractsPlan(req, res) {
         'Confirm deposit amount, milestone dates, late-payment consequences and retainage if any.'
       ),
       contractsRisk(
-        'risk-change-orders',
+        'ri[REDACTED]',
         'Change orders',
         'Missing change-order process can create unpaid extra work.',
         'High',
@@ -3161,7 +3161,7 @@ async function handleContractsPlan(req, res) {
         'Add a simple change-order approval clause.'
       ),
       contractsRisk(
-        'risk-lawyer',
+        'ri[REDACTED]',
         'Jurisdiction-specific enforceability',
         'Local legal enforceability cannot be confirmed without lawyer/local authority review.',
         'High',
@@ -4729,6 +4729,7 @@ const port = Number(process.env.PORT || 4177)
 server.listen(port, () => {
   console.log(`Apex AI Copilot platform listening on http://127.0.0.1:${port}`)
 })
+
 
 
 
