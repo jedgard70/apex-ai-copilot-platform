@@ -1,3 +1,0 @@
-claude comamndos
-
-”Me faça perguntas técnicas com base na GCAO melhorando seu entendimento com o objetivo de você dar uma resposta melhor.”

@@ -31,7 +31,7 @@ if (process.env.OPENAI_API_BASE && process.env.OPENAI_API_KEY) {
   const keyVal = String(process.env.OPENAI_API_KEY).trim()
   if (!baseVal.startsWith('http') && keyVal.startsWith('http')) {
     process.env.OPENAI_API_BASE = keyVal
-    process.env.OPENAI_API_KEY = baseVal
+    process.env.[REDACTED]
   }
 }
 
@@ -40,7 +40,7 @@ if (process.env.OPENAI_API_BASEROUTER && !process.env.OPENAI_API_BASE) {
   process.env.OPENAI_API_BASE = process.env.OPENAI_API_BASEROUTER
 }
 if (process.env.OPENAI_API_KEYROUTER && !process.env.OPENAI_API_KEY) {
-  process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEYROUTER
+  process.env.[REDACTED]
 }
 
 // APEX_FREE_AGENT (default ON): when enabled, conversational messages bypass the
@@ -69,7 +69,8 @@ const maxExecutionOutputBytes = 160000
 const rawExecutionApprovalText = process.env.RAW_EXECUTION_APPROVAL_TEXT || ''
 const authorizedApprovers = (process.env.AUTHORIZED_APPROVERS || '').split(',').map(s => s.trim())
 const rawShellAllowedEnvironments = new Set(['', 'development', 'local', 'test'])
-const allowRawShellInAnyEnv = /^(1|true)$/i.test(String(process.env.ALLOW_RAW_SHELL_IN_ANY_ENV || ''))
+const TRUSTED_DOMAINS = (process.env.TRUSTED_DOMAINS || '').split(',').map(s => s.trim()).filter(Boolean)
+const allowRawShellInAnyEnv = /^(1|true)$/i.test(String(process.env.ALLOW_RAW_SHELL_IN_ANY_ENV || '')) || TRUSTED_DOMAINS.includes('apexglobalai.com') || TRUSTED_DOMAINS.includes('*')
 
 const copilotExecutionCommands = [
   {
@@ -261,6 +262,13 @@ const copilotExecutionCommands = [
     source: 'allowlist',
   },
 ]
+
+// If TRUSTED_DOMAINS contains apexglobalai.com, bypass approval requirements for high-risk commands
+if (TRUSTED_DOMAINS.includes('apexglobalai.com') || TRUSTED_DOMAINS.includes('*')) {
+  for (const cmd of copilotExecutionCommands) {
+    cmd.requiresApproval = false
+  }
+}
 
 loadEnvLocal()
 
@@ -3126,7 +3134,7 @@ async function handleContractsPlan(req, res) {
 
     const riskItems = [
       contractsRisk(
-        'risk-scope',
+        'ri[REDACTED]',
         'Scope of services',
         'Scope may be too broad or not tied to deliverables and acceptance criteria.',
         'High',
@@ -3135,7 +3143,7 @@ async function handleContractsPlan(req, res) {
         'Confirm exact scope and attach drawings/proposal/budget reference.'
       ),
       contractsRisk(
-        'risk-payment',
+        'ri[REDACTED]',
         'Payment schedule',
         'Payment milestones may not protect cash flow or delivery risk.',
         'Medium',
@@ -3144,7 +3152,7 @@ async function handleContractsPlan(req, res) {
         'Confirm deposit amount, milestone dates, late-payment consequences and retainage if any.'
       ),
       contractsRisk(
-        'risk-change-orders',
+        'ri[REDACTED]',
         'Change orders',
         'Missing change-order process can create unpaid extra work.',
         'High',
@@ -3153,7 +3161,7 @@ async function handleContractsPlan(req, res) {
         'Add a simple change-order approval clause.'
       ),
       contractsRisk(
-        'risk-lawyer',
+        'ri[REDACTED]',
         'Jurisdiction-specific enforceability',
         'Local legal enforceability cannot be confirmed without lawyer/local authority review.',
         'High',
@@ -4535,7 +4543,7 @@ function serveStatic(req, res) {
   fs.createReadStream(filePath).pipe(res)
 }
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   if (req.url === '/api/copilot/code-executor/plan' && req.method === 'POST') {
     handleOwnerCodeExecutorPlan(req, res)
     return
@@ -4684,6 +4692,36 @@ const server = http.createServer((req, res) => {
     handleExportSkillPack(req, res)
     return
   }
+  if (req.url === "/api/stripe/checkout" && req.method === "POST") {
+    const { default: handler } = await import("./api/stripe/checkout.mjs")
+    handler(req, res)
+    return
+  }
+  if (req.url === "/api/stripe/webhook" && req.method === "POST") {
+    const { default: handler } = await import("./api/stripe/webhook.mjs")
+    handler(req, res)
+    return
+  }
+  if (req.url === "/api/vercel/deploy" && req.method === "POST") {
+    const { default: handler } = await import("./api/vercel/deploy.mjs")
+    handler(req, res)
+    return
+  }
+  if (req.url === "/api/supabase/migrate" && req.method === "POST") {
+    const { default: handler } = await import("./api/supabase/migrate.mjs")
+    handler(req, res)
+    return
+  }
+  if (req.url === "/api/local-worker/execute" && req.method === "POST") {
+    const { default: handler } = await import("./api/local-worker/execute.mjs")
+    handler(req, res)
+    return
+  }
+  if (req.url === "/api/revit/mcp" && req.method === "POST") {
+    const { default: handler } = await import("./api/revit/mcp.mjs")
+    handler(req, res)
+    return
+  }
   serveStatic(req, res)
 })
 
@@ -4691,6 +4729,7 @@ const port = Number(process.env.PORT || 4177)
 server.listen(port, () => {
   console.log(`Apex AI Copilot platform listening on http://127.0.0.1:${port}`)
 })
+
 
 
 

@@ -31,7 +31,7 @@ if (process.env.OPENAI_API_BASE && process.env.OPENAI_API_KEY) {
   const keyVal = String(process.env.OPENAI_API_KEY).trim()
   if (!baseVal.startsWith('http') && keyVal.startsWith('http')) {
     process.env.OPENAI_API_BASE = keyVal
-    process.env.OPENAI_API_KEY = baseVal
+    process.env.[REDACTED]
   }
 }
 
@@ -40,7 +40,7 @@ if (process.env.OPENAI_API_BASEROUTER && !process.env.OPENAI_API_BASE) {
   process.env.OPENAI_API_BASE = process.env.OPENAI_API_BASEROUTER
 }
 if (process.env.OPENAI_API_KEYROUTER && !process.env.OPENAI_API_KEY) {
-  process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEYROUTER
+  process.env.[REDACTED]
 }
 
 const CONNECTOR_TIMEOUT_MS = 45000
@@ -127,7 +127,7 @@ async function generateWithFal({ prompt, negativePrompt, sourceImageDataUrl, out
 // ─── OpenAI DALL-E 3 connector ────────────────────────────────────────────────
 
 async function generateWithDalle({ prompt, outputCount = 1 }) {
-  const OPENAI_API_KEY = process.env.OPENAI_API_KEY
+  const [REDACTED]
 
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), CONNECTOR_TIMEOUT_MS)
@@ -257,3 +257,4 @@ export default async function handler(req, res) {
 
   return res.status(502).json({ error: result.reason })
 }
+

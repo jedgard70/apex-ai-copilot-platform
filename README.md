@@ -21,7 +21,7 @@ Source reference:
 Create `.env.local` locally:
 
 ```env
-OPENAI_API_KEY=your_key_here
+[REDACTED]
 OPENAI_MODEL=gpt-4o-mini
 ```
 
@@ -41,3 +41,4 @@ Open:
 ## Platform Documentation
 
 The platform documentation and target objective details are located in the `docs/` directory.
+
