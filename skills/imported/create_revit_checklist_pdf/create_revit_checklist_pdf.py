@@ -1,0 +1,1 @@
+from docx import Document\nfrom docx.shared import Inches, Pt\n\nOUT_DOCX = r\"D:\\AI Jedgard\\Checklist_Revit_Template_Edgard.docx\"\nOUT_PDF = r\"D:\\AI Jedgard\\Checklist_Revit_Template_Edgard.pdf\"\n\nsections = [\n    (\"1. Base do Template\", [\n        \"principal.rte como template principal.\",\n        \"Base parecida com Castanhari/Jedi.\",\n    ]),\n    (\"2. Pranch

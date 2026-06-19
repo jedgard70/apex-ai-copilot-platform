@@ -5,8 +5,9 @@ domains: [imported]
 entrypoint: Sites para encontrar blocos.txt
 triggers: [imported]
 risk: low
-enabled: false
+enabled: true
 ---
 
 Imported original path: D:\AI-constr\apex-ai-copilot-platform\skills\imported\recovered_docsedgard\skill\Sites para encontrar blocos.txt
+
 

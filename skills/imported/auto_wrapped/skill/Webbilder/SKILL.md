@@ -5,8 +5,9 @@ domains: [imported]
 entrypoint: Webbilder.txt
 triggers: [imported]
 risk: low
-enabled: false
+enabled: true
 ---
 
 Imported original path: D:\AI-constr\apex-ai-copilot-platform\skills\imported\recovered_docsedgard\skill\Webbilder.txt
+
 

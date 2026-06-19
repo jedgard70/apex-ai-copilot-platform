@@ -5,8 +5,9 @@ domains: [imported]
 entrypoint: copilot-behavior (2).md
 triggers: [imported]
 risk: low
-enabled: false
+enabled: true
 ---
 
 Imported original path: D:\AI-constr\apex-ai-copilot-platform\skills\imported\recovered_docsedgard\skill\copilot-behavior (2).md
+
 

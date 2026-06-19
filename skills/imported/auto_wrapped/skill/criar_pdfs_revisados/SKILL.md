@@ -5,8 +5,9 @@ domains: [imported]
 entrypoint: criar_pdfs_revisados.py:main
 triggers: [imported]
 risk: low
-enabled: false
+enabled: true
 ---
 
 Imported original path: D:\AI-constr\apex-ai-copilot-platform\skills\imported\recovered_docsedgard\skill\criar_pdfs_revisados.py
+
 

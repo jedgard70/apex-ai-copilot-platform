@@ -5,8 +5,9 @@ domains: [imported]
 entrypoint: file-intake.md
 triggers: [imported]
 risk: low
-enabled: false
+enabled: true
 ---
 
 Imported original path: D:\AI-constr\apex-ai-copilot-platform\skills\imported\recovered_docsedgard\skill\skill APEXAICOPILOT\apex-copilot-construction-intelligence\references\file-intake.md
+
 

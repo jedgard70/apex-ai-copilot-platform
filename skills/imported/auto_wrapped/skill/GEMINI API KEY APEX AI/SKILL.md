@@ -5,8 +5,9 @@ domains: [imported]
 entrypoint: GEMINI API KEY APEX AI.txt
 triggers: [imported]
 risk: low
-enabled: false
+enabled: true
 ---
 
 Imported original path: D:\AI-constr\apex-ai-copilot-platform\skills\imported\recovered_docsedgard\skill\GEMINI API KEY APEX AI.txt
+
 
