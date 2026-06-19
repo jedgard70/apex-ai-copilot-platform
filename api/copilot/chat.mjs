@@ -23,7 +23,7 @@ if (process.env.OPENAI_API_BASE && process.env.OPENAI_API_KEY) {
   const keyVal = String(process.env.OPENAI_API_KEY).trim()
   if (!baseVal.startsWith('http') && keyVal.startsWith('http')) {
     process.env.OPENAI_API_BASE = keyVal
-    process.env.[REDACTED]
+    process.env.OPENAI_API_KEY = baseVal
   }
 }
 
@@ -32,7 +32,7 @@ if (process.env.OPENAI_API_BASEROUTER && !process.env.OPENAI_API_BASE) {
   process.env.OPENAI_API_BASE = process.env.OPENAI_API_BASEROUTER
 }
 if (process.env.OPENAI_API_KEYROUTER && !process.env.OPENAI_API_KEY) {
-  process.env.[REDACTED]
+  process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEYROUTER
 }
 
 // Resolve base URL and API key based on the selected model
@@ -49,6 +49,120 @@ export function getOpenAIConfig(model) {
     }
   }
   return { apiBase, apiKey }
+}
+
+const DIRECT_GEMINI_MODELS = [
+  { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' },
+  { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' },
+  { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
+  { id: 'gemini-2.0-pro', name: 'Gemini 2.0 Pro' },
+  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
+]
+
+const GATEWAY_OPENAI_MODELS = [
+  { id: 'openai/gpt-4.1', name: 'GPT-4.1' },
+  { id: 'openai/gpt-4.1-mini', name: 'GPT-4.1 Mini' },
+  { id: 'openai/gpt-4.1-nano', name: 'GPT-4.1 Nano' },
+  { id: 'openai/gpt-4o', name: 'GPT-4o' },
+  { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini' },
+  { id: 'openai/gpt-5', name: 'GPT-5' },
+  { id: 'openai/gpt-5-chat', name: 'GPT-5 Chat' },
+  { id: 'openai/gpt-5-mini', name: 'GPT-5 Mini' },
+  { id: 'openai/gpt-5-nano', name: 'GPT-5 Nano' },
+  { id: 'openai/gpt-5-pro', name: 'GPT-5 Pro' },
+  { id: 'openai/gpt-5.1-codex', name: 'GPT-5.1 Codex' },
+  { id: 'openai/gpt-5.1-codex-max', name: 'GPT-5.1 Codex Max' },
+  { id: 'openai/gpt-5.1-codex-mini', name: 'GPT-5.1 Codex Mini' },
+  { id: 'openai/gpt-5.1-instant', name: 'GPT-5.1 Instant' },
+  { id: 'openai/gpt-5.1-thinking', name: 'GPT-5.1 Thinking' },
+  { id: 'openai/gpt-5.2', name: 'GPT-5.2' },
+  { id: 'openai/gpt-5.2-chat', name: 'GPT-5.2 Chat' },
+  { id: 'openai/gpt-5.2-codex', name: 'GPT-5.2 Codex' },
+  { id: 'openai/gpt-5.2-pro', name: 'GPT-5.2 Pro' },
+  { id: 'openai/o1', name: 'o1' },
+  { id: 'openai/o3', name: 'o3' },
+  { id: 'openai/o3-mini', name: 'o3 Mini' },
+  { id: 'openai/o3-pro', name: 'o3 Pro' },
+  { id: 'openai/o4-mini', name: 'o4 Mini' },
+]
+
+function composeModelValue(provider, modelId) {
+  return `${provider}|${modelId}`
+}
+
+function splitModelValue(value) {
+  const raw = String(value || '')
+  const separatorIndex = raw.indexOf('|')
+  if (separatorIndex === -1) {
+    return { provider: null, modelId: raw, raw }
+  }
+  const provider = raw.slice(0, separatorIndex)
+  const modelId = raw.slice(separatorIndex + 1)
+  return { provider, modelId, raw }
+}
+
+function buildStaticModelCatalog() {
+  return [
+    ...DIRECT_GEMINI_MODELS.map(model => ({
+      id: composeModelValue('gemini', model.id),
+      modelId: model.id,
+      provider: 'gemini',
+      name: model.name,
+    })),
+    ...GATEWAY_OPENAI_MODELS.map(model => ({
+      id: composeModelValue('gateway', model.id),
+      modelId: model.id,
+      provider: 'gateway',
+      name: model.name,
+    })),
+  ]
+}
+
+async function handleModelsList(res) {
+  try {
+    const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
+    const models = []
+    const seen = new Set()
+    const addModel = model => {
+      if (!model?.id || seen.has(model.id)) return
+      seen.add(model.id)
+      models.push(model)
+    }
+
+    const isOpenRouterConfigured =
+      apiBase.includes('openrouter.ai') ||
+      (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_BASEROUTER.includes('openrouter.ai'))
+
+    if (isOpenRouterConfigured) {
+      const openRouterBase = apiBase.includes('openrouter.ai') ? apiBase : process.env.OPENAI_API_BASEROUTER
+      const openRouterKey = apiBase.includes('openrouter.ai') ? process.env.OPENAI_API_KEY : process.env.OPENAI_API_KEYROUTER
+
+      try {
+        const response = await fetch(`${openRouterBase}/models`, {
+          headers: { Authorization: `Bearer ${openRouterKey}` },
+        })
+        if (response.ok) {
+          const data = await response.json()
+          for (const model of data.data || []) {
+            addModel({
+              id: composeModelValue('openrouter', model.id),
+              modelId: model.id,
+              provider: 'openrouter',
+              name: model.name || model.id,
+            })
+          }
+        }
+      } catch (err) {
+        console.error('Fetch OpenRouter models failed:', err)
+      }
+    }
+
+    for (const model of buildStaticModelCatalog()) addModel(model)
+
+    return sendJson(res, 200, { ok: true, provider: 'mixed', models })
+  } catch (err) {
+    return sendJson(res, 500, { ok: false, error: err.message, models: buildStaticModelCatalog() })
+  }
 }
 
 // APEX_FREE_AGENT (default ON): conversational messages bypass the canned
@@ -1003,12 +1117,15 @@ function buildConfirmationUi(result) {
 }
 
 export default async function handler(req, res) {
+  if (req.method === 'GET') {
+    return handleModelsList(res)
+  }
   if (req.method !== 'POST') {
-    res.setHeader('Allow', 'POST')
+    res.setHeader('Allow', 'GET, POST')
     return sendJson(res, 405, {
       error: 'Method not allowed',
-      finalReply: 'BLOCKED - esta rota aceita apenas POST JSON.',
-      reply: 'BLOCKED - esta rota aceita apenas POST JSON.',
+      finalReply: 'BLOCKED - esta rota aceita apenas GET (models) ou POST JSON (chat).',
+      reply: 'BLOCKED - esta rota aceita apenas GET (models) ou POST JSON (chat).',
     })
   }
 
@@ -1203,7 +1320,9 @@ export default async function handler(req, res) {
       })
     }
 
-    const model = body.model || process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini'
+    const selectedModelRaw = body.model || process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini'
+    const selectedModel = splitModelValue(selectedModelRaw)
+    const model = selectedModel.modelId || 'gpt-4o-mini'
     const { apiBase, apiKey: resolvedOpenAIKey } = getOpenAIConfig(model)
 
     const anthropicKey = process.env.ANTHROPIC_API_KEY
@@ -1369,7 +1488,7 @@ export default async function handler(req, res) {
     const provider = getChatProvider()
     const chatSource = provider === 'anthropic' ? 'anthropic' : 'openai'
     const requestPayload = {
-      model: body.model || process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
+      model,
       messages: liveAgentMessages,
       tools: buildLiveAgentToolDefinitions(),
       tool_choice: 'auto',
@@ -1448,7 +1567,7 @@ export default async function handler(req, res) {
             method: 'POST',
             headers: nextHeaders,
             body: JSON.stringify({
-              model: body.model || process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
+              model,
               messages: conversationMessages,
               tools: buildLiveAgentToolDefinitions(),
               tool_choice: 'auto',
@@ -1538,4 +1657,3 @@ export default async function handler(req, res) {
     })
   }
 }
-

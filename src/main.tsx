@@ -1071,8 +1071,17 @@ function App() {
   const [modelProvider, setModelProvider] = useState<string>('')
 
   useEffect(() => {
-    fetch('/api/copilot/models')
-      .then(res => res.json())
+    const loadModels = async () => {
+      const primary = await fetch('/api/copilot/chat?models=1').catch(() => null)
+      if (primary?.ok) return primary.json()
+
+      const fallback = await fetch('/api/copilot/models').catch(() => null)
+      if (fallback?.ok) return fallback.json()
+
+      return null
+    }
+
+    loadModels()
       .then(data => {
         if (data?.ok && Array.isArray(data.models)) {
           const models = data.models.map((model: any) => {
