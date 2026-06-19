@@ -121,6 +121,20 @@ const INTENT_PATTERNS = {
     /\bvoce sabe quem sou eu\b/,
     /\bvocê sabe quem sou eu\b/,
   ],
+  production_source_of_information: [
+    /\bonde (vc|voce|você) (conseguiu|tirou) (essa|essa) informacao\b/,
+    /\bde onde veio (isso|essa informacao|essa informação)\b/,
+    /\bqual (a )?fonte (disso|dessa informacao|dessa informação)\b/,
+    /\bsource of that information\b/,
+  ],
+  production_owner_assertion: [
+    /\bsou o dono\b/,
+    /\beu sou o dono\b/,
+    /\bsou owner\b/,
+    /\bsou o proprietario\b/,
+    /\bsou o proprietário\b/,
+    /\bjose edgard\b/,
+  ],
   production_computer_help: [
     /\b(arrumar|consertar|corrigir|diagnosticar).*\b(computador|pc|notebook)\b/,
     /\b(computador|pc|notebook).*\b(arrumar|consertar|corrigir|diagnosticar|erro|lento|travando|problema)\b/,
@@ -473,6 +487,14 @@ export function classifyProductionConversationIntent(message = '') {
     return 'production_who_am_i'
   }
 
+  if (includesAny(text, INTENT_PATTERNS.production_owner_assertion)) {
+    return 'production_owner_assertion'
+  }
+
+  if (includesAny(text, INTENT_PATTERNS.production_source_of_information)) {
+    return 'production_source_of_information'
+  }
+
   if (includesAny(text, INTENT_PATTERNS.production_background_agent_task_request)) {
     return 'production_background_agent_task_request'
   }
@@ -621,16 +643,17 @@ function buildCapabilityContinuationReply(messages = []) {
 }
 
 function buildCapabilityListingReply() {
+  const productionStatus = arguments[0] || {}
+  const connectorStatus = productionStatus.connectorStatus || {}
+  const githubReady = Boolean(connectorStatus?.github?.configured)
+  const vercelReady = Boolean(connectorStatus?.vercel?.configured)
+  const imageReady = Boolean(process.env.OPENAI_API_KEY)
   return [
-    'Capacidades reais (sem exagero):',
+    'Capacidades reais neste runtime (sem marketing):',
     '',
-    '| Área | Operacional agora | Depende de configuração | Não faço hoje |',
-    '|---|---|---|---|',
-    '| Código/arquivos | Analisar, editar, propor correções, validar e explicar | Execução externa avançada via conectores | Fingir teste/deploy sem evidência |',
-    '| BIM/Revit | Estratégia, checklist, padrões, documentação e plano técnico | Ação direta no ambiente conectado (MCP) | Dizer que alterei modelo sem conector |',
-    '| ArchViz/imagem | Prompt profissional, briefing, roteiro visual | Geração direta de imagem quando conector ativo | Inventar imagem gerada |',
-    '| DevOps (GitHub/Vercel/Supabase) | Diagnóstico e plano técnico | Push/deploy/migration reais com credenciais e confirmação | Declarar sucesso sem log/saída real |',
-    '| Pesquisa | Pesquisa web e síntese com fonte | Fontes premium externas específicas | Inventar dado atualizado sem fonte |',
+    `1. Operacional agora: conversa técnica, análise/edição de código, diagnóstico da plataforma, pesquisa web, geração de plano e execução local permitida.`,
+    `2. Depende de configuração: GitHub (${githubReady ? 'ativo' : 'pendente'}), Vercel (${vercelReady ? 'ativo' : 'pendente'}), geração de imagem (${imageReady ? 'ativa' : 'pendente'}).`,
+    '3. Não faço: inventar resultado, fingir deploy/migration/push, ou afirmar execução sem saída real/log.',
   ].join('\n')
 }
 
@@ -949,6 +972,22 @@ function buildNaturalFallbackReply(userMessage = '') {
   return 'Pode mandar a tarefa. Eu começo executando agora.'
 }
 
+function buildSourceOfInformationReply() {
+  return [
+    'Essa informação vem de três fontes: sua mensagem, estado real do runtime e resultado de ferramenta/comando.',
+    'Não uso dado inventado.',
+    'Se houver divergência, eu rodo checagem ao vivo e te devolvo a saída objetiva.',
+  ].join('\n')
+}
+
+function buildOwnerAssertionReply(identityContext = {}) {
+  const email = sanitizeDisplayName(identityContext.email || '')
+  if (email) {
+    return `Perfeito. Registro você como owner nesta conversa. Sessão atual vinculada a: ${email}. Vou responder no modo execução direta, sem resposta mecânica.`
+  }
+  return 'Perfeito. Registro você como owner nesta conversa. Vou responder no modo execução direta, sem resposta mecânica.'
+}
+
 function sectionTitleForIntent(intent, index) {
   const titles = {
     production_display_name_preference: 'Nome definido',
@@ -956,6 +995,8 @@ function sectionTitleForIntent(intent, index) {
     production_user_confusion: 'Explicação simples',
     production_name_identity: 'Nome preferido',
     production_who_am_i: 'Identidade da conta',
+    production_owner_assertion: 'Owner',
+    production_source_of_information: 'Fonte da informação',
     production_github_connector_status: 'GitHub connector status',
     production_vercel_connector_status: 'Vercel connector status',
     production_connector_status: 'Connector status',
@@ -992,7 +1033,9 @@ function buildReplyForIntent(intent, {
   knownName = '',
   multiQuestionContext = false,
 } = {}) {
-  if (intent === 'production_capability_listing') return buildCapabilityListingReply()
+  if (intent === 'production_capability_listing') return buildCapabilityListingReply(productionStatus)
+  if (intent === 'production_source_of_information') return buildSourceOfInformationReply()
+  if (intent === 'production_owner_assertion') return buildOwnerAssertionReply(identityContext)
   if (intent === 'production_capability_repair') return buildCapabilityRepairReply(messages, userMessage)
   if (intent === 'production_capability_continuation') return buildCapabilityContinuationReply(messages)
   if (intent === 'production_orcamento_sinapi_help') return buildOrcamentoSinapiReply()
@@ -1059,10 +1102,10 @@ function buildMultiIntentReply({
 
 const REPLIES = {
   production_background_agent_task_request: 'Entendido! Agendei a tarefa em segundo plano de análise de incompatibilidades (Hidrossanitário vs Estrutura) para rodar de forma autônoma durante a noite. Você poderá acompanhar o progresso e o relatório final no painel de Cognitive Agents ao lado.',
-  production_greeting: 'Olá{{displayName}}. Pode me dizer o que quer resolver. Posso responder, organizar um plano, redigir documentos ou preparar um passo a passo — me diga o que precisa.',
+  production_greeting: 'Olá{{displayName}}. Manda a tarefa em uma linha e eu executo agora.',
   production_user_correction: 'Correto. Vou responder apenas ao que você pedir, em português, sem repetir status técnico quando não for necessário.',
   production_acknowledgement: 'Entendido{{displayName}}. Vou manter esse contexto nesta sessão.',
-  production_next_step: 'Me diga o próximo passo que quer dar. Posso preparar plano, rascunho, checklist ou orçamento — só falar o que quer resolver.',
+  production_next_step: 'Manda a tarefa direta e eu executo agora. Se faltar conector em alguma etapa, eu te digo exatamente o que falta e sigo com alternativa útil.',
   production_execute_recommended: [
     'Posso preparar o pacote H4.1: ajuste de memória de sessão, correção do executor em Vercel e respostas operacionais para posição da plataforma, próximo passo e execução recomendada.',
     'Execução real de alteração no código depende do Codex/local executor.',
