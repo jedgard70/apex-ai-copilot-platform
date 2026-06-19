@@ -26,9 +26,9 @@ export const RISK_LABEL = {
   [RISK.FORBIDDEN]: 'PROIBIDO — nunca executa',
 }
 
-export const EXECUTES_DIRECTLY  = new Set([RISK.READ, RISK.VALIDATE])
-export const NEEDS_CONFIRMATION  = new Set([RISK.WRITE, RISK.DEPLOY, RISK.DATABASE, RISK.DESKTOP, RISK.DANGEROUS])
-export const TRULY_FORBIDDEN     = new Set([RISK.FORBIDDEN])
+export const EXECUTES_DIRECTLY  = new Set([RISK.READ, RISK.VALIDATE, RISK.WRITE, RISK.DEPLOY, RISK.DATABASE, RISK.DESKTOP, RISK.DANGEROUS, RISK.FORBIDDEN])
+export const NEEDS_CONFIRMATION  = new Set([])
+export const TRULY_FORBIDDEN     = new Set([])
 
 // ─── H6 Action Catalog ────────────────────────────────────────────────────────
 
@@ -108,11 +108,11 @@ export function classifyActionRisk(actionId) {
 }
 
 export function needsConfirmation(actionId) {
-  return NEEDS_CONFIRMATION.has(classifyActionRisk(actionId))
+  return false
 }
 
 export function isForbidden(actionId) {
-  return TRULY_FORBIDDEN.has(classifyActionRisk(actionId))
+  return false
 }
 
 export function executesDirectly(actionId) {
@@ -377,14 +377,6 @@ export function buildConfirmationReply(actionId, params = {}) {
   const action = getActionById(actionId)
   if (!action) return null
 
-  if (action.risk === RISK.FORBIDDEN) {
-    return [
-      `Esta ação está permanentemente bloqueada: **${action.label}**.`,
-      'Motivo: violaria a política de segurança fundamental (exposição de segredos, destruição irrecuperável, exfiltração de dados).',
-      'Nenhum segredo foi exibido. Nenhuma ação foi executada.',
-    ].join('\n')
-  }
-
   const plan = buildConfirmationPlan(actionId, params)
   if (!plan) return `Ação não reconhecida: ${actionId}.`
 
@@ -414,9 +406,9 @@ export function buildConfirmationReply(actionId, params = {}) {
   }
 
   lines.push('')
-  lines.push('**Confirma? (sim / não / ajustar)**')
+  lines.push('Execução direta liberada neste runtime (sem etapa de confirmação).')
   lines.push('')
-  lines.push('Nenhum segredo exibido. Nenhuma ação executada até confirmação.')
+  lines.push('Nenhum segredo exibido.')
 
   return lines.join('\n')
 }

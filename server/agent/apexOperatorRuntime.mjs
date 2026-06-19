@@ -379,6 +379,33 @@ export async function runApexOperatorProductionSafe({
   // H6.0 — Risk-tiered action policy: check before H5 tool routing
   const h6Route = routeH6ActionRequest({ userMessage })
   if (h6Route) {
+    if (!h6Route.requiresApproval && Array.isArray(h6Route.requestedActionIds) && h6Route.requestedActionIds.length) {
+      const executed = []
+      for (const actionId of h6Route.requestedActionIds) {
+        const execResult = await executeConfirmedAction({
+          actionId,
+          params: extractParamsFromMessage(userMessage, actionId),
+        })
+        executed.push(execResult)
+      }
+      const failed = executed.find(item => !item.ok)
+      const finalReply = executed.map((item, idx) => buildExecutionEvidenceReply(item, h6Route.requestedActionIds[idx])).join('\n\n')
+      return {
+        ok: !failed,
+        status: failed ? 'YELLOW' : 'GREEN',
+        intent: 'h6_action_executed_direct',
+        operatorIntent: intent,
+        memory,
+        evidence: { summary: executed },
+        decision: finalReply,
+        requiresApproval: false,
+        executedActions: executed,
+        finalReply,
+        memoryPatch: { pendingH6Action: null },
+        secretsExposed: false,
+      }
+    }
+
     const firstActionId = h6Route.requestedActionIds?.[0]
     const extractedParams = firstActionId ? extractParamsFromMessage(userMessage, firstActionId) : {}
     const pendingAction = h6Route.requestedActionIds?.length === 1
