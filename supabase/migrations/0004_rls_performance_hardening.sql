@@ -251,6 +251,7 @@ using (
 -- ---------------------------------------------------------------------------
 
 drop policy if exists tenants_owner_admin_write on public.tenants;
+drop policy if exists tenants_owner_admin_insert on public.tenants;
 create policy tenants_owner_admin_insert
 on public.tenants
 for insert
