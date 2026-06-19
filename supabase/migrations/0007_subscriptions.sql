@@ -93,7 +93,8 @@ alter table public.invoices enable row level security;
 
 -- Users can read their own tenant's billing data
 drop policy if exists "Users can read own tenant stripe customers" on public.stripe_customers;
-drop policy if exists Users can read own tenant stripe customers on public.stripe_customers for select;\ncreate policy Users can read own tenant stripe customers on public.stripe_customers for select
+drop policy if exists Users can read own tenant stripe customers on public.stripe_customers for select;
+create policy Users can read own tenant stripe customers on public.stripe_customers for select
   to authenticated
   using (
     tenant_id in (
@@ -103,7 +104,8 @@ drop policy if exists Users can read own tenant stripe customers on public.strip
   );
 
 drop policy if exists "Users can read own tenant subscriptions" on public.subscriptions;
-drop policy if exists Users can read own tenant subscriptions on public.subscriptions for select;\ncreate policy Users can read own tenant subscriptions on public.subscriptions for select
+drop policy if exists Users can read own tenant subscriptions on public.subscriptions for select;
+create policy Users can read own tenant subscriptions on public.subscriptions for select
   to authenticated
   using (
     tenant_id in (
@@ -113,7 +115,8 @@ drop policy if exists Users can read own tenant subscriptions on public.subscrip
   );
 
 drop policy if exists "Users can read own tenant invoices" on public.invoices;
-drop policy if exists Users can read own tenant invoices on public.invoices for select;\ncreate policy Users can read own tenant invoices on public.invoices for select
+drop policy if exists Users can read own tenant invoices on public.invoices for select;
+create policy Users can read own tenant invoices on public.invoices for select
   to authenticated
   using (
     tenant_id in (
@@ -124,4 +127,5 @@ drop policy if exists Users can read own tenant invoices on public.invoices for 
 
 -- Only server (service role) can insert/update billing records
 -- No insert/update/delete policies for authenticated users on billing tables
+
 
