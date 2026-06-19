@@ -642,40 +642,58 @@ function buildCapabilityContinuationReply(messages = []) {
   ].join('\n')
 }
 
-function buildCapabilityListingReply() {
-  const productionStatus = arguments[0] || {}
+function buildRuntimeCapabilitySnapshot(productionStatus = {}) {
   const connectorStatus = productionStatus.connectorStatus || {}
+  const capabilities = productionStatus.capabilities || {}
   const githubReady = Boolean(connectorStatus?.github?.configured)
   const vercelReady = Boolean(connectorStatus?.vercel?.configured)
+  const supabaseReady = Boolean(process.env.SUPABASE_ACCESS_TOKEN || process.env.SUPABASE_DB_URL)
   const imageReady = Boolean(process.env.OPENAI_API_KEY)
+  const webSearchReady = Boolean(process.env.TAVILY_API_KEY)
+  const localShellStatus = String(capabilities.localShell || '').toLowerCase()
+  const localShellActive = localShellStatus.includes('active') || localShellStatus.includes('supported')
+  return {
+    githubReady,
+    vercelReady,
+    supabaseReady,
+    imageReady,
+    webSearchReady,
+    localShellActive,
+    checkedAt: productionStatus?.checkedAt || '',
+  }
+}
+
+function buildCapabilityListingReply(productionStatus = {}) {
+  const snap = buildRuntimeCapabilitySnapshot(productionStatus)
   return [
     'Capacidades reais neste runtime (sem marketing):',
     '',
-    `1. Operacional agora: conversa técnica, análise/edição de código, diagnóstico da plataforma, pesquisa web, geração de plano e execução local permitida.`,
-    `2. Depende de configuração: GitHub (${githubReady ? 'ativo' : 'pendente'}), Vercel (${vercelReady ? 'ativo' : 'pendente'}), geração de imagem (${imageReady ? 'ativa' : 'pendente'}).`,
+    `1. Operacional agora: conversa técnica, análise/edição de código, diagnóstico da plataforma, pesquisa web (${snap.webSearchReady ? 'Tavily ativo' : 'fallback básico'}), execução local (${snap.localShellActive ? 'ativa' : 'parcial'}).`,
+    `2. Depende de configuração: GitHub (${snap.githubReady ? 'ativo' : 'pendente'}), Vercel (${snap.vercelReady ? 'ativo' : 'pendente'}), Supabase (${snap.supabaseReady ? 'ativo' : 'pendente'}), geração de imagem (${snap.imageReady ? 'ativa' : 'pendente'}).`,
     '3. Não faço: inventar resultado, fingir deploy/migration/push, ou afirmar execução sem saída real/log.',
   ].join('\n')
 }
 
-function buildCapabilityRepairReply(messages = [], userMessage = '') {
+function buildCapabilityRepairReply(messages = [], userMessage = '', productionStatus = {}) {
   const normalized = normalizeMessage(userMessage)
   const isMechanicalCritique = /mecanico|mecânico|incompleto|superficial|faltou|nao e so/.test(normalized)
+  const snap = buildRuntimeCapabilitySnapshot(productionStatus)
 
   const intro = isMechanicalCritique
-    ? 'Você tem razão. A resposta anterior ficou mecânica. Aqui vai o real, sem marketing:'
-    : 'Aqui vai a versão real, objetiva e sem exagero:'
+    ? 'Você tem razão. Aqui está o estado real, sem frase pronta:'
+    : 'Estado real do runtime:'
 
   return [
     intro,
     '',
-    '| Área | O que faço de verdade | Limite atual |',
-    '|---|---|---|',
-    '| Resolução de tarefas | Entrego texto, código, plano, revisão e diagnóstico | Se faltar conector, não executo ação externa real |',
-    '| Imagem/render | Tento gerar imagem quando disponível; senão devolvo prompt final de produção | Sem conector ativo, não sai imagem nativa |',
-    '| Deploy/migration | Posso preparar e validar; executo com confirmação/evidência | Sem credencial ou rota ativa, não afirmo execução |',
-    '| Dados de internet | Posso pesquisar e citar fontes | Sem fonte, marco como não verificado |',
+    `- Shell local: ${snap.localShellActive ? 'ativo' : 'parcial/indisponível no contexto atual'}.`,
+    `- GitHub: ${snap.githubReady ? 'configurado' : 'não configurado neste runtime'}.`,
+    `- Vercel: ${snap.vercelReady ? 'configurado' : 'não configurado neste runtime'}.`,
+    `- Supabase: ${snap.supabaseReady ? 'configurado' : 'não configurado neste runtime'}.`,
+    `- Geração de imagem: ${snap.imageReady ? 'configurada' : 'não configurada'}.`,
+    `- Pesquisa web: ${snap.webSearchReady ? 'Tavily configurado' : 'modo fallback básico'}.`,
     '',
-    'Se você mandar uma tarefa agora (ex.: "gere fachada contemporânea entardecer"), eu executo no modo real: tentativa de geração + fallback com prompt pronto, sem enrolar.',
+    'Regra operacional aplicada: execução primeiro; se faltar conector para uma etapa, informo exatamente o item faltante e continuo com saída útil no mesmo turno.',
   ].join('\n')
 }
 
@@ -974,9 +992,9 @@ function buildNaturalFallbackReply(userMessage = '') {
 
 function buildSourceOfInformationReply() {
   return [
-    'Essa informação vem de três fontes: sua mensagem, estado real do runtime e resultado de ferramenta/comando.',
+    'Essa informação vem de três fontes: sua mensagem, estado real do runtime e saída de ferramenta/comando.',
     'Não uso dado inventado.',
-    'Se houver divergência, eu rodo checagem ao vivo e te devolvo a saída objetiva.',
+    'Se houver divergência, eu rodo checagem ao vivo e devolvo a saída objetiva.',
   ].join('\n')
 }
 
@@ -1036,7 +1054,7 @@ function buildReplyForIntent(intent, {
   if (intent === 'production_capability_listing') return buildCapabilityListingReply(productionStatus)
   if (intent === 'production_source_of_information') return buildSourceOfInformationReply()
   if (intent === 'production_owner_assertion') return buildOwnerAssertionReply(identityContext)
-  if (intent === 'production_capability_repair') return buildCapabilityRepairReply(messages, userMessage)
+  if (intent === 'production_capability_repair') return buildCapabilityRepairReply(messages, userMessage, productionStatus)
   if (intent === 'production_capability_continuation') return buildCapabilityContinuationReply(messages)
   if (intent === 'production_orcamento_sinapi_help') return buildOrcamentoSinapiReply()
   if (intent === 'production_proposta_contrato_help') return buildPropostaContratoReply()
