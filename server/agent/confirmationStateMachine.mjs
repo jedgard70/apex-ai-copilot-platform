@@ -142,17 +142,6 @@ export async function executeConfirmedAction(pending = {}) {
 
   // Local Worker path — git/npm operations
   if (workerAction) {
-    const workerUrl = process.env.LOCAL_WORKER_URL
-    const workerToken = process.env.LOCAL_WORKER_TOKEN
-    if (!workerUrl || !workerToken) {
-      return {
-        ok: false,
-        actionId,
-        reason: 'Local Worker não configurado (LOCAL_WORKER_URL + LOCAL_WORKER_TOKEN necessários). Configure o worker no seu PC e adicione as variáveis ao Vercel.',
-        requiresLocalWorker: true,
-        secretsExposed: false,
-      }
-    }
     const result = await runLocalWorkerAction(workerAction, {
       confirmed: true,
       rollbackAcknowledged: action.risk === RISK.DANGEROUS,
@@ -481,12 +470,6 @@ export function buildExecutionEvidenceReply(result, actionId) {
   }
 
   // Requires local worker
-  if (result.requiresLocalWorker) {
-    lines.push('')
-    lines.push('Para executar esta ação, o Apex Local Worker precisa estar rodando no seu PC.')
-    lines.push('Configure LOCAL_WORKER_URL e LOCAL_WORKER_TOKEN no Vercel e inicie o worker com: node local-worker/server.mjs')
-  }
-
   lines.push('')
   lines.push('Nenhum segredo foi exibido.')
   return lines.join('\n')

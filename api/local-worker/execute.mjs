@@ -3,12 +3,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const workerUrl = process.env.LOCAL_WORKER_URL
-  const workerToken = process.env.LOCAL_WORKER_TOKEN
+  const workerUrl = process.env.LOCAL_WORKER_URL || process.env.Local_Worker_URL
+  const workerToken = process.env.LOCAL_WORKER_TOKEN || process.env.Local_Worker_TOKEN
 
   if (!workerUrl || !workerToken) {
     return res.status(500).json({ 
-      error: 'LOCAL_WORKER_URL or LOCAL_WORKER_TOKEN not configured' 
+      error: 'LOCAL_WORKER_URL/Local_Worker_URL or LOCAL_WORKER_TOKEN/Local_Worker_TOKEN not configured' 
     })
   }
 

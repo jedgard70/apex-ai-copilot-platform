@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, utilityProcess } = require('electron');
+const { app, BrowserWindow, Menu, utilityProcess, ipcMain, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -139,7 +139,69 @@ function cleanup() {
   }
 }
 
+const http = require('http');
+const crypto = require('crypto');
+
+function base64URLEncode(buf) { return buf.toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function sha256(buffer) { return crypto.createHash('sha256').update(buffer).digest(); }
+
+async function startAuthServerAndOpen() {
+  const clientId = process.env.AUTH0_CLIENT_ID;
+  const clientSecret = process.env.AUTH0_CLIENT_SECRET;
+  const domain = process.env.AUTH0_DOMAIN;
+  if (!clientId || !domain) { log('[auth] Missing AUTH0_CLIENT_ID or AUTH0_DOMAIN'); return {error:'missing-config'};}
+  const codeVerifier = base64URLEncode(crypto.randomBytes(32));
+  const codeChallenge = base64URLEncode(sha256(codeVerifier));
+  const state = crypto.randomBytes(8).toString('hex');
+  const redirectPort = 4178;
+  const redirectUri = `http://127.0.0.1:${redirectPort}/callback`;
+  const authUrl = `https://${domain}/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=openid%20profile%20email&code_challenge=${codeChallenge}&code_challenge_method=S256&state=${state}`;
+  return new Promise((resolve, reject) => {
+    const server = http.createServer(async (req, res) => {
+      if (req.url && req.url.startsWith('/callback')) {
+        const urlObj = new URL(req.url, `http://127.0.0.1:${redirectPort}`);
+        const code = urlObj.searchParams.get('code');
+        const returnedState = urlObj.searchParams.get('state');
+        res.writeHead(200, {'Content-Type':'text/html'});
+        res.end('<html><body><script>window.close()</script>Authentication complete. You can close this window.</body></html>');
+        server.close();
+        if (state !== returnedState) { resolve({error:'state_mismatch'}); return; }
+        try {
+          const tokenResp = await fetch(`https://${domain}/oauth/token`, {
+            method:'POST',
+            headers:{ 'Content-Type':'application/json' },
+            body: JSON.stringify({
+              grant_type: 'authorization_code',
+              client_id: clientId,
+              client_secret: clientSecret,
+              code,
+              redirect_uri: redirectUri,
+              code_verifier: codeVerifier
+            })
+          });
+          const tokenJson = await tokenResp.json();
+          if (mainWindow && mainWindow.webContents) {
+            mainWindow.webContents.send('auth-tokens', tokenJson);
+          }
+          resolve({ok:true, tokens: tokenJson});
+        } catch (err) {
+          resolve({error: err.message});
+        }
+      } else {
+        res.writeHead(404); res.end();
+      }
+    });
+    server.listen(redirectPort, '127.0.0.1', () => {
+      shell.openExternal(authUrl);
+    });
+    server.on('error', (err) => { resolve({error:err.message}); });
+  });
+}
+
+ipcMain.handle('auth-start', async () => { return await startAuthServerAndOpen(); });
+
 app.on('ready', () => {
+
   const userData = app.getPath('userData');
   if (!fs.existsSync(userData)) {
     fs.mkdirSync(userData, { recursive: true });
