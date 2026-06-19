@@ -5,9 +5,10 @@ domains: [imported]
 entrypoint: __init__.py:main
 triggers: [imported]
 risk: low
-enabled: true
+enabled: false
 ---
 
 Imported original path: D:\AI-constr\apex-ai-copilot-platform\skills\imported\recovered_docsedgard\skill\docx\scripts\office\helpers\__init__.py
+
 
 
