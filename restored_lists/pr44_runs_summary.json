@@ -1,0 +1,34 @@
+[
+  {
+    "url": "https://github.com/jedgard70/apex-ai-copilot-platform/actions/runs/27836121168",
+    "logFile": "D:\\AI-constr\\apex-ai-copilot-platform\\restored_lists\\run_27836121168_log.txt",
+    "name": "Apex Sync",
+    "id": 27836121168,
+    "conclusion": "failure",
+    "status": "completed"
+  },
+  {
+    "url": "https://github.com/jedgard70/apex-ai-copilot-platform/actions/runs/27835934202",
+    "logFile": "D:\\AI-constr\\apex-ai-copilot-platform\\restored_lists\\run_27835934202_log.txt",
+    "name": "Apex Sync",
+    "id": 27835934202,
+    "conclusion": "failure",
+    "status": "completed"
+  },
+  {
+    "url": "https://github.com/jedgard70/apex-ai-copilot-platform/actions/runs/27835798355",
+    "logFile": "D:\\AI-constr\\apex-ai-copilot-platform\\restored_lists\\run_27835798355_log.txt",
+    "name": "Apex Sync",
+    "id": 27835798355,
+    "conclusion": "failure",
+    "status": "completed"
+  },
+  {
+    "url": "https://github.com/jedgard70/apex-ai-copilot-platform/actions/runs/27835514474",
+    "logFile": "D:\\AI-constr\\apex-ai-copilot-platform\\restored_lists\\run_27835514474_log.txt",
+    "name": "Apex Sync",
+    "id": 27835514474,
+    "conclusion": "failure",
+    "status": "completed"
+  }
+]

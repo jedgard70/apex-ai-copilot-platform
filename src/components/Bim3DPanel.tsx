@@ -1,5 +1,5 @@
-import { Suspense, useEffect, useMemo, useState } from 'react'
-import { IfcViewer } from './IfcViewer'
+import React, { Suspense, useEffect, useMemo, useState } from 'react'
+const IfcViewer = React.lazy(() => import('./IfcViewer').then(m => ({ default: m.IfcViewer })))
 import {
   AlertTriangle,
   Aperture,
@@ -667,7 +667,9 @@ export function Bim3DPanel({ source, externalCommand, onSendTourToDirectCut, onS
       <div className="bim3d-stage">
         {ext === 'ifc' ? (
           <Suspense fallback={<div className="bim3d-viewer-shell"><Box size={42} /><span>Carregando IFC…</span></div>}>
-            <IfcViewer file={source.file} />
+            <Suspense fallback={<div>Loading 3D viewer...</div>}>
+              <IfcViewer file={source.file} />
+            </Suspense>
           </Suspense>
         ) : (
           <div className="bim3d-viewer-shell">
