@@ -1,5 +1,0 @@
-interface:
-  display_name: "Apex Copilot Construction Intelligence"
-  short_description: "Construction-specialized AI for file intake, BIM, ArchVis, DirectCut, budgets, contracts, and field operations."
-  icon: "sparkles"
-  accent_color: "#0B2345"

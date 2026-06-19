@@ -16,7 +16,7 @@ if (process.env.OPENAI_API_BASE && process.env.OPENAI_API_KEY) {
   const keyVal = String(process.env.OPENAI_API_KEY).trim()
   if (!baseVal.startsWith('http') && keyVal.startsWith('http')) {
     process.env.OPENAI_API_BASE = keyVal
-    process.env.OPENAI_API_KEY = baseVal
+    process.env.[REDACTED]
   }
 }
 
@@ -25,7 +25,7 @@ if (process.env.OPENAI_API_BASEROUTER && !process.env.OPENAI_API_BASE) {
   process.env.OPENAI_API_BASE = process.env.OPENAI_API_BASEROUTER
 }
 if (process.env.OPENAI_API_KEYROUTER && !process.env.OPENAI_API_KEY) {
-  process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEYROUTER
+  process.env.[REDACTED]
 }
 
 function sendJson(res, status, body) {
@@ -127,3 +127,4 @@ export default async function handler(req, res) {
     return sendJson(res, 500, { error: `Erro interno: ${err.message}` })
   }
 }
+

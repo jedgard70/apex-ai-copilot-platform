@@ -1,5 +1,0 @@
-supabase novo 
-cd D:\AI-constr\apex-ai-copilot-platform
-$env:SUPABASE_DB_PASSWORD="$#@290314Je$#@"
-npx.cmd supabase db push --linked --dry-run
-npx.cmd supabase db push --linked

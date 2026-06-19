@@ -1,3 +1,0 @@
-api claude
-
-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

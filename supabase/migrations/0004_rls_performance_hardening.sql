@@ -164,8 +164,8 @@ create index if not exists user_preferences_user_id_fk_idx on public.user_prefer
 -- ---------------------------------------------------------------------------
 
 drop policy if exists audit_logs_authenticated_insert on public.audit_logs;
-create policy audit_logs_authenticated_insert
-on public.audit_logs
+drop policy if exists audit_logs_authenticated_insert on public.audit_logs;
+create policy audit_logs_authenticated_insert on public.audit_logs
 for insert
 to authenticated
 with check (
@@ -174,8 +174,8 @@ with check (
 );
 
 drop policy if exists profiles_select_self_or_tenant_admin on public.profiles;
-create policy profiles_select_self_or_tenant_admin
-on public.profiles
+drop policy if exists profiles_select_self_or_tenant_admin on public.profiles;
+create policy profiles_select_self_or_tenant_admin on public.profiles
 for select
 to authenticated
 using (
@@ -193,16 +193,18 @@ using (
 );
 
 drop policy if exists profiles_update_self on public.profiles;
-create policy profiles_update_self
-on public.profiles
+drop policy if exists profiles_update_self on public.profiles;
+create policy profiles_update_self on public.profiles
 for update
 to authenticated
 using (id = (select auth.uid()))
 with check (id = (select auth.uid()));
 
 drop policy if exists user_preferences_self on public.user_preferences;
-create policy user_preferences_self_select
-on public.user_preferences
+-- ensure idempotency: drop the exact select policy if present
+drop policy if exists user_preferences_self_select on public.user_preferences;
+drop policy if exists user_preferences_self_select on public.user_preferences;
+create policy user_preferences_self_select on public.user_preferences
 for select
 to authenticated
 using (
@@ -210,8 +212,9 @@ using (
   and (tenant_id is null or app_private.is_tenant_member(tenant_id))
 );
 
-create policy user_preferences_self_insert
-on public.user_preferences
+drop policy if exists user_preferences_self_insert on public.user_preferences;
+drop policy if exists user_preferences_self_insert on public.user_preferences;
+create policy user_preferences_self_insert on public.user_preferences
 for insert
 to authenticated
 with check (
@@ -219,8 +222,9 @@ with check (
   and (tenant_id is null or app_private.is_tenant_member(tenant_id))
 );
 
-create policy user_preferences_self_update
-on public.user_preferences
+drop policy if exists user_preferences_self_update on public.user_preferences;
+drop policy if exists user_preferences_self_update on public.user_preferences;
+create policy user_preferences_self_update on public.user_preferences
 for update
 to authenticated
 using (
@@ -232,8 +236,9 @@ with check (
   and (tenant_id is null or app_private.is_tenant_member(tenant_id))
 );
 
-create policy user_preferences_self_delete
-on public.user_preferences
+drop policy if exists user_preferences_self_delete on public.user_preferences;
+drop policy if exists user_preferences_self_delete on public.user_preferences;
+create policy user_preferences_self_delete on public.user_preferences
 for delete
 to authenticated
 using (
@@ -246,8 +251,9 @@ using (
 -- ---------------------------------------------------------------------------
 
 drop policy if exists tenants_owner_admin_write on public.tenants;
-create policy tenants_owner_admin_insert
-on public.tenants
+drop policy if exists tenants_owner_admin_insert on public.tenants;
+drop policy if exists tenants_owner_admin_insert on public.tenants;
+create policy tenants_owner_admin_insert on public.tenants
 for insert
 to authenticated
 with check (
@@ -255,50 +261,55 @@ with check (
   or app_private.has_tenant_role(id, array['owner_admin']::public.user_role[])
 );
 
-create policy tenants_owner_admin_update
-on public.tenants
+drop policy if exists tenants_owner_admin_update on public.tenants;
+drop policy if exists tenants_owner_admin_update on public.tenants;
+create policy tenants_owner_admin_update on public.tenants
 for update
 to authenticated
 using (app_private.has_tenant_role(id, array['owner_admin']::public.user_role[]))
 with check (app_private.has_tenant_role(id, array['owner_admin']::public.user_role[]));
 
-create policy tenants_owner_admin_delete
-on public.tenants
+drop policy if exists tenants_owner_admin_delete on public.tenants;
+drop policy if exists tenants_owner_admin_delete on public.tenants;
+create policy tenants_owner_admin_delete on public.tenants
 for delete
 to authenticated
 using (app_private.has_tenant_role(id, array['owner_admin']::public.user_role[]));
 
 drop policy if exists tenant_members_owner_admin_write on public.tenant_members;
-create policy tenant_members_owner_admin_insert
-on public.tenant_members
+drop policy if exists tenant_members_owner_admin_insert on public.tenant_members;
+create policy tenant_members_owner_admin_insert on public.tenant_members
 for insert
 to authenticated
 with check (app_private.has_tenant_role(tenant_id, array['owner_admin']::public.user_role[]));
 
-create policy tenant_members_owner_admin_update
-on public.tenant_members
+drop policy if exists tenant_members_owner_admin_update on public.tenant_members;
+
+create policy tenant_members_owner_admin_update on public.tenant_members
 for update
 to authenticated
 using (app_private.has_tenant_role(tenant_id, array['owner_admin']::public.user_role[]))
 with check (app_private.has_tenant_role(tenant_id, array['owner_admin']::public.user_role[]));
 
-create policy tenant_members_owner_admin_delete
-on public.tenant_members
+drop policy if exists tenant_members_owner_admin_delete on public.tenant_members;
+
+create policy tenant_members_owner_admin_delete on public.tenant_members
 for delete
 to authenticated
 using (app_private.has_tenant_role(tenant_id, array['owner_admin']::public.user_role[]));
 
 drop policy if exists project_members_admin_write on public.project_members;
-create policy project_members_admin_insert
-on public.project_members
+drop policy if exists project_members_admin_insert on public.project_members;
+create policy project_members_admin_insert on public.project_members
 for insert
 to authenticated
 with check (
   app_private.has_tenant_role(tenant_id, array['owner_admin', 'project_manager']::public.user_role[])
 );
 
-create policy project_members_admin_update
-on public.project_members
+drop policy if exists project_members_admin_update on public.project_members;
+drop policy if exists project_members_admin_update on public.project_members;
+create policy project_members_admin_update on public.project_members
 for update
 to authenticated
 using (
@@ -308,8 +319,9 @@ with check (
   app_private.has_tenant_role(tenant_id, array['owner_admin', 'project_manager']::public.user_role[])
 );
 
-create policy project_members_admin_delete
-on public.project_members
+drop policy if exists project_members_admin_delete on public.project_members;
+drop policy if exists project_members_admin_delete on public.project_members;
+create policy project_members_admin_delete on public.project_members
 for delete
 to authenticated
 using (
@@ -332,19 +344,21 @@ begin
   ]
   loop
     execute format('drop policy if exists %I on public.%I', table_name || '_crm_write', table_name);
-
+    execute format('drop policy if exists %I on public.%I', table_name || '_crm_insert', table_name);
     execute format(
       'create policy %I on public.%I for insert to authenticated with check (app_private.can_access_crm(tenant_id))',
       table_name || '_crm_insert',
       table_name
     );
 
+    execute format('drop policy if exists %I on public.%I', table_name || '_crm_update', table_name);
     execute format(
       'create policy %I on public.%I for update to authenticated using (app_private.can_access_crm(tenant_id)) with check (app_private.can_access_crm(tenant_id))',
       table_name || '_crm_update',
       table_name
     );
 
+    execute format('drop policy if exists %I on public.%I', table_name || '_crm_delete', table_name);
     execute format(
       'create policy %I on public.%I for delete to authenticated using (app_private.can_access_crm(tenant_id))',
       table_name || '_crm_delete',
@@ -365,18 +379,21 @@ begin
   loop
     execute format('drop policy if exists %I on public.%I', table_name || '_finance_write', table_name);
 
+    execute format('drop policy if exists %I on public.%I', table_name || '_finance_insert', table_name);
     execute format(
       'create policy %I on public.%I for insert to authenticated with check (app_private.can_access_finance(tenant_id))',
       table_name || '_finance_insert',
       table_name
     );
 
+    execute format('drop policy if exists %I on public.%I', table_name || '_finance_update', table_name);
     execute format(
       'create policy %I on public.%I for update to authenticated using (app_private.can_access_finance(tenant_id)) with check (app_private.can_access_finance(tenant_id))',
       table_name || '_finance_update',
       table_name
     );
 
+    execute format('drop policy if exists %I on public.%I', table_name || '_finance_delete', table_name);
     execute format(
       'create policy %I on public.%I for delete to authenticated using (app_private.can_access_finance(tenant_id))',
       table_name || '_finance_delete',
@@ -391,8 +408,9 @@ end $$;
 
 drop policy if exists public_assets_admin_write on storage.objects;
 
-create policy public_assets_admin_insert
-on storage.objects
+drop policy if exists public_assets_admin_insert on storage.objects;
+drop policy if exists public_assets_admin_insert on storage.objects;
+create policy public_assets_admin_insert on storage.objects
 for insert
 to authenticated
 with check (
@@ -403,8 +421,9 @@ with check (
   )
 );
 
-create policy public_assets_admin_update
-on storage.objects
+drop policy if exists public_assets_admin_update on storage.objects;
+drop policy if exists public_assets_admin_update on storage.objects;
+create policy public_assets_admin_update on storage.objects
 for update
 to authenticated
 using (
@@ -422,8 +441,9 @@ with check (
   )
 );
 
-create policy public_assets_admin_delete
-on storage.objects
+drop policy if exists public_assets_admin_delete on storage.objects;
+drop policy if exists public_assets_admin_delete on storage.objects;
+create policy public_assets_admin_delete on storage.objects
 for delete
 to authenticated
 using (
@@ -433,3 +453,5 @@ using (
     array['owner_admin']::public.user_role[]
   )
 );
+
+
