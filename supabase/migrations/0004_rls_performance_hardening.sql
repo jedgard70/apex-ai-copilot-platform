@@ -201,6 +201,8 @@ using (id = (select auth.uid()))
 with check (id = (select auth.uid()));
 
 drop policy if exists user_preferences_self on public.user_preferences;
+-- ensure idempotency: drop the exact select policy if present
+drop policy if exists user_preferences_self_select on public.user_preferences;
 create policy user_preferences_self_select
 on public.user_preferences
 for select
@@ -210,6 +212,7 @@ using (
   and (tenant_id is null or app_private.is_tenant_member(tenant_id))
 );
 
+drop policy if exists user_preferences_self_insert on public.user_preferences;
 create policy user_preferences_self_insert
 on public.user_preferences
 for insert
@@ -219,6 +222,7 @@ with check (
   and (tenant_id is null or app_private.is_tenant_member(tenant_id))
 );
 
+drop policy if exists user_preferences_self_update on public.user_preferences;
 create policy user_preferences_self_update
 on public.user_preferences
 for update
@@ -232,6 +236,7 @@ with check (
   and (tenant_id is null or app_private.is_tenant_member(tenant_id))
 );
 
+drop policy if exists user_preferences_self_delete on public.user_preferences;
 create policy user_preferences_self_delete
 on public.user_preferences
 for delete
@@ -255,6 +260,7 @@ with check (
   or app_private.has_tenant_role(id, array['owner_admin']::public.user_role[])
 );
 
+drop policy if exists tenants_owner_admin_update on public.tenants;
 create policy tenants_owner_admin_update
 on public.tenants
 for update
@@ -262,6 +268,7 @@ to authenticated
 using (app_private.has_tenant_role(id, array['owner_admin']::public.user_role[]))
 with check (app_private.has_tenant_role(id, array['owner_admin']::public.user_role[]));
 
+drop policy if exists tenants_owner_admin_delete on public.tenants;
 create policy tenants_owner_admin_delete
 on public.tenants
 for delete
@@ -297,6 +304,7 @@ with check (
   app_private.has_tenant_role(tenant_id, array['owner_admin', 'project_manager']::public.user_role[])
 );
 
+drop policy if exists project_members_admin_update on public.project_members;
 create policy project_members_admin_update
 on public.project_members
 for update
@@ -308,6 +316,7 @@ with check (
   app_private.has_tenant_role(tenant_id, array['owner_admin', 'project_manager']::public.user_role[])
 );
 
+drop policy if exists project_members_admin_delete on public.project_members;
 create policy project_members_admin_delete
 on public.project_members
 for delete
@@ -391,6 +400,7 @@ end $$;
 
 drop policy if exists public_assets_admin_write on storage.objects;
 
+drop policy if exists public_assets_admin_insert on storage.objects;
 create policy public_assets_admin_insert
 on storage.objects
 for insert
@@ -403,6 +413,7 @@ with check (
   )
 );
 
+drop policy if exists public_assets_admin_update on storage.objects;
 create policy public_assets_admin_update
 on storage.objects
 for update
@@ -422,6 +433,7 @@ with check (
   )
 );
 
+drop policy if exists public_assets_admin_delete on storage.objects;
 create policy public_assets_admin_delete
 on storage.objects
 for delete
