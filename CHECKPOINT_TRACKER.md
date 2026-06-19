@@ -5,7 +5,7 @@
 | # | Module | Status | Test Date | Output Summary | Notes |
 |---|--------|--------|-----------|----------------|-------|
 | 1 | International Market Strategy | ✅ VALIDATED | 2025-01-15 | LinkedIn outreach script for US residential construction firms — positioned Apex as offshore BIM/permit set partner with 48h IFC/Revit review SLA | Ready for real outreach |
-| 2 | Professional Writing / Proposal Copy | ⏳ PENDING | — | — | Commercial proposal template for BIM coordination services |
+| 2 | Professional Writing / Proposal Copy | 🔄 IN PROGRESS | 2025-01-15 | Drafted BIM coordination proposal structure: scope, deliverables, timeline (48-72h), tiered pricing, and kickoff protocol | Needs final pricing calibration |
 | 3 | Revit Customization | ⏳ PENDING | — | — | pyRevit batch sheet export script |
 | 4 | SQL Expert / Data Analyst | ⏳ PENDING | — | — | SINAPI cost database analysis query |
 | 5 | Code GPT / Coding Assistant | ⏳ PENDING | — | — | API endpoint scaffolding |
