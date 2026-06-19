@@ -49,7 +49,6 @@ begin
   values (
     v_user_id,
     v_email,
-    v_email,
     'active',
     v_user_id,
     jsonb_build_object('bootstrap_source', 'bootstrap_user_workspace')
@@ -133,3 +132,4 @@ $$;
 revoke execute on function public.bootstrap_user_workspace() from anon;
 revoke execute on function public.bootstrap_user_workspace() from public;
 grant execute on function public.bootstrap_user_workspace() to authenticated;
+

@@ -137,7 +137,8 @@ end $$;
 
 -- Profiles: a user reads/updates self; tenant admins can read members through tenant membership.
 drop policy if exists profiles_select_self_or_tenant_admin on public.profiles;
-drop policy if exists profiles_select_self_or_tenant_admin on public.profiles for select;\ncreate policy profiles_select_self_or_tenant_admin on public.profiles for select
+drop policy if exists profiles_select_self_or_tenant_admin on public.profiles for select;
+create policy profiles_select_self_or_tenant_admin on public.profiles for select
 to authenticated
 using (
   id = auth.uid()
@@ -153,68 +154,81 @@ using (
 );
 
 drop policy if exists profiles_update_self on public.profiles;
-drop policy if exists profiles_update_self on public.profiles for update;\ncreate policy profiles_update_self on public.profiles for update
+drop policy if exists profiles_update_self on public.profiles for update;
+create policy profiles_update_self on public.profiles for update
 to authenticated
 using (id = auth.uid())
 with check (id = auth.uid());
 
 -- Tenants and membership.
 drop policy if exists tenants_member_select on public.tenants;
-drop policy if exists tenants_member_select on public.tenants for select;\ncreate policy tenants_member_select on public.tenants for select
+drop policy if exists tenants_member_select on public.tenants for select;
+create policy tenants_member_select on public.tenants for select
 to authenticated
 using (app_private.is_tenant_member(id));
 
 drop policy if exists tenants_owner_admin_write on public.tenants;
-drop policy if exists tenants_owner_admin_write on public.tenants for all;\ncreate policy tenants_owner_admin_write on public.tenants for all
+drop policy if exists tenants_owner_admin_write on public.tenants for all;
+create policy tenants_owner_admin_write on public.tenants for all
 to authenticated
 using (app_private.has_tenant_role(id, array['owner_admin']::public.user_role[]))
 with check (created_by = auth.uid() or app_private.has_tenant_role(id, array['owner_admin']::public.user_role[]));
 
 drop policy if exists tenant_members_member_select on public.tenant_members;
-drop policy if exists tenant_members_member_select on public.tenant_members for select;\ncreate policy tenant_members_member_select on public.tenant_members for select
+drop policy if exists tenant_members_member_select on public.tenant_members for select;
+create policy tenant_members_member_select on public.tenant_members for select
 to authenticated
 using (app_private.is_tenant_member(tenant_id));
 
 drop policy if exists tenant_members_owner_admin_write on public.tenant_members;
-drop policy if exists tenant_members_owner_admin_write on public.tenant_members for all;\ncreate policy tenant_members_owner_admin_write on public.tenant_members for all
+drop policy if exists tenant_members_owner_admin_write on public.tenant_members for all;
+create policy tenant_members_owner_admin_write on public.tenant_members for all
 to authenticated
 using (app_private.has_tenant_role(tenant_id, array['owner_admin']::public.user_role[]))
 with check (app_private.has_tenant_role(tenant_id, array['owner_admin']::public.user_role[]));
 
 -- Roles and permissions are readable to authenticated users; writes are reserved for service/admin setup.
 drop policy if exists roles_authenticated_read on public.roles;
-drop policy if exists roles_authenticated_read on public.roles for select to authenticated using (true);;\ncreate policy roles_authenticated_read on public.roles for select to authenticated using (true);
+drop policy if exists roles_authenticated_read on public.roles for select to authenticated using (true);;
+create policy roles_authenticated_read on public.roles for select to authenticated using (true);
 drop policy if exists permissions_authenticated_read on public.permissions;
-drop policy if exists permissions_authenticated_read on public.permissions for select to authenticated using (true);;\ncreate policy permissions_authenticated_read on public.permissions for select to authenticated using (true);
+drop policy if exists permissions_authenticated_read on public.permissions for select to authenticated using (true);;
+create policy permissions_authenticated_read on public.permissions for select to authenticated using (true);
 drop policy if exists role_permissions_authenticated_read on public.role_permissions;
-drop policy if exists role_permissions_authenticated_read on public.role_permissions for select to authenticated using (true);;\ncreate policy role_permissions_authenticated_read on public.role_permissions for select to authenticated using (true);
+drop policy if exists role_permissions_authenticated_read on public.role_permissions for select to authenticated using (true);;
+create policy role_permissions_authenticated_read on public.role_permissions for select to authenticated using (true);
 
 -- Project base tables.
 drop policy if exists projects_select_assigned on public.projects;
-drop policy if exists projects_select_assigned on public.projects for select;\ncreate policy projects_select_assigned on public.projects for select
+drop policy if exists projects_select_assigned on public.projects for select;
+create policy projects_select_assigned on public.projects for select
 to authenticated
 using (app_private.can_access_project(tenant_id, id));
 
 drop policy if exists projects_insert_tenant_staff on public.projects;
-drop policy if exists projects_insert_tenant_staff on public.projects for insert;\ncreate policy projects_insert_tenant_staff on public.projects for insert
+drop policy if exists projects_insert_tenant_staff on public.projects for insert;
+create policy projects_insert_tenant_staff on public.projects for insert
 to authenticated
 with check (
   app_private.has_tenant_role(tenant_id, array['owner_admin','internal_team','project_manager','sales']::public.user_role[])
 );
 
 drop policy if exists projects_update_assigned_staff on public.projects;
-drop policy if exists projects_update_assigned_staff on public.projects for update;\ncreate policy projects_update_assigned_staff on public.projects for update
+drop policy if exists projects_update_assigned_staff on public.projects for update;
+create policy projects_update_assigned_staff on public.projects for update
 to authenticated
 using (app_private.can_write_project(tenant_id, id))
 with check (app_private.can_write_project(tenant_id, id));
 
 drop policy if exists project_members_select_assigned on public.project_members;
-drop policy if exists project_members_select_assigned on public.project_members for select;\ncreate policy project_members_select_assigned on public.project_members for select
+drop policy if exists project_members_select_assigned on public.project_members for select;
+create policy project_members_select_assigned on public.project_members for select
 to authenticated
 using (app_private.can_access_project(tenant_id, project_id));
 
 drop policy if exists project_members_admin_write on public.project_members;
-drop policy if exists project_members_admin_write on public.project_members for all;\ncreate policy project_members_admin_write on public.project_members for all
+drop policy if exists project_members_admin_write on public.project_members for all;
+create policy project_members_admin_write on public.project_members for all
 to authenticated
 using (app_private.has_tenant_role(tenant_id, array['owner_admin','project_manager']::public.user_role[]))
 with check (app_private.has_tenant_role(tenant_id, array['owner_admin','project_manager']::public.user_role[]));
@@ -296,21 +310,25 @@ end $$;
 
 -- Audit logs: members read tenant audit; inserts are allowed for authenticated actions.
 drop policy if exists audit_logs_tenant_read on public.audit_logs;
-drop policy if exists audit_logs_tenant_read on public.audit_logs for select;\ncreate policy audit_logs_tenant_read on public.audit_logs for select
+drop policy if exists audit_logs_tenant_read on public.audit_logs for select;
+create policy audit_logs_tenant_read on public.audit_logs for select
 to authenticated
 using (tenant_id is not null and app_private.is_tenant_member(tenant_id));
 
 drop policy if exists audit_logs_authenticated_insert on public.audit_logs;
-drop policy if exists audit_logs_authenticated_insert on public.audit_logs for insert;\ncreate policy audit_logs_authenticated_insert on public.audit_logs for insert
+drop policy if exists audit_logs_authenticated_insert on public.audit_logs for insert;
+create policy audit_logs_authenticated_insert on public.audit_logs for insert
 to authenticated
 with check (created_by = auth.uid() and (tenant_id is null or app_private.is_tenant_member(tenant_id)));
 
 -- User preferences: self-owned, with optional tenant membership.
 drop policy if exists user_preferences_self on public.user_preferences;
-drop policy if exists user_preferences_self on public.user_preferences for all;\ncreate policy user_preferences_self on public.user_preferences for all
+drop policy if exists user_preferences_self on public.user_preferences for all;
+create policy user_preferences_self on public.user_preferences for all
 to authenticated
 using (user_id = auth.uid() and (tenant_id is null or app_private.is_tenant_member(tenant_id)))
 with check (user_id = auth.uid() and (tenant_id is null or app_private.is_tenant_member(tenant_id)));
 
 -- No policies are granted to anon. No public writes in this draft.
+
 
