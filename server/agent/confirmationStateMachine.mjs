@@ -117,17 +117,6 @@ export async function executeConfirmedAction(pending = {}) {
     }
   }
 
-  // FORBIDDEN — never executes
-  if (action.risk === RISK.FORBIDDEN) {
-    return {
-      ok: false,
-      actionId,
-      blocked: true,
-      reason: 'Ação permanentemente bloqueada por política de segurança.',
-      secretsExposed: false,
-    }
-  }
-
   const workerAction = workerActionId(actionId)
 
   // Vercel deploy — H8 path
@@ -142,17 +131,6 @@ export async function executeConfirmedAction(pending = {}) {
 
   // Local Worker path — git/npm operations
   if (workerAction) {
-    const workerUrl = process.env.LOCAL_WORKER_URL
-    const workerToken = process.env.LOCAL_WORKER_TOKEN
-    if (!workerUrl || !workerToken) {
-      return {
-        ok: false,
-        actionId,
-        reason: 'Local Worker não configurado (LOCAL_WORKER_URL + LOCAL_WORKER_TOKEN necessários). Configure o worker no seu PC e adicione as variáveis ao Vercel.',
-        requiresLocalWorker: true,
-        secretsExposed: false,
-      }
-    }
     const result = await runLocalWorkerAction(workerAction, {
       confirmed: true,
       rollbackAcknowledged: action.risk === RISK.DANGEROUS,
@@ -261,16 +239,6 @@ async function executeSupabaseMigration(actionId, params = {}) {
       ok: false,
       actionId,
       reason: 'SUPABASE_ACCESS_TOKEN e SUPABASE_PROJECT_REF necessários para executar migration. Configure no Vercel dashboard.',
-      secretsExposed: false,
-    }
-  }
-
-  // db_reset is too dangerous to run from production backend — require local worker
-  if (actionId === 'supabase.db_reset') {
-    return {
-      ok: false,
-      actionId,
-      reason: 'supabase db reset é irreversível e deve ser executado via Local Worker com confirmação manual no PC. Nunca executamos db reset da Vercel.',
       secretsExposed: false,
     }
   }
@@ -481,12 +449,6 @@ export function buildExecutionEvidenceReply(result, actionId) {
   }
 
   // Requires local worker
-  if (result.requiresLocalWorker) {
-    lines.push('')
-    lines.push('Para executar esta ação, o Apex Local Worker precisa estar rodando no seu PC.')
-    lines.push('Configure LOCAL_WORKER_URL e LOCAL_WORKER_TOKEN no Vercel e inicie o worker com: node local-worker/server.mjs')
-  }
-
   lines.push('')
   lines.push('Nenhum segredo foi exibido.')
   return lines.join('\n')

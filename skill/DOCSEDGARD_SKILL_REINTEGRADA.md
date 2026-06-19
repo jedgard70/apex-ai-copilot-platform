@@ -1,0 +1,3479 @@
+# DOCSEDGARD Skill Reintegrada
+
+Data de geração: 2026-06-19 17:28:36 -03:00
+Fonte: `D:\AI Jedgard\skill`
+
+## Objetivo
+
+Unificar os artefatos detectados na pasta original docsedgard/skill para reintegração operacional no repositório Apex.
+
+## Totais por extensão
+
+- `.md`: 137
+- `.pdf`: 30
+- `.txt`: 176
+- `.py`: 3105
+
+## Inventário completo
+
+Caminhos relativos à raiz `D:\AI Jedgard\skill`:
+
+### .md
+
+- `23951ed1-0291-4395-ae05-691f4f4a21df.md`
+- `abilities-integration.md`
+- `abilities-map.md`
+- `ai_construction_intelligence_platform_v_7_autonomous_construction_brain.md`
+- `ai-prompts-and-resources.md`
+- `ai-prompts-integration.md`
+- `algorithmic-art\SKILL.md`
+- `analyzer.md`
+- `APEX_AI_COPILOT_NEW_PLATFORM_BUILD_PLAN.md`
+- `APEX_AI_COPILOT_PRODUCTION_INDEX.md`
+- `APEX_AI_COPILOT_SYSTEM_PROMPT.md`
+- `apex_codigos_memoria.md`
+- `apex-global-orchestrator\INTEGRACAO_SKILLS_TXT_FINALIZADAS.md`
+- `apex-global-orchestrator\references\brand-guidelines-playbook.md`
+- `apex-global-orchestrator\references\canvas-design-playbook.md`
+- `apex-global-orchestrator\references\copilot-advanced.md`
+- `apex-global-orchestrator\references\documentation-governance.md`
+- `apex-global-orchestrator\references\generative-viewer-template-guide.md`
+- `apex-global-orchestrator\references\handoff-claude.md`
+- `apex-global-orchestrator\references\handoff-codex.md`
+- `apex-global-orchestrator\references\mcp-builder-playbook.md`
+- `apex-global-orchestrator\references\permissions.md`
+- `apex-global-orchestrator\references\render-3d-humanization.md`
+- `apex-global-orchestrator\references\render-prompts-library.md`
+- `apex-global-orchestrator\references\roadmap-rules.md`
+- `apex-global-orchestrator\references\skill-creator.md`
+- `apex-global-orchestrator\references\support-skills-catalog.md`
+- `apex-global-orchestrator\references\theme-factory-playbook.md`
+- `apex-global-orchestrator\references\web-artifacts-builder-playbook.md`
+- `apex-global-orchestrator\SKILL.md`
+- `archvis-production.md`
+- `archvis.md`
+- `avaliacao_core_system_ai_construction_platform.md`
+- `bim-3d.md`
+- `bim-viewer-production.md`
+- `brand-guidelines\SKILL.md`
+- `budget.md`
+- `canvas-design\SKILL.md`
+- `codebase-patterns.md`
+- `codigos_apex_edgard.md`
+- `comparator.md`
+- `consolidate-memory\SKILL.md`
+- `contracts.md`
+- `copilot-behavior (2).md`
+- `copilot-behavior.md`
+- `directcut-production.md`
+- `directcut.md`
+- `Doc-coauth.md`
+- `doc-coauthoring\SKILL.md`
+- `docx\SKILL.md`
+- `erro.md`
+- `field.md`
+- `file-intake (2).md`
+- `file-intake.md`
+- `FORMS.md`
+- `grader.md`
+- `humanizacao.md`
+- `humanize-floor-plan\references\ai-prompts-and-resources.md`
+- `humanize-floor-plan\SKILL.md`
+- `image-render-references.md`
+- `internal-comms\examples\3p-updates.md`
+- `internal-comms\examples\company-newsletter.md`
+- `internal-comms\examples\faq-answers.md`
+- `internal-comms\examples\general-comms.md`
+- `internal-comms\SKILL.md`
+- `marketing.md`
+- `mcp-builder\reference\evaluation.md`
+- `mcp-builder\reference\mcp_best_practices.md`
+- `mcp-builder\reference\node_mcp_server.md`
+- `mcp-builder\reference\python_mcp_server.md`
+- `mcp-builder\SKILL.md`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip-26.1.1.dist-info\licenses\src\pip\_vendor\idna\LICENSE.md`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\idna\LICENSE.md`
+- `PLATAFORMA_AUDIT_COMPLETO.md`
+- `platform-roadmap-integration.md`
+- `platform-roadmap.md`
+- `pptx\editing.md`
+- `pptx\pptxgenjs.md`
+- `pptx\SKILL.md`
+- `production-architecture-integration.md`
+- `production-architecture.md`
+- `prompt-systems.md`
+- `REFERENCE.md`
+- `REVIT_PROJETO_EDGARD_MEMORIA.md`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore-1.0.9.dist-info\licenses\LICENSE.md`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx-0.28.1.dist-info\licenses\LICENSE.md`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\idna-3.16.dist-info\licenses\LICENSE.md`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip-26.1.1.dist-info\licenses\src\pip\_vendor\idna\LICENSE.md`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\idna\LICENSE.md`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette-1.1.0.dist-info\licenses\LICENSE.md`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn-0.48.0.dist-info\licenses\LICENSE.md`
+- `Revit\codex\README.md`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore-1.0.9.dist-info\licenses\LICENSE.md`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx-0.28.1.dist-info\licenses\LICENSE.md`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\idna-3.10.dist-info\LICENSE.md`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette-0.46.2.dist-info\licenses\LICENSE.md`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn-0.34.2.dist-info\licenses\LICENSE.md`
+- `Revit\revit-mcp-server\README_UV.md`
+- `Revit\revit-mcp-server\README.md`
+- `schedule\SKILL.md`
+- `schemas.md`
+- `setup-cowork\SKILL.md`
+- `SKILL (2).md`
+- `SKILL (3).md`
+- `skill analiser.md`
+- `skill APEXAICOPILOT\apex-copilot-construction-intelligence\references\abilities-map.md`
+- `skill APEXAICOPILOT\apex-copilot-construction-intelligence\references\archvis.md`
+- `skill APEXAICOPILOT\apex-copilot-construction-intelligence\references\bim-3d.md`
+- `skill APEXAICOPILOT\apex-copilot-construction-intelligence\references\budget.md`
+- `skill APEXAICOPILOT\apex-copilot-construction-intelligence\references\contracts.md`
+- `skill APEXAICOPILOT\apex-copilot-construction-intelligence\references\copilot-behavior.md`
+- `skill APEXAICOPILOT\apex-copilot-construction-intelligence\references\directcut.md`
+- `skill APEXAICOPILOT\apex-copilot-construction-intelligence\references\field.md`
+- `skill APEXAICOPILOT\apex-copilot-construction-intelligence\references\file-intake.md`
+- `skill APEXAICOPILOT\apex-copilot-construction-intelligence\references\marketing.md`
+- `skill APEXAICOPILOT\apex-copilot-construction-intelligence\SKILL.md`
+- `SKILL-floor-plan-humanization.md`
+- `SKILL.md`
+- `SKILLrelatorioinstagram.md`
+- `source-truth-index.md`
+- `TAREFAS.md`
+- `theme-factory\SKILL.md`
+- `theme-factory\themes\arctic-frost.md`
+- `theme-factory\themes\botanical-garden.md`
+- `theme-factory\themes\desert-rose.md`
+- `theme-factory\themes\forest-canopy.md`
+- `theme-factory\themes\golden-hour.md`
+- `theme-factory\themes\midnight-galaxy.md`
+- `theme-factory\themes\modern-minimalist.md`
+- `theme-factory\themes\ocean-depths.md`
+- `theme-factory\themes\sunset-boulevard.md`
+- `theme-factory\themes\tech-innovation.md`
+- `TODAS_SKILLS_APEX_INVENTARIO.md`
+- `ui-ux-patterns.md`
+- `Untitled-1.agent.md`
+- `web-artifacts-builder\SKILL.md`
+- `xlsx\SKILL.md`
+
+### .pdf
+
+- `+500+Melhores+Prompts+para+ChatGPT.pdf`
+- `30--Prompts--Profissionais--para--Arquitetura--e--Design--de--Interiores.pdf`
+- `Ai Construction Intelligence Platform V7 Autonomous Construction Brain.pdf`
+- `AI_Prompt_Library ECOSSITEM.pdf`
+- `AI_Prompt_Library.pdf`
+- `Analise Estrategica Lote Triangulo Conceito Residencial Premium.pdf`
+- `APEX GLOBAL MASTER PLAN v1.pdf`
+- `Apostila+Curso+de+Inteligência+Artificial.pdf`
+- `Aula+15+-+Prompt+Agente.pdf`
+- `briefing de arquitetura.pdf`
+- `checklist_interior_futurista.pdf`
+- `Checklist_Revit_Template_Edgard.pdf`
+- `folder-jardim-sao-paulo.pdf`
+- `guia_cinematografico.pdf`
+- `instagram.pdf`
+- `modelodedepartamentodevendas\sistema operacional.pdf`
+- `Mood Board — Interiores Futuristas.pdf`
+- `outputs\produtos_ebook\checklist_premium_imprimivel.pdf`
+- `Plataforma plugins Revit _260414_101706.pdf`
+- `projeto-tecnico-jardim-sao-paulo.pdf`
+- `PROMPT DE PLANTA HUMANIZADA PT.pdf`
+- `PROMPT DIVISAO DE LINHAS NEON ING.pdf`
+- `PROMPT PLANTA HUMANIZADA ING.pdf`
+- `PROMPT POS PLANTA HUMANIZADA PT.pdf`
+- `PROMPT--PARA--TOPOGRAFIA--E--CASA--HOLOGRAMA.pdf`
+- `Prompts Arquitetonicos AI.pdf`
+- `Prompts_Arquitetonicos_AI.pdf`
+- `Revit\codex\teste folha e carimbo.pdf`
+- `theme-factory\theme-showcase.pdf`
+- `Venda EUA Edgard.pdf`
+
+### .txt
+
+- `-- DATABASE MIGRATION SCRIPT FOR ARchvisnovo.txt`
+- `# Análise Estratégica do Seu CORE_S.txt`
+- `# Blind Comparator Agent.txt`
+- `# Grader Agent.txt`
+- `# MCP Server Best Practices.txt`
+- `# NodeTypeScript MCP Server Impleme.txt`
+- `# Python MCP Server Implementation.txt`
+- `#!binbash.txt`
+- `#!binbash2.txt`
+- `#MCP Server Evaluation Guide.txt`
+- `🌱 PROMPT 1 — TERRENO (MANHÃ LIMPA).txt`
+- `🏡 🌞 VERSÃO DIA (REALISTA DE VENDA.txt`
+- `🏡 PROMPTS E LINKS.txt`
+- `🧠 LEITURA DA SUA PLANTA (isso muda.txt`
+- `A plataforma Apex atingiu o estágio.txt`
+- `algor.templet.txt`
+- `algorithmic.txt`
+- `anthropic=0.39.0.txt`
+- `Apex Copilot.txt`
+- `APEX_AI_COPILOT_NEW_CHAT_PROMPT.md.txt`
+- `api claude.txt`
+- `Aplicado o modelo final ArchVis dar.txt`
+- `ArchVisPro-novo gemini api e url.txt`
+- `assistente-rafael-cursos.txt`
+- `AULA BÔNUS 2 - TIMELAPSE DE CONDOMÍ.txt`
+- `AULA BONUS CAIXA EXPLODE DECORANDO.txt`
+- `BACKLOG EXECUTÁVEL — AI Constructio.txt`
+- `brand.txt`
+- `briefing de arquitetura.txt`
+- `canvas.txt`
+- `capa proposta prompt.txt`
+- `cd local-worker.txt`
+- `chamada venda online ebook.txt`
+- `Chave de APIgemini.txt`
+- `claude comamndos.txt`
+- `Como o Local Worker (que executa os.txt`
+- `Crafting the Scene.txt`
+- `Crie uma ferramenta de manipulação.txt`
+- `Cronograma de Obra Residencial Detalhado prompt.txt`
+- `Decor Motion com CLONE.txt`
+- `design de prompt.txt`
+- `directors cut link.txt`
+- `Entendi o direcionamento — isso aqu.txt`
+- `Entrada.txt`
+- `ENV LOCAL COPIA.txt`
+- `evaluation.txt`
+- `exportlayers-dgn-ISO13567.txt`
+- `GEMINI API KEY APEX AI.txt`
+- `gemini api key.txt`
+- `gemini-code-1778512010790.txt`
+- `httpswa.memessageM7B46LX4FKH5O1.txt`
+- `humanizar pessoas prompts.txt`
+- `import React, { useState, useEffect.txt`
+- `instruções director cut.txt`
+- `isntruçoes archvis.txt`
+- `keys e coworklocal e gemini kyes.txt`
+- `Lightweight connection handling for.txt`
+- `MCP REVIT  Opção A Rodar Localmente.txt`
+- `MCP Server Evaluation Harness.txt`
+- `mcp\# MCP Server Best Practices.txt`
+- `mcp\# NodeTypeScript MCP Server Impleme.txt`
+- `mcp\# Python MCP Server Implementation.txt`
+- `mcp\#MCP Server Evaluation Guide.txt`
+- `mcp\anthropic=0.39.0.txt`
+- `mcp\evaluation.txt`
+- `mcp\Lightweight connection handling for.txt`
+- `mcp\MCP Server Evaluation Harness.txt`
+- `mcp\mcpbuilder.txt`
+- `mcpbuilder.txt`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip-26.1.1.dist-info\entry_points.txt`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip-26.1.1.dist-info\licenses\AUTHORS.txt`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip-26.1.1.dist-info\licenses\LICENSE.txt`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip-26.1.1.dist-info\licenses\src\pip\_vendor\cachecontrol\LICENSE.txt`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip-26.1.1.dist-info\licenses\src\pip\_vendor\distlib\LICENSE.txt`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip-26.1.1.dist-info\licenses\src\pip\_vendor\urllib3\LICENSE.txt`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\cachecontrol\LICENSE.txt`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\distlib\LICENSE.txt`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\LICENSE.txt`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\vendor.txt`
+- `nova skil dentro do inde.json.txt`
+- `Opções de Copywrite.txt`
+- `OPEN AI KEY sk-svcacct-fuJqoSqdnJ6I.txt`
+- `Perfeito. CP8C está GREEN..txt`
+- `plugin revit castanhari.txt`
+- `prompt das imagems ebook.txt`
+- `prompt e link ecossistema AI.txt`
+- `prompt gemini para realismo em plan mais importante para render.txt`
+- `prompt para fachada do revit.txt`
+- `prompt para substituir rostos de du.txt`
+- `Prompt utilizado criar briefing.txt`
+- `propt para planta baixa e outro da.txt`
+- `render this scene as a film photogra.txt`
+- `revit mcp.txt`
+- `Revit\codex\edgard_shared_parameters.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\adodbapi\license.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\adodbapi\readme.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio-4.13.0.dist-info\entry_points.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio-4.13.0.dist-info\top_level.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\certifi-2026.5.20.dist-info\top_level.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cffi-2.0.0.dist-info\entry_points.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cffi-2.0.0.dist-info\top_level.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\charset_normalizer-3.4.7.dist-info\entry_points.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\charset_normalizer-3.4.7.dist-info\top_level.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\click-8.4.1.dist-info\licenses\LICENSE.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\colorama-0.4.6.dist-info\licenses\LICENSE.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\h11-0.16.0.dist-info\licenses\LICENSE.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\h11-0.16.0.dist-info\top_level.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx_sse-0.4.3.dist-info\top_level.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx-0.28.1.dist-info\entry_points.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\idna-3.16.dist-info\entry_points.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\isapi\README.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\isapi\samples\README.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\isapi\test\README.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema-4.26.0.dist-info\entry_points.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp-1.27.1.dist-info\entry_points.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip-26.1.1.dist-info\entry_points.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip-26.1.1.dist-info\licenses\AUTHORS.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip-26.1.1.dist-info\licenses\LICENSE.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip-26.1.1.dist-info\licenses\src\pip\_vendor\cachecontrol\LICENSE.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip-26.1.1.dist-info\licenses\src\pip\_vendor\distlib\LICENSE.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip-26.1.1.dist-info\licenses\src\pip\_vendor\urllib3\LICENSE.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\cachecontrol\LICENSE.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\distlib\LICENSE.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\LICENSE.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\vendor.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pycparser-3.0.dist-info\top_level.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pyjwt-2.13.0.dist-info\top_level.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\python_dotenv-1.2.2.dist-info\entry_points.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\python_dotenv-1.2.2.dist-info\top_level.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\python_multipart-0.0.29.dist-info\licenses\LICENSE.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\license.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pywin32-311.dist-info\entry_points.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pywin32-311.dist-info\top_level.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pywin32.version.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\requests-2.34.2.dist-info\top_level.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\sse_starlette-3.4.4.dist-info\top_level.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3-2.7.0.dist-info\licenses\LICENSE.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn-0.48.0.dist-info\entry_points.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\license.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\License.txt`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\readme.txt`
+- `Revit\codex\mcp_server\requirements.txt`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio-4.9.0.dist-info\entry_points.txt`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio-4.9.0.dist-info\top_level.txt`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\certifi-2025.4.26.dist-info\top_level.txt`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\click-8.1.8.dist-info\LICENSE.txt`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\colorama-0.4.6.dist-info\licenses\LICENSE.txt`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\h11-0.16.0.dist-info\licenses\LICENSE.txt`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\h11-0.16.0.dist-info\top_level.txt`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx_sse-0.4.0.dist-info\top_level.txt`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx-0.28.1.dist-info\entry_points.txt`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it_py-3.0.0.dist-info\entry_points.txt`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp-1.9.0.dist-info\entry_points.txt`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments-2.19.1.dist-info\entry_points.txt`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\python_dotenv-1.1.0.dist-info\entry_points.txt`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\python_dotenv-1.1.0.dist-info\top_level.txt`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\python_multipart-0.0.20.dist-info\licenses\LICENSE.txt`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\shellingham-1.5.4.dist-info\top_level.txt`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\sniffio-1.3.1.dist-info\top_level.txt`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\sse_starlette-2.3.5.dist-info\top_level.txt`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\typer-0.15.4.dist-info\entry_points.txt`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn-0.34.2.dist-info\entry_points.txt`
+- `Revit\revit-mcp-server\LLM.txt`
+- `Revit\revit-mcp-server\requirements.txt`
+- `Sem título.txt`
+- `sequencia para planta realista.txt`
+- `Sites para encontrar blocos.txt`
+- `Sites para encontrar texturas .txt`
+- `skillcreate.txt`
+- `Soluções completas em.txt`
+- `supabase novo.txt`
+- `Theme.txt`
+- `viewerl.txt`
+- `Vou editar a ferramenta GitHub para.txt`
+- `Webbilder.txt`
+- `webbuilder\Webbilder.txt`
+
+### .py
+
+- `__init__.py`
+- `aggregate_benchmark.py`
+- `autonomoussalesagent.py`
+- `create_revit_checklist_pdf.py`
+- `criar_checklist_premium.py`
+- `criar_kit_contratos_premium_layout.py`
+- `criar_kit_contratos.py`
+- `criar_pdfs_personalizados.py`
+- `criar_pdfs_revisados.py`
+- `criar_produtos_corrigidos_layout.py`
+- `criar_produtos_final_assets.py`
+- `docx\scripts\__init__.py`
+- `docx\scripts\accept_changes.py`
+- `docx\scripts\comment.py`
+- `docx\scripts\office\helpers\__init__.py`
+- `docx\scripts\office\helpers\merge_runs.py`
+- `docx\scripts\office\helpers\simplify_redlines.py`
+- `docx\scripts\office\pack.py`
+- `docx\scripts\office\soffice.py`
+- `docx\scripts\office\unpack.py`
+- `docx\scripts\office\validate.py`
+- `docx\scripts\office\validators\__init__.py`
+- `docx\scripts\office\validators\base.py`
+- `docx\scripts\office\validators\docx.py`
+- `docx\scripts\office\validators\pptx.py`
+- `docx\scripts\office\validators\redlining.py`
+- `gemini-code-1779149557121.py`
+- `generate_report.py`
+- `generate_review.py`
+- `improve_description.py`
+- `mcp-builder\scripts\connections.py`
+- `mcp-builder\scripts\evaluation.py`
+- `motordeatracao.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\_virtualenv.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\__main__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\__pip-runner__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\build_env.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\cache.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\cli\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\cli\autocompletion.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\cli\base_command.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\cli\cmdoptions.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\cli\command_context.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\cli\index_command.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\cli\main_parser.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\cli\main.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\cli\parser.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\cli\progress_bars.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\cli\req_command.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\cli\spinners.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\cli\status_codes.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\commands\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\commands\cache.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\commands\check.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\commands\completion.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\commands\configuration.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\commands\debug.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\commands\download.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\commands\freeze.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\commands\hash.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\commands\help.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\commands\index.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\commands\inspect.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\commands\install.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\commands\list.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\commands\lock.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\commands\search.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\commands\show.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\commands\uninstall.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\commands\wheel.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\configuration.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\distributions\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\distributions\base.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\distributions\installed.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\distributions\sdist.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\distributions\wheel.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\exceptions.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\index\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\index\collector.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\index\package_finder.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\index\sources.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\locations\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\locations\_distutils.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\locations\_sysconfig.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\locations\base.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\main.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\metadata\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\metadata\_json.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\metadata\base.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\metadata\importlib\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\metadata\importlib\_compat.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\metadata\importlib\_dists.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\metadata\importlib\_envs.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\metadata\pkg_resources.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\models\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\models\candidate.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\models\direct_url.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\models\format_control.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\models\index.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\models\installation_report.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\models\link.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\models\release_control.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\models\scheme.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\models\search_scope.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\models\selection_prefs.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\models\target_python.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\models\wheel.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\network\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\network\auth.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\network\cache.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\network\download.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\network\lazy_wheel.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\network\session.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\network\utils.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\network\xmlrpc.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\operations\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\operations\build\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\operations\build\build_tracker.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\operations\build\metadata_editable.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\operations\build\metadata.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\operations\build\wheel_editable.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\operations\build\wheel.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\operations\check.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\operations\freeze.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\operations\install\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\operations\install\wheel.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\operations\prepare.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\pyproject.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\req\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\req\constructors.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\req\pep723.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\req\req_dependency_group.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\req\req_file.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\req\req_install.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\req\req_set.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\req\req_uninstall.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\resolution\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\resolution\base.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\resolution\legacy\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\resolution\legacy\resolver.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\resolution\resolvelib\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\resolution\resolvelib\base.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\resolution\resolvelib\candidates.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\resolution\resolvelib\factory.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\resolution\resolvelib\found_candidates.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\resolution\resolvelib\provider.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\resolution\resolvelib\reporter.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\resolution\resolvelib\requirements.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\resolution\resolvelib\resolver.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\self_outdated_check.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\utils\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\utils\_jaraco_text.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\utils\_log.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\utils\appdirs.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\utils\compat.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\utils\compatibility_tags.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\utils\datetime.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\utils\deprecation.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\utils\direct_url_helpers.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\utils\egg_link.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\utils\entrypoints.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\utils\filesystem.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\utils\filetypes.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\utils\glibc.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\utils\hashes.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\utils\logging.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\utils\misc.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\utils\packaging.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\utils\pylock.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\utils\retry.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\utils\subprocess.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\utils\temp_dir.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\utils\unpacking.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\utils\urls.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\utils\virtualenv.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\utils\wheel.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\vcs\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\vcs\bazaar.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\vcs\git.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\vcs\mercurial.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\vcs\subversion.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\vcs\versioncontrol.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_internal\wheel_builder.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\cachecontrol\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\cachecontrol\_cmd.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\cachecontrol\adapter.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\cachecontrol\cache.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\cachecontrol\caches\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\cachecontrol\caches\file_cache.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\cachecontrol\caches\redis_cache.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\cachecontrol\controller.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\cachecontrol\filewrapper.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\cachecontrol\heuristics.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\cachecontrol\serialize.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\cachecontrol\wrapper.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\certifi\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\certifi\__main__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\certifi\core.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\distlib\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\distlib\compat.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\distlib\resources.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\distlib\scripts.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\distlib\util.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\distro\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\distro\__main__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\distro\distro.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\idna\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\idna\codec.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\idna\compat.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\idna\core.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\idna\idnadata.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\idna\intranges.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\idna\package_data.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\idna\uts46data.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\msgpack\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\msgpack\exceptions.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\msgpack\ext.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\msgpack\fallback.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\packaging\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\packaging\_elffile.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\packaging\_manylinux.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\packaging\_musllinux.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\packaging\_parser.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\packaging\_structures.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\packaging\_tokenizer.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\packaging\dependency_groups.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\packaging\direct_url.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\packaging\errors.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\packaging\licenses\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\packaging\licenses\_spdx.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\packaging\markers.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\packaging\metadata.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\packaging\pylock.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\packaging\requirements.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\packaging\specifiers.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\packaging\tags.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\packaging\utils.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\packaging\version.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pkg_resources\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\platformdirs\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\platformdirs\__main__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\platformdirs\android.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\platformdirs\api.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\platformdirs\macos.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\platformdirs\unix.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\platformdirs\version.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\platformdirs\windows.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pygments\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pygments\__main__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pygments\console.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pygments\filter.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pygments\filters\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pygments\formatter.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pygments\formatters\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pygments\formatters\_mapping.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pygments\lexer.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pygments\lexers\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pygments\lexers\_mapping.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pygments\lexers\python.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pygments\modeline.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pygments\plugin.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pygments\regexopt.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pygments\scanner.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pygments\sphinxext.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pygments\style.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pygments\styles\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pygments\styles\_mapping.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pygments\token.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pygments\unistring.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pygments\util.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pyproject_hooks\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pyproject_hooks\_impl.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pyproject_hooks\_in_process\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\pyproject_hooks\_in_process\_in_process.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\requests\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\requests\__version__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\requests\_internal_utils.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\requests\adapters.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\requests\api.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\requests\auth.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\requests\certs.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\requests\compat.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\requests\cookies.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\requests\exceptions.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\requests\help.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\requests\hooks.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\requests\models.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\requests\packages.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\requests\sessions.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\requests\status_codes.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\requests\structures.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\requests\utils.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\resolvelib\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\resolvelib\providers.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\resolvelib\reporters.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\resolvelib\resolvers\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\resolvelib\resolvers\abstract.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\resolvelib\resolvers\criterion.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\resolvelib\resolvers\exceptions.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\resolvelib\resolvers\resolution.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\resolvelib\structs.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\__main__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\_cell_widths.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\_emoji_codes.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\_emoji_replace.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\_export_format.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\_extension.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\_fileno.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\_inspect.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\_log_render.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\_loop.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\_null_file.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\_palettes.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\_pick.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\_ratio.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\_spinners.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\_stack.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\_timer.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\_win32_console.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\_windows_renderer.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\_windows.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\_wrap.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\abc.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\align.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\ansi.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\bar.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\box.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\cells.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\color_triplet.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\color.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\columns.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\console.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\constrain.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\containers.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\control.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\default_styles.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\diagnose.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\emoji.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\errors.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\file_proxy.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\filesize.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\highlighter.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\json.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\jupyter.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\layout.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\live_render.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\live.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\logging.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\markup.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\measure.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\padding.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\pager.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\palette.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\panel.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\pretty.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\progress_bar.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\progress.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\prompt.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\protocol.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\region.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\repr.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\rule.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\scope.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\screen.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\segment.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\spinner.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\status.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\style.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\styled.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\syntax.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\table.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\terminal_theme.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\text.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\theme.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\themes.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\traceback.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\rich\tree.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\tomli_w\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\tomli_w\_writer.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\tomli\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\tomli\_parser.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\tomli\_re.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\tomli\_types.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\truststore\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\truststore\_api.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\truststore\_macos.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\truststore\_openssl.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\truststore\_ssl_constants.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\truststore\_windows.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\_base_connection.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\_collections.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\_request_methods.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\_version.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\connection.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\connectionpool.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\contrib\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\contrib\emscripten\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\contrib\emscripten\connection.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\contrib\emscripten\fetch.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\contrib\emscripten\request.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\contrib\emscripten\response.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\contrib\pyopenssl.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\contrib\socks.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\exceptions.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\fields.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\filepost.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\http2\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\http2\connection.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\http2\probe.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\poolmanager.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\response.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\util\__init__.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\util\connection.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\util\proxy.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\util\request.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\util\response.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\util\retry.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\util\ssl_.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\util\ssl_match_hostname.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\util\ssltransport.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\util\timeout.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\util\url.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\util\util.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Lib\site-packages\pip\_vendor\urllib3\util\wait.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\.venv\Scripts\activate_this.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\API Estrutural (FastAPI base)\Ambiente.py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\API Estrutural (FastAPI base)\ORQUESTRADOR (o cérebro do sistema).py`
+- `MVP – AI Construction Intelligence Platform (versão buildável)\modulo_bim.py`
+- `package_skill.py`
+- `pptx\scripts\__init__.py`
+- `pptx\scripts\add_slide.py`
+- `pptx\scripts\clean.py`
+- `pptx\scripts\office\helpers\__init__.py`
+- `pptx\scripts\office\helpers\merge_runs.py`
+- `pptx\scripts\office\helpers\simplify_redlines.py`
+- `pptx\scripts\office\pack.py`
+- `pptx\scripts\office\soffice.py`
+- `pptx\scripts\office\unpack.py`
+- `pptx\scripts\office\validate.py`
+- `pptx\scripts\office\validators\__init__.py`
+- `pptx\scripts\office\validators\base.py`
+- `pptx\scripts\office\validators\docx.py`
+- `pptx\scripts\office\validators\pptx.py`
+- `pptx\scripts\office\validators\redlining.py`
+- `pptx\scripts\thumbnail.py`
+- `quick_validate.py`
+- `Revit\codex\BIM Coder.extension\lib\__init__.py`
+- `Revit\codex\BIM Coder.extension\lib\Snippets\__init__.py`
+- `Revit\codex\BIM Coder.extension\lib\Snippets\_geometry_operations.py`
+- `Revit\codex\BIM Coder.extension\lib\Snippets\_selection.py`
+- `Revit\codex\BIM Coder.extension\lib\Snippets\_transaction.py`
+- `Revit\codex\BIM Coder.extension\lib\Snippets\_vectors.py`
+- `Revit\codex\BIM Coder.extension\lib\Snippets\_walls.py`
+- `Revit\codex\BIM Coder.extension\PluginAula.tab\Desenvolvimento.panel\Teste1.pushbutton\script.py`
+- `Revit\codex\BIM Coder.extension\PluginAula.tab\Desenvolvimento.panel\Teste2.pushbutton\script.py`
+- `Revit\codex\BIM Coder.extension\PluginAula.tab\Desenvolvimento.panel\Teste3.pushbutton\script.py`
+- `Revit\codex\BIM Coder.extension\PluginAula.tab\Desenvolvimento.panel\Teste4.pushbutton\script.py`
+- `Revit\codex\BIM Coder.extension\PluginAula.tab\Edgard.painel\Colorir por tipo.pushbutton\script.py`
+- `Revit\codex\BIM Coder.extension\PluginAula.tab\Edgard.painel\Criar Vistas 2D 3D.pushbutton\script.py`
+- `Revit\codex\BIM Coder.extension\PluginAula.tab\Edgard.painel\Modelar Familia.pushbutton\script.py`
+- `Revit\codex\BIM Coder.extension\PluginAula.tab\Edgard.painel\Modelar Pisos.pushbutton\script.py`
+- `Revit\codex\BIM Coder.extension\PluginAula.tab\Materiais.panel\Atualizar Insumos.pushbutton\script.py`
+- `Revit\codex\BIM Coder.extension\PluginAula.tab\Materiais.panel\colum1.stack\Template.pushbutton\script.py`
+- `Revit\codex\BIM Coder.extension\PluginAula.tab\Materiais.panel\Exportar Pranchas PDF.pushbutton\script.py`
+- `Revit\codex\BIM Coder.extension\PluginAula.tab\Materiais.panel\Gerar Cortes.pushbutton\script.py`
+- `Revit\codex\BIM Coder.extension\PluginAula.tab\Materiais.panel\Gerar Estudo Solar.pushbutton\script.py`
+- `Revit\codex\BIM Coder.extension\PluginAula.tab\Materiais.panel\Gerar Planta Humanizada.pushbutton\script.py`
+- `Revit\codex\BIM Coder.extension\PluginAula.tab\Materiais.panel\Preparar Projeto.pushbutton\script.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\adodbapi\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\adodbapi\ado_consts.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\adodbapi\adodbapi.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\adodbapi\apibase.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\adodbapi\examples\db_print.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\adodbapi\examples\db_table_names.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\adodbapi\examples\xls_read.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\adodbapi\examples\xls_write.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\adodbapi\is64bit.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\adodbapi\process_connect_string.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\adodbapi\schema_table.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\adodbapi\setup.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\adodbapi\test\adodbapitest.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\adodbapi\test\adodbapitestconfig.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\adodbapi\test\dbapi20.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\adodbapi\test\is64bit.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\adodbapi\test\setuptestframework.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\adodbapi\test\test_adodbapi_dbapi20.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\adodbapi\test\tryconnection.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\annotated_types\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\annotated_types\test_cases.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\_backends\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\_backends\_asyncio.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\_backends\_trio.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\_core\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\_core\_asyncio_selector_thread.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\_core\_contextmanagers.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\_core\_eventloop.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\_core\_exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\_core\_fileio.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\_core\_resources.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\_core\_signals.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\_core\_sockets.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\_core\_streams.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\_core\_subprocesses.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\_core\_synchronization.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\_core\_tasks.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\_core\_tempfile.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\_core\_testing.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\_core\_typedattr.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\abc\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\abc\_eventloop.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\abc\_resources.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\abc\_sockets.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\abc\_streams.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\abc\_subprocesses.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\abc\_tasks.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\abc\_testing.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\from_thread.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\functools.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\lowlevel.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\pytest_plugin.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\streams\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\streams\buffered.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\streams\file.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\streams\memory.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\streams\stapled.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\streams\text.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\streams\tls.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\to_interpreter.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\to_process.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\anyio\to_thread.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\attr\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\attr\_cmp.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\attr\_compat.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\attr\_config.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\attr\_funcs.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\attr\_make.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\attr\_next_gen.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\attr\_version_info.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\attr\converters.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\attr\exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\attr\filters.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\attr\setters.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\attr\validators.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\attrs\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\attrs\converters.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\attrs\exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\attrs\filters.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\attrs\setters.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\attrs\validators.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\certifi\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\certifi\__main__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\certifi\core.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cffi\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cffi\_imp_emulation.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cffi\_shimmed_dist_utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cffi\api.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cffi\backend_ctypes.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cffi\cffi_opcode.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cffi\commontypes.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cffi\cparser.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cffi\error.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cffi\ffiplatform.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cffi\lock.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cffi\model.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cffi\pkgconfig.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cffi\recompiler.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cffi\setuptools_ext.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cffi\vengine_cpy.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cffi\vengine_gen.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cffi\verifier.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\charset_normalizer\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\charset_normalizer\__main__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\charset_normalizer\api.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\charset_normalizer\cd.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\charset_normalizer\cli\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\charset_normalizer\cli\__main__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\charset_normalizer\constant.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\charset_normalizer\legacy.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\charset_normalizer\md.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\charset_normalizer\models.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\charset_normalizer\utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\charset_normalizer\version.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\click\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\click\_compat.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\click\_termui_impl.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\click\_textwrap.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\click\_utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\click\_winconsole.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\click\core.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\click\decorators.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\click\exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\click\formatting.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\click\globals.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\click\parser.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\click\shell_completion.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\click\termui.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\click\testing.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\click\types.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\click\utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\colorama\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\colorama\ansi.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\colorama\ansitowin32.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\colorama\initialise.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\colorama\tests\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\colorama\tests\ansi_test.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\colorama\tests\ansitowin32_test.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\colorama\tests\initialise_test.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\colorama\tests\isatty_test.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\colorama\tests\utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\colorama\tests\winterm_test.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\colorama\win32.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\colorama\winterm.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\__about__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\fernet.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\_oid.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\asn1\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\asn1\asn1.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\backends\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\backends\openssl\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\backends\openssl\backend.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\bindings\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\bindings\openssl\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\bindings\openssl\_conditional.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\bindings\openssl\binding.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\decrepit\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\decrepit\ciphers\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\decrepit\ciphers\algorithms.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\decrepit\ciphers\modes.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\_asymmetric.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\_cipheralgorithm.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\_modes.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\_serialization.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\asymmetric\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\asymmetric\dh.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\asymmetric\dsa.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\asymmetric\ec.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\asymmetric\ed25519.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\asymmetric\ed448.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\asymmetric\mldsa.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\asymmetric\mlkem.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\asymmetric\padding.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\asymmetric\rsa.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\asymmetric\types.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\asymmetric\utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\asymmetric\x25519.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\asymmetric\x448.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\ciphers\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\ciphers\aead.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\ciphers\algorithms.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\ciphers\base.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\ciphers\modes.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\cmac.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\constant_time.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\hashes.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\hmac.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\hpke.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\kdf\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\kdf\argon2.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\kdf\concatkdf.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\kdf\hkdf.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\kdf\kbkdf.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\kdf\pbkdf2.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\kdf\scrypt.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\kdf\x963kdf.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\keywrap.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\padding.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\poly1305.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\serialization\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\serialization\base.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\serialization\pkcs12.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\serialization\pkcs7.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\serialization\ssh.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\twofactor\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\twofactor\hotp.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\hazmat\primitives\twofactor\totp.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\x509\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\x509\base.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\x509\certificate_transparency.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\x509\extensions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\x509\general_name.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\x509\name.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\x509\ocsp.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\x509\oid.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\cryptography\x509\verification.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\dotenv\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\dotenv\__main__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\dotenv\cli.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\dotenv\ipython.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\dotenv\main.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\dotenv\parser.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\dotenv\variables.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\dotenv\version.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\h11\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\h11\_abnf.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\h11\_connection.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\h11\_events.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\h11\_headers.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\h11\_readers.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\h11\_receivebuffer.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\h11\_state.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\h11\_util.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\h11\_version.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\h11\_writers.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_api.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_async\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_async\connection_pool.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_async\connection.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_async\http_proxy.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_async\http11.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_async\http2.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_async\interfaces.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_async\socks_proxy.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_backends\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_backends\anyio.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_backends\auto.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_backends\base.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_backends\mock.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_backends\sync.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_backends\trio.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_models.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_ssl.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_sync\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_sync\connection.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_sync\http_proxy.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_sync\http11.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_sync\http2.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_sync\interfaces.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_sync\socks_proxy.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_synchronization.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_trace.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpcore\_utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx_sse\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx_sse\_api.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx_sse\_decoders.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx_sse\_exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx_sse\_models.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx\__version__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx\_api.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx\_auth.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx\_client.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx\_config.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx\_content.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx\_decoders.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx\_exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx\_main.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx\_models.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx\_multipart.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx\_status_codes.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx\_transports\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx\_transports\asgi.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx\_transports\base.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx\_transports\default.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx\_transports\mock.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx\_transports\wsgi.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx\_types.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx\_urlparse.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx\_urls.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\httpx\_utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\idna\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\idna\__main__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\idna\cli.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\idna\codec.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\idna\compat.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\idna\core.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\idna\idnadata.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\idna\intranges.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\idna\package_data.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\idna\uts46data.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\isapi\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\isapi\install.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\isapi\isapicon.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\isapi\samples\advanced.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\isapi\samples\redirector_asynch.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\isapi\samples\redirector_with_filter.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\isapi\samples\redirector.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\isapi\samples\test.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\isapi\simple.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\isapi\test\extension_simple.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\isapi\threaded_extension.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema_specifications\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema_specifications\_core.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema_specifications\tests\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema_specifications\tests\test_jsonschema_specifications.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\__main__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\_format.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\_keywords.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\_legacy_keywords.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\_types.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\_typing.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\_utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\benchmarks\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\benchmarks\const_vs_enum.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\benchmarks\contains.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\benchmarks\import_benchmark.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\benchmarks\issue232.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\benchmarks\json_schema_test_suite.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\benchmarks\nested_schemas.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\benchmarks\subcomponents.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\benchmarks\unused_registry.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\benchmarks\useless_applicator_schemas.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\benchmarks\useless_keywords.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\benchmarks\validator_creation.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\cli.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\protocols.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\tests\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\tests\_suite.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\tests\fuzz_validate.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\tests\test_cli.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\tests\test_deprecations.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\tests\test_exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\tests\test_format.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\tests\test_jsonschema_test_suite.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\tests\test_types.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\tests\test_utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\tests\test_validators.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\tests\typing\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\tests\typing\test_all_concrete_validators_match_protocol.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jsonschema\validators.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jwt\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jwt\algorithms.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jwt\api_jwk.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jwt\api_jws.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jwt\api_jwt.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jwt\exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jwt\help.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jwt\jwk_set_cache.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jwt\jwks_client.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jwt\types.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jwt\utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\jwt\warnings.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\cli\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\cli\claude.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\cli\cli.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\client\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\client\__main__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\client\auth\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\client\auth\exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\client\auth\extensions\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\client\auth\extensions\client_credentials.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\client\auth\oauth2.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\client\auth\utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\client\experimental\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\client\experimental\task_handlers.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\client\experimental\tasks.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\client\session_group.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\client\session.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\client\sse.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\client\stdio\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\client\streamable_http.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\client\websocket.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\os\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\os\posix\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\os\posix\utilities.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\os\win32\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\os\win32\utilities.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\__main__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\auth\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\auth\errors.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\auth\handlers\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\auth\handlers\authorize.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\auth\handlers\metadata.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\auth\handlers\register.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\auth\handlers\revoke.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\auth\handlers\token.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\auth\json_response.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\auth\middleware\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\auth\middleware\auth_context.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\auth\middleware\bearer_auth.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\auth\middleware\client_auth.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\auth\provider.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\auth\routes.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\auth\settings.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\elicitation.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\experimental\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\experimental\request_context.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\experimental\session_features.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\experimental\task_context.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\experimental\task_result_handler.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\experimental\task_support.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\fastmcp\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\fastmcp\exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\fastmcp\prompts\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\fastmcp\prompts\base.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\fastmcp\prompts\manager.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\fastmcp\resources\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\fastmcp\resources\base.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\fastmcp\resources\resource_manager.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\fastmcp\resources\templates.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\fastmcp\resources\types.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\fastmcp\server.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\fastmcp\tools\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\fastmcp\tools\base.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\fastmcp\tools\tool_manager.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\fastmcp\utilities\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\fastmcp\utilities\context_injection.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\fastmcp\utilities\func_metadata.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\fastmcp\utilities\logging.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\fastmcp\utilities\types.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\lowlevel\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\lowlevel\experimental.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\lowlevel\func_inspection.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\lowlevel\helper_types.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\lowlevel\server.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\models.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\session.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\sse.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\stdio.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\streamable_http_manager.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\streamable_http.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\transport_security.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\validation.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\server\websocket.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\shared\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\shared\_httpx_utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\shared\auth_utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\shared\auth.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\shared\context.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\shared\exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\shared\experimental\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\shared\experimental\tasks\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\shared\experimental\tasks\capabilities.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\shared\experimental\tasks\context.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\shared\experimental\tasks\helpers.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\shared\experimental\tasks\in_memory_task_store.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\shared\experimental\tasks\message_queue.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\shared\experimental\tasks\polling.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\shared\experimental\tasks\resolver.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\shared\experimental\tasks\store.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\shared\memory.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\shared\message.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\shared\metadata_utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\shared\progress.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\shared\response_router.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\shared\session.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\shared\tool_name_validation.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\shared\version.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\mcp\types.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\multipart\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\multipart\decoders.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\multipart\exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\multipart\multipart.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\__main__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\__pip-runner__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\build_env.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\cache.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\cli\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\cli\autocompletion.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\cli\base_command.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\cli\cmdoptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\cli\command_context.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\cli\index_command.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\cli\main_parser.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\cli\main.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\cli\parser.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\cli\progress_bars.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\cli\req_command.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\cli\spinners.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\cli\status_codes.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\commands\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\commands\cache.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\commands\check.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\commands\completion.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\commands\configuration.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\commands\debug.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\commands\download.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\commands\freeze.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\commands\hash.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\commands\help.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\commands\index.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\commands\inspect.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\commands\install.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\commands\list.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\commands\lock.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\commands\search.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\commands\show.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\commands\uninstall.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\commands\wheel.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\configuration.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\distributions\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\distributions\base.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\distributions\installed.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\distributions\sdist.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\distributions\wheel.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\index\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\index\collector.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\index\package_finder.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\index\sources.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\locations\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\locations\_distutils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\locations\_sysconfig.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\locations\base.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\main.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\metadata\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\metadata\_json.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\metadata\base.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\metadata\importlib\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\metadata\importlib\_compat.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\metadata\importlib\_dists.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\metadata\importlib\_envs.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\metadata\pkg_resources.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\models\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\models\candidate.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\models\direct_url.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\models\format_control.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\models\index.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\models\installation_report.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\models\link.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\models\release_control.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\models\scheme.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\models\search_scope.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\models\selection_prefs.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\models\target_python.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\models\wheel.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\network\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\network\auth.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\network\cache.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\network\download.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\network\lazy_wheel.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\network\session.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\network\utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\network\xmlrpc.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\operations\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\operations\build\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\operations\build\build_tracker.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\operations\build\metadata_editable.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\operations\build\metadata.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\operations\build\wheel_editable.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\operations\build\wheel.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\operations\check.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\operations\freeze.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\operations\install\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\operations\install\wheel.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\operations\prepare.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\pyproject.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\req\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\req\constructors.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\req\pep723.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\req\req_dependency_group.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\req\req_file.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\req\req_install.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\req\req_set.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\req\req_uninstall.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\resolution\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\resolution\base.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\resolution\legacy\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\resolution\legacy\resolver.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\resolution\resolvelib\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\resolution\resolvelib\base.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\resolution\resolvelib\candidates.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\resolution\resolvelib\factory.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\resolution\resolvelib\found_candidates.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\resolution\resolvelib\provider.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\resolution\resolvelib\reporter.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\resolution\resolvelib\requirements.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\resolution\resolvelib\resolver.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\self_outdated_check.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\utils\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\utils\_jaraco_text.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\utils\_log.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\utils\appdirs.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\utils\compat.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\utils\compatibility_tags.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\utils\datetime.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\utils\deprecation.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\utils\direct_url_helpers.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\utils\egg_link.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\utils\entrypoints.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\utils\filesystem.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\utils\filetypes.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\utils\glibc.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\utils\hashes.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\utils\logging.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\utils\misc.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\utils\packaging.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\utils\pylock.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\utils\retry.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\utils\subprocess.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\utils\temp_dir.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\utils\unpacking.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\utils\urls.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\utils\virtualenv.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\utils\wheel.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\vcs\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\vcs\bazaar.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\vcs\git.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\vcs\mercurial.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\vcs\subversion.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\vcs\versioncontrol.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_internal\wheel_builder.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\cachecontrol\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\cachecontrol\_cmd.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\cachecontrol\adapter.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\cachecontrol\cache.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\cachecontrol\caches\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\cachecontrol\caches\file_cache.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\cachecontrol\caches\redis_cache.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\cachecontrol\controller.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\cachecontrol\filewrapper.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\cachecontrol\heuristics.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\cachecontrol\serialize.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\cachecontrol\wrapper.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\certifi\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\certifi\__main__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\certifi\core.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\distlib\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\distlib\compat.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\distlib\resources.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\distlib\scripts.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\distlib\util.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\distro\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\distro\__main__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\distro\distro.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\idna\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\idna\codec.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\idna\compat.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\idna\core.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\idna\idnadata.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\idna\intranges.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\idna\package_data.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\idna\uts46data.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\msgpack\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\msgpack\exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\msgpack\ext.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\msgpack\fallback.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\packaging\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\packaging\_elffile.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\packaging\_manylinux.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\packaging\_musllinux.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\packaging\_parser.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\packaging\_structures.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\packaging\_tokenizer.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\packaging\dependency_groups.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\packaging\direct_url.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\packaging\errors.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\packaging\licenses\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\packaging\licenses\_spdx.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\packaging\markers.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\packaging\metadata.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\packaging\pylock.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\packaging\requirements.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\packaging\specifiers.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\packaging\tags.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\packaging\utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\packaging\version.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pkg_resources\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\platformdirs\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\platformdirs\__main__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\platformdirs\android.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\platformdirs\api.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\platformdirs\macos.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\platformdirs\unix.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\platformdirs\version.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\platformdirs\windows.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pygments\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pygments\__main__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pygments\console.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pygments\filter.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pygments\filters\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pygments\formatter.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pygments\formatters\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pygments\formatters\_mapping.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pygments\lexer.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pygments\lexers\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pygments\lexers\_mapping.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pygments\lexers\python.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pygments\modeline.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pygments\plugin.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pygments\regexopt.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pygments\scanner.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pygments\sphinxext.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pygments\style.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pygments\styles\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pygments\styles\_mapping.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pygments\token.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pygments\unistring.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pygments\util.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pyproject_hooks\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pyproject_hooks\_impl.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pyproject_hooks\_in_process\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\pyproject_hooks\_in_process\_in_process.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\requests\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\requests\__version__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\requests\_internal_utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\requests\adapters.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\requests\api.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\requests\auth.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\requests\certs.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\requests\compat.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\requests\cookies.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\requests\exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\requests\help.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\requests\hooks.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\requests\models.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\requests\packages.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\requests\sessions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\requests\status_codes.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\requests\structures.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\requests\utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\resolvelib\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\resolvelib\providers.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\resolvelib\reporters.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\resolvelib\resolvers\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\resolvelib\resolvers\abstract.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\resolvelib\resolvers\criterion.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\resolvelib\resolvers\exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\resolvelib\resolvers\resolution.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\resolvelib\structs.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\__main__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\_cell_widths.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\_emoji_codes.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\_emoji_replace.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\_export_format.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\_extension.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\_fileno.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\_inspect.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\_log_render.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\_loop.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\_null_file.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\_palettes.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\_pick.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\_ratio.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\_spinners.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\_stack.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\_timer.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\_win32_console.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\_windows_renderer.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\_windows.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\_wrap.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\abc.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\align.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\ansi.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\bar.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\box.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\cells.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\color_triplet.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\color.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\columns.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\console.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\constrain.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\containers.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\control.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\default_styles.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\diagnose.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\emoji.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\errors.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\file_proxy.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\filesize.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\highlighter.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\json.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\jupyter.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\layout.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\live_render.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\live.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\logging.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\markup.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\measure.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\padding.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\pager.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\palette.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\panel.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\pretty.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\progress_bar.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\progress.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\prompt.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\protocol.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\region.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\repr.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\rule.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\scope.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\screen.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\segment.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\spinner.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\status.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\style.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\styled.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\syntax.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\table.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\terminal_theme.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\text.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\theme.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\themes.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\traceback.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\rich\tree.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\tomli_w\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\tomli_w\_writer.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\tomli\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\tomli\_parser.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\tomli\_re.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\tomli\_types.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\truststore\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\truststore\_api.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\truststore\_macos.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\truststore\_openssl.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\truststore\_ssl_constants.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\truststore\_windows.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\_base_connection.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\_collections.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\_request_methods.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\_version.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\connection.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\connectionpool.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\contrib\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\contrib\emscripten\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\contrib\emscripten\connection.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\contrib\emscripten\fetch.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\contrib\emscripten\request.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\contrib\emscripten\response.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\contrib\pyopenssl.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\contrib\socks.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\fields.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\filepost.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\http2\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\http2\connection.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\http2\probe.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\poolmanager.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\response.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\util\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\util\connection.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\util\proxy.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\util\request.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\util\response.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\util\retry.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\util\ssl_.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\util\ssl_match_hostname.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\util\ssltransport.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\util\timeout.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\util\url.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\util\util.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pip\_vendor\urllib3\util\wait.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pycparser\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pycparser\_ast_gen.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pycparser\ast_transforms.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pycparser\c_ast.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pycparser\c_generator.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pycparser\c_lexer.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pycparser\c_parser.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic_core\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic_core\core_schema.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic_settings\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic_settings\exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic_settings\main.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic_settings\sources\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic_settings\sources\base.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic_settings\sources\providers\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic_settings\sources\providers\aws.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic_settings\sources\providers\azure.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic_settings\sources\providers\cli.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic_settings\sources\providers\dotenv.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic_settings\sources\providers\env.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic_settings\sources\providers\gcp.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic_settings\sources\providers\json.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic_settings\sources\providers\nested_secrets.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic_settings\sources\providers\pyproject.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic_settings\sources\providers\secrets.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic_settings\sources\providers\toml.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic_settings\sources\providers\yaml.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic_settings\sources\types.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic_settings\sources\utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic_settings\utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic_settings\version.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_config.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_core_metadata.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_core_utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_dataclasses.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_decorators_v1.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_decorators.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_discriminated_union.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_docs_extraction.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_fields.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_forward_ref.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_generate_schema.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_generics.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_git.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_import_utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_internal_dataclass.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_known_annotated_metadata.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_mock_val_ser.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_model_construction.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_namespace_utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_repr.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_schema_gather.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_schema_generation_shared.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_serializers.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_signature.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_typing_extra.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_validate_call.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_internal\_validators.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\_migration.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\alias_generators.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\aliases.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\annotated_handlers.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\class_validators.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\color.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\config.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\dataclasses.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\datetime_parse.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\decorator.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\deprecated\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\deprecated\class_validators.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\deprecated\config.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\deprecated\copy_internals.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\deprecated\decorator.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\deprecated\json.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\deprecated\parse.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\deprecated\tools.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\env_settings.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\error_wrappers.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\errors.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\experimental\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\experimental\arguments_schema.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\experimental\missing_sentinel.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\experimental\pipeline.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\fields.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\functional_serializers.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\functional_validators.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\generics.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\json_schema.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\json.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\main.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\mypy.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\networks.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\parse.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\plugin\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\plugin\_loader.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\plugin\_schema_validator.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\root_model.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\schema.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\tools.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\type_adapter.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\types.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\typing.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\v1\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\v1\_hypothesis_plugin.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\v1\annotated_types.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\v1\class_validators.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\v1\color.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\v1\config.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\v1\dataclasses.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\v1\datetime_parse.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\v1\decorator.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\v1\env_settings.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\v1\error_wrappers.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\v1\errors.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\v1\fields.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\v1\generics.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\v1\json.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\v1\main.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\v1\mypy.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\v1\networks.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\v1\parse.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\v1\schema.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\v1\tools.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\v1\types.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\v1\typing.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\v1\utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\v1\validators.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\v1\version.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\validate_call_decorator.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\validators.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\version.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pydantic\warnings.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\python_multipart\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\python_multipart\decoders.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\python_multipart\exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\python_multipart\multipart.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythoncom.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\debugger\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\debugger\configui.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\debugger\dbgcon.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\debugger\dbgpyapp.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\debugger\debugger.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\debugger\fail.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\app\basictimerapp.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\app\customprint.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\app\demoutils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\app\dlgappdemo.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\app\dojobapp.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\app\helloapp.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\cmdserver.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\createwin.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\demoutils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\dibdemo.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\dlgtest.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\dyndlg.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\fontdemo.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\guidemo.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\hiertest.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\menutest.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\objdoc.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\ocx\demoutils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\ocx\flash.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\ocx\msoffice.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\ocx\ocxserialtest.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\ocx\ocxtest.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\ocx\webbrowser.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\openGLDemo.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\progressbar.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\sliderdemo.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\splittst.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\threadedgui.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\Demos\toolbar.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\dialogs\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\dialogs\ideoptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\dialogs\list.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\dialogs\login.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\dialogs\status.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\docking\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\docking\DockingBar.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\app.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\bitmap.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\cmdline.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\dbgcommands.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\dlgappcore.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\editor\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\editor\color\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\editor\color\coloreditor.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\editor\configui.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\editor\document.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\editor\editor.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\editor\frame.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\editor\ModuleBrowser.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\editor\template.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\editor\vss.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\help.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\interact.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\intpyapp.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\intpydde.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\scriptutils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\sgrepmdi.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\startup.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\stdin.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\toolmenu.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\window.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\framework\winout.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\idle\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\idle\AutoExpand.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\idle\AutoIndent.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\idle\CallTips.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\idle\FormatParagraph.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\idle\IdleHistory.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\idle\PyParse.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\mfc\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\mfc\activex.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\mfc\afxres.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\mfc\dialog.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\mfc\docview.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\mfc\object.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\mfc\thread.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\mfc\window.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\scintilla\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\scintilla\bindings.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\scintilla\config.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\scintilla\configui.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\scintilla\control.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\scintilla\document.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\scintilla\find.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\scintilla\formatter.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\scintilla\IDLEenvironment.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\scintilla\keycodes.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\scintilla\scintillacon.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\scintilla\view.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\tools\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\tools\browseProjects.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\tools\browser.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\tools\hierlist.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\tools\regedit.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\tools\regpy.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\pythonwin\pywin\tools\TraceCollector.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\referencing\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\referencing\_attrs.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\referencing\_core.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\referencing\exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\referencing\jsonschema.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\referencing\retrieval.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\referencing\tests\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\referencing\tests\test_core.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\referencing\tests\test_exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\referencing\tests\test_jsonschema.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\referencing\tests\test_referencing_suite.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\referencing\tests\test_retrieval.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\referencing\typing.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\requests\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\requests\__version__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\requests\_internal_utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\requests\_types.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\requests\adapters.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\requests\api.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\requests\auth.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\requests\certs.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\requests\compat.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\requests\cookies.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\requests\exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\requests\help.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\requests\hooks.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\requests\models.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\requests\packages.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\requests\sessions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\requests\status_codes.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\requests\structures.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\requests\utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\rpds\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\sse_starlette\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\sse_starlette\_utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\sse_starlette\event.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\sse_starlette\sse.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\_exception_handler.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\_utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\applications.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\authentication.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\background.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\concurrency.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\config.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\convertors.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\datastructures.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\endpoints.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\formparsers.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\middleware\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\middleware\authentication.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\middleware\base.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\middleware\cors.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\middleware\errors.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\middleware\exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\middleware\gzip.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\middleware\httpsredirect.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\middleware\sessions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\middleware\trustedhost.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\middleware\wsgi.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\requests.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\responses.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\routing.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\schemas.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\staticfiles.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\status.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\templating.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\testclient.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\types.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\starlette\websockets.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\typing_extensions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\typing_inspection\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\typing_inspection\introspection.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\typing_inspection\typing_objects.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\_base_connection.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\_collections.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\_request_methods.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\_version.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\connection.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\connectionpool.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\contrib\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\contrib\emscripten\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\contrib\emscripten\connection.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\contrib\emscripten\fetch.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\contrib\emscripten\request.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\contrib\emscripten\response.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\contrib\pyopenssl.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\contrib\socks.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\fields.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\filepost.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\http2\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\http2\connection.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\http2\probe.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\poolmanager.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\response.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\util\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\util\connection.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\util\proxy.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\util\request.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\util\response.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\util\retry.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\util\ssl_.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\util\ssl_match_hostname.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\util\ssltransport.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\util\timeout.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\util\url.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\util\util.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\urllib3\util\wait.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\__main__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\_compat.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\_subprocess.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\_types.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\config.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\importer.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\lifespan\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\lifespan\off.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\lifespan\on.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\logging.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\loops\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\loops\asyncio.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\loops\auto.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\loops\uvloop.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\main.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\middleware\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\middleware\asgi2.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\middleware\message_logger.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\middleware\proxy_headers.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\middleware\wsgi.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\protocols\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\protocols\http\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\protocols\http\auto.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\protocols\http\flow_control.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\protocols\http\h11_impl.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\protocols\utils.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\protocols\websockets\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\protocols\websockets\auto.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\protocols\websockets\websockets_impl.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\protocols\websockets\websockets_sansio_impl.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\protocols\websockets\wsproto_impl.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\server.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\supervisors\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\supervisors\basereload.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\supervisors\multiprocess.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\supervisors\statreload.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\supervisors\watchfilesreload.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\uvicorn\workers.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\BackupRead_BackupWrite.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\BackupSeek_streamheaders.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\c_extension\setup.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\CopyFileEx.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\CreateFileTransacted_MiniVersion.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\dde\ddeclient.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\dde\ddeserver.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\desktopmanager.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\eventLogDemo.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\EvtFormatMessage.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\EvtSubscribe_pull.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\EvtSubscribe_push.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\FileSecurityTest.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\getfilever.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\GetSaveFileName.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\mmapfile_demo.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\NetValidatePasswordPolicy.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\OpenEncryptedFileRaw.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\pipes\cat.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\pipes\runproc.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\print_desktop.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\rastest.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\RegCreateKeyTransacted.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\RegRestoreKey.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\security\account_rights.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\security\explicit_entries.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\security\get_policy_info.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\security\GetTokenInformation.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\security\list_rights.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\security\localized_names.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\security\lsaregevent.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\security\lsastore.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\security\query_information.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\security\regsave_sa.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\security\regsecurity.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\security\sa_inherit.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\security\security_enums.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\security\set_file_audit.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\security\set_file_owner.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\security\set_policy_info.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\security\setkernelobjectsecurity.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\security\setnamedsecurityinfo.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\security\setsecurityinfo.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\security\setuserobjectsecurity.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\security\sspi\fetch_url.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\security\sspi\simple_auth.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\security\sspi\socket_server.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\security\sspi\validate_password.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\service\nativePipeTestService.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\service\pipeTestService.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\service\pipeTestServiceClient.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\service\serviceEvents.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\SystemParametersInfo.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\timer_demo.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\win32clipboard_bitmapdemo.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\win32clipboardDemo.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\win32comport_demo.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\win32console_demo.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\win32cred_demo.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\win32fileDemo.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\win32gui_demo.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\win32gui_devicenotify.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\win32gui_dialog.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\win32gui_menu.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\win32gui_taskbar.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\win32netdemo.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\win32rcparser_demo.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\win32servicedemo.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\win32ts_logoff_disconnected.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\win32wnet\testwnet.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\win32wnet\winnetwk.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\Demos\winprocess.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\_win32verstamp_pywin32ctypes.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\afxres.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\commctrl.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\mmsystem.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\netbios.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\ntsecuritycon.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\pywin32_bootstrap.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\pywin32_testutil.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\pywintypes.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\rasutil.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\regcheck.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\regutil.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\sspi.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\sspicon.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\win2kras.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\win32con.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\win32cryptcon.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\win32evtlogutil.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\win32gui_struct.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\win32inetcon.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\win32netcon.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\win32pdhquery.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\win32pdhutil.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\win32rcparser.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\win32serviceutil.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\win32timezone.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\win32traceutil.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\win32verstamp.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\winerror.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\winioctlcon.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\winnt.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\winperf.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\lib\winxptheme.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\scripts\backupEventLog.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\scripts\ControlService.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\scripts\h2py.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\scripts\killProcName.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\scripts\pywin32_postinstall.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\scripts\pywin32_testall.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\scripts\rasutil.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\scripts\regsetup.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\scripts\setup_d.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\scripts\VersionStamp\BrandProject.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\scripts\VersionStamp\bulkstamp.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\scripts\VersionStamp\vssutil.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\test\handles.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\test\test_clipboard.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\test\test_exceptions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\test\test_odbc.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\test\test_pywintypes.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\test\test_security.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\test\test_sspi.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\test\test_win32api.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\test\test_win32clipboard.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\test\test_win32cred.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\test\test_win32crypt.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\test\test_win32event.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\test\test_win32file.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\test\test_win32gui.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\test\test_win32guistruct.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\test\test_win32inet.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\test\test_win32net.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\test\test_win32pipe.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\test\test_win32print.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\test\test_win32profile.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\test\test_win32rcparser.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\test\test_win32timezone.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\test\test_win32trace.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\test\test_win32ts.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\test\test_win32wnet.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\test\testall.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32\winxpgui.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\client\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\client\build.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\client\CLSIDToClass.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\client\combrowse.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\client\connect.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\client\dynamic.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\client\gencache.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\client\genpy.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\client\makepy.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\client\selecttlb.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\client\tlbrowse.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\client\util.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\demos\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\demos\connect.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\demos\dump_clipboard.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\demos\eventsApartmentThreaded.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\demos\eventsFreeThreaded.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\demos\excelAddin.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\demos\excelRTDServer.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\demos\iebutton.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\demos\ietoolbar.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\demos\outlookAddin.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\demos\trybag.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\makegw\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\makegw\makegw.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\makegw\makegwenum.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\makegw\makegwparse.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\olectl.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\server\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\server\connect.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\server\dispatcher.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\server\exception.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\server\factory.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\server\localserver.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\server\policy.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\server\register.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\server\util.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\servers\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\servers\dictionary.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\servers\interp.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\servers\perfmon.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\servers\PythonTools.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\servers\test_pycomtest.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\storagecon.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\daodump.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\errorSemantics.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\GenTestScripts.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\pippo_server.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\policySemantics.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testAccess.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testADOEvents.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testall.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testArrays.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testAXScript.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testClipboard.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testCollections.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testConversionErrors.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testDates.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testDCOM.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testDictionary.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testDynamic.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testExchange.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testExplorer.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testGatewayAddresses.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testGIT.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testIterators.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testmakepy.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testMarshal.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testMSOffice.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testMSOfficeEvents.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testPersist.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testPippo.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testPyComTest.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testROT.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testServers.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testShell.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testStorage.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testStreams.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testvb.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testvbscript_regexp.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testWMI.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\testxslt.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\test\util.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\universal.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32com\util.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\adsi\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\adsi\adsicon.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\adsi\demos\objectPicker.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\adsi\demos\scp.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\adsi\demos\search.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\adsi\demos\test.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\authorization\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\authorization\demos\EditSecurity.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\authorization\demos\EditServiceSecurity.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axcontrol\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axdebug\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axdebug\adb.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axdebug\codecontainer.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axdebug\contexts.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axdebug\debugger.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axdebug\documents.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axdebug\dump.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axdebug\expressions.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axdebug\gateways.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axdebug\stackframe.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axdebug\util.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axscript\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axscript\asputil.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axscript\client\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axscript\client\debug.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axscript\client\error.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axscript\client\framework.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axscript\client\pydumper.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axscript\client\pyscript_rexec.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axscript\client\pyscript.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axscript\client\scriptdispatch.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axscript\server\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axscript\server\axsite.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axscript\test\leakTest.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axscript\test\testHost.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\axscript\test\testHost4Dbg.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\bits\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\bits\test\show_all_jobs.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\bits\test\test_bits.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\directsound\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\directsound\test\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\directsound\test\ds_record.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\directsound\test\ds_test.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\ifilter\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\ifilter\demo\filterDemo.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\ifilter\ifiltercon.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\internet\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\internet\inetcon.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\mapi\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\mapi\demos\mapisend.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\mapi\emsabtags.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\mapi\mapitags.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\mapi\mapiutil.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\propsys\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\propsys\pscon.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\propsys\test\testpropsys.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\shell\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\shell\demos\browse_for_folder.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\shell\demos\create_link.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\shell\demos\dump_link.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\shell\demos\explorer_browser.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\shell\demos\IActiveDesktop.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\shell\demos\IFileOperationProgressSink.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\shell\demos\IShellLinkDataList.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\shell\demos\ITransferAdviseSink.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\shell\demos\IUniformResourceLocator.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\shell\demos\servers\column_provider.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\shell\demos\servers\context_menu.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\shell\demos\servers\copy_hook.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\shell\demos\servers\empty_volume_cache.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\shell\demos\servers\folder_view.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\shell\demos\servers\icon_handler.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\shell\demos\servers\shell_view.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\shell\demos\shellexecuteex.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\shell\demos\viewstate.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\shell\demos\walk_shell_folders.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\shell\shellcon.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\shell\test\testShellFolder.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\shell\test\testShellItem.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\shell\test\testSHFileOperation.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\taskscheduler\__init__.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\taskscheduler\test\test_addtask_1.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\taskscheduler\test\test_addtask_2.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\taskscheduler\test\test_addtask.py`
+- `Revit\codex\mcp_server\.venv\Lib\site-packages\win32comext\taskscheduler\test\test_localsystem.py`
+- `Revit\codex\mcp_server\.venv\Scripts\pywin32_postinstall.py`
+- `Revit\codex\mcp_server\.venv\Scripts\pywin32_testall.py`
+- `Revit\codex\mcp_server\revit_client.py`
+- `Revit\codex\mcp_server\server.py`
+- `Revit\codex\pyrevit\CodexMCP.extension\CodexMCP.tab\MCP.panel\Start.pushbutton\script.py`
+- `Revit\codex\pyrevit\CodexMCP.extension\CodexMCP.tab\MCP.panel\Stop.pushbutton\script.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\_virtualenv.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\annotated_types\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\annotated_types\test_cases.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\_backends\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\_backends\_asyncio.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\_backends\_trio.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\_core\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\_core\_asyncio_selector_thread.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\_core\_eventloop.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\_core\_exceptions.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\_core\_fileio.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\_core\_resources.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\_core\_signals.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\_core\_sockets.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\_core\_streams.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\_core\_subprocesses.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\_core\_synchronization.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\_core\_tasks.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\_core\_tempfile.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\_core\_testing.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\_core\_typedattr.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\abc\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\abc\_eventloop.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\abc\_resources.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\abc\_sockets.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\abc\_streams.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\abc\_subprocesses.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\abc\_tasks.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\abc\_testing.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\from_thread.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\lowlevel.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\pytest_plugin.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\streams\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\streams\buffered.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\streams\file.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\streams\memory.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\streams\stapled.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\streams\text.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\streams\tls.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\to_interpreter.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\to_process.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\anyio\to_thread.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\certifi\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\certifi\__main__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\certifi\core.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\click\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\click\_compat.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\click\_termui_impl.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\click\_textwrap.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\click\_winconsole.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\click\core.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\click\decorators.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\click\exceptions.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\click\formatting.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\click\globals.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\click\parser.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\click\shell_completion.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\click\termui.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\click\testing.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\click\types.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\click\utils.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\colorama\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\colorama\ansi.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\colorama\ansitowin32.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\colorama\initialise.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\colorama\tests\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\colorama\tests\ansi_test.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\colorama\tests\ansitowin32_test.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\colorama\tests\initialise_test.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\colorama\tests\isatty_test.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\colorama\tests\utils.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\colorama\tests\winterm_test.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\colorama\win32.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\colorama\winterm.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\dotenv\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\dotenv\__main__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\dotenv\cli.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\dotenv\ipython.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\dotenv\main.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\dotenv\parser.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\dotenv\variables.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\dotenv\version.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\h11\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\h11\_abnf.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\h11\_connection.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\h11\_events.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\h11\_headers.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\h11\_readers.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\h11\_receivebuffer.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\h11\_state.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\h11\_util.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\h11\_version.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\h11\_writers.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_api.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_async\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_async\connection_pool.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_async\connection.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_async\http_proxy.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_async\http11.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_async\http2.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_async\interfaces.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_async\socks_proxy.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_backends\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_backends\anyio.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_backends\auto.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_backends\base.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_backends\mock.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_backends\sync.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_backends\trio.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_exceptions.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_models.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_ssl.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_sync\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_sync\connection.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_sync\http_proxy.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_sync\http11.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_sync\http2.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_sync\interfaces.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_sync\socks_proxy.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_synchronization.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_trace.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpcore\_utils.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx_sse\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx_sse\_api.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx_sse\_decoders.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx_sse\_exceptions.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx_sse\_models.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx\__version__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx\_api.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx\_auth.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx\_client.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx\_config.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx\_content.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx\_decoders.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx\_exceptions.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx\_main.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx\_models.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx\_multipart.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx\_status_codes.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx\_transports\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx\_transports\asgi.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx\_transports\base.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx\_transports\default.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx\_transports\mock.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx\_transports\wsgi.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx\_types.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx\_urlparse.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx\_urls.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\httpx\_utils.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\idna\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\idna\codec.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\idna\compat.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\idna\core.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\idna\idnadata.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\idna\intranges.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\idna\package_data.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\idna\uts46data.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\_compat.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\_punycode.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\cli\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\cli\parse.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\common\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\common\entities.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\common\html_blocks.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\common\html_re.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\common\normalize_url.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\common\utils.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\helpers\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\helpers\parse_link_destination.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\helpers\parse_link_label.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\helpers\parse_link_title.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\main.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\parser_block.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\parser_core.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\parser_inline.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\presets\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\presets\commonmark.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\presets\default.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\presets\zero.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\renderer.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\ruler.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_block\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_block\blockquote.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_block\code.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_block\fence.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_block\heading.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_block\hr.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_block\html_block.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_block\lheading.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_block\list.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_block\paragraph.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_block\reference.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_block\state_block.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_block\table.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_core\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_core\block.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_core\inline.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_core\linkify.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_core\normalize.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_core\replacements.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_core\smartquotes.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_core\state_core.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_core\text_join.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_inline\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_inline\autolink.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_inline\backticks.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_inline\balance_pairs.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_inline\emphasis.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_inline\entity.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_inline\escape.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_inline\fragments_join.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_inline\html_inline.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_inline\image.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_inline\link.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_inline\linkify.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_inline\newline.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_inline\state_inline.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_inline\strikethrough.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\rules_inline\text.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\token.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\tree.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\markdown_it\utils.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\cli\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\cli\claude.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\cli\cli.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\client\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\client\__main__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\client\session_group.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\client\session.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\client\sse.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\client\stdio\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\client\stdio\win32.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\client\streamable_http.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\client\websocket.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\__main__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\auth\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\auth\errors.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\auth\handlers\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\auth\handlers\authorize.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\auth\handlers\metadata.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\auth\handlers\register.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\auth\handlers\revoke.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\auth\handlers\token.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\auth\json_response.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\auth\middleware\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\auth\middleware\auth_context.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\auth\middleware\bearer_auth.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\auth\middleware\client_auth.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\auth\provider.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\auth\routes.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\auth\settings.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\fastmcp\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\fastmcp\exceptions.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\fastmcp\prompts\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\fastmcp\prompts\base.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\fastmcp\prompts\manager.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\fastmcp\prompts\prompt_manager.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\fastmcp\resources\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\fastmcp\resources\base.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\fastmcp\resources\resource_manager.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\fastmcp\resources\templates.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\fastmcp\resources\types.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\fastmcp\server.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\fastmcp\tools\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\fastmcp\tools\base.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\fastmcp\tools\tool_manager.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\fastmcp\utilities\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\fastmcp\utilities\func_metadata.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\fastmcp\utilities\logging.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\fastmcp\utilities\types.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\lowlevel\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\lowlevel\helper_types.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\lowlevel\server.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\models.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\session.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\sse.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\stdio.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\streamable_http_manager.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\streamable_http.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\streaming_asgi_transport.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\server\websocket.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\shared\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\shared\_httpx_utils.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\shared\auth.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\shared\context.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\shared\exceptions.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\shared\memory.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\shared\message.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\shared\progress.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\shared\session.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\shared\version.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mcp\types.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mdurl\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mdurl\_decode.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mdurl\_encode.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mdurl\_format.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mdurl\_parse.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\mdurl\_url.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\multipart\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\multipart\decoders.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\multipart\exceptions.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\multipart\multipart.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic_core\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic_core\core_schema.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic_settings\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic_settings\exceptions.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic_settings\main.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic_settings\sources\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic_settings\sources\base.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic_settings\sources\providers\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic_settings\sources\providers\aws.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic_settings\sources\providers\azure.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic_settings\sources\providers\cli.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic_settings\sources\providers\dotenv.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic_settings\sources\providers\env.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic_settings\sources\providers\gcp.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic_settings\sources\providers\json.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic_settings\sources\providers\pyproject.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic_settings\sources\providers\secrets.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic_settings\sources\providers\toml.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic_settings\sources\providers\yaml.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic_settings\sources\types.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic_settings\sources\utils.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic_settings\utils.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic_settings\version.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_config.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_core_metadata.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_core_utils.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_dataclasses.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_decorators_v1.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_decorators.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_discriminated_union.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_docs_extraction.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_fields.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_forward_ref.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_generate_schema.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_generics.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_git.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_import_utils.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_internal_dataclass.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_known_annotated_metadata.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_mock_val_ser.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_model_construction.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_namespace_utils.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_repr.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_schema_gather.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_schema_generation_shared.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_serializers.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_signature.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_typing_extra.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_utils.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_validate_call.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_internal\_validators.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\_migration.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\alias_generators.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\aliases.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\annotated_handlers.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\class_validators.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\color.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\config.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\dataclasses.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\datetime_parse.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\decorator.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\deprecated\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\deprecated\class_validators.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\deprecated\config.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\deprecated\copy_internals.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\deprecated\decorator.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\deprecated\json.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\deprecated\parse.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\deprecated\tools.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\env_settings.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\error_wrappers.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\errors.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\experimental\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\experimental\arguments_schema.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\experimental\pipeline.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\fields.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\functional_serializers.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\functional_validators.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\generics.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\json_schema.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\json.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\main.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\mypy.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\networks.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\parse.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\plugin\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\plugin\_loader.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\plugin\_schema_validator.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\root_model.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\schema.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\tools.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\type_adapter.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\types.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\typing.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\utils.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\v1\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\v1\_hypothesis_plugin.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\v1\annotated_types.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\v1\class_validators.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\v1\color.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\v1\config.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\v1\dataclasses.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\v1\datetime_parse.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\v1\decorator.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\v1\env_settings.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\v1\error_wrappers.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\v1\errors.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\v1\fields.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\v1\generics.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\v1\json.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\v1\main.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\v1\mypy.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\v1\networks.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\v1\parse.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\v1\schema.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\v1\tools.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\v1\types.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\v1\typing.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\v1\utils.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\v1\validators.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\v1\version.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\validate_call_decorator.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\validators.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\version.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pydantic\warnings.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\__main__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\cmdline.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\console.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\filter.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\filters\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\formatter.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\formatters\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\formatters\_mapping.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\formatters\bbcode.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\formatters\groff.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\formatters\html.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\formatters\img.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\formatters\irc.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\formatters\latex.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\formatters\other.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\formatters\pangomarkup.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\formatters\rtf.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\formatters\svg.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\formatters\terminal.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\formatters\terminal256.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexer.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_ada_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_asy_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_cl_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_cocoa_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_csound_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_css_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_googlesql_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_julia_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_lasso_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_lilypond_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_lua_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_luau_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_mapping.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_mql_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_mysql_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_openedge_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_php_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_postgres_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_qlik_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_scheme_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_scilab_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_sourcemod_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_stan_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_stata_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_tsql_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_usd_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_vbscript_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\_vim_builtins.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\actionscript.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\ada.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\agile.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\algebra.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\ambient.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\amdgpu.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\ampl.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\apdlexer.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\apl.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\archetype.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\arrow.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\arturo.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\asc.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\asm.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\asn1.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\automation.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\bare.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\basic.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\bdd.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\berry.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\bibtex.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\blueprint.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\boa.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\bqn.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\business.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\c_cpp.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\c_like.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\capnproto.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\carbon.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\cddl.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\chapel.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\clean.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\codeql.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\comal.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\compiled.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\configs.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\console.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\cplint.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\crystal.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\csound.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\css.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\d.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\dalvik.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\data.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\dax.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\devicetree.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\diff.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\dns.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\dotnet.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\dsls.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\dylan.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\ecl.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\eiffel.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\elm.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\elpi.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\email.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\erlang.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\esoteric.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\ezhil.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\factor.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\fantom.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\felix.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\fift.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\floscript.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\forth.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\fortran.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\foxpro.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\freefem.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\func.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\functional.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\futhark.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\gcodelexer.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\gdscript.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\gleam.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\go.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\grammar_notation.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\graph.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\graphics.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\graphql.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\graphviz.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\gsql.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\hare.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\haskell.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\haxe.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\hdl.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\hexdump.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\html.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\idl.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\igor.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\inferno.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\installers.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\int_fiction.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\iolang.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\j.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\javascript.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\jmespath.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\jslt.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\json5.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\jsonnet.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\jsx.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\julia.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\jvm.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\kuin.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\kusto.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\ldap.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\lean.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\lilypond.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\lisp.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\macaulay2.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\make.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\maple.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\markup.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\math.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\matlab.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\maxima.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\meson.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\mime.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\minecraft.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\mips.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\ml.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\modeling.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\modula2.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\mojo.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\monte.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\mosel.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\ncl.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\nimrod.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\nit.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\nix.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\numbair.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\oberon.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\objective.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\ooc.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\openscad.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\other.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\parasail.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\parsers.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\pascal.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\pawn.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\pddl.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\perl.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\phix.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\php.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\pointless.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\pony.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\praat.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\procfile.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\prolog.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\promql.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\prql.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\ptx.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\python.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\q.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\qlik.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\qvt.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\r.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\rdf.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\rebol.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\rego.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\resource.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\ride.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\rita.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\rnc.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\roboconf.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\robotframework.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\ruby.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\rust.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\sas.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\savi.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\scdoc.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\scripting.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\sgf.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\shell.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\sieve.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\slash.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\smalltalk.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\smithy.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\smv.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\snobol.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\solidity.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\soong.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\sophia.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\special.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\spice.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\sql.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\srcinfo.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\stata.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\supercollider.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\tablegen.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\tact.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\tal.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\tcl.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\teal.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\templates.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\teraterm.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\testing.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\text.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\textedit.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\textfmts.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\theorem.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\thingsdb.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\tlb.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\tls.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\tnt.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\trafficscript.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\typoscript.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\typst.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\ul4.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\unicon.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\urbi.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\usd.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\varnish.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\verification.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\verifpal.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\vip.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\vyper.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\web.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\webassembly.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\webidl.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\webmisc.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\wgsl.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\whiley.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\wowtoc.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\wren.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\x10.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\xorg.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\yang.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\yara.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\lexers\zig.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\modeline.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\plugin.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\regexopt.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\scanner.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\sphinxext.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\style.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\_mapping.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\abap.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\algol_nu.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\algol.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\arduino.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\autumn.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\borland.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\bw.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\coffee.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\colorful.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\default.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\dracula.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\emacs.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\friendly_grayscale.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\friendly.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\fruity.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\gh_dark.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\gruvbox.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\igor.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\inkpot.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\lightbulb.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\lilypond.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\lovelace.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\manni.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\material.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\monokai.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\murphy.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\native.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\nord.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\onedark.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\paraiso_dark.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\paraiso_light.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\pastie.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\perldoc.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\rainbow_dash.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\rrt.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\sas.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\solarized.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\staroffice.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\stata_dark.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\stata_light.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\tango.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\trac.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\vim.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\vs.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\xcode.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\styles\zenburn.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\token.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\unistring.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\pygments\util.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\python_multipart\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\python_multipart\decoders.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\python_multipart\exceptions.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\python_multipart\multipart.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\__main__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\_cell_widths.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\_emoji_codes.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\_emoji_replace.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\_export_format.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\_extension.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\_fileno.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\_inspect.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\_log_render.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\_loop.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\_null_file.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\_palettes.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\_pick.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\_ratio.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\_spinners.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\_stack.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\_timer.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\_win32_console.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\_windows_renderer.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\_windows.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\_wrap.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\abc.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\align.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\ansi.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\bar.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\box.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\cells.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\color_triplet.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\color.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\columns.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\console.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\constrain.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\containers.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\control.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\default_styles.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\diagnose.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\emoji.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\errors.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\file_proxy.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\filesize.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\highlighter.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\json.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\jupyter.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\layout.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\live_render.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\live.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\logging.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\markdown.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\markup.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\measure.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\padding.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\pager.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\palette.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\panel.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\pretty.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\progress_bar.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\progress.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\prompt.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\protocol.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\region.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\repr.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\rule.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\scope.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\screen.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\segment.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\spinner.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\status.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\style.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\styled.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\syntax.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\table.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\terminal_theme.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\text.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\theme.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\themes.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\traceback.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\rich\tree.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\shellingham\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\shellingham\_core.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\shellingham\nt.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\shellingham\posix\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\shellingham\posix\_core.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\shellingham\posix\proc.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\shellingham\posix\ps.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\sniffio\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\sniffio\_impl.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\sniffio\_tests\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\sniffio\_tests\test_sniffio.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\sniffio\_version.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\sse_starlette\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\sse_starlette\event.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\sse_starlette\sse.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\_exception_handler.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\_utils.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\applications.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\authentication.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\background.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\concurrency.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\config.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\convertors.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\datastructures.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\endpoints.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\exceptions.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\formparsers.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\middleware\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\middleware\authentication.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\middleware\base.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\middleware\cors.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\middleware\errors.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\middleware\exceptions.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\middleware\gzip.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\middleware\httpsredirect.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\middleware\sessions.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\middleware\trustedhost.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\middleware\wsgi.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\requests.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\responses.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\routing.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\schemas.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\staticfiles.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\status.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\templating.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\testclient.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\types.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\starlette\websockets.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\typer\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\typer\__main__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\typer\_completion_classes.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\typer\_completion_shared.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\typer\_typing.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\typer\cli.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\typer\colors.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\typer\completion.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\typer\core.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\typer\main.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\typer\models.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\typer\params.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\typer\rich_utils.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\typer\testing.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\typer\utils.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\typing_extensions.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\typing_inspection\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\typing_inspection\introspection.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\typing_inspection\typing_objects.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\__main__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\_subprocess.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\_types.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\config.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\importer.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\lifespan\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\lifespan\off.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\lifespan\on.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\logging.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\loops\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\loops\asyncio.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\loops\auto.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\loops\uvloop.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\main.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\middleware\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\middleware\asgi2.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\middleware\message_logger.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\middleware\proxy_headers.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\middleware\wsgi.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\protocols\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\protocols\http\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\protocols\http\auto.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\protocols\http\flow_control.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\protocols\http\h11_impl.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\protocols\utils.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\protocols\websockets\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\protocols\websockets\auto.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\protocols\websockets\websockets_impl.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\protocols\websockets\wsproto_impl.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\server.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\supervisors\__init__.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\supervisors\basereload.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\supervisors\multiprocess.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\supervisors\statreload.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\supervisors\watchfilesreload.py`
+- `Revit\revit-mcp-server\.venv\Lib\site-packages\uvicorn\workers.py`
+- `Revit\revit-mcp-server\.venv\Scripts\activate_this.py`
+- `Revit\revit-mcp-server\main.py`
+- `Revit\revit-mcp-server\revit_mcp\__init__.py`
+- `Revit\revit-mcp-server\revit_mcp\analysis.py`
+- `Revit\revit-mcp-server\revit_mcp\annotation.py`
+- `Revit\revit-mcp-server\revit_mcp\building.py`
+- `Revit\revit-mcp-server\revit_mcp\code_execution.py`
+- `Revit\revit-mcp-server\revit_mcp\colors.py`
+- `Revit\revit-mcp-server\revit_mcp\detail.py`
+- `Revit\revit-mcp-server\revit_mcp\documentation.py`
+- `Revit\revit-mcp-server\revit_mcp\editing.py`
+- `Revit\revit-mcp-server\revit_mcp\interop.py`
+- `Revit\revit-mcp-server\revit_mcp\mep.py`
+- `Revit\revit-mcp-server\revit_mcp\model_info.py`
+- `Revit\revit-mcp-server\revit_mcp\parameters.py`
+- `Revit\revit-mcp-server\revit_mcp\placement.py`
+- `Revit\revit-mcp-server\revit_mcp\rooms.py`
+- `Revit\revit-mcp-server\revit_mcp\status.py`
+- `Revit\revit-mcp-server\revit_mcp\structure.py`
+- `Revit\revit-mcp-server\revit_mcp\tags.py`
+- `Revit\revit-mcp-server\revit_mcp\transforms.py`
+- `Revit\revit-mcp-server\revit_mcp\utils.py`
+- `Revit\revit-mcp-server\revit_mcp\view_management.py`
+- `Revit\revit-mcp-server\revit_mcp\views.py`
+- `Revit\revit-mcp-server\startup.py`
+- `Revit\revit-mcp-server\tools\__init__.py`
+- `Revit\revit-mcp-server\tools\analysis_tools.py`
+- `Revit\revit-mcp-server\tools\annotation_tools.py`
+- `Revit\revit-mcp-server\tools\building_tools.py`
+- `Revit\revit-mcp-server\tools\code_execution_tools.py`
+- `Revit\revit-mcp-server\tools\colors_tools.py`
+- `Revit\revit-mcp-server\tools\detail_tools.py`
+- `Revit\revit-mcp-server\tools\documentation_tools.py`
+- `Revit\revit-mcp-server\tools\editing_tools.py`
+- `Revit\revit-mcp-server\tools\family_tools.py`
+- `Revit\revit-mcp-server\tools\interop_tools.py`
+- `Revit\revit-mcp-server\tools\mep_tools.py`
+- `Revit\revit-mcp-server\tools\model_tools.py`
+- `Revit\revit-mcp-server\tools\parameter_tools.py`
+- `Revit\revit-mcp-server\tools\room_tools.py`
+- `Revit\revit-mcp-server\tools\status_tools.py`
+- `Revit\revit-mcp-server\tools\structure_tools.py`
+- `Revit\revit-mcp-server\tools\tag_tools.py`
+- `Revit\revit-mcp-server\tools\transform_tools.py`
+- `Revit\revit-mcp-server\tools\utils.py`
+- `Revit\revit-mcp-server\tools\view_management_tools.py`
+- `Revit\revit-mcp-server\tools\view_tools.py`
+- `run_eval.py`
+- `run_loop.py`
+- `scripts\check_bounding_boxes.py`
+- `scripts\check_fillable_fields.py`
+- `scripts\convert_pdf_to_images.py`
+- `scripts\create_validation_image.py`
+- `scripts\extract_form_field_info.py`
+- `scripts\extract_form_structure.py`
+- `scripts\fill_fillable_fields.py`
+- `scripts\fill_pdf_form_with_annotations.py`
+- `utils.py`
+- `xlsx\scripts\office\helpers\__init__.py`
+- `xlsx\scripts\office\helpers\merge_runs.py`
+- `xlsx\scripts\office\helpers\simplify_redlines.py`
+- `xlsx\scripts\office\pack.py`
+- `xlsx\scripts\office\soffice.py`
+- `xlsx\scripts\office\unpack.py`
+- `xlsx\scripts\office\validate.py`
+- `xlsx\scripts\office\validators\__init__.py`
+- `xlsx\scripts\office\validators\base.py`
+- `xlsx\scripts\office\validators\docx.py`
+- `xlsx\scripts\office\validators\pptx.py`
+- `xlsx\scripts\office\validators\redlining.py`
+- `xlsx\scripts\recalc.py`

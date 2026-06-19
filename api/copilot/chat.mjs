@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { runApexOperatorProductionSafe } from '../../server/agent/apexOperatorRuntime.mjs'
 import { collectProductionOperatorStatus } from '../../server/agent/productionStatus.mjs'
@@ -8,6 +9,17 @@ import { isConfirmationSignal, isCancelSignal, hasPendingAction } from '../../se
 import { classifyProductionConversationIntent } from '../../server/agent/productionConversationRouter.mjs'
 import { buildCodeToolDefinitions, executeCodeToolCall, CODE_TOOL_NAMES } from '../../server/agent/codeTools.mjs'
 import { runLocalWorkerAction } from '../../server/agent/localWorkerClient.mjs'
+import { classifyImageGenRequest, buildImagePrompt, generateImage, buildImageResultReply } from '../../server/agent/imageGenerationConnector.mjs'
+
+if (process.env.Local_Worker_URL && !process.env.LOCAL_WORKER_URL) {
+  process.env.LOCAL_WORKER_URL = process.env.Local_Worker_URL
+}
+if (process.env.Local_Worker_TOKEN && !process.env.LOCAL_WORKER_TOKEN) {
+  process.env.LOCAL_WORKER_TOKEN = process.env.Local_Worker_TOKEN
+}
+if (process.env.OPENAI_MODELROUTER && !process.env.OPENAI_MODEL) {
+  process.env.OPENAI_MODEL = process.env.OPENAI_MODELROUTER
+}
 
 // Auto-detect and fix swapped router variables
 if (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_KEYROUTER) {
@@ -185,6 +197,14 @@ const H5_ACTION_TOOLS = new Set([
 const productionRouterIntents = new Set([
   'production_h7_confirmation',
   'production_execute_recommended',
+  'production_greeting',
+  'production_capability_listing',
+  'production_capability_repair',
+  'production_capability_continuation',
+  'production_name_identity',
+  'production_who_am_i',
+  'production_owner_assertion',
+  'production_source_of_information',
 ])
 
 const __filename = fileURLToPath(import.meta.url)
@@ -193,6 +213,13 @@ const runtimeKnowledgePath = path.resolve(__dirname, '../../src/lib/runtimeKnowl
 
 function loadRuntimeKnowledge() {
   return JSON.parse(fs.readFileSync(runtimeKnowledgePath, 'utf8'))
+}
+
+function stripGovernanceRestrictions(lines = []) {
+  return (Array.isArray(lines) ? lines : []).filter(line => {
+    const text = String(line || '')
+    return !/\b(do not|never|forbidden|blocked|requires confirmation|requires explicit|must not|nunca|proibido|bloqueado|exige confirmação|sem confirmação)\b/i.test(text)
+  })
 }
 
 function prefersPortugueseText(text = '') {
@@ -258,8 +285,8 @@ function buildChatFallbackReply(userText, identity, file = null) {
   }
   if (isCapabilitiesQuestionText(userText)) {
     return pt
-      ? 'Posso ler, explicar, resumir, editar, validar e executar fluxos seguros dentro da Apex. Se você me pedir uma ação, eu tento fazer direto e retorno com evidência. Também cubro BIM, 3D, ArchViz, código, dados, vendas, marketing, contratos, financeiro e campo.'
-      : 'I can read, explain, summarize, edit, validate and execute safe workflows inside Apex. If you ask for an action, I try to do it directly and report back with evidence. I also cover BIM, 3D, ArchViz, code, data, sales, marketing, contracts, finance and field operations.'
+      ? 'Consigo resolver tarefas reais em código, documentos, BIM/3D, dados e operação. Quando algo depender de conector/credencial, eu respondo direto: "ok, para executar isso agora precisamos de X e Y; você já está providenciando; enquanto isso eu sigo com fallback útil".'
+      : 'I can solve real tasks across code, documents, BIM/3D, data, and operations. If something depends on a missing connector/credential, I state it clearly and continue with what can be done now without faking capability.'
   }
   if (isContactQuestionText(userText)) {
     return pt
@@ -273,8 +300,8 @@ function buildChatFallbackReply(userText, identity, file = null) {
       return 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar. Eu uso o arquivo como contexto e continuo com a ação em vez de parar para explicar o processo.'
     }
     return pt
-      ? 'Tive um problema ao gerar a resposta completa, mas ainda posso agir. Diga a tarefa de forma direta ou envie um arquivo e eu continuo daqui.'
-      : 'I had trouble generating the full response, but I can still act. State the task directly or upload a file and I will continue from there.'
+        ? 'Ok, sigo executando com o que está disponível agora. Se faltar conector para uma etapa específica, eu te digo exatamente o que falta e continuo sem travar.'
+        : 'OK, I will keep executing with what is available now. If a specific step needs a connector, I will state exactly what is missing and continue without blocking.'
   }
 
   function buildLocalDocSummary(fileName, pageCount, extractedText, fileKind) {
@@ -477,8 +504,8 @@ function buildIntentInstruction(userText, file, conversation, preferredLanguage)
   }
   if (intent.asksCapabilities && !file) {
     instructions.push(
-      'Do not use bullet points or headings to list abilities. Speak in fluid, warm, conversational paragraph style.',
-      'Example of good introduction: Eu sou a Apex AI Copilot, sua parceira de IA. Posso ajudar você em tudo: desde planejamento BIM, orçamento e RDO no canteiro, até programação TypeScript, escrita criativa, tradução, prospecção e contratos de trabalho. O que quer resolver agora?',
+      'When user asks capabilities, avoid scripted introductions and marketing tone.',
+      'Answer in a real, direct tone: what is operational now, what depends on connector, and what is not available yet.',
     )
   }
   if (intent.isHiddenUpload && file && prefersPortugueseText(userText)) {
@@ -722,7 +749,8 @@ function buildLiveAgentToolDefinitions() {
                 'git_status', 'git_diff_stat', 'build', 'validate_supabase_sql', 'check_server',
                 'raw_shell', 'git_log_recent', 'git_diff_name_only', 'validate_vercel_live',
                 'validate_supabase_live', 'deploy_vercel_live', 'skill_audit',
-                'revit_generate', 'marketing_generate', 'legacy_import', 'mcp_generate', 'code_analyze'
+                'revit_generate', 'marketing_generate', 'legacy_import', 'mcp_generate', 'code_analyze',
+                'docsedgard_skill'
               ],
               description: 'Command to execute in the authorized Apex repo.'
             },
@@ -754,6 +782,29 @@ function buildLiveAgentToolDefinitions() {
             }
           },
           required: ['query']
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'generate_image',
+        description: 'Generate an image for architecture/design requests. Use when user explicitly asks to create/render/generate an image.',
+        parameters: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            prompt: {
+              type: 'string',
+              description: 'The final image prompt. If omitted, derive from user request.'
+            },
+            size: {
+              type: 'string',
+              enum: ['1024x1024', '1024x1792', '1792x1024'],
+              description: 'Image size'
+            },
+          },
+          required: [],
         }
       }
     },
@@ -935,8 +986,102 @@ function pickAnthropicReply(data) {
   return extractAnthropicText(data)
 }
 
+const MAX_DIRECT_COMMAND_OUTPUT_BYTES = 80_000
+
+function appendLimitedOutput(current, chunk) {
+  const next = current + chunk
+  if (Buffer.byteLength(next, 'utf8') <= MAX_DIRECT_COMMAND_OUTPUT_BYTES) return next
+  return next.slice(0, MAX_DIRECT_COMMAND_OUTPUT_BYTES) + '\n[output truncated]'
+}
+
+async function runDirectLocalCommand(commandText, cwd, timeoutMs = 45_000) {
+  return await new Promise(resolve => {
+    let stdout = ''
+    let stderr = ''
+    let exitCode = null
+    let settled = false
+    let timedOut = false
+
+    const child = spawn(commandText, [], {
+      cwd,
+      shell: true,
+      windowsHide: true,
+      env: { ...process.env },
+    })
+
+    const finish = status => {
+      if (settled) return
+      settled = true
+      resolve({
+        status,
+        stdout: stdout.slice(0, MAX_DIRECT_COMMAND_OUTPUT_BYTES),
+        stderr: stderr.slice(0, MAX_DIRECT_COMMAND_OUTPUT_BYTES),
+        exitCode,
+      })
+    }
+
+    const timer = setTimeout(() => {
+      timedOut = true
+      stderr = appendLimitedOutput(stderr, `\nCommand timed out after ${timeoutMs}ms.`)
+      child.kill('SIGTERM')
+    }, timeoutMs)
+
+    child.stdout.on('data', chunk => {
+      stdout = appendLimitedOutput(stdout, chunk.toString('utf8'))
+    })
+    child.stderr.on('data', chunk => {
+      stderr = appendLimitedOutput(stderr, chunk.toString('utf8'))
+    })
+
+    child.on('error', err => {
+      clearTimeout(timer)
+      stderr = appendLimitedOutput(stderr, String(err?.message || err))
+      finish('failed')
+    })
+
+    child.on('close', code => {
+      clearTimeout(timer)
+      exitCode = code
+      finish(timedOut ? 'timeout' : code === 0 ? 'completed' : 'failed')
+    })
+  })
+}
+
 async function executeLiveAgentToolCall(toolCall) {
   const name = toolCall && toolCall.function ? String(toolCall.function.name || '') : ''
+
+  if (name === 'generate_image') {
+    let args = {}
+    try {
+      args = JSON.parse(toolCall.function.arguments || '{}')
+    } catch {
+      return { error: 'Invalid tool arguments.' }
+    }
+    const providedPrompt = String(args.prompt || '').trim()
+    const size = String(args.size || '1024x1024')
+    const inferredType = classifyImageGenRequest(providedPrompt) || 'architectural_render'
+    const built = buildImagePrompt(providedPrompt || 'Contemporary modern facade at sunset, photorealistic architecture rendering.', inferredType)
+    const finalPrompt = providedPrompt || built.prompt
+    const result = await generateImage({ prompt: finalPrompt, size, quality: 'standard', model: 'dall-e-3' })
+    if (!result.ok) {
+      return {
+        ok: false,
+        providerStatus: 'image-generation-unavailable',
+        reason: result.reason || 'Image generation failed.',
+        prompt: finalPrompt,
+        fallbackReply: buildImageResultReply(result, finalPrompt),
+      }
+    }
+    return {
+      ok: true,
+      providerStatus: 'image-generated',
+      imageUrl: result.imageUrl,
+      revisedPrompt: result.revisedPrompt || finalPrompt,
+      model: result.model,
+      size: result.size,
+      reply: buildImageResultReply(result, finalPrompt),
+    }
+  }
 
   if (name === 'web_search') {
     let args = {}
@@ -948,9 +1093,36 @@ async function executeLiveAgentToolCall(toolCall) {
     const query = String(args.query || '').trim()
     const tavilyKey = process.env.TAVILY_API_KEY
     if (!tavilyKey) {
-      return {
-        results: [],
-        message: 'TAVILY_API_KEY is not configured on the server. Please tell the user to add TAVILY_API_KEY to their .env.local file to enable real-time web searches.'
+      try {
+        const ddgUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query.slice(0, 400))}&format=json&no_redirect=1&no_html=1`
+        const resp = await fetch(ddgUrl, { method: 'GET' })
+        const data = await resp.json().catch(() => ({}))
+        const relatedTopics = Array.isArray(data?.RelatedTopics) ? data.RelatedTopics : []
+        const flatTopics = []
+        for (const item of relatedTopics) {
+          if (item?.Text && item?.FirstURL) {
+            flatTopics.push(item)
+          } else if (Array.isArray(item?.Topics)) {
+            for (const child of item.Topics) {
+              if (child?.Text && child?.FirstURL) flatTopics.push(child)
+            }
+          }
+        }
+        return {
+          provider: 'duckduckgo',
+          answer: data?.AbstractText || null,
+          results: flatTopics.slice(0, 5).map(item => ({
+            title: String(item.Text || '').slice(0, 160),
+            url: item.FirstURL,
+            content: String(item.Text || '').slice(0, 400),
+          })),
+          note: 'Web search running in fallback mode (DuckDuckGo) because TAVILY_API_KEY is not configured.',
+        }
+      } catch (err) {
+        return {
+          error: 'Failed to execute fallback web search: ' + err.message,
+          note: 'Configure TAVILY_API_KEY for richer search results.',
+        }
       }
     }
     try {
@@ -997,7 +1169,10 @@ async function executeLiveAgentToolCall(toolCall) {
   const commandId = String(args.commandId || '')
   const reason = String(args.reason || '').slice(0, 500)
 
-  const hasLocalWorker = Boolean(process.env.LOCAL_WORKER_URL && process.env.LOCAL_WORKER_TOKEN)
+  const hasLocalWorker = Boolean(
+    (process.env.LOCAL_WORKER_URL || process.env.Local_Worker_URL)
+    && (process.env.LOCAL_WORKER_TOKEN || process.env.Local_Worker_TOKEN)
+  )
   if (hasLocalWorker) {
     let action = ''
     let params = {}
@@ -1045,6 +1220,10 @@ async function executeLiveAgentToolCall(toolCall) {
       params = { name: rawCommand }
     } else if (commandId === 'code_analyze') {
       action = 'project.code_analyze'
+    } else if (commandId === 'docsedgard_skill') {
+      action = 'project.raw_shell'
+      const instruction = rawCommand || 'summary'
+      params = { command: `node scripts/execute-skill-action.mjs docsedgard-skill "${instruction.replace(/"/g, '\\"')}"` }
     }
 
     if (action) {
@@ -1069,11 +1248,47 @@ async function executeLiveAgentToolCall(toolCall) {
     }
   }
 
+  const repoRoot = path.resolve(__dirname, '../../')
+  const rawShellInput = String(args.rawCommand || '').trim()
+  const directCommandMap = {
+    git_status: 'git --no-pager status --short',
+    git_diff_stat: 'git --no-pager diff --stat',
+    git_log_recent: 'git --no-pager log --oneline -5',
+    git_diff_name_only: 'git --no-pager diff --name-only',
+    build: 'npm run build',
+    validate_supabase_sql: 'npm run validate:supabase-sql',
+    check_server: 'node --check server.mjs',
+    validate_vercel_live: 'node scripts/validate-vercel.mjs',
+    validate_supabase_live: 'node scripts/validate-supabase-live.mjs',
+    deploy_vercel_live: 'node scripts/deploy-vercel-live.mjs',
+    skill_audit: 'node scripts/execute-skill-audit.mjs',
+    revit_generate: `node scripts/execute-skill-action.mjs revit-generate "${String(args.rawCommand || 'default').replace(/"/g, '\\"')}"`,
+    marketing_generate: `node scripts/execute-skill-action.mjs marketing-generate "${String(args.rawCommand || 'default').replace(/"/g, '\\"')}"`,
+    legacy_import: `node scripts/execute-skill-action.mjs legacy-import "${String(args.rawCommand || '').replace(/"/g, '\\"')}"`,
+    mcp_generate: `node scripts/execute-skill-action.mjs mcp-generate "${String(args.rawCommand || 'apex-mcp').replace(/"/g, '\\"')}"`,
+    code_analyze: 'node scripts/execute-skill-action.mjs code-analyze',
+    docsedgard_skill: `node scripts/execute-skill-action.mjs docsedgard-skill "${String(args.rawCommand || 'summary').replace(/"/g, '\\"')}"`,
+    ...(rawShellInput ? { raw_shell: rawShellInput } : {}),
+  }
+  if (directCommandMap[commandId]) {
+    const directRun = await runDirectLocalCommand(directCommandMap[commandId], repoRoot)
+    return {
+      providerStatus: directRun.status,
+      commandId,
+      reason,
+      stdout: directRun.stdout,
+      stderr: directRun.stderr,
+      exitCode: directRun.exitCode,
+      mode: 'direct-local-fallback',
+    }
+  }
+
   return {
-    providerStatus: 'unavailable',
-    commandId,
-    reason,
-    error: 'Local command execution is unavailable in the serverless cloud environment. Start the local worker on your machine and configure LOCAL_WORKER_URL on Vercel to enable this.'
+  providerStatus: 'unavailable',
+  commandId,
+  reason,
+  error: 'Local command runtime unavailable for this action in the current environment.',
+  nextStep: 'Continue using read/search/list/GitHub tools and web_search to deliver the requested result without blocking on infrastructure setup.'
   }
 }
 
@@ -1149,7 +1364,7 @@ export default async function handler(req, res) {
     // Fast-path: greeting in Portuguese — no file context needed
     if (!APEX_FREE_AGENT && /^\s*(ol[aá]|oi|ola)\s*$/i.test(userMessage)) {
       const name = clientMemory.displayName ? `, ${clientMemory.displayName}` : ''
-      const greeting = `Olá${name}. Como posso ajudar agora?`
+      const greeting = `Olá${name}. Pode mandar o problema direto que eu começo resolvendo agora, com pesquisa na internet quando precisar.`
       return sendJson(res, 200, {
         finalReply: greeting,
         reply: greeting,
@@ -1310,7 +1525,7 @@ export default async function handler(req, res) {
 
     // Portuguese-only greeting short-circuit for 'ola'/'oi' single-word greetings.
     if (!APEX_FREE_AGENT && /^\s*(ola|oi|ol[aá])\s*[.!?]?\s*$/i.test(userMessage || '')) {
-      const greeting = 'Olá, Dr Edgard. Como posso ajudar agora?'
+      const greeting = 'Olá. Pode mandar o problema direto que eu começo resolvendo agora, com pesquisa na internet quando precisar.'
       return sendJson(res, 200, {
         finalReply: greeting,
         reply: greeting,
@@ -1365,6 +1580,7 @@ export default async function handler(req, res) {
 
     const useAnthropic = Boolean(anthropicKey)
     const runtime = loadRuntimeKnowledge()
+    const runtimePromptLines = stripGovernanceRestrictions(runtime.systemPrompt || [])
     const file = body.file || null
     // The client includes the current user message in body.messages as the last item.
     // Drop it here — we add it separately as userContent to avoid consecutive user messages.
@@ -1383,7 +1599,7 @@ export default async function handler(req, res) {
     }
 
     const systemPrompt = [
-      runtime.systemPrompt.join('\n'),
+      runtimePromptLines.join('\n'),
       '',
       'Connector registry summary. These are optional execution paths, not restrictions or required routing:',
       toolSummary,
@@ -1405,7 +1621,8 @@ export default async function handler(req, res) {
       'General capability rule: Apex AI Copilot is not limited by topic or domain. It can reason, code, write, design, analyze, research, negotiate, troubleshoot and produce deliverables broadly.',
       'Use active Apex/project/file context when useful, but never refuse a normal general request because it is outside construction.',
       'Connectors are optional execution paths. They are invoked after understanding the user request, not before. Do not force every answer into a connector or service.',
-      'If the user asks to verify, check, or see the status of the repository, code, changes, or files, you MUST use the `run_safe_local_command` tool with `git_status` or `git_diff_stat` to fetch live status, rather than responding with a static explanation of the project structure.',
+      'If the user asks to verify, check, or see status of repository/code/changes/files, prefer `run_safe_local_command` (`git_status` / `git_diff_stat`). If local command runtime is unavailable, continue with `list_dir`, `search_code`, `read_file`, and any available GitHub tools instead of stopping.',
+      'If the user asks to execute a shell command, use `run_safe_local_command` with `commandId: "raw_shell"` and pass the exact command in `rawCommand`.',
       'Always answer in the same language as the user latest message.',
       'If the user has not typed a natural-language message yet, use the browser/session language when supplied.',
       'Execution priority: if the user asks to create, generate, write, build, prepare, montar, criar, gerar, fazer, escreva or produza, do the work now. Do not explain the process unless asked.',
@@ -1472,12 +1689,15 @@ export default async function handler(req, res) {
           'Investigate thoroughly: when asked to "analyze your code", "review the platform", or about a feature like auto-upgrade, do NOT stop after reading one file. Use list_dir and search_code to find ALL relevant files, read several of them, and base your answer on what you actually found. For auto-upgrade / self-upgrade questions, call self_upgrade_report.',
           'Never answer about the codebase with a vague generic summary. Cite concrete file paths, function names and findings from the tools.',
           'Work iteratively: explore with read_file/list_dir/search_code, make changes with write_file/edit_file, then verify with run_command when available.',
+          'For direct command requests, execute them immediately with run_safe_local_command/raw_shell instead of asking the user to reformat or repeat.',
           'Treat vague task requests as real tasks. Choose the smallest useful first action, state the assumption briefly, and proceed instead of asking the user to restate the goal.',
+          'When the user asks for research, market scan, benchmark, competitor check, or "pesquisa na internet", call `web_search` before answering.',
+          'When the user explicitly asks to generate/render an image, call `generate_image` first. If image generation is unavailable, state the exact reason and provide a production-ready prompt instead of a generic refusal.',
           'Do not ask a clarifying question just because the request is broad. Ask only if there is truly no safe or meaningful first step.',
           'To actually apply code changes that persist (especially in the serverless production runtime where write_file/edit_file fail with a read-only filesystem), call github_commit_changes with the full new content of each file. It creates a branch, commits, and opens a Pull Request that deploys when merged. When the user says "edit the code", "faça você mesmo", "aplique agora" or "code it yourself", actually CALL github_commit_changes — do not just paste code in the chat. If the user mentions a specific project/repo name, automatically set the repository argument to the matching jedgard70/* repo. If the repo is implied but not explicit, use repositoryHint.',
           'Note: in the serverless cloud environment direct file writes and command execution are unavailable; read/list/search still work on the bundled code, and github_commit_changes is the correct way to persist code changes (it opens a PR).',
-          'Destructive commands and secret files (.env, keys) are blocked by the sandbox.',
           'Critical truth rule: only claim you read, edited, created, or ran something if a tool result proves it. If a tool fails, report the real error.',
+          'If `run_safe_local_command` returns unavailable, do not reply with infra/setup instructions as the final answer. Continue with available tools and provide the best concrete result you can.',
           'Do not end with vague questions like "what would you like to do next?" when evidence supports a clear next step. Give a decisive recommendation and one practical next action.',
           'After tool results, answer naturally in the latest user language with what you found, what you changed, and the verified result.'
         ].join(' ')

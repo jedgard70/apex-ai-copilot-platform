@@ -121,6 +121,20 @@ const INTENT_PATTERNS = {
     /\bvoce sabe quem sou eu\b/,
     /\bvocê sabe quem sou eu\b/,
   ],
+  production_source_of_information: [
+    /\bonde (vc|voce|você) (conseguiu|tirou) (essa|essa) informacao\b/,
+    /\bde onde veio (isso|essa informacao|essa informação)\b/,
+    /\bqual (a )?fonte (disso|dessa informacao|dessa informação)\b/,
+    /\bsource of that information\b/,
+  ],
+  production_owner_assertion: [
+    /\bsou o dono\b/,
+    /\beu sou o dono\b/,
+    /\bsou owner\b/,
+    /\bsou o proprietario\b/,
+    /\bsou o proprietário\b/,
+    /\bjose edgard\b/,
+  ],
   production_computer_help: [
     /\b(arrumar|consertar|corrigir|diagnosticar).*\b(computador|pc|notebook)\b/,
     /\b(computador|pc|notebook).*\b(arrumar|consertar|corrigir|diagnosticar|erro|lento|travando|problema)\b/,
@@ -473,6 +487,14 @@ export function classifyProductionConversationIntent(message = '') {
     return 'production_who_am_i'
   }
 
+  if (includesAny(text, INTENT_PATTERNS.production_owner_assertion)) {
+    return 'production_owner_assertion'
+  }
+
+  if (includesAny(text, INTENT_PATTERNS.production_source_of_information)) {
+    return 'production_source_of_information'
+  }
+
   if (includesAny(text, INTENT_PATTERNS.production_background_agent_task_request)) {
     return 'production_background_agent_task_request'
   }
@@ -620,119 +642,58 @@ function buildCapabilityContinuationReply(messages = []) {
   ].join('\n')
 }
 
-function buildCapabilityListingReply() {
+function buildRuntimeCapabilitySnapshot(productionStatus = {}) {
+  const connectorStatus = productionStatus.connectorStatus || {}
+  const capabilities = productionStatus.capabilities || {}
+  const githubReady = Boolean(connectorStatus?.github?.configured)
+  const vercelReady = Boolean(connectorStatus?.vercel?.configured)
+  const supabaseReady = Boolean(process.env.SUPABASE_ACCESS_TOKEN || process.env.SUPABASE_DB_URL)
+  const imageReady = Boolean(process.env.OPENAI_API_KEY)
+  const webSearchReady = Boolean(process.env.TAVILY_API_KEY)
+  const localShellStatus = String(capabilities.localShell || '').toLowerCase()
+  const localShellActive = localShellStatus.includes('active') || localShellStatus.includes('supported')
+  return {
+    githubReady,
+    vercelReady,
+    supabaseReady,
+    imageReady,
+    webSearchReady,
+    localShellActive,
+    checkedAt: productionStatus?.checkedAt || '',
+  }
+}
+
+function buildCapabilityListingReply(productionStatus = {}) {
+  const snap = buildRuntimeCapabilitySnapshot(productionStatus)
   return [
-    'Estas são minhas capacidades detalhadas por área:',
+    'Capacidades reais neste runtime (sem marketing):',
     '',
-    'A. Engenharia, BIM e Revit',
-    '- Plano BIM com LOD/LOI por disciplina e responsabilidades definidas.',
-    '- Organização de famílias Revit, biblioteca, nomenclatura e parâmetros compartilhados.',
-    '- Quantitativos, critérios de medição e extração de dados para orçamento.',
-    '- Compatibilização entre disciplinas (arquitetura, estrutura, instalações).',
-    '- Exportação IFC/NWC para coordenação, clash detection e gestão BIM.',
-    '- Documentação técnica: vistas, folhas, padrões de entrega e memoriais.',
-    '- Quando o conector Revit/MCP estiver ativo: leitura e ações no ambiente conectado com confirmação.',
-    '',
-    'B. Orçamento, SINAPI e 5D',
-    '- Composições de custo, unitários e totais baseados em SINAPI ou tabela própria.',
-    '- Cronograma físico-financeiro com desembolso mensal e curva S.',
-    '- Análise crítica de orçamento: inconsistências, BDI, encargos e premissas.',
-    '- Quantitativos detalhados por serviço, etapa e contrato.',
-    '- Integração futura com base SINAPI atualizada via conector.',
-    '',
-    'C. Obra e campo',
-    '- Checklists de recebimento, inspeção e controle de qualidade.',
-    '- Diário de obra e relatórios de progresso.',
-    '- RFI, não conformidades e gestão de pendências.',
-    '- Planejamento semanal e look-ahead de obra.',
-    '- Relatórios de avanço físico e documentação de campo.',
-    '',
-    'D. Propostas, contratos e documentos',
-    '- Propostas comerciais com escopo, exclusões e condições.',
-    '- Contratos, aditivos, termos e documentos técnicos.',
-    '- Memoriais descritivos, especificações e escopos de trabalho.',
-    '- Relatórios executivos, apresentações e documentação operacional.',
-    '',
-    'E. Marketing, vendas e receita',
-    '- Apresentações comerciais e materiais de prospecção.',
-    '- Estratégia de funil, CRM e acompanhamento de leads.',
-    '- Conteúdo técnico para redes sociais, blog e email marketing.',
-    '- Campanhas e comunicação voltada para clientes de engenharia e construção.',
-    '',
-    'F. ArchViz, imagem e vídeo',
-    '- Prompts de render com direção de luz, materiais e composição.',
-    '- Briefing visual e storyboard para apresentação de projetos.',
-    '- Referências visuais, moodboard e conceito de imagem.',
-    '- Roteiro para vídeo de apresentação, tour virtual e conteúdo visual.',
-    '',
-    'G. Plataforma e automação',
-    '- Leitura de repositório GitHub: status, commits, PRs, workflows.',
-    '- Leitura de Vercel: deployments, domínios, logs e status de produção.',
-    '- Validações de build, checkpoints e logs de deploy.',
-    '- Local Worker: auto-discovery de ferramentas, execução controlada no PC.',
-    '- Conectores configuráveis: GitHub, Vercel, Supabase, Revit MCP, Local Worker.',
-    '',
-    'H. Execução real com segurança',
-    '- Leitura sem confirmação: GitHub status, Vercel status, Supabase presença.',
-    '- Validação: build check, syntax check, rota de validação.',
-    '- Ações com confirmação: deploy Vercel, migration Supabase, ação Revit MCP.',
-    '- Deploy, migration e rollback só com credencial configurada, escopo definido e confirmação clara.',
-    '- Nenhum segredo retornado. Nenhuma ação destrutiva sem evidência.',
-    '',
-    'I. Autoevolução futura',
-    '- Gerar plano de implementação para Claude, Codex ou executor local.',
-    '- Propor nova branch, preparar diff e mostrar impacto antes de qualquer ação.',
-    '- Validar resultado de implementação e solicitar aprovação explícita.',
-    '- Registrar checkpoint e documentar o que foi feito e o que falta.',
+    `1. Operacional agora: conversa técnica, análise/edição de código, diagnóstico da plataforma, pesquisa web (${snap.webSearchReady ? 'Tavily ativo' : 'fallback básico'}), execução local (${snap.localShellActive ? 'ativa' : 'parcial'}).`,
+    `2. Depende de configuração: GitHub (${snap.githubReady ? 'ativo' : 'pendente'}), Vercel (${snap.vercelReady ? 'ativo' : 'pendente'}), Supabase (${snap.supabaseReady ? 'ativo' : 'pendente'}), geração de imagem (${snap.imageReady ? 'ativa' : 'pendente'}).`,
+    '3. Não faço: inventar resultado, fingir deploy/migration/push, ou afirmar execução sem saída real/log.',
   ].join('\n')
 }
 
-function buildCapabilityRepairReply(messages = [], userMessage = '') {
+function buildCapabilityRepairReply(messages = [], userMessage = '', productionStatus = {}) {
   const normalized = normalizeMessage(userMessage)
   const isMechanicalCritique = /mecanico|mecânico|incompleto|superficial|faltou|nao e so/.test(normalized)
+  const snap = buildRuntimeCapabilitySnapshot(productionStatus)
 
   const intro = isMechanicalCritique
-    ? 'Você tem razão. Respondi de forma incompleta. De forma detalhada, estas são minhas capacidades reais:'
-    : 'Tem mais, sim. Vou detalhar de forma completa:'
+    ? 'Você tem razão. Aqui está o estado real, sem frase pronta:'
+    : 'Estado real do runtime:'
 
   return [
     intro,
     '',
-    'A. Engenharia, BIM e Revit',
-    '- Plano BIM com LOD/LOI por disciplina e responsabilidades.',
-    '- Famílias Revit, parâmetros compartilhados, nomenclatura e biblioteca.',
-    '- Quantitativos, medição, compatibilização entre disciplinas.',
-    '- Exportação IFC/NWC, clash detection, documentação de vistas e folhas.',
-    '- Conector Revit/MCP ativo: leitura e ações no ambiente conectado com confirmação.',
+    `- Shell local: ${snap.localShellActive ? 'ativo' : 'parcial/indisponível no contexto atual'}.`,
+    `- GitHub: ${snap.githubReady ? 'configurado' : 'não configurado neste runtime'}.`,
+    `- Vercel: ${snap.vercelReady ? 'configurado' : 'não configurado neste runtime'}.`,
+    `- Supabase: ${snap.supabaseReady ? 'configurado' : 'não configurado neste runtime'}.`,
+    `- Geração de imagem: ${snap.imageReady ? 'configurada' : 'não configurada'}.`,
+    `- Pesquisa web: ${snap.webSearchReady ? 'Tavily configurado' : 'modo fallback básico'}.`,
     '',
-    'B. Orçamento, SINAPI e 5D',
-    '- Composições SINAPI, BDI, encargos, cronograma físico-financeiro e curva S.',
-    '- Análise crítica de orçamento, quantitativos por serviço e etapa.',
-    '',
-    'C. Obra e campo',
-    '- Checklists, diário de obra, RFI, não conformidades, look-ahead e relatórios.',
-    '',
-    'D. Propostas, contratos e documentos',
-    '- Propostas, contratos, aditivos, memoriais, escopos e documentação operacional.',
-    '',
-    'E. Marketing, vendas e receita',
-    '- Apresentações, funil, CRM, campanhas e conteúdo técnico.',
-    '',
-    'F. ArchViz, imagem e vídeo',
-    '- Prompts de render, briefing visual, storyboard, referências e roteiro.',
-    '',
-    'G. Plataforma e automação',
-    '- GitHub, Vercel, Supabase, Local Worker, deploy, validações, logs e conectores.',
-    '',
-    'H. Execução real com segurança',
-    '- Leitura: GitHub/Vercel/Supabase sem confirmação.',
-    '- Ações com confirmação: deploy, migration, rollback, Revit MCP.',
-    '- Sem segredos expostos. Sem execução destrutiva sem evidência.',
-    '',
-    'I. Autoevolução futura',
-    '- Plano de implementação, branch, diff, validação e aprovação antes de qualquer mudança.',
-    '',
-    'Me diga em qual área quer aprofundar ou o que quer resolver agora.',
+    'Regra operacional aplicada: execução primeiro; se faltar conector para uma etapa, informo exatamente o item faltante e continuo com saída útil no mesmo turno.',
   ].join('\n')
 }
 
@@ -859,29 +820,13 @@ function buildCronogramaReply() {
 
 function buildArchvizReply() {
   return [
-    'Em ArchViz, imagem e vídeo, posso te ajudar com:',
+    'Consigo te ajudar em ArchViz de forma prática e sem fingir execução:',
+    '- gerar imagem quando o conector de imagem estiver ativo;',
+    '- quando não estiver ativo, te entregar prompt de produção pronto para DALL-E/Midjourney/SDXL;',
+    '- montar briefing visual, moodboard textual e roteiro de vídeo comercial;',
+    '- adaptar estilo, luz (ex.: entardecer), materiais e câmera para fachada/interior.',
     '',
-    'Prompts de render',
-    '- Criar prompts detalhados para renders fotorrealistas (Midjourney, DALL-E, Stable Diffusion, Vray, Enscape).',
-    '- Definir luz, horário do dia, clima, materiais, composição de câmera e pós-produção.',
-    '- Adaptar prompt para perspectiva externa, interna, aérea ou detalhe arquitetônico.',
-    '',
-    'Briefing visual e moodboard',
-    '- Redigir briefing visual completo para o renderista ou equipe de imagem.',
-    '- Selecionar referências por estilo, paleta, atmosfera e linha arquitetônica.',
-    '- Montar moodboard textual descritivo para apresentação ao cliente.',
-    '',
-    'Vídeo e apresentação',
-    '- Roteiro de vídeo de apresentação de projeto (tour virtual, fly-through, apresentação comercial).',
-    '- Storyboard de cenas, trilha sonora, voz e texto.',
-    '- Script narrado para vídeo de lançamento, apresentação de incorporação ou entrega.',
-    '',
-    'Conceito e direção de arte',
-    '- Conceito visual do projeto alinhado ao público-alvo.',
-    '- Paleta de cores, tipografia e linguagem visual para apresentação.',
-    '- Direção de arte para materiais impressos e digitais do empreendimento.',
-    '',
-    'Me mande as plantas, o estilo e o público-alvo — eu preparo o briefing ou prompt com você.',
+    'Se você pedir "gere a imagem", eu tento gerar primeiro. Se falhar por conector/credencial, eu explico o bloqueio exato e já devolvo o prompt final.',
   ].join('\n')
 }
 
@@ -1026,26 +971,39 @@ function buildNaturalFallbackReply(userMessage = '') {
   // Configuration-related messages — give a direct answer instead of asking for more info
   if (/\b(configurar|configuracao|configuração|o que precisa|precisa configurar|o que falta|tokens|env|credencial|o que preciso)\b/.test(text)) {
     return [
-      'Os módulos principais da plataforma estão prontos e funcionando.',
+      'Perfeito. A regra operacional é: eu executo primeiro, sem enrolar.',
+      '- se uma etapa depender de conector/credencial, eu digo: "ok, para isso precisamos de X e Y; você já está providenciando";',
+      '- em seguida continuo com fallback útil (diagnóstico, plano aplicável, prompt pronto, edição de código, pesquisa).',
       '',
-      'Para usar a conversa, análise de arquivos, geração de documentos e planejamento: nada mais precisa ser configurado — pode usar agora.',
+      'Conectores mais comuns para ações externas reais:',
+      '• OPENAI_API_KEY (geração de imagem e chat externo)',
+      '• GITHUB_TOKEN (push/PR)',
+      '• VERCEL_TOKEN + VERCEL_PROJECT_ID (deploy)',
+      '• SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (migration)',
       '',
-      'Para ativar execução real de deploy, migration Supabase ou Local Worker:',
-      '• OPENAI_API_KEY — já deve estar no ambiente para a conversa funcionar.',
-      '• GITHUB_TOKEN — necessário para push e gestão de PR via conector.',
-      '• VERCEL_TOKEN + VERCEL_PROJECT_ID — necessário para deploy via conector.',
-      '• SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY — necessário para migrations.',
-      '• Local Worker rodando na sua máquina — para execução local de comandos.',
-      '',
-      'Essas variáveis são configuradas nas variáveis de ambiente do Vercel (ou .env.local para desenvolvimento). Não precisa me fornecer os valores — configure direto nas variáveis de ambiente do projeto.',
-      '',
-      'Me diga o que quer resolver e eu ajudo no próximo passo.',
+      'Sem esses conectores, eu não travo a conversa: sigo entregando o que já dá para executar agora.',
     ].join('\n')
   }
   if (text) {
-    return 'Entendido. Me diga o objetivo, o arquivo, o erro ou o resultado que você quer — eu preparo a resposta, o checklist ou o passo a passo direto.'
+    return 'Entendido. Vou para execução direta. Se faltar conector em alguma etapa, eu te aviso objetivamente e continuo com fallback útil.'
   }
-  return 'Me diga o que você quer resolver e eu organizo o próximo passo.'
+  return 'Pode mandar a tarefa. Eu começo executando agora.'
+}
+
+function buildSourceOfInformationReply() {
+  return [
+    'Essa informação vem de três fontes: sua mensagem, estado real do runtime e saída de ferramenta/comando.',
+    'Não uso dado inventado.',
+    'Se houver divergência, eu rodo checagem ao vivo e devolvo a saída objetiva.',
+  ].join('\n')
+}
+
+function buildOwnerAssertionReply(identityContext = {}) {
+  const email = sanitizeDisplayName(identityContext.email || '')
+  if (email) {
+    return `Perfeito. Registro você como owner nesta conversa. Sessão atual vinculada a: ${email}. Vou responder no modo execução direta, sem resposta mecânica.`
+  }
+  return 'Perfeito. Registro você como owner nesta conversa. Vou responder no modo execução direta, sem resposta mecânica.'
 }
 
 function sectionTitleForIntent(intent, index) {
@@ -1055,6 +1013,8 @@ function sectionTitleForIntent(intent, index) {
     production_user_confusion: 'Explicação simples',
     production_name_identity: 'Nome preferido',
     production_who_am_i: 'Identidade da conta',
+    production_owner_assertion: 'Owner',
+    production_source_of_information: 'Fonte da informação',
     production_github_connector_status: 'GitHub connector status',
     production_vercel_connector_status: 'Vercel connector status',
     production_connector_status: 'Connector status',
@@ -1091,8 +1051,10 @@ function buildReplyForIntent(intent, {
   knownName = '',
   multiQuestionContext = false,
 } = {}) {
-  if (intent === 'production_capability_listing') return buildCapabilityListingReply()
-  if (intent === 'production_capability_repair') return buildCapabilityRepairReply(messages, userMessage)
+  if (intent === 'production_capability_listing') return buildCapabilityListingReply(productionStatus)
+  if (intent === 'production_source_of_information') return buildSourceOfInformationReply()
+  if (intent === 'production_owner_assertion') return buildOwnerAssertionReply(identityContext)
+  if (intent === 'production_capability_repair') return buildCapabilityRepairReply(messages, userMessage, productionStatus)
   if (intent === 'production_capability_continuation') return buildCapabilityContinuationReply(messages)
   if (intent === 'production_orcamento_sinapi_help') return buildOrcamentoSinapiReply()
   if (intent === 'production_proposta_contrato_help') return buildPropostaContratoReply()
@@ -1158,10 +1120,10 @@ function buildMultiIntentReply({
 
 const REPLIES = {
   production_background_agent_task_request: 'Entendido! Agendei a tarefa em segundo plano de análise de incompatibilidades (Hidrossanitário vs Estrutura) para rodar de forma autônoma durante a noite. Você poderá acompanhar o progresso e o relatório final no painel de Cognitive Agents ao lado.',
-  production_greeting: 'Olá{{displayName}}. Pode me dizer o que quer resolver. Posso responder, organizar um plano, redigir documentos ou preparar um passo a passo — me diga o que precisa.',
+  production_greeting: 'Olá{{displayName}}. Manda a tarefa em uma linha e eu executo agora.',
   production_user_correction: 'Correto. Vou responder apenas ao que você pedir, em português, sem repetir status técnico quando não for necessário.',
   production_acknowledgement: 'Entendido{{displayName}}. Vou manter esse contexto nesta sessão.',
-  production_next_step: 'Me diga o próximo passo que quer dar. Posso preparar plano, rascunho, checklist ou orçamento — só falar o que quer resolver.',
+  production_next_step: 'Manda a tarefa direta e eu executo agora. Se faltar conector em alguma etapa, eu te digo exatamente o que falta e sigo com alternativa útil.',
   production_execute_recommended: [
     'Posso preparar o pacote H4.1: ajuste de memória de sessão, correção do executor em Vercel e respostas operacionais para posição da plataforma, próximo passo e execução recomendada.',
     'Execução real de alteração no código depende do Codex/local executor.',

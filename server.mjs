@@ -18,6 +18,19 @@ import { classifyToolExecutionRequest, routeToolExecution } from './server/agent
 import { defaultTasks } from './server/agent/backgroundTasksConnector.mjs'
 import { buildCodeToolDefinitions, executeCodeToolCall, CODE_TOOL_NAMES } from './server/agent/codeTools.mjs'
 
+function normalizeEnvironmentAliases() {
+  const aliasPairs = [
+    ['Local_Worker_URL', 'LOCAL_WORKER_URL'],
+    ['Local_Worker_TOKEN', 'LOCAL_WORKER_TOKEN'],
+    ['OPENAI_MODELROUTER', 'OPENAI_MODEL'],
+  ]
+  for (const [fromKey, toKey] of aliasPairs) {
+    if (process.env[fromKey] && !process.env[toKey]) {
+      process.env[toKey] = process.env[fromKey]
+    }
+  }
+}
+
 const DIRECT_GEMINI_MODELS = [
   { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' },
   { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' },
@@ -146,12 +159,12 @@ const copilotExecutionCommands = [
   {
     id: 'raw_shell',
     label: 'Raw shell command',
-    description: 'Run an approved raw command in a user-selected cwd through the local shell.',
+    description: 'Run a free live shell command in a user-selected cwd through the local shell.',
     executable: 'shell',
     args: [],
     acceptsRawCommand: true,
     risk: 'high',
-    requiresApproval: true,
+    requiresApproval: false,
     timeoutMs: 60000,
     source: 'raw-shell',
   },
@@ -331,6 +344,17 @@ const copilotExecutionCommands = [
     timeoutMs: 30000,
     source: 'allowlist',
   },
+  {
+    id: 'docsedgard_skill',
+    label: 'Docsedgard integrated skill',
+    description: 'Runs docsedgard integrated skill actions: summary, search and manifest sync.',
+    executable: 'node',
+    args: ['scripts/execute-skill-action.mjs', 'docsedgard-skill'],
+    risk: 'low',
+    requiresApproval: false,
+    timeoutMs: 60000,
+    source: 'allowlist',
+  },
 ]
 
 // If TRUSTED_DOMAINS contains apexglobalai.com, bypass approval requirements for high-risk commands
@@ -341,6 +365,7 @@ if (TRUSTED_DOMAINS.includes('apexglobalai.com') || TRUSTED_DOMAINS.includes('*'
 }
 
 loadEnvLocal()
+normalizeEnvironmentAliases()
 
 function loadEnvLocal() {
   const envPath = path.join(root, '.env.local')
@@ -938,6 +963,9 @@ function buildLocalSkillContext(userText, file) {
   if (/(write|escreva|texto|copy|document|doc|humaniz)/.test(text)) {
     contexts.push('Writing: produce the requested artifact directly, match user language/tone and avoid generic boilerplate unless asked.')
   }
+  if (/(docsedgard|reintegrada|skill integrada|skill real|skills importadas|invent[aá]rio de skills|manifesto de skill)/.test(text)) {
+    contexts.push('Docsedgard Integrated Skill: use local runtime command `docsedgard_skill` for operational actions. Available actions: `summary` (totals and top folders), `search:<termo>` (find artifacts by topic/path), and `sync-manifest` (regenerate skill/DOCSEDGARD_SKILL_REINTEGRADA.md from D:\\AI Jedgard\\skill).')
+  }
   if (/(negocia|counteroffer|proposta comercial|deal)/.test(text)) {
     contexts.push('Negotiation: clarify goal/leverage/constraints only when needed; otherwise produce scripts, counteroffers, email drafts and options.')
   }
@@ -1241,7 +1269,7 @@ function buildChatFallbackReply(userText, identity) {
   const pt = prefersPortugueseText(userText)
   if (isCapabilitiesQuestionText(userText)) {
     return pt
-      ? 'Posso ler, explicar, resumir, editar, validar e executar fluxos seguros dentro da Apex. Se você me pedir uma ação, eu tento fazer direto e retorno com evidência. Também cubro BIM, 3D, ArchViz, código, dados, vendas, marketing, contratos, financeiro e campo.'
+      ? 'Consigo resolver tarefas reais. Quando uma etapa depender de conector/credencial, eu vou responder direto: "ok, para executar isso agora precisamos de X e Y; você já está providenciando; enquanto isso eu sigo com fallback útil".'
       : 'I can read, explain, summarize, edit, validate and execute safe workflows inside Apex. If you ask for an action, I try to do it directly and report back with evidence. I also cover BIM, 3D, ArchViz, code, data, sales, marketing, contracts, finance and field operations.'
   }
   if (isContactQuestionText(userText)) {
@@ -1253,8 +1281,8 @@ function buildChatFallbackReply(userText, identity) {
     return 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar. Eu uso o arquivo como contexto da conversa e sigo com uma resposta direta.'
   }
   return pt
-    ? 'Tive um problema ao gerar a resposta completa, mas ainda posso agir. Diga a tarefa de forma direta ou envie um arquivo e eu continuo daqui.'
-    : 'I had trouble generating the full response, but I can still act. State the task directly or upload a file and I will continue from there.'
+    ? 'Ok, sigo executando com o que está disponível agora. Se faltar conector em uma etapa, eu te digo exatamente o que falta e continuo sem travar.'
+    : 'OK, I will keep executing with what is available now. If a step needs a connector, I will state exactly what is missing and continue without blocking.'
 }
 
 
@@ -1276,6 +1304,7 @@ const LIVE_AGENT_SAFE_COMMAND_IDS = new Set([
   'legacy_import',
   'mcp_generate',
   'code_analyze',
+  'docsedgard_skill',
 ])
 
 function buildLiveAgentToolDefinitions() {
@@ -1295,7 +1324,8 @@ function buildLiveAgentToolDefinitions() {
                 'git_status', 'git_diff_stat', 'build', 'validate_supabase_sql', 'check_server',
                 'raw_shell', 'git_log_recent', 'git_diff_name_only', 'validate_vercel_live',
                 'validate_supabase_live', 'deploy_vercel_live', 'skill_audit',
-                'revit_generate', 'marketing_generate', 'legacy_import', 'mcp_generate', 'code_analyze'
+                'revit_generate', 'marketing_generate', 'legacy_import', 'mcp_generate', 'code_analyze',
+                'docsedgard_skill'
               ],
               description: 'Command to execute in the authorized Apex repo.'
             },

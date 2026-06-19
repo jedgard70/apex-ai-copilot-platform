@@ -5,13 +5,24 @@ const DEFAULT_VERCEL_PROJECT_ID = 'prj_uVRjNyFprz8NyzVcb8NTdnALr1Xm'
 const DEFAULT_VERCEL_PRODUCTION_DOMAIN = 'www.apexglobalai.com'
 const CONNECTOR_TIMEOUT_MS = 7000
 
+const ENV_ALIASES = {
+  LOCAL_WORKER_URL: ['Local_Worker_URL'],
+  LOCAL_WORKER_TOKEN: ['Local_Worker_TOKEN'],
+}
+
 function hasEnv(name) {
-  return Boolean(process.env[name])
+  if (process.env[name]) return true
+  const aliases = ENV_ALIASES[name] || []
+  return aliases.some(alias => Boolean(process.env[alias]))
 }
 
 function firstEnv(names) {
   for (const name of names) {
     if (process.env[name]) return process.env[name]
+    const aliases = ENV_ALIASES[name] || []
+    for (const alias of aliases) {
+      if (process.env[alias]) return process.env[alias]
+    }
   }
   return ''
 }
