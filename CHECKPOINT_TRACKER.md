@@ -1,53 +1,85 @@
-# Apex — Checkpoint Tracker
+# Apex Module Validation Tracker
 
-## Phase 1: Validate Ready-Shell Modules (Chat-Based)
+## Phase 1: Ready-Shell Chat Modules
 
-| # | Module | Status | Test Date | Output Summary | Notes |
-|---|--------|--------|-----------|----------------|-------|
-| 1 | International Market Strategy | ✅ VALIDATED | 2025-01-15 | LinkedIn outreach script for US residential construction firms — positioned Apex as offshore BIM/permit set partner with 48h IFC/Revit review SLA | Ready for real outreach |
-| 2 | Professional Writing / Proposal Copy | ⏳ PENDING | — | — | Commercial proposal template for BIM coordination services |
-| 3 | Revit Customization | ⏳ PENDING | — | — | pyRevit batch sheet export script |
-| 4 | SQL Expert / Data Analyst | ⏳ PENDING | — | — | SINAPI cost database analysis query |
-| 5 | Code GPT / Coding Assistant | ⏳ PENDING | — | — | API endpoint scaffolding |
-| 6 | DesignerGPT / Visual Designer | ⏳ PENDING | — | — | Brand concept for Apex offshore division |
-| 7 | The Negotiator | ⏳ PENDING | — | — | Price objection handling script |
-| 8 | Tech Support Advisor | ⏳ PENDING | — | — | Windows slow-machine diagnostic script |
-| 9 | Interior / Room Design | ⏳ PENDING | — | — | Finish schedule template |
-| 10 | Website AI Designer | ⏳ PENDING | — | — | Landing page copy for US market |
-| 11 | Exploration / General Reasoning | ⏳ PENDING | — | — | Market entry decision matrix |
-| 12 | Windows Care + Coding Assistant | ⏳ PENDING | — | — | PowerShell startup audit script |
-| 13 | SaaS / CRM / Finance (local) | ⏳ PENDING | — | — | Client workspace model |
-| 14 | Cognitive Agents | ⏳ PENDING | — | — | Agent delegation test |
-| 15 | EVM / Scheduler / NR Compliance | ⏳ PENDING | — | — | EVM calculation from sample data |
-| 16 | Supply Chain / Suppliers (local) | ⏳ PENDING | — | — | Supplier comparison matrix |
-| 17 | Notifications / Alerts (local) | ⏳ PENDING | — | — | Deadline alert template |
-| 18 | AI Cost / Observability (local) | ⏳ PENDING | — | — | Usage estimate by module |
-| 19 | Multi-tenant Readiness | ⏳ PENDING | — | — | Tenant isolation plan |
-| 20 | PWA / Mobile Field Mode | ⏳ PENDING | — | — | Offline field workflow |
-| 21 | Digital Twin | ⏳ PENDING | — | — | Model-state health indicators |
-| 22 | Knowledge Base | ⏳ PENDING | — | — | Knowledge indexing structure |
-| 23 | Metrics Dashboard | ⏳ PENDING | — | — | Endpoint health mockup |
+### 1. International Market Strategy ✅ VALIDATED
+- Output: LinkedIn outreach script for US residential construction firms
+- Focus: Permit sets, BIM coordination, 48h delivery
+- Status: Ready for client use
 
-## Phase 2: Build Planned Modules
+### 2. Technical Writing & Commercial Proposals 🔄 IN PROGRESS
+- Output: BIM coordination service proposal template
+- Scope: IFC review, clash detection, coordination reports
+- Pricing: Per square meter model
+- Status: Generating now
 
-| Module | Priority | Status | Notes |
-|--------|----------|--------|-------|
-| BIM/3D Viewer (IFC/GLB/RVT/DWG) | P0 | ⏳ PLANNED | Core service enabler |
-| Budget/Quantity (SINAPI) | P1 | ⏳ PLANNED | Pricing engine |
-| Contracts/Permits | P2 | ⏳ PLANNED | Legal workflow |
-| Marketing/Website | P3 | ⏳ PLANNED | Client acquisition |
+### 3. Revit Customization ⏳ PENDING
+- Output: pyRevit batch sheet export script
+- Target: Office workflow automation
 
-## Phase 3: External Connectors
+### 4. Professional Writing Coach / AI Humanizer ⏳ PENDING
+- Output: Technical document humanization example
 
-| Connector | Depends On | Status |
-|-----------|------------|--------|
-| Autodesk Platform Services | BIM Viewer | ⏳ PLANNED |
-| IfcOpenShell WASM | BIM Viewer | ⏳ PLANNED |
-| pdf.js | Document Intake | ⏳ PLANNED |
-| DOCX/PDF Generator | Proposals/Reports | ⏳ PLANNED |
-| Payment Gateway | SaaS Billing | ⏳ PLANNED |
+### 5. SQL Expert / Data Analyst ⏳ PENDING
+- Output: Construction project metrics query example
+
+### 6. DesignerGPT / Visual Designer ⏳ PENDING
+- Output: Brand concept prompt for Apex platform
+
+### 7. The Negotiator ⏳ PENDING
+- Output: Client objection handling script
+
+### 8. Tech Support Advisor ⏳ PENDING
+- Output: Windows slow machine diagnostic plan
+
+### 9. Interior / Room Design ⏳ PENDING
+- Output: Modern living room design direction
+
+### 10. Code GPT / Coding Assistant ⏳ PENDING
+- Output: API endpoint example for project workspace
+
+### 11. Academic Assistant / Research ⏳ PENDING
+- Output: Research outline for BIM automation
+
+### 12. Website AI Designer ⏳ PENDING
+- Output: Landing page copy for offshore BIM services
+
+### 13. Exploration / General Reasoning ⏳ PENDING
+- Output: Strategic decision framework
+
+### 14. Windows Care + Coding Assistant ⏳ PENDING
+- Output: Safe diagnostic PowerShell script
+
+### 15. Cognitive Agents (EVM / Scheduler / NR) ⏳ PENDING
+- Output: EVM calculation example with sample data
+
+### 16. Supply Chain / Suppliers ⏳ PENDING
+- Output: Local supplier registry template
+
+### 17. Notifications / Alerts ⏳ PENDING
+- Output: Local alert configuration example
+
+### 18. AI Cost / Observability ⏳ PENDING
+- Output: Estimated usage tracker template
+
+### 19. SaaS / CRM / Finance ⏳ PENDING
+- Output: Local-first client workspace model
 
 ---
 
-*Last updated: 2025-01-15*
-*Owner: jedgard70@gmail.com*
+## Phase 2: Planned Modules (To Build)
+- BIM / 3D Viewer (Priority Zero)
+- Budget / Quantity (SINAPI integration)
+- Contracts / Permits
+- Marketing / Website (Page generator)
+
+## Phase 3: External Connectors
+- Autodesk Platform Services
+- IfcOpenShell
+- pdf.js
+- DOCX/PDF generator
+- Payment gateways
+
+---
+*Last updated: 2025-01-XX*
+*Status: Phase 1 execution in progress*
