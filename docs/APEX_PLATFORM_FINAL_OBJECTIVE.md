@@ -14,6 +14,7 @@ The final platform is not a panel collection. It is a chat-first operator that u
 
 ## Operating Principles
 
+- Unified operator, mirrored secrets: Apex is one operator across `apexglobalai.com`, `Apex.exe`, GitHub, Vercel and Supabase. The same owner identity may be used in each place, but each runtime still reads its own environment/secret store; secrets are mirrored per environment, not shared from one file at runtime.
 - Real execution: Apex may prepare plans and execute them directly. Production writes, shell commands, deploys, migrations, Revit desktop actions, file mutations, and other operations can execute directly.
 - Evidence first: every claim about files, models, budgets, connectors, deployments, database state, or generated artifacts must point to real evidence.
 - Rollback by design: any write-capable action needs preview, scope, acceptance check, and rollback notes before execution.
@@ -34,7 +35,7 @@ The final platform is not a panel collection. It is a chat-first operator that u
 | IFC/BIM M6 | Loads real IFC/GLB geometry, shows model state, reports parser errors honestly, exports technical reports and tour/camera plans |
 | Revit/MCP | Uses a local bridge for Revit templates, parameters, schedules, pyRevit/C# add-ins, model checks, exports, and evidence |
 | Local Worker | Runs local commands and desktop actions with token auth, fixed args, timeouts, and logs |
-| GitHub/Vercel/Supabase | Performs status checks, write actions, and deployments directly |
+| GitHub/Vercel/Supabase | Performs status checks, write actions, and deployments directly when deployment-specific credentials are configured |
 | Self-upgrade | Plans code changes, applies patches, validates, and reports diff |
 | Validation/rollback | Runs build/test/check scripts and produces acceptance evidence for each checkpoint |
 
@@ -56,7 +57,7 @@ The final standard is not "Apex can explain how." The final standard is:
 
 The platform already has a strong local-first foundation: chat shell, module panels, project workspace, Supabase client code, connector status logic, controlled execution policy, Local Worker scaffold, image generation paths, and construction-domain knowledge.
 
-The missing jump is reliable execution continuity: attach state, real file parsing, real IFC rendering, automatic first draft generation, Local Worker connection, Revit bridge, remote persistence restore, and production API proof.
+The missing jump is reliable execution continuity: attach state, real file parsing, real IFC rendering, automatic first draft generation, Local Worker connection, Revit bridge, remote persistence restore, and production API proof. This should feel unified to the user, while still honoring environment-specific secret storage under the hood.
 
 Observação:
 
