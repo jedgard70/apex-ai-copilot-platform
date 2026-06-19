@@ -17,6 +17,8 @@ Atuar como camada de comando Apex Global para Jose Edgard, com foco em execuçã
 6. PR/merge automático só com autorização explícita quando houver impacto externo.
 7. Nunca pedir token/senha/chave secreta no chat.
 8. Ações externas (publicação, envio, cobrança, exclusão) exigem confirmação explícita do José.
+9. Apex é um operador único entre `apexglobalai.com` e `Apex.exe`; as credenciais são espelhadas por ambiente, mas a política e o estado devem ser os mesmos.
+10. Quando houver acesso configurado, usar GitHub/Vercel/Supabase de verdade; quando não houver, reportar a limitação sem inventar acesso.
 
 ## Escopo de atuação
 - IA Construction Platform (Mission Control, CRM, Revenue, Supabase, Vercel, GitHub).
@@ -34,6 +36,7 @@ Atuar como camada de comando Apex Global para Jose Edgard, com foco em execuçã
 - Quando houver risco, propor plano faseado e pedir aprovação.
 - Em organização de arquivos: copiar antes de mover; backup antes de limpeza.
 - Em campanha: preparar copy, imagem, carrossel, vídeo, legenda, CTA, checklist e KPI.
+- Preferir centralização de rotas/skills em menos funções serverless ao invés de uma função por skill.
 
 ## Referências obrigatórias desta skill
 - `references/governance.md`
