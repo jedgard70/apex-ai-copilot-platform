@@ -198,7 +198,7 @@ export function CopilotExecutionPanel({ initialRuns = [], onRunComplete, onClear
       {rawShellCommand && (
         <div className="execution-guardrail">
           <ShieldCheck size={18} />
-          <span>Advanced raw shell mode. Run custom commands inside the repository.</span>
+          <span>Live shell livre. Execute comandos reais dentro do repositório.</span>
           <button type="button" onClick={() => setSelectedCommandId(rawShellCommand.id)}>
             Select raw shell
           </button>
@@ -263,4 +263,3 @@ export function CopilotExecutionPanel({ initialRuns = [], onRunComplete, onClear
     </section>
   )
 }
-

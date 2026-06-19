@@ -16,7 +16,10 @@ export async function collectWorkspaceContext({ force = false } = {}) {
     return _cachedContext
   }
 
-  const workerConfigured = Boolean(process.env.LOCAL_WORKER_URL && process.env.LOCAL_WORKER_TOKEN)
+  const workerConfigured = Boolean(
+    (process.env.LOCAL_WORKER_URL || process.env.Local_Worker_URL)
+    && (process.env.LOCAL_WORKER_TOKEN || process.env.Local_Worker_TOKEN)
+  )
 
   const ctx = {
     workerConfigured,

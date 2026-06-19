@@ -131,6 +131,12 @@ type ClientMemory = {
 
 type UiLanguage = 'EN' | 'PT'
 
+type PendingLayerDecision = {
+  label: string
+  openCommand: string
+  goal: string
+}
+
 type ArchVisOutput = {
   source: IntakeFile
   output: string
@@ -467,6 +473,40 @@ function isAuthIntent(text: string) {
 
 function isCopilotExecutionIntent(text: string) {
   return /\b(copilot execution|local execution|executar comando|executa comando|rodar comando|repo checks|build checks|git status|git log|check server|validar server|npm build|rodar build|build local|executar checkpoint|abrir checkpoint manager|checkpoint manager)\b/i.test(text)
+}
+
+function suggestLayerOpenDecision(text: string, attachment?: IntakeFile): PendingLayerDecision | null {
+  if (!text.trim()) return null
+  if (isDirectCutIntent(text)) return { label: 'DirectCut Studio', openCommand: 'abrir directcut studio', goal: text }
+  if (isContractsIntent(text)) return { label: 'Contracts / Permits Studio', openCommand: 'abrir contracts studio', goal: text }
+  if (isBudgetIntent(text)) return { label: 'Budget / Quantity Studio', openCommand: 'abrir budget studio', goal: text }
+  if (isResearchIntent(text)) return { label: 'Research / Market Intelligence Studio', openCommand: 'abrir research studio', goal: text }
+  if (isFieldOpsIntent(text, attachment)) return { label: 'Field Operations / RDO Studio', openCommand: 'abrir field ops studio', goal: text }
+  if (isBusinessLayerIntent(text)) return { label: 'Business Layer', openCommand: 'abrir crm layer', goal: text }
+  if (isEvmSchedulerComplianceIntent(text)) return { label: 'CP11C Agents', openCommand: 'abrir evm scheduler panel', goal: text }
+  if (isSupplyChainIntent(text)) return { label: 'Supply Chain / Suppliers Studio', openCommand: 'abrir supply chain studio', goal: text }
+  if (isNotificationsIntent(text)) return { label: 'Notifications / Alerts Center', openCommand: 'abrir notifications panel', goal: text }
+  if (isAiCostIntent(text)) return { label: 'AI Cost Dashboard', openCommand: 'abrir ai cost dashboard', goal: text }
+  if (isMultiTenantIntent(text)) return { label: 'Multi-tenant Readiness', openCommand: 'abrir multi-tenant panel', goal: text }
+  if (isPwaMobileIntent(text)) return { label: 'PWA / Mobile Field Mode', openCommand: 'abrir pwa panel', goal: text }
+  if (isDigitalTwinIntent(text)) return { label: 'Digital Twin UI', openCommand: 'abrir digital twin panel', goal: text }
+  if (isKnowledgeBaseIntent(text)) return { label: 'Knowledge Base', openCommand: 'abrir knowledge base panel', goal: text }
+  if (isMetricsIntent(text)) return { label: 'Metrics Dashboard', openCommand: 'abrir metrics dashboard', goal: text }
+  if (isCopilotExecutionIntent(text)) return { label: 'Copilot Execution', openCommand: 'abrir copilot execution panel', goal: text }
+  if (isAgentIntent(text)) return { label: 'Cognitive Agents', openCommand: 'abrir agents panel', goal: text }
+  if (isBim3DIntent(text, attachment)) return { label: 'BIM / 3D Studio', openCommand: 'abrir bim 3d studio', goal: text }
+  if (isArchVisIntent(text, attachment)) return { label: 'ArchVis Studio', openCommand: 'abrir archvis studio', goal: text }
+  if (isAuthIntent(text)) return { label: 'Auth Panel', openCommand: 'abrir auth panel', goal: text }
+  return null
+}
+
+function isExplicitPanelOpenRequest(text: string) {
+  const lower = text.toLowerCase()
+  const hasOpenVerb = /\b(abrir|abra|abre|open|ativar|ative|activate|launch|iniciar|start)\b/.test(lower)
+  if (!hasOpenVerb) return false
+  const hasPanelWord = /\b(layer|painel|panel|studio|estudio|workspace|m[oó]dulo|modulo|console)\b/.test(lower)
+  const hasKnownLayer = /\b(archvis|directcut|contracts?|permits?|research|field\s*ops|budget|bim|3d|crm|sales|finance|accounting|agents?|evm|scheduler|supply\s*chain|notifications?|ai\s*cost|multi-tenant|pwa|digital twin|knowledge\s*base|metrics|copilot execution|owner console|auth)\b/.test(lower)
+  return hasPanelWord || hasKnownLayer
 }
 
 function isOwnerConsoleIntent(text: string) {
@@ -1027,6 +1067,7 @@ function App() {
   const [exportCenterOpen, setExportCenterOpen] = useState(false)
   const [ownerConsoleOpen, setOwnerConsoleOpen] = useState(false)
   const [voiceNotice, setVoiceNotice] = useState(false)
+  const [pendingLayerDecision, setPendingLayerDecision] = useState<PendingLayerDecision | null>(null)
   const [uiLanguage, setUiLanguage] = useState<UiLanguage>('EN')
   const [archVisRevisionConstraints, setArchVisRevisionConstraints] = useState<string[]>(initialProject.revisionConstraints || [])
   const [loading, setLoading] = useState(false)
@@ -1034,7 +1075,7 @@ function App() {
     {
       id: id(),
       role: 'assistant',
-      text: "Sou a Apex. Me diga o que quer fazer que eu começo por aqui.",
+      text: "Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.",
     },
   ])
 
@@ -1055,7 +1096,7 @@ function App() {
           {
             id: id(),
             role: 'assistant' as const,
-            text: "Sou a Apex. Me diga o que quer fazer que eu começo por aqui.",
+            text: "Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.",
           },
         ],
       },
@@ -1180,7 +1221,7 @@ function App() {
         {
           id: id(),
           role: 'assistant' as const,
-          text: "Sou a Apex. Me diga o que quer fazer que eu começo por aqui.",
+          text: "Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.",
         },
       ],
     }
@@ -1204,7 +1245,7 @@ function App() {
           {
             id: id(),
             role: 'assistant' as const,
-            text: "Sou a Apex. Me diga o que quer fazer que eu começo por aqui.",
+            text: "Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.",
           },
         ],
       }
@@ -1227,7 +1268,7 @@ function App() {
         {
           id: id(),
           role: 'assistant' as const,
-          text: "Sou a Apex. Me diga o que quer fazer que eu começo por aqui.",
+          text: "Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.",
         },
       ],
     }
@@ -1572,6 +1613,22 @@ function App() {
       return
     }
     const identityContext = buildChatIdentityContext(accountState)
+    const confirmationSignal = /^(sim|ok|pode|confirmo|yes|yep|manda|vai)$/i.test(clean)
+    const cancelSignal = /^(nao|não|cancelar|cancela|no|deixa)$/i.test(clean)
+    let routingText = clean
+    let layerGoalText = clean
+    if (pendingLayerDecision && clean) {
+      if (confirmationSignal) {
+        routingText = pendingLayerDecision.openCommand
+        layerGoalText = pendingLayerDecision.goal
+        setPendingLayerDecision(null)
+      } else if (cancelSignal) {
+        setPendingLayerDecision(null)
+        setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Perfeito. Não abri nenhum layer/painel.' }])
+        setInput('')
+        return
+      }
+    }
     if (clean && isOwnerConsoleIntent(clean)) {
       if (!isOwnerUser) {
         setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'This tool is restricted to workspace owners/admins.' }])
@@ -1596,26 +1653,37 @@ function App() {
       return
     }
     // Let natural conversations go to the server, so they are processed by the live AI agent (or fall back to local answers on failure)
-    const shouldOpenArchVis = isArchVisIntent(clean || modelText, attachment)
-    const shouldOpenDirectCut = clean && isDirectCutIntent(clean)
-    const shouldOpenContracts = clean && isContractsIntent(clean)
-    const shouldOpenBudget = clean && isBudgetIntent(clean)
-    const shouldOpenResearch = clean && isResearchIntent(clean)
-    const shouldOpenFieldOps = clean && isFieldOpsIntent(clean, attachment)
-    const shouldOpenAuth = clean && isAuthIntent(clean)
-    const shouldOpenBusiness = clean && isBusinessLayerIntent(clean)
-    const shouldOpenControlsAgents = clean && isEvmSchedulerComplianceIntent(clean)
-    const shouldOpenSupplyChain = clean && isSupplyChainIntent(clean)
-    const shouldOpenNotifications = clean && isNotificationsIntent(clean)
-    const shouldOpenAiCost = clean && isAiCostIntent(clean)
-    const shouldOpenMultiTenant = clean && isMultiTenantIntent(clean)
-    const shouldOpenPwaMobile = clean && isPwaMobileIntent(clean)
-    const shouldOpenDigitalTwin = clean && isDigitalTwinIntent(clean)
-    const shouldOpenKnowledgeBase = clean && isKnowledgeBaseIntent(clean)
-    const shouldOpenMetrics = clean && isMetricsIntent(clean)
-    const shouldOpenCopilotExecution = clean && isCopilotExecutionIntent(clean)
-    const shouldOpenAgents = clean && isAgentIntent(clean)
-    const shouldOpenBim3D = isBim3DIntent(clean || modelText, attachment)
+    const explicitPanelOpen = Boolean(routingText) && isExplicitPanelOpenRequest(routingText)
+    const suggestedLayer = !explicitPanelOpen && !pendingLayerDecision && clean && !confirmationSignal && !cancelSignal
+      ? suggestLayerOpenDecision(clean, attachment)
+      : null
+    if (suggestedLayer) {
+      setPendingLayerDecision(suggestedLayer)
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: `Posso abrir ${suggestedLayer.label}. Quer que eu abra agora? (sim/não)` }])
+      setInput('')
+      return
+    }
+
+    const shouldOpenArchVis = explicitPanelOpen && isArchVisIntent(routingText, attachment)
+    const shouldOpenDirectCut = explicitPanelOpen && isDirectCutIntent(routingText)
+    const shouldOpenContracts = explicitPanelOpen && isContractsIntent(routingText)
+    const shouldOpenBudget = explicitPanelOpen && isBudgetIntent(routingText)
+    const shouldOpenResearch = explicitPanelOpen && isResearchIntent(routingText)
+    const shouldOpenFieldOps = explicitPanelOpen && isFieldOpsIntent(routingText, attachment)
+    const shouldOpenAuth = explicitPanelOpen && isAuthIntent(routingText)
+    const shouldOpenBusiness = explicitPanelOpen && isBusinessLayerIntent(routingText)
+    const shouldOpenControlsAgents = explicitPanelOpen && isEvmSchedulerComplianceIntent(routingText)
+    const shouldOpenSupplyChain = explicitPanelOpen && isSupplyChainIntent(routingText)
+    const shouldOpenNotifications = explicitPanelOpen && isNotificationsIntent(routingText)
+    const shouldOpenAiCost = explicitPanelOpen && isAiCostIntent(routingText)
+    const shouldOpenMultiTenant = explicitPanelOpen && isMultiTenantIntent(routingText)
+    const shouldOpenPwaMobile = explicitPanelOpen && isPwaMobileIntent(routingText)
+    const shouldOpenDigitalTwin = explicitPanelOpen && isDigitalTwinIntent(routingText)
+    const shouldOpenKnowledgeBase = explicitPanelOpen && isKnowledgeBaseIntent(routingText)
+    const shouldOpenMetrics = explicitPanelOpen && isMetricsIntent(routingText)
+    const shouldOpenCopilotExecution = explicitPanelOpen && isCopilotExecutionIntent(routingText)
+    const shouldOpenAgents = explicitPanelOpen && isAgentIntent(routingText)
+    const shouldOpenBim3D = explicitPanelOpen && isBim3DIntent(routingText, attachment)
     const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
     const shouldTreatAsConversation = clean && isOperationalGovernancePrompt(clean)
     const shouldOpenSkillExport = clean && !shouldTreatAsConversation && (isSkillExportIntent(clean) || isSkillExportFactoryAlias(clean))
@@ -1681,7 +1749,7 @@ function App() {
     if (shouldOpenAuth) {
       closeOtherPanels('auth')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
-      setAuthOutput({ goal: clean, conversationContext: context })
+      setAuthOutput({ goal: layerGoalText, conversationContext: context })
       if (isOwnerUser) setOwnerConsoleOpen(true)
       setMessages(prev => [...prev, userMessage])
       setInput('')
@@ -1713,7 +1781,7 @@ function App() {
       const context = [...messages, userMessage]
         .slice(-8)
         .map(message => `${message.role}: ${message.text}`)
-      const focus = inferBusinessFocus(clean)
+      const focus = inferBusinessFocus(layerGoalText)
       const responseText = focus === 'finance-accounting'
         ? 'Abri o Finance / Accounting layer ao lado. Vou preparar financeiro, contas a receber/pagar e pacote para contador em modo local, sem fingir pagamento, imposto ou compliance.'
         : focus === 'crm-sales'
@@ -1722,7 +1790,7 @@ function App() {
             ? 'Abri o SaaS Admin / Client Workspace ao lado. Vou modelar usuários, permissões, planos e dashboards em modo local, sem auth real ainda.'
             : 'Abri a camada SaaS/CRM/Finance ao lado. Tudo está em Local demo mode: sem auth, sem database e sem payment connector.'
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: responseText }])
-      setBusinessOutput({ goal: clean, focus, conversationContext: context })
+      setBusinessOutput({ goal: layerGoalText, focus, conversationContext: context })
       setInput('')
       return
     }
@@ -1730,7 +1798,7 @@ function App() {
       closeOtherPanels('supplyChain')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Supply Chain / Suppliers Studio ao lado. Vou organizar fornecedores, cotações e compras em modo local, sem fingir preço, disponibilidade ou verificação de fornecedor.' }])
-      setSupplyChainOutput({ goal: clean, conversationContext: context })
+      setSupplyChainOutput({ goal: layerGoalText, conversationContext: context })
       setInput('')
       return
     }
@@ -1738,7 +1806,7 @@ function App() {
       closeOtherPanels('notifications')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Notifications / Alerts Center ao lado. Estes são alertas locais; conector de push, email ou SMS ainda não está conectado.' }])
-      setNotificationsOutput({ goal: clean, conversationContext: context })
+      setNotificationsOutput({ goal: layerGoalText, conversationContext: context })
       setInput('')
       return
     }
@@ -1746,7 +1814,7 @@ function App() {
       closeOtherPanels('aiCost')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o AI Cost Dashboard ao lado. Vou mostrar estimativas locais de uso/custo, sem fingir billing real da OpenAI ou de outro provedor.' }])
-      setAiCostOutput({ goal: clean, conversationContext: context })
+      setAiCostOutput({ goal: layerGoalText, conversationContext: context })
       setInput('')
       return
     }
@@ -1754,7 +1822,7 @@ function App() {
       closeOtherPanels('multiTenant')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Multi-tenant Readiness ao lado. É planejamento local-first: sem fingir isolamento real de Supabase/auth/RLS.' }])
-      setMultiTenantOutput({ goal: clean, conversationContext: context })
+      setMultiTenantOutput({ goal: layerGoalText, conversationContext: context })
       setInput('')
       return
     }
@@ -1762,7 +1830,7 @@ function App() {
       closeOtherPanels('pwaMobile')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o PWA / Mobile Field Mode ao lado. Vou preparar checklist e fluxo mobile/offline, sem fingir PWA instalado.' }])
-      setPwaMobileOutput({ goal: clean, conversationContext: context })
+      setPwaMobileOutput({ goal: layerGoalText, conversationContext: context })
       setInput('')
       return
     }
@@ -1770,7 +1838,7 @@ function App() {
       closeOtherPanels('digitalTwin')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Digital Twin UI ao lado. É estado local/planning-only: sem IoT em tempo real e sem sync vivo de modelo.' }])
-      setDigitalTwinOutput({ goal: clean, conversationContext: context })
+      setDigitalTwinOutput({ goal: layerGoalText, conversationContext: context })
       setInput('')
       return
     }
@@ -1778,7 +1846,7 @@ function App() {
       closeOtherPanels('knowledgeBase')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri a Knowledge Base ao lado. Vou indexar conhecimento local/projeto sem executar conteúdo e sem marcar global sem aprovação do Owner.' }])
-      setKnowledgeBaseOutput({ goal: clean, conversationContext: context })
+      setKnowledgeBaseOutput({ goal: layerGoalText, conversationContext: context })
       setInput('')
       return
     }
@@ -1786,7 +1854,7 @@ function App() {
       closeOtherPanels('metrics')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Metrics Dashboard ao lado. Métricas são LOCAL_DEMO/ESTIMATED_LOCAL até existir telemetria real.' }])
-      setMetricsOutput({ goal: clean, conversationContext: context })
+      setMetricsOutput({ goal: layerGoalText, conversationContext: context })
       setInput('')
       return
     }
@@ -1799,7 +1867,7 @@ function App() {
       closeOtherPanels('copilotExecution')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Apex Copilot Local Execution v0. Ele executa comandos reais apenas pela allowlist do server.mjs, sem comando livre.' }])
-      setCopilotExecutionOutput({ goal: clean, conversationContext: context })
+      setCopilotExecutionOutput({ goal: layerGoalText, conversationContext: context })
       setOwnerConsoleOpen(true)
       setInput('')
       return
@@ -1818,7 +1886,7 @@ function App() {
           text: 'Abri o painel CP11C com EVM Analyst, Scheduler e NR Compliance. Vou calcular somente com dados fornecidos/localizados e manter o restante como UNKNOWN, GENERAL_GUIDANCE ou NEEDS_SAFETY_REVIEW.',
         },
       ])
-      setEvmSchedulerComplianceOutput({ goal: clean, conversationContext: context })
+      setEvmSchedulerComplianceOutput({ goal: layerGoalText, conversationContext: context })
       setInput('')
       return
     }
@@ -1836,7 +1904,7 @@ function App() {
           text: 'Abri o painel dos 8 Cognitive Agents ao lado. EVM, Scheduler e NR Compliance agora aparecem como implementados local-first, com limites claros: sem dados em tempo real falsos e sem aprovação oficial de compliance.',
         },
       ])
-      setAgentsOutput({ goal: clean, conversationContext: context })
+      setAgentsOutput({ goal: layerGoalText, conversationContext: context })
       setInput('')
       return
     }
@@ -1885,7 +1953,7 @@ function App() {
       ])
       setDirectCutOutput({
         source: attachment,
-        goal: clean,
+        goal: layerGoalText,
         conversationContext: context,
         initialConfig: inferDirectCutConfig(clean, attachment),
       })
@@ -1908,7 +1976,7 @@ function App() {
       ])
       setContractsOutput({
         source: attachment,
-        goal: clean,
+        goal: layerGoalText,
         conversationContext: context,
       })
       setInput('')
@@ -1929,7 +1997,7 @@ function App() {
         },
       ])
       setResearchOutput({
-        goal: clean,
+        goal: layerGoalText,
         conversationContext: context,
       })
       setInput('')
@@ -1951,7 +2019,7 @@ function App() {
       ])
       setFieldOpsOutput({
         source: attachment,
-        goal: clean,
+        goal: layerGoalText,
         conversationContext: context,
       })
       setInput('')
@@ -1973,7 +2041,7 @@ function App() {
       ])
       setBudgetOutput({
         source: attachment,
-        goal: clean,
+        goal: layerGoalText,
         conversationContext: context,
       })
       setInput('')

@@ -9,6 +9,9 @@ const rootPath = path.resolve(__dirname, '../')
 const action = process.argv[2]
 const param1 = process.argv[3] || ''
 const param2 = process.argv[4] || ''
+const docsEdgardSkillRoot = 'D:\\AI Jedgard\\skill'
+const docsEdgardManifestPath = path.join(rootPath, 'skill', 'DOCSEDGARD_SKILL_REINTEGRADA.md')
+const docsEdgardExtensions = new Set(['.md', '.pdf', '.txt', '.py'])
 
 function ensureDirectoryExistence(filePath) {
   const dirname = path.dirname(filePath)
@@ -203,6 +206,136 @@ async function handleCodeAnalyze() {
   console.log(JSON.stringify(results, null, 2))
 }
 
+function listDocsedgardFiles(rootDir) {
+  const entries = []
+  if (!fs.existsSync(rootDir)) return entries
+  const stack = ['']
+  while (stack.length) {
+    const relDir = stack.pop()
+    const absDir = path.join(rootDir, relDir)
+    for (const item of fs.readdirSync(absDir, { withFileTypes: true })) {
+      const relPath = relDir ? path.join(relDir, item.name) : item.name
+      const absPath = path.join(rootDir, relPath)
+      if (item.isDirectory()) {
+        stack.push(relPath)
+      } else if (item.isFile()) {
+        const ext = path.extname(item.name).toLowerCase()
+        if (docsEdgardExtensions.has(ext)) {
+          entries.push({ relPath, absPath, ext })
+        }
+      }
+    }
+  }
+  return entries.sort((a, b) => a.relPath.localeCompare(b.relPath))
+}
+
+function buildDocsedgardManifestMarkdown(files) {
+  const groups = { '.md': [], '.pdf': [], '.txt': [], '.py': [] }
+  for (const file of files) groups[file.ext].push(file.relPath)
+  const lines = [
+    '# DOCSEDGARD Skill Reintegrada',
+    '',
+    `Data de geração: ${new Date().toISOString()}`,
+    `Fonte: \`${docsEdgardSkillRoot}\``,
+    '',
+    '## Objetivo',
+    'Unificar os artefatos detectados na pasta original docsedgard/skill para reintegração operacional no repositório Apex.',
+    '',
+    '## Totais por extensão',
+    `- \`.md\`: ${groups['.md'].length}`,
+    `- \`.pdf\`: ${groups['.pdf'].length}`,
+    `- \`.txt\`: ${groups['.txt'].length}`,
+    `- \`.py\`: ${groups['.py'].length}`,
+    '',
+    '## Inventário completo',
+    `Caminhos relativos à raiz \`${docsEdgardSkillRoot}\`:`,
+    '',
+  ]
+  for (const ext of ['.md', '.pdf', '.txt', '.py']) {
+    lines.push(`### ${ext}`)
+    if (!groups[ext].length) {
+      lines.push('- _(nenhum arquivo)_')
+    } else {
+      for (const relPath of groups[ext]) lines.push(`- \`${relPath.replace(/\\/g, '\\\\')}\``)
+    }
+    lines.push('')
+  }
+  return lines.join('\n')
+}
+
+function parseDocsedgardAction(raw) {
+  const value = String(raw || '').trim()
+  if (!value || value === 'summary') return { mode: 'summary', term: '' }
+  if (value === 'sync-manifest') return { mode: 'sync-manifest', term: '' }
+  if (value.startsWith('search:')) return { mode: 'search', term: value.slice('search:'.length).trim() }
+  return { mode: 'search', term: value.trim() }
+}
+
+async function handleDocsedgardSkill(rawInstruction) {
+  if (!fs.existsSync(docsEdgardSkillRoot)) {
+    console.log('=== DOCSEDGARD SKILL FAILED ===')
+    console.log(`Pasta de origem não encontrada: ${docsEdgardSkillRoot}`)
+    process.exit(1)
+  }
+
+  const files = listDocsedgardFiles(docsEdgardSkillRoot)
+  const grouped = {
+    md: files.filter(item => item.ext === '.md').length,
+    pdf: files.filter(item => item.ext === '.pdf').length,
+    txt: files.filter(item => item.ext === '.txt').length,
+    py: files.filter(item => item.ext === '.py').length,
+  }
+  const instruction = parseDocsedgardAction(rawInstruction)
+
+  if (instruction.mode === 'sync-manifest') {
+    ensureDirectoryExistence(docsEdgardManifestPath)
+    const manifest = buildDocsedgardManifestMarkdown(files)
+    fs.writeFileSync(docsEdgardManifestPath, manifest, 'utf8')
+    console.log('=== DOCSEDGARD SKILL SYNC SUCCESS ===')
+    console.log(`Manifesto atualizado em: ${docsEdgardManifestPath}`)
+    console.log(JSON.stringify({ total: files.length, ...grouped }, null, 2))
+    return
+  }
+
+  if (instruction.mode === 'search') {
+    const term = instruction.term.toLowerCase()
+    if (!term) {
+      console.log('=== DOCSEDGARD SKILL SEARCH FAILED ===')
+      console.log('Use: search:<termo> ou forneça um termo direto.')
+      process.exit(1)
+    }
+    const matches = files.filter(item => item.relPath.toLowerCase().includes(term))
+    console.log('=== DOCSEDGARD SKILL SEARCH SUCCESS ===')
+    console.log(`Termo: ${instruction.term}`)
+    console.log(`Matches: ${matches.length}`)
+    const preview = matches.slice(0, 200).map(item => item.relPath)
+    for (const relPath of preview) console.log(`- ${relPath}`)
+    if (matches.length > preview.length) {
+      console.log(`... ${matches.length - preview.length} resultados adicionais omitidos.`)
+    }
+    return
+  }
+
+  const topFolders = new Map()
+  for (const file of files) {
+    const firstPart = file.relPath.split(path.sep)[0] || '.'
+    topFolders.set(firstPart, (topFolders.get(firstPart) || 0) + 1)
+  }
+  const topFolderRows = [...topFolders.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 15)
+    .map(([folder, count]) => ({ folder, count }))
+  console.log('=== DOCSEDGARD SKILL SUMMARY SUCCESS ===')
+  console.log(JSON.stringify({
+    source: docsEdgardSkillRoot,
+    manifest: docsEdgardManifestPath,
+    total: files.length,
+    ...grouped,
+    actions: ['summary', 'search:<termo>', 'sync-manifest'],
+    topFolders: topFolderRows,
+  }, null, 2))
+}
+
 async function run() {
   switch (action) {
     case 'revit-generate':
@@ -219,6 +352,9 @@ async function run() {
       break
     case 'code-analyze':
       await handleCodeAnalyze()
+      break
+    case 'docsedgard-skill':
+      await handleDocsedgardSkill(param1)
       break
     default:
       console.error(`Erro: ação desconhecida "${action}"`)
