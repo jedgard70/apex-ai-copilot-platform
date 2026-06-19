@@ -469,6 +469,15 @@ function isCopilotExecutionIntent(text: string) {
   return /\b(copilot execution|local execution|executar comando|executa comando|rodar comando|repo checks|build checks|git status|git log|check server|validar server|npm build|rodar build|build local|executar checkpoint|abrir checkpoint manager|checkpoint manager)\b/i.test(text)
 }
 
+function isExplicitPanelOpenRequest(text: string) {
+  const lower = text.toLowerCase()
+  const hasOpenVerb = /\b(abrir|abra|abre|open|ativar|ative|activate|launch|iniciar|start)\b/.test(lower)
+  if (!hasOpenVerb) return false
+  const hasPanelWord = /\b(layer|painel|panel|studio|estudio|workspace|m[oó]dulo|modulo|console)\b/.test(lower)
+  const hasKnownLayer = /\b(archvis|directcut|contracts?|permits?|research|field\s*ops|budget|bim|3d|crm|sales|finance|accounting|agents?|evm|scheduler|supply\s*chain|notifications?|ai\s*cost|multi-tenant|pwa|digital twin|knowledge\s*base|metrics|copilot execution|owner console|auth)\b/.test(lower)
+  return hasPanelWord || hasKnownLayer
+}
+
 function isOwnerConsoleIntent(text: string) {
   return /\b(mission control|owner command|owner console|console owner|abrir console owner|abrir owner console)\b/i.test(text)
 }
@@ -1596,26 +1605,27 @@ function App() {
       return
     }
     // Let natural conversations go to the server, so they are processed by the live AI agent (or fall back to local answers on failure)
-    const shouldOpenArchVis = isArchVisIntent(clean || modelText, attachment)
-    const shouldOpenDirectCut = clean && isDirectCutIntent(clean)
-    const shouldOpenContracts = clean && isContractsIntent(clean)
-    const shouldOpenBudget = clean && isBudgetIntent(clean)
-    const shouldOpenResearch = clean && isResearchIntent(clean)
-    const shouldOpenFieldOps = clean && isFieldOpsIntent(clean, attachment)
-    const shouldOpenAuth = clean && isAuthIntent(clean)
-    const shouldOpenBusiness = clean && isBusinessLayerIntent(clean)
-    const shouldOpenControlsAgents = clean && isEvmSchedulerComplianceIntent(clean)
-    const shouldOpenSupplyChain = clean && isSupplyChainIntent(clean)
-    const shouldOpenNotifications = clean && isNotificationsIntent(clean)
-    const shouldOpenAiCost = clean && isAiCostIntent(clean)
-    const shouldOpenMultiTenant = clean && isMultiTenantIntent(clean)
-    const shouldOpenPwaMobile = clean && isPwaMobileIntent(clean)
-    const shouldOpenDigitalTwin = clean && isDigitalTwinIntent(clean)
-    const shouldOpenKnowledgeBase = clean && isKnowledgeBaseIntent(clean)
-    const shouldOpenMetrics = clean && isMetricsIntent(clean)
-    const shouldOpenCopilotExecution = clean && isCopilotExecutionIntent(clean)
-    const shouldOpenAgents = clean && isAgentIntent(clean)
-    const shouldOpenBim3D = isBim3DIntent(clean || modelText, attachment)
+    const explicitPanelOpen = Boolean(clean) && isExplicitPanelOpenRequest(clean)
+    const shouldOpenArchVis = explicitPanelOpen && isArchVisIntent(clean, attachment)
+    const shouldOpenDirectCut = explicitPanelOpen && isDirectCutIntent(clean)
+    const shouldOpenContracts = explicitPanelOpen && isContractsIntent(clean)
+    const shouldOpenBudget = explicitPanelOpen && isBudgetIntent(clean)
+    const shouldOpenResearch = explicitPanelOpen && isResearchIntent(clean)
+    const shouldOpenFieldOps = explicitPanelOpen && isFieldOpsIntent(clean, attachment)
+    const shouldOpenAuth = explicitPanelOpen && isAuthIntent(clean)
+    const shouldOpenBusiness = explicitPanelOpen && isBusinessLayerIntent(clean)
+    const shouldOpenControlsAgents = explicitPanelOpen && isEvmSchedulerComplianceIntent(clean)
+    const shouldOpenSupplyChain = explicitPanelOpen && isSupplyChainIntent(clean)
+    const shouldOpenNotifications = explicitPanelOpen && isNotificationsIntent(clean)
+    const shouldOpenAiCost = explicitPanelOpen && isAiCostIntent(clean)
+    const shouldOpenMultiTenant = explicitPanelOpen && isMultiTenantIntent(clean)
+    const shouldOpenPwaMobile = explicitPanelOpen && isPwaMobileIntent(clean)
+    const shouldOpenDigitalTwin = explicitPanelOpen && isDigitalTwinIntent(clean)
+    const shouldOpenKnowledgeBase = explicitPanelOpen && isKnowledgeBaseIntent(clean)
+    const shouldOpenMetrics = explicitPanelOpen && isMetricsIntent(clean)
+    const shouldOpenCopilotExecution = explicitPanelOpen && isCopilotExecutionIntent(clean)
+    const shouldOpenAgents = explicitPanelOpen && isAgentIntent(clean)
+    const shouldOpenBim3D = explicitPanelOpen && isBim3DIntent(clean, attachment)
     const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
     const shouldTreatAsConversation = clean && isOperationalGovernancePrompt(clean)
     const shouldOpenSkillExport = clean && !shouldTreatAsConversation && (isSkillExportIntent(clean) || isSkillExportFactoryAlias(clean))
