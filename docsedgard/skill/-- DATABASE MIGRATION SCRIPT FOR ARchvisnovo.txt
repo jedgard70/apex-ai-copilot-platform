@@ -1,0 +1,349 @@
+-- DATABASE MIGRATION SCRIPT FOR ARCHITECTURAL VISUALIZATION RE-ENGINE (3D BIM VIEWER)
+-- Target Database: PostgreSQL 14+, Enterprise Ready, Optimized Constraints & Indexes
+-- Version: 01_init.sql
+-- Created At: 2026-05-20 (UTC)
+
+-- ==========================================
+-- 0. EXTENSIONS & PREREQUISITES
+-- ==========================================
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- ==========================================
+-- 1. CUSTOM TYPE DEFINITIONS (ENUMS)
+-- ==========================================
+
+-- Render Job Processing Status Lifecycle
+CREATE TYPE render_job_status AS ENUM (
+  'rendering', 
+  'completed', 
+  'failed', 
+  'queued', 
+  'paused'
+);
+
+-- Material Class Categories matching CAD/BIM standard types
+CREATE TYPE material_class AS ENUM (
+  'Concrete', 
+  'Wood', 
+  'Glass', 
+  'Metal', 
+  'Stone', 
+  'Fabric',
+  'Plaster',
+  'Other'
+);
+
+-- Gallery view type classifications 
+CREATE TYPE gallery_view_type AS ENUM (
+  'PANORAMA', 
+  'DETAIL', 
+  'NIGHT', 
+  'DAY', 
+  'INTERIOR', 
+  'EXTERIOR'
+);
+
+-- ==========================================
+-- 2. SCHEMAS & DDL DEFINITIONS
+-- ==========================================
+
+-- A. Users Table (Authentication and profile links)
+CREATE TABLE IF NOT EXISTS users (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  first_name VARCHAR(100),
+  last_name VARCHAR(100),
+  role VARCHAR(50) DEFAULT 'architect',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- B. Projects Table (Consolidates material assignments and rendering contexts)
+CREATE TABLE IF NOT EXISTS projects (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  file_url VARCHAR(1000), -- Holds reference to uploaded .ifc, .fbx, .obj models
+  owner_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- C. PBR Materials Table (Persists custom shaders and texture coordinates)
+CREATE TABLE IF NOT EXISTS materials (
+  id VARCHAR(100) PRIMARY KEY, -- MAT_xxxx UUID or Code matching 3D loader indices
+  title VARCHAR(255) NOT NULL,
+  type material_class NOT NULL DEFAULT 'Other',
+  resolution VARCHAR(100) NOT NULL DEFAULT 'PBR • 4K • Procedural',
+  img VARCHAR(1000) NOT NULL, -- Texture preview map URL or CDN link
+  uv_scale_u NUMERIC(6, 3) DEFAULT 1.000,
+  uv_scale_v NUMERIC(6, 3) DEFAULT 1.000,
+  rotation NUMERIC(6, 2) DEFAULT 0.00,
+  ior NUMERIC(6, 3) DEFAULT 1.500,
+  roughness NUMERIC(5, 4) DEFAULT 0.5000,
+  reflectivity NUMERIC(5, 4) DEFAULT 0.50000,
+  project_id UUID REFERENCES projects(id) ON DELETE SET NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- D. Render Jobs Queue Table (Tracks background rendering pipeline tasks)
+CREATE TABLE IF NOT EXISTS render_jobs (
+  id VARCHAR(100) PRIMARY KEY, -- render-xxxx reference id
+  name VARCHAR(255) NOT NULL,
+  status render_job_status NOT NULL DEFAULT 'queued',
+  progress INTEGER DEFAULT 0 CHECK (progress >= 0 AND progress <= 100),
+  time_remaining VARCHAR(50),
+  resolution VARCHAR(50) DEFAULT '4K',
+  intensity NUMERIC(6, 3) DEFAULT 1.25,
+  time_of_day VARCHAR(10) NOT NULL DEFAULT '12:00',
+  focal_length VARCHAR(50) NOT NULL DEFAULT '35mm',
+  ray_tracing BOOLEAN DEFAULT TRUE,
+  img_url VARCHAR(1000) NOT NULL, -- Result image target
+  date VARCHAR(50) NOT NULL, -- Snapshot calendar day
+  project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- E. Gallery Images Table (Persisted visual outputs showcase)
+CREATE TABLE IF NOT EXISTS gallery_images (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  title VARCHAR(255) NOT NULL,
+  type gallery_view_type NOT NULL DEFAULT 'DAY',
+  img VARCHAR(1000) NOT NULL, -- Render output CDN URL
+  cols VARCHAR(100) DEFAULT 'col-span-1',
+  rows VARCHAR(100) DEFAULT 'row-span-1',
+  resolution VARCHAR(50) NOT NULL DEFAULT '8K',
+  date VARCHAR(50) NOT NULL,
+  tags TEXT[] DEFAULT '{}', -- Array of metadata tags (e.g., 'FOV: 35mm', 'Ray-Tracing: ON')
+  is_rendered BOOLEAN DEFAULT FALSE,
+  project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ==========================================
+-- 3. INDEXES FOR QUERY OPTIMIZATION
+-- ==========================================
+CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
+CREATE INDEX IF NOT EXISTS idx_projects_owner ON projects (owner_id);
+CREATE INDEX IF NOT EXISTS idx_materials_project ON materials (project_id);
+CREATE INDEX IF NOT EXISTS idx_render_jobs_status ON render_jobs (status);
+CREATE INDEX IF NOT EXISTS idx_render_jobs_project ON render_jobs (project_id);
+CREATE INDEX IF NOT EXISTS idx_gallery_images_project ON gallery_images (project_id);
+CREATE INDEX IF NOT EXISTS idx_gallery_images_type ON gallery_images (type);
+
+-- ==========================================
+-- 4. TRIGGER FUNCTION FOR updated_at COLUMNS
+-- ==========================================
+CREATE OR REPLACE FUNCTION update_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = CURRENT_TIMESTAMP;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Apply Triggers
+CREATE TRIGGER tr_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_timestamp();
+CREATE TRIGGER tr_projects_updated_at BEFORE UPDATE ON projects FOR EACH ROW EXECUTE FUNCTION update_timestamp();
+CREATE TRIGGER tr_materials_updated_at BEFORE UPDATE ON materials FOR EACH ROW EXECUTE FUNCTION update_timestamp();
+CREATE TRIGGER tr_render_jobs_updated_at BEFORE UPDATE ON render_jobs FOR EACH ROW EXECUTE FUNCTION update_timestamp();
+
+-- ==========================================
+-- 5. INITIAL DATA SEEDING (DEFAULT ASSETS FROM STATE CONTEXT)
+-- ==========================================
+
+-- Seed a default user
+INSERT INTO users (id, email, password_hash, first_name, last_name, role)
+VALUES (
+  'e68b3f8a-49c7-4b6d-a7ca-6efbaf373b9e',
+  'architect@cloud.rendering',
+  '$2b$12$KjE7oXF0oZ7/v2rS6r5l8OB5CWeZ9n60O/Y7k6aYg.f78oPj9QG1y', -- placeholder hash for admin credentials
+  'Alex',
+  'Foster',
+  'Lead Architect'
+) ON CONFLICT (email) DO NOTHING;
+
+-- Seed a default project
+INSERT INTO projects (id, name, description, file_url, owner_id)
+VALUES (
+  'f73b064c-83b3-4632-bd8b-f41bc19df201',
+  'Riverside Corporate Center',
+  'High-performance commercial pavilion featuring concrete megastructures and parametric glazing along the waterfront.',
+  '/assets/models/riverside_center_v4.ifc',
+  'e68b3f8a-49c7-4b6d-a7ca-6efbaf373b9e'
+) ON CONFLICT DO NOTHING;
+
+-- Seed default PBR material catalogs
+INSERT INTO materials (id, title, type, resolution, img, uv_scale_u, uv_scale_v, rotation, ior, roughness, reflectivity, project_id)
+VALUES 
+  (
+    'MAT_CONC_082', 
+    'Industrial Concrete v02', 
+    'Concrete', 
+    'PBR • 8K • Procedural', 
+    'https://lh3.googleusercontent.com/aida-public/AB6AXuCU2rPha9UZnVhMc3zavz3UrLEU7YaK6akGjy2b_b9geqN5psGA4BM_MGWAJ1SagIYm-Gcte5MEWsYi_MlZIDsQkRG2PaLWhZuryulcoqxH3G90ezxz8TjHhM1jnH3KjUpG0SxK30UdE9fM-QksAX_ETCkMxJUFnLg_RbKofymwfBizHjcfCy_AW-JI9CCyNtckJq7_4GhdPqd3TC8ysZnZw-bgyxW4ol73VMjD4TT_Ydoa5Wj7RWLY4WzWNYeDKv954KJBdH02yZDz', 
+    1.0, 1.0, 0.0, 1.54, 0.45, 0.20, 
+    'f73b064c-83b3-4632-bd8b-f41bc19df201'
+  ),
+  (
+    'MAT_WOOD_014', 
+    'Dark Oak Chevron', 
+    'Wood', 
+    'PBR • 4K • Photogrammetry', 
+    'https://lh3.googleusercontent.com/aida-public/AB6AXuBwThQl2_x0P_zhafmdQQgxScVEVLEvURG5f_zLUoS2NIfMZShBuO4BzD0v2qx8EXWWRm8SXVrfuJyiwbzReFsFo_SM8jKfaRV_mfME6NZissaExPiLw1IvJ3_J_1yzKIlc16aByq94HPHg_HfelL8n9U6s57ri9PGiTdCv9mg_dlTx8AraYOtbCTMhKvbtOlhRadxKhfQRfB0PKHAT5MTgx18Dmw-ctFFeoBFzhZxniY3FOOY13jLVnFlhfS2rdFhlszk_ievh4Wog', 
+    2.0, 2.0, 45.0, 1.51, 0.30, 0.45, 
+    'f73b064c-83b3-4632-bd8b-f41bc19df201'
+  ),
+  (
+    'MAT_GLAS_112', 
+    'Acid Etched Glass 12%', 
+    'Glass', 
+    'Shader • Procedural', 
+    'https://lh3.googleusercontent.com/aida-public/AB6AXuAElt4wK2h7JTm7Fj9vkroRf9g_QBaX0J7g2vpfIof03qectyhcfiwI-3OFckqFC5bSItaIY0IGdpSTB90wjiVUccDkQyTyiupJMnIRHPOHtXDfeS3-3inDARG1Lsua9sZGFfXBYo1MqsTPn4lJWFpImUzSkEIPLUQvVd4lJUA9Hlhhbm0UOoD7_muzuSxtaYQIamU4BCI4Lw_p7t-ZJAElyoCuVzhiHtxac4G1FFdBNUWQCyJpyqLepGGEFfvqALWZhCV6TxK2HmVS', 
+    1.0, 1.0, 0.0, 1.62, 0.15, 0.85, 
+    'f73b064c-83b3-4632-bd8b-f41bc19df201'
+  ),
+  (
+    'MAT_METL_045', 
+    'Weathered Corten v04', 
+    'Metal', 
+    'PBR • 8K • Scan', 
+    'https://lh3.googleusercontent.com/aida-public/AB6AXuCXzQhge5A_VTO_xhVxb3CJTt_y7RDJl9boKCuuWLJMmRoV0hIdFn73d0D-kknx2erbKGGu7KgKl_C0GBvzBL-BcTjtx1lp7Fy09SSuf43cW_R1bbJSNMF_SqOHlLdVvce8FKDESygG7PdsETrw_2DE1vz-kfD5-WQ5So_WcYtBJVCBTtqjUcNOGZh3VLCzwPjPLMk2gS__FMdnO-2TuqIjEyoitg29UVp6Uchg-yKLm5ZmRUBDM6g71hCIA6eIE3KEijNlMslGCjy4', 
+    1.0, 1.0, 12.0, 2.40, 0.80, 0.10, 
+    'f73b064c-83b3-4632-bd8b-f41bc19df201'
+  )
+ON CONFLICT (id) DO NOTHING;
+
+-- Seed default jobs queue
+INSERT INTO render_jobs (id, name, status, progress, time_remaining, resolution, intensity, time_of_day, focal_length, ray_tracing, img_url, date, project_id, user_id)
+VALUES
+  (
+    'render-default-active', 
+    'West Wing Atrium_Final_V4', 
+    'rendering', 
+    64, 
+    '0m 32s', 
+    '4K', 
+    1.25, 
+    '14:30', 
+    '35mm', 
+    TRUE, 
+    'https://lh3.googleusercontent.com/aida-public/AB6AXuBsyA0s5OVLfCiv5lWOZ-MWjsz8cscO3ZWLNZLhOOsxAjj0cbzyWAX4b4MhKFLqJdhNdCQyRCrmuBYr0-kT2Nj7A_w9Kc0yoYfZZmzinKdAXjjHhpxOU9ipF6hdVkIy8C97S3vcI1HMTu5RnBSkafRkfrSr7QdR0kvzFDctkOXyVWpZwV8JwhJn-WWdD1PFkM9FRAx3VQNv1IqyQOICOPBUORSwem5IN8zQxODedBvfR72_H8x0zhvmil1TwRVBnqYsemKx1U4BtwEm', 
+    '2026-05-20', 
+    'f73b064c-83b3-4632-bd8b-f41bc19df201', 
+    'e68b3f8a-49c7-4b6d-a7ca-6efbaf373b9e'
+  ),
+  (
+    'render-default-comp', 
+    'Lobby_Draft_02', 
+    'completed', 
+    100, 
+    NULL, 
+    '4K', 
+    1.00, 
+    '09:00', 
+    '24mm', 
+    FALSE, 
+    'https://lh3.googleusercontent.com/aida-public/AB6AXuAG-7d6Sb3tQ_Wr2pTDuXDQK8PVjmInIJwf8OHfpWwhPRp7fmEXCQ--y3EZG3ca68lfmN_p8h9IVzQctR7khSK4p5k8wI53ec9uSWOEANzCRc1EGQPRB6Q-ibOAtLApzeYzvS6yVb8p0pRqZE38b9hL4el_rALm1MWqm1GZ-nqeGnIW3MG7oeeom0SNs_7EnwUulz36uoSyYUTamvaY5jDGG88sARZ90FxceTfudrnsT_uoOwEKeIAS4iQWEcHEqd7hwW_maJkxnBom', 
+    '2026-05-20', 
+    'f73b064c-83b3-4632-bd8b-f41bc19df201', 
+    'e68b3f8a-49c7-4b6d-a7ca-6efbaf373b9e'
+  ),
+  (
+    'render-default-fail', 
+    'Garden_Pathway_Night', 
+    'failed', 
+    41, 
+    NULL, 
+    '8K', 
+    0.80, 
+    '23:00', 
+    '50mm', 
+    TRUE, 
+    'https://lh3.googleusercontent.com/aida-public/AB6AXuCwDNyAsgkdwQcmP7zVECqrLjQmG6HoMZRi3muEeg2WUSy7drA2IMHd67rFD2d1lZG74XLOFAUwkTYa6u2qY_7KAzd2RqfKEq6YwuRPzXi4K1E2230J20j1-BgqeJtELVQwgGepadcZ49itjEWK1Wg03LUXcx7m7dZH11e7wHoAZKp4w5hRxT-qU6lTaXtIWa3hgTkpOU5rmqGQj0k0vcj6eMa1nvC3yXTVNf6QXEZCB5yd5OBeepaM5xiq_01QgidnQZPD9Egk0lYT', 
+    '2026-05-20', 
+    'f73b064c-83b3-4632-bd8b-f41bc19df201', 
+    'e68b3f8a-49c7-4b6d-a7ca-6efbaf373b9e'
+  )
+ON CONFLICT (id) DO NOTHING;
+
+-- Seed default gallery items showcase
+INSERT INTO gallery_images (title, type, img, cols, rows, resolution, date, tags, is_rendered, project_id)
+VALUES
+  (
+    'Atrium East View - Final', 
+    'PANORAMA', 
+    'https://lh3.googleusercontent.com/aida-public/AB6AXuC8lgLmiZiob5P9PS67xiVhVohngFq6pobmZfSZm7QKWt99rzHDWNppDNum3ITm8WtZ4TrTuplMmco_DIsjLrTehLiaFdZjOCR__2R6-AOnnrc9ag0QCwM2HRrAPINTMN-jdypoWDGtgAhEOQkqoEa5okBEZElOh64BeoX_sf5jSktTbJjCaNDRgXTliPLU3gIWdwuj4P-kbhGFnY80hCB-Kub0f17Yz1j-NgymmAkZm7MFXdXkPyvQGmJQCobmOwQO26LuJALP-Yr9', 
+    'col-span-1 md:col-span-4 lg:col-span-4', 
+    'row-span-2', 
+    '8K', 
+    '2026-05-18', 
+    ARRAY['Time: 14:30', 'FOV: 35mm', 'Ray-Tracing: ON'], 
+    TRUE, 
+    'f73b064c-83b3-4632-bd8b-f41bc19df201'
+  ),
+  (
+    'Penthouse 360', 
+    'PANORAMA', 
+    'https://lh3.googleusercontent.com/aida-public/AB6AXuB2NGk4Dz1Tl_E1QfKQwDJpzQR9qMhB_E8rj58dj8Lg5G-mnGuVS_xBUgt3ZHR28xqo8OhUJdOmgibxctUevUu9TYIQvZQJgigb3FdZBvV-3wLRM4l6NIeW7ylZ8OUXSamuw6c6AUZhEyJeRz9exYVXTaLsbWJ8HiPr8eZ85b4my5w30hthCoXYJ-LgjfRoHG1x8fItvylq9nGji5zpiySkwUAeYuYoqQQ1Ve5dJxJtEsXDEg29YQxLdu7b63MQ8zS4Q494snTWOQ46', 
+    'col-span-1 md:col-span-2 lg:col-span-2', 
+    'row-span-1', 
+    '8K', 
+    '2026-05-15', 
+    ARRAY['Time: 18:00', 'FOV: 24mm', 'Ray-Tracing: ON'], 
+    TRUE, 
+    'f73b064c-83b3-4632-bd8b-f41bc19df201'
+  ),
+  (
+    'Material Detail #04', 
+    'DETAIL', 
+    'https://lh3.googleusercontent.com/aida-public/AB6AXuD1wf2F_DYD4ZKjdK2CX5KmyUbRfWpkek_YwRKBhRXzALIv71agTPYACe2zpPVzUmdgUELygXwPYEsSl6aQlUna_YJuAQlCqp9t9z1yM0650EywuxVrLzdHHwABE960rDpFpGEX9rtEOE31iWbArzB6odysve9OsWH9WhRgtTo_DoMvg14uxajfG5B7JXaciPUnyryinayyKiu1PGOoK9VIr4CyXH_6MjYsSSb5QwzdNHgHxoYjorKHTdvaizIobFCBkCDnMhHCtR4r', 
+    'col-span-1 md:col-span-2 lg:col-span-2', 
+    'row-span-1', 
+    '4K', 
+    '2026-05-12', 
+    ARRAY['Type: Macro', 'Focus: Corten Metal', 'HDR: active'], 
+    TRUE, 
+    'f73b064c-83b3-4632-bd8b-f41bc19df201'
+  ),
+  (
+    'Night Pass v2', 
+    'NIGHT', 
+    'https://lh3.googleusercontent.com/aida-public/AB6AXuDDrxpvfi4f3wsdAJ6GVYPdhzQUEvD97_koKkr5vk3u0y_gVSqyVmzY0IQxgVHEkSAITLTep9FcdDUkvTn3sAa10s75TJfRrIhYldeVAbz0Fee2QA00WEiF1nOmEaR4KA9pgYk8-lmeWMBPZ-76p7AFOhNlfcIpwc4lveJEzNwuxKCt5kWVhKc34KOIfx6TIfH6xlK8GuUR6gQ6xRoXG7lmm2r_-ipW8B2hZ5vTFrhI3VnwL85iy_adJb06GRIUs-KSCPiwWDr1QAd3', 
+    'col-span-1 md:col-span-2 lg:col-span-2', 
+    'row-span-2', 
+    '8K', 
+    '2026-05-10', 
+    ARRAY['Time: 22:30', 'Exposure: 15.0', 'Focal: 50mm'], 
+    TRUE, 
+    'f73b064c-83b3-4632-bd8b-f41bc19df201'
+  ),
+  (
+    'Office Daylight', 
+    'DAY', 
+    'https://lh3.googleusercontent.com/aida-public/AB6AXuBsrXzPt0EGBruOVQY4rDRA5yBkQYrUKy4BCyGxBtTX5UAK3ty-6nqZu7wr6xvc9Jln9y-i4efnmEnS37H28ZHOVMWRzzAlp9JRzfDYLfQB2X7KryeOKHD2lcygIn3BHUObLR230o2fnnTLUczEw4LC732f9ELrORBrLSMetPgdRYgNCoNqnJk2fHMcbUtzxbX-vxJLQ2OQJapc-AA9tg-SSl17OzB_lWHX52Juc85z1XJVbjAUxsoH0NqdwdP03sBsa4hHZZfIGMzW', 
+    'col-span-1 md:col-span-2 lg:col-span-2', 
+    'row-span-1', 
+    '4K', 
+    '2026-05-08', 
+    ARRAY['Time: 11:00', 'SunIntensity: 1.5', 'GI: Ultra'], 
+    TRUE, 
+    'f73b064c-83b3-4632-bd8b-f41bc19df201'
+  ),
+  (
+    'Conference Detail', 
+    'INTERIOR', 
+    'https://lh3.googleusercontent.com/aida-public/AB6AXuANV-1y45hox70G2nHQeb5eZ9DCdQmTqn0-LK02pxBgXuzIgM4HNQrc76bFqIzyZrj-y-jc2hUlV0aaQcNCbpxCKot1owRdCkpnGcAhL46P6lpKvmmFVL9NgJLb5vmXXHRlAELw0L2PQC_ga3nkqfjMJhFDwm6Y73v6Elqqj40V6L7Swbi7oxTcs--t7HF8NzDD9T06gNjJQB2kgIriFJAnRnbEddhlnbgbmP7moW_aFK65Kq45CBdLEew-MyWkXczrE_RFfouLpuUf', 
+    'col-span-1 md:col-span-2 lg:col-span-2', 
+    'row-span-1', 
+    '4K', 
+    '2026-05-05', 
+    ARRAY['Time: 16:15', 'Focal: 35mm', 'Filter: Cool'], 
+    TRUE, 
+    'f73b064c-83b3-4632-bd8b-f41bc19df201'
+  )
+ON CONFLICT DO NOTHING;

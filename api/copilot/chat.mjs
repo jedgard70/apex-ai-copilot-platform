@@ -9,6 +9,32 @@ import { classifyProductionConversationIntent } from '../../server/agent/product
 import { buildCodeToolDefinitions, executeCodeToolCall, CODE_TOOL_NAMES } from '../../server/agent/codeTools.mjs'
 import { runLocalWorkerAction } from '../../server/agent/localWorkerClient.mjs'
 
+// Auto-detect and fix swapped router variables
+if (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_KEYROUTER) {
+  const baseVal = String(process.env.OPENAI_API_BASEROUTER).trim()
+  const keyVal = String(process.env.OPENAI_API_KEYROUTER).trim()
+  if (!baseVal.startsWith('http') && keyVal.startsWith('http')) {
+    process.env.OPENAI_API_BASEROUTER = keyVal
+    process.env.OPENAI_API_KEYROUTER = baseVal
+  }
+}
+if (process.env.OPENAI_API_BASE && process.env.OPENAI_API_KEY) {
+  const baseVal = String(process.env.OPENAI_API_BASE).trim()
+  const keyVal = String(process.env.OPENAI_API_KEY).trim()
+  if (!baseVal.startsWith('http') && keyVal.startsWith('http')) {
+    process.env.OPENAI_API_BASE = keyVal
+    process.env.OPENAI_API_KEY = baseVal
+  }
+}
+
+// Normalize custom router variable casing/names
+if (process.env.OPENAI_API_BASEROUTER && !process.env.OPENAI_API_BASE) {
+  process.env.OPENAI_API_BASE = process.env.OPENAI_API_BASEROUTER
+}
+if (process.env.OPENAI_API_KEYROUTER && !process.env.OPENAI_API_KEY) {
+  process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEYROUTER
+}
+
 // Resolve base URL and API key based on the selected model
 export function getOpenAIConfig(model) {
   let apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
@@ -43,31 +69,8 @@ const H5_ACTION_TOOLS = new Set([
 ])
 
 const productionRouterIntents = new Set([
-  'production_display_name_preference',
-  'production_name_identity',
-  'production_who_am_i',
-  'production_user_confusion',
-  'production_revit_bim_help',
-  'production_computer_help',
-  'production_multi_intent',
-  'production_github_connector_status',
-  'production_vercel_connector_status',
-  'production_connector_status',
-  'production_platform_position',
-  'production_capability_listing',
-  'production_capability_repair',
-  'production_capability_continuation',
-  'production_orcamento_sinapi_help',
-  'production_proposta_contrato_help',
-  'production_obra_campo_help',
-  'production_cronograma_help',
-  'production_archviz_help',
-  'production_marketing_vendas_help',
-  'production_vercel_deploy',
-  'production_supabase',
-  'production_execute_recommended',
   'production_h7_confirmation',
-  'production_next_step',
+  'production_execute_recommended',
 ])
 
 const __filename = fileURLToPath(import.meta.url)
@@ -150,68 +153,72 @@ function buildChatFallbackReply(userText, identity, file = null) {
       : 'I can help prepare the consultation. Send name, email, phone, city, project type and what you need: BIM, 3D, contract, permit, proposal, finance, marketing or field operations.'
   }
     if (isUploadQuestionText(userText)) {
-      if (file && file.kind === 'pdf' && file.extractionStatus === 'ready' && String(file.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(userText || '')) {
-      return buildLocalPdfSummary(file.name, file.pageCount || 0, file.extractedText || '')
+      if (file && file.extractionStatus === 'ready' && String(file.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize|analise o arquivo|resuma o arquivo|analise este arquivo|resuma este arquivo|explique o arquivo|explique este arquivo)\b/i.test(userText || '')) {
+        return buildLocalDocSummary(file.name, file.pageCount || 0, file.extractedText || '', file.kind)
+      }
+      return 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar. Eu uso o arquivo como contexto e continuo com a ação em vez de parar para explicar o processo.'
     }
-    return 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar. Eu uso o arquivo como contexto e continuo com a ação em vez de parar para explicar o processo.'
+    return pt
+      ? 'Tive um problema ao gerar a resposta completa, mas ainda posso agir. Diga a tarefa de forma direta ou envie um arquivo e eu continuo daqui.'
+      : 'I had trouble generating the full response, but I can still act. State the task directly or upload a file and I will continue from there.'
   }
-  return pt
-    ? 'Tive um problema ao gerar a resposta completa, mas ainda posso agir. Diga a tarefa de forma direta ou envie um arquivo e eu continuo daqui.'
-    : 'I had trouble generating the full response, but I can still act. State the task directly or upload a file and I will continue from there.'
-}
 
-function buildLocalPdfSummary(fileName, pageCount, extractedText) {
-  const text = String(extractedText || '').trim()
-  const snippet = text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).slice(0,6).join(' ').replace(/\s+/g, ' ').slice(0,800)
-  const tipo = /certida/i.test(text) ? 'Certidão' : /relat/i.test(text) ? 'Relatório' : 'Documento'
-  const numberMatch = text.match(/(?:Certid[aã]o\s*(?:n[oº]?\.?|n[oº]?|\:)?\s*([\w\-\/\.]+))/i) || text.match(/\b(n[oº]\s*[:\-]?\s*([\d\-\/\.]+))/i)
-  const certNumber = numberMatch ? (numberMatch[1] || numberMatch[2]) : undefined
-  const dateMatches = Array.from(new Set([...(text.match(/\b\d{1,2}\/\d{1,2}\/\d{4}\b/g) || []), ...(text.match(/\b\d{1,2}\s+de\s+[A-Za-zçãéíóú]+\s+de\s+\d{4}\b/gi) || [])])).slice(0,5)
-  const nameFromFile = fileName ? fileName.replace(/\.pdf$/i,'').split('-').pop().trim() : null
-  const orgMatch = text.match(/\b(Servi[cç]o P[uú]blico Federal|Servi[cç]o P[uú]blico|Prefeitura|Cart[oó]rio|Tribunal|Secretaria|Minist[eé]rio|Junta|Cartorio|Conselho|Registro)\b/i)
-  const org = orgMatch ? orgMatch[0] : undefined
+  function buildLocalDocSummary(fileName, pageCount, extractedText, fileKind) {
+    const text = String(extractedText || '').trim()
+    const snippet = text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).slice(0,6).join(' ').replace(/\s+/g, ' ').slice(0,800)
+    const isPdf = fileKind === 'pdf'
+    const isCode = /code|def|import|class|function|let|const|var|module/i.test(text)
+    const tipo = isPdf ? (/certida/i.test(text) ? 'Certidão (PDF)' : /relat/i.test(text) ? 'Relatório (PDF)' : 'Documento (PDF)') : (isCode ? 'Código Fonte' : 'Documento de Texto')
+    const numberMatch = text.match(/(?:Certid[aã]o\s*(?:n[oº]?\.?|n[oº]?|\:)?\s*([\w\-\/\.]+))/i) || text.match(/\b(n[oº]\s*[:\-]?\s*([\d\-\/\.]+))/i)
+    const certNumber = numberMatch ? (numberMatch[1] || numberMatch[2]) : undefined
+    const dateMatches = Array.from(new Set([...(text.match(/\b\d{1,2}\/\d{1,2}\/\d{4}\b/g) || []), ...(text.match(/\b\d{1,2}\s+de\s+[A-Za-zçãéíóú]+\s+de\s+\d{4}\b/gi) || [])])).slice(0,5)
+    const ext = fileName ? fileName.split('.').pop() : ''
+    const nameFromFile = fileName ? fileName.replace(new RegExp(`\\.${ext}$`, 'i'), '').split('-').pop().trim() : null
+    const orgMatch = text.match(/\b(Servi[cç]o P[uú]blico Federal|Servi[cç]o P[uú]blico|Prefeitura|Cart[oó]rio|Tribunal|Secretaria|Minist[eé]rio|Junta|Cartorio|Conselho|Registro)\b/i)
+    const org = orgMatch ? orgMatch[0] : undefined
 
-  const mainPoints = []
-  if (snippet) mainPoints.push(snippet)
-  if (certNumber) mainPoints.push(`Número: ${certNumber}`)
-  if (dateMatches.length) mainPoints.push(`Datas relevantes: ${dateMatches.join(', ')}`)
-  if (org) mainPoints.push(`Órgão emissor: ${org}`)
+    const mainPoints = []
+    if (snippet) mainPoints.push(snippet)
+    if (certNumber) mainPoints.push(`Número: ${certNumber}`)
+    if (dateMatches.length) mainPoints.push(`Datas relevantes: ${dateMatches.join(', ')}`)
+    if (org) mainPoints.push(`Órgão emissor: ${org}`)
 
-  const conclusion = /certida/i.test(text)
-    ? 'Documento de natureza administrativa/registral. Recomenda-se verificar assinaturas e autenticidade no cartório/órgão emissor quando necessário.'
-    : 'Resumo gerado a partir do texto extraído; revisar o documento completo para decisões finais.'
+    const conclusion = isCode
+      ? 'Código/Arquivo de texto lido com sucesso pela Apex. O conteúdo completo foi injetado como habilidade real de conversação no modelo.'
+      : (/certida/i.test(text)
+        ? 'Documento de natureza administrativa/registral. Recomenda-se verificar assinaturas e autenticidade no cartório/órgão emissor quando necessário.'
+        : 'Resumo gerado a partir do texto extraído; revisar o documento completo para decisões finais.')
 
-  const parts = []
-  parts.push('Resumo do PDF:')
-  parts.push('')
-  parts.push('Tipo de documento:')
-  parts.push(tipo)
-  parts.push('')
-  parts.push('Finalidade:')
-  parts.push(/certida/i.test(text) ? 'Certificar/atestar informação legal registrada.' : 'Informar/registrar dados oficiais contidos no documento.')
-  parts.push('')
-  parts.push('Principais informações:')
-  if (mainPoints.length) {
-    mainPoints.forEach(p => parts.push(`- ${p}`))
-  } else {
-    parts.push('- Conteúdo extraído disponível, mas sem pontos claros identificáveis automaticamente.')
+    const parts = []
+    parts.push(`Resumo local de ${fileName}:`)
+    parts.push('')
+    parts.push('Tipo de documento:')
+    parts.push(tipo)
+    parts.push('')
+    parts.push('Finalidade:')
+    parts.push(isCode ? 'Implementação/Lógica de software ou dados.' : (/certida/i.test(text) ? 'Certificar/atestar informação legal registrada.' : 'Informar/registrar dados oficiais contidos no documento.'))
+    parts.push('')
+    parts.push('Principais informações:')
+    if (mainPoints.length) {
+      mainPoints.forEach(p => parts.push(`- ${p}`))
+    } else {
+      parts.push('- Conteúdo extraído disponível, mas sem pontos claros identificáveis automaticamente.')
+    }
+    parts.push('')
+    parts.push('Dados relevantes identificados:')
+    parts.push(`- Nome: ${nameFromFile || 'Não identificado'}`)
+    parts.push(`- Órgão: ${org || 'Não identificado'}`)
+    if (certNumber) parts.push(`- Número da certidão: ${certNumber}`)
+    parts.push(`- Datas: ${dateMatches.length ? dateMatches.join(', ') : 'Não identificadas'}`)
+    parts.push('')
+    parts.push('Conclusão:')
+    parts.push(conclusion)
+    parts.push('')
+    parts.push('Limitações:')
+    parts.push('Resumo gerado a partir do texto extraído automaticamente.')
+
+    return parts.join('\n')
   }
-  parts.push('')
-  parts.push('Dados relevantes identificados:')
-  parts.push(`- Nome: ${nameFromFile || 'Não identificado'}`)
-  parts.push(`- Órgão: ${org || 'Não identificado'}`)
-  parts.push(`- Número da certidão: ${certNumber || 'Não identificado'}`)
-  parts.push(`- Datas: ${dateMatches.length ? dateMatches.join(', ') : 'Não identificadas'}`)
-  parts.push(`- Registro / identificação profissional: Não identificado`)
-  parts.push('')
-  parts.push('Conclusão:')
-  parts.push(conclusion)
-  parts.push('')
-  parts.push('Limitações:')
-  parts.push('Resumo gerado a partir do texto extraído automaticamente.')
-
-  return parts.join('\n')
-}
 
 
 function detectIntent(userText) {
@@ -1015,13 +1022,12 @@ export default async function handler(req, res) {
     const clientMemory = body.clientMemory || {}
     const productionStatus = collectProductionOperatorStatus()
     const fileCandidate = body.file || null
-    const hasReadyPdfText = Boolean(
+    const hasReadyText = Boolean(
       fileCandidate &&
-      fileCandidate.kind === 'pdf' &&
       fileCandidate.extractionStatus === 'ready' &&
       String(fileCandidate.extractedText || '').trim().length >= 20
     )
-    const looksLikePdfSummary = hasReadyPdfText && PDF_SUMMARY_PATTERN.test(routingMessage || '')
+    const looksLikeDocSummary = hasReadyText && PDF_SUMMARY_PATTERN.test(routingMessage || '')
 
     // Fast-path: greeting in Portuguese — no file context needed
     if (!APEX_FREE_AGENT && /^\s*(ol[aá]|oi|ola)\s*$/i.test(userMessage)) {
@@ -1038,9 +1044,9 @@ export default async function handler(req, res) {
       })
     }
 
-    // Fast-path: PDF summary when text is ready — use local extraction, bypass operator
-    if (looksLikePdfSummary) {
-      const summary = buildLocalPdfSummary(fileCandidate?.name || '', fileCandidate?.pageCount || 0, fileCandidate?.extractedText || '')
+    // Fast-path: document summary when text is ready — use local extraction, bypass operator
+    if (looksLikeDocSummary) {
+      const summary = buildLocalDocSummary(fileCandidate?.name || '', fileCandidate?.pageCount || 0, fileCandidate?.extractedText || '', fileCandidate?.kind)
       if (summary) {
         return sendJson(res, 200, {
           finalReply: summary,
@@ -1094,18 +1100,18 @@ export default async function handler(req, res) {
 
     const productionConversationIntent = classifyProductionConversationIntent(routingMessage)
 
-    // Short-circuit: If the request includes an active PDF with ready extraction and
-    // the user's latest message is a PDF-summary/analysis intent, bypass the production
+    // Short-circuit: If the request includes an active file with ready extraction and
+    // the user's latest message is a summary/analysis intent, bypass the production
     // conversation routing and proceed to the LLM conversational flow with the file
     // context attached. This prevents very short Portuguese inputs (eg. "resuma") from
     // being classified as ambiguous and returning "Pergunta incompleta".
     try {
       const innerFileCandidate = body.file || null
-      const looksLikePdfSummary = Boolean(innerFileCandidate && innerFileCandidate.kind === 'pdf' && innerFileCandidate.extractionStatus === 'ready' && String(innerFileCandidate.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(routingMessage || ''))
-  if (!looksLikePdfSummary) {
-        const pdfText = String(innerFileCandidate.extractedText || '')
-        const pdfSummaryPattern = /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i
-        if (pdfSummaryPattern.test(userMessage || '')) {
+      const looksLikeDocSummary = Boolean(innerFileCandidate && innerFileCandidate.extractionStatus === 'ready' && String(innerFileCandidate.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize|analise o arquivo|resuma o arquivo|analise este arquivo|resuma este arquivo|explique o arquivo|explique este arquivo)\b/i.test(routingMessage || ''))
+      if (!looksLikeDocSummary) {
+        const docText = String(innerFileCandidate.extractedText || '')
+        const docSummaryPattern = /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize|analise o arquivo|resuma o arquivo|analise este arquivo|resuma este arquivo|explique o arquivo|explique este arquivo)\b/i
+        if (docSummaryPattern.test(userMessage || '')) {
           // Force a conversational path by ensuring productionConversationIntent does not
           // trigger the productionRouterIntents branch. We simply fall through to the
           // conversational LLM flow below with body.file present.
@@ -1142,16 +1148,14 @@ export default async function handler(req, res) {
       })
     }
 
-    // If the message appears to be a short PDF-summary request and the request
-    // included a ready PDF with extractedText, avoid routing through the production
+    // If the message appears to be a short summary request and the request
+    // included a ready document with extractedText, avoid routing through the production
     // operator which may classify very short inputs as ambiguous. Instead, allow the
     // conversational flow below to handle the request with file context.
     const fileCandidate2 = body.file || null
-    const looksLikePdfSummary2 = Boolean(fileCandidate2 && fileCandidate2.kind === 'pdf' && fileCandidate2.extractionStatus === 'ready' && String(fileCandidate2.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(userMessage || ''))
-    const isProductionRoute = productionRouterIntents.has(productionConversationIntent) ||
-                              productionConversationIntent === 'production_language_preference' ||
-                              productionConversationIntent === 'production_affirmation'
-    if ((!APEX_FREE_AGENT || isProductionRoute) && !looksLikePdfSummary2 && !body.file) {
+    const looksLikeDocSummary2 = Boolean(fileCandidate2 && fileCandidate2.extractionStatus === 'ready' && String(fileCandidate2.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize|analise o arquivo|resuma o arquivo|analise este arquivo|resuma este arquivo|explique o arquivo|explique este arquivo)\b/i.test(userMessage || ''))
+    const isProductionRoute = productionRouterIntents.has(productionConversationIntent)
+    if ((!APEX_FREE_AGENT || isProductionRoute) && !looksLikeDocSummary2 && !body.file) {
       const result = await runApexOperatorProductionSafe({
         userMessage,
         identityContext: normalizeIdentityContext(body.identityContext || {}),
@@ -1253,10 +1257,10 @@ export default async function handler(req, res) {
 
     const intentInstruction = buildIntentInstruction(userMessage, file, conversation, preferredLanguage)
     const toolSummary = buildToolSummary(runtime.tools)
-    const looksLikePdfSummaryRequest = Boolean(file && file.kind === 'pdf' && file.extractionStatus === 'ready' && String(file.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize)\b/i.test(routingMessage || ''))
+    const looksLikeDocSummaryRequest = Boolean(file && file.extractionStatus === 'ready' && String(file.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize|analise o arquivo|resuma o arquivo|analise este arquivo|resuma este arquivo|explique o arquivo|explique este arquivo)\b/i.test(routingMessage || ''))
     let specialIntentInstruction = intentInstruction
-    if (looksLikePdfSummaryRequest) {
-      specialIntentInstruction = 'Resuma o documento em português em 5 a 8 tópicos. Não copie o texto bruto. Identifique tipo do documento, partes envolvidas, finalidade, dados principais, datas, órgão emissor e conclusão.\n' + specialIntentInstruction
+    if (looksLikeDocSummaryRequest) {
+      specialIntentInstruction = 'Resuma o documento/arquivo em português em 5 a 8 tópicos. Não copie o texto bruto. Identifique tipo do arquivo/documento, partes envolvidas ou finalidade, dados principais, datas relevantes e conclusão.\n' + specialIntentInstruction
     }
 
     const systemPrompt = [

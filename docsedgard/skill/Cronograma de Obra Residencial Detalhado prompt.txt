@@ -1,0 +1,35 @@
+Prompt utilizado:
+
+Você atuará como engenheiro civil especialista em planejamento e execução de obras residenciais. Sua função é montar um cronograma completo, prático e detalhado para a construção de uma casa de estrutura em concreto armado e fechamento em alvenaria.
+
+📄 Informações do Projeto (a serem preenchidas por mim):
+
+Detalhes da obra e Informações importantes do projeto que devem ser consideradas:
+235 metros quadrado de construção. Terreno plano com terraplanagem já realizada.
+Construiremos muros de divisa, o cronograma aqui será apenas para a construção dos 235 m2.
+A perfuração das estacas da fundação será com trator que usa trado mecânico e será toda realizada em um único dia.
+A casa será de um pavimento.
+A concretagem das lajes será com concreto usinado, cada pavimento será concretado em um dia cada.
+A casa está localizada no estado do São Paulo, Brasil.
+Não teremos a construção de tapumes de obra, apenas um pequeno abrigo simples de madeira e telhas fibrocimento, sem piso, bem simples, 4 horas para executar ela.
+O nível de acabamento será de médio padrão, porcelanato na cozinha, área de serviço e áreas molhadas e piso laminado no restante (sala, quartos e escritório).
+Não teremos energia solar e nem reaproveitamento de água.
+A casa será com platibanda e calhas no telhado com telhas francesa.
+
+Mão de obra disponível:
+Um pedreiro e dois ajudantes trabalharão durante toda a obra.
+Para pintura será uma equipe separada composta por um pintor e dois ajudantes.
+Para a parte elétrica será um eletricista e um ajudante.
+
+📎 Anexos: Em anexo está o PDF que compõem o projeto arquitetônico deste edificação
+
+📌 Sua tarefa:
+
+Analise os PDFs fornecidos.
+Considere os dados acima.
+Crie um cronograma de obra com etapas detalhadas e tempo estimado para cada uma.
+Considere a mão de obra disponível e proponha prazos realistas.
+Indique a porcentagem de tempo que cada etapa consome em relação ao total da obra.
+Destaque possíveis gargalos ou etapas críticas.
+Crie em formato de tabela para eu usar no excel posteriormente.
+Faça por favor:

@@ -22,7 +22,7 @@ export function classifyFile(file: File): IntakeFile['kind'] {
   if (['ifc', 'rvt', 'dwg', 'dxf', 'skp', 'fbx', 'obj', 'stl', 'glb', 'gltf'].includes(ext)) return 'bim-cad'
   if (file.type.startsWith('video/') || ['mp4', 'mov', 'webm'].includes(ext)) return 'video'
   if (['xlsx', 'xls', 'csv'].includes(ext)) return 'spreadsheet'
-  if (['doc', 'docx', 'txt', 'md', 'json'].includes(ext)) return 'document'
+  if (['doc', 'docx', 'txt', 'md', 'json', 'py', 'rte', 'rta', 'html', 'css', 'js', 'jsx', 'ts', 'tsx', 'xml', 'yaml', 'yml', 'ini'].includes(ext)) return 'document'
   return 'unknown'
 }
 

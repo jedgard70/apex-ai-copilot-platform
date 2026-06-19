@@ -1,0 +1,25 @@
+GEMINI API KEY APEX AI 
+
+Chave de API
+AQ.Ab8RN6KEN8QtIlwRUA4mpX1VCT1muK_p0s_UOu9gOFLkwPnDtA
+Nome
+Gemini API Key APEX AI
+Nome do projeto
+projects/999077614123
+Número do projeto
+999077614123
+curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent" \
+  -H 'Content-Type: application/json' \
+  -H 'X-goog-api-key: AQ.Ab8RN6KEN8QtIlwRUA4mpX1VCT1muK_p0s_UOu9gOFLkwPnDtA' \
+  -X POST \
+  -d '{
+    "contents": [
+      {
+        "parts": [
+          {
+            "text": "Explain how AI works in a few words"
+          }
+        ]
+      }
+    ]
+  }'

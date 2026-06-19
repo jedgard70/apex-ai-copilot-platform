@@ -1,0 +1,4 @@
+[mcp_servers.revit]
+command = "D:\\Revit\\codex\\mcp_server\\.venv\\Scripts\\python.exe"
+args = ["D:\\Revit\\codex\\mcp_server\\server.py"]
+

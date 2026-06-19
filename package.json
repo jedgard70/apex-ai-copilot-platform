@@ -63,7 +63,8 @@
       "local-worker/**/*",
       "server/**/*",
       "api/**/*",
-      "dist/**/*"
+      "dist/**/*",
+      "node_modules/**/*"
     ],
     "files": [
       "dist/**/*",

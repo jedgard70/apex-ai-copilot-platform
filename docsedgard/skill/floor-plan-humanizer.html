@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Humanizador de Plantas Baixas — Apex Global</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0f11;
+    --surface: #16181c;
+    --surface2: #1e2128;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #f0f0f0;
+    --muted: #888;
+    --accent: #4f8ef7;
+    --accent2: #2d6aef;
+    --success: #3ecf8e;
+    --warn: #f5a623;
+    --red: #f06292;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .badge {
+    font-size: 11px;
+    background: rgba(79,142,247,0.15);
+    color: var(--accent);
+    border: 1px solid rgba(79,142,247,0.3);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-weight: 500;
+  }
+
+  /* LAYOUT */
+  main {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    gap: 0;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* LEFT PANEL */
+  .panel-left {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 28px 24px;
+    gap: 24px;
+    overflow-y: auto;
+  }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  /* UPLOAD ZONE */
+  .upload-zone {
+    border: 1.5px dashed var(--border2);
+    border-radius: var(--radius);
+    padding: 36px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--surface2);
+    position: relative;
+  }
+  .upload-zone:hover, .upload-zone.drag { border-color: var(--accent); background: rgba(79,142,247,0.05); }
+  .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .upload-icon { font-size: 36px; margin-bottom: 10px; }
+  .upload-text { font-size: 14px; color: var(--text); font-weight: 500; margin-bottom: 4px; }
+  .upload-sub { font-size: 12px; color: var(--muted); }
+
+  .preview-wrap {
+    position: relative;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+  }
+  .preview-wrap img {
+    width: 100%;
+    max-height: 240px;
+    object-fit: contain;
+    display: block;
+    padding: 8px;
+  }
+  .preview-remove {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: rgba(0,0,0,0.7);
+    color: var(--red);
+    border: none;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  /* CONTROLS */
+  .control-group { display: flex; flex-direction: column; gap: 8px; }
+  label { font-size: 13px; color: var(--muted); }
+
+  select, input[type=number] {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    padding: 10px 14px;
+    font-size: 13px;
+    width: 100%;
+    outline: none;
+    transition: border 0.2s;
+    appearance: none;
+  }
+  select:focus, input[type=number]:focus { border-color: var(--accent); }
+
+  .scale-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  /* SCALE CHIP */
+  .scale-info {
+    background: rgba(79,142,247,0.1);
+    border: 1px solid rgba(79,142,247,0.2);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* CTA BUTTON */
+  .btn-analyze {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    padding: 14px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-analyze:hover { background: var(--accent2); transform: translateY(-1px); }
+  .btn-analyze:disabled { background: #333; color: #666; cursor: not-allowed; transform: none; }
+
+  /* RIGHT PANEL */
+  .panel-right {
+    padding: 28px 32px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    text-align: center;
+    color: var(--muted);
+  }
+  .empty-icon {
+    width: 80px; height: 80px;
+    background: var(--surface2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px;
+    border: 1px solid var(--border);
+  }
+
+  /* RESULTS */
+  .results { display: flex; flex-direction: column; gap: 20px; }
+
+  /* ANALYSIS CARD */
+  .analysis-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-header-title { font-size: 13px; font-weight: 600; }
+  .card-body { padding: 20px; }
+
+  /* ROOMS GRID */
+  .rooms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+  }
+  .room-chip {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .room-name { font-size: 13px; font-weight: 500; }
+  .room-people { font-size: 11px; color: var(--success); display: flex; align-items: center; gap: 4px; }
+
+  /* PROMPT BOX */
+  .prompt-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    font-size: 12px;
+    line-height: 1.8;
+    color: #c9d1dc;
+    white-space: pre-wrap;
+    font-family: 'Courier New', monospace;
+    position: relative;
+  }
+  .copy-btn {
+    position: absolute;
+    top: 10px; right: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { color: var(--text); border-color: var(--accent); }
+
+  /* REVIT STEPS */
+  .revit-steps { display: flex; flex-direction: column; gap: 8px; }
+  .revit-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+  }
+  .step-n {
+    width: 24px; height: 24px;
+    background: rgba(79,142,247,0.15);
+    color: var(--accent);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .step-text { font-size: 12px; line-height: 1.6; color: var(--muted); }
+  .step-text strong { color: var(--text); }
+  .step-cmd-inline {
+    font-family: monospace;
+    font-size: 11px;
+    background: rgba(79,142,247,0.1);
+    color: var(--accent);
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+
+  /* SCALE TABLE */
+  .stab { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .stab th { text-align: left; color: var(--muted); font-weight: 500; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  .stab td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--text); }
+  .stab tr:last-child td { border-bottom: none; }
+  .stab .hi { color: var(--success); font-weight: 600; }
+
+  /* LOADING */
+  .loading-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 48px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 3px solid var(--border2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* STREAM TEXT */
+  .stream-text { font-size: 13px; line-height: 1.8; color: #c9d1dc; }
+  .stream-text h3 { font-size: 14px; color: var(--text); margin: 14px 0 6px; font-weight: 600; }
+  .stream-text ul { padding-left: 18px; }
+  .stream-text li { margin-bottom: 4px; }
+  .stream-text code {
+    font-family: monospace;
+    background: rgba(79,142,247,0.12);
+    color: var(--accent);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+  }
+
+  /* TAGS */
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+  .tag-blue { background: rgba(79,142,247,0.15); color: var(--accent); border: 1px solid rgba(79,142,247,0.3); }
+  .tag-green { background: rgba(62,207,142,0.12); color: var(--success); border: 1px solid rgba(62,207,142,0.25); }
+
+  @media (max-width: 900px) {
+    main { grid-template-columns: 1fr; }
+    .panel-left { border-right: none; border-bottom: 1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🏗️</div>
+    <span>Humanizador de Plantas Baixas</span>
+    <span class="badge">Apex Global</span>
+  </div>
+  <div style="font-size:12px; color:var(--muted);">Figuras em escala 1,70 m</div>
+</header>
+
+<main>
+  <!-- LEFT PANEL -->
+  <div class="panel-left">
+
+    <div>
+      <div class="section-title">1 — Planta Baixa</div>
+      <div id="uploadZone" class="upload-zone" ondragover="handleDrag(event,true)" ondragleave="handleDrag(event,false)" ondrop="handleDrop(event)">
+        <input type="file" id="fileInput" accept="image/*" onchange="handleFile(event)">
+        <div class="upload-icon">📐</div>
+        <div class="upload-text">Arraste ou clique para enviar</div>
+        <div class="upload-sub">JPG, PNG, PDF — Planta baixa</div>
+      </div>
+      <div id="previewWrap" style="display:none; margin-top:12px;">
+        <div class="preview-wrap">
+          <img id="previewImg" src="" alt="Planta baixa carregada">
+          <button class="preview-remove" onclick="removeFile()">✕ Remover</button>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">2 — Configurações</div>
+      <div style="display:flex; flex-direction:column; gap:14px;">
+
+        <div class="control-group">
+          <label>Tipo de edificação</label>
+          <select id="buildingType">
+            <option value="residential">🏠 Residencial</option>
+            <option value="commercial">🏢 Comercial</option>
+            <option value="office">💼 Escritório</option>
+            <option value="retail">🛍️ Varejo / Loja</option>
+            <option value="hospitality">☕ Hospitalidade / Café</option>
+          </select>
+        </div>
+
+        <div class="scale-row">
+          <div class="control-group">
+            <label>Escala da planta</label>
+            <select id="scale">
+              <option value="50">1:50</option>
+              <option value="100">1:100</option>
+              <option value="25">1:25</option>
+              <option value="200">1:200</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>Nº de pessoas</label>
+            <input type="number" id="numPeople" value="3" min="1" max="20">
+          </div>
+        </div>
+
+        <div class="scale-info" id="scaleInfo">
+          📏 Em escala 1:50 — figura de 1,70 m = <strong>3,4 cm</strong> na planta
+        </div>
+
+        <div class="control-group">
+          <label>Estilo de renderização</label>
+          <select id="renderStyle">
+            <option value="photorealistic">Fotorrealista profissional</option>
+            <option value="architectural">Renderização arquitetônica</option>
+            <option value="watercolor">Aquarela / Artístico</option>
+            <option value="technical">Técnico / Axonométrico</option>
+          </select>
+        </div>
+
+      </div>
+    </div>
+
+    <button class="btn-analyze" id="btnAnalyze" onclick="analyze()">
+      ✨ Analisar e Humanizar Planta
+    </button>
+
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="panel-right" id="rightPanel">
+
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">🏛️</div>
+      <div>
+        <div style="font-size:15px; font-weight:500; color:var(--text); margin-bottom:6px;">Aguardando planta baixa</div>
+        <div style="font-size:13px;">Envie uma imagem da planta e configure as opções ao lado</div>
+      </div>
+      <div style="margin-top: 16px; display:flex; flex-direction:column; gap:8px; text-align:left; width:100%; max-width:360px;">
+        <div style="background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px 16px;">
+          <div style="font-size:12px; color:var(--muted); margin-bottom:8px;">Escala de referência (1,70 m)</div>
+          <table class="stab">
+            <tr><th>Escala</th><th>Figura na planta</th></tr>
+            <tr><td>1:25</td><td class="hi">6,8 cm</td></tr>
+            <tr><td>1:50</td><td class="hi">3,4 cm</td></tr>
+            <tr><td>1:100</td><td class="hi">1,7 cm</td></tr>
+            <tr><td>1:200</td><td class="hi">0,85 cm</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="results" id="resultsPanel" style="display:none;"></div>
+
+  </div>
+</main>
+
+<script>
+  let imageBase64 = null;
+  let imageFile = null;
+
+  // Update scale info
+  document.getElementById('scale').addEventListener('change', updateScaleInfo);
+  function updateScaleInfo() {
+    const s = parseInt(document.getElementById('scale').value);
+    const cm = ((1.70 / s) * 100).toFixed(2);
+    document.getElementById('scaleInfo').innerHTML = 
+      `📏 Em escala 1:${s} — figura de 1,70 m = <strong>${cm} cm</strong> na planta`;
+  }
+
+  function handleDrag(e, over) {
+    e.preventDefault();
+    document.getElementById('uploadZone').classList.toggle('drag', over);
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    handleDrag(e, false);
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) processFile(file);
+  }
+
+  function handleFile(e) {
+    const file = e.target.files[0];
+    if (file) processFile(file);
+  }
+
+  function processFile(file) {
+    imageFile = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      imageBase64 = e.target.result.split(',')[1];
+      document.getElementById('previewImg').src = e.target.result;
+      document.getElementById('uploadZone').style.display = 'none';
+      document.getElementById('previewWrap').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removeFile() {
+    imageBase64 = null;
+    imageFile = null;
+    document.getElementById('fileInput').value = '';
+    document.getElementById('previewWrap').style.display = 'none';
+    document.getElementById('uploadZone').style.display = 'block';
+  }
+
+  function getMediaType(file) {
+    if (!file) return 'image/jpeg';
+    const t = file.type || 'image/jpeg';
+    return ['image/jpeg','image/png','image/gif','image/webp'].includes(t) ? t : 'image/jpeg';
+  }
+
+  async function analyze() {
+    if (!imageBase64) {
+      alert('Por favor, envie uma imagem da planta baixa primeiro.');
+      return;
+    }
+
+    const btn = document.getElementById('btnAnalyze');
+    btn.disabled = true;
+    btn.textContent = 'Analisando...';
+
+    const buildingType = document.getElementById('buildingType').value;
+    const scale = document.getElementById('scale').value;
+    const numPeople = document.getElementById('numPeople').value;
+    const renderStyle = document.getElementById('renderStyle').value;
+
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('resultsPanel').style.display = 'flex';
+
+    const resultsPanel = document.getElementById('resultsPanel');
+    resultsPanel.innerHTML = `
+      <div class="loading-wrap">
+        <div class="spinner"></div>
+        <div>Analisando planta baixa com IA...</div>
+        <div style="font-size:11px; color:#555;">Identificando ambientes e gerando prompts</div>
+      </div>
+    `;
+
+    const buildingLabels = {
+      residential:'residencial', commercial:'comercial',
+      office:'escritório', retail:'varejo/loja', hospitality:'hospitalidade/café'
+    };
+    const styleLabels = {
+      photorealistic:'fotorrealista profissional',
+      architectural:'renderização arquitetônica',
+      watercolor:'aquarela artística',
+      technical:'técnico axonométrico'
+    };
+
+    const prompt = `Você é um especialista em visualização arquitetônica. Analise esta planta baixa e retorne uma análise completa em português.
+
+CONFIGURAÇÕES:
+- Tipo de edificação: ${buildingLabels[buildingType]}
+- Escala da planta: 1:${scale}
+- Número de pessoas desejadas: ${numPeople}
+- Estilo de renderização: ${styleLabels[renderStyle]}
+- Altura padrão das figuras humanas: 1,70 m
+
+RETORNE EM FORMATO MARKDOWN:
+
+### Análise da Planta
+[Tipo de edificação identificado, área estimada se possível, observações gerais]
+
+### Ambientes Identificados
+[Liste cada ambiente com: nome do ambiente | nº de pessoas sugerido | atividade típica]
+Exemplo: Sala de estar | 2 pessoas | assistindo TV, lendo
+
+### Distribuição das ${numPeople} Pessoas
+[Como distribuir as pessoas pelos ambientes de forma realista]
+
+### Prompt DALL-E (Principal)
+[Prompt completo e otimizado em inglês para gerar a planta humanizada fotorrealista. Incluir: vista superior, escala 1:${scale}, figuras de 1,70m, ${numPeople} pessoas, estilo ${styleLabels[renderStyle]}]
+
+### Prompt Midjourney
+[Prompt adaptado para Midjourney com parâmetros --ar 4:3 --quality 2]
+
+### Configuração Revit
+[Passos específicos para inserir figuras nesta planta no Revit, com as famílias RPC corretas e configurações de escala 1:${scale}]`;
+
+    try {
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          messages: [{
+            role: 'user',
+            content: [
+              {
+                type: 'image',
+                source: {
+                  type: 'base64',
+                  media_type: getMediaType(imageFile),
+                  data: imageBase64
+                }
+              },
+              { type: 'text', text: prompt }
+            ]
+          }]
+        })
+      });
+
+      const data = await resp.json();
+      const text = data.content?.map(b => b.text || '').join('') || 'Erro ao processar.';
+      renderResults(text, scale, numPeople);
+
+    } catch (err) {
+      resultsPanel.innerHTML = `
+        <div class="analysis-card">
+          <div class="card-header"><div class="card-header-title" style="color:var(--red);">⚠️ Erro na análise</div></div>
+          <div class="card-body" style="font-size:13px; color:var(--muted);">${err.message}</div>
+        </div>`;
+    }
+
+    btn.disabled = false;
+    btn.textContent = '✨ Analisar e Humanizar Planta';
+  }
+
+  function renderResults(text, scale, numPeople) {
+    const resultsPanel = document.getElementById('resultsPanel');
+
+    // Split into sections
+    const sections = {};
+    const sectionRegex = /###\s+(.+?)\n([\s\S]*?)(?=###|$)/g;
+    let match;
+    while ((match = sectionRegex.exec(text)) !== null) {
+      sections[match[1].trim()] = match[2].trim();
+    }
+
+    let html = '';
+
+    // ANALYSIS CARD
+    const analysisKey = Object.keys(sections).find(k => k.includes('Análise'));
+    if (analysisKey) {
+      html += `
+      <div class="analysis-card">
+        <div class="card-header">
+          <div class="card-header-title">📊 Análise da Planta</div>
+          <span class="tag tag-blue">IA · Escala 1:${scale}</span>
+        </div>
+        <div class="card-body">
+          <div class="stream-text">${mdToHtml(sections[analysisKey])}</div>
+        </div>
+      </div>`;
+    }
+
+    // ROOMS / DISTRIBUTION
+    const roomsKey = Object.keys(sections).find(k => k.includes('Ambientes'));
+    const distKey = Object.keys(sections).find(k => k.includes('Distribuição'));
+    if (roomsKey || distKey) {
+      const content = sections[roomsKey || distKey];
+      html += `
+      <div class="analysis-card">
+        <div class="card-header">
+          <div class="card-header-title">🚶 Distribuição de Pessoas (${numPeople} pessoas · 1,70 m)</div>
+          <span class="tag tag-green">Escala verificada</span>
+        </div>
+        <div class="card-body">
+          <div class="stream-text">${mdToHtml(content)}</div>
+          ${distKey && sections[distKey] ? `<div class="stream-text" style="margin-top:10px">${mdToHtml(sections[distKey])}</div>` : ''}
+        </div>
+      </div>`;
+    }
+
+    // DALL-E PROMPT
+    const dalleKey = Object.keys(sections).find(k => k.includes('DALL-E') || k.includes('Dall-E'));
+    if (dalleKey) {
+      const prompt = sections[dalleKey];
+      html += `
+      <div class="analysis-card">
+        <div class="card-header">
+          <div class="card-header-title">🎨 Prompt DALL-E / ChatGPT</div>
+          <span class="tag tag-blue">Copie e use no DALL-E</span>
+        </div>
+        <div class="card-body">
+          <div class="prompt-box" id="dalle-prompt">${escHtml(prompt)}<button class="copy-btn" onclick="copyPrompt('dalle-prompt')">📋 Copiar</button></div>
+        </div>
+      </div>`;
+    }
+
+    // MIDJOURNEY PROMPT
+    const mjKey = Object.keys(sections).find(k => k.includes('Midjourney'));
+    if (mjKey) {
+      html += `
+      <div class="analysis-card">
+        <div class="card-header">
+          <div class="card-header-title">🎭 Prompt Midjourney</div>
+          <span class="tag tag-blue">Use com /imagine</span>
+        </div>
+        <div class="card-body">
+          <div class="prompt-box" id="mj-prompt">${escHtml(sections[mjKey])}<button class="copy-btn" onclick="copyPrompt('mj-prompt')">📋 Copiar</button></div>
+        </div>
+      </div>`;
+    }
+
+    // REVIT
+    const revitKey = Object.keys(sections).find(k => k.includes('Revit'));
+    if (revitKey) {
+      html += `
+      <div class="analysis-card">
+        <div class="card-header">
+          <div class="card-header-title">🏗️ Configuração Revit</div>
+          <span class="tag tag-green">Família RPC · 1,70 m</span>
+        </div>
+        <div class="card-body">
+          <div class="stream-text">${mdToHtml(sections[revitKey])}</div>
+        </div>
+      </div>`;
+    }
+
+    // FALLBACK — if no sections parsed, show raw
+    if (!html) {
+      html = `
+      <div class="analysis-card">
+        <div class="card-header"><div class="card-header-title">📋 Resultado da Análise</div></div>
+        <div class="card-body"><div class="stream-text">${mdToHtml(text)}</div></div>
+      </div>`;
+    }
+
+    resultsPanel.innerHTML = html;
+  }
+
+  function mdToHtml(text) {
+    return text
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/`(.+?)`/g, '<code>$1</code>')
+      .replace(/^- (.+)$/gm, '<li>$1</li>')
+      .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
+      .replace(/\n\n/g, '<br><br>')
+      .replace(/\n/g, '<br>');
+  }
+
+  function escHtml(text) {
+    return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function copyPrompt(id) {
+    const el = document.getElementById(id);
+    const btn = el.querySelector('.copy-btn');
+    const text = el.textContent.replace('📋 Copiar','').trim();
+    navigator.clipboard.writeText(text);
+    btn.textContent = '✓ Copiado!';
+    setTimeout(() => btn.textContent = '📋 Copiar', 2000);
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+MCP REVIT : Opção A: Rodar Localmente (Igual ao Claude Desktop — Sem precisar de chaves)
+Se você iniciar o servidor local na sua máquina (conforme mostrei na Opção 1 anteriormente):
+
+Acesse pelo navegador: http://localhost:4177
+Como o site estará rodando no seu computador pessoal, ele se conectará diretamente ao Local Worker (localhost:8787) e ao seu Revit local, sem pedir nenhuma URL pública ou Token de segurança. É o método mais fácil para testar!
+
+ REVIT_MCP_TOKEN     MCPSERVERREVIT290314@#$
+REVIT_MCP_URL    https://enforcer-tipper-reversal.ngrok-free.dev -> http://localhost:8000

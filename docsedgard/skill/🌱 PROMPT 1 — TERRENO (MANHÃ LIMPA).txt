@@ -1,0 +1,59 @@
+🌱 PROMPT 1 — TERRENO (MANHÃ LIMPA)
+
+luxury modern house, fixed camera position, eye-level shot, 24mm lens, ultra realistic, cinematic lighting, soft morning light, golden hour morning, soft shadows, high dynamic range, photorealistic, 8k, detailed textures, same composition, same framing, no camera movement, consistent environment continuity, no flickering, no perspective change, no lighting variation
+
+empty land, flat terrain, natural soil and grass, clean plot, early construction markings, survey stakes, measuring lines on ground
+
+few workers surveying the land, wearing safety helmets and vests, pickup truck parked nearby, basic equipment on site
+
+single full-frame image, one scene only, no collage, no split screen, no grid, no multiple panels, no mosaic, no comparison layout
+
+clear sky morning atmosphere, fresh start of construction day
+
+🏗️ PROMPT 2 — FUNDAÇÃO (NOITE → MANHÃ)
+
+luxury modern house, fixed camera position, eye-level shot, 24mm lens, ultra realistic, cinematic lighting, transition from night to early morning, artificial construction lights fading into sunrise, soft shadows, HDR, photorealistic, 8k, same composition, same framing, no camera movement, consistent environment continuity, no flickering, no perspective change
+
+construction beginning, foundation being built, concrete pouring, footing trenches, early slab (contrapiso), wet concrete texture
+
+construction workers actively working, concrete mixer truck, work lights, safety cones, tools and materials organized, rebar visible
+
+single full-frame image, one scene only, no collage, no split screen, no grid, no multiple panels, no mosaic, no multiple views
+
+night work lights transitioning into morning natural light, realistic construction atmosphere
+
+🧱 PROMPT 3 — ESTRUTURA EM TIJOLO (AMANHECER → MANHÃ)
+
+luxury modern house, fixed camera position, eye-level shot, 24mm lens, ultra realistic, cinematic lighting, sunrise transitioning into full morning light, soft shadows, HDR, photorealistic, 8k, same composition, same framing, no camera movement, consistent environment continuity, no flickering, no perspective change
+
+house structure rising, exposed red brick walls, visible mortar lines, door and window openings, scaffolding around structure
+
+bricklayers working on walls, cement mixing on site, stacks of bricks, wheelbarrows, construction tools, workers in helmets and uniforms
+
+single full-frame image, one scene only, no collage, no split screen, no grid, no mosaic
+
+active construction site, realistic morning work environment
+
+🏠 PROMPT 4 — REBOCO + COBERTURA (MANHÃ FORTE)
+
+luxury modern house, fixed camera position, eye-level shot, 24mm lens, ultra realistic, cinematic lighting, bright morning light, clear sky, strong but soft shadows, HDR, photorealistic, 8k, same composition, same framing, no camera movement, consistent environment continuity, no flickering, no perspective change
+
+house with full structure completed, roof installation in progress, walls plastered (reboco), unfinished surfaces, scaffolding still present
+
+workers installing roof tiles, others applying plaster, construction materials like cement bags, ladders, tools, small truck unloading materials
+
+single full-frame image, one scene only, no collage, no split screen, no grid, no mosaic
+
+clean but active construction site, organized workflow
+
+✨ PROMPT 5 — CASA FINALIZADA (MANHÃ PERFEITA)
+
+luxury modern house, fixed camera position, eye-level shot, 24mm lens, ultra realistic, cinematic lighting, perfect morning golden light, soft shadows, HDR, photorealistic, 8k, same composition, same framing, no camera movement, consistent environment continuity, no flickering, no perspective change
+
+luxury modern house fully finished, premium materials, painted walls, large glass windows, elegant wooden doors, landscaped garden, modern architecture
+
+final cleaning crew finishing details, minimal workers, clean driveway, parked utility vehicle, subtle signs of completion
+
+single full-frame image, one scene only, no collage, no split screen, no grid, no mosaic, no comparison layout
+
+perfect final presentation, high-end real estate look, calm and polished morning scene

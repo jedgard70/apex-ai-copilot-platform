@@ -1,0 +1,19 @@
+instruções director cut
+
+Para executar e utilizar o Director's Cut, você interage diretamente comigo aqui no chat e utiliza as ferramentas visuais do Canvas. Como sou um assistente de design, eu construo a interface e as funcionalidades para você.
+
+Aqui está como você pode usar o que criamos até agora:
+
+Visualize as Telas: Todas as telas que geramos (Dashboard, Editor de Storyboard, Workspace 3D, Revisão e Exportação) estão disponíveis no seu Canvas. Você pode navegar por elas para ver o fluxo de trabalho completo.
+Interaja via Chat: Se precisar de mudanças, basta me pedir. Por exemplo: "Mude a cor de destaque para verde neon" ou "Adicione um novo campo de metadados na tela de exportação".
+Acesse o Código: Se você for um desenvolvedor e quiser usar o código em um projeto real, pode clicar no botão de Visualizar Código (⟨/⟩) em cada tela para exportar o HTML e CSS.
+Teste o Fluxo: Você pode me pedir para criar novas variações ou fluxos específicos, como: "Crie uma tela de login para este app" ou "Como seria a visualização de um projeto de arquitetura específico no render?".
+Gostaria que eu demonstrasse alguma funcionalidade específica ou criasse uma nova tela para completar o fluxo?
+
+
+
+"Aqui está o código da interface do Director's Cut que criei no Stitch. Você pode me ajudar a implementar a lógica de backend para este botão de renderização?"
+
+link do aplicativo director
+
+https://ai.studio/apps/bc7948de-0e15-4682-bb72-208d5433e339?fullscreenApplet=true

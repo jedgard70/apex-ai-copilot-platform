@@ -1,0 +1,841 @@
+Apex Copilot
+→ entende seu comando
+→ valida se você é Owner
+→ classifica risco
+→ cria branch
+→ altera código
+→ roda build/testes
+→ abre PR
+→ faz merge se aprovado/checks verdes
+→ dispara Vercel
+→ executa Supabase só com aprovação especial
+→ registra tudo no Mission Control
+
+AI-Construction-Intelligence-Platform
+apex-global-website
+outros repos Apex autorizados
+
+Apex Copilot Code Skill
+
+1. GitHub Connector
+- listar repo
+- criar branch
+- ler arquivos
+- alterar arquivos
+- commit
+- abrir PR
+- acompanhar checks
+- mergear PR
+
+2. Vercel Connector
+- ver deploy
+- revalidar deploy
+- ler status production/preview
+
+3. Supabase Connector
+- advisor/checks
+- migrations controladas
+- nunca reset/drop sem aprovação Owner
+
+4. Code Runner Seguro
+- npm run build
+- npm test
+- lint/typecheck
+- shell livre
+
+5. Safety Gate
+- bloqueia delete/drop/reset/force push
+- exige aprovação Owner para migrations
+- exige aprovação Owner para production deploy
+
+6. Mission Control Log
+- comando recebido
+- ação tomada
+- branch criada
+- PR criado
+- check status
+- resultado
+
+
+Nunca direto no main.
+Sempre branch.
+Sempre PR.
+Sempre checks.
+Sempre log.
+Owner manda.
+
+
+comando motor 
+
+CRIAR PLANO — APEX COPILOT CODE SKILL OWNER-ONLY
+
+Objetivo:
+Projetar a capacidade da Apex Copilot de executar código, GitHub, Vercel e Supabase apenas para os repositórios Apex autorizados.
+
+Escopo:
+- Plataforma privada apexglobalai.com
+- Owner: jedgard70@gmail.com
+- Repositórios autorizados:
+  - AI-Construction-Intelligence-Platform
+  - apex-global-website
+
+Criar documentação:
+docs/APEX_COPILOT_CODE_SKILL_PLAN.md
+docs/APEX_COPILOT_CODE_SKILL_SECURITY_MODEL.md
+docs/CHECKLIST_APEX_COPILOT_CODE_EXECUTION.md
+
+Não implementar ainda.
+
+O plano deve definir:
+1. comandos permitidos
+2. comandos proibidos
+3. fluxo branch → PR → checks → merge
+4. integração GitHub
+5. integração Vercel
+6. integração Supabase
+7. Safety Gate
+8. permissões Owner-only
+9. logs no Mission Control
+10. como revogar token
+11. como usar token temporário
+12. como impedir ação destrutiva
+
+Proibido:
+- implementar shell livre
+- aceitar comandos destrutivos sem aprovação
+- usar main direto
+- armazenar token no frontend
+- expor secrets
+
+Fase 1: GitHub read/status
+Fase 2: criar branch + PR
+Fase 3: editar arquivos pequenos
+Fase 4: rodar build
+Fase 5: Vercel status
+Fase 6: Supabase controlado
+
+Vocês fizeram algo parecido com:
+
+3.1 → objetivo claro
+3.2 → escopo fechado
+3.3 → implementar
+3.4 → validar
+3.5 → corrigir
+3.6 → PR
+3.7 → checks
+3.8 → merge
+3.9 → testar em produção
+3.10 → documentar
+3.11 → sincronizar status
+3.12 → fechar checkpoint
+
+Por isso andou.
+
+O que você está pedindo para a Apex Copilot é:
+
+Não quero um chatbot.
+Quero um gerente de execução da Apex.
+
+Ela deveria funcionar assim:
+
+Supervisor
+
+Você diz:
+
+Apex, corrigir login EN/PT.
+
+Ela responde:
+
+Checkpoint criado.
+Escopo:
+- LoginClient.tsx
+- CSS login
+
+Plano:
+1. Criar branch
+2. Alterar textos
+3. Build
+4. PR
+5. Merge
+Executor
+
+Depois:
+
+Executar.
+
+Ela:
+
+✓ branch criada
+✓ alteração feita
+✓ build passou
+✓ PR aberto
+Status
+
+Você pergunta:
+
+Como está a plataforma?
+
+Ela responde:
+
+Checkpoint 3.1 ✓
+Checkpoint 3.2 ✓
+Checkpoint 3.3 ✓
+Analytics ⚠
+Login ✓
+Owner Executor ⚠
+Website ⏸
+O modelo que eu seguiria
+
+Em vez de ensinar a Apex Copilot a "codificar tudo", eu ensinaria ela a trabalhar por checkpoints executáveis:
+
+Planejar
+↓
+Executar
+↓
+Validar
+↓
+Fechar
+↓
+Próximo checkpoint
+
+Porque foi exatamente isso que deu resultado para você hoje.
+
+Então o próximo objetivo não é:
+
+"Apex virar outro Claude"
+
+e sim:
+
+"Apex virar meu gerente de execução por checkpoints"
+
+Aí por baixo ela pode usar Codex, Claude, Qwen, Copilot ou qualquer outro motor. Você nem precisa se preocupar qual deles está trabalhando. O que você vê é:
+
+Checkpoint 4.1
+Status: Em execução
+
+Checkpoint 4.2
+Status: Build verde
+
+Checkpoint 4.3
+Status: Pronto para teste
+
+Esse é o comportamento que eu tentaria reproduzir na Apex Copilot, porque foi o que claramente funcionou para você hoje.
+
+
+Exatamente. A ordem correta é:
+
+Agora:
+Apex Copilot aprende a operar por checkpoints
+Apex Copilot aprende a gerar handoff para Codex / Claude / Qwen / Copilot
+Apex Copilot aprende a acompanhar PR, build, Vercel, Supabase e status
+
+Depois:
+Apex Copilot aprende a executar código controlado
+
+Não vamos começar dando poder de codar direto. Primeiro ela vira orquestradora disciplinada.
+
+Plano certo
+Fase 1 — Checkpoint Manager
+
+Apex Copilot aprende:
+
+criar checkpoint
+definir objetivo
+definir escopo
+definir proibidos
+definir critério de 100%
+acompanhar status
+fechar checkpoint
+abrir próximo
+Fase 2 — Motor Router
+
+Apex Copilot aprende a decidir:
+
+Codex → código/PR/refactor
+Claude → auditoria/documentação/UX complexo
+Qwen → segunda opinião/alternativa rápida
+Copilot → GitHub/IDE
+Owner → decisão final
+Fase 3 — Handoff Generator
+
+Apex Copilot gera comandos prontos:
+
+handoff Codex
+handoff Claude
+handoff Qwen
+auditoria rápida
+correção rápida
+PR pequeno
+merge se verde
+Fase 4 — PR Supervisor
+
+Apex Copilot acompanha:
+
+branch
+arquivos alterados
+build
+Vercel
+Supabase
+erro
+merge
+produção
+Fase 5 — Code Skill
+
+Só no final:
+
+editar arquivos pequenos
+criar branch
+commit
+PR
+build
+merge
+
+Sempre com Safety Gate.
+
+Comando para o motor agora
+CRIAR CHECKPOINT — APEX COPILOT ORCHESTRATION TRAINING
+
+Objetivo:
+Ensinar a Apex Copilot a operar como gerente de execução por checkpoints, usando motores externos como Codex, Claude, Qwen e GitHub Copilot, antes de dar capacidade de codar diretamente.
+
+Criar documentação:
+docs/APEX_COPILOT_CHECKPOINT_MANAGER.md
+docs/APEX_COPILOT_ENGINE_ROUTER.md
+docs/APEX_COPILOT_HANDOFF_GENERATOR.md
+docs/APEX_COPILOT_PR_SUPERVISOR.md
+docs/APEX_COPILOT_CODE_SKILL_FUTURE.md
+docs/CHECKLIST_APEX_COPILOT_ORCHESTRATION_TRAINING.md
+
+Escopo:
+- documentação e regras operacionais
+- sem implementação de código ainda
+- sem tokens
+- sem GitHub API
+- sem Vercel API
+- sem Supabase
+
+Definir:
+1. Como criar checkpoint
+2. Como dividir em passos
+3. Como escolher motor
+4. Como gerar handoff
+5. Como acompanhar PR
+6. Como saber quando parar
+7. Como declarar 100%
+8. Como atualizar Status
+9. Como preparar futura Code Skill
+10. Como proteger Owner/platform
+
+Regra:
+Agora a Apex Copilot NÃO codifica.
+Ela orquestra.
+A Code Skill fica documentada como fase futura.
+
+Commit:
+docs: define Apex Copilot checkpoint orchestration training
+
+Abrir PR.
+Se checks verdes e escopo limpo:
+squash merge.
+
+Esse é o caminho para ela aprender primeiro o método que funcionou.
+
+PLANO MESTRE APEX GLOBAL AI — OPERAÇÃO 100%
+FASE 0 — ESTABILIZAÇÃO DO AMBIENTE OWNER
+Checkpoint 0.1 — Diagnóstico do PC
+
+Objetivo:
+
+Descobrir por que o ChatGPT fica lento no Windows e no celular funciona normal.
+
+Validar:
+
+Navegador
+Extensões
+Memória RAM
+GPU acceleration
+Cache
+Performance DevTools
+
+Status:
+⚠ Pendente
+
+Checkpoint 0.2 — Ambiente de Trabalho Apex
+
+Objetivo:
+Padronizar ambiente Owner.
+
+Validar:
+
+GitHub
+Vercel
+Supabase
+OpenAI
+Anthropic
+Navegador principal
+
+Status:
+⚠ Pendente
+
+FASE 1 — IDENTIDADE E LOGIN
+Checkpoint 1.1 — Login Apex Global AI
+
+Objetivo:
+Tela profissional definitiva.
+
+Itens:
+
+EN/PT
+Inglês padrão
+Paleta Apex
+Navy
+Red
+Silver
+Branding consistente
+
+Status:
+⚠ Em correção
+
+Checkpoint 1.2 — Roles
+
+Validar:
+
+Guest
+Client
+User
+Admin
+Owner
+
+Status:
+⚠ Pendente
+
+Checkpoint 1.3 — Fluxo Comercial
+
+Quando usuário criar conta:
+
+Abrir:
+
+Conheça nossos planos
+
+em vez de entrar direto.
+
+Status:
+⚠ Não implementado
+
+FASE 2 — APEX COPILOT
+Checkpoint 2.1 — Manual
+
+Objetivo:
+
+Tela Manual pronta.
+
+Botões:
+
+Como usar
+Limpar tela
+
+Status:
+⚠ Revisar
+
+Checkpoint 2.2 — Supervisor
+
+Objetivo:
+
+Centro operacional Owner.
+
+Botões:
+
+Mission Control
+Owner Command
+Executor
+
+Status:
+⚠ Revisar
+
+Checkpoint 2.3 — Status
+
+Objetivo:
+
+Status da plataforma.
+
+Mostrar:
+
+módulos
+builds
+PRs
+deploys
+
+Status:
+⚠ Revisar
+
+Checkpoint 2.4 — Contexto Persistente
+
+Apex AI lembrar:
+
+Owner
+checkpoints
+estado atual
+
+Status:
+❌ Não existe
+
+Checkpoint 2.5 — Anexos Inteligentes
+
+Apex AI ler:
+
+PDF
+PNG
+JPG
+DOCX
+
+Status:
+⚠ Parcial
+
+Checkpoint 2.6 — OCR
+
+Ler:
+
+print screen
+imagem
+relatório
+
+Status:
+❌ Não funcional
+
+FASE 3 — OWNER EXECUTOR
+Checkpoint 3.1 — Fix startsWith
+
+Status:
+⚠ Aberto
+
+Checkpoint 3.2 — Executor Estável
+
+Comandos:
+
+health_check
+status_report
+validate_module
+
+Status:
+⚠ Pendente
+
+Checkpoint 3.3 — Logs
+
+Mostrar:
+
+comando
+duração
+resultado
+
+Status:
+⚠ Parcial
+
+FASE 4 — DASHBOARD
+Checkpoint 4.1 — Limpeza Final
+
+Remover:
+
+cards confusos
+agentes inúteis
+
+Status:
+⚠ Revisar
+
+Checkpoint 4.2 — Navegação por Fluxo
+
+Cada módulo na própria tela.
+
+Status:
+⚠ Pendente
+
+Checkpoint 4.3 — Dashboard Executivo
+
+Mostrar:
+
+Projetos
+Receita
+Pendências
+IA
+
+Status:
+⚠ Revisar
+
+FASE 5 — MISSION CONTROL
+Checkpoint 5.1 — GitHub Real
+
+Mostrar:
+
+branch
+PR
+commits
+
+Status:
+⚠ Parcial
+
+Checkpoint 5.2 — Vercel Real
+
+Mostrar:
+
+deploy
+preview
+production
+
+Status:
+⚠ Parcial
+
+Checkpoint 5.3 — Supabase Real
+
+Mostrar:
+
+banco
+storage
+auth
+
+Status:
+⚠ Parcial
+
+FASE 6 — ANALYTICS
+Checkpoint 6.1 — Analytics Seguro
+
+Status:
+⚠ PR #119
+
+Checkpoint 6.2 — Dashboard Analytics
+
+Mostrar:
+
+visitantes
+páginas
+eventos
+
+Status:
+❌ Não implementado
+
+FASE 7 — CRM
+Checkpoint 7.1 — Leads
+
+Status:
+⚠ Validar
+
+Checkpoint 7.2 — Propostas
+
+Status:
+⚠ Validar
+
+Checkpoint 7.3 — Contratos
+
+Status:
+❌ Incompleto
+
+Checkpoint 7.4 — Revenue
+
+Status:
+❌ Incompleto
+
+FASE 8 — STORAGE
+Checkpoint 8.1 — Upload
+
+Status:
+⚠ Validar
+
+Checkpoint 8.2 — Download
+
+Status:
+⚠ Validar
+
+Checkpoint 8.3 — Organização
+
+Status:
+⚠ Validar
+
+FASE 9 — APEX WEBSITE
+Checkpoint 9.1 — Repo Independente
+
+Status:
+✅ Feito
+
+Checkpoint 9.2 — Deploy Vercel
+
+Status:
+⚠ Pendente
+
+Checkpoint 9.3 — Domínio
+
+Status:
+⚠ Futuro
+
+FASE 10 — APEX COPILOT ORCHESTRATOR
+Checkpoint 10.1 — Checkpoint Manager
+
+Status:
+❌ Não implementado
+
+Checkpoint 10.2 — Engine Router
+
+Status:
+❌ Não implementado
+
+Checkpoint 10.3 — Handoff Generator
+
+Status:
+❌ Não implementado
+
+Checkpoint 10.4 — PR Supervisor
+
+Status:
+❌ Não implementado
+
+Checkpoint 10.5 — Code Skill
+
+Status:
+🔒 Última fase
+
+FASE 11 — PRODUÇÃO
+Checkpoint 11.1 — Reality Check
+
+Status:
+⚠ Em andamento
+
+Checkpoint 11.2 — Go Live
+
+Status:
+⚠ Pendente
+
+Checkpoint 11.3 — Piloto
+
+Status:
+⚠ Pendente
+
+FASE 12 — AUDITORIA FINAL
+Checkpoint 12.1
+
+Código
+
+Checkpoint 12.2
+
+Segurança
+
+Checkpoint 12.3
+
+Performance
+
+Checkpoint 12.4
+
+UX
+
+Checkpoint 12.5
+
+Documentação
+
+Checkpoint 12.6
+
+100% Operacional
+
+DEFINIÇÃO DE "100% OPERACIONAL"
+
+A plataforma só recebe o selo:
+
+APEX GLOBAL AI
+100% OPERACIONAL
+
+quando:
+
+✓ Login
+✓ CRM
+✓ Storage
+✓ Apex AI
+✓ Owner Executor
+✓ Mission Control
+✓ Analytics
+✓ Website
+✓ Reality Check
+✓ Piloto
+✓ Auditoria Final
+
+estiverem concluídos e testados em produção.
+
+Minha sugestão é começarmos amanhã pelo Checkpoint 0.1 (lentidão do ChatGPT no seu PC) e Checkpoint 1.1 (login Apex Global AI), porque são os dois problemas que você está sentindo diretamente na operação.   
+
+
+
+Estado atual da Apex
+
+✅ Plataforma online em apexglobalai.com
+✅ Website separado em repositório próprio (apex-global-website)
+✅ Apex AI funcionando (ApexCopilot)
+✅ Dashboard melhorado
+✅ Sidebar compactada
+✅ Mission Control melhorado
+✅ Login EN/PT em correção/validação
+⚠️ Owner Executor com erro startsWith pendente
+⚠️ Analytics PR #119 corrigido e reduzido, mas ainda Draft/UNSTABLE
+⚠️ Vercel externo do PR #119 precisa auditoria final
+⚠️ OCR/Anexos da Apex AI ainda não estão no nível que você quer
+
+Plano Mestre definido
+
+Estamos seguindo a lógica que funcionou:
+
+Checkpoint
+→ Implementar
+→ Testar
+→ Build
+→ PR
+→ Merge
+→ Validar em produção
+→ Fechar
+→ Próximo checkpoint
+Próximos 3 checkpoints recomendados
+🔴 Prioridade 1
+
+Checkpoint 1.1 — Login Apex Global AI
+
+EN/PT
+inglês padrão
+paleta Apex (navy + red + silver)
+branding definitivo
+🟠 Prioridade 2
+
+Checkpoint 3.1 — Owner Executor
+
+corrigir e.startsWith is not a function
+health_check funcionando
+status_report funcionando
+🟢 Prioridade 3
+
+Checkpoint 6.1 — Analytics
+
+resolver Vercel/Supabase Preview
+fechar PR #119
+
+E tem uma observação importante que você trouxe ontem:
+
+Visão da Apex Copilot
+
+Você não quer que ela seja só um chat.
+
+Você quer que ela evolua para:
+
+Apex Copilot
+→ cria checkpoints
+→ gera handoffs
+→ escolhe motor
+→ acompanha PR
+→ acompanha Vercel
+→ acompanha Supabase
+→ atualiza Mission Control
+→ no futuro também codifica
+
+Na minha opinião, essa é a direção correta.
+
+Minha pergunta para começar o dia é simples:
+
+Qual checkpoint você quer atacar primeiro hoje?
+
+Login Apex Global AI
+Owner Executor
+Analytics (#119)
+Apex Copilot Orchestrator
+Outra coisa que você viu na produção ontem
+
+Me diga o número e vamos direto para execução.

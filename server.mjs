@@ -17,6 +17,24 @@ import { classifyToolExecutionRequest, routeToolExecution } from './server/agent
 import { defaultTasks } from './server/agent/backgroundTasksConnector.mjs'
 import { buildCodeToolDefinitions, executeCodeToolCall, CODE_TOOL_NAMES } from './server/agent/codeTools.mjs'
 
+// Auto-detect and fix swapped router variables
+if (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_KEYROUTER) {
+  const baseVal = String(process.env.OPENAI_API_BASEROUTER).trim()
+  const keyVal = String(process.env.OPENAI_API_KEYROUTER).trim()
+  if (!baseVal.startsWith('http') && keyVal.startsWith('http')) {
+    process.env.OPENAI_API_BASEROUTER = keyVal
+    process.env.OPENAI_API_KEYROUTER = baseVal
+  }
+}
+if (process.env.OPENAI_API_BASE && process.env.OPENAI_API_KEY) {
+  const baseVal = String(process.env.OPENAI_API_BASE).trim()
+  const keyVal = String(process.env.OPENAI_API_KEY).trim()
+  if (!baseVal.startsWith('http') && keyVal.startsWith('http')) {
+    process.env.OPENAI_API_BASE = keyVal
+    process.env.OPENAI_API_KEY = baseVal
+  }
+}
+
 // Normalize custom router variable casing/names
 if (process.env.OPENAI_API_BASEROUTER && !process.env.OPENAI_API_BASE) {
   process.env.OPENAI_API_BASE = process.env.OPENAI_API_BASEROUTER
@@ -1456,36 +1474,11 @@ async function handleChat(req, res) {
     }
     const productionConversationIntent = classifyProductionConversationIntent(userText)
     const productionRouterIntents = new Set([
-      'production_display_name_preference',
-      'production_name_identity',
-      'production_who_am_i',
-      'production_user_confusion',
-      'production_revit_bim_help',
-      'production_computer_help',
-      'production_multi_intent',
-      'production_github_connector_status',
-      'production_vercel_connector_status',
-      'production_connector_status',
-      'production_platform_position',
-      'production_capability_listing',
-      'production_capability_repair',
-      'production_capability_continuation',
-      'production_orcamento_sinapi_help',
-      'production_proposta_contrato_help',
-      'production_obra_campo_help',
-      'production_cronograma_help',
-      'production_archviz_help',
-      'production_marketing_vendas_help',
-      'production_vercel_deploy',
-      'production_supabase',
-      'production_execute_recommended',
       'production_h7_confirmation',
-      'production_next_step',
+      'production_execute_recommended',
     ])
 
-    const isProductionRoute = productionRouterIntents.has(productionConversationIntent) ||
-                              productionConversationIntent === 'production_language_preference' ||
-                              productionConversationIntent === 'production_affirmation'
+    const isProductionRoute = productionRouterIntents.has(productionConversationIntent)
     if ((!APEX_FREE_AGENT || isProductionRoute) && !body.file) {
       const productionStatus = collectProductionOperatorStatus()
       const operatorResult = await runApexOperatorProductionSafe({

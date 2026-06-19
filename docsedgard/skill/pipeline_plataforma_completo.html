@@ -1,0 +1,130 @@
+
+<style>
+.pipe-section { margin-bottom: 20px; }
+.pipe-title { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.pipe-grid { display: flex; flex-direction: column; gap: 6px; }
+.pipe-item { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
+.pipe-item.done { border-left: 3px solid #3B6D11; }
+.pipe-item.demo { border-left: 3px solid #BA7517; }
+.pipe-item.incomplete { border-left: 3px solid #A32D2D; }
+.pipe-item.new { border-left: 3px solid #185FA5; }
+.badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
+.badge-done { background: #EAF3DE; color: #3B6D11; }
+.badge-demo { background: #FAEEDA; color: #854F0B; }
+.badge-inc { background: #FCEBEB; color: #A32D2D; }
+.badge-new { background: #E6F1FB; color: #185FA5; }
+.item-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); flex: 1; }
+.item-desc { font-size: 11px; color: var(--color-text-secondary); margin-top: 1px; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+.tab-btn { padding: 6px 14px; border-radius: 20px; border: 0.5px solid var(--color-border-tertiary); font-size: 12px; font-weight: 500; cursor: pointer; background: var(--color-background-secondary); color: var(--color-text-secondary); font-family: inherit; transition: all .15s; }
+.tab-btn.active { background: #185FA5; color: #fff; border-color: #185FA5; }
+.summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
+.sum-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px; text-align: center; }
+.sum-val { font-size: 22px; font-weight: 500; margin-bottom: 2px; }
+.sum-lbl { font-size: 10px; color: var(--color-text-secondary); font-weight: 500; text-transform: uppercase; letter-spacing: .05em; }
+</style>
+
+<div style="padding: 1rem 0">
+  <h2 class="sr-only">Pipeline completo da plataforma AI Construction Intelligence</h2>
+
+  <div class="summary-grid">
+    <div class="sum-card"><div class="sum-val" style="color:#3B6D11">10</div><div class="sum-lbl">Prontos</div></div>
+    <div class="sum-card"><div class="sum-val" style="color:#BA7517">25</div><div class="sum-lbl">Demo→Real</div></div>
+    <div class="sum-card"><div class="sum-val" style="color:#A32D2D">6</div><div class="sum-lbl">Incompletos</div></div>
+    <div class="sum-card"><div class="sum-val" style="color:#185FA5">8</div><div class="sum-lbl">Pipeline novo</div></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="show('all', this)">Tudo</button>
+    <button class="tab-btn" onclick="show('done', this)">✅ Prontos</button>
+    <button class="tab-btn" onclick="show('demo', this)">🟡 Demo→Real</button>
+    <button class="tab-btn" onclick="show('incomplete', this)">🔴 Incompletos</button>
+    <button class="tab-btn" onclick="show('new', this)">🔵 Pipeline novo</button>
+  </div>
+
+  <div id="items">
+
+    <div class="pipe-section" data-cat="done">
+      <div class="pipe-title"><i class="ti ti-circle-check" aria-hidden="true" style="color:#3B6D11;font-size:16px"></i> Prontos — produção real</div>
+      <div class="pipe-grid">
+        <div class="pipe-item done"><div><div class="item-name">Auth / Login</div><div class="item-desc">Supabase Auth real, sem modo demo</div></div><span class="badge badge-done">✅ Feito</span></div>
+        <div class="pipe-item done"><div><div class="item-name">Dashboard (RBAC 6 papéis)</div><div class="item-desc">Seleção de papel, persistência de perfil, session check</div></div><span class="badge badge-done">✅ Feito</span></div>
+        <div class="pipe-item done"><div><div class="item-name">projeto/[id] — CRUD + EVM</div><div class="item-desc">CPI, SPI, EAC, ESG + 3 análises IA</div></div><span class="badge badge-done">✅ Feito</span></div>
+        <div class="pipe-item done"><div><div class="item-name">Módulo Jurídico</div><div class="item-desc">Contratos, compliance, due diligence, assinatura Lumin</div></div><span class="badge badge-done">✅ Feito</span></div>
+        <div class="pipe-item done"><div><div class="item-name">Orçamento + Curva S</div><div class="item-desc">Cálculos reais, gráficos, budget_items Supabase</div></div><span class="badge badge-done">✅ Feito</span></div>
+        <div class="pipe-item done"><div><div class="item-name">Vendas / Pipeline</div><div class="item-desc">Leads reais do Supabase, KPIs em tempo real</div></div><span class="badge badge-done">✅ Feito</span></div>
+        <div class="pipe-item done"><div><div class="item-name">Qualidade — Checklists + NCIs</div><div class="item-desc">Dados reais Supabase, conformidade calculada</div></div><span class="badge badge-done">✅ Feito</span></div>
+        <div class="pipe-item done"><div><div class="item-name">BIM-Ops</div><div class="item-desc">Clash detection, permits, workflow — Supabase + fallback</div></div><span class="badge badge-done">✅ Feito</span></div>
+        <div class="pipe-item done"><div><div class="item-name">Observabilidade de API</div><div class="item-desc">recordApiCall() — custo por token em todos endpoints</div></div><span class="badge badge-done">✅ Feito</span></div>
+        <div class="pipe-item done"><div><div class="item-name">Orquestração multi-agente</div><div class="item-desc">orchestrator.ts, agent-loop.ts, agent-graph.ts</div></div><span class="badge badge-done">✅ Feito</span></div>
+      </div>
+    </div>
+
+    <div class="pipe-section" data-cat="demo">
+      <div class="pipe-title"><i class="ti ti-alert-circle" aria-hidden="true" style="color:#BA7517;font-size:16px"></i> Demo → precisam de dados reais (Supabase)</div>
+      <div class="pipe-grid">
+        <div class="pipe-item demo"><div><div class="item-name">Investimentos</div><div class="item-desc">4 projetos hardcoded (VGV, ROI, prazo) → tabela investments Supabase</div></div><span class="badge badge-demo">🟡 Demo</span></div>
+        <div class="pipe-item demo"><div><div class="item-name">RDO — Relatório Diário de Obra</div><div class="item-desc">UI presente, dados demo → tabela rdos Supabase</div></div><span class="badge badge-demo">🟡 Demo</span></div>
+        <div class="pipe-item demo"><div><div class="item-name">Documentos</div><div class="item-desc">Gestão de documentos com OCR, backend parcial</div></div><span class="badge badge-demo">🟡 Demo</span></div>
+        <div class="pipe-item demo"><div><div class="item-name">Plantas — Análise Multimodal</div><div class="item-desc">Upload + análise IA OK, persistência incompleta</div></div><span class="badge badge-demo">🟡 Demo</span></div>
+        <div class="pipe-item demo"><div><div class="item-name">ArchVis Pro</div><div class="item-desc">Renderização arquitetônica, pipeline cinematic → /api/render.js</div></div><span class="badge badge-demo">🟡 Demo</span></div>
+        <div class="pipe-item demo"><div><div class="item-name">Director Cut</div><div class="item-desc">Apresentação visual premium, workspace cinematográfico</div></div><span class="badge badge-demo">🟡 Demo</span></div>
+        <div class="pipe-item demo"><div><div class="item-name">BIM 3D</div><div class="item-desc">Visualizador 3D de modelos BIM</div></div><span class="badge badge-demo">🟡 Demo</span></div>
+        <div class="pipe-item demo"><div><div class="item-name">US Brand / Mercado EUA</div><div class="item-desc">Viabilidade mercados US (Miami, Austin, Phoenix…)</div></div><span class="badge badge-demo">🟡 Demo</span></div>
+        <div class="pipe-item demo"><div><div class="item-name">Platform Hub</div><div class="item-desc">Visão geral de todos os módulos, status ao vivo</div></div><span class="badge badge-demo">🟡 Demo</span></div>
+        <div class="pipe-item demo"><div><div class="item-name">cliente/[id] — Stakeholder View</div><div class="item-desc">Visão externa do projeto para clientes e investidores</div></div><span class="badge badge-demo">🟡 Demo</span></div>
+        <div class="pipe-item demo"><div><div class="item-name">Pipeline de Vendas /api/sales</div><div class="item-desc">Triggers, copywriting IA, webhook → substituir dados demo</div></div><span class="badge badge-demo">🟡 Demo</span></div>
+        <div class="pipe-item demo"><div><div class="item-name">Campanhas /api/campaigns</div><div class="item-desc">Launch workflow hardcoded → real</div></div><span class="badge badge-demo">🟡 Demo</span></div>
+      </div>
+    </div>
+
+    <div class="pipe-section" data-cat="incomplete">
+      <div class="pipe-title"><i class="ti ti-x-circle" aria-hidden="true" style="color:#A32D2D;font-size:16px"></i> Incompletos — precisam ser desenvolvidos</div>
+      <div class="pipe-grid">
+        <div class="pipe-item incomplete"><div><div class="item-name">index.js — Homepage</div><div class="item-desc">Só redireciona para /login, sem landing page real</div></div><span class="badge badge-inc">🔴 Stub</span></div>
+        <div class="pipe-item incomplete"><div><div class="item-name">contratos/novo.js</div><div class="item-desc">Formulário de novo contrato incompleto</div></div><span class="badge badge-inc">🔴 Parcial</span></div>
+        <div class="pipe-item incomplete"><div><div class="item-name">Digital Twin /api/digital-twin</div><div class="item-desc">Estado do gêmeo digital — infraestrutura criada, UI ausente</div></div><span class="badge badge-inc">🔴 Sem UI</span></div>
+        <div class="pipe-item incomplete"><div><div class="item-name">Knowledge Base /api/knowledge</div><div class="item-desc">Base de conhecimento — APIs criadas, sem interface</div></div><span class="badge badge-inc">🔴 Sem UI</span></div>
+        <div class="pipe-item incomplete"><div><div class="item-name">Métricas /api/metrics</div><div class="item-desc">Endpoint de métricas criado, sem dashboard visual</div></div><span class="badge badge-inc">🔴 Sem UI</span></div>
+        <div class="pipe-item incomplete"><div><div class="item-name">Gemini /api/gemini</div><div class="item-desc">Integração Google Gemini pronta, não exposta na UI</div></div><span class="badge badge-inc">🔴 Oculto</span></div>
+      </div>
+    </div>
+
+    <div class="pipe-section" data-cat="new">
+      <div class="pipe-title"><i class="ti ti-plus-circle" aria-hidden="true" style="color:#185FA5;font-size:16px"></i> Pipeline novo — a desenvolver</div>
+      <div class="pipe-grid">
+        <div class="pipe-item new"><div><div class="item-name">Landing Page pública (Atlas / Apex)</div><div class="item-desc">Conectar landing-page-AI-Construction ao domínio</div></div><span class="badge badge-new">🔵 Planejado</span></div>
+        <div class="pipe-item new"><div><div class="item-name">Cronograma / Gantt</div><div class="item-desc">Módulo de gestão de cronograma com integração EVM</div></div><span class="badge badge-new">🔵 Planejado</span></div>
+        <div class="pipe-item new"><div><div class="item-name">Fornecedores / Supply Chain</div><div class="item-desc">Cadastro, contratos e avaliação de fornecedores</div></div><span class="badge badge-new">🔵 Planejado</span></div>
+        <div class="pipe-item new"><div><div class="item-name">Dashboard de Custo de IA</div><div class="item-desc">UI para o observability — gastos por módulo, modelo, usuário</div></div><span class="badge badge-new">🔵 Planejado</span></div>
+        <div class="pipe-item new"><div><div class="item-name">Notificações / Alertas</div><div class="item-desc">Push alerts para prazos, NCIs críticas, desvios de custo</div></div><span class="badge badge-new">🔵 Planejado</span></div>
+        <div class="pipe-item new"><div><div class="item-name">Multi-tenant (tenant.ts pronto)</div><div class="item-desc">Ativar suporte a múltiplas empresas/obras</div></div><span class="badge badge-new">🔵 Planejado</span></div>
+        <div class="pipe-item new"><div><div class="item-name">App Mobile (PWA)</div><div class="item-desc">Versão mobile para engenheiro de campo — RDO, fotos, NCIs</div></div><span class="badge badge-new">🔵 Planejado</span></div>
+        <div class="pipe-item new"><div><div class="item-name">Integração AutoCAD / IFC</div><div class="item-desc">Import direto de arquivos de projeto BIM</div></div><span class="badge badge-new">🔵 Planejado</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="margin-top:16px;padding:12px 16px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);display:flex;gap:8px;align-items:flex-start">
+    <i class="ti ti-info-circle" style="font-size:16px;color:var(--color-text-secondary);flex-shrink:0;margin-top:1px" aria-hidden="true"></i>
+    <span style="font-size:12px;color:var(--color-text-secondary)">41 páginas · 29 APIs · 18 componentes · 9 libs — auditoria de 22/05/2026</span>
+  </div>
+
+  <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+    <button onclick="sendPrompt('Quero priorizar: qual módulo demo conectar ao Supabase primeiro?')" style="font-size:12px">Priorizar Demo→Real ↗</button>
+    <button onclick="sendPrompt('Vamos desenvolver o módulo de Cronograma/Gantt')" style="font-size:12px">Cronograma/Gantt ↗</button>
+    <button onclick="sendPrompt('Vamos desenvolver o dashboard de custo de IA com observabilidade')" style="font-size:12px">Dashboard IA ↗</button>
+    <button onclick="sendPrompt('Conectar a landing page Atlas/Apex ao domínio')" style="font-size:12px">Landing Page ↗</button>
+  </div>
+</div>
+
+<script>
+function show(cat, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.pipe-section').forEach(s => {
+    s.style.display = cat === 'all' || s.dataset.cat === cat ? 'block' : 'none';
+  });
+}
+</script>

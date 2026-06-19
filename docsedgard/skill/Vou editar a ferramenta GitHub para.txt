@@ -1,0 +1,529 @@
+Vou editar a ferramenta GitHub para aceitar repository por chamada, validar o owner jedgard70 e atualizar os defaults do contexto.
+← Patched server/agent/githubTools.mjs
+// branch, commit one or more file changes, and open a Pull Request. The user// branch, commit one or more file changes, and open a Pull Request. The user
+// reviews and merges; merging triggers a Vercel deploy.// reviews and merges; merging triggers a Vercel deploy.
+////
+// Auth: GITHUB_TOKEN or GH_TOKEN (needs `repo` scope / contents+PR write).// Auth: GITHUB_TOKEN or GH_TOKEN (needs `repo` scope / contents+PR write).
+// Repo: APEX_GITHUB_REPOSITORY or GITHUB_REPOSITORY (owner/name).// Repo: APEX_GITHUB_REPOSITORY or GITHUB_REPOSITORY (owner/name), or per-call
+// repository argument. All repositories must belong to the allowed owner.
+// Base: APEX_GITHUB_BASE_BRANCH or APEX_GITHUB_BRANCH or VERCEL_GIT_COMMIT_REF.// Base: APEX_GITHUB_BASE_BRANCH or APEX_GITHUB_BRANCH or VERCEL_GIT_COMMIT_REF.
+////
+import { Buffer } from 'node:buffer'import { Buffer } from 'node:buffer'
+
+const DEFAULT_REPOSITORY = 'jedgard70/apex-ai-copilot-platform'const DEFAULT_GITHUB_OWNER = 'jedgard70'
+const DEFAULT_BASE_BRANCH = 'feature/image-generation-connector'const DEFAULT_REPOSITORY = 'jedgard70/apex-ai-copilot-platform'
+const API = 'https://api.github.com'const DEFAULT_BASE_BRANCH = 'feature/image-generation-connector'
+const API = 'https://api.github.com'
+
+function firstEnv(names) {function firstEnv(names) {
+  for (const n of names) {  for (const n of names) {
+    const v = process.env[n]    const v = process.env[n]
+  }  }
+  return ''  return ''
+}}
+
+function getToken() {function getToken() {
+  return firstEnv(['GITHUB_TOKEN', 'GH_TOKEN'])  return firstEnv(['GITHUB_TOKEN', 'GH_TOKEN'])
+}}
+function getRepository() {function getAllowedOwner() {
+  return firstEnv(['APEX_GITHUB_REPOSITORY', 'GITHUB_REPOSITORY']) || DEFAULT_REPOSITORY  return firstEnv(['APEX_GITHUB_OWNER']) || DEFAULT_GITHUB_OWNER
+}
+}
+function parseRepository(value = '') {
+  const text = String(value || '').trim()
+  const match = text.match(/^([^/]+)\/([^/]+)$/)
+  if (!match) return null
+  return { owner: match[1], repo: match[2] }
+}
+function resolveRepository(repositoryArg = '') {
+  const configured = firstEnv(['APEX_GITHUB_REPOSITORY', 'GITHUB_REPOSITORY'])
+  const candidate = String(repositoryArg || configured || DEFAULT_REPOSITORY).trim()
+  const parsed = parseRepository(candidate)
+  if (!parsed) {
+    return { ok: false, error: 'GitHub repository must be in owner/repo format.' }
+  }
+  const allowedOwner = getAllowedOwner()
+  if (parsed.owner !== allowedOwner) {
+    return { ok: false, error: `Repository owner must be ${allowedOwner}.` }
+  }
+  return { ok: true, repository: `${parsed.owner}/${parsed.repo}` }
+}
+function getRepository(repositoryArg = '') {
+  const resolved = resolveRepository(repositoryArg)
+  return resolved.ok ? resolved.repository : ''
+}
+function getBaseBranch() {
+function getBaseBranch() {  return firstEnv(['APEX_GITHUB_BASE_BRANCH', 'APEX_GITHUB_BRANCH', 'VERCEL_GIT_COMMIT_REF']) || DEFAULT_BASE_BRANCH
+  return firstEnv(['APEX_GITHUB_BASE_BRANCH', 'APEX_GITHUB_BRANCH', 'VERCEL_GIT_COMMIT_REF']) || DEFAULT_BASE_BRANCH}
+}
+export function isGithubConfigured() {
+export function isGithubConfigured() {  return Boolean(getToken())
+  return Boolean(getToken() && getRepository())}
+}
+const SECRET_FILE_PATTERN = /(^|[\\/])\.env(\.|$)|\.env\.local$|\.pem$|\.key$|id_rsa|\.p12$|\.pfx$/i
+const SECRET_FILE_PATTERN = /(^|[\\/])\.env(\.|$)|\.env\.local$|\.pem$|\.key$|id_rsa|\.p12$|\.pfx$/i
+async function gh(method, pathname, body) {
+async function gh(method, pathname, body) {  }
+  }  return data
+  return data}
+}
+function repoPath(suffix, repository) {
+function repoPath(suffix) {  return `/repos/${repository}${suffix}`
+  return `/repos/${getRepository()}${suffix}`}
+}
+function sanitizeBranchName(name) {
+function sanitizeBranchName(name) {  const base = String(name || '').trim().replace(/[^a-zA-Z0-9/_-]+/g, '-').replace(/^-+|-+$/g, '')
+  const base = String(name || '').trim().replace(/[^a-zA-Z0-9/_-]+/g, '-').replace(/^-+|-+$/g, '')  return base || `apex/auto-${Date.now()}`
+  return base || `apex/auto-${Date.now()}`}
+}
+// Get the SHA of the base branch tip.
+// Get the SHA of the base branch tip.async function getBaseSha(baseBranch, repository) {
+async function getBaseSha(baseBranch) {  const ref = await gh('GET', repoPath(`/git/ref/heads/${encodeURIComponent(baseBranch)}`, repository))
+  const ref = await gh('GET', repoPath(`/git/ref/heads/${encodeURIComponent(baseBranch)}`))  return ref.object.sha
+  return ref.object.sha}
+}
+// Ensure a working branch exists (create from base if missing).
+// Ensure a working branch exists (create from base if missing).async function ensureBranch(branch, baseBranch, repository) {
+async function ensureBranch(branch, baseBranch) {  try {
+  try {    await gh('GET', repoPath(`/git/ref/heads/${encodeURIComponent(branch)}`, repository))
+    await gh('GET', repoPath(`/git/ref/heads/${encodeURIComponent(branch)}`))    return { created: false }
+  } catch (err) {
+    return { created: false }    if (err.status !== 404) throw err
+  } catch (err) {    const baseSha = await getBaseSha(baseBranch, repository)
+    if (err.status !== 404) throw err    await gh('POST', repoPath('/git/refs', repository), { ref: `refs/heads/${branch}`, sha: baseSha })
+    const baseSha = await getBaseSha(baseBranch)    return { created: true }
+    await gh('POST', repoPath('/git/refs'), { ref: `refs/heads/${branch}`, sha: baseSha })  }
+    return { created: true }}
+  }
+}// Read current file SHA on a branch (needed to update existing files).
+async function getFileSha(path, branch, repository) {
+// Read current file SHA on a branch (needed to update existing files).  try {
+async function getFileSha(path, branch) {    const data = await gh('GET', repoPath(`/contents/${encodeURIComponent(path).replace(/%2F/g, '/')}?ref=${encodeURIComponent(branch)}`, repository))
+  try {    return Array.isArray(data) ? null : data.sha || null
+    const data = await gh('GET', repoPath(`/contents/${encodeURIComponent(path).replace(/%2F/g, '/')}?ref=${encodeURIComponent(branch)}`))  } catch (err) {
+    return Array.isArray(data) ? null : data.sha || null    if (err.status === 404) return null
+  } catch (err) {    throw err
+    if (err.status === 404) return null  }
+    throw err}
+  }
+}// Commit a single file (create or update) to a branch.
+async function putFile({ path, content, message, branch, repository }) {
+// Commit a single file (create or update) to a branch.  const sha = await getFileSha(path, branch, repository)
+async function putFile({ path, content, message, branch }) {  const body = {
+  const sha = await getFileSha(path, branch)    message,
+  const body = {    content: Buffer.from(String(content ?? ''), 'utf8').toString('base64'),
+    message,    branch,
+    content: Buffer.from(String(content ?? ''), 'utf8').toString('base64'),  }
+    branch,  if (sha) body.sha = sha
+  }  const data = await gh('PUT', repoPath(`/contents/${encodeURIComponent(path).replace(/%2F/g, '/')}`, repository), body)
+  if (sha) body.sha = sha  return { path, action: sha ? 'updated' : 'created', commit: data.commit?.sha }
+  const data = await gh('PUT', repoPath(`/contents/${encodeURIComponent(path).replace(/%2F/g, '/')}`), body)}
+  return { path, action: sha ? 'updated' : 'created', commit: data.commit?.sha }
+}// ---- Tool definitions ----
+export function buildGithubToolDefinitions() {
+// ---- Tool definitions ----  if (!isGithubConfigured()) return []
+export function buildGithubToolDefinitions() {        description: 'Edit the Apex platform source code by committing one or more file changes to a new branch on GitHub and opening a Pull Request. Use this to ACTUALLY apply code changes in production (the serverless filesystem is read-only, so write_file/edit_file cannot persist there). After the PR is merged, Vercel redeploys automatically. Provide complete file contents for each file you create or modify.',
+  if (!isGithubConfigured()) return []        parameters: {
+        description: 'Edit the Apex platform source code by committing one or more file changes to a new branch on GitHub and opening a Pull Request. Use this to ACTUALLY apply code changes in production (the serverless filesystem is read-only, so write_file/edit_file cannot persist there). After the PR is merged, Vercel redeploys automatically. Provide complete file contents for each file you create or modify.',          type: 'object',
+        parameters: {          additionalProperties: false,
+          type: 'object',              properties: {
+          additionalProperties: false,                repository: { type: 'string', description: 'Target repository in owner/repo format. Defaults to the configured repository. Must belong to the allowed owner.' },
+          properties: {                branch: { type: 'string', description: 'Name for the new working branch, e.g. "apex/add-pdfjs". A unique suffix is added if it exists.' },
+            branch: { type: 'string', description: 'Name for the new working branch, e.g. "apex/add-pdfjs". A unique suffix is added if it exists.' },                commitMessage: { type: 'string', description: 'Commit/PR title describing the change.' },
+                prBody: { type: 'string', description: 'Optional PR description (markdown).' },
+            commitMessage: { type: 'string', description: 'Commit/PR title describing the change.' },            files: {
+              type: 'array',
+            prBody: { type: 'string', description: 'Optional PR description (markdown).' },              description: 'List of files to create or overwrite. Provide the FULL new content of each file.',
+              items: {
+      return { ok: false, error: `Invalid path: ${f.path}` }
+            files: {    }
+              type: 'array',  }
+              description: 'List of files to create or overwrite. Provide the FULL new content of each file.',
+              items: {  const repoResolution = resolveRepository(args.repository)
+      return { ok: false, error: `Invalid path: ${f.path}` }  if (!repoResolution.ok) {
+    }
+  }    return { ok: false, error: repoResolution.error }
+
+  const baseBranch = getBaseBranch()  }
+  const branch = sanitizeBranchName(args.branch) + '-' + Math.random().toString(36).slice(2, 7)  const repository = repoResolution.repository
+  const commitMessage = String(args.commitMessage || 'chore: apex live-agent code change').slice(0, 200)  const baseBranch = getBaseBranch()
+  const branch = sanitizeBranchName(args.branch) + '-' + Math.random().toString(36).slice(2, 7)
+  const commitMessage = String(args.commitMessage || 'chore: apex live-agent code change').slice(0, 200)
+
+  try {
+    await ensureBranch(branch, baseBranch, repository)
+
+    const committed = []
+    for (const f of files) {
+  try {      const r = await putFile({ path: f.path, content: f.content, message: commitMessage, branch, repository })
+    await ensureBranch(branch, baseBranch)      committed.push(r)
+    }
+    const committed = []
+    for (const f of files) {    const pr = await gh('POST', repoPath('/pulls', repository), {
+      const r = await putFile({ path: f.path, content: f.content, message: commitMessage, branch })      title: commitMessage,
+      committed.push(r)      head: branch,
+    }      base: baseBranch,
+      body: String(args.prBody || `Automated change by Apex Live Agent.\n\nFiles:\n${committed.map(c => `- ${c.action} \`${c.path}\``).join('\n')}`).slice(0, 60000),
+    const pr = await gh('POST', repoPath('/pulls'), {    })
+      title: commitMessage,
+      head: branch,    return {
+      base: baseBranch,      ok: true,
+      body: String(args.prBody || `Automated change by Apex Live Agent.\n\nFiles:\n${committed.map(c => `- ${c.action} \`${c.path}\``).join('\n')}`).slice(0, 60000),      repository,
+    })      baseBranch,
+      branch,
+    return {      files: committed,
+      ok: true,      pullRequest: { number: pr.number, url: pr.html_url, state: pr.state },
+      repository: getRepository(),      note: 'Pull request opened. Review and merge to deploy via Vercel.',
+      baseBranch,    }
+      branch,
+      files: committed,
+      pullRequest: { number: pr.number, url: pr.html_url, state: pr.state },
+      note: 'Pull request opened. Review and merge to deploy via Vercel.',
+    }
+
++ Thought: Ensuring repo integrity · 3.9s
+← Patched server/agent/delegationGenerator.mjs
+import { snapshotCurrentArchitecture } from './selfUpgradePlanner.mjs'import { snapshotCurrentArchitecture } from './selfUpgradePlanner.mjs'
+
+// ─── Repo context builder ─────────────────────────────────────────────────────// ─── Repo context builder ─────────────────────────────────────────────────────
+
+function buildRepoContext() {function buildRepoContext() {
+  const arch = snapshotCurrentArchitecture()  const arch = snapshotCurrentArchitecture()
+  return {  const owner = process.env.APEX_GITHUB_OWNER || 'jedgard70'
+    repo: process.env.APEX_GITHUB_REPOSITORY || 'jedgard70/apex-ai-copilot-platform',  const configuredRepo = process.env.APEX_GITHUB_REPOSITORY || process.env.GITHUB_REPOSITORY || ''
+    stack: arch.stack,  return {
+    repo: configuredRepo || `${owner}/<select-repo-per-task>`,
+    owner,
+    stack: arch.stack,
+    checkpoints: arch.checkpointsCompleted,    checkpoints: arch.checkpointsCompleted,
+    keyFiles: {    keyFiles: {
+      runtime: 'server/agent/apexOperatorRuntime.mjs',      runtime: 'server/agent/apexOperatorRuntime.mjs',
+      router: 'server/agent/productionConversationRouter.mjs',      router: 'server/agent/productionConversationRouter.mjs',
+
+← Patched server/agent/connectorsStatus.mjs
+const DEFAULT_GITHUB_REPOSITORY = 'jedgard70/apex-ai-copilot-platform'const DEFAULT_GITHUB_OWNER = 'jedgard70'
+const DEFAULT_GITHUB_REPOSITORY = 'jedgard70/apex-ai-copilot-platform'
+const DEFAULT_GITHUB_BRANCH = 'feature/image-generation-connector'const DEFAULT_GITHUB_BRANCH = 'feature/image-generation-connector'
+const DEFAULT_VERCEL_PROJECT_ID = 'prj_uVRjNyFprz8NyzVcb8NTdnALr1Xm'const DEFAULT_VERCEL_PROJECT_ID = 'prj_uVRjNyFprz8NyzVcb8NTdnALr1Xm'
+const DEFAULT_VERCEL_PRODUCTION_DOMAIN = 'www.apexglobalai.com'const DEFAULT_VERCEL_PRODUCTION_DOMAIN = 'www.apexglobalai.com'
+const CONNECTOR_TIMEOUT_MS = 7000const CONNECTOR_TIMEOUT_MS = 7000
+  if (/\bconector|conectores\b/.test(text)) return 'connector_status'  if (/\bconector|conectores\b/.test(text)) return 'connector_status'
+  return ''  return ''
+}}
+
+export function collectConnectorsStatus() {export function collectConnectorsStatus() {
+  const githubToken = firstEnv(['GITHUB_TOKEN', 'GH_TOKEN'])  const githubToken = firstEnv(['GITHUB_TOKEN', 'GH_TOKEN'])
+  const githubTokenPresent = Boolean(githubToken)  const githubTokenPresent = Boolean(githubToken)
+  const githubRepository = firstEnv(['APEX_GITHUB_REPOSITORY', 'GITHUB_REPOSITORY']) || DEFAULT_GITHUB_REPOSITORY  const githubOwner = firstEnv(['APEX_GITHUB_OWNER']) || DEFAULT_GITHUB_OWNER
+  const githubBranch = firstEnv(['APEX_GITHUB_BRANCH', 'VERCEL_GIT_COMMIT_REF']) || DEFAULT_GITHUB_BRANCH
+  const githubKnownCommit = firstEnv(['APEX_GITHUB_COMMIT_SHA', 'VERCEL_GIT_COMMIT_SHA', 'GITHUB_SHA'])  const githubRepository = firstEnv(['APEX_GITHUB_REPOSITORY', 'GITHUB_REPOSITORY']) || DEFAULT_GITHUB_REPOSITORY
+  const githubConfigured = githubTokenPresent && Boolean(githubRepository)  const githubBranch = firstEnv(['APEX_GITHUB_BRANCH', 'VERCEL_GIT_COMMIT_REF']) || DEFAULT_GITHUB_BRANCH
+  const githubKnownCommit = firstEnv(['APEX_GITHUB_COMMIT_SHA', 'VERCEL_GIT_COMMIT_SHA', 'GITHUB_SHA'])
+  const githubConfigured = githubTokenPresent && Boolean(githubRepository)
+
+  const vercelToken = firstEnv(['VERCEL_TOKEN'])  const vercelToken = firstEnv(['VERCEL_TOKEN'])
+  const vercelTokenPresent = Boolean(vercelToken)  const vercelTokenPresent = Boolean(vercelToken)
+  const vercelProjectId = firstEnv(['APEX_VERCEL_PROJECT_ID', 'VERCEL_PROJECT_ID']) || DEFAULT_VERCEL_PROJECT_ID  const vercelProjectId = firstEnv(['APEX_VERCEL_PROJECT_ID', 'VERCEL_PROJECT_ID']) || DEFAULT_VERCEL_PROJECT_ID
+    github: {    github: {
+      id: 'github',      id: 'github',
+      label: 'GitHub connector',      label: 'GitHub connector',
+      status: boolStatus(githubConfigured),      status: boolStatus(githubConfigured),
+      configured: githubConfigured,      configured: githubConfigured,
+      tokenPresent: githubTokenPresent,      tokenPresent: githubTokenPresent,
+      reachable: false,      owner: githubOwner,
+      repository: githubRepository,      reachable: false,
+      repository: githubRepository,
+      branch: githubBranch,      branch: githubBranch,
+      defaultBranch: '',      defaultBranch: '',
+      branchExists: false,      branchExists: false,
+      latestCommit: null,      latestCommit: null,
+
+← Patched server/agent/toolRegistry.mjs
+  return Boolean(process.env[name])  return Boolean(process.env[name])
+}}
+
+export const TOOL_REGISTRY = [export const TOOL_REGISTRY = [
+  {
+    id: 'github.status',
+    label: 'GitHub repository status',
+    provider: 'github',
+    executionClass: EXECUTION_CLASSES.READ_ONLY,
+    capability: 'remote_repository_status',
+    env: ['GITHUB_TOKEN or GH_TOKEN', 'APEX_GITHUB_OWNER optional', 'APEX_GITHUB_REPOSITORY optional', 'APEX_GITHUB_BRANCH optional'],
+    isConfigured: () => hasAnyEnv(['GITHUB_TOKEN', 'GH_TOKEN']),
+    missing: () => hasAnyEnv(['GITHUB_TOKEN', 'GH_TOKEN']) ? [] : ['GITHUB_TOKEN or GH_TOKEN'],
+    mutates: false,
+  },
+  {
+
+  {
+    id: 'github.status',
+    label: 'GitHub repository status',
+    provider: 'github',
+    executionClass: EXECUTION_CLASSES.READ_ONLY,
+    capability: 'remote_repository_status',
+    env: ['GITHUB_TOKEN or GH_TOKEN', 'APEX_GITHUB_REPOSITORY optional', 'APEX_GITHUB_BRANCH optional'],
+    isConfigured: () => hasAnyEnv(['GITHUB_TOKEN', 'GH_TOKEN']),
+    missing: () => hasAnyEnv(['GITHUB_TOKEN', 'GH_TOKEN']) ? [] : ['GITHUB_TOKEN or GH_TOKEN'],
+    mutates: false,
+  },
+  {
+    id: 'vercel.status',    id: 'vercel.status',
+    label: 'Vercel deployment status',    label: 'Vercel deployment status',
+    provider: 'vercel',    provider: 'vercel',
+    executionClass: EXECUTION_CLASSES.READ_ONLY,    executionClass: EXECUTION_CLASSES.READ_ONLY,
+
++ Thought: Updating tool definitions · 4.8s
++ Thought: Evaluating repo configurations · 3.5s
++ Thought: Updating GitHub tools · 3.5s
++ Thought: Checking repository parsing · 1.2s
+Agora vou validar sintaxe e checar se a alteração não quebrou os módulos de GitHub e status.
+# Checks GitHub tools syntax in .
+$ node --check server/agent/githubTools.mjs
+(no output)
+# Checks connector status syntax in .
+$ node --check server/agent/connectorsStatus.mjs
+(no output)
+# Checks delegation generator syntax in .
+$ node --check server/agent/delegationGenerator.mjs
+(no output)
+# Checks tool registry syntax in .
+$ node --check server/agent/toolRegistry.mjs
+(no output)
++ Thought: Updating tasks · 2.0s
+# Todos
+[✓] Localizar como o repositório GitHub é resolvido hoje
+[✓] Alterar a lógica para permitir qualquer repo do owner jedgard70
+[✓] Verificar impacto e testar a mudança
++ Thought: Summarizing response changes · 1.9s
+Feito.
+Mudanças:
+- github_commit_changes agora aceita repository por chamada.
+- O repositório é validado para aceitar só jedgard70/*.
+- O contexto de delegação e status GitHub foram ajustados para refletir owner múltiplo, não um repo fixo.
+- O schema da tool GitHub agora documenta repository.
+Verificação:
+- node --check server/agent/githubTools.mjs
+- node --check server/agent/connectorsStatus.mjs
+- node --check server/agent/delegationGenerator.mjs
+- node --check server/agent/toolRegistry.mjs
+Uso agora:
+- passar repository: "jedgard70/nome-do-repo" na tool github_commit_changes
+- ou manter o repo padrão configurado em APEX_GITHUB_REPOSITORY
+Se quiser, eu posso fazer o próximo passo e ajustar os prompts internos para o Apex escolher automaticamente o repo certo quando você mencionar o nome do projeto.
+▣  Build · GPT-5.4 mini · 2m 14s
+sim
++ Thought: Adjusting auto-selection for repo · 2.4s
+Vou localizar onde o agente monta as chamadas de GitHub para ensinar a seleção automática do repositório certo.
+✱Grep "github_commit_changes" in . (8 matches)
+✱Grep "APEX_GITHUB_REPOSITORY|repository:" in . (11 matches)
+→Read server\agent\githubTools.mjs [offset=1, limit=260]
+→Read api\copilot\chat.mjs [offset=1080, limit=90]
+→Read server.mjs [offset=1428, limit=28]
+Vou só ajustar as instruções internas para o modelo preencher repository automaticamente quando o usuário mencionar o nome do projeto/repo.
+← Patched server/agent/githubTools.mjs
+{{
+  type: 'function',  type: 'function',
+  function: {  function: {
+    name: 'github_commit_changes',    name: 'github_commit_changes',
+    description: 'Edit the Apex platform source code by committing one or more file changes to a new branch on GitHub and opening a Pull Request. Use this to ACTUALLY apply code changes in production (the serverless filesystem is read-only, so write_file/edit_file cannot persist there). After the PR is merged, Vercel redeploys automatically. Provide complete file contents for each file you create or modify.',    description: 'Edit the Apex platform source code by committing one or more file changes to a new branch on GitHub and opening a Pull Request. Use this to ACTUALLY apply code changes in production (the serverless filesystem is read-only, so write_file/edit_file cannot persist there). After the PR is merged, Vercel redeploys automatically. Provide complete file contents for each file you create or modify. If the user mentions a specific repo/project name, set repository automatically when it belongs to the allowed owner.',
+    parameters: {
+    parameters: {      type: 'object',
+      type: 'object',      additionalProperties: false,
+      additionalProperties: false,          properties: {
+          properties: {
+← Patched server.mjs
+'When the user asks about the code, the platform, or to change/fix/build something, USE these tools to actually inspect and modify the real repository. Do not guess file contents — read them. Do not claim a file exists without checking.','When the user asks about the code, the platform, or to change/fix/build something, USE these tools to actually inspect and modify the real repository. Do not guess file contents — read them. Do not claim a file exists without checking.',
+'Investigate thoroughly: when asked to "analyze your code", "review the platform", or about a feature like auto-upgrade, do NOT stop after reading one file. Use list_dir and search_code to find ALL relevant files, read several of them, and base your answer on what you actually found. For auto-upgrade / self-upgrade questions, call self_upgrade_report.','Investigate thoroughly: when asked to "analyze your code", "review the platform", or about a feature like auto-upgrade, do NOT stop after reading one file. Use list_dir and search_code to find ALL relevant files, read several of them, and base your answer on what you actually found. For auto-upgrade / self-upgrade questions, call self_upgrade_report.',
+'Never answer about the codebase with a vague generic summary. Cite concrete file paths, function names and findings from the tools.','Never answer about the codebase with a vague generic summary. Cite concrete file paths, function names and findings from the tools.',
+'Work iteratively: explore with read_file/list_dir/search_code, make changes with write_file/edit_file, then verify with run_command (e.g. build or tests).','Work iteratively: explore with read_file/list_dir/search_code, make changes with write_file/edit_file, then verify with run_command (e.g. build or tests).',
+'To actually apply code changes that persist (especially in the serverless production runtime where write_file/edit_file may fail with a read-only filesystem), call github_commit_changes with the full new content of each file. It creates a branch, commits, and opens a Pull Request that deploys when merged. When the user says "edit the code", "faça você mesmo", "aplique agora" or "code it yourself", actually CALL github_commit_changes — do not just paste code in the chat.','To actually apply code changes that persist (especially in the serverless production runtime where write_file/edit_file may fail with a read-only filesystem), call github_commit_changes with the full new content of each file. It creates a branch, commits, and opens a Pull Request that deploys when merged. When the user says "edit the code", "faça você mesmo", "aplique agora" or "code it yourself", actually CALL github_commit_changes — do not just paste code in the chat. If the user mentions a specific project/repo name, automatically set the repository argument to the matching jedgard70/* repo.',
+'Destructive commands (rm -rf, force push, hard reset, disk format) are blocked by the sandbox. Reading/writing secret files (.env, keys) is blocked.',
+'Critical truth rule: only claim you read, edited, created, or ran something if a tool result proves it. If a tool fails, report the real error.',
+'Destructive commands (rm -rf, force push, hard reset, disk format) are blocked by the sandbox. Reading/writing secret files (.env, keys) is blocked.','Do not end with vague questions like "what would you like to do next?" when evidence supports a clear next step. Give a decisive recommendation and one practical next action.',
+'Critical truth rule: only claim you read, edited, created, or ran something if a tool result proves it. If a tool fails, report the real error.','After tool results, answer naturally in the latest user language with what you found, what you changed, and the verified result.'
+'Do not end with vague questions like "what would you like to do next?" when evidence supports a clear next step. Give a decisive recommendation and one practical next action.',
+'After tool results, answer naturally in the latest user language with what you found, what you changed, and the verified result.'
+
+← Patched api/copilot/chat.mjs
+'When the user asks about the code, the platform, or to change/fix/build something, USE these tools to actually inspect and modify the real repository. Do not guess file contents — read them.','When the user asks about the code, the platform, or to change/fix/build something, USE these tools to actually inspect and modify the real repository. Do not guess file contents — read them.',
+'Investigate thoroughly: when asked to "analyze your code", "review the platform", or about a feature like auto-upgrade, do NOT stop after reading one file. Use list_dir and search_code to find ALL relevant files, read several of them, and base your answer on what you actually found. For auto-upgrade / self-upgrade questions, call self_upgrade_report.','Investigate thoroughly: when asked to "analyze your code", "review the platform", or about a feature like auto-upgrade, do NOT stop after reading one file. Use list_dir and search_code to find ALL relevant files, read several of them, and base your answer on what you actually found. For auto-upgrade / self-upgrade questions, call self_upgrade_report.',
+'Never answer about the codebase with a vague generic summary. Cite concrete file paths, function names and findings from the tools.','Never answer about the codebase with a vague generic summary. Cite concrete file paths, function names and findings from the tools.',
+'Work iteratively: explore with read_file/list_dir/search_code, make changes with write_file/edit_file, then verify with run_command when available.','Work iteratively: explore with read_file/list_dir/search_code, make changes with write_file/edit_file, then verify with run_command when available.',
+'To actually apply code changes that persist (especially in the serverless production runtime where write_file/edit_file fail with a read-only filesystem), call github_commit_changes with the full new content of each file. It creates a branch, commits, and opens a Pull Request that deploys when merged. When the user says "edit the code", "faça você mesmo", "aplique agora" or "code it yourself", actually CALL github_commit_changes — do not just paste code in the chat.','To actually apply code changes that persist (especially in the serverless production runtime where write_file/edit_file fail with a read-only filesystem), call github_commit_changes with the full new content of each file. It creates a branch, commits, and opens a Pull Request that deploys when merged. When the user says "edit the code", "faça você mesmo", "aplique agora" or "code it yourself", actually CALL github_commit_changes — do not just paste code in the chat. If the user mentions a specific project/repo name, automatically set the repository argument to the matching jedgard70/* repo.',
+'Note: in the serverless cloud environment direct file writes and command execution are unavailable; read/list/search still work on the bundled code, and github_commit_changes is the correct way to persist code changes (it opens a PR).',
+'Destructive commands and secret files (.env, keys) are blocked by the sandbox.',
+'Note: in the serverless cloud environment direct file writes and command execution are unavailable; read/list/search still work on the bundled code, and github_commit_changes is the correct way to persist code changes (it opens a PR).','Critical truth rule: only claim you read, edited, created, or ran something if a tool result proves it. If a tool fails, report the real error.',
+'Destructive commands and secret files (.env, keys) are blocked by the sandbox.','Do not end with vague questions like "what would you like to do next?" when evidence supports a clear next step. Give a decisive recommendation and one practical next action.',
+'Critical truth rule: only claim you read, edited, created, or ran something if a tool result proves it. If a tool fails, report the real error.',
+'Do not end with vague questions like "what would you like to do next?" when evidence supports a clear next step. Give a decisive recommendation and one practical next action.',
+
+As instruções já foram ajustadas. Vou validar os arquivos alterados para garantir que não entrou erro de sintaxe.
+# Checks server syntax in .
+$ node --check server.mjs
+(no output)
+# Checks chat syntax in .
+$ node --check api/copilot/chat.mjs
+(no output)
+# Checks GitHub tool syntax in .
+$ node --check server/agent/githubTools.mjs
+(no output)
+Pronto.
+Agora o agente interno foi instruído a:
+- escolher automaticamente repository quando você mencionar um projeto/repo
+- limitar isso só a jedgard70/*
+- usar esse repo nas chamadas de github_commit_changes
+Arquivos ajustados:
+- server.mjs
+- api/copilot/chat.mjs
+- server/agent/githubTools.mjs
+Verificação:
+- node --check server.mjs
+- node --check api/copilot/chat.mjs
+- node --check server/agent/githubTools.mjs
+Se quiser, o próximo passo é eu fazer o Apex detectar o repo pelo contexto da conversa, não só pelo nome explícito que você digitar.
+▣  Build · GPT-5.4 mini · 42.6s
+Build·GPT-5.4 miniOpenAI
+
+Vou adicionar inferência automática por texto e um repositoryHint opcional para a própria chamada da tool.
+← Patched server/agent/githubTools.mjs
+}}
+function getAllowedOwner() {function getAllowedOwner() {
+  return firstEnv(['APEX_GITHUB_OWNER']) || DEFAULT_GITHUB_OWNER  return firstEnv(['APEX_GITHUB_OWNER']) || DEFAULT_GITHUB_OWNER
+}}
+function normalizeText(value = '') {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+}
+function parseRepository(value = '') {function parseRepository(value = '') {
+  const text = String(value || '').trim()  const text = String(value || '').trim()
+  const match = text.match(/^([^/]+)\/([^/]+)$/)  const match = text.match(/^([^/]+)\/([^/]+)$/)
+  if (!match) return null  if (!match) return null
+  return { owner: match[1], repo: match[2] }  return { owner: match[1], repo: match[2] }
+}}
+function resolveRepository(repositoryArg = '') {function inferRepositoryFromText(text = '') {
+  const normalized = normalizeText(text)
+  const explicit = normalized.match(/\b(jedgard70\/[a-z0-9._-]+)\b/i)
+  if (explicit) return explicit[1]
+
+  const aliases = [
+    { patterns: [/\bapex-ai-copilot-platform\b/i, /\bapex ai copilot platform\b/i, /\bapex platform\b/i, /\bapex\b/i], repository: DEFAULT_REPOSITORY },
+  ]
+
+  for (const alias of aliases) {
+    if (alias.patterns.some(pattern => pattern.test(normalized))) return alias.repository
+  }
+
+  return ''
+}
+
+function resolveRepository(repositoryArg = '', hintText = '') {
+  const configured = firstEnv(['APEX_GITHUB_REPOSITORY', 'GITHUB_REPOSITORY'])
+  const candidate = String(repositoryArg || configured || inferRepositoryFromText(hintText) || DEFAULT_REPOSITORY).trim()
+  const configured = firstEnv(['APEX_GITHUB_REPOSITORY', 'GITHUB_REPOSITORY'])  const parsed = parseRepository(candidate)
+  const candidate = String(repositoryArg || configured || DEFAULT_REPOSITORY).trim()  if (!parsed) {
+  const parsed = parseRepository(candidate)    return { ok: false, error: 'GitHub repository must be in owner/repo format.' }
+  if (!parsed) {  }
+    return { ok: false, error: 'GitHub repository must be in owner/repo format.' }    {
+  }      type: 'function',
+    {      function: {
+      type: 'function',        name: 'github_commit_changes',
+      function: {        description: 'Edit the Apex platform source code by committing one or more file changes to a new branch on GitHub and opening a Pull Request. Use this to ACTUALLY apply code changes in production (the serverless filesystem is read-only, so write_file/edit_file cannot persist there). After the PR is merged, Vercel redeploys automatically. Provide complete file contents for each file you create or modify. If the user mentions a specific repo/project name, set repository automatically when it belongs to the allowed owner. If the repo is implied by context, use repositoryHint.',
+        name: 'github_commit_changes',        parameters: {
+        description: 'Edit the Apex platform source code by committing one or more file changes to a new branch on GitHub and opening a Pull Request. Use this to ACTUALLY apply code changes in production (the serverless filesystem is read-only, so write_file/edit_file cannot persist there). After the PR is merged, Vercel redeploys automatically. Provide complete file contents for each file you create or modify. If the user mentions a specific repo/project name, set repository automatically when it belongs to the allowed owner.',          type: 'object',
+          additionalProperties: false,
+        parameters: {              properties: {
+          type: 'object',                repository: { type: 'string', description: 'Target repository in owner/repo format. Defaults to the configured repository. Must belong to the allowed owner.' },
+          additionalProperties: false,                repositoryHint: { type: 'string', description: 'Free-text hint for inferring the repository when the user mentions a project name instead of an exact owner/repo string.' },
+              properties: {                branch: { type: 'string', description: 'Name for the new working branch, e.g. "apex/add-pdfjs". A unique suffix is added if it exists.' },
+                repository: { type: 'string', description: 'Target repository in owner/repo format. Defaults to the configured repository. Must belong to the allowed owner.' },                commitMessage: { type: 'string', description: 'Commit/PR title describing the change.' },
+                prBody: { type: 'string', description: 'Optional PR description (markdown).' },
+            files: {
+      return { ok: false, error: `Invalid path: ${f.path}` }
+                branch: { type: 'string', description: 'Name for the new working branch, e.g. "apex/add-pdfjs". A unique suffix is added if it exists.' },    }
+                commitMessage: { type: 'string', description: 'Commit/PR title describing the change.' },  }
+                prBody: { type: 'string', description: 'Optional PR description (markdown).' },
+            files: {  const repoResolution = resolveRepository(args.repository, [args.repositoryHint, args.branch, args.commitMessage, args.prBody, ...(files.map(f => f.path).filter(Boolean))].join('\n'))
+      return { ok: false, error: `Invalid path: ${f.path}` }  if (!repoResolution.ok) {
+    }    return { ok: false, error: repoResolution.error }
+  }  }
+  const repository = repoResolution.repository
+  const repoResolution = resolveRepository(args.repository)
+
+
+  if (!repoResolution.ok) {
+    return { ok: false, error: repoResolution.error }
+  }
+  const repository = repoResolution.repository
++ Thought: Updating repository prompts · 2.6s
+Vou espelhar essa regra nos prompts para o modelo passar repositoryHint quando o repo vier implícito na conversa.
+← Patched server.mjs
+'When the user asks about the code, the platform, or to change/fix/build something, USE these tools to actually inspect and modify the real repository. Do not guess file contents — read them. Do not claim a file exists without checking.','When the user asks about the code, the platform, or to change/fix/build something, USE these tools to actually inspect and modify the real repository. Do not guess file contents — read them. Do not claim a file exists without checking.',
+'Investigate thoroughly: when asked to "analyze your code", "review the platform", or about a feature like auto-upgrade, do NOT stop after reading one file. Use list_dir and search_code to find ALL relevant files, read several of them, and base your answer on what you actually found. For auto-upgrade / self-upgrade questions, call self_upgrade_report.','Investigate thoroughly: when asked to "analyze your code", "review the platform", or about a feature like auto-upgrade, do NOT stop after reading one file. Use list_dir and search_code to find ALL relevant files, read several of them, and base your answer on what you actually found. For auto-upgrade / self-upgrade questions, call self_upgrade_report.',
+'Never answer about the codebase with a vague generic summary. Cite concrete file paths, function names and findings from the tools.','Never answer about the codebase with a vague generic summary. Cite concrete file paths, function names and findings from the tools.',
+'Work iteratively: explore with read_file/list_dir/search_code, make changes with write_file/edit_file, then verify with run_command (e.g. build or tests).','Work iteratively: explore with read_file/list_dir/search_code, make changes with write_file/edit_file, then verify with run_command (e.g. build or tests).',
+'To actually apply code changes that persist (especially in the serverless production runtime where write_file/edit_file may fail with a read-only filesystem), call github_commit_changes with the full new content of each file. It creates a branch, commits, and opens a Pull Request that deploys when merged. When the user says "edit the code", "faça você mesmo", "aplique agora" or "code it yourself", actually CALL github_commit_changes — do not just paste code in the chat. If the user mentions a specific project/repo name, automatically set the repository argument to the matching jedgard70/* repo.','To actually apply code changes that persist (especially in the serverless production runtime where write_file/edit_file may fail with a read-only filesystem), call github_commit_changes with the full new content of each file. It creates a branch, commits, and opens a Pull Request that deploys when merged. When the user says "edit the code", "faça você mesmo", "aplique agora" or "code it yourself", actually CALL github_commit_changes — do not just paste code in the chat. If the user mentions a specific project/repo name, automatically set the repository argument to the matching jedgard70/* repo. If the repo is implied but not explicit, use repositoryHint.',
+'Destructive commands (rm -rf, force push, hard reset, disk format) are blocked by the sandbox. Reading/writing secret files (.env, keys) is blocked.','Destructive commands (rm -rf, force push, hard reset, disk format) are blocked by the sandbox. Reading/writing secret files (.env, keys) is blocked.',
+'Critical truth rule: only claim you read, edited, created, or ran something if a tool result proves it. If a tool fails, report the real error.','Critical truth rule: only claim you read, edited, created, or ran something if a tool result proves it. If a tool fails, report the real error.',
+'Do not end with vague questions like "what would you like to do next?" when evidence supports a clear next step. Give a decisive recommendation and one practical next action.','Do not end with vague questions like "what would you like to do next?" when evidence supports a clear next step. Give a decisive recommendation and one practical next action.',
+'After tool results, answer naturally in the latest user language with what you found, what you changed, and the verified result.''After tool results, answer naturally in the latest user language with what you found, what you changed, and the verified result.'
+
+← Patched api/copilot/chat.mjs
+'When the user asks about the code, the platform, or to change/fix/build something, USE these tools to actually inspect and modify the real repository. Do not guess file contents — read them.','When the user asks about the code, the platform, or to change/fix/build something, USE these tools to actually inspect and modify the real repository. Do not guess file contents — read them.',
+'Investigate thoroughly: when asked to "analyze your code", "review the platform", or about a feature like auto-upgrade, do NOT stop after reading one file. Use list_dir and search_code to find ALL relevant files, read several of them, and base your answer on what you actually found. For auto-upgrade / self-upgrade questions, call self_upgrade_report.','Investigate thoroughly: when asked to "analyze your code", "review the platform", or about a feature like auto-upgrade, do NOT stop after reading one file. Use list_dir and search_code to find ALL relevant files, read several of them, and base your answer on what you actually found. For auto-upgrade / self-upgrade questions, call self_upgrade_report.',
+'Never answer about the codebase with a vague generic summary. Cite concrete file paths, function names and findings from the tools.','Never answer about the codebase with a vague generic summary. Cite concrete file paths, function names and findings from the tools.',
+'Work iteratively: explore with read_file/list_dir/search_code, make changes with write_file/edit_file, then verify with run_command when available.','Work iteratively: explore with read_file/list_dir/search_code, make changes with write_file/edit_file, then verify with run_command when available.',
+'To actually apply code changes that persist (especially in the serverless production runtime where write_file/edit_file fail with a read-only filesystem), call github_commit_changes with the full new content of each file. It creates a branch, commits, and opens a Pull Request that deploys when merged. When the user says "edit the code", "faça você mesmo", "aplique agora" or "code it yourself", actually CALL github_commit_changes — do not just paste code in the chat. If the user mentions a specific project/repo name, automatically set the repository argument to the matching jedgard70/* repo.','To actually apply code changes that persist (especially in the serverless production runtime where write_file/edit_file fail with a read-only filesystem), call github_commit_changes with the full new content of each file. It creates a branch, commits, and opens a Pull Request that deploys when merged. When the user says "edit the code", "faça você mesmo", "aplique agora" or "code it yourself", actually CALL github_commit_changes — do not just paste code in the chat. If the user mentions a specific project/repo name, automatically set the repository argument to the matching jedgard70/* repo. If the repo is implied but not explicit, use repositoryHint.',
+'Note: in the serverless cloud environment direct file writes and command execution are unavailable; read/list/search still work on the bundled code, and github_commit_changes is the correct way to persist code changes (it opens a PR).','Note: in the serverless cloud environment direct file writes and command execution are unavailable; read/list/search still work on the bundled code, and github_commit_changes is the correct way to persist code changes (it opens a PR).',
+'Destructive commands and secret files (.env, keys) are blocked by the sandbox.','Destructive commands and secret files (.env, keys) are blocked by the sandbox.',
+'Critical truth rule: only claim you read, edited, created, or ran something if a tool result proves it. If a tool fails, report the real error.','Critical truth rule: only claim you read, edited, created, or ran something if a tool result proves it. If a tool fails, report the real error.',
+'Do not end with vague questions like "what would you like to do next?" when evidence supports a clear next step. Give a decisive recommendation and one practical next action.','Do not end with vague questions like "what would you like to do next?" when evidence supports a clear next step. Give a decisive recommendation and one practical next action.',
+
++ Thought: Checking syntax and validation · 3.6s
+Vou validar a sintaxe e conferir se a nova inferência ficou consistente no schema e na execução.
+# Checks GitHub tools syntax in .
+$ node --check server/agent/githubTools.mjs
+(no output)
+# Checks server syntax in .
+$ node --check server.mjs
+(no output)
+# Checks chat syntax in .
+$ node --check api/copilot/chat.mjs
+(no output)
+→Read server\agent\githubTools.mjs [offset=1, limit=220]
++ Thought: Evaluating code formatting · 2.8s
+A sintaxe passou. Vou só corrigir a formatação do schema para ficar consistente e reduzir ruído nas próximas edições.
+← Patched server/agent/githubTools.mjs
+type: 'function',type: 'function',
+function: {function: {
+  name: 'github_commit_changes',  name: 'github_commit_changes',
+  description: 'Edit the Apex platform source code by committing one or more file changes to a new branch on GitHub and opening a Pull Request. Use this to ACTUALLY apply code changes in production (the serverless filesystem is read-only, so write_file/edit_file cannot persist there). After the PR is merged, Vercel redeploys automatically. Provide complete file contents for each file you create or modify. If the user mentions a specific repo/project name, set repository automatically when it belongs to the allowed owner. If the repo is implied by context, use repositoryHint.',  description: 'Edit the Apex platform source code by committing one or more file changes to a new branch on GitHub and opening a Pull Request. Use this to ACTUALLY apply code changes in production (the serverless filesystem is read-only, so write_file/edit_file cannot persist there). After the PR is merged, Vercel redeploys automatically. Provide complete file contents for each file you create or modify. If the user mentions a specific repo/project name, set repository automatically when it belongs to the allowed owner. If the repo is implied by context, use repositoryHint.',
+  parameters: {  parameters: {
+    type: 'object',    type: 'object',
+    additionalProperties: false,    additionalProperties: false,
+        properties: {    properties: {
+          repository: { type: 'string', description: 'Target repository in owner/repo format. Defaults to the configured repository. Must belong to the allowed owner.' },      repository: { type: 'string', description: 'Target repository in owner/repo format. Defaults to the configured repository. Must belong to the allowed owner.' },
+          repositoryHint: { type: 'string', description: 'Free-text hint for inferring the repository when the user mentions a project name instead of an exact owner/repo string.' },      repositoryHint: { type: 'string', description: 'Free-text hint for inferring the repository when the user mentions a project name instead of an exact owner/repo string.' },
+          branch: { type: 'string', description: 'Name for the new working branch, e.g. "apex/add-pdfjs". A unique suffix is added if it exists.' },      branch: { type: 'string', description: 'Name for the new working branch, e.g. "apex/add-pdfjs". A unique suffix is added if it exists.' },
+          commitMessage: { type: 'string', description: 'Commit/PR title describing the change.' },      commitMessage: { type: 'string', description: 'Commit/PR title describing the change.' },
+          prBody: { type: 'string', description: 'Optional PR description (markdown).' },      prBody: { type: 'string', description: 'Optional PR description (markdown).' },
+      files: {      files: {
+        type: 'array',        type: 'array',
+        description: 'List of files to create or overwrite. Provide the FULL new content of each file.',        description: 'List of files to create or overwrite. Provide the FULL new content of each file.',
+        items: {        items: {
+          type: 'object',          type: 'object',
+          additionalProperties: false,          additionalProperties: false,
+          properties: {          properties: {
+
++ Thought: Verifying syntax issues · 3.0s
+Vou revalidar o arquivo depois do ajuste de formatação.
+# Checks GitHub tools syntax again in .
+$ node --check server/agent/githubTools.mjs
+(no output)
+✱Grep "repositoryHint|inferRepositoryFromText|resolveRepository\(" in . 
++ Thought: Investigating grep issue · 1.8s
+A inferência já está no caminho certo. Agora vou só conferir a parte de execução para evitar regressão no commit/PR.
+→Read server\agent\githubTools.mjs [offset=210, limit=90]
+▣  Build · GPT-5.4 mini

@@ -1,0 +1,183 @@
+# Revit Export Layers
+# Maps Categories and Subcategories to layer names and color numbers
+# Category <tab> Subcategory <tab> Layer name <tab> Color number <tab>
+# Cut layer name <tab> Cut color number
+# Do not remove the colon (:) after certain category names.
+# -----------------------------------------------------
+Ajustes da bandeja de cabos		10	7	10	7
+Ajustes do conduite		10	7	10	7
+Ambiente		9	2	9	2
+Anotações genéricas		5	4	5	4
+Bandejas de cabos		10	7	10	7
+Blocos de margens e carimbo		10	7	10	7
+Blocos de margens e carimbo	Linhas finas	10	7	10	7
+Blocos de margens e carimbo	Linhas grossas	10	7	10	7
+Blocos de margens e carimbo	Linhas médias	10	7	10	7
+Caixas de escopo		3	1	3	1
+Chamadas de detalhe		6	5	6	5
+Colunas		22	7	22	7
+Componentes de gabinete		59	2	59	2
+Condições do limite		12	3	12	3
+Conduites		10	7	10	7
+Coordenadas de ponto		1	3	1	3
+Corrimãos		48	3	48	3
+Corrimãos	Balaústres	48	3	48	3
+Corrimãos	Corrimãos	48	3	48	3
+Corrimãos	Guarda-corpo além da linha de corte	48	3	48	3
+Cortes		3	1	3	1
+Cotas		1	3	1	3
+Cotas	Cotas de croqui automáticas	1	3	1	3
+Demolido		0	3	0	3
+Eixo guia		3	1	3	1
+Eixos		12	3	12	3
+Elevações		6	5	6	5
+Elevações de ponto		1	3	1	3
+Equipamento elétrico		10	7	10	7
+Equipamento especial		14	5	14	5
+Equipamento mecânico		22	4	22	4
+Escadas		47	4	47	4
+Escadas	Banzos	47	4	47	4
+Escadas	Banzos além da linha de corte	46	1	46	1
+Escadas	Escadas além da linha de corte	46	1	46	1
+Escadas	Escadas incompletas	47	4	47	4
+Escadas	Seta abaixo	47	4	47	4
+Escadas	Seta acima	47	4	47	4
+Escadas	Texto ABAIXO	47	4	47	4
+Escadas	Texto acima	47	4	47	4
+Espaços		10	2	10	2
+Espaços	Preenchimento de cores	9	2	9	2
+Estacionamento		23	3	23	3
+Estradas		16	7	16	7
+Existente		0	4	0	4
+Extremidades de nível		13	5	13	5
+Extremidades iniciais do eixo		12	3	12	3
+Fixadores estruturais		12	7	12	7
+Forros		17	1	17	1
+Forros	Padrão de superfície	13	3	13	3
+Fundações estruturais		16	7	16	7
+Gráficos da tabela		3	1	3	1
+Gráficos da tabela de painéis		3	1	3	1
+Hidráulica		21	5	21	5
+Identificador de vegetação		25	3	25	3
+Identificadores da bandeja de cabos		7	4	7	4
+Identificadores de ajuste da bandeja de cabos		7	4	7	4
+Identificadores de ambiente		9	4	9	4
+Identificadores de componentes de gabinete		40	1	40	1
+Identificadores de conduite		7	4	7	4
+Identificadores de equipamento elétrico		7	4	7	4
+Identificadores de equipamento mecânico		40	4	40	4
+Identificadores de equipamentos especiais		7	4	7	4
+Identificadores de escadas		47	4	47	4
+Identificadores de espaço		9	2	9	2
+Identificadores de estacionamento		23	3	23	3
+Identificadores de fixador estrutural		12	4	12	4
+Identificadores de forro		13	5	13	5
+Identificadores de fundação estrutural		7	4	7	4
+Identificadores de guarda-corpo		47	4	47	4
+Identificadores de hidráulica		7	4	7	4
+Identificadores de janela		42	5	42	5
+Identificadores de linha de segmento de propriedade		9	4	9	4
+Identificadores de luminária		22	7	22	7
+Identificadores de mobiliário		31	2	31	2
+Identificadores de modelo genérico		15	5	15	5
+Identificadores de múltiplas categorias		5	4	5	4
+Identificadores de painel cortina		28	7	28	7
+Identificadores de parede		28	7	28	7
+Identificadores de pilar estrutural		7	4	7	4
+Identificadores de porta		38	5	38	5
+Identificadores de propriedade		9	4	9	4
+Identificadores de quadro estrutural		7	4	7	4
+Identificadores de telhado		9	4	9	4
+Identificadores de terreno		9	5	9	5
+Identificadores de treliça estrutural		7	4	7	4
+Identificadores de área		9	4	9	4
+Identificadores do ajuste do conduite		7	4	7	4
+Identificadores do sistema de mobiliário		12	3	12	3
+Iluminação elétrica		39	4	39	4
+Imagens raster		4	9	4	9
+Importações nas famílias		15	5	15	5
+Inclinações de ponto		1	3	1	3
+Itens de detalhe		9	4	9	4
+Janelas		42	5	42	5
+Janelas	Abertura	42	5	42	5
+Janelas	Moldura/Montante	42	5	42	5
+Janelas	Peitoril/Extremidade inicial	34	3	34	3
+Janelas	Vidro	42	5	42	5
+Legendas de contorno		41	4	41	4
+Legendas de preenchimento de cores		3	1	3	1
+Linhas		3	1	3	1
+Linhas	<Croqui>	3	1	3	1
+Linhas	<Demolido>	50	5	50	5
+Linhas	<Em vista>	3	1	3	1
+Linhas	<Limite da área>	10	7	10	7
+Linhas	<Linha de centro>	3	1	3	1
+Linhas	<Nuvem de revisão>	3	1	3	1
+Linhas	<Oculto>	3	1	3	1
+Linhas	<Projeção>	61	9	61	9
+Linhas	<Separação de ambiente>	10	7	10	7
+Linhas	<Separação de espaço>	10	2	10	2
+Linhas	Eixo de rotação	3	1	3	1
+Linhas	Linhas	3	1	3	1
+Linhas	Linhas de isolamento de lã de vidro	37	9	37	9
+Linhas	Linhas finas	3	1	3	1
+Linhas	Linhas grossas	3	1	3	1
+Linhas	Linhas médias	3	1	3	1
+Luminárias		12	7	12	7
+Massa		3	1	3	1
+Mobiliário		32	4	32	4
+Modelos genéricos		15	5	15	5
+Montantes de parede cortina		25	3	25	3
+Notas de texto		7	4	7	4
+Novo		0	4	0	4
+Níveis		13	5	13	5
+Painéis cortina		25	3	25	3
+Paredes		23	4	23	4
+Paredes	Eixos de parede cortina	23	3	23	3
+Paredes	Padrão de superfície	23	4	23	4
+Paredes/Interior:1		23	4	23	4
+Paredes/Exterior:2		23	4	23	4
+Paredes/Fundação:3		44	2	44	2
+Paredes/Retenção:4		45	2	45	2
+Pilares estruturais		17	5	17	5
+Pisos		15	5	15	5
+Pisos	Arestas da laje	15	5	15	5
+Pisos	Padrão de superfície	16	9	16	9
+Planos de referência		3	1	3	1
+Portas		40	3	40	3
+Portas	Abertura	41	5	41	5
+Portas	Moldura/Montante	40	3	40	3
+Portas	Painel	40	3	40	3
+Portas	Vidro	40	3	40	3
+Preenchimento de cores		9	4	9	4
+Quadro estrutural		12	7	12	7
+Rampas		47	4	47	4
+Rampas	Banzos	47	4	47	4
+Rampas	Banzos além da linha de corte	46	1	46	1
+Rampas	Rampas além da linha de corte	47	4	47	4
+Rampas	Rampas incompletas	47	4	47	4
+Rampas	Seta abaixo	47	4	47	4
+Rampas	Seta acima	47	4	47	4
+Rampas	Texto abaixo	47	4	47	4
+Rampas	Texto acima	47	4	47	4
+Região da planta		3	1	3	1
+Restrições		5	4	5	4
+Sistema de mobiliário		11	4	11	4
+Telhados		17	7	17	7
+Telhados	Bordas	17	7	17	7
+Telhados	Calhas	17	7	17	7
+Telhados	Eixos de telhado cortina	17	1	17	1
+Telhados	Padrão de superfície	18	9	18	9
+Telhados	Sofitos do telhado	17	1	17	1
+Temporário		0	4	0	4
+Terreno		9	5	9	5
+Terreno	Plataformas	9	4	9	4
+Terreno	Propriedade	9	5	9	5
+Topografia		42	4	42	4
+Topografia	Arestas de triangulação	38	2	38	2
+Topografia	Contornos principais	42	4	42	4
+Topografia	Contornos secundários	44	2	44	2
+Topografia	Ponto interno	39	4	39	4
+Topografia	Ponto limite	38	2	38	2
+Títulos da vista		3	1	3	1
+Vegetação		25	3	25	3
+Zonas HVAC		9	2	9	2

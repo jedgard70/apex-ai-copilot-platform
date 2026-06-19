@@ -1,3 +1,21 @@
+// Auto-detect and fix swapped router variables
+if (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_KEYROUTER) {
+  const baseVal = String(process.env.OPENAI_API_BASEROUTER).trim()
+  const keyVal = String(process.env.OPENAI_API_KEYROUTER).trim()
+  if (!baseVal.startsWith('http') && keyVal.startsWith('http')) {
+    process.env.OPENAI_API_BASEROUTER = keyVal
+    process.env.OPENAI_API_KEYROUTER = baseVal
+  }
+}
+if (process.env.OPENAI_API_BASE && process.env.OPENAI_API_KEY) {
+  const baseVal = String(process.env.OPENAI_API_BASE).trim()
+  const keyVal = String(process.env.OPENAI_API_KEY).trim()
+  if (!baseVal.startsWith('http') && keyVal.startsWith('http')) {
+    process.env.OPENAI_API_BASE = keyVal
+    process.env.OPENAI_API_KEY = baseVal
+  }
+}
+
 // Normalize custom router variable casing/names
 if (process.env.OPENAI_API_BASEROUTER && !process.env.OPENAI_API_BASE) {
   process.env.OPENAI_API_BASE = process.env.OPENAI_API_BASEROUTER
