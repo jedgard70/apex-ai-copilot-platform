@@ -178,8 +178,8 @@ async function executeReadOnlyTool(toolId) {
 }
 
 async function executeLocalWorkerHealth() {
-  const workerUrl = process.env.LOCAL_WORKER_URL
-  const workerToken = process.env.LOCAL_WORKER_TOKEN
+  const workerUrl = process.env.LOCAL_WORKER_URL || process.env.Local_Worker_URL
+  const workerToken = process.env.LOCAL_WORKER_TOKEN || process.env.Local_Worker_TOKEN
   if (!workerUrl || !workerToken) {
     return {
       executed: true,
