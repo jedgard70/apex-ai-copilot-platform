@@ -207,6 +207,101 @@ type SimpleStudioOutput = {
   conversationContext: string[]
 }
 
+type ModelOption = {
+  id: string
+  name: string
+  provider: string
+  modelId: string
+}
+
+const DIRECT_GEMINI_MODELS = [
+  { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' },
+  { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' },
+  { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
+  { id: 'gemini-2.0-pro', name: 'Gemini 2.0 Pro' },
+  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
+]
+
+const GATEWAY_OPENAI_MODELS = [
+  { id: 'openai/gpt-4.1', name: 'GPT-4.1' },
+  { id: 'openai/gpt-4.1-mini', name: 'GPT-4.1 Mini' },
+  { id: 'openai/gpt-4.1-nano', name: 'GPT-4.1 Nano' },
+  { id: 'openai/gpt-4o', name: 'GPT-4o' },
+  { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini' },
+  { id: 'openai/gpt-5', name: 'GPT-5' },
+  { id: 'openai/gpt-5-chat', name: 'GPT-5 Chat' },
+  { id: 'openai/gpt-5-mini', name: 'GPT-5 Mini' },
+  { id: 'openai/gpt-5-nano', name: 'GPT-5 Nano' },
+  { id: 'openai/gpt-5-pro', name: 'GPT-5 Pro' },
+  { id: 'openai/gpt-5.1-codex', name: 'GPT-5.1 Codex' },
+  { id: 'openai/gpt-5.1-codex-max', name: 'GPT-5.1 Codex Max' },
+  { id: 'openai/gpt-5.1-codex-mini', name: 'GPT-5.1 Codex Mini' },
+  { id: 'openai/gpt-5.1-instant', name: 'GPT-5.1 Instant' },
+  { id: 'openai/gpt-5.1-thinking', name: 'GPT-5.1 Thinking' },
+  { id: 'openai/gpt-5.2', name: 'GPT-5.2' },
+  { id: 'openai/gpt-5.2-chat', name: 'GPT-5.2 Chat' },
+  { id: 'openai/gpt-5.2-codex', name: 'GPT-5.2 Codex' },
+  { id: 'openai/gpt-5.2-pro', name: 'GPT-5.2 Pro' },
+  { id: 'openai/o1', name: 'o1' },
+  { id: 'openai/o3', name: 'o3' },
+  { id: 'openai/o3-mini', name: 'o3 Mini' },
+  { id: 'openai/o3-pro', name: 'o3 Pro' },
+  { id: 'openai/o4-mini', name: 'o4 Mini' },
+]
+
+function composeModelValue(provider: string, modelId: string) {
+  return `${provider}|${modelId}`
+}
+
+function splitModelValue(value: string) {
+  const raw = String(value || '')
+  const separatorIndex = raw.indexOf('|')
+  if (separatorIndex === -1) {
+    return { provider: null as string | null, modelId: raw, raw }
+  }
+  const provider = raw.slice(0, separatorIndex)
+  const modelId = raw.slice(separatorIndex + 1)
+  return { provider, modelId, raw }
+}
+
+function getProviderLabel(provider: string) {
+  if (provider === 'openrouter') return 'OpenRouter'
+  if (provider === 'gemini') return 'Google AI Studio'
+  if (provider === 'gateway') return 'Gateway'
+  return 'OpenAI'
+}
+
+function buildStaticModelCatalog(): ModelOption[] {
+  return [
+    ...DIRECT_GEMINI_MODELS.map(model => ({
+      id: composeModelValue('gemini', model.id),
+      name: model.name,
+      provider: 'gemini',
+      modelId: model.id,
+    })),
+    ...GATEWAY_OPENAI_MODELS.map(model => ({
+      id: composeModelValue('gateway', model.id),
+      name: model.name,
+      provider: 'gateway',
+      modelId: model.id,
+    })),
+  ]
+}
+
+function resolveModelSelection(selectedValue: string, models: ModelOption[]) {
+  const current = splitModelValue(selectedValue)
+  if (current.provider) return current.raw
+  const exactMatch = models.find(model => model.id === current.raw)
+  if (exactMatch) return exactMatch.id
+  const rawMatches = models.filter(model => model.modelId === current.raw)
+  if (!rawMatches.length) return current.raw
+  const providerPriority = ['gateway', 'gemini', 'openrouter', 'openai']
+  const bestMatch = [...rawMatches].sort((left, right) => {
+    return providerPriority.indexOf(left.provider) - providerPriority.indexOf(right.provider)
+  })[0]
+  return bestMatch?.id || current.raw
+}
+
 type BimCommand = {
   id: string
   text: string
@@ -972,22 +1067,62 @@ function App() {
   const [selectedModel, setSelectedModel] = useState<string>(() => {
     return localStorage.getItem('apex_selected_model') || 'gpt-4o-mini'
   })
-  const [availableModels, setAvailableModels] = useState<{ id: string, name: string }[]>([])
+  const [availableModels, setAvailableModels] = useState<ModelOption[]>([])
   const [modelProvider, setModelProvider] = useState<string>('')
 
   useEffect(() => {
-    fetch('/api/copilot/models')
-      .then(res => res.json())
+    const loadModels = async () => {
+      const primary = await fetch('/api/copilot/chat?models=1').catch(() => null)
+      if (primary?.ok) return primary.json()
+
+      const fallback = await fetch('/api/copilot/models').catch(() => null)
+      if (fallback?.ok) return fallback.json()
+
+      return null
+    }
+
+    loadModels()
       .then(data => {
         if (data?.ok && Array.isArray(data.models)) {
-          setAvailableModels(data.models)
-          if (data.provider) {
-            setModelProvider(data.provider)
+          const models = data.models.map((model: any) => {
+            const split = splitModelValue(model.id)
+            return {
+              id: String(model.id),
+              name: String(model.name || model.id),
+              provider: String(model.provider || split.provider || 'openai'),
+              modelId: String(model.modelId || split.modelId || model.id),
+            }
+          })
+          setAvailableModels(models)
+          if (data.provider && data.provider !== 'mixed') {
+            setModelProvider(String(data.provider))
           }
         }
       })
       .catch(() => undefined)
   }, [])
+
+  useEffect(() => {
+    if (!availableModels.length) return
+    const resolved = resolveModelSelection(selectedModel, availableModels)
+    if (resolved !== selectedModel) {
+      setSelectedModel(resolved)
+    }
+  }, [availableModels, selectedModel])
+
+  const selectedModelInfo = useMemo(() => {
+    const selected = splitModelValue(selectedModel)
+    const exactMatch = availableModels.find(model => model.id === selectedModel)
+    if (exactMatch) return exactMatch
+    const modelMatch = availableModels.find(model => model.modelId === selected.modelId)
+    if (modelMatch) return modelMatch
+    return {
+      id: selectedModel,
+      name: selected.modelId || selectedModel,
+      provider: selected.provider || modelProvider || '',
+      modelId: selected.modelId || selectedModel,
+    }
+  }, [availableModels, selectedModel, modelProvider])
 
   useEffect(() => {
     localStorage.setItem('apex_selected_model', selectedModel)
@@ -2615,11 +2750,7 @@ function App() {
             </div>
             <div className="chat-sidebar-model" style={{ padding: '12px 16px', borderBottom: '1px solid rgba(150, 164, 195, 0.15)' }}>
               <label style={{ color: 'rgba(150, 164, 195, 0.7)', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '6px' }}>
-                Modelo de IA {(() => {
-                  const isDirectGemini = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.0-pro', 'gemini-2.5-flash'].includes(selectedModel);
-                  const providerToShow = isDirectGemini ? 'gemini' : modelProvider;
-                  return providerToShow ? `(${providerToShow === 'gemini' ? 'Google AI Studio' : providerToShow === 'openrouter' ? 'OpenRouter' : 'OpenAI'})` : '';
-                })()}
+                Modelo de IA {selectedModelInfo.provider ? `(${getProviderLabel(selectedModelInfo.provider)})` : ''}
               </label>
               <select
                 value={selectedModel}
@@ -2636,16 +2767,9 @@ function App() {
                   outline: 'none',
                 }}
               >
-                {availableModels.length === 0 ? (
-                  <>
-                    <option value="gpt-4o-mini">gpt-4o-mini</option>
-                    <option value="gpt-4o">gpt-4o</option>
-                  </>
-                ) : (
-                  availableModels.map(m => (
-                    <option key={m.id} value={m.id}>{m.name || m.id}</option>
-                  ))
-                )}
+                {(availableModels.length === 0 ? buildStaticModelCatalog() : availableModels).map((m: ModelOption) => (
+                  <option key={m.id} value={m.id}>{m.name || m.id}</option>
+                ))}
               </select>
             </div>
             <div className="chat-sidebar-list" style={{ flex: 1, overflowY: 'auto', padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
