@@ -6,7 +6,11 @@
  * H6.0: risk-tiered actions — READ/VALIDATE execute directly; WRITE/DANGEROUS require confirmed:true.
  */
 
+import { spawn } from 'node:child_process'
+
 const TIMEOUT_MS = 8000
+const DIRECT_TIMEOUT_MS = 120000
+const MAX_OUTPUT = 10000
 
 // READ — execute without confirmation
 const READ_ACTIONS = new Set([
@@ -40,8 +44,8 @@ const ALL_ALLOWED_ACTIONS = new Set([
 ])
 
 function workerConfig() {
-  const url = (process.env.LOCAL_WORKER_URL || '').trim()
-  const token = (process.env.LOCAL_WORKER_TOKEN || '').trim()
+  const url = (process.env.LOCAL_WORKER_URL || process.env.Local_Worker_URL || '').trim()
+  const token = (process.env.LOCAL_WORKER_TOKEN || process.env.Local_Worker_TOKEN || '').trim()
   return { url, token, configured: Boolean(url && token) }
 }
 
@@ -50,10 +54,138 @@ function makeMissingConfigResult() {
     ok: false,
     configured: false,
     reachable: false,
-    status: 'unavailable',
-    reason: 'LOCAL_WORKER_URL ou LOCAL_WORKER_TOKEN não configurados no Vercel. Configure ambos para ativar o Local Worker.',
+    status: 'degraded',
+    reason: 'Local Worker não configurado; fallback automático local será usado quando possível.',
     secretsExposed: false,
   }
+}
+
+function appendLimited(current, chunk) {
+  const next = current + chunk
+  if (next.length <= MAX_OUTPUT) return next
+  return next.slice(0, MAX_OUTPUT) + '\n[output truncated]'
+}
+
+function shellQuote(value = '') {
+  const text = String(value || '')
+  if (/^[A-Za-z0-9_./:=@+-]+$/.test(text)) return text
+  return `"${text.replace(/"/g, '\\"')}"`
+}
+
+function commandForAction(action, params = {}) {
+  const files = Array.isArray(params.files) ? params.files.filter(Boolean).map(item => shellQuote(item)).join(' ') : ''
+  const message = params.message ? shellQuote(params.message) : ''
+  const branch = params.branch ? shellQuote(params.branch) : ''
+  const pkg = params.package ? shellQuote(params.package) : ''
+
+  switch (action) {
+    case 'system.info': return 'node -v && npm -v'
+    case 'node.version': return 'node -v'
+    case 'npm.version': return 'npm -v'
+    case 'git.version': return 'git --version'
+    case 'project.git_status': return 'git --no-pager status --short'
+    case 'project.git_log': return 'git --no-pager log --oneline -5'
+    case 'project.git_log10': return 'git --no-pager log --oneline -10'
+    case 'project.git_diff': return 'git --no-pager diff --name-only'
+    case 'project.git_diff_stat': return 'git --no-pager diff --stat'
+    case 'project.git_branch': return 'git --no-pager branch --show-current'
+    case 'project.git_remote': return 'git --no-pager remote -v'
+    case 'project.git_add': return files ? `git add ${files}` : 'git add -A'
+    case 'project.git_commit': return message ? `git commit -m ${message}` : 'git commit -m "chore: apex automated commit"'
+    case 'project.git_push': return 'git push'
+    case 'project.git_push_u': return branch ? `git push -u origin ${branch}` : 'git push -u origin HEAD'
+    case 'project.git_fetch': return 'git fetch origin'
+    case 'project.git_stash': return 'git stash'
+    case 'project.git_stash_pop': return 'git stash pop'
+    case 'project.git_push_force': return branch ? `git push --force-with-lease origin ${branch}` : 'git push --force-with-lease'
+    case 'project.build_check': return 'npm run build'
+    case 'npm.test': return 'npm test'
+    case 'npm.lint': return 'npm run lint'
+    case 'npm.install': return pkg ? `npm install ${pkg}` : 'npm install'
+    case 'npm.list': return 'npm list --depth=0'
+    case 'npm.outdated': return 'npm outdated'
+    case 'npm.audit': return 'npm audit --audit-level=high'
+    case 'project.validate_h44': return 'npm run validate:cp15x-h44'
+    case 'project.validate_h5': return 'npm run validate:cp15x-h5'
+    case 'project.validate_h6': return 'node --check server.mjs'
+    case 'project.raw_shell': return String(params.command || '').trim()
+    default: return ''
+  }
+}
+
+async function runDirectActionFallback(action, params = {}) {
+  const command = commandForAction(action, params)
+  if (!command) {
+    return {
+      ok: false,
+      action,
+      configured: false,
+      reachable: false,
+      reason: `Ação "${action}" sem fallback local automático implementado.`,
+      secretsExposed: false,
+    }
+  }
+
+  const cwd = process.cwd()
+  return await new Promise(resolve => {
+    let stdout = ''
+    let stderr = ''
+    let exitCode = null
+    let settled = false
+    let timedOut = false
+    const startedAt = Date.now()
+
+    const child = spawn(command, [], {
+      cwd,
+      shell: true,
+      windowsHide: true,
+      env: { ...process.env },
+    })
+
+    const finish = status => {
+      if (settled) return
+      settled = true
+      resolve({
+        ok: status === 'completed',
+        partial: false,
+        action,
+        configured: false,
+        reachable: true,
+        executedVia: 'direct_local_fallback',
+        label: action,
+        stdout: String(stdout || '').slice(0, 4000),
+        stderr: String(stderr || '').slice(0, 1000),
+        exitCode: typeof exitCode === 'number' ? exitCode : -1,
+        durationMs: Date.now() - startedAt,
+        results: [],
+        reason: status === 'completed' ? '' : (stderr || `Fallback command failed for ${action}`),
+        secretsExposed: false,
+      })
+    }
+
+    const timer = setTimeout(() => {
+      timedOut = true
+      stderr = appendLimited(stderr, `\nTimeout após ${DIRECT_TIMEOUT_MS / 1000}s.`)
+      child.kill('SIGTERM')
+    }, DIRECT_TIMEOUT_MS)
+
+    child.stdout.on('data', chunk => {
+      stdout = appendLimited(stdout, String(chunk))
+    })
+    child.stderr.on('data', chunk => {
+      stderr = appendLimited(stderr, String(chunk))
+    })
+    child.on('error', err => {
+      clearTimeout(timer)
+      stderr = appendLimited(stderr, err?.message || String(err))
+      finish('failed')
+    })
+    child.on('close', code => {
+      clearTimeout(timer)
+      exitCode = code
+      finish(timedOut ? 'timeout' : code === 0 ? 'completed' : 'failed')
+    })
+  })
 }
 
 async function fetchWorker(path, method, body = null) {
@@ -157,13 +289,7 @@ export async function runLocalWorkerAction(action, { confirmed = false, rollback
 
   const { configured } = workerConfig()
   if (!configured) {
-    return {
-      ok: false,
-      action,
-      configured: false,
-      reason: 'LOCAL_WORKER_URL ou LOCAL_WORKER_TOKEN não configurados.',
-      secretsExposed: false,
-    }
+    return runDirectActionFallback(action, params)
   }
 
   const body = { action, confirmed, rollbackAcknowledged, params }

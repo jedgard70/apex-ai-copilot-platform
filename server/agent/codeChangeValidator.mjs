@@ -66,7 +66,10 @@ export function buildRollbackPlan(changeDescription = '', targetFiles = []) {
 
 export async function runValidationSuite(options = {}) {
   const { gates = VALIDATION_GATES, confirmed = false } = options
-  const hasLocalWorker = Boolean(process.env.LOCAL_WORKER_URL && process.env.LOCAL_WORKER_TOKEN)
+  const hasLocalWorker = Boolean(
+    (process.env.LOCAL_WORKER_URL || process.env.Local_Worker_URL)
+    && (process.env.LOCAL_WORKER_TOKEN || process.env.Local_Worker_TOKEN)
+  )
 
   if (!hasLocalWorker) {
     return {
@@ -144,7 +147,7 @@ export function buildValidationPlanReply(changeDescription = '', targetFiles = [
   })
   lines.push('', `⚠️ ${rollback.safetyNet}`)
 
-  if (!process.env.LOCAL_WORKER_URL) {
+  if (!(process.env.LOCAL_WORKER_URL || process.env.Local_Worker_URL)) {
     lines.push('', '_Configure LOCAL_WORKER_URL + LOCAL_WORKER_TOKEN para executar validação real automaticamente._')
   }
 

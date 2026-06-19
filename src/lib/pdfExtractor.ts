@@ -32,8 +32,14 @@ let workerSrcSet = false
 async function ensureWorker() {
   if (workerSrcSet) return
   const pdfjsLib = await import('pdfjs-dist')
-  // Point worker to CDN to avoid bundling pdf.worker into the app
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js'
+  // Use local worker in Electron builds, otherwise CDN to avoid bundling pdf.worker into app
+  const isElectron = (typeof navigator !== 'undefined' && /Electron/.test(navigator.userAgent)) || (typeof process !== 'undefined' && process?.env?.ELECTRON_RUN_AS_NODE)
+  if (isElectron) {
+    // Electron: use bundled worker file served from app's static assets
+    pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('/pdf.worker.min.mjs', import.meta.url).href
+  } else {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js'
+  }
   workerSrcSet = true
 }
 

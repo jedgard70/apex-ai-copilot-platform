@@ -4,17 +4,20 @@ import { runLocalWorkerAction } from '../../server/agent/localWorkerClient.mjs'
 if (process.env.Local_Worker_URL && !process.env.LOCAL_WORKER_URL) {
   process.env.LOCAL_WORKER_URL = process.env.Local_Worker_URL
 }
+if (process.env.Local_Worker_TOKEN && !process.env.LOCAL_WORKER_TOKEN) {
+  process.env.LOCAL_WORKER_TOKEN = process.env.Local_Worker_TOKEN
+}
 
 const copilotExecutionCommands = [
   {
     id: 'raw_shell',
     label: 'Raw shell command',
-    description: 'Run an approved raw command in a user-selected cwd through the local shell.',
+    description: 'Run a free live shell command in a user-selected cwd through the local shell.',
     executable: 'shell',
     args: [],
     acceptsRawCommand: true,
     risk: 'high',
-    requiresApproval: true,
+    requiresApproval: false,
     timeoutMs: 60000,
   },
   {
