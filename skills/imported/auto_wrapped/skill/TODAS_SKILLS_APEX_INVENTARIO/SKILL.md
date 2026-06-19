@@ -5,9 +5,10 @@ domains: [imported]
 entrypoint: TODAS_SKILLS_APEX_INVENTARIO.md
 triggers: [imported]
 risk: low
-enabled: true
+enabled: false
 ---
 
 Imported original path: D:\AI-constr\apex-ai-copilot-platform\skills\imported\recovered_docsedgard\skill\TODAS_SKILLS_APEX_INVENTARIO.md
+
 
 

@@ -1,5 +1,5 @@
 ---
-enabled: true
+enabled: false
 ---
 # skills_index
 
@@ -25,5 +25,6 @@ Notes:
 
 # Usage
 - Use to discover imported skills and their status.
+
 
 

@@ -1,5 +1,5 @@
 ---
-enabled: true
+enabled: false
 ---
 # marketing_dispatcher
 
@@ -25,5 +25,6 @@ Notes:
 
 # Usage
 - Review content templates and set distribution connectors (email, social) before enabling.
+
 
 

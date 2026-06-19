@@ -1,5 +1,5 @@
 ---
-enabled: true
+enabled: false
 ---
 # autonomous_sales_agent
 
@@ -26,5 +26,6 @@ Notes:
 
 # Usage
 - Review code and update metadata, add unit/integration tests, then enable in a controlled rollout.
+
 
 

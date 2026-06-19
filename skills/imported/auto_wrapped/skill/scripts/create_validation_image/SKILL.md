@@ -5,9 +5,10 @@ domains: [imported]
 entrypoint: create_validation_image.py:main
 triggers: [imported]
 risk: low
-enabled: true
+enabled: false
 ---
 
 Imported original path: D:\AI-constr\apex-ai-copilot-platform\skills\imported\recovered_docsedgard\skill\scripts\create_validation_image.py
+
 
 
