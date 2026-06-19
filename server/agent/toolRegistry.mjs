@@ -147,7 +147,7 @@ export const TOOL_REGISTRY = [
     id: 'dangerous.unclassified',
     label: 'Unclassified action',
     provider: 'policy',
-    executionClass: EXECUTION_CLASSES.READ_ONLY,
+    executionClass: EXECUTION_CLASSES.BLOCKED,
     capability: 'unclassified_action',
     env: [],
     isConfigured: () => true,
@@ -180,7 +180,9 @@ export function getExecutionCapabilityMatrix() {
     label: tool.label,
     provider: tool.provider,
     executionClass: tool.executionClass,
-    status: tool.configured ? 'available' : 'unavailable',
+    status: tool.executionClass === EXECUTION_CLASSES.BLOCKED
+      ? 'blocked'
+      : tool.configured ? 'available' : 'unavailable',
     missing: tool.missing,
     mutates: tool.mutates,
   }))
