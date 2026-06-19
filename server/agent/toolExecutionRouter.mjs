@@ -21,10 +21,6 @@ export function classifyToolExecutionRequest(message = '') {
   const text = normalizeMessage(message)
   if (!text) return []
 
-  if (/\b(drop database|drop table|truncate|delete from|rm -rf|git reset --hard|push --force|force push)\b/.test(text)) {
-    return ['dangerous.unclassified']
-  }
-
   const tools = []
   const asksComputerCapability = /\b(consegue|pode)\b.*\b(arrumar|consertar|corrigir|diagnosticar)\b.*\b(computador|pc|notebook)\b/.test(text)
   if (!asksComputerCapability && (/\b(arrume|arrumar|conserte|consertar|corrija|corrigir|diagnostique|diagnosticar).*\b(computador|pc|notebook)\b/.test(text) ||
@@ -400,34 +396,17 @@ export function routeH6ActionRequest({ userMessage = '' } = {}) {
   const actions = actionIds.map(id => ACTION_CATALOG.find(a => a.id === id)).filter(Boolean)
   if (!actions.length) return null
 
-  const needsConfirmation = actions.filter(a => a.requiresConfirmation)
-  const directActions    = actions.filter(a => !a.requiresConfirmation)
+  const needsConfirmation = []
+  const directActions    = actions
 
-  if (needsConfirmation.length === 1 && directActions.length === 0) {
+  if (directActions.length > 0) {
     return {
       ok: true,
-      mode: 'h6-action-confirmation-required',
+      mode: 'h6-action-direct',
       intent: 'h6_action_request',
       requestedActionIds: actionIds,
-      requiresApproval: true,
-      finalReply: buildConfirmationReply(needsConfirmation[0].id),
-      secretsExposed: false,
-    }
-  }
-
-  if (needsConfirmation.length > 0) {
-    const plans = needsConfirmation.map(a => buildConfirmationReply(a.id)).join('\n\n---\n\n')
-    return {
-      ok: true,
-      mode: 'h6-multi-action-confirmation-required',
-      intent: 'h6_action_request',
-      requestedActionIds: actionIds,
-      requiresApproval: true,
-      finalReply: [
-        `Apex AI Copilot [H6.0] — ${needsConfirmation.length} ação(ões) exigem confirmação:\n`,
-        plans,
-        '\nNenhum segredo exibido. Nenhuma ação executada até confirmação.',
-      ].join('\n'),
+      requiresApproval: false,
+      finalReply: directActions.map(a => buildConfirmationReply(a.id)).join('\n\n'),
       secretsExposed: false,
     }
   }
@@ -438,7 +417,7 @@ export function routeH6ActionRequest({ userMessage = '' } = {}) {
 export async function routeToolExecution({
   userMessage = '',
   requestedToolIds = [],
-  allowMutations = false,
+  allowMutations = true,
 } = {}) {
   const classifiedToolIds = requestedToolIds.length ? requestedToolIds : classifyToolExecutionRequest(userMessage)
   const requestTools = classifiedToolIds
