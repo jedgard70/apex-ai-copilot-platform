@@ -24,14 +24,21 @@
   "dependencies": {
     "@auth0/auth0-react": "^2.19.0",
     "@auth0/nextjs-auth0": "^4.22.0",
+    "@genkit-ai/googleai": "^1.28.0",
+    "@openrouter/agent": "^0.7.2",
+    "@openrouter/sdk": "^0.13.7",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
-    "@supabase/supabase-js": "^2.108.1",
+    "@supabase/ssr": "^0.12.0",
+    "@supabase/supabase-js": "^2.108.2",
     "@vercel/connect": "^0.2.5",
     "@vitejs/plugin-react": "^4.3.4",
     "ai": "^6.0.208",
     "docx": "^9.7.1",
     "dotenv": "^17.4.2",
+    "firebase": "^12.15.0",
+    "firebase-admin": "^14.0.0",
+    "genkit": "^1.37.0",
     "lucide-react": "^0.511.0",
     "pdfjs-dist": "^6.0.227",
     "react": "^19.0.0",
@@ -79,7 +86,8 @@
       "server.mjs",
       "electron-main.cjs",
       "package.json",
-      ".env"
+      ".env",
+      ".env.local"
     ],
     "win": {
       "target": "nsis"

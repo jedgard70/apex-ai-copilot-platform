@@ -589,9 +589,9 @@ export async function runApexOperatorProductionSafe({
     }
 
     return {
-      ok: true, status: 'GREEN', intent: 'h18_self_upgrade_planner',
+      ok: true, status: 'GREEN', intent: 'h18_self_upgrade_execution_context',
       operatorIntent: intent, memory,
-      evidence: { summary: { connector: 'self_upgrade_planner', live: planResult.connectorConfigured } },
+      evidence: { summary: { connector: 'self_upgrade_execution_context', live: planResult.connectorConfigured } },
       decision: buildSelfUpgradePlannerReply(planResult), requiresApproval: false, finalReply: buildSelfUpgradePlannerReply(planResult), memoryPatch: null, secretsExposed: false,
     }
   }

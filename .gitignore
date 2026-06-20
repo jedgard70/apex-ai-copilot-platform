@@ -12,3 +12,9 @@ supabase/.temp/
 .vercel
 .env*.local
 dist_electron
+server/service-account.json
+.env.local.backup*
+*.backup*
+output.png
+output.mp4
+
