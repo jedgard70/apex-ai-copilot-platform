@@ -790,8 +790,8 @@ function buildProductFallbackAnswer(userText: string, identity: ChatIdentityCont
   const pt = prefersPortuguese(userText)
   if (isCapabilitiesQuestion(userText)) {
     return pt
-      ? 'A Apex AI Copilot ajuda em BIM 5D/6D/7D, visualizacao 3D e ArchViz, CFD e simulacoes, agentes de IA, DirectCut, vendas, marketing, contabilidade, financeiro, alvaras, contratos, juridico, documentos, propostas, engenharia e operacoes de campo. Voce pode conversar comigo, enviar arquivos, pedir analise de projeto e transformar isso em acoes dentro da plataforma.'
-      : 'Apex AI Copilot helps with BIM 5D/6D/7D, 3D and ArchViz, CFD and simulations, AI agents, DirectCut, sales, marketing, accounting, finance, permits, contracts, legal, documents, proposals, engineering and field operations. You can chat, upload files, request project analysis and turn that into platform actions.'
+      ? 'Diga a tarefa e eu sigo direto, sem listar menu automático.'
+      : 'Tell me the task and I will proceed directly, without an automatic capability menu.'
   }
   if (isContactQuestion(userText)) {
     return pt
@@ -1654,16 +1654,6 @@ function App() {
     }
     // Let natural conversations go to the server, so they are processed by the live AI agent (or fall back to local answers on failure)
     const explicitPanelOpen = Boolean(routingText) && isExplicitPanelOpenRequest(routingText)
-    const suggestedLayer = !explicitPanelOpen && !pendingLayerDecision && clean && !confirmationSignal && !cancelSignal
-      ? suggestLayerOpenDecision(clean, attachment)
-      : null
-    if (suggestedLayer) {
-      setPendingLayerDecision(suggestedLayer)
-      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: `Posso abrir ${suggestedLayer.label}. Quer que eu abra agora? (sim/não)` }])
-      setInput('')
-      return
-    }
-
     const shouldOpenArchVis = explicitPanelOpen && isArchVisIntent(routingText, attachment)
     const shouldOpenDirectCut = explicitPanelOpen && isDirectCutIntent(routingText)
     const shouldOpenContracts = explicitPanelOpen && isContractsIntent(routingText)
@@ -1883,7 +1873,7 @@ function App() {
         {
           id: id(),
           role: 'assistant',
-          text: 'Abri o painel CP11C com EVM Analyst, Scheduler e NR Compliance. Vou calcular somente com dados fornecidos/localizados e manter o restante como UNKNOWN, GENERAL_GUIDANCE ou NEEDS_SAFETY_REVIEW.',
+          text: 'CP11C aberto.',
         },
       ])
       setEvmSchedulerComplianceOutput({ goal: layerGoalText, conversationContext: context })
@@ -1901,7 +1891,7 @@ function App() {
         {
           id: id(),
           role: 'assistant',
-          text: 'Abri o painel dos 8 Cognitive Agents ao lado. EVM, Scheduler e NR Compliance agora aparecem como implementados local-first, com limites claros: sem dados em tempo real falsos e sem aprovação oficial de compliance.',
+          text: 'Painel de agentes aberto.',
         },
       ])
       setAgentsOutput({ goal: layerGoalText, conversationContext: context })

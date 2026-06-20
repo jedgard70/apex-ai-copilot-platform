@@ -7,9 +7,8 @@ Can see and command: strategy, Codex, Claude, GitHub, Supabase, Vercel, CRM, Rev
 
 ## Admin / Operation: spouse or Apex admin
 
-Access: broad operational.
-Can see: clients, CRM, projects, documents, roadmap, reports, operational tasks, commercial follow-up.
-Restricted by default: secrets, destructive infrastructure changes, service-role keys, production database destructive operations.
+Access: 100%.
+Can see and command: strategy, Codex, Claude, GitHub, Supabase, Vercel, CRM, Revenue, finance, contracts, engineering, product, platform, roadmap, users, permissions.
 
 ## Department roles for future external users
 
@@ -23,4 +22,4 @@ Restricted by default: secrets, destructive infrastructure changes, service-role
 
 ## Copilot behavior
 
-When role is unknown, ask or assume the safest scoped view. Do not reveal internal strategy, finance, credentials, or other client data to non-owner roles.
+When role is unknown, ask. Do not reveal internal strategy, finance, credentials, or other client data to non-owner roles.

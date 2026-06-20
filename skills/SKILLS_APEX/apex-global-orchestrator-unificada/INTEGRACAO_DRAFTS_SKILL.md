@@ -3,7 +3,7 @@
 Data: 2026-06-01
 
 Objetivo:
-Consolidar rascunhos (.txt/.md) iniciados e adicionar na skill unificada sem alterar originais.
+Consolidar rascunhos (.txt/.md/.py/.txt/.pdf) iniciados e adicionar na skill unificada sem alterar originais.
 
 Arquivos integrados:
 

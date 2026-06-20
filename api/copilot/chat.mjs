@@ -6,7 +6,6 @@ import { runApexOperatorProductionSafe } from '../../server/agent/apexOperatorRu
 import { collectProductionOperatorStatus } from '../../server/agent/productionStatus.mjs'
 import { classifyToolExecutionRequest, routeToolExecution, routeH6ActionRequest } from '../../server/agent/toolExecutionRouter.mjs'
 import { isConfirmationSignal, isCancelSignal, hasPendingAction } from '../../server/agent/confirmationStateMachine.mjs'
-import { classifyProductionConversationIntent } from '../../server/agent/productionConversationRouter.mjs'
 import { buildCodeToolDefinitions, executeCodeToolCall, CODE_TOOL_NAMES } from '../../server/agent/codeTools.mjs'
 import { runLocalWorkerAction } from '../../server/agent/localWorkerClient.mjs'
 import { classifyImageGenRequest, buildImagePrompt, generateImage, buildImageResultReply } from '../../server/agent/imageGenerationConnector.mjs'
@@ -177,9 +176,9 @@ async function handleModelsList(res) {
   }
 }
 
-// APEX_FREE_AGENT (default ON): conversational messages bypass the canned
-// production-intent router and go straight to the LLM. Set APEX_FREE_AGENT=0
-// to restore the old template-router behavior.
+// APEX_FREE_AGENT (default ON): conversational messages bypass the old
+// template router and go straight to the Live Agent flow. Set
+// APEX_FREE_AGENT=0 to restore the legacy operator-only behavior.
 const APEX_FREE_AGENT = !/^(0|false|off)$/i.test(String(process.env.APEX_FREE_AGENT ?? '1'))
 
 // PDF summary pattern — triggers local extraction-based summary
@@ -192,19 +191,6 @@ const H5_ACTION_TOOLS = new Set([
   'revit_model.status',
   'vercel.deploy',
   'supabase.migration',
-])
-
-const productionRouterIntents = new Set([
-  'production_h7_confirmation',
-  'production_execute_recommended',
-  'production_greeting',
-  'production_capability_listing',
-  'production_capability_repair',
-  'production_capability_continuation',
-  'production_name_identity',
-  'production_who_am_i',
-  'production_owner_assertion',
-  'production_source_of_information',
 ])
 
 const __filename = fileURLToPath(import.meta.url)
@@ -1430,8 +1416,6 @@ export default async function handler(req, res) {
       }
     }
 
-    const productionConversationIntent = classifyProductionConversationIntent(routingMessage)
-
     // Short-circuit: If the request includes an active file with ready extraction and
     // the user's latest message is a summary/analysis intent, bypass the production
     // conversation routing and proceed to the LLM conversational flow with the file
@@ -1444,10 +1428,8 @@ export default async function handler(req, res) {
         const docText = String(innerFileCandidate.extractedText || '')
         const docSummaryPattern = /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize|analise o arquivo|resuma o arquivo|analise este arquivo|resuma este arquivo|explique o arquivo|explique este arquivo)\b/i
         if (docSummaryPattern.test(userMessage || '')) {
-          // Force a conversational path by ensuring productionConversationIntent does not
-          // trigger the productionRouterIntents branch. We simply fall through to the
-          // conversational LLM flow below with body.file present.
-          // No further action required here; leaving this block documents the short-circuit.
+          // Force a conversational path by falling through to the Live Agent flow
+          // below with body.file present. No extra action is required here.
         }
       }
     } catch (err) {
@@ -1486,8 +1468,7 @@ export default async function handler(req, res) {
     // conversational flow below to handle the request with file context.
     const fileCandidate2 = body.file || null
     const looksLikeDocSummary2 = Boolean(fileCandidate2 && fileCandidate2.extractionStatus === 'ready' && String(fileCandidate2.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize|analise o arquivo|resuma o arquivo|analise este arquivo|resuma este arquivo|explique o arquivo|explique este arquivo)\b/i.test(userMessage || ''))
-    const isProductionRoute = productionRouterIntents.has(productionConversationIntent)
-    if ((!APEX_FREE_AGENT || isProductionRoute) && !looksLikeDocSummary2 && !body.file) {
+    if (!APEX_FREE_AGENT && !looksLikeDocSummary2 && !body.file) {
       const result = await runApexOperatorProductionSafe({
         userMessage,
         identityContext: normalizeIdentityContext(body.identityContext || {}),
@@ -1693,6 +1674,8 @@ export default async function handler(req, res) {
           'Treat vague task requests as real tasks. Choose the smallest useful first action, state the assumption briefly, and proceed instead of asking the user to restate the goal.',
           'When the user asks for research, market scan, benchmark, competitor check, or "pesquisa na internet", call `web_search` before answering.',
           'When the user explicitly asks to generate/render an image, call `generate_image` first. If image generation is unavailable, state the exact reason and provide a production-ready prompt instead of a generic refusal.',
+          'If the user says a prior response felt mechanical or asks what else Apex can do, answer in a live, context-aware way tied to the current project or file instead of giving a canned platform list.',
+          'Never append generic capability menus or autopilot offers such as "Além disso, posso ajudar...", "Também posso..." or "Posso abrir X?" unless the user explicitly asks for options.',
           'Do not ask a clarifying question just because the request is broad. Ask only if there is truly no safe or meaningful first step.',
           'To actually apply code changes that persist (especially in the serverless production runtime where write_file/edit_file fail with a read-only filesystem), call github_commit_changes with the full new content of each file. It creates a branch, commits, and opens a Pull Request that deploys when merged. When the user says "edit the code", "faça você mesmo", "aplique agora" or "code it yourself", actually CALL github_commit_changes — do not just paste code in the chat. If the user mentions a specific project/repo name, automatically set the repository argument to the matching jedgard70/* repo. If the repo is implied but not explicit, use repositoryHint.',
           'Note: in the serverless cloud environment direct file writes and command execution are unavailable; read/list/search still work on the bundled code, and github_commit_changes is the correct way to persist code changes (it opens a PR).',
