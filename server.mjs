@@ -1245,7 +1245,7 @@ function buildIdentityReply(userText, identity) {
 }
 
 function prefersPortugueseText(text = '') {
-  return /\b(vc|voce|você|quem sou|o que|serviços|servicos|preciso|ajuda|ajudar|me ajuda|orçamento|orcamento|consultoria|arquivo|anexar|upload|cronograma|marketing|vendas|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra)\b|[ãõçáéíóú]/i.test(text)
+  return /\b(oi|ola|ol[aá]|bom dia|boa tarde|boa noite|vc|voce|você|quem sou|o que|serviços|servicos|preciso|ajuda|ajudar|me ajuda|orçamento|orcamento|consultoria|arquivo|anexar|upload|cronograma|marketing|vendas|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra|teste)\b|[ãõçáéíóú]/i.test(text)
 }
 
 function isCapabilitiesQuestionText(text = '') {
@@ -1262,10 +1262,19 @@ function isUploadQuestionText(text = '') {
   return /\b(upload|arquivo|anexar|mandar imagem|enviar arquivo|screenshot|planta|pdf|file|attach)\b/i.test(trimmed)
 }
 
+function isGreetingText(text = '') {
+  return /^\s*(oi|ola|ol[aá]|bom dia|boa tarde|boa noite|hello|hi|hey|test|teste)\s*[.!?]?\s*$/i.test(text.trim())
+}
+
 function buildChatFallbackReply(userText, identity) {
   const identityReply = buildIdentityReply(userText, identity)
   if (identityReply) return identityReply
   const pt = prefersPortugueseText(userText)
+  if (isGreetingText(userText)) {
+    return pt
+      ? 'Olá! Sou a Apex. Como posso te ajudar hoje com o seu projeto, código, BIM/3D ou operação de campo?'
+      : 'Hello! I\'m Apex. How can I help you today with your project, code, BIM/3D, or field operations?'
+  }
   if (isCapabilitiesQuestionText(userText)) {
     return pt
       ? 'Consigo resolver tarefas reais. Quando uma etapa depender de conector/credencial, eu vou responder direto: "ok, para executar isso agora precisamos de X e Y; você já está providenciando; enquanto isso eu sigo com fallback útil".'
@@ -1280,8 +1289,8 @@ function buildChatFallbackReply(userText, identity) {
     return 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar. Eu uso o arquivo como contexto da conversa e sigo com uma resposta direta.'
   }
   return pt
-    ? 'Ok, sigo executando com o que está disponível agora. Se faltar conector em uma etapa, eu te digo exatamente o que falta e continuo sem travar.'
-    : 'OK, I will keep executing with what is available now. If a step needs a connector, I will state exactly what is missing and continue without blocking.'
+    ? 'Entendido! Estou pronta para trabalhar com os arquivos e o contexto disponíveis. Me diga o que precisamos analisar ou criar no projeto.'
+    : 'Understood! I\'m ready to work with the available files and context. Tell me what we need to analyze or create in the project.'
 }
 
 

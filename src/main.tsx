@@ -952,7 +952,23 @@ function App() {
   const messagesEnd = useRef<HTMLDivElement | null>(null)
   const supabaseProvider = useMemo(() => getSupabaseProviderStatus(), [])
   const isSupabaseConfigured = supabaseProvider.providerStatus === 'supabase-connected'
-  const [accountState, setAccountState] = useState<SupabaseAccountState | null>(null)
+  const [accountState, setAccountState] = useState<SupabaseAccountState | null>(() => {
+    if (!isSupabaseConfigured) {
+      return {
+        providerStatus: 'supabase-not-configured',
+        sessionStatus: 'signed-in',
+        user: { id: 'local-demo-user', email: 'owner@apexglobalai.co' },
+        profile: { id: 'local-demo-user', email: 'owner@apexglobalai.co', full_name: 'Owner Admin (Local)' },
+        tenant: { id: 'local-demo-tenant', name: 'Apex Local Workspace' },
+        role: 'owner_admin',
+        permissions: ['*'],
+        persistenceMode: 'localStorage',
+        bootstrapStatus: 'ready',
+        message: 'Local demo mode — Supabase not configured.'
+      }
+    }
+    return null
+  })
   const [authLoading, setAuthLoading] = useState(isSupabaseConfigured)
   const [authMessage, setAuthMessage] = useState(supabaseProvider.message)
   const [clientMemory, setClientMemory] = useState<ClientMemory>(() => loadClientMemory())
@@ -1068,6 +1084,64 @@ function App() {
   const [exportCenterOpen, setExportCenterOpen] = useState(false)
   const [ownerConsoleOpen, setOwnerConsoleOpen] = useState(false)
   const [voiceNotice, setVoiceNotice] = useState(false)
+  const [isRecording, setIsRecording] = useState(false)
+  const [voiceStatus, setVoiceStatus] = useState('')
+  const recognitionRef = useRef<any>(null)
+
+  function toggleSpeechRecognition() {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (!SpeechRecognition) {
+      setVoiceStatus(uiLanguage === 'EN' ? 'Speech recognition is not supported in this browser.' : 'Reconhecimento de voz não é suportado neste navegador.')
+      setVoiceNotice(true)
+      return
+    }
+
+    if (isRecording) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop()
+      }
+      setIsRecording(false)
+      return
+    }
+
+    try {
+      const recognition = new SpeechRecognition()
+      recognition.continuous = false
+      recognition.interimResults = false
+      recognition.lang = uiLanguage === 'EN' ? 'en-US' : 'pt-BR'
+
+      recognition.onstart = () => {
+        setIsRecording(true)
+        setVoiceStatus(uiLanguage === 'EN' ? 'Listening...' : 'Ouvindo...')
+        setVoiceNotice(true)
+      }
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript
+        if (transcript) {
+          setInput(prev => prev ? prev + ' ' + transcript : transcript)
+        }
+      }
+
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error)
+        setVoiceStatus(uiLanguage === 'EN' ? `Error: ${event.error}` : `Erro: ${event.error}`)
+      }
+
+      recognition.onend = () => {
+        setIsRecording(false)
+        setVoiceNotice(false)
+      }
+
+      recognitionRef.current = recognition
+      recognition.start()
+    } catch (err) {
+      console.error('Failed to start speech recognition:', err)
+      setIsRecording(false)
+      setVoiceNotice(false)
+    }
+  }
+
   const [pendingLayerDecision, setPendingLayerDecision] = useState<PendingLayerDecision | null>(null)
   const [uiLanguage, setUiLanguage] = useState<UiLanguage>('EN')
   const [archVisRevisionConstraints, setArchVisRevisionConstraints] = useState<string[]>(initialProject.revisionConstraints || [])
@@ -1302,16 +1376,28 @@ function App() {
     executionRuns: executionRuns.length,
   }), [activeProject, archVisOutput, archVisRevisionConstraints.length, bim3DOutput, directCutOutput, executionRuns.length, messages.length])
 
-  const isSignedIn = !isSupabaseConfigured || accountState?.sessionStatus === 'signed-in'
+  const isSignedIn = isSupabaseConfigured ? accountState?.sessionStatus === 'signed-in' : accountState?.sessionStatus !== 'signed-out'
   const authShellStatus = accountState?.bootstrapStatus || (isSupabaseConfigured ? 'needs-login' : 'local-demo')
   const isOwnerUser = accountState?.role === 'owner_admin' || accountState?.role === 'admin' || accountState?.role === 'developer' || !isSupabaseConfigured
 
   async function refreshAuthState() {
     if (!isSupabaseConfigured) {
-      setAccountState(null)
+      const defaultState: SupabaseAccountState = {
+        providerStatus: 'supabase-not-configured',
+        sessionStatus: 'signed-in',
+        user: { id: 'local-demo-user', email: 'owner@apexglobalai.co' },
+        profile: { id: 'local-demo-user', email: 'owner@apexglobalai.co', full_name: 'Owner Admin (Local)' },
+        tenant: { id: 'local-demo-tenant', name: 'Apex Local Workspace' },
+        role: 'owner_admin',
+        permissions: ['*'],
+        persistenceMode: 'localStorage',
+        bootstrapStatus: 'ready',
+        message: 'Local demo mode — Supabase not configured.'
+      }
+      setAccountState(prev => (prev && prev.sessionStatus === 'signed-out') ? prev : defaultState)
       setAuthLoading(false)
       setAuthMessage('Local demo mode — Supabase not configured.')
-      return null
+      return defaultState
     }
 
     try {
@@ -1444,7 +1530,22 @@ function App() {
   }
 
   async function signOutFromShell() {
-    if (!isSupabaseConfigured) return
+    if (!isSupabaseConfigured) {
+      setAccountState({
+        providerStatus: 'supabase-not-configured',
+        sessionStatus: 'signed-out',
+        user: null,
+        profile: null,
+        tenant: null,
+        role: null,
+        permissions: [],
+        persistenceMode: 'localStorage',
+        bootstrapStatus: 'needs-login',
+        message: 'Local demo mode — Signed out.'
+      })
+      clearProtectedPanels()
+      return
+    }
     const { client } = getBrowserSupabaseClient()
     if (!client) return
     await client.auth.signOut()
@@ -3158,7 +3259,7 @@ function App() {
                   }
                   rows={1}
                 />
-                <button className="icon-button" type="button" onClick={() => setVoiceNotice(current => !current)} aria-label={uiLanguage === 'EN' ? 'Voice input' : 'Entrada por voz'}>
+                <button className={`icon-button ${isRecording ? 'recording' : ''}`} type="button" onClick={toggleSpeechRecognition} aria-label={uiLanguage === 'EN' ? 'Voice input' : 'Entrada por voz'} title={uiLanguage === 'EN' ? 'Voice input' : 'Entrada por voz'}>
                   <Mic size={19} />
                 </button>
                 <button className="icon-button" type="button" onClick={() => fileInput.current?.click()} aria-label={uiLanguage === 'EN' ? 'Attach file' : 'Anexar arquivo'} title={uiLanguage === 'EN' ? 'Attach file' : 'Anexar arquivo'}>
@@ -3169,7 +3270,7 @@ function App() {
                 </button>
               </div>
               {voiceNotice && (
-                <div className="voice-notice">{uiLanguage === 'EN' ? 'Voice input coming soon.' : 'Entrada por voz em breve.'}</div>
+                <div className="voice-notice">{voiceStatus}</div>
               )}
               <div className="composer-hint">
                 {uiLanguage === 'EN'

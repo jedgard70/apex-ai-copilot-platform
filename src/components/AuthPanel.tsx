@@ -106,7 +106,21 @@ export function AuthPanel({ onClear, onAuthStateChange }: AuthPanelProps) {
   async function submit(event: FormEvent) {
     event.preventDefault()
     if (provider.providerStatus !== 'supabase-connected') {
-      setStatusText(labels.statusPending)
+      const mockState: SupabaseAccountState = {
+        providerStatus: 'supabase-not-configured',
+        sessionStatus: 'signed-in',
+        user: { id: 'local-demo-user', email: email || 'owner@apexglobalai.co' },
+        profile: { id: 'local-demo-user', email: email || 'owner@apexglobalai.co', full_name: 'Owner Admin (Local)' },
+        tenant: { id: 'local-demo-tenant', name: 'Apex Local Workspace' },
+        role: 'owner_admin',
+        permissions: ['*'],
+        persistenceMode: 'localStorage',
+        bootstrapStatus: 'ready',
+        message: 'Local demo mode — Supabase not configured.'
+      }
+      setAccount(mockState)
+      setStatusText(labels.statusReady)
+      onAuthStateChange?.(mockState)
       return
     }
 
