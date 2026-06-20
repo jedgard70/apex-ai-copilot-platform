@@ -1,18 +1,219 @@
 [
   {
-    "path": "docs/APEX_REVIT_CUSTOMIZATION_SKILL.md",
-    "title": "Apex Revit Customization Skill",
-    "description": "Helps customize Revit, automate BIM workflows, and develop Revit plugins integrated with Apex.",
-    "tags": ["revit", "bim", "automation", "pyrevit", "revit-api", "integration"],
+    "id": "apex-global-orchestrator-unificada",
+    "path": "skills/SKILLS_APEX/apex-global-orchestrator-unificada/SKILL.md",
+    "title": "Apex Global Orchestrator Unificada",
+    "description": "Skill oficial de governança e orquestração operacional da Apex.",
+    "kind": "governance-skill",
+    "runtime_status": "IMPLEMENTADO MAS NÃO COMPROVADO",
+    "integration_mode": "manual-wrapper",
+    "runtime_evidence": [
+      "SKILL.md presente no repositório"
+    ],
+    "source_assets": [
+      "skills/SKILLS_APEX/apex-global-orchestrator-unificada/SKILL.md"
+    ],
     "owner": "platform-team",
-    "version": "0.1.0"
+    "version": "0.2.0"
   },
   {
-    "path": "skill/DOCSEDGARD_SKILL_REINTEGRADA.md",
-    "title": "Docsedgard Skill Reintegrada",
-    "description": "Unified inventory for recovered docsedgard skills (.md, .pdf, .txt, .py) sourced from D:\\AI Jedgard\\skill.",
-    "tags": ["skills", "migration", "inventory", "docsedgard"],
+    "id": "docsedgard-reintegrada",
+    "path": "skills/imported/docsedgard_reintegrada/SKILL.md",
+    "title": "Docsedgard Reintegrada",
+    "description": "Skill operacional de inventário e manifesto da pasta externa D:\\AI Jedgard\\skill.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "allowlisted-command",
+    "runtime_evidence": [
+      "node scripts/execute-skill-action.mjs docsedgard-skill summary"
+    ],
+    "source_assets": [
+      "skills/imported/docsedgard_reintegrada/SKILL.md",
+      "skills/imported/docsedgard_reintegrada/docsedgard_reintegrada.py",
+      "skills/imported/docsedgard_reintegrada/docsedgard_reintegrada.md",
+      "skill/DOCSEDGARD_SKILL_REINTEGRADA.md"
+    ],
     "owner": "platform-team",
-    "version": "0.1.0"
+    "version": "0.2.0"
+  },
+  {
+    "id": "marketing-dispatcher-wrapper",
+    "path": "skills/imported/marketing_dispatcher/SKILL.md",
+    "title": "Marketing Dispatcher",
+    "description": "Wrapper importado de script de marketing; o wrapper ainda não é o binding canônico do runtime.",
+    "kind": "script-wrapper",
+    "runtime_status": "FALTANDO INTEGRAÇÃO",
+    "integration_mode": "wrapper-only",
+    "runtime_evidence": [
+      "Wrapper e script presentes; runtime comprovado usa marketing-generate separado"
+    ],
+    "source_assets": [
+      "skills/imported/marketing_dispatcher/SKILL.md",
+      "skills/imported/marketing_dispatcher/marketing_dispatcher.py",
+      "skill/marketing_dispatcher.py"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "create-revit-checklist-pdf-wrapper",
+    "path": "skills/imported/create_revit_checklist_pdf/SKILL.md",
+    "title": "Create Revit Checklist PDF",
+    "description": "Wrapper importado de script Revit; ainda falta binding operacional direto do script legado.",
+    "kind": "script-wrapper",
+    "runtime_status": "FALTANDO INTEGRAÇÃO",
+    "integration_mode": "wrapper-only",
+    "runtime_evidence": [
+      "Wrapper e script presentes; runtime comprovado atual gera boilerplate por revit-generate"
+    ],
+    "source_assets": [
+      "skills/imported/create_revit_checklist_pdf/SKILL.md",
+      "skills/imported/create_revit_checklist_pdf/create_revit_checklist_pdf.py",
+      "skill/create_revit_checklist_pdf.py"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "autonomous-sales-agent-wrapper",
+    "path": "skills/imported/autonomous_sales_agent/SKILL.md",
+    "title": "Autonomous Sales Agent",
+    "description": "Wrapper importado de automação comercial sem binding real comprovado no runtime principal.",
+    "kind": "script-wrapper",
+    "runtime_status": "FALTANDO INTEGRAÇÃO",
+    "integration_mode": "wrapper-only",
+    "runtime_evidence": [
+      "Wrapper e script presentes no repositório"
+    ],
+    "source_assets": [
+      "skills/imported/autonomous_sales_agent/SKILL.md",
+      "skills/imported/autonomous_sales_agent/autonomous_sales_agent.py",
+      "skill/autonomous_sales_agent.py"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "skills-index-wrapper",
+    "path": "skills/imported/skills_index/SKILL.md",
+    "title": "Skills Index",
+    "description": "Wrapper documental para inventário agregado de skills importadas.",
+    "kind": "inventory-skill",
+    "runtime_status": "IMPLEMENTADO MAS NÃO COMPROVADO",
+    "integration_mode": "reference-only",
+    "runtime_evidence": [
+      "Wrapper e inventário presentes"
+    ],
+    "source_assets": [
+      "skills/imported/skills_index/SKILL.md",
+      "skills/imported/skills_index/skills_index.md",
+      "skill/skills_index.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "imported-readme-wrapper",
+    "path": "skills/imported/README/SKILL.md",
+    "title": "Imported README",
+    "description": "Wrapper documental do README legado importado.",
+    "kind": "documentation-wrapper",
+    "runtime_status": "IMPLEMENTADO MAS NÃO COMPROVADO",
+    "integration_mode": "reference-only",
+    "runtime_evidence": [
+      "Wrapper e README presentes"
+    ],
+    "source_assets": [
+      "skills/imported/README/SKILL.md",
+      "skills/imported/README/README.md",
+      "skill/README.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "apex-conversa-real",
+    "path": "docs/APEX_CONVERSA_REAL_SKILL.md",
+    "title": "Apex Conversa Real Skill",
+    "description": "Regra documental para respostas naturais, diretas e sem menu automático.",
+    "kind": "knowledge-skill",
+    "runtime_status": "IMPLEMENTADO MAS NÃO COMPROVADO",
+    "integration_mode": "behavioral-guidance",
+    "runtime_evidence": [
+      "Documento presente; regras espelhadas no chat principal"
+    ],
+    "source_assets": [
+      "docs/APEX_CONVERSA_REAL_SKILL.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "apex-platform-engineering",
+    "path": "docs/APEX_PLATFORM_ENGINEERING_SKILL.md",
+    "title": "Apex Platform Engineering Skill",
+    "description": "Skill de conhecimento para GitHub, Vercel, Supabase, segurança e code review.",
+    "kind": "knowledge-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "runtime-knowledge",
+    "runtime_evidence": [
+      "src/lib/apexSkillKnowledge/platformEngineering.ts"
+    ],
+    "source_assets": [
+      "docs/APEX_PLATFORM_ENGINEERING_SKILL.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "apex-revit-customization",
+    "path": "docs/APEX_REVIT_CUSTOMIZATION_SKILL.md",
+    "title": "Apex Revit Customization Skill",
+    "description": "Skill de conhecimento para Revit, pyRevit, Dynamo e plugins.",
+    "kind": "knowledge-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "runtime-knowledge",
+    "runtime_evidence": [
+      "src/lib/apexSkillKnowledge/revitCustomization.ts"
+    ],
+    "source_assets": [
+      "docs/APEX_REVIT_CUSTOMIZATION_SKILL.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "apex-windows-care-coding",
+    "path": "docs/APEX_WINDOWS_CARE_CODING_SKILL.md",
+    "title": "Apex Windows Care Coding Skill",
+    "description": "Skill de conhecimento para diagnóstico Windows e automações seguras.",
+    "kind": "knowledge-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "runtime-knowledge",
+    "runtime_evidence": [
+      "src/lib/apexSkillKnowledge/windowsCare.ts"
+    ],
+    "source_assets": [
+      "docs/APEX_WINDOWS_CARE_CODING_SKILL.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "apex-international-market-strategy",
+    "path": "docs/APEX_INTERNATIONAL_MARKET_STRATEGY.md",
+    "title": "Apex International Market Strategy",
+    "description": "Skill de conhecimento para posicionamento US/EU, offshore BIM e estratégia comercial.",
+    "kind": "knowledge-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "runtime-knowledge",
+    "runtime_evidence": [
+      "src/lib/apexSkillKnowledge/internationalMarketStrategy.ts"
+    ],
+    "source_assets": [
+      "docs/APEX_INTERNATIONAL_MARKET_STRATEGY.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
   }
 ]

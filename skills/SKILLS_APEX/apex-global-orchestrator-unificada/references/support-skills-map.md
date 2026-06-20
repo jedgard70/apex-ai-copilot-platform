@@ -11,14 +11,15 @@ Fontes detectadas em D:\AI Jedgard:
 
 Diretriz de integração:
 
-1. Skill oficial (núcleo) fica enxuta e governada.
+1. Skill oficial completa e governada.
 
-2. Skills de suporte entram como referências/módulos opcionais.
+2. Skills de suporte entram como integrada/módulos.
+
 3. substituir as skills originais sem aprovação.
 
 Status:
 
 - Mapeadas: sim
 
-- Integradas como referência na unificada: parcial (fase atual)
+- Integradas na unificada: parcial (fase atual)
 - Instalação/publicação: executada

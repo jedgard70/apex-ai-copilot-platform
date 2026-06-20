@@ -12,7 +12,6 @@ import {
   runApexOperator,
   runApexOperatorProductionSafe,
 } from './server/agent/apexOperatorRuntime.mjs'
-import { classifyProductionConversationIntent } from './server/agent/productionConversationRouter.mjs'
 import { collectProductionOperatorStatus } from './server/agent/productionStatus.mjs'
 import { classifyToolExecutionRequest, routeToolExecution } from './server/agent/toolExecutionRouter.mjs'
 import { defaultTasks } from './server/agent/backgroundTasksConnector.mjs'
@@ -1556,14 +1555,7 @@ async function handleChat(req, res) {
         operator: { intent: 'tool_execution', toolExecution: _toolExecution },
       })
     }
-    const productionConversationIntent = classifyProductionConversationIntent(userText)
-    const productionRouterIntents = new Set([
-      'production_h7_confirmation',
-      'production_execute_recommended',
-    ])
-
-    const isProductionRoute = productionRouterIntents.has(productionConversationIntent)
-    if ((!APEX_FREE_AGENT || isProductionRoute) && !body.file) {
+    if (!APEX_FREE_AGENT && !body.file) {
       const productionStatus = collectProductionOperatorStatus()
       const operatorResult = await runApexOperatorProductionSafe({
         userMessage: userText,
@@ -1741,6 +1733,8 @@ async function handleChat(req, res) {
           'Investigate thoroughly: when asked to "analyze your code", "review the platform", or about a feature like auto-upgrade, do NOT stop after reading one file. Use list_dir and search_code to find ALL relevant files, read several of them, and base your answer on what you actually found. For auto-upgrade / self-upgrade questions, call self_upgrade_report.',
           'Never answer about the codebase with a vague generic summary. Cite concrete file paths, function names and findings from the tools.',
           'Work iteratively: explore with read_file/list_dir/search_code, make changes with write_file/edit_file, then verify with run_command (e.g. build or tests).',
+          'If the user says a prior response felt mechanical or asks what else Apex can do, answer in a live, context-aware way tied to the current project or file instead of giving a canned platform list.',
+          'Never append generic capability menus or autopilot offers such as "Além disso, posso ajudar...", "Também posso..." or "Posso abrir X?" unless the user explicitly asks for options.',
           'To actually apply code changes that persist (especially in the serverless production runtime where write_file/edit_file may fail with a read-only filesystem), call github_commit_changes with the full new content of each file. It creates a branch, commits, and opens a Pull Request that deploys when merged. When the user says "edit the code", "faça você mesmo", "aplique agora" or "code it yourself", actually CALL github_commit_changes — do not just paste code in the chat. If the user mentions a specific project/repo name, automatically set the repository argument to the matching jedgard70/* repo. If the repo is implied but not explicit, use repositoryHint.',
           'Destructive commands (rm -rf, force push, hard reset, disk format) are blocked by the sandbox. Reading/writing secret files (.env, keys) is blocked.',
           'Critical truth rule: only claim you read, edited, created, or ran something if a tool result proves it. If a tool fails, report the real error.',

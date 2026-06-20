@@ -1,46 +1,52 @@
-# APEX Platform — Current State (honest snapshot)
+# APEX Platform — Current State
 
-Checkpoint: CP-LIVE-1
+Checkpoint: CP-LIVE-2
 
-Platform general status: YELLOW
+Platform general status: **YELLOW**
 
-Details:
+## Snapshot honesto
 
-- Build: GREEN (tsc + vite build passed locally in this workspace)
-- Validações locais: GREEN (parciais — veja lista abaixo)
-- Produto em browser / produção: NÃO COMPROVADO para múltiplos módulos (ver APEX_REALITY_AUDIT.md)
-- PR #24: mantém Draft (não marcar Ready)
-- Operating model: unified Apex surface across `apexglobalai.com` and `Apex.exe`, with mirrored secrets per environment and shared policy/state.
+- **Build / typecheck**: GREEN
+- **Testes locais**: GREEN
+- **Chat/Copilot em produção**: NÃO COMPROVADO neste checkpoint
+- **Upload/análise real em preview/produção**: NÃO COMPROVADO neste checkpoint
+- **Skills**: catálogo em correção; há mistura de skills reais, wrappers e inventários
+- **GitHub/Vercel/Supabase**: dependem de evidência externa atualizada por PR/check/deploy
 
-Validações locais executadas com sucesso:
+## Evidência local confirmada agora
 
-- validate-cp15x-h5: GREEN
-- validate-cp15x-h6: GREEN
-- validate-cp15x-final: GREEN
-- validate-cp15x-h43b: GREEN
+- `npx tsc -b`: GREEN
+- `npm test`: GREEN (82 testes)
+- `docsedgard-skill summary`: GREEN
+- `marketing-generate baseline-audit`: GREEN
+- `revit-generate baseline_audit`: GREEN
+- `execute-skill-audit`: GREEN/PARCIAL
 
-Validações que precisam de ambiente / corrigir:
+## O que ainda não pode ser marcado como pronto
 
-- validate-cp15x-h44: precisou de correção no fallback/idioma
-- validate-vercel: QUEBRADO por falta de dotenv / chaves
-- validate-supabase-live: QUEBRADO por falta de dotenv / chaves
-- validate-cp15x-h7: HTTP path não comprovado em ambiente sem provider key
-- GitHub/Vercel/Supabase access: depende das credenciais espelhadas no ambiente alvo; não assumir acesso sem prova do runtime.
+1. Chat/Copilot em produção.
+2. Upload + análise de arquivos com prova real em Preview/produção.
+3. Fluxos live de GitHub/Vercel/Supabase neste checkpoint.
+4. Wrappers de skills importadas como integração operacional plena.
 
-Resumo dos riscos e próximos passos imediatos:
+## Próximo padrão obrigatório
 
-1. Corrigir build/preview do PR #24 se ainda estiver quebrado.
-2. Fornecer variáveis de ambiente e segredos para validar integrações live (Vercel, Supabase, Local Worker).
-3. Provar flow crítico: Upload PDF → extração → resuma (M2).
-4. Provar DOCX/XLSX/IFC flows em ambiente real antes de marcar qualquer PR como Ready.
+Todo avanço crítico deve seguir esta sequência:
 
-Notas:
+1. auditar;
+2. corrigir código/docs;
+3. validar localmente;
+4. abrir PR;
+5. observar Preview Vercel;
+6. corrigir Preview se necessário;
+7. fazer merge;
+8. monitorar deploy de produção;
+9. executar smoke test;
+10. atualizar os documentos de estado.
 
-- "Feito" no código não é sinônimo de "Comprovado". Muitos módulos têm implementação mas falta prova de preview/produção.
-- Documentos de auditoria devem acompanhar evidências (logs, HTTP responses, screenshots) quando as provas forem feitas.
+## Referências canônicas
 
-Referências:
-
-- docs/APEX_REALITY_AUDIT.md
-- docs/APEX_MODULE_AUDIT.md
-- docs/APEX_OPEN_BUGS_AND_NEXT_ACTIONS.md
+- `docs/APEX_MASTER_BUILD_PLAN.md`
+- `docs/APEX_REALITY_AUDIT.md`
+- `docs/APEX_MODULE_AUDIT.md`
+- `docs/APEX_OPEN_BUGS_AND_NEXT_ACTIONS.md`
