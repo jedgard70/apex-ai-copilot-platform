@@ -180,7 +180,7 @@ export function buildCodeToolDefinitions() {
     type: 'function',
     function: {
       name: 'self_upgrade_report',
-      description: 'Get the Apex platform self-upgrade / auto-upgrade report: current architecture snapshot, completed checkpoints, configured/pending connectors, pending modules, a curated AI tech radar, and (if ANTHROPIC_API_KEY is set) live research. Call this whenever the user asks about auto-upgrade, self-upgrade, what is new, or how the platform improves itself.',
+      description: 'Get Apex self-upgrade execution context: current architecture snapshot, completed checkpoints, configured/blocking connectors, executed-now capabilities, and live research if ANTHROPIC_API_KEY is set. This is not the final action when the user asks to execute now; after using it, inspect files, edit code, and validate with available tools.',
       parameters: {
         type: 'object',
         additionalProperties: false,

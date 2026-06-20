@@ -1,11 +1,18 @@
 /**
  * Apex AI Copilot — H14 Image Generation Connector
- * Calls OpenAI DALL-E (or compatible API) when OPENAI_API_KEY is configured.
+ * Calls AI Gateway when AI_GATEWAY_API_KEY is configured, otherwise OpenAI DALL-E.
  * Falls back to curated prompt-engineering guidance when API is unavailable.
  */
 
+import { generateImage as generateGatewayImage } from 'ai'
+
 const OPENAI_IMAGES_URL = 'https://api.openai.com/v1/images/generations'
 const CONNECTOR_TIMEOUT_MS = 30000
+const DEFAULT_GATEWAY_IMAGE_MODEL = 'bfl/flux-pro-1.1'
+
+function hasGatewayConfig() {
+  return Boolean(process.env.AI_GATEWAY_API_KEY)
+}
 
 function hasOpenAIConfig() {
   return Boolean(process.env.OPENAI_API_KEY)
@@ -79,10 +86,39 @@ export function buildImagePrompt(userMessage = '', renderType = 'architectural_r
 // ─── API executor ─────────────────────────────────────────────────────────────
 
 export async function generateImage({ prompt, size = '1024x1024', quality = 'standard', model = 'dall-e-3' } = {}) {
+  if (hasGatewayConfig()) {
+    try {
+      const gatewayModel = process.env.AI_GATEWAY_IMAGE_MODEL || DEFAULT_GATEWAY_IMAGE_MODEL
+      const result = await generateGatewayImage({
+        model: gatewayModel,
+        prompt,
+        size,
+      })
+      const image = result.images && result.images[0]
+      if (!image?.base64) {
+        return { ok: false, reason: 'AI Gateway não retornou imagem.', secretsExposed: false }
+      }
+      return {
+        ok: true,
+        imageUrl: `data:image/png;base64,${image.base64}`,
+        revisedPrompt: prompt,
+        model: gatewayModel,
+        size,
+        secretsExposed: false,
+      }
+    } catch (err) {
+      return {
+        ok: false,
+        reason: `AI Gateway: ${err?.message || err}`,
+        secretsExposed: false,
+      }
+    }
+  }
+
   if (!hasOpenAIConfig()) {
     return {
       ok: false,
-      reason: 'OPENAI_API_KEY não configurado. Para gerar imagens, adicione a variável no Vercel.',
+      reason: 'AI_GATEWAY_API_KEY ou OPENAI_API_KEY não configurado. Para gerar imagens, configure uma dessas variáveis.',
       requiresConfig: true,
       secretsExposed: false,
     }
@@ -164,9 +200,11 @@ export function buildImageGenPromptReply(userMessage = '') {
     '**Prompt negativo (para SD/Comfy):**',
     `\`${negative_prompt}\``,
     '',
-    hasOpenAIConfig()
-      ? 'Posso gerar a imagem agora com DALL-E 3. Confirma? (sim / ajustar prompt)'
-      : '_Para geração direta, configure `OPENAI_API_KEY` no Vercel. Por enquanto, use o prompt acima no Midjourney, DALL-E ou Stable Diffusion._',
+    hasGatewayConfig()
+      ? 'Posso gerar a imagem agora com AI Gateway. Confirma? (sim / ajustar prompt)'
+      : hasOpenAIConfig()
+        ? 'Posso gerar a imagem agora com DALL-E 3. Confirma? (sim / ajustar prompt)'
+        : '_Para geração direta, configure `AI_GATEWAY_API_KEY` ou `OPENAI_API_KEY`. Por enquanto, use o prompt acima no Midjourney, DALL-E ou Stable Diffusion._',
   ].join('\n')
 }
 
@@ -174,7 +212,7 @@ export function buildImageResultReply(result, prompt) {
   if (!result.ok) {
     return [
       `Não foi possível gerar a imagem: ${result.reason}`,
-      result.requiresConfig ? 'Configure `OPENAI_API_KEY` no Vercel para habilitar geração direta.' : '',
+      result.requiresConfig ? 'Configure `AI_GATEWAY_API_KEY` ou `OPENAI_API_KEY` para habilitar geração direta.' : '',
     ].filter(Boolean).join('\n')
   }
 
@@ -191,13 +229,18 @@ export function buildImageResultReply(result, prompt) {
 }
 
 export function getImageGenConnectorStatus() {
+  const configured = hasGatewayConfig() || hasOpenAIConfig()
+  const detail = hasGatewayConfig()
+    ? 'AI Gateway configurado — geração direta disponível.'
+    : hasOpenAIConfig()
+      ? 'OpenAI DALL-E configurado — geração direta disponível.'
+      : 'Modo prompt: gera prompts profissionais para Midjourney/DALL-E/SD. Configure AI_GATEWAY_API_KEY ou OPENAI_API_KEY para geração direta.'
+
   return {
     id: 'image_generation',
-    label: 'Image generation (DALL-E)',
-    status: hasOpenAIConfig() ? 'configured' : 'prompt_only',
-    configured: hasOpenAIConfig(),
-    detail: hasOpenAIConfig()
-      ? 'OpenAI DALL-E configurado — geração direta disponível.'
-      : 'Modo prompt: gera prompts profissionais para Midjourney/DALL-E/SD. Configure OPENAI_API_KEY para geração direta.',
+    label: 'Image generation',
+    status: configured ? 'configured' : 'prompt_only',
+    configured,
+    detail,
   }
 }

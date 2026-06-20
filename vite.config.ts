@@ -13,13 +13,18 @@ export default defineConfig({
           dest: '',
           rename: { stripBase: 2 },
         },
-            {
-              src: 'node_modules/pdfjs-dist/build/pdf.worker.min.mjs',
-              dest: '',
-              rename: { stripBase: 2 },
-            },
-          ],
-        }),
+        {
+          src: 'node_modules/pdfjs-dist/build/pdf.worker.min.mjs',
+          dest: '',
+          rename: { stripBase: 2 },
+        },
+        {
+          src: 'examples/travel-planner/*',
+          dest: 'travel-planner',
+          rename: { stripBase: 2 },
+        },
+      ],
+    }),
   ],
   resolve: {
     alias: {
@@ -41,6 +46,7 @@ export default defineConfig({
             if (id.includes('pdfjs-dist') || id.includes('pdf.worker')) return 'pdfjs'
             if (id.includes('xlsx')) return 'xlsx'
             if (id.includes('three') || id.includes('@react-three')) return 'three-vendor'
+            if (id.includes('lucide-react')) return 'lucide'
             if (id.includes(path.sep + 'react' + path.sep) || id.includes('/react/')) return 'react-vendor'
             if (id.includes(path.sep + 'react-dom' + path.sep) || id.includes('/react-dom/')) return 'react-vendor'
             if (id.includes('@supabase') || id.includes('supabase')) return 'supabase-vendor'

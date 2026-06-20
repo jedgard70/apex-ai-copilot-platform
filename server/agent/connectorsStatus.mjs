@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { getFirebaseMessagingStatus } from './firebaseConnector.mjs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -164,6 +165,10 @@ export function collectConnectorsStatus() {
   const vercelOrgPresent = Boolean(vercelTeamId)
   const vercelProductionDomain = firstEnv(['APEX_PRODUCTION_DOMAIN', 'VERCEL_PROJECT_PRODUCTION_URL']) || DEFAULT_VERCEL_PRODUCTION_DOMAIN
   const vercelConfigured = vercelTokenPresent && Boolean(vercelProjectId)
+  const authkeyPresent = hasEnv('AUTHKEY_AUTHKEY')
+  const authkeySmsConfigured = authkeyPresent && hasEnv('AUTHKEY_SMS_SENDER')
+  const authkeyOtpConfigured = authkeyPresent && hasEnv('AUTHKEY_OTP_SID')
+  const firebaseMessaging = getFirebaseMessagingStatus()
 
   return {
     ok: true,
@@ -205,6 +210,20 @@ export function collectConnectorsStatus() {
       unavailableReason: vercelConfigured ? '' : 'Vercel token/env ausente.',
       nextRequired: vercelConfigured ? '' : 'Configurar VERCEL_TOKEN e VERCEL_PROJECT_ID no backend.',
     },
+    authkey: {
+      id: 'authkey',
+      label: 'Authkey communication connector',
+      status: boolStatus(authkeyPresent),
+      configured: authkeyPresent,
+      tokenPresent: authkeyPresent,
+      smsConfigured: authkeySmsConfigured,
+      otpConfigured: authkeyOtpConfigured,
+      whatsappConfigured: authkeyPresent && hasEnv('AUTHKEY_WHATSAPP_SID'),
+      capability: authkeyPresent ? 'sms_otp_whatsapp_communication_available' : 'requires_authkey_authkey',
+      unavailableReason: authkeyPresent ? '' : 'Authkey auth key/env ausente.',
+      nextRequired: authkeyPresent ? '' : 'Configurar AUTHKEY_AUTHKEY no backend.',
+    },
+    firebaseMessaging,
     executor: {
       localExecutor: process.env.VERCEL === '1' ? 'unavailable_in_vercel' : 'available_when_git_and_repo_exist',
       connectorExecutor: githubConfigured || vercelConfigured ? 'configured' : 'pending',
@@ -437,6 +456,24 @@ export function connectorsAsProductionList(status = collectConnectorsStatus()) {
       detail: 'Suficiente para cliente Supabase no frontend, nao para migrations.',
     },
     {
+      id: 'authkey',
+      label: 'Authkey SMS/OTP/WhatsApp',
+      status: status.authkey?.configured ? 'configured' : 'missing_configuration',
+      configured: Boolean(status.authkey?.configured),
+      detail: status.authkey?.configured
+        ? `SMS ${status.authkey.smsConfigured ? 'configurado' : 'pendente'}, OTP ${status.authkey.otpConfigured ? 'configurado' : 'pendente'}, WhatsApp ${status.authkey.whatsappConfigured ? 'configurado' : 'depende de SID/template aprovado'}.`
+        : 'Necessario para SMS, OTP, WhatsApp e fallback multicanal via Authkey.',
+    },
+    {
+      id: 'firebase_messaging',
+      label: 'Firebase Cloud Messaging app push',
+      status: status.firebaseMessaging?.status || 'missing_configuration',
+      configured: Boolean(status.firebaseMessaging?.configured),
+      detail: status.firebaseMessaging?.configured
+        ? 'FCM configurado para push notification de app.'
+        : 'Conector FCM implementado; configure Firebase client, VAPID e service account env vars para envio real.',
+    },
+    {
       id: 'openai',
       label: 'OpenAI provider',
       status: hasEnv('OPENAI_API_KEY') ? 'configured' : 'missing_configuration',
@@ -528,6 +565,23 @@ export function buildConnectorsStatusReply(status = collectConnectorsStatus(), f
     }
     if (!status.vercel.configured) lines.push(`  Próximo: ${status.vercel.nextRequired}`)
     else if (status.vercel.unavailableReason) lines.push(`  Observação: ${status.vercel.unavailableReason}`)
+  }
+
+  if (focus === 'all') {
+    const authkey = status.authkey || {}
+    lines.push(`- Authkey communication connector: ${authkey.status || (authkey.configured ? 'configured' : 'unavailable')}.`)
+    lines.push(`  Auth key presente: ${authkey.tokenPresent ? 'sim' : 'não'}.`)
+    lines.push(`  SMS: ${authkey.smsConfigured ? 'configurado' : 'pendente'}.`)
+    lines.push(`  OTP: ${authkey.otpConfigured ? 'configurado' : 'pendente'}.`)
+    lines.push(`  WhatsApp: ${authkey.whatsappConfigured ? 'configurado' : 'depende de SID/template aprovado'}.`)
+    if (!authkey.configured) lines.push(`  Próximo: ${authkey.nextRequired || 'Configurar AUTHKEY_AUTHKEY no backend.'}`)
+
+    const fcm = status.firebaseMessaging || {}
+    lines.push(`- Firebase Cloud Messaging: ${fcm.status || (fcm.configured ? 'configured' : 'missing_configuration')}.`)
+    lines.push(`  Client config: ${fcm.clientConfigured ? 'configurado' : 'pendente'}.`)
+    lines.push(`  VAPID: ${fcm.vapidConfigured ? 'configurado' : 'pendente'}.`)
+    lines.push(`  Service account: ${fcm.serverConfigured ? 'configurado' : 'pendente'}.`)
+    if (!fcm.configured) lines.push(`  Próximo: ${fcm.nextRequired || 'Configurar Firebase client, VAPID e service account env vars.'}`)
   }
 
   lines.push(`- Executor local: ${status.executor.localExecutor}.`)

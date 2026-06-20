@@ -1,0 +1,47 @@
+mutation SeedDatabase @transaction {
+  user_insertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      email: "agent1@example.com",
+      role: "agent",
+      name: "Alice Agent"
+    },
+    {
+      id: "550e8400-e29b-41d4-a716-446655440001",
+      email: "agent2@example.com",
+      role: "agent",
+      name: "Bob Agent"
+    }
+  ])
+  project_insertMany(data: [
+    {
+      id: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+      name: "Downtown Plaza",
+      status: "In Progress",
+      location: "San Francisco",
+      startDate: "2023-10-01"
+    }
+  ])
+  task_insertMany(data: [
+    {
+      title: "Foundation Work",
+      dueDate: "2023-12-01",
+      status: "Completed",
+      project: { id: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11" }
+    },
+    {
+      title: "Electrical Inspection",
+      dueDate: "2024-02-15",
+      status: "Pending",
+      project: { id: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11" }
+    }
+  ])
+  lead_insertMany(data: [
+    {
+      name: "John Doe",
+      status: "New",
+      source: "Web",
+      assignedAgent: { id: "550e8400-e29b-41d4-a716-446655440000" }
+    }
+  ])
+}

@@ -1,0 +1,25 @@
+mutation CreateProject($name: String!, $status: String!, $location: String!, $startDate: Date!, $budgetTotal: Float) @auth(level: USER) {
+  project_insert(data: { name: $name, status: $status, location: $location, startDate: $startDate, budgetTotal: $budgetTotal })
+}
+
+mutation CreateTask($title: String!, $dueDate: Date!, $status: String!, $projectId: UUID!) @auth(level: USER) {
+  task_insert(data: { title: $title, dueDate: $dueDate, status: $status, projectId: $projectId })
+}
+
+query ListProjects @auth(level: USER) {
+  projects {
+    name
+    status
+    location
+    startDate
+  }
+}
+
+query GetProjectTasks($projectId: UUID!) @auth(level: USER) {
+  tasks(where: { projectId: { eq: $projectId } }) {
+    title
+    status
+    dueDate
+    actualCost
+  }
+}
