@@ -1599,6 +1599,34 @@ function App() {
         : 'User uploaded this file. Analyze it as project context and continue naturally in a short conversational reply. Do not write a report, heading, observations list, or capabilities list.'
       : '')
     const userMessage: Message = { id: id(), role: 'user', text: userText, attachment }
+    if (attachment && attachment.file.name.toLowerCase().endsWith('.md')) {
+      if (!isOwnerUser) {
+        setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'This tool is restricted to workspace owners/admins.' }])
+        setInput('')
+        return
+      }
+      setActiveFile(attachment)
+      const signal = id()
+      setSkillUpdateOpenSignal(signal)
+      setSkillUpdateAutoAnalyzeSignal(signal)
+      const trustedGlobal = isTrustedGlobalSkillSource(attachment.file.name, '', attachment.sourcePath || attachment.file.webkitRelativePath || '')
+      setSkillUpdateAutoApplyProjectMemory(!trustedGlobal)
+      setSkillUpdateAutoApplyGlobal(trustedGlobal)
+      setOwnerConsoleOpen(true)
+      setMessages(prev => [
+        ...prev,
+        userMessage,
+        {
+          id: id(),
+          role: 'assistant',
+          text: trustedGlobal
+            ? `Recebi ${attachment.file.name}. Vou analisar e aplicar como skill global automaticamente no painel Skill Update do Owner Console.`
+            : `Recebi ${attachment.file.name}. Vou analisar e incorporar o conteúdo como memória do projeto automaticamente no painel Skill Update do Owner Console.`
+        }
+      ])
+      setInput('')
+      return
+    }
     if (!isSignedIn) {
       setMessages(prev => [
         ...prev,
@@ -2200,17 +2228,6 @@ function App() {
       dimensions: dataUrl ? await readImageDimensions(dataUrl).catch(() => undefined) : undefined,
     }
     setActiveFile(intake)
-
-    if (extension === 'md') {
-      const signal = id()
-      setSkillUpdateOpenSignal(signal)
-      setSkillUpdateAutoAnalyzeSignal(signal)
-      const trustedGlobal = isTrustedGlobalSkillSource(file.name, '', file.webkitRelativePath || '')
-      setSkillUpdateAutoApplyProjectMemory(!trustedGlobal)
-      setSkillUpdateAutoApplyGlobal(trustedGlobal)
-      setMessages(prev => [...prev, { id: id(), role: 'assistant', text: trustedGlobal ? `Recebi ${file.name}. Vou analisar e aplicar como skill global automaticamente.` : `Recebi ${file.name}. Vou analisar e incorporar o conteúdo como memória do projeto automaticamente.` }])
-      return
-    }
 
     setSkillUpdateAutoAnalyzeSignal('')
     setSkillUpdateAutoApplyProjectMemory(false)
