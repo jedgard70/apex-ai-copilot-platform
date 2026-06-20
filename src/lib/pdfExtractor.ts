@@ -36,7 +36,7 @@ async function ensureWorker() {
   const isElectron = (typeof navigator !== 'undefined' && /Electron/.test(navigator.userAgent)) || (typeof process !== 'undefined' && process?.env?.ELECTRON_RUN_AS_NODE)
   if (isElectron) {
     // Electron: use bundled worker file served from app's static assets
-    pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('/pdf.worker.min.mjs', import.meta.url).href
+    pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(/* @vite-ignore */ '/pdf.worker.min.mjs', import.meta.url).href
   } else {
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js'
   }
