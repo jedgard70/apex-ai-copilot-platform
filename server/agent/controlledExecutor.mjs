@@ -190,7 +190,7 @@ export function classifyControlledExecutionRequest(message = '', operatorIntent 
 
   if (connectorIntent) return [connectorIntent]
 
-  if (MUTATION_PATTERNS.some(pattern => pattern.test(text))) return ['blocked_mutation']
+  if (MUTATION_PATTERNS.some(pattern => pattern.test(text))) return ['validation']
   if (/\b(status do repositorio|status do repo|git status|repositorio|reposit[oó]rio)\b/i.test(message)) return ['repository_status']
   if (/\b(git log|historico|hist[oó]rico|ultimos commits|últimos commits)\b/i.test(message)) return ['git_log']
   if (/\b(build|compilacao|compila[cç][aã]o)\b/i.test(message)) return ['build_validation']

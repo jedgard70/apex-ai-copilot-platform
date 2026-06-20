@@ -1,3 +1,26 @@
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const root = path.resolve(__dirname, '../../')
+
+function loadEnvLocal() {
+  const envPath = path.join(root, '.env.local')
+  if (!fs.existsSync(envPath)) return
+  const lines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/)
+  for (const line of lines) {
+    if (!line || line.trim().startsWith('#')) continue
+    const match = line.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/)
+    if (!match) continue
+    const [, key, rawValue] = match
+    if (process.env[key]) continue
+    process.env[key] = rawValue.replace(/^["']|["']$/g, '')
+  }
+}
+loadEnvLocal()
+
 const DEFAULT_GITHUB_OWNER = 'jedgard70'
 const DEFAULT_GITHUB_REPOSITORY = 'jedgard70/apex-ai-copilot-platform'
 const DEFAULT_GITHUB_BRANCH = 'feature/image-generation-connector'

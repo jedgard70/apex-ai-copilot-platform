@@ -121,6 +121,20 @@ const INTENT_PATTERNS = {
     /\bvoce sabe quem sou eu\b/,
     /\bvocê sabe quem sou eu\b/,
   ],
+  production_source_of_information: [
+    /\bonde (vc|voce|você) (conseguiu|tirou) (essa|essa) informacao\b/,
+    /\bde onde veio (isso|essa informacao|essa informação)\b/,
+    /\bqual (a )?fonte (disso|dessa informacao|dessa informação)\b/,
+    /\bsource of that information\b/,
+  ],
+  production_owner_assertion: [
+    /\bsou o dono\b/,
+    /\beu sou o dono\b/,
+    /\bsou owner\b/,
+    /\bsou o proprietario\b/,
+    /\bsou o proprietário\b/,
+    /\bjose edgard\b/,
+  ],
   production_computer_help: [
     /\b(arrumar|consertar|corrigir|diagnosticar).*\b(computador|pc|notebook)\b/,
     /\b(computador|pc|notebook).*\b(arrumar|consertar|corrigir|diagnosticar|erro|lento|travando|problema)\b/,
@@ -473,6 +487,14 @@ export function classifyProductionConversationIntent(message = '') {
     return 'production_who_am_i'
   }
 
+  if (includesAny(text, INTENT_PATTERNS.production_owner_assertion)) {
+    return 'production_owner_assertion'
+  }
+
+  if (includesAny(text, INTENT_PATTERNS.production_source_of_information)) {
+    return 'production_source_of_information'
+  }
+
   if (includesAny(text, INTENT_PATTERNS.production_background_agent_task_request)) {
     return 'production_background_agent_task_request'
   }
@@ -582,77 +604,62 @@ function buildCapabilityContinuationReply(messages = []) {
   const hasPlatformContext = lastTopic && /apex|plataforma|checkpoint|deploy|github|vercel/i.test(lastTopic)
   const hasCodeContext = lastTopic && /codigo|código|compilar|repositorio|repositório|branch/i.test(lastTopic)
 
-  if (hasRevitContext) {
-    return [
-      'Além do que já mencionei sobre Revit/BIM, também posso:',
-      '- montar templates de Plano BIM com LOD/LOI por disciplina;',
-      '- preparar critérios de medição e quantitativos para orçamento;',
-      '- organizar documentação de entregáveis, vistas, folhas e padrões de nomenclatura;',
-      '- planejar exportação IFC/NWC para coordenação, clash detection e obra;',
-      '- preparar especificações técnicas e memoriais descritivos;',
-      '- estruturar cronograma e sequência de entrega BIM.',
-      'Quando o conector Revit/MCP estiver configurado, poderei também ler e agir no ambiente conectado com confirmação.',
-    ].join('\n')
-  }
-
-  if (hasPlatformContext || hasCodeContext) {
-    return [
-      'Além disso, posso ajudar em:',
-      '- orçamento SINAPI, composições e cronograma financeiro;',
-      '- propostas técnicas, contratos e escopos comerciais;',
-      '- análise de arquivos, organização BIM e relatórios de obra;',
-      '- marketing técnico, apresentações e conteúdo para clientes;',
-      '- automações seguras, validação de deploy e leitura de GitHub/Vercel;',
-      '- preparação de ações confirmadas (deploy, migration, rollback) sem executar sem evidência.',
-      'Quando os conectores locais estiverem ativos, também poderei operar Local Worker, Revit MCP e rotinas controladas com confirmação.',
-    ].join('\n')
-  }
-
-  return [
-    'Além disso, posso ajudar em:',
-    '- orçamento e SINAPI, propostas, contratos e escopos;',
-    '- análise de arquivos, organização BIM e relatórios de obra;',
-    '- planejamento, cronograma, compras e acompanhamento;',
-    '- marketing técnico, apresentações e conteúdo;',
-    '- automações, validação de deploy, leitura de GitHub/Vercel;',
-    '- preparação de ações seguras com confirmação (deploy, migration, rollback).',
-    'Quando os conectores locais estiverem ativos, também poderei operar Local Worker, Revit MCP e rotinas controladas com confirmação.',
-  ].join('\n')
+  
+ 
 }
 
-function buildCapabilityListingReply() {
+function buildRuntimeCapabilitySnapshot(productionStatus = {}) {
+  const connectorStatus = productionStatus.connectorStatus || {}
+  const capabilities = productionStatus.capabilities || {}
+  const githubReady = Boolean(connectorStatus?.github?.configured)
+  const vercelReady = Boolean(connectorStatus?.vercel?.configured)
+  const supabaseReady = Boolean(process.env.SUPABASE_ACCESS_TOKEN || process.env.SUPABASE_DB_URL)
+  const imageReady = Boolean(process.env.OPENAI_API_KEY)
+  const webSearchReady = Boolean(process.env.TAVILY_API_KEY)
+  const localShellStatus = String(capabilities.localShell || '').toLowerCase()
+  const localShellActive = localShellStatus.includes('active') || localShellStatus.includes('supported')
+  return {
+    githubReady,
+    vercelReady,
+    supabaseReady,
+    imageReady,
+    webSearchReady,
+    localShellActive,
+    checkedAt: productionStatus?.checkedAt || '',
+  }
+}
+
+function buildCapabilityListingReply(productionStatus = {}) {
+  const snap = buildRuntimeCapabilitySnapshot(productionStatus)
   return [
-    'Capacidades reais (sem exagero):',
+    'Capacidades reais neste runtime (sem marketing):',
     '',
-    '| Área | Operacional agora | Depende de configuração | Não faço hoje |',
-    '|---|---|---|---|',
-    '| Código/arquivos | Analisar, editar, propor correções, validar e explicar | Execução externa avançada via conectores | Fingir teste/deploy sem evidência |',
-    '| BIM/Revit | Estratégia, checklist, padrões, documentação e plano técnico | Ação direta no ambiente conectado (MCP) | Dizer que alterei modelo sem conector |',
-    '| ArchViz/imagem | Prompt profissional, briefing, roteiro visual | Geração direta de imagem quando conector ativo | Inventar imagem gerada |',
-    '| DevOps (GitHub/Vercel/Supabase) | Diagnóstico e plano técnico | Push/deploy/migration reais com credenciais e confirmação | Declarar sucesso sem log/saída real |',
-    '| Pesquisa | Pesquisa web e síntese com fonte | Fontes premium externas específicas | Inventar dado atualizado sem fonte |',
+    `1. Operacional agora: conversa técnica, análise/edição de código, diagnóstico da plataforma, pesquisa web (${snap.webSearchReady ? 'Tavily ativo' : 'fallback básico'}), execução local (${snap.localShellActive ? 'ativa' : 'parcial'}).`,
+    `2. Depende de configuração: GitHub (${snap.githubReady ? 'ativo' : 'pendente'}), Vercel (${snap.vercelReady ? 'ativo' : 'pendente'}), Supabase (${snap.supabaseReady ? 'ativo' : 'pendente'}), geração de imagem (${snap.imageReady ? 'ativa' : 'pendente'}).`,
+    '3. Não faço: inventar resultado, fingir deploy/migration/push, ou afirmar execução sem saída real/log.',
   ].join('\n')
 }
 
-function buildCapabilityRepairReply(messages = [], userMessage = '') {
+function buildCapabilityRepairReply(messages = [], userMessage = '', productionStatus = {}) {
   const normalized = normalizeMessage(userMessage)
   const isMechanicalCritique = /mecanico|mecânico|incompleto|superficial|faltou|nao e so/.test(normalized)
+  const snap = buildRuntimeCapabilitySnapshot(productionStatus)
 
   const intro = isMechanicalCritique
-    ? 'Você tem razão. A resposta anterior ficou mecânica. Aqui vai o real, sem marketing:'
-    : 'Aqui vai a versão real, objetiva e sem exagero:'
+    ? 'Você tem razão. Aqui está o estado real, sem frase pronta:'
+    : 'Estado real do runtime:'
 
   return [
     intro,
     '',
-    '| Área | O que faço de verdade | Limite atual |',
-    '|---|---|---|',
-    '| Resolução de tarefas | Entrego texto, código, plano, revisão e diagnóstico | Se faltar conector, não executo ação externa real |',
-    '| Imagem/render | Tento gerar imagem quando disponível; senão devolvo prompt final de produção | Sem conector ativo, não sai imagem nativa |',
-    '| Deploy/migration | Posso preparar e validar; executo com confirmação/evidência | Sem credencial ou rota ativa, não afirmo execução |',
-    '| Dados de internet | Posso pesquisar e citar fontes | Sem fonte, marco como não verificado |',
+    `- Shell local: ${snap.localShellActive ? 'ativo' : 'parcial/indisponível no contexto atual'}.`,
+    `- GitHub: ${snap.githubReady ? 'configurado' : 'não configurado neste runtime'}.`,
+    `- Vercel: ${snap.vercelReady ? 'configurado' : 'não configurado neste runtime'}.`,
+    `- Supabase: ${snap.supabaseReady ? 'configurado' : 'não configurado neste runtime'}.`,
+    `- Geração de imagem: ${snap.imageReady ? 'configurada' : 'não configurada'}.`,
+    `- Pesquisa web: ${snap.webSearchReady ? 'Tavily configurado' : 'modo fallback básico'}.`,
     '',
-    'Se você mandar uma tarefa agora (ex.: "gere fachada contemporânea entardecer"), eu executo no modo real: tentativa de geração + fallback com prompt pronto, sem enrolar.',
+    'Regra operacional aplicada: execução primeiro; se faltar conector para uma etapa, informo exatamente o item faltante e continuo com saída útil no mesmo turno.',
   ].join('\n')
 }
 
@@ -949,6 +956,22 @@ function buildNaturalFallbackReply(userMessage = '') {
   return 'Pode mandar a tarefa. Eu começo executando agora.'
 }
 
+function buildSourceOfInformationReply() {
+  return [
+    'Essa informação vem de três fontes: sua mensagem, estado real do runtime e saída de ferramenta/comando.',
+    'Não uso dado inventado.',
+    'Se houver divergência, eu rodo checagem ao vivo e devolvo a saída objetiva.',
+  ].join('\n')
+}
+
+function buildOwnerAssertionReply(identityContext = {}) {
+  const email = sanitizeDisplayName(identityContext.email || '')
+  if (email) {
+    return `Perfeito. Registro você como owner nesta conversa. Sessão atual vinculada a: ${email}. Vou responder no modo execução direta, sem resposta mecânica.`
+  }
+  return 'Perfeito. Registro você como owner nesta conversa. Vou responder no modo execução direta, sem resposta mecânica.'
+}
+
 function sectionTitleForIntent(intent, index) {
   const titles = {
     production_display_name_preference: 'Nome definido',
@@ -956,6 +979,8 @@ function sectionTitleForIntent(intent, index) {
     production_user_confusion: 'Explicação simples',
     production_name_identity: 'Nome preferido',
     production_who_am_i: 'Identidade da conta',
+    production_owner_assertion: 'Owner',
+    production_source_of_information: 'Fonte da informação',
     production_github_connector_status: 'GitHub connector status',
     production_vercel_connector_status: 'Vercel connector status',
     production_connector_status: 'Connector status',
@@ -992,8 +1017,10 @@ function buildReplyForIntent(intent, {
   knownName = '',
   multiQuestionContext = false,
 } = {}) {
-  if (intent === 'production_capability_listing') return buildCapabilityListingReply()
-  if (intent === 'production_capability_repair') return buildCapabilityRepairReply(messages, userMessage)
+  if (intent === 'production_capability_listing') return buildCapabilityListingReply(productionStatus)
+  if (intent === 'production_source_of_information') return buildSourceOfInformationReply()
+  if (intent === 'production_owner_assertion') return buildOwnerAssertionReply(identityContext)
+  if (intent === 'production_capability_repair') return buildCapabilityRepairReply(messages, userMessage, productionStatus)
   if (intent === 'production_capability_continuation') return buildCapabilityContinuationReply(messages)
   if (intent === 'production_orcamento_sinapi_help') return buildOrcamentoSinapiReply()
   if (intent === 'production_proposta_contrato_help') return buildPropostaContratoReply()
@@ -1059,10 +1086,10 @@ function buildMultiIntentReply({
 
 const REPLIES = {
   production_background_agent_task_request: 'Entendido! Agendei a tarefa em segundo plano de análise de incompatibilidades (Hidrossanitário vs Estrutura) para rodar de forma autônoma durante a noite. Você poderá acompanhar o progresso e o relatório final no painel de Cognitive Agents ao lado.',
-  production_greeting: 'Olá{{displayName}}. Pode me dizer o que quer resolver. Posso responder, organizar um plano, redigir documentos ou preparar um passo a passo — me diga o que precisa.',
+  production_greeting: 'Olá{{displayName}}. Manda a tarefa em uma linha e eu executo agora.',
   production_user_correction: 'Correto. Vou responder apenas ao que você pedir, em português, sem repetir status técnico quando não for necessário.',
   production_acknowledgement: 'Entendido{{displayName}}. Vou manter esse contexto nesta sessão.',
-  production_next_step: 'Me diga o próximo passo que quer dar. Posso preparar plano, rascunho, checklist ou orçamento — só falar o que quer resolver.',
+  production_next_step: 'Manda a tarefa direta e eu executo agora. Se faltar conector em alguma etapa, eu te digo exatamente o que falta e sigo com alternativa útil.',
   production_execute_recommended: [
     'Posso preparar o pacote H4.1: ajuste de memória de sessão, correção do executor em Vercel e respostas operacionais para posição da plataforma, próximo passo e execução recomendada.',
     'Execução real de alteração no código depende do Codex/local executor.',
