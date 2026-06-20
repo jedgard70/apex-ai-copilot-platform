@@ -1060,6 +1060,7 @@ function App() {
   const [bimCommand, setBimCommand] = useState<BimCommand | undefined>()
   const [workspaceOpenSignal, setWorkspaceOpenSignal] = useState('')
   const [skillUpdateOpenSignal, setSkillUpdateOpenSignal] = useState('')
+  const [skillUpdateFile, setSkillUpdateFile] = useState<IntakeFile | undefined>()
   const [skillUpdateAutoAnalyzeSignal, setSkillUpdateAutoAnalyzeSignal] = useState('')
   const [skillUpdateAutoApplyProjectMemory, setSkillUpdateAutoApplyProjectMemory] = useState(false)
   const [skillUpdateAutoApplyGlobal, setSkillUpdateAutoApplyGlobal] = useState(false)
@@ -1375,6 +1376,12 @@ function App() {
     if (except !== 'copilotExecution') setCopilotExecutionOutput(null)
     if (except !== 'auth') setAuthOutput(null)
     if (except !== 'exportCenter') setExportCenterOpen(false)
+    if (except !== 'ownerConsole') setOwnerConsoleOpen(false)
+  }
+
+  function openOwnerConsole() {
+    closeOtherPanels('ownerConsole')
+    setOwnerConsoleOpen(true)
   }
 
   function handleActivateService(serviceId: string) {
@@ -1605,14 +1612,15 @@ function App() {
         setInput('')
         return
       }
-      setActiveFile(attachment)
+      setSkillUpdateFile(attachment)
+      setActiveFile(undefined)
       const signal = id()
       setSkillUpdateOpenSignal(signal)
       setSkillUpdateAutoAnalyzeSignal(signal)
       const trustedGlobal = isTrustedGlobalSkillSource(attachment.file.name, '', attachment.sourcePath || attachment.file.webkitRelativePath || '')
       setSkillUpdateAutoApplyProjectMemory(!trustedGlobal)
       setSkillUpdateAutoApplyGlobal(trustedGlobal)
-      setOwnerConsoleOpen(true)
+      openOwnerConsole()
       setMessages(prev => [
         ...prev,
         userMessage,
@@ -1664,7 +1672,7 @@ function App() {
         return
       }
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Owner Console / Mission Control. Use as superfícies existentes: Project Workspace, Skill Update, Skill Export, Account e Platform Maintenance.' }])
-      setOwnerConsoleOpen(true)
+      openOwnerConsole()
       setInput('')
       return
     }
@@ -1676,7 +1684,7 @@ function App() {
       }
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o checkpoint manager no Owner Console. Vou preparar continuidade, escopo, validações e checklist de PR sem executar shell livre, migration ou deploy.' }])
       setCopilotExecutionOutput({ goal: clean, conversationContext: [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`) })
-      setOwnerConsoleOpen(true)
+      openOwnerConsole()
       setInput('')
       return
     }
@@ -1728,7 +1736,7 @@ function App() {
         return
       }
       setSkillExportOpenSignal(id())
-      setOwnerConsoleOpen(true)
+      openOwnerConsole()
       setMessages(prev => [
         ...prev,
         userMessage,
@@ -1748,8 +1756,12 @@ function App() {
         setInput('')
         return
       }
+      if (attachment) {
+        setSkillUpdateFile(attachment)
+        setActiveFile(undefined)
+      }
       setSkillUpdateOpenSignal(id())
-      setOwnerConsoleOpen(true)
+      openOwnerConsole()
       setMessages(prev => [
         ...prev,
         userMessage,
@@ -1768,7 +1780,7 @@ function App() {
       closeOtherPanels('auth')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setAuthOutput({ goal: layerGoalText, conversationContext: context })
-      if (isOwnerUser) setOwnerConsoleOpen(true)
+      if (isOwnerUser) openOwnerConsole()
       setMessages(prev => [...prev, userMessage])
       setInput('')
       return
@@ -1886,7 +1898,7 @@ function App() {
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Apex Copilot Local Execution v0. Ele executa comandos reais apenas pela allowlist do server.mjs, sem comando livre.' }])
       setCopilotExecutionOutput({ goal: layerGoalText, conversationContext: context })
-      setOwnerConsoleOpen(true)
+      openOwnerConsole()
       setInput('')
       return
     }
@@ -2744,7 +2756,7 @@ function App() {
         </div>
       )}
       {isOwnerUser && isSignedIn && (
-        <button className="secondary-action owner-console-button" type="button" onClick={() => setOwnerConsoleOpen(true)}>
+        <button className="secondary-action owner-console-button" type="button" onClick={() => openOwnerConsole()}>
           <Settings size={15} /> {uiLanguage === 'EN' ? 'Owner Console' : 'Console Owner'}
         </button>
       )}
@@ -3122,7 +3134,10 @@ function App() {
                   </button>
                 </div>
               )}
-              <div className="composer-row">
+              <div className="input-row">
+                <button className="composer-language-button" type="button" onClick={() => setUiLanguage(current => current === 'EN' ? 'PT' : 'EN')}>
+                  {uiLanguage}
+                </button>
                 <textarea
                   ref={composerTextarea}
                   value={input}
@@ -3143,11 +3158,11 @@ function App() {
                   }
                   rows={1}
                 />
-                <button className="composer-language-button" type="button" onClick={() => setUiLanguage(current => current === 'EN' ? 'PT' : 'EN')}>
-                  {uiLanguage}
-                </button>
                 <button className="icon-button" type="button" onClick={() => setVoiceNotice(current => !current)} aria-label={uiLanguage === 'EN' ? 'Voice input' : 'Entrada por voz'}>
                   <Mic size={19} />
+                </button>
+                <button className="icon-button" type="button" onClick={() => fileInput.current?.click()} aria-label={uiLanguage === 'EN' ? 'Attach file' : 'Anexar arquivo'} title={uiLanguage === 'EN' ? 'Attach file' : 'Anexar arquivo'}>
+                  <Paperclip size={19} />
                 </button>
                 <button className="send-button" onClick={() => askCopilot()} aria-label={loading ? 'Stop' : 'Send message'} disabled={!loading && !input.trim() && !activeFile}>
                   {loading ? <Square size={17} /> : <ArrowUp size={20} />}
@@ -3566,7 +3581,7 @@ function App() {
             {workspaceSavedAt && <div className="project-save-indicator">Project autosaved at {workspaceSavedAt}</div>}
 
             <SkillUpdatePanel
-              source={activeFile}
+             source={skillUpdateFile}
               openSignal={skillUpdateOpenSignal}
               autoAnalyzeSignal={skillUpdateAutoAnalyzeSignal}
               autoApplyProjectMemory={skillUpdateAutoApplyProjectMemory}
