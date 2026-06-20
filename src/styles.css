@@ -2971,7 +2971,7 @@ body {
   width: 100%;
   max-width: none;
   display: grid;
-  grid-template-columns: 76px minmax(0, 1fr);
+  grid-template-columns: 76px minmax(320px, 1fr);
   gap: 0;
   padding: 0;
   overflow: hidden;
@@ -2979,7 +2979,7 @@ body {
 
 .workspace.studio-open {
   max-width: none;
-  grid-template-columns: 76px minmax(0, 1fr) minmax(560px, 1fr);
+  grid-template-columns: 76px minmax(320px, 1fr) minmax(560px, 1fr);
   align-items: stretch;
 }
 
