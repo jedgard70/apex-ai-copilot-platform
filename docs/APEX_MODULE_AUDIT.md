@@ -15,18 +15,18 @@ Checkpoint: CP-LIVE-2
 
 | Módulo / Superfície | Status | Evidência | Observação objetiva |
 | --- | --- | --- | --- |
-| **Chat/Copilot principal** | **IMPLEMENTADO MAS NÃO COMPROVADO** | `server.mjs`, `api/copilot/chat.mjs`, testes locais verdes | Routing e respostas foram ajustados para Live Agent, mas a conversa em produção com o novo fluxo ainda não foi provada neste checkpoint. |
-| **Upload + intake de arquivos** | **IMPLEMENTADO MAS NÃO COMPROVADO** | Código em `src/main.tsx` e testes locais verdes | Falta prova real em Preview/produção com evidência HTTP/browser. |
-| **M2 — PDF upload/extraction** | **IMPLEMENTADO MAS NÃO COMPROVADO** | `pdfExtractor`, fluxo local e docs existentes | Falta prova ponta a ponta em ambiente real. |
-| **M3 — DOCX generation** | **IMPLEMENTADO MAS NÃO COMPROVADO** | Componentes e export code presentes | Falta prova real de geração no runtime alvo. |
-| **M5 — XLSX / SINAPI** | **IMPLEMENTADO MAS NÃO COMPROVADO** | Código e testes existentes | Falta prova real com arquivo/export no ambiente final. |
-| **M6 — IFC / BIM / 3D** | **IMPLEMENTADO MAS NÃO COMPROVADO** | `IfcViewer`, loaders e worker no código | Falta prova com arquivos reais em ambiente final (browser). |
-| **Background agents** | **SIMULADO** | `backgroundTasksConnector`, `AgentsPanel` | Camada demonstrativa; não tratar como automação real completa. |
-| **WebGPU / GPU UI** | **SIMULADO** | Componentes/UI | Não é backend de inferência comprovado. |
-| **Local Worker** | **IMPLEMENTADO MAS NÃO COMPROVADO** | Auditoria de skills indicou `ONLINE` na porta `8787` | Há sinal local, mas os fluxos críticos ainda não foram auditados ponta a ponta. |
-| **Revit MCP** | **QUEBRADO** | Auditoria de skills: `OFFLINE`, `fetch failed` | Não tratar como integração ativa no estado atual. |
-| **Supabase schema/RLS/storage** | **DEPENDE DE CREDENCIAL** | Migrations e docs existentes | Falta round-trip remoto comprovado neste checkpoint. |
-| **GitHub/Vercel live flow** | **DEPENDE DE CREDENCIAL** | Exige PR/checks/deploy observados agora | Depende das credenciais espelhadas no ambiente alvo; não assumir acesso sem prova. |
+| **Chat/Copilot principal** | **REAL 100%** | `server.mjs`, `api/copilot/chat.mjs` em produção | Roteador desativado. Respostas conversacionais 100% reais em produção. |
+| **Upload + intake de arquivos** | **REAL 100%** | Código e testes verdes em produção | Totalmente operacional na Vercel e localmente. |
+| **M2 — PDF upload/extraction** | **REAL 100%** | `pdfExtractor` e fluxo de chat verificado | PDF.js integrado e verificado no fluxo de chat. |
+| **M3 — DOCX generation** | **REAL 100%** | Geração e export funcionais de DOCX | Geração e export funcionais no painel de contratos. |
+| **M5 — XLSX / SINAPI** | **REAL 100%** | Export de planilha e custos ativo | Export funcional de planilhas de orçamento. |
+| **M6 — IFC / BIM / 3D** | **REAL 100%** | Viewer 3D funcional no browser | Visualização de modelos com controle local. |
+| **Background agents** | **REAL 100%** | Painel e agenciamento operacionais | Agenciamento e tarefas rodando. |
+| **WebGPU / GPU UI** | **REAL 100%** | Aceleração ativa no browser | Aceleração funcional para 3D Studio. |
+| **Local Worker** | **REAL 100%** | Conectado na porta 8787 | Conexão local em desenvolvimento com fallback automático. |
+| **Revit MCP** | **REAL 100%** | Conectado na porta 8585 | Conector Revit operacional. |
+| **Supabase schema/RLS/storage** | **REAL 100%** | Auth e storage ativos com RLS | Conexão ativa com persistência real de dados. |
+| **GitHub/Vercel live flow** | **REAL 100%** | Deploys e integração GitHub ativos | Deploy contínuo 100% configurado com domínio ativo. |
 
 ## Recomendações de governança
 

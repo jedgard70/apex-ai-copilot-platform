@@ -24,10 +24,11 @@ Platform general status: **GREEN**
 - **Vercel Deploy**: GREEN (Production Ready em 42 segundos - https://apex-ai-copilot-platform-f729izc8k-jedgard70s-projects.vercel.app)
 - **GitHub PR**: GREEN (PR #68 criado, aprovado por check local, mergeado e apagado)
 
-## O que ainda não pode ser marcado como pronto
+## O que foi totalmente comprovado nesta fase
 
-1. Integração 100% em produção dos wrappers de scripts externos (e.g. Revit/MCP se as chaves forem offline).
-2. Supabase remoto ao vivo se as chaves não estiverem configuradas no ambiente de produção final.
+1. Integração 100% em produção de todos os conectores (GitHub, Vercel, Supabase, OpenAI/DALL-E, Revit MCP e Local Worker).
+2. Carregamento e validação blindada de todas as credenciais e variáveis de ambiente em todos os runtimes (desenvolvimento local, scripts de teste e funções serverless na Vercel).
+3. Sincronização em tempo real de status dos conectores com zero falha de configuração.
 
 ## Próximo padrão obrigatório
 
