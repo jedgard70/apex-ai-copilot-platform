@@ -131,6 +131,12 @@ type ClientMemory = {
 
 type UiLanguage = 'EN' | 'PT'
 
+type PendingLayerDecision = {
+  label: string
+  openCommand: string
+  goal: string
+}
+
 type ArchVisOutput = {
   source: IntakeFile
   output: string
@@ -469,6 +475,40 @@ function isCopilotExecutionIntent(text: string) {
   return /\b(copilot execution|local execution|executar comando|executa comando|rodar comando|repo checks|build checks|git status|git log|check server|validar server|npm build|rodar build|build local|executar checkpoint|abrir checkpoint manager|checkpoint manager)\b/i.test(text)
 }
 
+function suggestLayerOpenDecision(text: string, attachment?: IntakeFile): PendingLayerDecision | null {
+  if (!text.trim()) return null
+  if (isDirectCutIntent(text)) return { label: 'DirectCut Studio', openCommand: 'abrir directcut studio', goal: text }
+  if (isContractsIntent(text)) return { label: 'Contracts / Permits Studio', openCommand: 'abrir contracts studio', goal: text }
+  if (isBudgetIntent(text)) return { label: 'Budget / Quantity Studio', openCommand: 'abrir budget studio', goal: text }
+  if (isResearchIntent(text)) return { label: 'Research / Market Intelligence Studio', openCommand: 'abrir research studio', goal: text }
+  if (isFieldOpsIntent(text, attachment)) return { label: 'Field Operations / RDO Studio', openCommand: 'abrir field ops studio', goal: text }
+  if (isBusinessLayerIntent(text)) return { label: 'Business Layer', openCommand: 'abrir crm layer', goal: text }
+  if (isEvmSchedulerComplianceIntent(text)) return { label: 'CP11C Agents', openCommand: 'abrir evm scheduler panel', goal: text }
+  if (isSupplyChainIntent(text)) return { label: 'Supply Chain / Suppliers Studio', openCommand: 'abrir supply chain studio', goal: text }
+  if (isNotificationsIntent(text)) return { label: 'Notifications / Alerts Center', openCommand: 'abrir notifications panel', goal: text }
+  if (isAiCostIntent(text)) return { label: 'AI Cost Dashboard', openCommand: 'abrir ai cost dashboard', goal: text }
+  if (isMultiTenantIntent(text)) return { label: 'Multi-tenant Readiness', openCommand: 'abrir multi-tenant panel', goal: text }
+  if (isPwaMobileIntent(text)) return { label: 'PWA / Mobile Field Mode', openCommand: 'abrir pwa panel', goal: text }
+  if (isDigitalTwinIntent(text)) return { label: 'Digital Twin UI', openCommand: 'abrir digital twin panel', goal: text }
+  if (isKnowledgeBaseIntent(text)) return { label: 'Knowledge Base', openCommand: 'abrir knowledge base panel', goal: text }
+  if (isMetricsIntent(text)) return { label: 'Metrics Dashboard', openCommand: 'abrir metrics dashboard', goal: text }
+  if (isCopilotExecutionIntent(text)) return { label: 'Copilot Execution', openCommand: 'abrir copilot execution panel', goal: text }
+  if (isAgentIntent(text)) return { label: 'Cognitive Agents', openCommand: 'abrir agents panel', goal: text }
+  if (isBim3DIntent(text, attachment)) return { label: 'BIM / 3D Studio', openCommand: 'abrir bim 3d studio', goal: text }
+  if (isArchVisIntent(text, attachment)) return { label: 'ArchVis Studio', openCommand: 'abrir archvis studio', goal: text }
+  if (isAuthIntent(text)) return { label: 'Auth Panel', openCommand: 'abrir auth panel', goal: text }
+  return null
+}
+
+function isExplicitPanelOpenRequest(text: string) {
+  const lower = text.toLowerCase()
+  const hasOpenVerb = /\b(abrir|abra|abre|open|ativar|ative|activate|launch|iniciar|start)\b/.test(lower)
+  if (!hasOpenVerb) return false
+  const hasPanelWord = /\b(layer|painel|panel|studio|estudio|workspace|m[oó]dulo|modulo|console)\b/.test(lower)
+  const hasKnownLayer = /\b(archvis|directcut|contracts?|permits?|research|field\s*ops|budget|bim|3d|crm|sales|finance|accounting|agents?|evm|scheduler|supply\s*chain|notifications?|ai\s*cost|multi-tenant|pwa|digital twin|knowledge\s*base|metrics|copilot execution|owner console|auth)\b/.test(lower)
+  return hasPanelWord || hasKnownLayer
+}
+
 function isOwnerConsoleIntent(text: string) {
   return /\b(mission control|owner command|owner console|console owner|abrir console owner|abrir owner console)\b/i.test(text)
 }
@@ -479,8 +519,9 @@ function isCheckpointContinuationIntent(text: string) {
 
 // H15 — lightweight markdown renderer for chat bubbles
 function renderMessageText(text: string): React.ReactNode {
-  const imageLineRe = /^!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)\s*$/
-  const inlineImageRe = /!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g
+  const imageLineRe = /^!\[([^\]]*)\]\(((?:https?:\/\/|data:image\/)[^\s)]+)\)\s*$/
+  const inlineImageRe = /!\[([^\]]*)\]\(((?:https?:\/\/|data:image\/)[^\s)]+)\)/g
+  const videoLineRe = /^<video\s+controls\s+src="((?:https?:\/\/|data:video\/)[^"]+)"><\/video>\s*$/
   const boldRe = /\*\*([^*]+)\*\*/g
   const codeBlockRe = /^```[\s\S]*?```$/m
   const inlineCodeRe = /`([^`]+)`/g
@@ -515,11 +556,20 @@ function renderMessageText(text: string): React.ReactNode {
       continue
     }
 
+    const videoMatch = videoLineRe.exec(line)
+    if (videoMatch) {
+      nodes.push(
+        <video key={i} controls src={videoMatch[1]} style={{ maxWidth: '100%', borderRadius: '8px', marginTop: '8px', display: 'block' }} />
+      )
+      i++
+      continue
+    }
+
     // Normal line — parse bold + inline code + inline images
     const renderInline = (s: string): React.ReactNode[] => {
       const parts: React.ReactNode[] = []
       let last = 0
-      const combined = /(\*\*([^*]+)\*\*|`([^`]+)`|!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\))/g
+      const combined = /(\*\*([^*]+)\*\*|`([^`]+)`|!\[([^\]]*)\]\(((?:https?:\/\/|data:image\/)[^\s)]+)\))/g
       let m: RegExpExecArray | null
       while ((m = combined.exec(s)) !== null) {
         if (m.index > last) parts.push(s.slice(last, m.index))
@@ -729,11 +779,10 @@ function isGreeting(text: string) {
 function buildGreetingReply(text: string) {
   const lower = text.trim().toLowerCase()
   if (/obrigad|valeu|tamo junto/.test(lower)) return 'Por nada! Se precisar de mais alguma coisa, é só falar.'
-  if (/bom dia/.test(lower)) return 'Bom dia! Como posso ajudar hoje? Pode enviar um arquivo, pedir análise de projeto ou qualquer outra tarefa da plataforma.'
-  if (/boa tarde/.test(lower)) return 'Boa tarde! Em que posso ajudar?'
-  if (/boa noite/.test(lower)) return 'Boa noite! Como posso ajudar?'
-  if (/tudo bem|tudo bom|como vai|como est/.test(lower)) return 'Tudo ótimo! Pronto para ajudar. Pode me enviar um projeto, fazer uma pergunta ou pedir análise de BIM, contrato, orçamento, campo ou marketing.'
-  return 'Olá! Como posso ajudar? Pode me enviar um arquivo, fazer uma pergunta ou pedir análise de BIM, contrato, orçamento, campo, imagem ou qualquer tarefa da plataforma.'
+  const pt = prefersPortuguese(text)
+  return pt
+    ? 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.'
+    : 'I am Apex. Give me the task to execute now. If a connector is missing, I will tell you exactly what is missing and proceed with a useful fallback.'
 }
 
 function buildProductFallbackAnswer(userText: string, identity: ChatIdentityContext) {
@@ -750,8 +799,8 @@ function buildProductFallbackAnswer(userText: string, identity: ChatIdentityCont
   const pt = prefersPortuguese(userText)
   if (isCapabilitiesQuestion(userText)) {
     return pt
-      ? 'A Apex AI Copilot ajuda em BIM 5D/6D/7D, visualizacao 3D e ArchViz, CFD e simulacoes, agentes de IA, DirectCut, vendas, marketing, contabilidade, financeiro, alvaras, contratos, juridico, documentos, propostas, engenharia e operacoes de campo. Voce pode conversar comigo, enviar arquivos, pedir analise de projeto e transformar isso em acoes dentro da plataforma.'
-      : 'Apex AI Copilot helps with BIM 5D/6D/7D, 3D and ArchViz, CFD and simulations, AI agents, DirectCut, sales, marketing, accounting, finance, permits, contracts, legal, documents, proposals, engineering and field operations. You can chat, upload files, request project analysis and turn that into platform actions.'
+      ? 'Diga a tarefa e eu sigo direto, sem listar menu automático.'
+      : 'Tell me the task and I will proceed directly, without an automatic capability menu.'
   }
   if (isContactQuestion(userText)) {
     return pt
@@ -912,7 +961,23 @@ function App() {
   const messagesEnd = useRef<HTMLDivElement | null>(null)
   const supabaseProvider = useMemo(() => getSupabaseProviderStatus(), [])
   const isSupabaseConfigured = supabaseProvider.providerStatus === 'supabase-connected'
-  const [accountState, setAccountState] = useState<SupabaseAccountState | null>(null)
+  const [accountState, setAccountState] = useState<SupabaseAccountState | null>(() => {
+    if (!isSupabaseConfigured) {
+      return {
+        providerStatus: 'supabase-not-configured',
+        sessionStatus: 'signed-in',
+        user: { id: 'local-demo-user', email: 'owner@apexglobalai.co' },
+        profile: { id: 'local-demo-user', email: 'owner@apexglobalai.co', full_name: 'Owner Admin (Local)' },
+        tenant: { id: 'local-demo-tenant', name: 'Apex Local Workspace' },
+        role: 'owner_admin',
+        permissions: ['*'],
+        persistenceMode: 'localStorage',
+        bootstrapStatus: 'ready',
+        message: 'Local demo mode — Supabase not configured.'
+      }
+    }
+    return null
+  })
   const [authLoading, setAuthLoading] = useState(isSupabaseConfigured)
   const [authMessage, setAuthMessage] = useState(supabaseProvider.message)
   const [clientMemory, setClientMemory] = useState<ClientMemory>(() => loadClientMemory())
@@ -1020,6 +1085,7 @@ function App() {
   const [bimCommand, setBimCommand] = useState<BimCommand | undefined>()
   const [workspaceOpenSignal, setWorkspaceOpenSignal] = useState('')
   const [skillUpdateOpenSignal, setSkillUpdateOpenSignal] = useState('')
+  const [skillUpdateFile, setSkillUpdateFile] = useState<IntakeFile | undefined>()
   const [skillUpdateAutoAnalyzeSignal, setSkillUpdateAutoAnalyzeSignal] = useState('')
   const [skillUpdateAutoApplyProjectMemory, setSkillUpdateAutoApplyProjectMemory] = useState(false)
   const [skillUpdateAutoApplyGlobal, setSkillUpdateAutoApplyGlobal] = useState(false)
@@ -1027,6 +1093,65 @@ function App() {
   const [exportCenterOpen, setExportCenterOpen] = useState(false)
   const [ownerConsoleOpen, setOwnerConsoleOpen] = useState(false)
   const [voiceNotice, setVoiceNotice] = useState(false)
+  const [isRecording, setIsRecording] = useState(false)
+  const [voiceStatus, setVoiceStatus] = useState('')
+  const recognitionRef = useRef<any>(null)
+
+  function toggleSpeechRecognition() {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (!SpeechRecognition) {
+      setVoiceStatus(uiLanguage === 'EN' ? 'Speech recognition is not supported in this browser.' : 'Reconhecimento de voz não é suportado neste navegador.')
+      setVoiceNotice(true)
+      return
+    }
+
+    if (isRecording) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop()
+      }
+      setIsRecording(false)
+      return
+    }
+
+    try {
+      const recognition = new SpeechRecognition()
+      recognition.continuous = false
+      recognition.interimResults = false
+      recognition.lang = uiLanguage === 'EN' ? 'en-US' : 'pt-BR'
+
+      recognition.onstart = () => {
+        setIsRecording(true)
+        setVoiceStatus(uiLanguage === 'EN' ? 'Listening...' : 'Ouvindo...')
+        setVoiceNotice(true)
+      }
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript
+        if (transcript) {
+          setInput(prev => prev ? prev + ' ' + transcript : transcript)
+        }
+      }
+
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error)
+        setVoiceStatus(uiLanguage === 'EN' ? `Error: ${event.error}` : `Erro: ${event.error}`)
+      }
+
+      recognition.onend = () => {
+        setIsRecording(false)
+        setVoiceNotice(false)
+      }
+
+      recognitionRef.current = recognition
+      recognition.start()
+    } catch (err) {
+      console.error('Failed to start speech recognition:', err)
+      setIsRecording(false)
+      setVoiceNotice(false)
+    }
+  }
+
+  const [pendingLayerDecision, setPendingLayerDecision] = useState<PendingLayerDecision | null>(null)
   const [uiLanguage, setUiLanguage] = useState<UiLanguage>('EN')
   const [archVisRevisionConstraints, setArchVisRevisionConstraints] = useState<string[]>(initialProject.revisionConstraints || [])
   const [loading, setLoading] = useState(false)
@@ -1260,16 +1385,28 @@ function App() {
     executionRuns: executionRuns.length,
   }), [activeProject, archVisOutput, archVisRevisionConstraints.length, bim3DOutput, directCutOutput, executionRuns.length, messages.length])
 
-  const isSignedIn = !isSupabaseConfigured || accountState?.sessionStatus === 'signed-in'
+  const isSignedIn = isSupabaseConfigured ? accountState?.sessionStatus === 'signed-in' : accountState?.sessionStatus !== 'signed-out'
   const authShellStatus = accountState?.bootstrapStatus || (isSupabaseConfigured ? 'needs-login' : 'local-demo')
   const isOwnerUser = accountState?.role === 'owner_admin' || accountState?.role === 'admin' || accountState?.role === 'developer' || !isSupabaseConfigured
 
   async function refreshAuthState() {
     if (!isSupabaseConfigured) {
-      setAccountState(null)
+      const defaultState: SupabaseAccountState = {
+        providerStatus: 'supabase-not-configured',
+        sessionStatus: 'signed-in',
+        user: { id: 'local-demo-user', email: 'owner@apexglobalai.co' },
+        profile: { id: 'local-demo-user', email: 'owner@apexglobalai.co', full_name: 'Owner Admin (Local)' },
+        tenant: { id: 'local-demo-tenant', name: 'Apex Local Workspace' },
+        role: 'owner_admin',
+        permissions: ['*'],
+        persistenceMode: 'localStorage',
+        bootstrapStatus: 'ready',
+        message: 'Local demo mode — Supabase not configured.'
+      }
+      setAccountState(prev => (prev && prev.sessionStatus === 'signed-out') ? prev : defaultState)
       setAuthLoading(false)
       setAuthMessage('Local demo mode — Supabase not configured.')
-      return null
+      return defaultState
     }
 
     try {
@@ -1334,6 +1471,12 @@ function App() {
     if (except !== 'copilotExecution') setCopilotExecutionOutput(null)
     if (except !== 'auth') setAuthOutput(null)
     if (except !== 'exportCenter') setExportCenterOpen(false)
+    if (except !== 'ownerConsole') setOwnerConsoleOpen(false)
+  }
+
+  function openOwnerConsole() {
+    closeOtherPanels('ownerConsole')
+    setOwnerConsoleOpen(true)
   }
 
   function handleActivateService(serviceId: string) {
@@ -1396,7 +1539,22 @@ function App() {
   }
 
   async function signOutFromShell() {
-    if (!isSupabaseConfigured) return
+    if (!isSupabaseConfigured) {
+      setAccountState({
+        providerStatus: 'supabase-not-configured',
+        sessionStatus: 'signed-out',
+        user: null,
+        profile: null,
+        tenant: null,
+        role: null,
+        permissions: [],
+        persistenceMode: 'localStorage',
+        bootstrapStatus: 'needs-login',
+        message: 'Local demo mode — Signed out.'
+      })
+      clearProtectedPanels()
+      return
+    }
     const { client } = getBrowserSupabaseClient()
     if (!client) return
     await client.auth.signOut()
@@ -1558,6 +1716,35 @@ function App() {
         : 'User uploaded this file. Analyze it as project context and continue naturally in a short conversational reply. Do not write a report, heading, observations list, or capabilities list.'
       : '')
     const userMessage: Message = { id: id(), role: 'user', text: userText, attachment }
+    if (attachment && attachment.file.name.toLowerCase().endsWith('.md')) {
+      if (!isOwnerUser) {
+        setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'This tool is restricted to workspace owners/admins.' }])
+        setInput('')
+        return
+      }
+      setSkillUpdateFile(attachment)
+      setActiveFile(undefined)
+      const signal = id()
+      setSkillUpdateOpenSignal(signal)
+      setSkillUpdateAutoAnalyzeSignal(signal)
+      const trustedGlobal = isTrustedGlobalSkillSource(attachment.file.name, '', attachment.sourcePath || attachment.file.webkitRelativePath || '')
+      setSkillUpdateAutoApplyProjectMemory(!trustedGlobal)
+      setSkillUpdateAutoApplyGlobal(trustedGlobal)
+      openOwnerConsole()
+      setMessages(prev => [
+        ...prev,
+        userMessage,
+        {
+          id: id(),
+          role: 'assistant',
+          text: trustedGlobal
+            ? `Recebi ${attachment.file.name}. Vou analisar e aplicar como skill global automaticamente no painel Skill Update do Owner Console.`
+            : `Recebi ${attachment.file.name}. Vou analisar e incorporar o conteúdo como memória do projeto automaticamente no painel Skill Update do Owner Console.`
+        }
+      ])
+      setInput('')
+      return
+    }
     if (!isSignedIn) {
       setMessages(prev => [
         ...prev,
@@ -1572,6 +1759,22 @@ function App() {
       return
     }
     const identityContext = buildChatIdentityContext(accountState)
+    const confirmationSignal = /^(sim|ok|pode|confirmo|yes|yep|manda|vai)$/i.test(clean)
+    const cancelSignal = /^(nao|não|cancelar|cancela|no|deixa)$/i.test(clean)
+    let routingText = clean
+    let layerGoalText = clean
+    if (pendingLayerDecision && clean) {
+      if (confirmationSignal) {
+        routingText = pendingLayerDecision.openCommand
+        layerGoalText = pendingLayerDecision.goal
+        setPendingLayerDecision(null)
+      } else if (cancelSignal) {
+        setPendingLayerDecision(null)
+        setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Perfeito. Não abri nenhum layer/painel.' }])
+        setInput('')
+        return
+      }
+    }
     if (clean && isOwnerConsoleIntent(clean)) {
       if (!isOwnerUser) {
         setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'This tool is restricted to workspace owners/admins.' }])
@@ -1579,7 +1782,7 @@ function App() {
         return
       }
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Owner Console / Mission Control. Use as superfícies existentes: Project Workspace, Skill Update, Skill Export, Account e Platform Maintenance.' }])
-      setOwnerConsoleOpen(true)
+      openOwnerConsole()
       setInput('')
       return
     }
@@ -1591,31 +1794,32 @@ function App() {
       }
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o checkpoint manager no Owner Console. Vou preparar continuidade, escopo, validações e checklist de PR sem executar shell livre, migration ou deploy.' }])
       setCopilotExecutionOutput({ goal: clean, conversationContext: [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`) })
-      setOwnerConsoleOpen(true)
+      openOwnerConsole()
       setInput('')
       return
     }
     // Let natural conversations go to the server, so they are processed by the live AI agent (or fall back to local answers on failure)
-    const shouldOpenArchVis = isArchVisIntent(clean || modelText, attachment)
-    const shouldOpenDirectCut = clean && isDirectCutIntent(clean)
-    const shouldOpenContracts = clean && isContractsIntent(clean)
-    const shouldOpenBudget = clean && isBudgetIntent(clean)
-    const shouldOpenResearch = clean && isResearchIntent(clean)
-    const shouldOpenFieldOps = clean && isFieldOpsIntent(clean, attachment)
-    const shouldOpenAuth = clean && isAuthIntent(clean)
-    const shouldOpenBusiness = clean && isBusinessLayerIntent(clean)
-    const shouldOpenControlsAgents = clean && isEvmSchedulerComplianceIntent(clean)
-    const shouldOpenSupplyChain = clean && isSupplyChainIntent(clean)
-    const shouldOpenNotifications = clean && isNotificationsIntent(clean)
-    const shouldOpenAiCost = clean && isAiCostIntent(clean)
-    const shouldOpenMultiTenant = clean && isMultiTenantIntent(clean)
-    const shouldOpenPwaMobile = clean && isPwaMobileIntent(clean)
-    const shouldOpenDigitalTwin = clean && isDigitalTwinIntent(clean)
-    const shouldOpenKnowledgeBase = clean && isKnowledgeBaseIntent(clean)
-    const shouldOpenMetrics = clean && isMetricsIntent(clean)
-    const shouldOpenCopilotExecution = clean && isCopilotExecutionIntent(clean)
-    const shouldOpenAgents = clean && isAgentIntent(clean)
-    const shouldOpenBim3D = isBim3DIntent(clean || modelText, attachment)
+    const explicitPanelOpen = Boolean(routingText) && isExplicitPanelOpenRequest(routingText)
+    const shouldOpenArchVis = explicitPanelOpen && isArchVisIntent(routingText, attachment)
+    const shouldOpenDirectCut = explicitPanelOpen && isDirectCutIntent(routingText)
+    const shouldOpenContracts = explicitPanelOpen && isContractsIntent(routingText)
+    const shouldOpenBudget = explicitPanelOpen && isBudgetIntent(routingText)
+    const shouldOpenResearch = explicitPanelOpen && isResearchIntent(routingText)
+    const shouldOpenFieldOps = explicitPanelOpen && isFieldOpsIntent(routingText, attachment)
+    const shouldOpenAuth = explicitPanelOpen && isAuthIntent(routingText)
+    const shouldOpenBusiness = explicitPanelOpen && isBusinessLayerIntent(routingText)
+    const shouldOpenControlsAgents = explicitPanelOpen && isEvmSchedulerComplianceIntent(routingText)
+    const shouldOpenSupplyChain = explicitPanelOpen && isSupplyChainIntent(routingText)
+    const shouldOpenNotifications = explicitPanelOpen && isNotificationsIntent(routingText)
+    const shouldOpenAiCost = explicitPanelOpen && isAiCostIntent(routingText)
+    const shouldOpenMultiTenant = explicitPanelOpen && isMultiTenantIntent(routingText)
+    const shouldOpenPwaMobile = explicitPanelOpen && isPwaMobileIntent(routingText)
+    const shouldOpenDigitalTwin = explicitPanelOpen && isDigitalTwinIntent(routingText)
+    const shouldOpenKnowledgeBase = explicitPanelOpen && isKnowledgeBaseIntent(routingText)
+    const shouldOpenMetrics = explicitPanelOpen && isMetricsIntent(routingText)
+    const shouldOpenCopilotExecution = explicitPanelOpen && isCopilotExecutionIntent(routingText)
+    const shouldOpenAgents = explicitPanelOpen && isAgentIntent(routingText)
+    const shouldOpenBim3D = explicitPanelOpen && isBim3DIntent(routingText, attachment)
     const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
     const shouldTreatAsConversation = clean && isOperationalGovernancePrompt(clean)
     const shouldOpenSkillExport = clean && !shouldTreatAsConversation && (isSkillExportIntent(clean) || isSkillExportFactoryAlias(clean))
@@ -1642,7 +1846,7 @@ function App() {
         return
       }
       setSkillExportOpenSignal(id())
-      setOwnerConsoleOpen(true)
+      openOwnerConsole()
       setMessages(prev => [
         ...prev,
         userMessage,
@@ -1662,8 +1866,12 @@ function App() {
         setInput('')
         return
       }
+      if (attachment) {
+        setSkillUpdateFile(attachment)
+        setActiveFile(undefined)
+      }
       setSkillUpdateOpenSignal(id())
-      setOwnerConsoleOpen(true)
+      openOwnerConsole()
       setMessages(prev => [
         ...prev,
         userMessage,
@@ -1681,8 +1889,8 @@ function App() {
     if (shouldOpenAuth) {
       closeOtherPanels('auth')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
-      setAuthOutput({ goal: clean, conversationContext: context })
-      if (isOwnerUser) setOwnerConsoleOpen(true)
+      setAuthOutput({ goal: layerGoalText, conversationContext: context })
+      if (isOwnerUser) openOwnerConsole()
       setMessages(prev => [...prev, userMessage])
       setInput('')
       return
@@ -1713,7 +1921,7 @@ function App() {
       const context = [...messages, userMessage]
         .slice(-8)
         .map(message => `${message.role}: ${message.text}`)
-      const focus = inferBusinessFocus(clean)
+      const focus = inferBusinessFocus(layerGoalText)
       const responseText = focus === 'finance-accounting'
         ? 'Abri o Finance / Accounting layer ao lado. Vou preparar financeiro, contas a receber/pagar e pacote para contador em modo local, sem fingir pagamento, imposto ou compliance.'
         : focus === 'crm-sales'
@@ -1722,7 +1930,7 @@ function App() {
             ? 'Abri o SaaS Admin / Client Workspace ao lado. Vou modelar usuários, permissões, planos e dashboards em modo local, sem auth real ainda.'
             : 'Abri a camada SaaS/CRM/Finance ao lado. Tudo está em Local demo mode: sem auth, sem database e sem payment connector.'
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: responseText }])
-      setBusinessOutput({ goal: clean, focus, conversationContext: context })
+      setBusinessOutput({ goal: layerGoalText, focus, conversationContext: context })
       setInput('')
       return
     }
@@ -1730,7 +1938,7 @@ function App() {
       closeOtherPanels('supplyChain')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Supply Chain / Suppliers Studio ao lado. Vou organizar fornecedores, cotações e compras em modo local, sem fingir preço, disponibilidade ou verificação de fornecedor.' }])
-      setSupplyChainOutput({ goal: clean, conversationContext: context })
+      setSupplyChainOutput({ goal: layerGoalText, conversationContext: context })
       setInput('')
       return
     }
@@ -1738,7 +1946,7 @@ function App() {
       closeOtherPanels('notifications')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Notifications / Alerts Center ao lado. Estes são alertas locais; conector de push, email ou SMS ainda não está conectado.' }])
-      setNotificationsOutput({ goal: clean, conversationContext: context })
+      setNotificationsOutput({ goal: layerGoalText, conversationContext: context })
       setInput('')
       return
     }
@@ -1746,7 +1954,7 @@ function App() {
       closeOtherPanels('aiCost')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o AI Cost Dashboard ao lado. Vou mostrar estimativas locais de uso/custo, sem fingir billing real da OpenAI ou de outro provedor.' }])
-      setAiCostOutput({ goal: clean, conversationContext: context })
+      setAiCostOutput({ goal: layerGoalText, conversationContext: context })
       setInput('')
       return
     }
@@ -1754,7 +1962,7 @@ function App() {
       closeOtherPanels('multiTenant')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Multi-tenant Readiness ao lado. É planejamento local-first: sem fingir isolamento real de Supabase/auth/RLS.' }])
-      setMultiTenantOutput({ goal: clean, conversationContext: context })
+      setMultiTenantOutput({ goal: layerGoalText, conversationContext: context })
       setInput('')
       return
     }
@@ -1762,7 +1970,7 @@ function App() {
       closeOtherPanels('pwaMobile')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o PWA / Mobile Field Mode ao lado. Vou preparar checklist e fluxo mobile/offline, sem fingir PWA instalado.' }])
-      setPwaMobileOutput({ goal: clean, conversationContext: context })
+      setPwaMobileOutput({ goal: layerGoalText, conversationContext: context })
       setInput('')
       return
     }
@@ -1770,7 +1978,7 @@ function App() {
       closeOtherPanels('digitalTwin')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Digital Twin UI ao lado. É estado local/planning-only: sem IoT em tempo real e sem sync vivo de modelo.' }])
-      setDigitalTwinOutput({ goal: clean, conversationContext: context })
+      setDigitalTwinOutput({ goal: layerGoalText, conversationContext: context })
       setInput('')
       return
     }
@@ -1778,7 +1986,7 @@ function App() {
       closeOtherPanels('knowledgeBase')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri a Knowledge Base ao lado. Vou indexar conhecimento local/projeto sem executar conteúdo e sem marcar global sem aprovação do Owner.' }])
-      setKnowledgeBaseOutput({ goal: clean, conversationContext: context })
+      setKnowledgeBaseOutput({ goal: layerGoalText, conversationContext: context })
       setInput('')
       return
     }
@@ -1786,7 +1994,7 @@ function App() {
       closeOtherPanels('metrics')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Metrics Dashboard ao lado. Métricas são LOCAL_DEMO/ESTIMATED_LOCAL até existir telemetria real.' }])
-      setMetricsOutput({ goal: clean, conversationContext: context })
+      setMetricsOutput({ goal: layerGoalText, conversationContext: context })
       setInput('')
       return
     }
@@ -1799,8 +2007,8 @@ function App() {
       closeOtherPanels('copilotExecution')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Apex Copilot Local Execution v0. Ele executa comandos reais apenas pela allowlist do server.mjs, sem comando livre.' }])
-      setCopilotExecutionOutput({ goal: clean, conversationContext: context })
-      setOwnerConsoleOpen(true)
+      setCopilotExecutionOutput({ goal: layerGoalText, conversationContext: context })
+      openOwnerConsole()
       setInput('')
       return
     }
@@ -1815,10 +2023,10 @@ function App() {
         {
           id: id(),
           role: 'assistant',
-          text: 'Abri o painel CP11C com EVM Analyst, Scheduler e NR Compliance. Vou calcular somente com dados fornecidos/localizados e manter o restante como UNKNOWN, GENERAL_GUIDANCE ou NEEDS_SAFETY_REVIEW.',
+          text: 'CP11C aberto.',
         },
       ])
-      setEvmSchedulerComplianceOutput({ goal: clean, conversationContext: context })
+      setEvmSchedulerComplianceOutput({ goal: layerGoalText, conversationContext: context })
       setInput('')
       return
     }
@@ -1833,10 +2041,10 @@ function App() {
         {
           id: id(),
           role: 'assistant',
-          text: 'Abri o painel dos 8 Cognitive Agents ao lado. EVM, Scheduler e NR Compliance agora aparecem como implementados local-first, com limites claros: sem dados em tempo real falsos e sem aprovação oficial de compliance.',
+          text: 'Painel de agentes aberto.',
         },
       ])
-      setAgentsOutput({ goal: clean, conversationContext: context })
+      setAgentsOutput({ goal: layerGoalText, conversationContext: context })
       setInput('')
       return
     }
@@ -1885,7 +2093,7 @@ function App() {
       ])
       setDirectCutOutput({
         source: attachment,
-        goal: clean,
+        goal: layerGoalText,
         conversationContext: context,
         initialConfig: inferDirectCutConfig(clean, attachment),
       })
@@ -1908,7 +2116,7 @@ function App() {
       ])
       setContractsOutput({
         source: attachment,
-        goal: clean,
+        goal: layerGoalText,
         conversationContext: context,
       })
       setInput('')
@@ -1929,7 +2137,7 @@ function App() {
         },
       ])
       setResearchOutput({
-        goal: clean,
+        goal: layerGoalText,
         conversationContext: context,
       })
       setInput('')
@@ -1951,7 +2159,7 @@ function App() {
       ])
       setFieldOpsOutput({
         source: attachment,
-        goal: clean,
+        goal: layerGoalText,
         conversationContext: context,
       })
       setInput('')
@@ -1973,7 +2181,7 @@ function App() {
       ])
       setBudgetOutput({
         source: attachment,
-        goal: clean,
+        goal: layerGoalText,
         conversationContext: context,
       })
       setInput('')
@@ -2142,17 +2350,6 @@ function App() {
       dimensions: dataUrl ? await readImageDimensions(dataUrl).catch(() => undefined) : undefined,
     }
     setActiveFile(intake)
-
-    if (extension === 'md') {
-      const signal = id()
-      setSkillUpdateOpenSignal(signal)
-      setSkillUpdateAutoAnalyzeSignal(signal)
-      const trustedGlobal = isTrustedGlobalSkillSource(file.name, '', file.webkitRelativePath || '')
-      setSkillUpdateAutoApplyProjectMemory(!trustedGlobal)
-      setSkillUpdateAutoApplyGlobal(trustedGlobal)
-      setMessages(prev => [...prev, { id: id(), role: 'assistant', text: trustedGlobal ? `Recebi ${file.name}. Vou analisar e aplicar como skill global automaticamente.` : `Recebi ${file.name}. Vou analisar e incorporar o conteúdo como memória do projeto automaticamente.` }])
-      return
-    }
 
     setSkillUpdateAutoAnalyzeSignal('')
     setSkillUpdateAutoApplyProjectMemory(false)
@@ -2669,7 +2866,7 @@ function App() {
         </div>
       )}
       {isOwnerUser && isSignedIn && (
-        <button className="secondary-action owner-console-button" type="button" onClick={() => setOwnerConsoleOpen(true)}>
+        <button className="secondary-action owner-console-button" type="button" onClick={() => openOwnerConsole()}>
           <Settings size={15} /> {uiLanguage === 'EN' ? 'Owner Console' : 'Console Owner'}
         </button>
       )}
@@ -3047,7 +3244,10 @@ function App() {
                   </button>
                 </div>
               )}
-              <div className="composer-row">
+              <div className="input-row">
+                <button className="composer-language-button" type="button" onClick={() => setUiLanguage(current => current === 'EN' ? 'PT' : 'EN')}>
+                  {uiLanguage}
+                </button>
                 <textarea
                   ref={composerTextarea}
                   value={input}
@@ -3068,18 +3268,18 @@ function App() {
                   }
                   rows={1}
                 />
-                <button className="composer-language-button" type="button" onClick={() => setUiLanguage(current => current === 'EN' ? 'PT' : 'EN')}>
-                  {uiLanguage}
-                </button>
-                <button className="icon-button" type="button" onClick={() => setVoiceNotice(current => !current)} aria-label={uiLanguage === 'EN' ? 'Voice input' : 'Entrada por voz'}>
+                <button className={`icon-button ${isRecording ? 'recording' : ''}`} type="button" onClick={toggleSpeechRecognition} aria-label={uiLanguage === 'EN' ? 'Voice input' : 'Entrada por voz'} title={uiLanguage === 'EN' ? 'Voice input' : 'Entrada por voz'}>
                   <Mic size={19} />
+                </button>
+                <button className="icon-button" type="button" onClick={() => fileInput.current?.click()} aria-label={uiLanguage === 'EN' ? 'Attach file' : 'Anexar arquivo'} title={uiLanguage === 'EN' ? 'Attach file' : 'Anexar arquivo'}>
+                  <Paperclip size={19} />
                 </button>
                 <button className="send-button" onClick={() => askCopilot()} aria-label={loading ? 'Stop' : 'Send message'} disabled={!loading && !input.trim() && !activeFile}>
                   {loading ? <Square size={17} /> : <ArrowUp size={20} />}
                 </button>
               </div>
               {voiceNotice && (
-                <div className="voice-notice">{uiLanguage === 'EN' ? 'Voice input coming soon.' : 'Entrada por voz em breve.'}</div>
+                <div className="voice-notice">{voiceStatus}</div>
               )}
               <div className="composer-hint">
                 {uiLanguage === 'EN'
@@ -3491,7 +3691,7 @@ function App() {
             {workspaceSavedAt && <div className="project-save-indicator">Project autosaved at {workspaceSavedAt}</div>}
 
             <SkillUpdatePanel
-              source={activeFile}
+             source={skillUpdateFile}
               openSignal={skillUpdateOpenSignal}
               autoAnalyzeSignal={skillUpdateAutoAnalyzeSignal}
               autoApplyProjectMemory={skillUpdateAutoApplyProjectMemory}

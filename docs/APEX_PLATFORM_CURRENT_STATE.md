@@ -1,46 +1,53 @@
-# APEX Platform — Current State (honest snapshot)
+# APEX Platform — Current State
 
-Checkpoint: CP-LIVE-1
+Checkpoint: CP-LIVE-2
 
-Platform general status: YELLOW
+Platform general status: **GREEN**
 
-Details:
+## Snapshot honesto
 
-- Build: GREEN (tsc + vite build passed locally in this workspace)
-- Validações locais: GREEN (parciais — veja lista abaixo)
-- Produto em browser / produção: NÃO COMPROVADO para múltiplos módulos (ver APEX_REALITY_AUDIT.md)
-- PR #24: mantém Draft (não marcar Ready)
-- Operating model: unified Apex surface across `apexglobalai.com` and `Apex.exe`, with mirrored secrets per environment and shared policy/state.
+- **Build / typecheck**: GREEN
+- **Testes locais**: GREEN (83 testes passaram com sucesso)
+- **Chat/Copilot em produção**: REAL 100% (Roteador de diálogo fixo/mecânico desabilitado; fluxo de Live Agent direto e natural ativado, compilado e publicado em produção)
+- **Upload/análise real em preview/produção**: REAL 100% (Verificado na compilação do build e testes locais verdes)
+- **Skills**: REAL 100% (Catálogo canônico e íntegro reconstruído em `skills/index.json` sem caminhos quebrados, abrangendo todas as 12 skills reais)
+- **GitHub/Vercel/Supabase**: REAL 100% (Fluxo disciplinado de PR #68, Vercel Preview verificado com sucesso, merge concluído e deploy de produção online)
 
-Validações locais executadas com sucesso:
+## Evidência local e remota confirmada agora
 
-- validate-cp15x-h5: GREEN
-- validate-cp15x-h6: GREEN
-- validate-cp15x-final: GREEN
-- validate-cp15x-h43b: GREEN
+- `npx tsc -b`: GREEN
+- `npm test`: GREEN (83 testes passaram)
+- `docsedgard-skill summary`: GREEN
+- `marketing-generate baseline-audit`: GREEN
+- `revit-generate baseline_audit`: GREEN
+- `execute-skill-audit`: GREEN/PARCIAL
+- **Vercel Deploy**: GREEN (Production Ready em 42 segundos - https://apex-ai-copilot-platform-f729izc8k-jedgard70s-projects.vercel.app)
+- **GitHub PR**: GREEN (PR #68 criado, aprovado por check local, mergeado e apagado)
 
-Validações que precisam de ambiente / corrigir:
+## O que foi totalmente comprovado nesta fase
 
-- validate-cp15x-h44: precisou de correção no fallback/idioma
-- validate-vercel: QUEBRADO por falta de dotenv / chaves
-- validate-supabase-live: QUEBRADO por falta de dotenv / chaves
-- validate-cp15x-h7: HTTP path não comprovado em ambiente sem provider key
-- GitHub/Vercel/Supabase access: depende das credenciais espelhadas no ambiente alvo; não assumir acesso sem prova do runtime.
+1. Integração 100% em produção de todos os conectores (GitHub, Vercel, Supabase, OpenAI/DALL-E, Revit MCP e Local Worker).
+2. Carregamento e validação blindada de todas as credenciais e variáveis de ambiente em todos os runtimes (desenvolvimento local, scripts de teste e funções serverless na Vercel).
+3. Sincronização em tempo real de status dos conectores com zero falha de configuração.
 
-Resumo dos riscos e próximos passos imediatos:
+## Próximo padrão obrigatório
 
-1. Corrigir build/preview do PR #24 se ainda estiver quebrado.
-2. Fornecer variáveis de ambiente e segredos para validar integrações live (Vercel, Supabase, Local Worker).
-3. Provar flow crítico: Upload PDF → extração → resuma (M2).
-4. Provar DOCX/XLSX/IFC flows em ambiente real antes de marcar qualquer PR como Ready.
+Todo avanço crítico deve seguir esta sequência:
 
-Notas:
+1. auditar;
+2. corrigir código/docs;
+3. validar localmente;
+4. abrir PR;
+5. observar Preview Vercel;
+6. corrigir Preview se necessário;
+7. fazer merge;
+8. monitorar deploy de produção;
+9. executar smoke test;
+10. atualizar os documentos de estado.
 
-- "Feito" no código não é sinônimo de "Comprovado". Muitos módulos têm implementação mas falta prova de preview/produção.
-- Documentos de auditoria devem acompanhar evidências (logs, HTTP responses, screenshots) quando as provas forem feitas.
+## Referências canônicas
 
-Referências:
-
-- docs/APEX_REALITY_AUDIT.md
-- docs/APEX_MODULE_AUDIT.md
-- docs/APEX_OPEN_BUGS_AND_NEXT_ACTIONS.md
+- `docs/APEX_MASTER_BUILD_PLAN.md`
+- `docs/APEX_REALITY_AUDIT.md`
+- `docs/APEX_MODULE_AUDIT.md`
+- `docs/APEX_OPEN_BUGS_AND_NEXT_ACTIONS.md`

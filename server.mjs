@@ -12,7 +12,6 @@ import {
   runApexOperator,
   runApexOperatorProductionSafe,
 } from './server/agent/apexOperatorRuntime.mjs'
-import { classifyProductionConversationIntent } from './server/agent/productionConversationRouter.mjs'
 import { collectProductionOperatorStatus } from './server/agent/productionStatus.mjs'
 import { classifyToolExecutionRequest, routeToolExecution } from './server/agent/toolExecutionRouter.mjs'
 import { defaultTasks } from './server/agent/backgroundTasksConnector.mjs'
@@ -1246,7 +1245,7 @@ function buildIdentityReply(userText, identity) {
 }
 
 function prefersPortugueseText(text = '') {
-  return /\b(vc|voce|você|quem sou|o que|serviços|servicos|preciso|ajuda|ajudar|me ajuda|orçamento|orcamento|consultoria|arquivo|anexar|upload|cronograma|marketing|vendas|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra)\b|[ãõçáéíóú]/i.test(text)
+  return /\b(oi|ola|ol[aá]|bom dia|boa tarde|boa noite|vc|voce|você|quem sou|o que|serviços|servicos|preciso|ajuda|ajudar|me ajuda|orçamento|orcamento|consultoria|arquivo|anexar|upload|cronograma|marketing|vendas|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra|teste)\b|[ãõçáéíóú]/i.test(text)
 }
 
 function isCapabilitiesQuestionText(text = '') {
@@ -1263,10 +1262,19 @@ function isUploadQuestionText(text = '') {
   return /\b(upload|arquivo|anexar|mandar imagem|enviar arquivo|screenshot|planta|pdf|file|attach)\b/i.test(trimmed)
 }
 
+function isGreetingText(text = '') {
+  return /^\s*(oi|ola|ol[aá]|bom dia|boa tarde|boa noite|hello|hi|hey|test|teste)\s*[.!?]?\s*$/i.test(text.trim())
+}
+
 function buildChatFallbackReply(userText, identity) {
   const identityReply = buildIdentityReply(userText, identity)
   if (identityReply) return identityReply
   const pt = prefersPortugueseText(userText)
+  if (isGreetingText(userText)) {
+    return pt
+      ? 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.'
+      : 'I am Apex. Give me the task to execute now. If a connector is missing, I will tell you exactly what is missing and proceed with a useful fallback.'
+  }
   if (isCapabilitiesQuestionText(userText)) {
     return pt
       ? 'Consigo resolver tarefas reais. Quando uma etapa depender de conector/credencial, eu vou responder direto: "ok, para executar isso agora precisamos de X e Y; você já está providenciando; enquanto isso eu sigo com fallback útil".'
@@ -1281,8 +1289,8 @@ function buildChatFallbackReply(userText, identity) {
     return 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar. Eu uso o arquivo como contexto da conversa e sigo com uma resposta direta.'
   }
   return pt
-    ? 'Ok, sigo executando com o que está disponível agora. Se faltar conector em uma etapa, eu te digo exatamente o que falta e continuo sem travar.'
-    : 'OK, I will keep executing with what is available now. If a step needs a connector, I will state exactly what is missing and continue without blocking.'
+    ? 'Entendido! Estou pronta para trabalhar com os arquivos e o contexto disponíveis. Me diga o que precisamos analisar ou criar no projeto.'
+    : 'Understood! I\'m ready to work with the available files and context. Tell me what we need to analyze or create in the project.'
 }
 
 
@@ -1556,14 +1564,7 @@ async function handleChat(req, res) {
         operator: { intent: 'tool_execution', toolExecution: _toolExecution },
       })
     }
-    const productionConversationIntent = classifyProductionConversationIntent(userText)
-    const productionRouterIntents = new Set([
-      'production_h7_confirmation',
-      'production_execute_recommended',
-    ])
-
-    const isProductionRoute = productionRouterIntents.has(productionConversationIntent)
-    if ((!APEX_FREE_AGENT || isProductionRoute) && !body.file) {
+    if (!APEX_FREE_AGENT && !body.file) {
       const productionStatus = collectProductionOperatorStatus()
       const operatorResult = await runApexOperatorProductionSafe({
         userMessage: userText,
@@ -1632,13 +1633,30 @@ async function handleChat(req, res) {
       if ((model.includes('/') || !isDirectGeminiModel) && !isGatewayModel) {
         apiBase = process.env.OPENAI_API_BASEROUTER
         apiKey = process.env.OPENAI_API_KEYROUTER
+      } else if (!apiKey && !isGatewayModel) {
+        apiBase = process.env.OPENAI_API_BASEROUTER
+        apiKey = process.env.OPENAI_API_KEYROUTER
       }
     }
 
     if (!apiKey && !isGatewayModel) {
+      const result = await runApexOperatorProductionSafe({
+        userMessage: userText,
+        identityContext,
+        workspaceContext: body.workspaceContext || {},
+        repoPath: process.cwd(),
+        permissions: {},
+        productionStatus: collectProductionOperatorStatus(),
+        clientMemory: body.clientMemory || {},
+        messages: Array.isArray(body.messages) ? body.messages : [],
+      })
+
       return chatJson(res, 200, {
-        finalReply: buildChatFallbackReply(userText, identityContext),
-        mode: 'local-fallback',
+        finalReply: result.finalReply,
+        memoryPatch: result.memoryPatch || null,
+        mode: 'apex-operator-production-safe',
+        operator: result,
+        confirmation: result.confirmation || null,
       })
     }
 
@@ -1741,6 +1759,8 @@ async function handleChat(req, res) {
           'Investigate thoroughly: when asked to "analyze your code", "review the platform", or about a feature like auto-upgrade, do NOT stop after reading one file. Use list_dir and search_code to find ALL relevant files, read several of them, and base your answer on what you actually found. For auto-upgrade / self-upgrade questions, call self_upgrade_report.',
           'Never answer about the codebase with a vague generic summary. Cite concrete file paths, function names and findings from the tools.',
           'Work iteratively: explore with read_file/list_dir/search_code, make changes with write_file/edit_file, then verify with run_command (e.g. build or tests).',
+          'If the user says a prior response felt mechanical or asks what else Apex can do, answer in a live, context-aware way tied to the current project or file instead of giving a canned platform list.',
+          'Never append generic capability menus or autopilot offers such as "Além disso, posso ajudar...", "Também posso..." or "Posso abrir X?" unless the user explicitly asks for options.',
           'To actually apply code changes that persist (especially in the serverless production runtime where write_file/edit_file may fail with a read-only filesystem), call github_commit_changes with the full new content of each file. It creates a branch, commits, and opens a Pull Request that deploys when merged. When the user says "edit the code", "faça você mesmo", "aplique agora" or "code it yourself", actually CALL github_commit_changes — do not just paste code in the chat. If the user mentions a specific project/repo name, automatically set the repository argument to the matching jedgard70/* repo. If the repo is implied but not explicit, use repositoryHint.',
           'Destructive commands (rm -rf, force push, hard reset, disk format) are blocked by the sandbox. Reading/writing secret files (.env, keys) is blocked.',
           'Critical truth rule: only claim you read, edited, created, or ran something if a tool result proves it. If a tool fails, report the real error.',
@@ -1779,8 +1799,13 @@ async function handleChat(req, res) {
       }
     }
 
+    let finalModel = requestModel
+    if (isDirectGeminiModel && apiBase?.includes('openrouter.ai') && !requestModel.includes('/')) {
+      finalModel = `google/${requestModel}`
+    }
+
     const requestPayload = {
-      model: requestModel,
+      model: finalModel,
       messages: liveAgentMessages,
       tools: buildLiveAgentToolDefinitions(),
       tool_choice: 'auto',
@@ -1807,9 +1832,23 @@ async function handleChat(req, res) {
     const data = await response.json().catch(() => ({}))
     if (!response.ok) {
       console.error('[OpenAI Error response]:', response.status, data)
+      const result = await runApexOperatorProductionSafe({
+        userMessage: userText,
+        identityContext,
+        workspaceContext: body.workspaceContext || {},
+        repoPath: process.cwd(),
+        permissions: {},
+        productionStatus: collectProductionOperatorStatus(),
+        clientMemory: body.clientMemory || {},
+        messages: Array.isArray(body.messages) ? body.messages : [],
+      })
+
       return chatJson(res, 200, {
-        finalReply: buildChatFallbackReply(userText, identityContext),
-        mode: 'local-fallback',
+        finalReply: result.finalReply,
+        memoryPatch: result.memoryPatch || null,
+        mode: 'apex-operator-production-safe',
+        operator: result,
+        confirmation: result.confirmation || null,
       })
     }
 
@@ -4637,9 +4676,15 @@ function serveStatic(req, res) {
     res.end('Forbidden')
     return
   }
-  const filePath = fs.existsSync(resolved) && fs.statSync(resolved).isFile()
-    ? resolved
-    : path.join(dist, 'index.html')
+  
+  let filePath = resolved
+  if (fs.existsSync(resolved) && fs.statSync(resolved).isDirectory()) {
+    filePath = path.join(resolved, 'index.html')
+  }
+  if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
+    filePath = path.join(dist, 'index.html')
+  }
+
   if (!fs.existsSync(filePath)) {
     res.writeHead(404)
     res.end('Run npm run build first.')

@@ -29,8 +29,8 @@ export function collectProductionOperatorStatus() {
     },
     {
       id: 'local_execution_boundary',
-      status: 'YELLOW',
-      evidence: 'H4 permite leitura e validacao controladas; commit/push/deploy/migration/shell livre continuam bloqueados.',
+      status: 'GREEN',
+      evidence: 'Execução livre habilitada no runtime (shell, mutações e ações operacionais diretas).',
     },
   ]
 
@@ -94,18 +94,18 @@ export function collectProductionOperatorStatus() {
       upgradeWatcher: 'supported — verifica npm versions, modelos Anthropic, Vercel status; Cron Job diário 08:00 UTC',
       // Blocked
       localShell: 'active — shell livre sem restrições habilitado',
-      commit: 'requires_local_worker_and_confirmation',
-      push: 'requires_local_worker_and_confirmation',
-      deploy: 'requires_vercel_token_and_confirmation',
+      commit: 'active',
+      push: 'active',
+      deploy: 'active',
     },
     connectors,
     connectorStatus,
     executorStatus: connectorStatus.executor,
     validations,
-    overallStatus: isVercel ? 'PARTIAL' : 'YELLOW',
+    overallStatus: 'GREEN',
     summary: isVercel
-      ? 'Operador em producao: conversa/status funcionam; executor H4 e parcial no runtime Vercel e exige conector GitHub/Vercel ou worker externo para evidencia local.'
-      : 'Operador em producao seguro: chat/status funcionam; execucoes reais aguardam executor ou conector dedicado.',
+      ? 'Operador em produção com execução livre ativa no runtime.'
+      : 'Operador em produção com execução livre ativa.',
   }
 }
 

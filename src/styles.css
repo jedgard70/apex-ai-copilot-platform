@@ -2971,7 +2971,7 @@ body {
   width: 100%;
   max-width: none;
   display: grid;
-  grid-template-columns: 76px minmax(0, 1fr);
+  grid-template-columns: 76px minmax(320px, 1fr);
   gap: 0;
   padding: 0;
   overflow: hidden;
@@ -2979,7 +2979,7 @@ body {
 
 .workspace.studio-open {
   max-width: none;
-  grid-template-columns: 76px minmax(0, 1fr) minmax(560px, 1fr);
+  grid-template-columns: 76px minmax(320px, 1fr) minmax(560px, 1fr);
   align-items: stretch;
 }
 
@@ -3381,6 +3381,19 @@ body {
 .icon-button {
   color: #07183f;
   background: #f0f3f8;
+  transition: all 0.2s ease-in-out;
+}
+
+.icon-button.recording {
+  color: #ffffff;
+  background: #ef4444;
+  animation: pulse-recording 1.5s infinite;
+}
+
+@keyframes pulse-recording {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }
 
 .send-button {

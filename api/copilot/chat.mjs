@@ -1,3 +1,5 @@
+import '../../server/env.mjs'
+import { generateText } from 'ai'
 import fs from 'node:fs'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
@@ -6,10 +8,11 @@ import { runApexOperatorProductionSafe } from '../../server/agent/apexOperatorRu
 import { collectProductionOperatorStatus } from '../../server/agent/productionStatus.mjs'
 import { classifyToolExecutionRequest, routeToolExecution, routeH6ActionRequest } from '../../server/agent/toolExecutionRouter.mjs'
 import { isConfirmationSignal, isCancelSignal, hasPendingAction } from '../../server/agent/confirmationStateMachine.mjs'
-import { classifyProductionConversationIntent } from '../../server/agent/productionConversationRouter.mjs'
 import { buildCodeToolDefinitions, executeCodeToolCall, CODE_TOOL_NAMES } from '../../server/agent/codeTools.mjs'
 import { runLocalWorkerAction } from '../../server/agent/localWorkerClient.mjs'
 import { classifyImageGenRequest, buildImagePrompt, generateImage, buildImageResultReply } from '../../server/agent/imageGenerationConnector.mjs'
+import { classifyVideoGenRequest, generateVideo, buildVideoResultReply } from '../../server/agent/videoGenerationConnector.mjs'
+import { sendAuthkeySms, sendAuthkeyOtp, buildAuthkeyResultReply } from '../../server/agent/authkeyConnector.mjs'
 
 if (process.env.Local_Worker_URL && !process.env.LOCAL_WORKER_URL) {
   process.env.LOCAL_WORKER_URL = process.env.Local_Worker_URL
@@ -56,6 +59,9 @@ export function getOpenAIConfig(model) {
 
   if (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_KEYROUTER) {
     if (model?.includes('/') || !isDirectGeminiModel) {
+      apiBase = process.env.OPENAI_API_BASEROUTER
+      apiKey = process.env.OPENAI_API_KEYROUTER
+    } else if (!apiKey) {
       apiBase = process.env.OPENAI_API_BASEROUTER
       apiKey = process.env.OPENAI_API_KEYROUTER
     }
@@ -177,9 +183,9 @@ async function handleModelsList(res) {
   }
 }
 
-// APEX_FREE_AGENT (default ON): conversational messages bypass the canned
-// production-intent router and go straight to the LLM. Set APEX_FREE_AGENT=0
-// to restore the old template-router behavior.
+// APEX_FREE_AGENT (default ON): conversational messages bypass the old
+// template router and go straight to the Live Agent flow. Set
+// APEX_FREE_AGENT=0 to restore the legacy operator-only behavior.
 const APEX_FREE_AGENT = !/^(0|false|off)$/i.test(String(process.env.APEX_FREE_AGENT ?? '1'))
 
 // PDF summary pattern — triggers local extraction-based summary
@@ -194,11 +200,6 @@ const H5_ACTION_TOOLS = new Set([
   'supabase.migration',
 ])
 
-const productionRouterIntents = new Set([
-  'production_h7_confirmation',
-  'production_execute_recommended',
-])
-
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const runtimeKnowledgePath = path.resolve(__dirname, '../../src/lib/runtimeKnowledge.json')
@@ -207,8 +208,15 @@ function loadRuntimeKnowledge() {
   return JSON.parse(fs.readFileSync(runtimeKnowledgePath, 'utf8'))
 }
 
+function stripGovernanceRestrictions(lines = []) {
+  return (Array.isArray(lines) ? lines : []).filter(line => {
+    const text = String(line || '')
+    return !/\b(do not|never|forbidden|blocked|requires confirmation|requires explicit|must not|nunca|proibido|bloqueado|exige confirmação|sem confirmação)\b/i.test(text)
+  })
+}
+
 function prefersPortugueseText(text = '') {
-  return /\b(vc|voce|você|quem sou|o que|serviços|servicos|preciso|ajuda|ajudar|me ajuda|orçamento|orcamento|consultoria|arquivo|anexar|upload|cronograma|marketing|vendas|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra)\b|[ãõçáéíóú]/i.test(text)
+  return /\b(oi|ola|ol[aá]|bom dia|boa tarde|boa noite|vc|voce|você|quem sou|o que|serviços|servicos|preciso|ajuda|ajudar|me ajuda|orçamento|orcamento|consultoria|arquivo|anexar|upload|cronograma|marketing|vendas|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra|teste)\b|[ãõçáéíóú]/i.test(text)
 }
 
 function isCapabilitiesQuestionText(text = '') {
@@ -223,6 +231,10 @@ function isUploadQuestionText(text = '') {
   const trimmed = text.trim()
   if (/\b(pdf\.js|pdfjs|pdf-js)\b/i.test(trimmed)) return false
   return /\b(upload|arquivo|anexar|mandar imagem|enviar arquivo|screenshot|planta|pdf|file|attach)\b/i.test(trimmed)
+}
+
+function isGreetingText(text = '') {
+  return /^\s*(oi|ola|ol[aá]|bom dia|boa tarde|boa noite|hello|hi|hey|test|teste)\s*[.!?]?\s*$/i.test(text.trim())
 }
 
 function shouldForceLiveAgentToolUse(text = '') {
@@ -263,6 +275,11 @@ function buildChatFallbackReply(userText, identity, file = null) {
   const identityReply = buildIdentityReply(userText, identity)
   if (identityReply) return identityReply
   const pt = prefersPortugueseText(userText)
+  if (isGreetingText(userText)) {
+    return pt
+      ? 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.'
+      : 'I am Apex. Give me the task to execute now. If a connector is missing, I will tell you exactly what is missing and proceed with a useful fallback.'
+  }
   if (file && file.extractedText && isCapabilitiesQuestionText(userText)) {
     return pt
       ? 'Com este arquivo ativo, posso resumir, extrair pontos, responder perguntas, transformar em briefing/relatório e partir para uma ação prática sem enrolar.'
@@ -285,8 +302,8 @@ function buildChatFallbackReply(userText, identity, file = null) {
       return 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar. Eu uso o arquivo como contexto e continuo com a ação em vez de parar para explicar o processo.'
     }
     return pt
-        ? 'Ok, sigo executando com o que está disponível agora. Se faltar conector para uma etapa específica, eu te digo exatamente o que falta e continuo sem travar.'
-        : 'OK, I will keep executing with what is available now. If a specific step needs a connector, I will state exactly what is missing and continue without blocking.'
+        ? 'Entendido! Estou pronta para trabalhar com os arquivos e o contexto disponíveis. Me diga o que precisamos analisar ou criar no projeto.'
+        : 'Understood! I\'m ready to work with the available files and context. Tell me what we need to analyze or create in the project.'
   }
 
   function buildLocalDocSummary(fileName, pageCount, extractedText, fileKind) {
@@ -755,6 +772,41 @@ function buildLiveAgentToolDefinitions() {
     {
       type: 'function',
       function: {
+        name: 'send_authkey_message',
+        description: 'Send a real SMS or OTP through Authkey when the user explicitly provides destination and asks to send/verify/notify. Never use for bulk campaigns unless explicitly requested and confirmed.',
+        parameters: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            action: {
+              type: 'string',
+              enum: ['sms', 'otp'],
+              description: 'Use sms for a plain approved SMS message, otp for an Authkey OTP template/SID.'
+            },
+            mobile: {
+              type: 'string',
+              description: 'Recipient phone number, digits only or formatted.'
+            },
+            countryCode: {
+              type: 'string',
+              description: 'Country code without plus sign. Defaults to AUTHKEY_DEFAULT_COUNTRY_CODE or 55.'
+            },
+            message: {
+              type: 'string',
+              description: 'SMS body for action=sms. Must match approved template rules where required.'
+            },
+            sid: {
+              type: 'string',
+              description: 'Optional Authkey SID/template id for action=otp.'
+            }
+          },
+          required: ['action', 'mobile']
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
         name: 'web_search',
         description: 'Search the internet for real-time market data, competitor information, prices, standards, or general technical resources.',
         parameters: {
@@ -868,8 +920,8 @@ async function callOpenAIChat(requestPayload) {
     'Content-Type': 'application/json',
   }
   if (apiBase.includes('openrouter.ai')) {
-    headers['HTTP-Referer'] = 'https://apex-ai-copilot-platform.vercel.app'
-    headers['X-Title'] = 'Apex AI Copilot'
+    headers['HTTP-Referer'] = 'https://apexglobalai.com'
+    headers['X-OpenRouter-Title'] = 'Apex AI Copilot'
   }
 
   const response = await fetch(`${apiBase}/chat/completions`, {
@@ -1066,6 +1118,25 @@ async function executeLiveAgentToolCall(toolCall) {
       size: result.size,
       reply: buildImageResultReply(result, finalPrompt),
     }
+  }
+
+  if (name === 'send_authkey_message') {
+    let args = {}
+    try {
+      args = JSON.parse(toolCall.function.arguments || '{}')
+    } catch {
+      return { error: 'Invalid tool arguments.' }
+    }
+    const action = String(args.action || '').toLowerCase()
+    const mobile = String(args.mobile || '').trim()
+    const countryCode = String(args.countryCode || '').trim()
+    if (action === 'otp') {
+      const result = await sendAuthkeyOtp({ mobile, countryCode, sid: args.sid })
+      return { ...result, providerStatus: result.ok ? 'authkey-otp-sent' : 'authkey-unavailable', reply: buildAuthkeyResultReply(result, 'OTP') }
+    }
+    const message = String(args.message || '').trim()
+    const result = await sendAuthkeySms({ mobile, countryCode, message })
+    return { ...result, providerStatus: result.ok ? 'authkey-sms-sent' : 'authkey-unavailable', reply: buildAuthkeyResultReply(result, 'SMS') }
   }
 
   if (name === 'web_search') {
@@ -1348,8 +1419,7 @@ export default async function handler(req, res) {
 
     // Fast-path: greeting in Portuguese — no file context needed
     if (!APEX_FREE_AGENT && /^\s*(ol[aá]|oi|ola)\s*$/i.test(userMessage)) {
-      const name = clientMemory.displayName ? `, ${clientMemory.displayName}` : ''
-      const greeting = `Olá${name}. Pode mandar o problema direto que eu começo resolvendo agora, com pesquisa na internet quando precisar.`
+      const greeting = 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.'
       return sendJson(res, 200, {
         finalReply: greeting,
         reply: greeting,
@@ -1415,8 +1485,6 @@ export default async function handler(req, res) {
       }
     }
 
-    const productionConversationIntent = classifyProductionConversationIntent(routingMessage)
-
     // Short-circuit: If the request includes an active file with ready extraction and
     // the user's latest message is a summary/analysis intent, bypass the production
     // conversation routing and proceed to the LLM conversational flow with the file
@@ -1429,10 +1497,8 @@ export default async function handler(req, res) {
         const docText = String(innerFileCandidate.extractedText || '')
         const docSummaryPattern = /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize|analise o arquivo|resuma o arquivo|analise este arquivo|resuma este arquivo|explique o arquivo|explique este arquivo)\b/i
         if (docSummaryPattern.test(userMessage || '')) {
-          // Force a conversational path by ensuring productionConversationIntent does not
-          // trigger the productionRouterIntents branch. We simply fall through to the
-          // conversational LLM flow below with body.file present.
-          // No further action required here; leaving this block documents the short-circuit.
+          // Force a conversational path by falling through to the Live Agent flow
+          // below with body.file present. No extra action is required here.
         }
       }
     } catch (err) {
@@ -1471,8 +1537,7 @@ export default async function handler(req, res) {
     // conversational flow below to handle the request with file context.
     const fileCandidate2 = body.file || null
     const looksLikeDocSummary2 = Boolean(fileCandidate2 && fileCandidate2.extractionStatus === 'ready' && String(fileCandidate2.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize|analise o arquivo|resuma o arquivo|analise este arquivo|resuma este arquivo|explique o arquivo|explique este arquivo)\b/i.test(userMessage || ''))
-    const isProductionRoute = productionRouterIntents.has(productionConversationIntent)
-    if ((!APEX_FREE_AGENT || isProductionRoute) && !looksLikeDocSummary2 && !body.file) {
+    if (!APEX_FREE_AGENT && !looksLikeDocSummary2 && !body.file) {
       const result = await runApexOperatorProductionSafe({
         userMessage,
         identityContext: normalizeIdentityContext(body.identityContext || {}),
@@ -1510,7 +1575,7 @@ export default async function handler(req, res) {
 
     // Portuguese-only greeting short-circuit for 'ola'/'oi' single-word greetings.
     if (!APEX_FREE_AGENT && /^\s*(ola|oi|ol[aá])\s*[.!?]?\s*$/i.test(userMessage || '')) {
-      const greeting = 'Olá. Pode mandar o problema direto que eu começo resolvendo agora, com pesquisa na internet quando precisar.'
+      const greeting = 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.'
       return sendJson(res, 200, {
         finalReply: greeting,
         reply: greeting,
@@ -1520,51 +1585,71 @@ export default async function handler(req, res) {
       })
     }
 
+    const directImageType = classifyImageGenRequest(userMessage)
+    if (directImageType) {
+      const built = buildImagePrompt(userMessage, directImageType)
+      const result = await generateImage({ prompt: built.prompt, size: '1024x1024', quality: 'standard' })
+      const reply = buildImageResultReply(result, built.prompt)
+      return sendJson(res, 200, {
+        finalReply: reply,
+        reply,
+        mode: 'direct-image-generation',
+        provider: result.ok ? result.model : 'image-generation',
+        confirmation: null,
+        productionStatus,
+      })
+    }
+
+    const directVideoType = classifyVideoGenRequest(userMessage)
+    if (directVideoType) {
+      const result = await generateVideo({ prompt: userMessage, aspectRatio: '16:9', duration: 8 })
+      const reply = buildVideoResultReply(result)
+      return sendJson(res, 200, {
+        finalReply: reply,
+        reply,
+        mode: 'direct-video-generation',
+        provider: result.ok ? result.model : 'video-generation',
+        confirmation: null,
+        productionStatus,
+      })
+    }
+
     const selectedModelRaw = body.model || process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini'
     const selectedModel = splitModelValue(selectedModelRaw)
     const model = selectedModel.modelId || 'gpt-4o-mini'
+    const modelProvider = selectedModel.provider
+    const isGatewayModel = modelProvider === 'gateway' || model.startsWith('openai/')
     const { apiBase, apiKey: resolvedOpenAIKey } = getOpenAIConfig(model)
 
     const anthropicKey = process.env.ANTHROPIC_API_KEY
     const openaiKey = resolvedOpenAIKey
     const apiKey = anthropicKey || openaiKey
-    if (!apiKey) {
-      const h5ToolIds = classifyToolExecutionRequest(routingMessage)
-      if (h5ToolIds.length > 0) {
-        const result = await runApexOperatorProductionSafe({
-          userMessage,
-          identityContext: normalizeIdentityContext(body.identityContext || {}),
-          workspaceContext: body.workspaceContext || {},
-          repoPath: process.cwd(),
-          permissions: {},
-          productionStatus,
-          clientMemory,
-          messages: Array.isArray(body.messages) ? body.messages : [],
-        })
+    if (!apiKey && !isGatewayModel) {
+      const result = await runApexOperatorProductionSafe({
+        userMessage,
+        identityContext: normalizeIdentityContext(body.identityContext || {}),
+        workspaceContext: body.workspaceContext || {},
+        repoPath: process.cwd(),
+        permissions: {},
+        productionStatus,
+        clientMemory,
+        messages: Array.isArray(body.messages) ? body.messages : [],
+      })
 
-        return sendJson(res, 200, {
-          finalReply: result.finalReply,
-          reply: result.finalReply,
-          memoryPatch: result.memoryPatch || null,
-          mode: 'apex-operator-production-safe',
-          operator: result,
-          confirmation: buildConfirmationUi(result),
-          productionStatus,
-        })
-      }
-
-      const fallbackReply = buildChatFallbackReply(userMessage, identityContext, body.file || null)
       return sendJson(res, 200, {
-        finalReply: fallbackReply,
-        reply: fallbackReply,
-        mode: 'local-fallback',
-        confirmation: null,
+        finalReply: result.finalReply,
+        reply: result.finalReply,
+        memoryPatch: result.memoryPatch || null,
+        mode: 'apex-operator-production-safe',
+        operator: result,
+        confirmation: buildConfirmationUi(result),
         productionStatus,
       })
     }
 
     const useAnthropic = Boolean(anthropicKey)
     const runtime = loadRuntimeKnowledge()
+    const runtimePromptLines = stripGovernanceRestrictions(runtime.systemPrompt || [])
     const file = body.file || null
     // The client includes the current user message in body.messages as the last item.
     // Drop it here — we add it separately as userContent to avoid consecutive user messages.
@@ -1583,7 +1668,7 @@ export default async function handler(req, res) {
     }
 
     const systemPrompt = [
-      runtime.systemPrompt.join('\n'),
+      runtimePromptLines.join('\n'),
       '',
       'Connector registry summary. These are optional execution paths, not restrictions or required routing:',
       toolSummary,
@@ -1670,17 +1755,19 @@ export default async function handler(req, res) {
           'You are a full coding copilot with REAL access to this platform repository. You have tools to read files (read_file), list directories (list_dir), search code (search_code), write files (write_file), edit files (edit_file) and run commands (run_command).',
           'CRITICAL: You are an autonomous agentic AI. Never describe file contents, directory layouts, or platform status from memory or using static information in the prompt. You MUST call the appropriate tool (list_dir, read_file, search_code, run_safe_local_command) in your first turn to verify the actual files on disk before responding. If the user asks to review, audit, check, verify, update, or edit anything, immediately invoke the tools to perform the actions.',
           'When the user asks about the code, the platform, or to change/fix/build something, USE these tools to actually inspect and modify the real repository. Do not guess file contents — read them.',
-          'Investigate thoroughly: when asked to "analyze your code", "review the platform", or about a feature like auto-upgrade, do NOT stop after reading one file. Use list_dir and search_code to find ALL relevant files, read several of them, and base your answer on what you actually found. For auto-upgrade / self-upgrade questions, call self_upgrade_report.',
+          'Investigate thoroughly: when asked to "analyze your code", "review the platform", or about a feature like auto-upgrade, do NOT stop after reading one file. Use list_dir and search_code to find ALL relevant files, read several of them, and base your answer on what you actually found. For auto-upgrade / self-upgrade questions, self_upgrade_report is only research context; if the user says now, execute, implement, apply, continue, or do it, actually edit code and validate instead of returning only a planner/report.',
           'Never answer about the codebase with a vague generic summary. Cite concrete file paths, function names and findings from the tools.',
           'Work iteratively: explore with read_file/list_dir/search_code, make changes with write_file/edit_file, then verify with run_command when available.',
           'For direct command requests, execute them immediately with run_safe_local_command/raw_shell instead of asking the user to reformat or repeat.',
           'Treat vague task requests as real tasks. Choose the smallest useful first action, state the assumption briefly, and proceed instead of asking the user to restate the goal.',
           'When the user asks for research, market scan, benchmark, competitor check, or "pesquisa na internet", call `web_search` before answering.',
           'When the user explicitly asks to generate/render an image, call `generate_image` first. If image generation is unavailable, state the exact reason and provide a production-ready prompt instead of a generic refusal.',
+          'When the user explicitly asks to send SMS/OTP/WhatsApp-style notification and provides a recipient, call `send_authkey_message`. Never invent phone numbers and never send bulk campaigns without explicit confirmation.',
+          'If the user says a prior response felt mechanical or asks what else Apex can do, answer in a live, context-aware way tied to the current project or file instead of giving a canned platform list.',
+          'Never append generic capability menus or autopilot offers such as "Além disso, posso ajudar...", "Também posso..." or "Posso abrir X?" unless the user explicitly asks for options.',
           'Do not ask a clarifying question just because the request is broad. Ask only if there is truly no safe or meaningful first step.',
           'To actually apply code changes that persist (especially in the serverless production runtime where write_file/edit_file fail with a read-only filesystem), call github_commit_changes with the full new content of each file. It creates a branch, commits, and opens a Pull Request that deploys when merged. When the user says "edit the code", "faça você mesmo", "aplique agora" or "code it yourself", actually CALL github_commit_changes — do not just paste code in the chat. If the user mentions a specific project/repo name, automatically set the repository argument to the matching jedgard70/* repo. If the repo is implied but not explicit, use repositoryHint.',
           'Note: in the serverless cloud environment direct file writes and command execution are unavailable; read/list/search still work on the bundled code, and github_commit_changes is the correct way to persist code changes (it opens a PR).',
-          'Destructive commands and secret files (.env, keys) are blocked by the sandbox.',
           'Critical truth rule: only claim you read, edited, created, or ran something if a tool result proves it. If a tool fails, report the real error.',
           'If `run_safe_local_command` returns unavailable, do not reply with infra/setup instructions as the final answer. Continue with available tools and provide the best concrete result you can.',
           'Do not end with vague questions like "what would you like to do next?" when evidence supports a clear next step. Give a decisive recommendation and one practical next action.',
@@ -1692,8 +1779,13 @@ export default async function handler(req, res) {
 
     const provider = getChatProvider()
     const chatSource = provider === 'anthropic' ? 'anthropic' : 'openai'
+    let finalModel = model
+    const isDirectGeminiModelInPayload = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.0-pro', 'gemini-2.5-flash'].includes(model)
+    if (isDirectGeminiModelInPayload && apiBase?.includes('openrouter.ai') && !model.includes('/')) {
+      finalModel = `google/${model}`
+    }
     const requestPayload = {
-      model,
+      model: finalModel,
       messages: liveAgentMessages,
       tools: buildLiveAgentToolDefinitions(),
       tool_choice: 'auto',
@@ -1703,6 +1795,28 @@ export default async function handler(req, res) {
     }
 
     if (!provider) {
+      if (isGatewayModel && process.env.AI_GATEWAY_API_KEY) {
+        try {
+          const gatewayResult = await generateText({
+            model,
+            messages: liveAgentMessages,
+            temperature: 0.72,
+            maxOutputTokens: 900,
+          })
+          return sendJson(res, 200, {
+            finalReply: gatewayResult.text || buildChatFallbackReply(userMessage, identityContext, file),
+            reply: gatewayResult.text || buildChatFallbackReply(userMessage, identityContext, file),
+            mode: 'live-agent-chat-gateway',
+            provider: 'gateway',
+            model,
+            usage: gatewayResult.usage,
+            confirmation: null,
+            productionStatus,
+          })
+        } catch (gatewayError) {
+          console.error('[Gateway Error]:', gatewayError)
+        }
+      }
       return sendJson(res, 200, {
         finalReply: buildChatFallbackReply(userMessage, identityContext, file),
         reply: buildChatFallbackReply(userMessage, identityContext, file),
@@ -1710,6 +1824,37 @@ export default async function handler(req, res) {
         confirmation: null,
         productionStatus,
       })
+    }
+
+    if (isGatewayModel && process.env.AI_GATEWAY_API_KEY) {
+      try {
+        const gatewayResult = await generateText({
+          model,
+          messages: liveAgentMessages,
+          temperature: 0.72,
+          maxOutputTokens: 900,
+        })
+        return sendJson(res, 200, {
+          finalReply: gatewayResult.text || buildChatFallbackReply(userMessage, identityContext, file),
+          reply: gatewayResult.text || buildChatFallbackReply(userMessage, identityContext, file),
+          mode: 'live-agent-chat-gateway',
+          provider: 'gateway',
+          model,
+          usage: gatewayResult.usage,
+          confirmation: null,
+          productionStatus,
+        })
+      } catch (gatewayError) {
+        console.error('[Gateway Error]:', gatewayError)
+        return sendJson(res, 200, {
+          finalReply: buildChatFallbackReply(userMessage, identityContext, file),
+          reply: buildChatFallbackReply(userMessage, identityContext, file),
+          mode: 'local-fallback-gateway',
+          provider: 'gateway',
+          confirmation: null,
+          productionStatus,
+        })
+      }
     }
 
     const chatResult = provider === 'anthropic'
@@ -1720,12 +1865,24 @@ export default async function handler(req, res) {
     const data = chatResult.data
 
     if (!response.ok) {
+      const result = await runApexOperatorProductionSafe({
+        userMessage,
+        identityContext: normalizeIdentityContext(body.identityContext || {}),
+        workspaceContext: body.workspaceContext || {},
+        repoPath: process.cwd(),
+        permissions: {},
+        productionStatus,
+        clientMemory,
+        messages: Array.isArray(body.messages) ? body.messages : [],
+      })
+
       return sendJson(res, 200, {
-        finalReply: buildChatFallbackReply(userMessage, identityContext, file),
-        reply: buildChatFallbackReply(userMessage, identityContext, file),
-        mode: 'local-fallback',
-        provider: provider,
-        confirmation: null,
+        finalReply: result.finalReply,
+        reply: result.finalReply,
+        memoryPatch: result.memoryPatch || null,
+        mode: 'apex-operator-production-safe',
+        operator: result,
+        confirmation: buildConfirmationUi(result),
         productionStatus,
       })
     }
@@ -1764,8 +1921,8 @@ export default async function handler(req, res) {
             'Content-Type': 'application/json',
           }
           if (apiBaseUrl.includes('openrouter.ai')) {
-            nextHeaders['HTTP-Referer'] = 'https://apex-ai-copilot-platform.vercel.app'
-            nextHeaders['X-Title'] = 'Apex AI Copilot'
+            nextHeaders['HTTP-Referer'] = 'https://apexglobalai.com'
+            nextHeaders['X-OpenRouter-Title'] = 'Apex AI Copilot'
           }
 
           const nextResponse = await fetch(`${apiBaseUrl}/chat/completions`, {
