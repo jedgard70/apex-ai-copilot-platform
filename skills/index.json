@@ -215,5 +215,141 @@
     ],
     "owner": "platform-team",
     "version": "0.2.0"
+  },
+  {
+    "id": "cognitive-agents-evm",
+    "path": "skills/imported/cognitive_agents_evm/SKILL.md",
+    "title": "Cognitive Agents (EVM / Scheduler)",
+    "description": "Agente responsável por cálculos de progresso físico/financeiro e performance de cronograma EVM.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "runtime-knowledge",
+    "runtime_evidence": [
+      "skills/imported/cognitive_agents_evm/evm_calculator.js"
+    ],
+    "source_assets": [
+      "skills/imported/cognitive_agents_evm/SKILL.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "academic-assistant-research",
+    "path": "skills/imported/academic_assistant_research/SKILL.md",
+    "title": "Academic Assistant / Research",
+    "description": "Mapeamento técnico e pesquisa avançada sobre modelagem BIM e code compliance.",
+    "kind": "documentation-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "reference-only",
+    "runtime_evidence": [
+      "skills/imported/academic_assistant_research/bim_automation_research.md"
+    ],
+    "source_assets": [
+      "skills/imported/academic_assistant_research/SKILL.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "website-ai-designer",
+    "path": "skills/imported/website_ai_designer/SKILL.md",
+    "title": "Website AI Designer",
+    "description": "Copywriting comercial e planejamento de landing pages para captação de clientes de engenharia.",
+    "kind": "documentation-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "reference-only",
+    "runtime_evidence": [
+      "skills/imported/website_ai_designer/landing_page_copy.md"
+    ],
+    "source_assets": [
+      "skills/imported/website_ai_designer/SKILL.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "windows-care-diagnostics",
+    "path": "skills/imported/windows_care_diagnostics/SKILL.md",
+    "title": "Windows Care & Diagnostics",
+    "description": "Powershell de auditoria segura e diagnóstico de performance local.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "allowlisted-command",
+    "runtime_evidence": [
+      "skills/imported/windows_care_diagnostics/diagnostic_script.ps1"
+    ],
+    "source_assets": [
+      "skills/imported/windows_care_diagnostics/SKILL.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "supply-chain-suppliers",
+    "path": "skills/imported/supply_chain_suppliers/SKILL.md",
+    "title": "Supply Chain / Suppliers",
+    "description": "Registro global de fornecedores qualificados e tiers de modelagem offshore.",
+    "kind": "documentation-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "reference-only",
+    "runtime_evidence": [
+      "skills/imported/supply_chain_suppliers/supplier_registry.md"
+    ],
+    "source_assets": [
+      "skills/imported/supply_chain_suppliers/SKILL.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "notifications-alerts",
+    "path": "skills/imported/notifications_alerts/SKILL.md",
+    "title": "Notifications / Alerts",
+    "description": "Template de gatilhos SMS/Push e parametrização de canais de notificação em obra.",
+    "kind": "documentation-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "reference-only",
+    "runtime_evidence": [
+      "skills/imported/notifications_alerts/alerts_config.json"
+    ],
+    "source_assets": [
+      "skills/imported/notifications_alerts/SKILL.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "ai-cost-observability",
+    "path": "skills/imported/ai_cost_observability/SKILL.md",
+    "title": "AI Cost / Observability",
+    "description": "Monitoramento de custos e tracking de volume de tokens mensais consumidos.",
+    "kind": "documentation-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "reference-only",
+    "runtime_evidence": [
+      "skills/imported/ai_cost_observability/cost_tracker.md"
+    ],
+    "source_assets": [
+      "skills/imported/ai_cost_observability/SKILL.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "saas-crm-finance",
+    "path": "skills/imported/saas_crm_finance/SKILL.md",
+    "title": "SaaS / CRM / Finance",
+    "description": "Schema relacional de gerenciamento local-first integrado com sincronizador Supabase.",
+    "kind": "documentation-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "reference-only",
+    "runtime_evidence": [
+      "skills/imported/saas_crm_finance/crm_schema.md"
+    ],
+    "source_assets": [
+      "skills/imported/saas_crm_finance/SKILL.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
   }
 ]
