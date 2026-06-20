@@ -1,3 +1,5 @@
+import '../../server/env.mjs'
+import { generateText } from 'ai'
 import fs from 'node:fs'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
@@ -9,6 +11,8 @@ import { isConfirmationSignal, isCancelSignal, hasPendingAction } from '../../se
 import { buildCodeToolDefinitions, executeCodeToolCall, CODE_TOOL_NAMES } from '../../server/agent/codeTools.mjs'
 import { runLocalWorkerAction } from '../../server/agent/localWorkerClient.mjs'
 import { classifyImageGenRequest, buildImagePrompt, generateImage, buildImageResultReply } from '../../server/agent/imageGenerationConnector.mjs'
+import { classifyVideoGenRequest, generateVideo, buildVideoResultReply } from '../../server/agent/videoGenerationConnector.mjs'
+import { sendAuthkeySms, sendAuthkeyOtp, buildAuthkeyResultReply } from '../../server/agent/authkeyConnector.mjs'
 
 if (process.env.Local_Worker_URL && !process.env.LOCAL_WORKER_URL) {
   process.env.LOCAL_WORKER_URL = process.env.Local_Worker_URL
@@ -270,8 +274,8 @@ function buildChatFallbackReply(userText, identity, file = null) {
   const pt = prefersPortugueseText(userText)
   if (isGreetingText(userText)) {
     return pt
-      ? 'Olá! Sou a Apex. Como posso te ajudar hoje com o seu projeto, código, BIM/3D ou operação de campo?'
-      : 'Hello! I\'m Apex. How can I help you today with your project, code, BIM/3D, or field operations?'
+      ? 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.'
+      : 'I am Apex. Give me the task to execute now. If a connector is missing, I will tell you exactly what is missing and proceed with a useful fallback.'
   }
   if (file && file.extractedText && isCapabilitiesQuestionText(userText)) {
     return pt
@@ -765,6 +769,41 @@ function buildLiveAgentToolDefinitions() {
     {
       type: 'function',
       function: {
+        name: 'send_authkey_message',
+        description: 'Send a real SMS or OTP through Authkey when the user explicitly provides destination and asks to send/verify/notify. Never use for bulk campaigns unless explicitly requested and confirmed.',
+        parameters: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            action: {
+              type: 'string',
+              enum: ['sms', 'otp'],
+              description: 'Use sms for a plain approved SMS message, otp for an Authkey OTP template/SID.'
+            },
+            mobile: {
+              type: 'string',
+              description: 'Recipient phone number, digits only or formatted.'
+            },
+            countryCode: {
+              type: 'string',
+              description: 'Country code without plus sign. Defaults to AUTHKEY_DEFAULT_COUNTRY_CODE or 55.'
+            },
+            message: {
+              type: 'string',
+              description: 'SMS body for action=sms. Must match approved template rules where required.'
+            },
+            sid: {
+              type: 'string',
+              description: 'Optional Authkey SID/template id for action=otp.'
+            }
+          },
+          required: ['action', 'mobile']
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
         name: 'web_search',
         description: 'Search the internet for real-time market data, competitor information, prices, standards, or general technical resources.',
         parameters: {
@@ -878,8 +917,8 @@ async function callOpenAIChat(requestPayload) {
     'Content-Type': 'application/json',
   }
   if (apiBase.includes('openrouter.ai')) {
-    headers['HTTP-Referer'] = 'https://apex-ai-copilot-platform.vercel.app'
-    headers['X-Title'] = 'Apex AI Copilot'
+    headers['HTTP-Referer'] = 'https://apexglobalai.com'
+    headers['X-OpenRouter-Title'] = 'Apex AI Copilot'
   }
 
   const response = await fetch(`${apiBase}/chat/completions`, {
@@ -1076,6 +1115,25 @@ async function executeLiveAgentToolCall(toolCall) {
       size: result.size,
       reply: buildImageResultReply(result, finalPrompt),
     }
+  }
+
+  if (name === 'send_authkey_message') {
+    let args = {}
+    try {
+      args = JSON.parse(toolCall.function.arguments || '{}')
+    } catch {
+      return { error: 'Invalid tool arguments.' }
+    }
+    const action = String(args.action || '').toLowerCase()
+    const mobile = String(args.mobile || '').trim()
+    const countryCode = String(args.countryCode || '').trim()
+    if (action === 'otp') {
+      const result = await sendAuthkeyOtp({ mobile, countryCode, sid: args.sid })
+      return { ...result, providerStatus: result.ok ? 'authkey-otp-sent' : 'authkey-unavailable', reply: buildAuthkeyResultReply(result, 'OTP') }
+    }
+    const message = String(args.message || '').trim()
+    const result = await sendAuthkeySms({ mobile, countryCode, message })
+    return { ...result, providerStatus: result.ok ? 'authkey-sms-sent' : 'authkey-unavailable', reply: buildAuthkeyResultReply(result, 'SMS') }
   }
 
   if (name === 'web_search') {
@@ -1358,8 +1416,7 @@ export default async function handler(req, res) {
 
     // Fast-path: greeting in Portuguese — no file context needed
     if (!APEX_FREE_AGENT && /^\s*(ol[aá]|oi|ola)\s*$/i.test(userMessage)) {
-      const name = clientMemory.displayName ? `, ${clientMemory.displayName}` : ''
-      const greeting = `Olá${name}. Pode mandar o problema direto que eu começo resolvendo agora, com pesquisa na internet quando precisar.`
+      const greeting = 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.'
       return sendJson(res, 200, {
         finalReply: greeting,
         reply: greeting,
@@ -1515,7 +1572,7 @@ export default async function handler(req, res) {
 
     // Portuguese-only greeting short-circuit for 'ola'/'oi' single-word greetings.
     if (!APEX_FREE_AGENT && /^\s*(ola|oi|ol[aá])\s*[.!?]?\s*$/i.test(userMessage || '')) {
-      const greeting = 'Olá. Pode mandar o problema direto que eu começo resolvendo agora, com pesquisa na internet quando precisar.'
+      const greeting = 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.'
       return sendJson(res, 200, {
         finalReply: greeting,
         reply: greeting,
@@ -1525,15 +1582,46 @@ export default async function handler(req, res) {
       })
     }
 
+    const directImageType = classifyImageGenRequest(userMessage)
+    if (directImageType) {
+      const built = buildImagePrompt(userMessage, directImageType)
+      const result = await generateImage({ prompt: built.prompt, size: '1024x1024', quality: 'standard' })
+      const reply = buildImageResultReply(result, built.prompt)
+      return sendJson(res, 200, {
+        finalReply: reply,
+        reply,
+        mode: 'direct-image-generation',
+        provider: result.ok ? result.model : 'image-generation',
+        confirmation: null,
+        productionStatus,
+      })
+    }
+
+    const directVideoType = classifyVideoGenRequest(userMessage)
+    if (directVideoType) {
+      const result = await generateVideo({ prompt: userMessage, aspectRatio: '16:9', duration: 8 })
+      const reply = buildVideoResultReply(result)
+      return sendJson(res, 200, {
+        finalReply: reply,
+        reply,
+        mode: 'direct-video-generation',
+        provider: result.ok ? result.model : 'video-generation',
+        confirmation: null,
+        productionStatus,
+      })
+    }
+
     const selectedModelRaw = body.model || process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini'
     const selectedModel = splitModelValue(selectedModelRaw)
     const model = selectedModel.modelId || 'gpt-4o-mini'
+    const modelProvider = selectedModel.provider
+    const isGatewayModel = modelProvider === 'gateway' || model.startsWith('openai/')
     const { apiBase, apiKey: resolvedOpenAIKey } = getOpenAIConfig(model)
 
     const anthropicKey = process.env.ANTHROPIC_API_KEY
     const openaiKey = resolvedOpenAIKey
     const apiKey = anthropicKey || openaiKey
-    if (!apiKey) {
+    if (!apiKey && !isGatewayModel) {
       const h5ToolIds = classifyToolExecutionRequest(routingMessage)
       if (h5ToolIds.length > 0) {
         const result = await runApexOperatorProductionSafe({
@@ -1676,13 +1764,14 @@ export default async function handler(req, res) {
           'You are a full coding copilot with REAL access to this platform repository. You have tools to read files (read_file), list directories (list_dir), search code (search_code), write files (write_file), edit files (edit_file) and run commands (run_command).',
           'CRITICAL: You are an autonomous agentic AI. Never describe file contents, directory layouts, or platform status from memory or using static information in the prompt. You MUST call the appropriate tool (list_dir, read_file, search_code, run_safe_local_command) in your first turn to verify the actual files on disk before responding. If the user asks to review, audit, check, verify, update, or edit anything, immediately invoke the tools to perform the actions.',
           'When the user asks about the code, the platform, or to change/fix/build something, USE these tools to actually inspect and modify the real repository. Do not guess file contents — read them.',
-          'Investigate thoroughly: when asked to "analyze your code", "review the platform", or about a feature like auto-upgrade, do NOT stop after reading one file. Use list_dir and search_code to find ALL relevant files, read several of them, and base your answer on what you actually found. For auto-upgrade / self-upgrade questions, call self_upgrade_report.',
+          'Investigate thoroughly: when asked to "analyze your code", "review the platform", or about a feature like auto-upgrade, do NOT stop after reading one file. Use list_dir and search_code to find ALL relevant files, read several of them, and base your answer on what you actually found. For auto-upgrade / self-upgrade questions, self_upgrade_report is only research context; if the user says now, execute, implement, apply, continue, or do it, actually edit code and validate instead of returning only a planner/report.',
           'Never answer about the codebase with a vague generic summary. Cite concrete file paths, function names and findings from the tools.',
           'Work iteratively: explore with read_file/list_dir/search_code, make changes with write_file/edit_file, then verify with run_command when available.',
           'For direct command requests, execute them immediately with run_safe_local_command/raw_shell instead of asking the user to reformat or repeat.',
           'Treat vague task requests as real tasks. Choose the smallest useful first action, state the assumption briefly, and proceed instead of asking the user to restate the goal.',
           'When the user asks for research, market scan, benchmark, competitor check, or "pesquisa na internet", call `web_search` before answering.',
           'When the user explicitly asks to generate/render an image, call `generate_image` first. If image generation is unavailable, state the exact reason and provide a production-ready prompt instead of a generic refusal.',
+          'When the user explicitly asks to send SMS/OTP/WhatsApp-style notification and provides a recipient, call `send_authkey_message`. Never invent phone numbers and never send bulk campaigns without explicit confirmation.',
           'If the user says a prior response felt mechanical or asks what else Apex can do, answer in a live, context-aware way tied to the current project or file instead of giving a canned platform list.',
           'Never append generic capability menus or autopilot offers such as "Além disso, posso ajudar...", "Também posso..." or "Posso abrir X?" unless the user explicitly asks for options.',
           'Do not ask a clarifying question just because the request is broad. Ask only if there is truly no safe or meaningful first step.',
@@ -1710,6 +1799,28 @@ export default async function handler(req, res) {
     }
 
     if (!provider) {
+      if (isGatewayModel && process.env.AI_GATEWAY_API_KEY) {
+        try {
+          const gatewayResult = await generateText({
+            model,
+            messages: liveAgentMessages,
+            temperature: 0.72,
+            maxOutputTokens: 900,
+          })
+          return sendJson(res, 200, {
+            finalReply: gatewayResult.text || buildChatFallbackReply(userMessage, identityContext, file),
+            reply: gatewayResult.text || buildChatFallbackReply(userMessage, identityContext, file),
+            mode: 'live-agent-chat-gateway',
+            provider: 'gateway',
+            model,
+            usage: gatewayResult.usage,
+            confirmation: null,
+            productionStatus,
+          })
+        } catch (gatewayError) {
+          console.error('[Gateway Error]:', gatewayError)
+        }
+      }
       return sendJson(res, 200, {
         finalReply: buildChatFallbackReply(userMessage, identityContext, file),
         reply: buildChatFallbackReply(userMessage, identityContext, file),
@@ -1717,6 +1828,37 @@ export default async function handler(req, res) {
         confirmation: null,
         productionStatus,
       })
+    }
+
+    if (isGatewayModel && process.env.AI_GATEWAY_API_KEY) {
+      try {
+        const gatewayResult = await generateText({
+          model,
+          messages: liveAgentMessages,
+          temperature: 0.72,
+          maxOutputTokens: 900,
+        })
+        return sendJson(res, 200, {
+          finalReply: gatewayResult.text || buildChatFallbackReply(userMessage, identityContext, file),
+          reply: gatewayResult.text || buildChatFallbackReply(userMessage, identityContext, file),
+          mode: 'live-agent-chat-gateway',
+          provider: 'gateway',
+          model,
+          usage: gatewayResult.usage,
+          confirmation: null,
+          productionStatus,
+        })
+      } catch (gatewayError) {
+        console.error('[Gateway Error]:', gatewayError)
+        return sendJson(res, 200, {
+          finalReply: buildChatFallbackReply(userMessage, identityContext, file),
+          reply: buildChatFallbackReply(userMessage, identityContext, file),
+          mode: 'local-fallback-gateway',
+          provider: 'gateway',
+          confirmation: null,
+          productionStatus,
+        })
+      }
     }
 
     const chatResult = provider === 'anthropic'
@@ -1771,8 +1913,8 @@ export default async function handler(req, res) {
             'Content-Type': 'application/json',
           }
           if (apiBaseUrl.includes('openrouter.ai')) {
-            nextHeaders['HTTP-Referer'] = 'https://apex-ai-copilot-platform.vercel.app'
-            nextHeaders['X-Title'] = 'Apex AI Copilot'
+            nextHeaders['HTTP-Referer'] = 'https://apexglobalai.com'
+            nextHeaders['X-OpenRouter-Title'] = 'Apex AI Copilot'
           }
 
           const nextResponse = await fetch(`${apiBaseUrl}/chat/completions`, {
