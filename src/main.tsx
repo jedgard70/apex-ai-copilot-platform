@@ -519,8 +519,9 @@ function isCheckpointContinuationIntent(text: string) {
 
 // H15 — lightweight markdown renderer for chat bubbles
 function renderMessageText(text: string): React.ReactNode {
-  const imageLineRe = /^!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)\s*$/
-  const inlineImageRe = /!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g
+  const imageLineRe = /^!\[([^\]]*)\]\(((?:https?:\/\/|data:image\/)[^\s)]+)\)\s*$/
+  const inlineImageRe = /!\[([^\]]*)\]\(((?:https?:\/\/|data:image\/)[^\s)]+)\)/g
+  const videoLineRe = /^<video\s+controls\s+src="((?:https?:\/\/|data:video\/)[^"]+)"><\/video>\s*$/
   const boldRe = /\*\*([^*]+)\*\*/g
   const codeBlockRe = /^```[\s\S]*?```$/m
   const inlineCodeRe = /`([^`]+)`/g
@@ -555,11 +556,20 @@ function renderMessageText(text: string): React.ReactNode {
       continue
     }
 
+    const videoMatch = videoLineRe.exec(line)
+    if (videoMatch) {
+      nodes.push(
+        <video key={i} controls src={videoMatch[1]} style={{ maxWidth: '100%', borderRadius: '8px', marginTop: '8px', display: 'block' }} />
+      )
+      i++
+      continue
+    }
+
     // Normal line — parse bold + inline code + inline images
     const renderInline = (s: string): React.ReactNode[] => {
       const parts: React.ReactNode[] = []
       let last = 0
-      const combined = /(\*\*([^*]+)\*\*|`([^`]+)`|!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\))/g
+      const combined = /(\*\*([^*]+)\*\*|`([^`]+)`|!\[([^\]]*)\]\(((?:https?:\/\/|data:image\/)[^\s)]+)\))/g
       let m: RegExpExecArray | null
       while ((m = combined.exec(s)) !== null) {
         if (m.index > last) parts.push(s.slice(last, m.index))
@@ -769,11 +779,10 @@ function isGreeting(text: string) {
 function buildGreetingReply(text: string) {
   const lower = text.trim().toLowerCase()
   if (/obrigad|valeu|tamo junto/.test(lower)) return 'Por nada! Se precisar de mais alguma coisa, é só falar.'
-  if (/bom dia/.test(lower)) return 'Bom dia! Como posso ajudar hoje? Pode enviar um arquivo, pedir análise de projeto ou qualquer outra tarefa da plataforma.'
-  if (/boa tarde/.test(lower)) return 'Boa tarde! Em que posso ajudar?'
-  if (/boa noite/.test(lower)) return 'Boa noite! Como posso ajudar?'
-  if (/tudo bem|tudo bom|como vai|como est/.test(lower)) return 'Tudo ótimo! Pronto para ajudar. Pode me enviar um projeto, fazer uma pergunta ou pedir análise de BIM, contrato, orçamento, campo ou marketing.'
-  return 'Olá! Como posso ajudar? Pode me enviar um arquivo, fazer uma pergunta ou pedir análise de BIM, contrato, orçamento, campo, imagem ou qualquer tarefa da plataforma.'
+  const pt = prefersPortuguese(text)
+  return pt
+    ? 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.'
+    : 'I am Apex. Give me the task to execute now. If a connector is missing, I will tell you exactly what is missing and proceed with a useful fallback.'
 }
 
 function buildProductFallbackAnswer(userText: string, identity: ChatIdentityContext) {
