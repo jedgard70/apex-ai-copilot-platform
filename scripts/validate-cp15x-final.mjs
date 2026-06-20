@@ -123,9 +123,14 @@ assert.equal(classifyImageGenRequest('faz git commit'), null)
 const { prompt, negative_prompt } = buildImagePrompt('fachada modernista', 'facade_render')
 assert.ok(prompt.length > 20 && negative_prompt.length > 10)
 
+const backupOpenAI = process.env.OPENAI_API_KEY
+const backupGateway = process.env.AI_GATEWAY_API_KEY
 delete process.env.OPENAI_API_KEY
+delete process.env.AI_GATEWAY_API_KEY
 const noKey = await generateImage({ prompt: 'test' })
 assert.equal(noKey.ok, false)
+if (backupOpenAI) process.env.OPENAI_API_KEY = backupOpenAI
+if (backupGateway) process.env.AI_GATEWAY_API_KEY = backupGateway
 assert.equal(noKey.secretsExposed, false)
 
 const imgStatus = getImageGenConnectorStatus()

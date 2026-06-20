@@ -1,10 +1,10 @@
 import { generateImage } from 'ai'
 import fs from 'node:fs'
-import 'dotenv/config'
+import './server/env.mjs'
 
 async function main() {
   const result = await generateImage({
-    model: 'black-forest-labs/flux-1.1-pro',
+    model: 'bfl/flux-pro-1.1',
     prompt: 'A serene mountain landscape at sunset with a calm lake reflection',
     size: '1024x1024'
   })

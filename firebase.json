@@ -1,0 +1,32 @@
+{
+  "emulators": {
+    "dataconnect": {
+      "dataDir": "dataconnect/.dataconnect/pgliteData"
+    }
+  },
+  "dataconnect": {
+    "source": "dataconnect"
+  },
+  "firestore": {
+    "database": "(default)",
+    "location": "nam5",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "remoteconfig": {
+    "template": "remoteconfig.template.json"
+  },
+  "auth": {
+    "providers": {
+      "anonymous": true,
+      "emailPassword": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "Apex AI Copilot",
+        "supportEmail": "support@apexglobalai.com"
+      }
+    }
+  },
+  "ailogic": {
+    "app": "1:429362775436:web:929a7435ce0d5979fe42a9"
+  }
+}
