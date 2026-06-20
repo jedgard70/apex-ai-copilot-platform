@@ -1272,8 +1272,8 @@ function buildChatFallbackReply(userText, identity) {
   const pt = prefersPortugueseText(userText)
   if (isGreetingText(userText)) {
     return pt
-      ? 'Olá! Sou a Apex. Como posso te ajudar hoje com o seu projeto, código, BIM/3D ou operação de campo?'
-      : 'Hello! I\'m Apex. How can I help you today with your project, code, BIM/3D, or field operations?'
+      ? 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.'
+      : 'I am Apex. Give me the task to execute now. If a connector is missing, I will tell you exactly what is missing and proceed with a useful fallback.'
   }
   if (isCapabilitiesQuestionText(userText)) {
     return pt
@@ -1633,13 +1633,30 @@ async function handleChat(req, res) {
       if ((model.includes('/') || !isDirectGeminiModel) && !isGatewayModel) {
         apiBase = process.env.OPENAI_API_BASEROUTER
         apiKey = process.env.OPENAI_API_KEYROUTER
+      } else if (!apiKey && !isGatewayModel) {
+        apiBase = process.env.OPENAI_API_BASEROUTER
+        apiKey = process.env.OPENAI_API_KEYROUTER
       }
     }
 
     if (!apiKey && !isGatewayModel) {
+      const result = await runApexOperatorProductionSafe({
+        userMessage: userText,
+        identityContext,
+        workspaceContext: body.workspaceContext || {},
+        repoPath: process.cwd(),
+        permissions: {},
+        productionStatus: collectProductionOperatorStatus(),
+        clientMemory: body.clientMemory || {},
+        messages: Array.isArray(body.messages) ? body.messages : [],
+      })
+
       return chatJson(res, 200, {
-        finalReply: buildChatFallbackReply(userText, identityContext),
-        mode: 'local-fallback',
+        finalReply: result.finalReply,
+        memoryPatch: result.memoryPatch || null,
+        mode: 'apex-operator-production-safe',
+        operator: result,
+        confirmation: result.confirmation || null,
       })
     }
 
@@ -1782,8 +1799,13 @@ async function handleChat(req, res) {
       }
     }
 
+    let finalModel = requestModel
+    if (isDirectGeminiModel && apiBase?.includes('openrouter.ai') && !requestModel.includes('/')) {
+      finalModel = `google/${requestModel}`
+    }
+
     const requestPayload = {
-      model: requestModel,
+      model: finalModel,
       messages: liveAgentMessages,
       tools: buildLiveAgentToolDefinitions(),
       tool_choice: 'auto',
@@ -1810,9 +1832,23 @@ async function handleChat(req, res) {
     const data = await response.json().catch(() => ({}))
     if (!response.ok) {
       console.error('[OpenAI Error response]:', response.status, data)
+      const result = await runApexOperatorProductionSafe({
+        userMessage: userText,
+        identityContext,
+        workspaceContext: body.workspaceContext || {},
+        repoPath: process.cwd(),
+        permissions: {},
+        productionStatus: collectProductionOperatorStatus(),
+        clientMemory: body.clientMemory || {},
+        messages: Array.isArray(body.messages) ? body.messages : [],
+      })
+
       return chatJson(res, 200, {
-        finalReply: buildChatFallbackReply(userText, identityContext),
-        mode: 'local-fallback',
+        finalReply: result.finalReply,
+        memoryPatch: result.memoryPatch || null,
+        mode: 'apex-operator-production-safe',
+        operator: result,
+        confirmation: result.confirmation || null,
       })
     }
 
@@ -4640,9 +4676,15 @@ function serveStatic(req, res) {
     res.end('Forbidden')
     return
   }
-  const filePath = fs.existsSync(resolved) && fs.statSync(resolved).isFile()
-    ? resolved
-    : path.join(dist, 'index.html')
+  
+  let filePath = resolved
+  if (fs.existsSync(resolved) && fs.statSync(resolved).isDirectory()) {
+    filePath = path.join(resolved, 'index.html')
+  }
+  if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
+    filePath = path.join(dist, 'index.html')
+  }
+
   if (!fs.existsSync(filePath)) {
     res.writeHead(404)
     res.end('Run npm run build first.')

@@ -61,6 +61,9 @@ export function getOpenAIConfig(model) {
     if (model?.includes('/') || !isDirectGeminiModel) {
       apiBase = process.env.OPENAI_API_BASEROUTER
       apiKey = process.env.OPENAI_API_KEYROUTER
+    } else if (!apiKey) {
+      apiBase = process.env.OPENAI_API_BASEROUTER
+      apiKey = process.env.OPENAI_API_KEYROUTER
     }
   }
   return { apiBase, apiKey }
@@ -1622,36 +1625,24 @@ export default async function handler(req, res) {
     const openaiKey = resolvedOpenAIKey
     const apiKey = anthropicKey || openaiKey
     if (!apiKey && !isGatewayModel) {
-      const h5ToolIds = classifyToolExecutionRequest(routingMessage)
-      if (h5ToolIds.length > 0) {
-        const result = await runApexOperatorProductionSafe({
-          userMessage,
-          identityContext: normalizeIdentityContext(body.identityContext || {}),
-          workspaceContext: body.workspaceContext || {},
-          repoPath: process.cwd(),
-          permissions: {},
-          productionStatus,
-          clientMemory,
-          messages: Array.isArray(body.messages) ? body.messages : [],
-        })
+      const result = await runApexOperatorProductionSafe({
+        userMessage,
+        identityContext: normalizeIdentityContext(body.identityContext || {}),
+        workspaceContext: body.workspaceContext || {},
+        repoPath: process.cwd(),
+        permissions: {},
+        productionStatus,
+        clientMemory,
+        messages: Array.isArray(body.messages) ? body.messages : [],
+      })
 
-        return sendJson(res, 200, {
-          finalReply: result.finalReply,
-          reply: result.finalReply,
-          memoryPatch: result.memoryPatch || null,
-          mode: 'apex-operator-production-safe',
-          operator: result,
-          confirmation: buildConfirmationUi(result),
-          productionStatus,
-        })
-      }
-
-      const fallbackReply = buildChatFallbackReply(userMessage, identityContext, body.file || null)
       return sendJson(res, 200, {
-        finalReply: fallbackReply,
-        reply: fallbackReply,
-        mode: 'local-fallback',
-        confirmation: null,
+        finalReply: result.finalReply,
+        reply: result.finalReply,
+        memoryPatch: result.memoryPatch || null,
+        mode: 'apex-operator-production-safe',
+        operator: result,
+        confirmation: buildConfirmationUi(result),
         productionStatus,
       })
     }
@@ -1788,8 +1779,13 @@ export default async function handler(req, res) {
 
     const provider = getChatProvider()
     const chatSource = provider === 'anthropic' ? 'anthropic' : 'openai'
+    let finalModel = model
+    const isDirectGeminiModelInPayload = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.0-pro', 'gemini-2.5-flash'].includes(model)
+    if (isDirectGeminiModelInPayload && apiBase?.includes('openrouter.ai') && !model.includes('/')) {
+      finalModel = `google/${model}`
+    }
     const requestPayload = {
-      model,
+      model: finalModel,
       messages: liveAgentMessages,
       tools: buildLiveAgentToolDefinitions(),
       tool_choice: 'auto',
@@ -1869,12 +1865,24 @@ export default async function handler(req, res) {
     const data = chatResult.data
 
     if (!response.ok) {
+      const result = await runApexOperatorProductionSafe({
+        userMessage,
+        identityContext: normalizeIdentityContext(body.identityContext || {}),
+        workspaceContext: body.workspaceContext || {},
+        repoPath: process.cwd(),
+        permissions: {},
+        productionStatus,
+        clientMemory,
+        messages: Array.isArray(body.messages) ? body.messages : [],
+      })
+
       return sendJson(res, 200, {
-        finalReply: buildChatFallbackReply(userMessage, identityContext, file),
-        reply: buildChatFallbackReply(userMessage, identityContext, file),
-        mode: 'local-fallback',
-        provider: provider,
-        confirmation: null,
+        finalReply: result.finalReply,
+        reply: result.finalReply,
+        memoryPatch: result.memoryPatch || null,
+        mode: 'apex-operator-production-safe',
+        operator: result,
+        confirmation: buildConfirmationUi(result),
         productionStatus,
       })
     }
