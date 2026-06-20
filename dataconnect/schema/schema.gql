@@ -1,0 +1,50 @@
+type Project @table {
+  name: String!
+  status: String!
+  location: String!
+  startDate: Date!
+  budgetTotal: Float
+  imageUrl3D: String
+}
+
+type User @table {
+  email: String!
+  role: String!
+  name: String!
+  phone: String
+  companyId: String
+}
+
+type FinancialRecord @table {
+  type: String!
+  amount: Float!
+  date: Date!
+  category: String!
+  project: Project!
+}
+
+type Lead @table {
+  name: String!
+  status: String!
+  source: String!
+  budgetPreference: Float
+  lastContactDate: Timestamp
+  assignedAgent: User
+}
+
+type Model3D @table {
+  version: String!
+  fileUrl: String!
+  description: String
+  renderingStatus: String
+  project: Project!
+}
+
+type Task @table {
+  title: String!
+  dueDate: Date!
+  status: String!
+  costEstimate: Float
+  actualCost: Float
+  project: Project!
+}

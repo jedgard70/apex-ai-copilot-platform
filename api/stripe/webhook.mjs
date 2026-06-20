@@ -48,17 +48,28 @@ export default async function handler(req, res) {
         const { tenantId, userId, plan } = session.metadata || {}
 
         if (tenantId && userId) {
-          await supabase.from('subscriptions').upsert({
+          // 1. First record customer mapping
+          await supabase.from('stripe_customers').upsert({
             tenant_id: tenantId,
             user_id: userId,
+            stripe_customer_id: session.customer,
+            updated_at: new Date().toISOString(),
+          }, {
+            onConflict: 'stripe_customer_id'
+          })
+
+          // 2. Then upsert subscription linking it to tenant
+          await supabase.from('subscriptions').upsert({
+            tenant_id: tenantId,
             stripe_subscription_id: session.subscription,
             stripe_customer_id: session.customer,
             plan_name: plan || 'unknown',
             status: 'active',
             current_period_end: new Date((session.current_period_end || 0) * 1000).toISOString(),
             updated_at: new Date().toISOString(),
+            created_by: userId,
           }, {
-            onConflict: 'tenant_id,user_id'
+            onConflict: 'stripe_subscription_id'
           })
         }
         break
@@ -78,7 +89,6 @@ export default async function handler(req, res) {
 
           await supabase.from('subscriptions').upsert({
             tenant_id: customer.tenant_id,
-            user_id: customer.user_id,
             stripe_subscription_id: subscription.id,
             stripe_customer_id: subscription.customer,
             status,
@@ -86,7 +96,7 @@ export default async function handler(req, res) {
             canceled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000).toISOString() : null,
             updated_at: new Date().toISOString(),
           }, {
-            onConflict: 'tenant_id,user_id'
+            onConflict: 'stripe_subscription_id'
           })
         }
         break
@@ -104,7 +114,7 @@ export default async function handler(req, res) {
           await supabase.from('subscriptions').update({
             status: 'past_due',
             updated_at: new Date().toISOString(),
-          }).eq('tenant_id', customer.tenant_id).eq('user_id', customer.user_id)
+          }).eq('tenant_id', customer.tenant_id).eq('stripe_customer_id', invoice.customer)
         }
         break
       }

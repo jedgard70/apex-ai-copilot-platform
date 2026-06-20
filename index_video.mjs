@@ -1,6 +1,6 @@
 import { experimental_generateVideo as generateVideo } from 'ai'
 import fs from 'node:fs'
-import 'dotenv/config'
+import './server/env.mjs'
 
 async function main() {
   const result = await generateVideo({
