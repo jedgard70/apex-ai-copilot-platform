@@ -1,23 +1,95 @@
 {
   "name": "apex-ai-copilot-platform",
-  "version": "1.0.0",
+  "version": "0.1.0",
+  "private": true,
   "type": "module",
+  "main": "electron-main.cjs",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "validate:supabase-sql": "node scripts/validate-supabase-sql.mjs"
+    "dev": "npm run build && node server.mjs",
+    "electron:dev": "node scripts/start-electron-dev.mjs",
+    "electron:build": "npm run build && electron-builder",
+    "dev:ui": "vite --host 0.0.0.0",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "start": "node server.mjs",
+    "validate:cp15x-h43b": "node scripts/validate-cp15x-h43b.mjs",
+    "validate:cp15x-h44": "node scripts/validate-cp15x-h44.mjs",
+    "validate:cp15x-h5": "node scripts/validate-cp15x-h5.mjs",
+    "validate:cp15x-h51a": "node scripts/validate-cp15x-h51a.mjs",
+    "validate:supabase-sql": "node scripts/validate-supabase-sql.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "next": "^14.0.0",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0",
-    "node-fetch": "^3.3.0",
-    "pdf-parse": "^1.1.1"
+    "@auth0/auth0-react": "^2.19.0",
+    "@auth0/nextjs-auth0": "^4.22.0",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
+    "@supabase/supabase-js": "^2.108.1",
+    "@vercel/connect": "^0.2.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "ai": "^6.0.208",
+    "docx": "^9.7.1",
+    "dotenv": "^17.4.2",
+    "lucide-react": "^0.511.0",
+    "pdfjs-dist": "^6.0.227",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "stripe": "^17.4.0",
+    "three": "^0.184.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7",
+    "web-ifc": "^0.0.77",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "eslint": "^8.0.0",
-    "eslint-config-next": "^14.0.0"
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@types/three": "^0.184.1",
+    "@vitest/coverage-v8": "^4.1.9",
+    "electron": "^42.4.1",
+    "electron-builder": "^26.15.3",
+    "jsdom": "^29.1.1",
+    "vite-plugin-static-copy": "^4.1.1",
+    "vitest": "^4.1.9"
+  },
+  "build": {
+    "appId": "com.apexglobalai.copilot",
+    "productName": "Apex AI Copilot",
+    "directories": {
+      "output": "dist_electron"
+    },
+    "asar": true,
+    "asarUnpack": [
+      "server.mjs",
+      "local-worker/**/*",
+      "server/**/*",
+      "api/**/*",
+      "dist/**/*",
+      "node_modules/**/*"
+    ],
+    "files": [
+      "dist/**/*",
+      "api/**/*",
+      "server/**/*",
+      "local-worker/**/*",
+      "server.mjs",
+      "electron-main.cjs",
+      "package.json",
+      ".env"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Apex AI Copilot"
+    }
   }
 }
