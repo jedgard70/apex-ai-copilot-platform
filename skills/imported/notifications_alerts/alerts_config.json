@@ -1,0 +1,30 @@
+# Alert & Notifications Engine Configuration
+# Configures SMS, Email, and App push notification thresholds
+
+{
+  "notifications": {
+    "sms": {
+      "provider": "authkey",
+      "status": "enabled",
+      "dltPEId": "PE_17011000",
+      "templates": {
+        "critical_alert": "ALERTA APEX: Alteraçoes criticas detectadas no projeto {projectName}. Detalhes: {details}"
+      }
+    },
+    "appPush": {
+      "provider": "firebase_messaging",
+      "status": "enabled",
+      "fcmVapidKey": "VAPID_PRODUCTION_KEY",
+      "channels": {
+        "mep_clash": {
+          "title": "Conflito MEP Detectado",
+          "priority": "high"
+        },
+        "budget_overrun": {
+          "title": "Excesso de Orçamento",
+          "priority": "critical"
+        }
+      }
+    }
+  }
+}
