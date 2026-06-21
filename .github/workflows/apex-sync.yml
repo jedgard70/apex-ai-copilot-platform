@@ -2,13 +2,20 @@ name: Apex Sync
 
 on:
   pull_request:
+    branches: [main]
   push:
-    branches:
-      - feature/image-generation-connector
+    branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: apex-deploy-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 env:
-  NODE_VERSION: "20"
+  NODE_VERSION: "24"
   VITE_APEX_BUILD_MARKER: "github-${{ github.sha }}"
   APEX_BUILD_MARKER: "github-${{ github.sha }}"
 
@@ -35,10 +42,13 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build
         run: npm run build
+
+      - name: Tests
+        run: npm run test
 
       - name: Validate H5
         run: npm run validate:cp15x-h5
@@ -63,7 +73,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
@@ -92,7 +102,7 @@ jobs:
     name: Apply Supabase migrations on base branch only
     runs-on: ubuntu-latest
     needs: validate
-    if: github.event_name == 'push' && github.ref == 'refs/heads/feature/image-generation-connector'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout exact commit
@@ -121,7 +131,7 @@ jobs:
     needs:
       - validate
       - supabase-production
-    if: github.event_name == 'push' && github.ref == 'refs/heads/feature/image-generation-connector'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout exact commit
@@ -134,7 +144,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Install Vercel CLI
         run: npm install --global vercel@latest

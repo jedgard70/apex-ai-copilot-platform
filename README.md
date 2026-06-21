@@ -16,6 +16,12 @@ Source reference:
 
 - `D:\AI-constr\apex-ai-copilot-production-brain`
 
+## Deploy and CI hygiene
+
+- The repository now uses GitHub Actions to run build and test validation before deployment.
+- Vercel production deploys should be considered safe only when the CI status checks for `main` are green.
+- For commit verification, use signed commits (GPG/SSH) when possible; this avoids deployment cancellations tied to unverified commits.
+
 ## Local Runtime
 
 Create `.env.local` locally:

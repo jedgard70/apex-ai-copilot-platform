@@ -1,14 +1,14 @@
 # Platform Status (Resumo Operacional — Apex AI Copilot)
 
-> **NÃO PERGUNTAR NOVAMENTE** — todos os 25 módulos estão DONE.
-> Atualizado: 2026-06-21
+> **NÃO PERGUNTAR NOVAMENTE** — a plataforma está documentada com 34 capacidades operacionais.
+> Atualizado: 2026-06-22
 
 ## Estado atual
 
-- **25/25 módulos implementados e ativos** em `apexglobalai.com` e no app local.
-- Build: GREEN | Tests: 84/84 | Deploy: Vercel main branch auto-deploy.
+- **34 capacidades operacionais** implementadas e ativas em `apexglobalai.com` e no app local.
+- Build: GREEN | Tests: 84/84 | Deploy: Vercel main branch com CI gating.
 
-## Lista completa de módulos (todos DONE)
+## Lista completa de capacidades (todas DONE)
 
 | # | Módulo | Arquivo principal | Status |
 | --- | --- | --- | --- |
@@ -78,4 +78,6 @@
 ---
 
 *Last updated: 2026-06-22 — Phase 4 ✅ — Phase 5 RDO PDF ✅ — ALL 25 MODULES DONE — Deploy LIVE*
+
+**Default branch for commits/merges/deploys: `main`** — Apex AI MUST use `main` as the canonical base for commits, PR targets, and production deploys. Do not auto-push feature branches to production. This file is the single source of truth for branch policy.
 

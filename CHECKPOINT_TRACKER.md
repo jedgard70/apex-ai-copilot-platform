@@ -2,9 +2,9 @@
 
 ## Source of truth (do not re-ask)
 
-Use this file as the canonical checkpoint snapshot for module/connector status. **All 25 modules are done. Do not ask again.**
+Use this file as the canonical checkpoint snapshot for module/connector status. The platform is now documented as a consolidated inventory of 34 operational capabilities; the primary runtime modules are all done and live.
 
-Last updated: 2026-06-21 — All todos: 25/25 done.
+Last updated: 2026-06-22 — Inventory: 34 capabilities documented; build/test green; deploy hardening enabled.
 
 ---
 
