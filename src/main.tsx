@@ -2471,6 +2471,9 @@ function App() {
         }),
       })
       const data = await response.json().catch(() => ({}))
+      // H5.0D: log response mode so version is visible in browser console
+      if (data?.mode) console.log('[Apex H5] response mode:', data.mode)
+      if (data?.provider) console.log('[Apex H5] provider:', data.provider)
       const mode = String(data?.mode || '')
       if (mode) setLastResponseMode(mode)
       if (response.ok && !mode.startsWith('local-fallback')) {
@@ -3356,6 +3359,7 @@ function App() {
                 {loading
                   ? (uiLanguage === 'EN' ? 'Model working...' : 'Modelo trabalhando...')
                   : modelRuntimeState === 'ok'
+                    ? (uiLanguage === 'EN' ? `Online · ${lastResponseMode || 'ok'}` : `Online · ${lastResponseMode || 'ok'}`)
                     ? (uiLanguage === 'EN' ? `Active · ${lastResponseMode || 'ok'}` : `Ativo · ${lastResponseMode || 'ok'}`)
                     : modelRuntimeState === 'fallback'
                       ? (uiLanguage === 'EN' ? 'Fallback mode (auto-retry active)' : 'Modo fallback (auto-retry ativo)')
