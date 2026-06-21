@@ -22,7 +22,7 @@ export type ResearchFinding = {
 export type SinapiSourceStatus = 'not-connected' | 'user-uploaded-table' | 'connected-api'
 
 export type ResearchPlan = {
-  providerStatus: 'web-not-connected' | 'research-draft'
+  providerStatus: 'web-not-connected' | 'research-draft' | 'web-search-live'
   researchType: ResearchType
   query: string
   region: string
@@ -62,4 +62,3 @@ export const sourceConfidenceOptions: SourceConfidence[] = [
   'PLACEHOLDER',
   'NEEDS_WEB_VERIFICATION',
 ]
-

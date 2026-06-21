@@ -17,4 +17,5 @@ server/service-account.json
 *.backup*
 output.png
 output.mp4
-
+playwright-report/
+test-results/

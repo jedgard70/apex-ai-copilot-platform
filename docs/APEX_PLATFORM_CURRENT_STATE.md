@@ -1,7 +1,7 @@
 # APEX Platform — Unified Current State
 
 Checkpoint: CP-LIVE-3 — Phase 3 FINAL
-Last update: 2026-06-20
+Last update: 2026-06-21
 
 ## Canonical rule
 
@@ -14,6 +14,17 @@ This file is a unified read-only snapshot (no duplicated trackers).
 - Platform core status: **GREEN**
 - Build/typecheck: **GREEN**
 - Tests: **GREEN** (83 passed)
+- AI runtime configuration: **GREEN** (`server.mjs` now loads `.env.local`/`.env` before boot)
+- Model/provider diagnostics: **GREEN** (Gateway/Gemini availability now follows actual configured runtime paths)
+- Advanced model access: **GREEN** (manual provider/model entry available for Gateway, OpenRouter and Gemini paths)
+- Platform Status / observability view: **GREEN (shared runtime)** for Sentry/Vercel/provider-path visibility
+- Campaign / VSL planning: **GREEN (shared runtime)** through Campaign Automation
+- Public VSL standalone route: **GREEN** (`/vsl`, `/oferta`, `/apresentacao`)
+- Playwright smoke validation: **GREEN** (`npm run test:e2e` passes with the build step separated from the Playwright webServer startup)
+- Live project memory: **GREEN** (workspace profile persisted and injected into Apex chat context)
+- Live web research with citations: **GREEN** (Research Studio searches live public sources and exports cited proposal support)
+- Project package pipeline: **GREEN** (shared package studio consolidates briefing, budget, research, contracts and execution schedule)
+- Generation queue/history: **GREEN** (shared panel + backend summary track saved image/video-plan/export/package runs per project)
 - Phase 1: **completed**
 - Phase 2: **completed**
 - Phase 3: **100% completed — all connectors active**
@@ -23,6 +34,15 @@ This file is a unified read-only snapshot (no duplicated trackers).
 | Area | Status | Objective evidence |
 | --- | --- | --- |
 | Chat/Copilot core | REAL 100% | `server.mjs`, `api/copilot/chat.mjs`, runtime active |
+| AI runtime provider resolution | REAL 100% (shared runtime) | `server.mjs` loads env on boot, filters unconfigured model paths and routes Gemini through OpenRouter when configured |
+| Advanced model selection | REAL 100% (shared runtime) | `src/main.tsx` supports manual provider/model entry for Gateway, OpenRouter and Gemini paths |
+| Platform Status / provider diagnostics | REAL 100% (shared runtime) | `MetricsDashboardPanel` + `/api/copilot/metrics-plan` show Sentry/Vercel/Gateway/Gemini status from current runtime |
+| Project Workspace memory | REAL 100% (local persistent scope) | `src/lib/projectWorkspace.ts`, `ProjectWorkspacePanel`, persistent client/project brief injected into chat runtime |
+| Research with cited sources | REAL 100% (shared runtime) | `server.mjs` live RSS search path + `ResearchPanel` clickable citations and cited proposal export |
+| Project package pipeline | REAL 100% (shared runtime) | `ProjectPackagePanel` + `/api/copilot/project-package` consolidate saved workspace evidence into a complete delivery bundle status |
+| Generation queue / history | REAL 100% (shared runtime) | `GenerationHistoryPanel` + `/api/copilot/generation-history` summarize saved ArchVis, DirectCut, Export Center and package runs from Project Workspace |
+| Campaign Automation / VSL | REAL 100% (shared runtime, planning mode) | `CampaignAutomationPanel` + `/api/copilot/campaign-plan` generate social campaign pack plus VSL/video-sales landing blueprint |
+| Public VSL landing | REAL 100% (public route) | `PublicVslLandingPage` exposed through `/vsl`, `/oferta`, `/apresentacao` with CTA/video/legal query params and UTM preservation |
 | Upload/intake flow | REAL 100% | Active flow with file classification + extraction |
 | PDF extraction (pdf.js) | REAL 100% | `pdfjs-dist`, `src/lib/pdfExtractor.ts`, `src/pdfViewer.js` |
 | DOCX generation | REAL 100% | `src/lib/docxGenerator.ts`, contracts export |
@@ -44,6 +64,9 @@ This file is a unified read-only snapshot (no duplicated trackers).
 
 - `npm run build`: GREEN (20.58s, jspdf + ApsPanel + contractsPdfExport incluídos)
 - `npm run test`: GREEN (83 passed)
+- `npm run test:e2e`: GREEN (2 smoke tests passed)
+- `node --check server.mjs`: GREEN
+- Playwright specs separated from Vitest: GREEN
 - `npm run dev` + HTTP probe `127.0.0.1:4177`: GREEN
 - APS live token test: `Bearer expires_in=3599` ✅
 - Vercel production deploy: `https://www.apexglobalai.com` ✅ Ready in 59s
