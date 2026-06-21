@@ -413,7 +413,7 @@ function pickCanonicalReply(data: Record<string, unknown>, fallback: string) {
 
 function isArchVisIntent(text: string, attachment?: IntakeFile) {
   const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|gerar|gere|crie|criar|renderizar|renderize|humanizar|humanize|refazer|refaça|editar|edit)\b/i.test(lower)
+  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|gerar|gere|crie|criar|renderizar|renderize|humanizar|humanize|refazer|refaça|editar|edit|quero|preciso|faça|faca|prepare|monte)\b/i.test(lower)
   const hasKeyword = /\b(archvis|render|planta humanizada|planta|fachada|interior|imagem|área gourmet|area gourmet|prompt de render)\b/i.test(lower)
   if (hasVerb && hasKeyword) return true
 
@@ -424,28 +424,28 @@ function isArchVisIntent(text: string, attachment?: IntakeFile) {
 
 function isDirectCutIntent(text: string) {
   const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|criar|create|gerar|generate|fazer|make|editar|edit|cortar|cut|montar)\b/i.test(lower)
+  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|criar|create|gerar|generate|fazer|make|editar|edit|cortar|cut|montar|quero|preciso|faça|faca|prepare)\b/i.test(lower)
   const hasKeyword = /\b(video|v[ií]deo|directcut|roteiro|reels|apresenta[cç][aã]o|tour|anima[cç][aã]o|v[ií]deo de venda|video de venda|timelapse|shot list|storyboard|cinematic|cinem[aá]tico|transformar imagem em v[ií]deo|imagem em v[ií]deo|image to video|adicionar voz|add voice|mudar luz|alterar luz|relight|melhorar v[ií]deo|improve video|clip editor|editar v[ií]deo|3d scenes|movimento de c[aâ]mera|camera movement)\b/i.test(lower)
   return hasVerb && hasKeyword
 }
 
 function isBudgetIntent(text: string) {
   const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|gerar|generate|fazer|make|calcular|calculate|estimar|estimate|montar)\b/i.test(lower)
+  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|gerar|generate|fazer|make|calcular|calculate|estimar|estimate|montar|quero|preciso|faça|faca|prepare)\b/i.test(lower)
   const hasKeyword = /\b(or[cç]amento|orcamento|quantitativo|estimativa|materiais|proposta|quanto custa|custo de obra|memorial de compra|budget|estimate|quantity|takeoff|materials|proposal|construction cost)\b/i.test(lower)
   return hasVerb && hasKeyword
 }
 
 function isContractsIntent(text: string) {
   const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|revisar|review|criar|create|gerar|generate|analisar|analyze|validar|validate)\b/i.test(lower)
+  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|revisar|review|criar|create|gerar|generate|analisar|analyze|validar|validate|quero|preciso|faça|faca|prepare|montar)\b/i.test(lower)
   const hasKeyword = /\b(contrato|contrato simples|revisar contrato|jur[ií]dico|juridico|cl[aá]usula|clausula|proposta jur[ií]dica|memorial|memorial descritivo|alvar[aá]|licen[cç]a|permits?|permits americanos|documentos para aprova[cç][aã]o nos eua|us permits?|european permits?|eu building permit|planning permission|ahj|certificate of occupancy|fire marshal|ada|building control|compliance|endossos|endosso|art|rrt|habite-se|scope agreement|addendum|lawyer|legal|contract)\b/i.test(lower)
   return hasVerb && hasKeyword
 }
 
 function isResearchIntent(text: string) {
   const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|pesquisar|search|buscar|find|analisar|analyze|investigar|investigate)\b/i.test(lower)
+  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|pesquisar|search|buscar|find|analisar|analyze|investigar|investigate|quero|preciso|faça|faca|prepare)\b/i.test(lower)
   const hasKeyword = /\b(pesquisa de mercado|pesquisa na internet|faça uma pesquisa|faca uma pesquisa|concorrentes|pre[cç]o atualizado|sinapi|tabela sinapi|proposta comercial com pesquisa|estudo de mercado|market research|competitor|benchmark|pricing research|source check)\b/i.test(lower)
   return hasVerb && hasKeyword
 }
@@ -453,7 +453,7 @@ function isResearchIntent(text: string) {
 function isFieldOpsIntent(text: string, attachment?: IntakeFile) {
   if (attachment?.kind === 'image' && /\b(obra|campo|rdo|di[aá]rio|relat[oó]rio|andamento|progresso|qualidade|seguran[cç]a|punch|pend[eê]ncia|foto de obra)\b/i.test(text)) return true
   const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|criar|create|gerar|generate|preencher|fill|fazer|make)\b/i.test(lower)
+  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|criar|create|gerar|generate|preencher|fill|fazer|make|quero|preciso|faça|faca|prepare)\b/i.test(lower)
   const hasKeyword = /\b(rdo|di[aá]rio de obra|relat[oó]rio de obra|andamento da obra|progresso da obra|checklist de qualidade|checklist de seguran[cç]a|equipe de obra|materiais entregues|pend[eê]ncia de obra|punch list|foto de obra|field operations|daily report|jobsite|site report|quality checklist|safety checklist|field photo)\b/i.test(lower)
   return hasVerb && hasKeyword
 }
@@ -760,7 +760,7 @@ function buildIdentityAnswer(text: string, identity: ChatIdentityContext) {
 }
 
 function isCapabilitiesQuestion(text: string) {
-  return /\b(o que (mais )?(vc|voce|você)?\s*sabe( fazer)?|o que (vc|voce|você)?\s*faz|o que mais (vc|voce|você)?\s*faz|quais (são os )?servi[cç]os|lista de servi[cç]os|seus servi[cç]os|funcionalidades|habilidades|capabilities|what else can you do|what can you do|what do you do|features)\b/i.test(text.trim())
+  return /\b(o que (mais )?(vc|voce|você)?\s*sabe( fazer)?|o que (vc|voce|você)?\s*faz|o que mais (vc|voce|você)?\s*faz|quais (são os )?servi[cç]os|lista de servi[cç]os|seus servi[cç]os|funcionalidades|habilidades|vc sabe responder|voce sabe responder|você sabe responder|capabilities|what else can you do|what can you do|what do you do|features)\b/i.test(text.trim())
 }
 
 function isContactQuestion(text: string) {
@@ -782,8 +782,8 @@ function buildGreetingReply(text: string) {
   if (/obrigad|valeu|tamo junto/.test(lower)) return 'Por nada! Se precisar de mais alguma coisa, é só falar.'
   const pt = prefersPortuguese(text)
   return pt
-    ? 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.'
-    : 'I am Apex. Give me the task to execute now. If a connector is missing, I will tell you exactly what is missing and proceed with a useful fallback.'
+    ? 'Olá! Estou online e posso te ajudar com projeto, fachada, planta, orçamento, contratos, marketing e automações. Me diga o que você quer criar ou corrigir.'
+    : 'Hello! I am online and can help with design, plans, budgets, contracts, marketing and automations. Tell me what you want to create or fix.'
 }
 
 function buildProductFallbackAnswer(userText: string, identity: ChatIdentityContext) {
@@ -800,8 +800,8 @@ function buildProductFallbackAnswer(userText: string, identity: ChatIdentityCont
   const pt = prefersPortuguese(userText)
   if (isCapabilitiesQuestion(userText)) {
     return pt
-      ? 'Diga a tarefa e eu sigo direto, sem listar menu automático.'
-      : 'Tell me the task and I will proceed directly, without an automatic capability menu.'
+      ? 'Sim. Eu consigo responder, criar e executar fluxos da plataforma — por exemplo fachada, planta humanizada, orçamento, contratos, cronograma, relatórios, campanhas e automações. Me diga o resultado que você quer e eu sigo direto.'
+      : 'Yes. I can answer, create and run platform workflows — for example facade concepts, floor plan work, budgets, contracts, schedules, reports, campaigns and automations. Tell me the result you want and I will proceed directly.'
   }
   if (isContactQuestion(userText)) {
     return pt
@@ -1721,6 +1721,16 @@ function App() {
         : 'User uploaded this file. Analyze it as project context and continue naturally in a short conversational reply. Do not write a report, heading, observations list, or capabilities list.'
       : '')
     const userMessage: Message = { id: id(), role: 'user', text: userText, attachment }
+    if (/^(en|english)$/i.test(clean)) {
+      setUiLanguage('EN')
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'English mode enabled. Tell me what you want to create, review or fix.' }])
+      return
+    }
+    if (/^(pt|pt-br|portugues|português)$/i.test(clean)) {
+      setUiLanguage('PT')
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Modo em português ativado. Me diga o que você quer criar, revisar ou corrigir.' }])
+      return
+    }
     if (attachment && attachment.file.name.toLowerCase().endsWith('.md')) {
       if (!isOwnerUser) {
         setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'This tool is restricted to workspace owners/admins.' }])
@@ -1805,12 +1815,12 @@ function App() {
     }
     // Let natural conversations go to the server, so they are processed by the live AI agent (or fall back to local answers on failure)
     const explicitPanelOpen = Boolean(routingText) && isExplicitPanelOpenRequest(routingText)
-    const shouldOpenArchVis = explicitPanelOpen && isArchVisIntent(routingText, attachment)
-    const shouldOpenDirectCut = explicitPanelOpen && isDirectCutIntent(routingText)
-    const shouldOpenContracts = explicitPanelOpen && isContractsIntent(routingText)
-    const shouldOpenBudget = explicitPanelOpen && isBudgetIntent(routingText)
-    const shouldOpenResearch = explicitPanelOpen && isResearchIntent(routingText)
-    const shouldOpenFieldOps = explicitPanelOpen && isFieldOpsIntent(routingText, attachment)
+    const shouldOpenArchVis = ((attachment?.kind === 'image') || explicitPanelOpen) && isArchVisIntent(routingText, attachment)
+    const shouldOpenDirectCut = isDirectCutIntent(routingText)
+    const shouldOpenContracts = isContractsIntent(routingText)
+    const shouldOpenBudget = isBudgetIntent(routingText)
+    const shouldOpenResearch = isResearchIntent(routingText)
+    const shouldOpenFieldOps = isFieldOpsIntent(routingText, attachment)
     const shouldOpenAuth = explicitPanelOpen && isAuthIntent(routingText)
     const shouldOpenBusiness = explicitPanelOpen && isBusinessLayerIntent(routingText)
     const shouldOpenControlsAgents = explicitPanelOpen && isEvmSchedulerComplianceIntent(routingText)
@@ -1825,7 +1835,7 @@ function App() {
     const shouldOpenMetrics = explicitPanelOpen && isMetricsIntent(routingText)
     const shouldOpenCopilotExecution = explicitPanelOpen && isCopilotExecutionIntent(routingText)
     const shouldOpenAgents = explicitPanelOpen && isAgentIntent(routingText)
-    const shouldOpenBim3D = explicitPanelOpen && isBim3DIntent(routingText, attachment)
+    const shouldOpenBim3D = ((attachment?.kind === 'bim-cad') || explicitPanelOpen) && isBim3DIntent(routingText, attachment)
     const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
     const shouldTreatAsConversation = clean && isOperationalGovernancePrompt(clean)
     const shouldOpenSkillExport = clean && !shouldTreatAsConversation && (isSkillExportIntent(clean) || isSkillExportFactoryAlias(clean))
@@ -2261,8 +2271,6 @@ function App() {
         setModelRuntimeState('ok')
       } else {
         setModelRuntimeState('fallback')
-        const safeFallbackModel = 'gateway|openai/gpt-4o-mini'
-        if (selectedModel !== safeFallbackModel) setSelectedModel(safeFallbackModel)
       }
       if (data?.memoryPatch && typeof data.memoryPatch === 'object') {
         setClientMemory(current => {
@@ -3796,11 +3804,5 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </Auth0Provider>
 )
-
-
-
-
-
-
 
 
