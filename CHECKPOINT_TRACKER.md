@@ -98,18 +98,24 @@ Apenas local (não vai para Vercel): `LOCAL_WORKER_*`, `REVIT_MCP_*`, shell/path
 | Vercel Production | ✅ Live | `www.apexglobalai.com` |
 | GitHub | ✅ Main branch | `jedgard70/apex-ai-copilot-platform` |
 
-## Próximo ciclo: Phase 4 — Real Data & Auth
+## Phase 4 — Real Data & Auth ✅ COMPLETO
 
-| Todo | Descrição |
-| --- | --- |
-| `supabase-auth-login` | Login/signup UI com Supabase Auth |
-| `supabase-rls-tenant` | RLS + tenant isolation por usuário |
-| `vercel-env-aps` | APS + CRON_SECRET no Vercel production |
-| `sinapi-api-live` | SINAPI API live (busca de preços) |
-| `whatsapp-notifications` | WhatsApp/SMS real via AUTHKEY |
+| Todo | Descrição | Status |
+| --- | --- | --- |
+| `supabase-auth-login` | Login/signup UI com Supabase Auth | ✅ |
+| `supabase-rls-tenant` | RLS + tenant isolation por usuário | ✅ |
+| `vercel-env-aps` | APS + CRON_SECRET no Vercel production | ✅ |
+| `sinapi-api-live` | SINAPI API live (busca de preços) — `api/sinapi-lookup.mjs` | ✅ |
+| `whatsapp-notifications` | WhatsApp/SMS real via AUTHKEY — `api/notify/whatsapp.mjs` | ✅ |
+
+## Phase 5 — Export & UX Enhancements
+
+| Todo | Descrição | Status |
+| --- | --- | --- |
+| `rdo-pdf-export` | RDO PDF profissional via jsPDF — `src/lib/fieldOpsPdfExport.ts` | ✅ |
 
 ---
 
-*Last updated: 2026-06-21*
-*All 25 modules: DONE. ENV: SYNC auditado. Build: GREEN. Tests: 84/84. Deploy: apexglobalai.com LIVE.*
+*Last updated: 2026-06-22*
+*All 25 modules + Phase 4 + Phase 5 RDO PDF: DONE. ENV: SYNC auditado. Build: GREEN. Deploy: apexglobalai.com LIVE.*
 

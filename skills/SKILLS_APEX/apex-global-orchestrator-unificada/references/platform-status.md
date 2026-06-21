@@ -59,17 +59,23 @@
 
 ---
 
-## Próximo ciclo: Phase 4 — Real Data & Auth
+## Phase 4 — Real Data & Auth ✅ COMPLETO
 
 | ID | Módulo | Status |
 | --- | --- | --- |
-| `supabase-auth-login` | Supabase Auth login/signup UI | pending |
-| `supabase-rls-tenant` | RLS + tenant isolation | pending |
-| `vercel-env-aps` | APS + CRON_SECRET no Vercel | pending |
-| `sinapi-api-live` | SINAPI API live price lookup | pending |
-| `whatsapp-notifications` | WhatsApp/SMS real notifications | pending |
+| `supabase-auth-login` | Supabase Auth login/signup UI | ✅ |
+| `supabase-rls-tenant` | RLS + tenant isolation | ✅ |
+| `vercel-env-aps` | APS + CRON_SECRET no Vercel | ✅ |
+| `sinapi-api-live` | SINAPI API live — `api/sinapi-lookup.mjs` | ✅ |
+| `whatsapp-notifications` | WhatsApp/SMS via AUTHKEY — `api/notify/whatsapp.mjs` | ✅ |
+
+## Phase 5 — Export & UX
+
+| ID | Módulo | Status |
+| --- | --- | --- |
+| `rdo-pdf-export` | RDO PDF profissional — `src/lib/fieldOpsPdfExport.ts` | ✅ |
 
 ---
 
-*Last updated: 2026-06-21 — ENV SYNC AUDITADO — ALL 25 MODULES DONE*
+*Last updated: 2026-06-22 — Phase 4 ✅ — Phase 5 RDO PDF ✅ — ALL 25 MODULES DONE — Deploy LIVE*
 
