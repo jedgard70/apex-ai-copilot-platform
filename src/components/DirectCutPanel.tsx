@@ -97,6 +97,7 @@ type DirectCutPanelProps = {
   goal: string
   conversationContext: string[]
   initialConfig?: DirectCutInitialConfig
+  onRecordGeneration?: (payload: { item: GalleryItem }) => void
   onClear: () => void
 }
 
@@ -192,7 +193,7 @@ function downloadTextFile(name: string, text: string) {
   URL.revokeObjectURL(url)
 }
 
-export function DirectCutPanel({ source, goal, conversationContext, initialConfig, onClear }: DirectCutPanelProps) {
+export function DirectCutPanel({ source, goal, conversationContext, initialConfig, onRecordGeneration, onClear }: DirectCutPanelProps) {
   const addMediaInput = useRef<HTMLInputElement | null>(null)
   const [videoMode, setVideoMode] = useState<VideoMode>(initialConfig?.videoMode || (source ? 'image-to-video' : 'generate-videos'))
   const [duration, setDuration] = useState<Duration>(initialConfig?.duration || '15s')
@@ -294,6 +295,7 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
       }
       setGallery(prev => [...prev, item])
       setSelectedId(item.id)
+      onRecordGeneration?.({ item })
     } finally {
       setLoading(false)
     }

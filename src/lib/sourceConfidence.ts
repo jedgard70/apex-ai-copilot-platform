@@ -6,6 +6,7 @@ export type SourceConfidence =
   | 'NEEDS_WEB_VERIFICATION'
 
 export type SourceEvidence = {
+  citationId?: string
   title: string
   sourceName: string
   url?: string
@@ -34,3 +35,5 @@ export function sourceConfidenceLabel(level: SourceConfidence) {
 export const noLiveSourceWarning =
   'Live web/source connector is not connected. Do not treat this as current market data, current pricing, current law, SINAPI value or supplier quote.'
 
+export const liveSourceConnectedMessage =
+  'Live web research is active. Apex searched current public web sources for this request and attached citations you can inspect, export and reuse in the app or online.'

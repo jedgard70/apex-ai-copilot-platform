@@ -22,6 +22,7 @@ type ArchVisPanelProps = {
   onAddRevisionConstraint: (constraint: string) => void
   onRemoveRevisionConstraint: (constraint: string) => void
   onClearRevisionConstraints: () => void
+  onRecordGeneration?: (payload: { sourceName: string; outputType: OutputType; items: GalleryItem[] }) => void
   onClear: () => void
 }
 
@@ -155,6 +156,7 @@ export function ArchVisPanel({
   onAddRevisionConstraint,
   onRemoveRevisionConstraint,
   onClearRevisionConstraints,
+  onRecordGeneration,
   onClear,
 }: ArchVisPanelProps) {
   const [generationMode, setGenerationMode] = useState<GenerationMode>('preserve-layout')
@@ -314,6 +316,11 @@ export function ArchVisPanel({
       if (newItems.length) {
         setGallery(prev => [...prev, ...newItems])
         setSelectedId(newItems[newItems.length - 1].id)
+        onRecordGeneration?.({
+          sourceName: source.file.name,
+          outputType,
+          items: newItems,
+        })
       }
     } finally {
       setImageLoading(false)

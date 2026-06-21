@@ -1,3 +1,5 @@
+import { GenerationHistoryEntry } from './generationHistory'
+
 export type ProjectFileRecord = {
   id: string
   name: string
@@ -22,6 +24,20 @@ export type ProjectChatMessage = {
   role: 'user' | 'assistant'
   text: string
   attachmentFileId?: string
+}
+
+export type ProjectProfileDraft = {
+  clientName: string
+  projectType: string
+  brief: string
+  styleNotes: string
+  brandingNotes: string
+  preferredOutputs: string
+  lockedConstraints: string
+}
+
+export type ProjectProfile = ProjectProfileDraft & {
+  updatedAt: string
 }
 
 export type ProjectWorkspace = {
@@ -49,14 +65,17 @@ export type ProjectWorkspace = {
   digitalTwinItems: unknown[]
   knowledgeItems: unknown[]
   metricsRecords: unknown[]
+  upgradePlans: unknown[]
   executionRuns: unknown[]
   lastExecutionSummary?: unknown
+  generationHistory: GenerationHistoryEntry[]
   projectMemory: unknown[]
+  projectProfile?: ProjectProfile | null
   skillUpdates: unknown[]
   preferences: unknown[]
   activeTool?: string
   activeFileId?: string
-  activeStudio?: 'archvis' | 'directcut' | 'bim3d' | 'budget' | 'contracts' | 'research' | 'fieldops' | 'business' | 'agents' | 'evm-scheduler-compliance' | 'supply-chain' | 'notifications' | 'ai-cost' | 'multi-tenant' | 'pwa-mobile' | 'digital-twin' | 'knowledge-base' | 'metrics-dashboard' | 'copilot-execution' | 'auth' | null
+  activeStudio?: 'archvis' | 'directcut' | 'bim3d' | 'budget' | 'contracts' | 'research' | 'fieldops' | 'business' | 'project-package' | 'generation-history' | 'agents' | 'evm-scheduler-compliance' | 'supply-chain' | 'notifications' | 'ai-cost' | 'multi-tenant' | 'pwa-mobile' | 'digital-twin' | 'knowledge-base' | 'metrics-dashboard' | 'platform-map' | 'autoupgrade' | 'avatar-voice' | 'campaign-automation' | 'copilot-execution' | 'auth' | null
   appState?: Record<string, unknown>
 }
 
@@ -82,6 +101,59 @@ function safeParse<T>(value: string | null, fallback: T): T {
 
 function storageAvailable() {
   return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
+}
+
+export function createEmptyProjectProfileDraft(): ProjectProfileDraft {
+  return {
+    clientName: '',
+    projectType: '',
+    brief: '',
+    styleNotes: '',
+    brandingNotes: '',
+    preferredOutputs: '',
+    lockedConstraints: '',
+  }
+}
+
+function normalizeProjectProfileFields(value: unknown): ProjectProfileDraft {
+  const source = value && typeof value === 'object' ? value as Partial<ProjectProfileDraft> : {}
+  const empty = createEmptyProjectProfileDraft()
+  return {
+    clientName: String(source.clientName || empty.clientName).trim(),
+    projectType: String(source.projectType || empty.projectType).trim(),
+    brief: String(source.brief || empty.brief).trim(),
+    styleNotes: String(source.styleNotes || empty.styleNotes).trim(),
+    brandingNotes: String(source.brandingNotes || empty.brandingNotes).trim(),
+    preferredOutputs: String(source.preferredOutputs || empty.preferredOutputs).trim(),
+    lockedConstraints: String(source.lockedConstraints || empty.lockedConstraints).trim(),
+  }
+}
+
+function hasProjectProfileContent(value: ProjectProfileDraft) {
+  return Object.values(value).some(field => field.trim())
+}
+
+export function projectProfileToDraft(value: ProjectProfile | null | undefined): ProjectProfileDraft {
+  return normalizeProjectProfileFields(value)
+}
+
+export function createProjectProfile(value: Partial<ProjectProfileDraft> | null | undefined): ProjectProfile | null {
+  const normalized = normalizeProjectProfileFields(value)
+  if (!hasProjectProfileContent(normalized)) return null
+  return {
+    ...normalized,
+    updatedAt: now(),
+  }
+}
+
+function validateProjectProfile(value: unknown): ProjectProfile | null {
+  const normalized = normalizeProjectProfileFields(value)
+  if (!hasProjectProfileContent(normalized)) return null
+  const source = value && typeof value === 'object' ? value as Partial<ProjectProfile> : {}
+  return {
+    ...normalized,
+    updatedAt: typeof source.updatedAt === 'string' && source.updatedAt.trim() ? source.updatedAt : now(),
+  }
 }
 
 export function createProject(name = 'Apex Project'): ProjectWorkspace {
@@ -111,9 +183,12 @@ export function createProject(name = 'Apex Project'): ProjectWorkspace {
     digitalTwinItems: [],
     knowledgeItems: [],
     metricsRecords: [],
+    upgradePlans: [],
     executionRuns: [],
     lastExecutionSummary: null,
+    generationHistory: [],
     projectMemory: [],
+    projectProfile: null,
     skillUpdates: [],
     preferences: [],
     activeStudio: null,
@@ -148,9 +223,12 @@ export function validateProjectWorkspace(value: unknown): ProjectWorkspace | nul
     digitalTwinItems: Array.isArray(candidate.digitalTwinItems) ? candidate.digitalTwinItems : [],
     knowledgeItems: Array.isArray(candidate.knowledgeItems) ? candidate.knowledgeItems : [],
     metricsRecords: Array.isArray(candidate.metricsRecords) ? candidate.metricsRecords : [],
+    upgradePlans: Array.isArray(candidate.upgradePlans) ? candidate.upgradePlans : [],
     executionRuns: Array.isArray(candidate.executionRuns) ? candidate.executionRuns : [],
     lastExecutionSummary: candidate.lastExecutionSummary || null,
+    generationHistory: Array.isArray(candidate.generationHistory) ? candidate.generationHistory as GenerationHistoryEntry[] : [],
     projectMemory: Array.isArray(candidate.projectMemory) ? candidate.projectMemory : [],
+    projectProfile: validateProjectProfile(candidate.projectProfile),
     skillUpdates: Array.isArray(candidate.skillUpdates) ? candidate.skillUpdates : [],
     preferences: Array.isArray(candidate.preferences) ? candidate.preferences : [],
     appState: candidate.appState && typeof candidate.appState === 'object' ? candidate.appState : {},

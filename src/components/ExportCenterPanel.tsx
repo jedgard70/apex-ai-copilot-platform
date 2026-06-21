@@ -14,10 +14,11 @@ import {
 
 type ExportCenterPanelProps = {
   project: ProjectWorkspace
+  onRecordExport?: (payload: { result: ExportPackageResult; exportScope: ExportScope; format: ExportFormat; selectedSections: string[] }) => void
   onClear: () => void
 }
 
-export function ExportCenterPanel({ project, onClear }: ExportCenterPanelProps) {
+export function ExportCenterPanel({ project, onRecordExport, onClear }: ExportCenterPanelProps) {
   const [exportScope, setExportScope] = useState<ExportScope>('full-project')
   const [format, setFormat] = useState<ExportFormat>('json')
   const [includeImages, setIncludeImages] = useState(false)
@@ -53,6 +54,7 @@ export function ExportCenterPanel({ project, onClear }: ExportCenterPanelProps) 
       if (!response.ok) throw new Error(data.error || 'Export package failed.')
       setResult(data)
       setMessage(`Export ready: ${data.files?.length || 0} file(s).`)
+      onRecordExport?.({ result: data, exportScope, format, selectedSections })
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Export package failed.')
     } finally {

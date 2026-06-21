@@ -69,6 +69,24 @@ export function getOpenAIConfig(model) {
   return { apiBase, apiKey }
 }
 
+function getModelProviderDiagnostics() {
+  const apiBase = String(process.env.OPENAI_API_BASE || '').trim()
+  const routerBase = String(process.env.OPENAI_API_BASEROUTER || '').trim()
+  const routerKey = String(process.env.OPENAI_API_KEYROUTER || '').trim()
+  const openAiKey = String(process.env.OPENAI_API_KEY || '').trim()
+  const apiBaseIsOpenRouter = apiBase.includes('openrouter.ai')
+  const openrouterConfigured = Boolean((routerBase.includes('openrouter.ai') && routerKey) || (apiBaseIsOpenRouter && openAiKey))
+  const openaiConfigured = Boolean(openAiKey) && !apiBaseIsOpenRouter
+  const gatewayConfigured = openrouterConfigured || openaiConfigured
+  const geminiConfigured = openrouterConfigured
+  return {
+    openrouterConfigured,
+    openaiConfigured,
+    gatewayConfigured,
+    geminiConfigured,
+  }
+}
+
 const DIRECT_GEMINI_MODELS = [
   { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' },
   { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' },
@@ -141,6 +159,7 @@ async function handleModelsList(res) {
     const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
     const models = []
     const seen = new Set()
+    const diagnostics = getModelProviderDiagnostics()
     const addModel = model => {
       if (!model?.id || seen.has(model.id)) return
       seen.add(model.id)
@@ -148,6 +167,7 @@ async function handleModelsList(res) {
     }
 
     const isOpenRouterConfigured =
+      diagnostics.openrouterConfigured ||
       apiBase.includes('openrouter.ai') ||
       (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_BASEROUTER.includes('openrouter.ai'))
 
@@ -175,9 +195,13 @@ async function handleModelsList(res) {
       }
     }
 
-    for (const model of buildStaticModelCatalog()) addModel(model)
+    for (const model of buildStaticModelCatalog()) {
+      if (model.provider === 'gemini' && !diagnostics.geminiConfigured) continue
+      if (model.provider === 'gateway' && !diagnostics.gatewayConfigured) continue
+      addModel(model)
+    }
 
-    return sendJson(res, 200, { ok: true, provider: 'mixed', models })
+    return sendJson(res, 200, { ok: true, provider: 'mixed', models, providerDiagnostics: diagnostics })
   } catch (err) {
     return sendJson(res, 500, { ok: false, error: err.message, models: buildStaticModelCatalog() })
   }
@@ -1614,12 +1638,18 @@ export default async function handler(req, res) {
       })
     }
 
+    const providerDiagnostics = getModelProviderDiagnostics()
     const selectedModelRaw = body.model || process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini'
     const selectedModel = splitModelValue(selectedModelRaw)
     const model = selectedModel.modelId || 'gpt-4o-mini'
     const modelProvider = selectedModel.provider
     const isGatewayModel = modelProvider === 'gateway' || model.startsWith('openai/')
-    const { apiBase, apiKey: resolvedOpenAIKey } = getOpenAIConfig(model)
+    const isGeminiProvider = modelProvider === 'gemini'
+    let { apiBase, apiKey: resolvedOpenAIKey } = getOpenAIConfig(model)
+    if (isGeminiProvider && providerDiagnostics.openrouterConfigured) {
+      apiBase = process.env.OPENAI_API_BASEROUTER || apiBase
+      resolvedOpenAIKey = process.env.OPENAI_API_KEYROUTER || resolvedOpenAIKey
+    }
 
     const anthropicKey = process.env.ANTHROPIC_API_KEY
     const openaiKey = resolvedOpenAIKey
@@ -1781,7 +1811,7 @@ export default async function handler(req, res) {
     const chatSource = provider === 'anthropic' ? 'anthropic' : 'openai'
     let finalModel = model
     const isDirectGeminiModelInPayload = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.0-pro', 'gemini-2.5-flash'].includes(model)
-    if (isDirectGeminiModelInPayload && apiBase?.includes('openrouter.ai') && !model.includes('/')) {
+    if ((isDirectGeminiModelInPayload || isGeminiProvider) && apiBase?.includes('openrouter.ai') && !model.includes('/')) {
       finalModel = `google/${model}`
     }
     const requestPayload = {

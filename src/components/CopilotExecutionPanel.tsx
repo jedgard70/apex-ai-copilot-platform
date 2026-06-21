@@ -175,7 +175,7 @@ export function CopilotExecutionPanel({ initialRuns = [], onRunComplete, onClear
 
       <div className="execution-guardrail">
         <Terminal size={18} />
-        <span>Registered commands and raw shell mode run through spawn with shell enabled.</span>
+        <span>Registered commands run through controlled execution. Raw shell, when available, remains restricted by environment and guardrails.</span>
       </div>
 
       {error && <div className="business-alert"><strong>Execution error</strong><span>{error}</span></div>}
@@ -198,7 +198,7 @@ export function CopilotExecutionPanel({ initialRuns = [], onRunComplete, onClear
       {rawShellCommand && (
         <div className="execution-guardrail">
           <ShieldCheck size={18} />
-          <span>Live shell livre. Execute comandos reais dentro do repositório.</span>
+          <span>Raw shell is available only in allowed environments and stays restricted to owner-controlled use.</span>
           <button type="button" onClick={() => setSelectedCommandId(rawShellCommand.id)}>
             Select raw shell
           </button>

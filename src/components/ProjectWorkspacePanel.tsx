@@ -1,6 +1,6 @@
 import { ChangeEvent, useEffect, useRef, useState } from 'react'
 import { Download, FolderOpen, Import, Plus, Save, Trash2 } from 'lucide-react'
-import { ProjectWorkspace } from '../lib/projectWorkspace'
+import { projectProfileToDraft, ProjectProfileDraft, ProjectWorkspace } from '../lib/projectWorkspace'
 
 type ProjectSummary = {
   files: number
@@ -11,6 +11,7 @@ type ProjectSummary = {
   generatedImages: number
   tours: number
   constraints: number
+  projectMemory: number
   skillUpdates: number
   preferences: number
   suppliers: number
@@ -20,12 +21,14 @@ type ProjectSummary = {
   tenants: number
   knowledgeItems: number
   metricsRecords: number
+  executionRuns: number
 }
 
 type ProjectWorkspacePanelProps = {
   project: ProjectWorkspace
   projects: ProjectWorkspace[]
   summary: ProjectSummary
+  onUpdateProfile: (profile: ProjectProfileDraft) => void
   onRename: (name: string) => void
   onNewProject: () => void
   onSwitchProject: (projectId: string) => void
@@ -41,6 +44,7 @@ export function ProjectWorkspacePanel({
   project,
   projects,
   summary,
+  onUpdateProfile,
   onRename,
   onNewProject,
   onSwitchProject,
@@ -56,6 +60,7 @@ export function ProjectWorkspacePanel({
   const [open, setOpen] = useState(false)
   const [importStatus, setImportStatus] = useState('')
   const [syncStatus, setSyncStatus] = useState('')
+  const [profileDraft, setProfileDraft] = useState<ProjectProfileDraft>(() => projectProfileToDraft(project.projectProfile))
 
   useEffect(() => {
     if (openSignal) setOpen(true)
@@ -64,6 +69,18 @@ export function ProjectWorkspacePanel({
   useEffect(() => {
     setName(project.name)
   }, [project.name])
+
+  useEffect(() => {
+    setProfileDraft(projectProfileToDraft(project.projectProfile))
+  }, [project.projectProfile, project.id])
+
+  function updateProfileField(field: keyof ProjectProfileDraft, value: string) {
+    setProfileDraft(prev => ({ ...prev, [field]: value }))
+  }
+
+  function applyProfile() {
+    onUpdateProfile(profileDraft)
+  }
 
   function handleImport(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
@@ -130,6 +147,7 @@ export function ProjectWorkspacePanel({
             <div><strong>{summary.generatedImages}</strong><span>images</span></div>
             <div><strong>{summary.tours}</strong><span>tours</span></div>
             <div><strong>{summary.constraints}</strong><span>constraints</span></div>
+            <div><strong>{summary.projectMemory}</strong><span>memory</span></div>
             <div><strong>{summary.skillUpdates}</strong><span>skills</span></div>
             <div><strong>{summary.preferences}</strong><span>prefs</span></div>
             <div><strong>{summary.suppliers}</strong><span>suppliers</span></div>
@@ -139,10 +157,95 @@ export function ProjectWorkspacePanel({
             <div><strong>{summary.tenants}</strong><span>tenants</span></div>
             <div><strong>{summary.knowledgeItems}</strong><span>KB</span></div>
             <div><strong>{summary.metricsRecords}</strong><span>metrics</span></div>
+            <div><strong>{summary.executionRuns}</strong><span>runs</span></div>
+          </div>
+
+          <div className="project-profile-card">
+          <div className="project-profile-head">
+            <div>
+              <strong>Persistent project memory</strong>
+              <p>This context is saved with the workspace and sent to Apex chat automatically.</p>
+            </div>
+            <button type="button" onClick={applyProfile}>
+              <Save size={15} /> Save memory
+            </button>
+          </div>
+
+          <div className="project-profile-grid">
+            <label className="project-field">
+              <span>Client / account name</span>
+              <input
+                value={profileDraft.clientName}
+                onChange={event => updateProfileField('clientName', event.target.value)}
+                onBlur={applyProfile}
+                placeholder="Client, builder, developer or internal owner"
+              />
+            </label>
+
+            <label className="project-field">
+              <span>Project type</span>
+              <input
+                value={profileDraft.projectType}
+                onChange={event => updateProfileField('projectType', event.target.value)}
+                onBlur={applyProfile}
+                placeholder="Facade, condominium house, tower, campaign, proposal..."
+              />
+            </label>
+
+            <label className="project-field project-field-wide">
+              <span>Project briefing</span>
+              <textarea
+                value={profileDraft.brief}
+                onChange={event => updateProfileField('brief', event.target.value)}
+                onBlur={applyProfile}
+                placeholder="Main scope, location, target client, goals, room program, approval needs..."
+              />
+            </label>
+
+            <label className="project-field">
+              <span>Visual / technical style</span>
+              <textarea
+                value={profileDraft.styleNotes}
+                onChange={event => updateProfileField('styleNotes', event.target.value)}
+                onBlur={applyProfile}
+                placeholder="Contemporary, brutalist, warm wood, minimalist interiors, technical BIM review..."
+              />
+            </label>
+
+            <label className="project-field">
+              <span>Branding / stamp notes</span>
+              <textarea
+                value={profileDraft.brandingNotes}
+                onChange={event => updateProfileField('brandingNotes', event.target.value)}
+                onBlur={applyProfile}
+                placeholder="Board title block, brand colors, approval deck tone, signature block..."
+              />
+            </label>
+
+            <label className="project-field">
+              <span>Preferred outputs</span>
+              <textarea
+                value={profileDraft.preferredOutputs}
+                onChange={event => updateProfileField('preferredOutputs', event.target.value)}
+                onBlur={applyProfile}
+                placeholder="Boards, cuts, budget, video, social media ads, contract pack, timeline..."
+              />
+            </label>
+
+            <label className="project-field">
+              <span>Locked constraints</span>
+              <textarea
+                value={profileDraft.lockedConstraints}
+                onChange={event => updateProfileField('lockedConstraints', event.target.value)}
+                onBlur={applyProfile}
+                placeholder="Items Apex must preserve across revisions and generations"
+              />
+            </label>
+          </div>
           </div>
 
           <div className="project-actions">
-            <button type="button" onClick={onSaveNow}><Save size={15} /> Save now</button>
+          <button type="button" onClick={onSaveNow}><Save size={15} /> Save now</button>
             {onSyncRemote && (
               <button
                 type="button"
