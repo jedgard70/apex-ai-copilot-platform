@@ -4710,6 +4710,176 @@ body {
   background: rgba(109, 168, 255, 0.12);
 }
 
+/* DirectCut Node Board */
+.directcut-view-toggle {
+  display: flex;
+  border: 1px solid rgba(109, 168, 255, 0.25);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.directcut-view-toggle button {
+  background: transparent;
+  border: none;
+  color: rgba(180, 200, 255, 0.6);
+  font-size: 12px;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.directcut-view-toggle button.active {
+  background: rgba(109, 168, 255, 0.2);
+  color: #9bc4ff;
+}
+
+.directcut-view-toggle button:hover:not(.active) {
+  background: rgba(109, 168, 255, 0.08);
+}
+
+.node-board-hint {
+  font-size: 11px;
+  color: rgba(180, 200, 255, 0.45);
+  margin: 0 0 10px;
+}
+
+.directcut-node-board {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.directcut-node {
+  background: rgba(109, 168, 255, 0.05);
+  border: 1px solid rgba(109, 168, 255, 0.18);
+  border-radius: 10px;
+  padding: 10px 12px;
+  transition: border-color 0.15s, opacity 0.15s;
+}
+
+.directcut-node.locked {
+  border-color: rgba(255, 200, 100, 0.3);
+  background: rgba(255, 200, 100, 0.04);
+}
+
+.directcut-node.dragging {
+  opacity: 0.45;
+}
+
+.directcut-node-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.node-grip {
+  color: rgba(180, 200, 255, 0.3);
+  cursor: grab;
+  flex-shrink: 0;
+}
+
+.node-num {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(180, 200, 255, 0.55);
+  flex: 1;
+}
+
+.node-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.node-actions button {
+  background: transparent;
+  border: 1px solid rgba(109, 168, 255, 0.2);
+  border-radius: 5px;
+  color: rgba(180, 200, 255, 0.55);
+  font-size: 11px;
+  padding: 3px 7px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.node-actions button:hover:not(:disabled) {
+  background: rgba(109, 168, 255, 0.15);
+  color: #9bc4ff;
+}
+
+.node-actions button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.node-scene-text {
+  width: 100%;
+  background: rgba(109, 168, 255, 0.06);
+  border: 1px solid rgba(109, 168, 255, 0.15);
+  border-radius: 7px;
+  color: #eaf0ff;
+  font-size: 13px;
+  padding: 8px 10px;
+  resize: vertical;
+  box-sizing: border-box;
+  line-height: 1.5;
+}
+
+.node-scene-text:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.node-ai-note {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  color: rgba(180, 255, 200, 0.6);
+  font-style: italic;
+}
+
+.node-settings {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.node-settings select {
+  background: rgba(109, 168, 255, 0.08);
+  border: 1px solid rgba(109, 168, 255, 0.2);
+  border-radius: 6px;
+  color: rgba(180, 200, 255, 0.8);
+  font-size: 11px;
+  padding: 4px 7px;
+  flex: 1;
+}
+
+.directcut-node-add {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px dashed rgba(109, 168, 255, 0.25);
+  border-radius: 10px;
+  color: rgba(180, 200, 255, 0.5);
+  font-size: 13px;
+  padding: 10px;
+  cursor: pointer;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.directcut-node-add:hover {
+  background: rgba(109, 168, 255, 0.08);
+  color: #9bc4ff;
+}
+
+/* end DirectCut Node Board */
+
 .video-constraints-panel {
   display: grid;
   gap: 8px;
