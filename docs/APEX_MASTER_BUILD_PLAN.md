@@ -46,10 +46,8 @@ Para cada etapa crítica:
 ### Entregáveis obrigatórios
 
 - `docs/APEX_MASTER_BUILD_PLAN.md`
-- `docs/APEX_REALITY_AUDIT.md`
-- `docs/APEX_PLATFORM_CURRENT_STATE.md`
-- `docs/APEX_MODULE_AUDIT.md`
-- `docs/APEX_OPEN_BUGS_AND_NEXT_ACTIONS.md`
+- `docs/APEX_PLATFORM_CURRENT_STATE.md` (unified status snapshot)
+- `CHECKPOINT_TRACKER.md` (execution tracker)
 - `skills/index.json`
 
 ### Critérios de aceite
@@ -93,7 +91,7 @@ Para cada etapa crítica:
 5. **GitHub**: branch criada, PR aberto, checks observados.
 6. **Vercel Preview**: status observado; se falhar, corrigir antes de seguir.
 7. **Produção**: merge, monitoramento e smoke test após Preview verde.
-8. **Fechamento**: atualizar `APEX_PLATFORM_CURRENT_STATE.md` e `APEX_REALITY_AUDIT.md` com evidência.
+8. **Fechamento**: atualizar `APEX_PLATFORM_CURRENT_STATE.md` e `CHECKPOINT_TRACKER.md` com evidência.
 
 ## Regra de parada
 
