@@ -300,15 +300,35 @@ function resolveModelSelection(selectedValue: string, models: ModelOption[]) {
   if (current.provider) return current.raw
   const exactMatch = models.find(model => model.id === current.raw)
   if (exactMatch) return exactMatch.id
+
   const rawMatches = models.filter(model => model.modelId === current.raw)
-  if (!rawMatches.length) return current.raw
+  if (!rawMatches.length) {
+    const normalized = String(current.raw || '').trim().toLowerCase()
+    const legacyMap: Record<string, string> = {
+      'gpt-4o mini': 'openai/gpt-4o-mini',
+      'gpt-4o-mini': 'openai/gpt-4o-mini',
+      'gpt-4o': 'openai/gpt-4o',
+      'gpt-4': 'openai/gpt-4o',
+      'o1-mini': 'openai/o1',
+      'o1-preview': 'openai/o1',
+      'o1': 'openai/o1',
+      'o3-mini': 'openai/o3-mini',
+      'o3': 'openai/o3',
+      'o3-pro': 'openai/o3-pro',
+      'o4-mini': 'openai/o4-mini',
+    }
+    const mapped = legacyMap[normalized]
+    if (mapped) return 'gateway|' + mapped
+    if (normalized.startsWith('openai/')) return 'gateway|' + normalized
+    return current.raw
+  }
+
   const providerPriority = ['gateway', 'gemini', 'openrouter', 'openai']
   const bestMatch = [...rawMatches].sort((left, right) => {
     return providerPriority.indexOf(left.provider) - providerPriority.indexOf(right.provider)
   })[0]
   return bestMatch?.id || current.raw
 }
-
 type BimCommand = {
   id: string
   text: string
@@ -3766,3 +3786,5 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </Auth0Provider>
 )
+
+
