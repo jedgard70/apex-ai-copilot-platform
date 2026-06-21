@@ -1,6 +1,6 @@
 # APEX Platform — Unified Current State
 
-Checkpoint: CP-LIVE-2  
+Checkpoint: CP-LIVE-3 — Phase 3 FINAL
 Last update: 2026-06-20
 
 ## Canonical rule
@@ -42,9 +42,12 @@ This file is a unified read-only snapshot (no duplicated trackers).
 
 ## Validation baseline in this checkpoint
 
-- `npm run build`: GREEN
+- `npm run build`: GREEN (20.58s, jspdf + ApsPanel + contractsPdfExport incluídos)
 - `npm run test`: GREEN (83 passed)
 - `npm run dev` + HTTP probe `127.0.0.1:4177`: GREEN
+- APS live token test: `Bearer expires_in=3599` ✅
+- Vercel production deploy: `https://www.apexglobalai.com` ✅ Ready in 59s
+- PR #71 merged to `main` ✅
 
 ## Execution workflow (mandatory)
 
