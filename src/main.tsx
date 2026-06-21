@@ -3359,10 +3359,13 @@ function App() {
                 {loading
                   ? (uiLanguage === 'EN' ? 'Model working...' : 'Modelo trabalhando...')
                   : modelRuntimeState === 'ok'
-                    ? (uiLanguage === 'EN' ? `Online · ${lastResponseMode || 'ok'}` : `Online · ${lastResponseMode || 'ok'}`)
-                    ? (uiLanguage === 'EN' ? `Active · ${lastResponseMode || 'ok'}` : `Ativo · ${lastResponseMode || 'ok'}`)
+                    ? (uiLanguage === 'EN'
+                      ? `Online · ${lastResponseMode || 'ok'}`
+                      : `Online · ${lastResponseMode || 'ok'}`)
                     : modelRuntimeState === 'fallback'
-                      ? (uiLanguage === 'EN' ? 'Fallback mode (auto-retry active)' : 'Modo fallback (auto-retry ativo)')
+                      ? (uiLanguage === 'EN'
+                        ? 'Fallback mode (auto-retry active)'
+                        : 'Modo fallback (auto-retry ativo)')
                       : (uiLanguage === 'EN' ? 'Ready' : 'Pronto')}
               </div>
 

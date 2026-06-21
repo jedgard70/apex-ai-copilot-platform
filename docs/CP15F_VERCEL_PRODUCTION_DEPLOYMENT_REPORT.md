@@ -102,6 +102,17 @@ HTTP/static validation:
 
 Interactive browser validation was not completed in this checkpoint because the available Playwright runtime was missing `playwright-core`. No destructive login/signup test was performed.
 
+## Deployment hardening applied
+
+To prevent future canceled deployments caused by unverified or unchecked commits, the repository now uses a GitHub Actions gate that runs on `main` for every PR and push:
+
+- `npm ci`
+- `npm run build`
+- `npm run test`
+- validation scripts for the Apex checkpoints
+
+This makes the deployment path explicit: only commits that pass CI can reach the Vercel production flow. For GitHub commit verification, signed commits (GPG/SSH) are recommended.
+
 ## Follow-Up
 
 Before a broader production acceptance checkpoint, perform interactive browser validation with a working browser automation runtime or manually in a clean browser profile:

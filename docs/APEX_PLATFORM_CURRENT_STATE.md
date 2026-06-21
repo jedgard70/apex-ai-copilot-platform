@@ -1,23 +1,23 @@
 # APEX Platform — Unified Current State
 
-Checkpoint: CP-LIVE-FINAL — 25/25 modules done
-Last update: 2026-06-21
+Checkpoint: CP-LIVE-FINAL — 34 capabilities documented
+Last update: 2026-06-22
 
 ## Canonical rule
 
-**All 25 modules are completed. Do not ask "which modules are done" — they are ALL done.**
-For execution tracking use `CHECKPOINT_TRACKER.md`.
+The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.md` for execution tracking and `docs/APEX_MODULE_INVENTORY_REPORT.md` for the full capability inventory.
 
 ## Executive status
 
-- Platform core: **GREEN** — 25/25 modules live
+- Platform core: **GREEN** — 34 capabilities live/operational
 - Build/typecheck: **GREEN**
 - Tests: **GREEN** (84/84 passed)
 - Local app: **GREEN** (`server.mjs` + Electron `.exe`)
 - Production: **GREEN** (`www.apexglobalai.com` Vercel main branch)
 - AI providers: **GREEN** (OpenAI → Gemini → Anthropic → fal.ai configured in Vercel)
+- Deploy hygiene: **GREEN** — CI workflow now validates builds/tests before deployment
 
-## Complete module map (25 modules — ALL DONE)
+## Complete module map (34 capabilities — ALL DONE)
 
 | # | Module | Component / API | Status |
 | --- | --- | --- | --- |
