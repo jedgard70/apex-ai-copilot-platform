@@ -6,10 +6,16 @@ import {
   Download,
   Eraser,
   Film,
+  GripVertical,
   Lightbulb,
+  Lock,
   Mic,
   Play,
+  Plus,
   Save,
+  Sparkles,
+  Trash2,
+  Unlock,
   UploadCloud,
   Video,
   Wand2,
@@ -90,6 +96,15 @@ type GalleryItem = DirectCutPlan & {
   lockedConstraints: string[]
   planEditor: string
   references: MediaReference[]
+}
+
+type SceneNode = {
+  id: string
+  scene: string
+  camera: CameraMovement
+  style: VideoStyle
+  locked: boolean
+  aiNote?: string
 }
 
 type DirectCutPanelProps = {
@@ -211,6 +226,10 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
   const [lockedConstraints, setLockedConstraints] = useState<string[]>([])
   const [mediaReferences, setMediaReferences] = useState<MediaReference[]>([])
   const [loading, setLoading] = useState(false)
+  const [viewMode, setViewMode] = useState<'plan' | 'nodes'>('plan')
+  const [nodes, setNodes] = useState<SceneNode[]>([])
+  const [draggingId, setDraggingId] = useState<string | null>(null)
+  const [refiningId, setRefiningId] = useState<string | null>(null)
 
   const selected = gallery.find(item => item.id === selectedId)
   const activePlan = selected || plan
@@ -233,7 +252,7 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
     return `${source.file.name} · ${source.kind} · ${formatSize(source.file.size)}`
   }, [source])
 
-  async function requestPlan() {
+  async function requestPlan(planEditorOverride?: string) {
     setLoading(true)
     try {
       const response = await fetch('/api/copilot/video-plan', {
@@ -241,7 +260,7 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           goal,
-          planEditor,
+          planEditor: planEditorOverride ?? planEditor,
           file: source ? {
             name: source.file.name,
             type: source.file.type,
@@ -275,6 +294,11 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
       }))
       setPlan(data)
       if (data.videoPrompt) setPlanEditor(data.videoPrompt)
+      if (data.sceneList?.length) {
+        setNodes(data.sceneList.map(scene => ({
+          id: id(), scene, camera: cameraMovement, style, locked: false,
+        })))
+      }
       const item: GalleryItem = {
         ...data,
         id: id(),
@@ -290,7 +314,7 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
         cameraMovement,
         model: 'auto',
         lockedConstraints: [...lockedConstraints],
-        planEditor: data.videoPrompt || planEditor,
+        planEditor: data.videoPrompt || planEditorOverride || planEditor,
         references: referenceList,
       }
       setGallery(prev => [...prev, item])
@@ -366,6 +390,69 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
     setMediaReferences(prev => [...prev, reference])
   }
 
+  function updateNode(nodeId: string, field: keyof SceneNode, value: string | boolean) {
+    setNodes(prev => prev.map(n => n.id === nodeId ? { ...n, [field]: value } : n))
+  }
+
+  function toggleLock(nodeId: string) {
+    setNodes(prev => prev.map(n => n.id === nodeId ? { ...n, locked: !n.locked } : n))
+  }
+
+  function removeNode(nodeId: string) {
+    setNodes(prev => prev.filter(n => n.id !== nodeId))
+  }
+
+  function addNode() {
+    setNodes(prev => [...prev, { id: id(), scene: '', camera: cameraMovement, style, locked: false }])
+  }
+
+  function reorderNodes(fromId: string, toId: string) {
+    setNodes(prev => {
+      const arr = [...prev]
+      const fromIdx = arr.findIndex(n => n.id === fromId)
+      const toIdx = arr.findIndex(n => n.id === toId)
+      if (fromIdx === -1 || toIdx === -1) return arr
+      const [moved] = arr.splice(fromIdx, 1)
+      arr.splice(toIdx, 0, moved)
+      return arr
+    })
+  }
+
+  async function refineNode(nodeId: string) {
+    const node = nodes.find(n => n.id === nodeId)
+    if (!node || node.locked) return
+    setRefiningId(nodeId)
+    try {
+      const resp = await fetch('/api/copilot/directcut-refine', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scene: node.scene, camera: node.camera, style: node.style,
+          goal, videoMode, duration, aspectRatio, conversationContext,
+        }),
+      })
+      const data = await resp.json().catch(() => ({}))
+      if (data.refinedScene) {
+        setNodes(prev => prev.map(n =>
+          n.id === nodeId
+            ? { ...n, scene: data.refinedScene, aiNote: data.aiNote, camera: (data.suggestedCamera || n.camera) as CameraMovement, style: (data.suggestedStyle || n.style) as VideoStyle }
+            : n
+        ))
+      }
+    } finally {
+      setRefiningId(null)
+    }
+  }
+
+  function compileNodes() {
+    if (!nodes.length) return
+    const compiled = nodes
+      .map((n, i) => `Scene ${i + 1}: ${n.scene}${n.camera !== 'static' ? ` [camera: ${n.camera}]` : ''}`)
+      .join('\n')
+    setPlanEditor(compiled)
+    requestPlan(compiled)
+  }
+
   return (
     <section className="directcut-studio" aria-label="DirectCut Studio">
       <div className="directcut-heading">
@@ -437,7 +524,7 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
             </div>
           </div>
 
-          <button className="directcut-primary" onClick={requestPlan} disabled={loading} type="button"><Play size={16} /> {loading ? 'Planning...' : 'Generate / Regenerate plan'}</button>
+          <button className="directcut-primary" onClick={() => requestPlan()} disabled={loading} type="button"><Play size={16} /> {loading ? 'Planning...' : 'Generate / Regenerate plan'}</button>
         </aside>
 
         <div className="directcut-main">
@@ -455,34 +542,112 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
                 <p>{activePlan?.objective || 'DirectCut will generate a plan from your project goal.'}</p>
                 <small>Audience: {activePlan?.audience || 'not set'}</small>
               </div>
-              <div className="directcut-status-pill"><Clapperboard size={15} /> planning-only</div>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <div className="directcut-view-toggle">
+                  <button type="button" className={viewMode === 'plan' ? 'active' : ''} onClick={() => setViewMode('plan')}>Plan</button>
+                  <button type="button" className={viewMode === 'nodes' ? 'active' : ''} onClick={() => setViewMode('nodes')}>Node Board</button>
+                </div>
+                <div className="directcut-status-pill"><Clapperboard size={15} /> planning-only</div>
+              </div>
             </div>
 
-            <label className="directcut-editor-label">
-              <span><Wand2 size={15} /> Prompt / plan editor</span>
-              <textarea value={planEditor} onChange={event => setPlanEditor(event.target.value)} />
-            </label>
+            {viewMode === 'plan' ? (
+              <>
+                <label className="directcut-editor-label">
+                  <span><Wand2 size={15} /> Prompt / plan editor</span>
+                  <textarea value={planEditor} onChange={event => setPlanEditor(event.target.value)} />
+                </label>
 
-            <h4>Storyboard / shot list</h4>
-            <ol>{(activePlan?.sceneList || []).map(scene => <li key={scene}>{scene}</li>)}</ol>
+                <h4>Storyboard / shot list</h4>
+                <ol>{(activePlan?.sceneList || []).map(scene => <li key={scene}>{scene}</li>)}</ol>
 
-            <h4>Scene-by-scene narration script</h4>
-            <pre>{activePlan?.narrationScript || 'No script generated yet.'}</pre>
+                <h4>Scene-by-scene narration script</h4>
+                <pre>{activePlan?.narrationScript || 'No script generated yet.'}</pre>
 
-            <h4>Video generator prompt</h4>
-            <pre>{activePlan?.videoPrompt || ''}</pre>
+                <h4>Video generator prompt</h4>
+                <pre>{activePlan?.videoPrompt || ''}</pre>
 
-            <h4>Negative prompt / avoid list</h4>
-            <pre>{activePlan?.negativePrompt || ''}</pre>
+                <h4>Negative prompt / avoid list</h4>
+                <pre>{activePlan?.negativePrompt || ''}</pre>
 
-            <div className="directcut-actions">
-              <button type="button" onClick={() => copyText(activePlan?.videoPrompt)}><Copy size={16} /> Copy prompt</button>
-              <button type="button" onClick={() => copyText(activePlan?.narrationScript)}><Mic size={16} /> Copy script</button>
-              <button type="button" onClick={() => copyText((activePlan?.sceneList || []).join('\n'))}><Camera size={16} /> Copy storyboard</button>
-              <button type="button" onClick={exportStoryboard}><Download size={16} /> Export storyboard</button>
-              <button type="button" onClick={() => exportPlan()}><Download size={16} /> Export plan</button>
-              <button type="button" onClick={() => localStorage.setItem('apex_directcut_last_plan', JSON.stringify(activePlan))}><Save size={16} /> Save plan</button>
-            </div>
+                <div className="directcut-actions">
+                  <button type="button" onClick={() => copyText(activePlan?.videoPrompt)}><Copy size={16} /> Copy prompt</button>
+                  <button type="button" onClick={() => copyText(activePlan?.narrationScript)}><Mic size={16} /> Copy script</button>
+                  <button type="button" onClick={() => copyText((activePlan?.sceneList || []).join('\n'))}><Camera size={16} /> Copy storyboard</button>
+                  <button type="button" onClick={exportStoryboard}><Download size={16} /> Export storyboard</button>
+                  <button type="button" onClick={() => exportPlan()}><Download size={16} /> Export plan</button>
+                  <button type="button" onClick={() => localStorage.setItem('apex_directcut_last_plan', JSON.stringify(activePlan))}><Save size={16} /> Save plan</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="node-board-hint">Drag scenes to reorder · Edit inline · Refine with AI · Compile to generate new plan</p>
+                <div
+                  className="directcut-node-board"
+                  onDragOver={event => event.preventDefault()}
+                >
+                  {nodes.map((node, index) => (
+                    <div
+                      key={node.id}
+                      className={`directcut-node${node.locked ? ' locked' : ''}${draggingId === node.id ? ' dragging' : ''}`}
+                      draggable={!node.locked}
+                      onDragStart={() => setDraggingId(node.id)}
+                      onDragEnd={() => setDraggingId(null)}
+                      onDragOver={event => event.preventDefault()}
+                      onDrop={event => {
+                        event.preventDefault()
+                        if (draggingId && draggingId !== node.id) {
+                          reorderNodes(draggingId, node.id)
+                          setDraggingId(null)
+                        }
+                      }}
+                    >
+                      <div className="directcut-node-head">
+                        <GripVertical size={13} className="node-grip" />
+                        <span className="node-num">Scene {index + 1}</span>
+                        <div className="node-actions">
+                          <button type="button" onClick={() => refineNode(node.id)} disabled={refiningId === node.id || node.locked} title="Refine with AI">
+                            <Sparkles size={12} />{refiningId === node.id ? ' ...' : ' Refine'}
+                          </button>
+                          <button type="button" onClick={() => toggleLock(node.id)} title={node.locked ? 'Unlock' : 'Lock'}>
+                            {node.locked ? <Lock size={12} /> : <Unlock size={12} />}
+                          </button>
+                          <button type="button" onClick={() => removeNode(node.id)} title="Remove scene"><Trash2 size={12} /></button>
+                        </div>
+                      </div>
+                      <textarea
+                        className="node-scene-text"
+                        value={node.scene}
+                        onChange={event => updateNode(node.id, 'scene', event.target.value)}
+                        disabled={node.locked}
+                        rows={4}
+                        placeholder="Describe this scene..."
+                      />
+                      {node.aiNote && <small className="node-ai-note">✦ {node.aiNote}</small>}
+                      <div className="node-settings">
+                        <select value={node.camera} onChange={event => updateNode(node.id, 'camera', event.target.value)} disabled={node.locked}>
+                          {Object.entries(cameraMovementLabels).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                        </select>
+                        <select value={node.style} onChange={event => updateNode(node.id, 'style', event.target.value)} disabled={node.locked}>
+                          {Object.entries(styleLabels).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                  ))}
+                  <button type="button" className="directcut-node-add" onClick={addNode}>
+                    <Plus size={15} /> Add scene
+                  </button>
+                </div>
+                <div className="directcut-actions">
+                  <button type="button" className="directcut-primary" onClick={compileNodes} disabled={loading || !nodes.length}>
+                    <Play size={15} /> Compile nodes → generate plan
+                  </button>
+                  <button type="button" onClick={() => copyText(nodes.map((n, i) => `Scene ${i + 1}: ${n.scene}`).join('\n'))}>
+                    <Copy size={15} /> Copy board
+                  </button>
+                </div>
+              </>
+            )}
           </div>
 
           <div className="directcut-gallery">
