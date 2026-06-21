@@ -1,5 +1,21 @@
+const AUTHKEY = process.env.AUTHKEY_AUTHKEY || ''
+const WHATSAPP_SID = process.env.AUTHKEY_WHATSAPP_SID || ''
+
 function sendJson(res, status, body) {
   res.status(status).json(body)
+}
+
+async function sendWhatsAppAlert(to, message) {
+  if (!AUTHKEY || !WHATSAPP_SID || !to) return null
+  try {
+    const r = await fetch('https://api.authkey.io/request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ authkey: AUTHKEY, type: 'whatsapp', sid: WHATSAPP_SID, to: String(to).replace(/\D/g, ''), message }),
+    })
+    const data = await r.json()
+    return data.request_id || data.id || true
+  } catch { return null }
 }
 
 function createNotificationsPlan(goal = '') {
@@ -41,10 +57,12 @@ function createNotificationsPlan(goal = '') {
     evidence: 'SYSTEM_SUGGESTED',
   }
   return {
-    providerStatus: 'local-alerts-only',
+    providerStatus: (AUTHKEY && WHATSAPP_SID) ? 'authkey-whatsapp' : 'local-alerts-only',
     alerts: [alert],
     suggestedAlerts: [alert, followUp],
-    message: 'Local alert only — notification connector not connected yet.',
+    message: (AUTHKEY && WHATSAPP_SID)
+      ? 'WhatsApp alerts enabled via AUTHKEY.'
+      : 'Local alert only — notification connector not connected yet.',
   }
 }
 
@@ -55,7 +73,14 @@ export default async function handler(req, res) {
   }
   try {
     const body = req.body && typeof req.body === 'object' ? req.body : {}
-    return sendJson(res, 200, { plan: createNotificationsPlan(String(body.goal || '')) })
+    const plan = createNotificationsPlan(String(body.goal || ''))
+    // Fire-and-forget WhatsApp alert if recipient phone provided
+    if (body.phone && plan.alerts[0]) {
+      sendWhatsAppAlert(body.phone, `[Apex Alert] ${plan.alerts[0].type}: ${plan.alerts[0].title}`)
+        .then(id => id && console.log('[notifications-plan] WA sent:', id))
+        .catch(() => {})
+    }
+    return sendJson(res, 200, { plan })
   } catch (error) {
     return sendJson(res, 500, { error: error?.message || 'notifications_plan_failed', providerStatus: 'local-alerts-only' })
   }
