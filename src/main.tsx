@@ -28,6 +28,7 @@ import { EvmSchedulerCompliancePanel } from './components/EvmSchedulerCompliance
 import { ExportCenterPanel } from './components/ExportCenterPanel'
 import { FinancePanel } from './components/FinancePanel'
 import { FieldOpsPanel } from './components/FieldOpsPanel'
+import { ApsPanel } from './components/ApsPanel'
 import { KnowledgeBasePanel } from './components/KnowledgeBasePanel'
 import { MetricsDashboardPanel } from './components/MetricsDashboardPanel'
 import { MultiTenantPanel } from './components/MultiTenantPanel'
@@ -1066,6 +1067,7 @@ function App() {
     const stored = initialAppState.knowledgeBaseOutput as SimpleStudioOutput | undefined
     return stored || null
   })
+  const [apsOpen, setApsOpen] = useState(false)
   const [metricsOutput, setMetricsOutput] = useState<SimpleStudioOutput | null>(() => {
     const stored = initialAppState.metricsOutput as SimpleStudioOutput | undefined
     return stored || null
@@ -1467,6 +1469,7 @@ function App() {
     if (except !== 'pwaMobile') setPwaMobileOutput(null)
     if (except !== 'digitalTwin') setDigitalTwinOutput(null)
     if (except !== 'knowledgeBase') setKnowledgeBaseOutput(null)
+    if (except !== 'aps') setApsOpen(false)
     if (except !== 'metrics') setMetricsOutput(null)
     if (except !== 'copilotExecution') setCopilotExecutionOutput(null)
     if (except !== 'auth') setAuthOutput(null)
@@ -1816,6 +1819,7 @@ function App() {
     const shouldOpenPwaMobile = explicitPanelOpen && isPwaMobileIntent(routingText)
     const shouldOpenDigitalTwin = explicitPanelOpen && isDigitalTwinIntent(routingText)
     const shouldOpenKnowledgeBase = explicitPanelOpen && isKnowledgeBaseIntent(routingText)
+    const shouldOpenAps = explicitPanelOpen && /\b(aps|autodesk platform services?|autodesk platform|bim360|acc.*hub|forge.*api|aps.*connector|autodesk.*connector)\b/i.test(routingText)
     const shouldOpenMetrics = explicitPanelOpen && isMetricsIntent(routingText)
     const shouldOpenCopilotExecution = explicitPanelOpen && isCopilotExecutionIntent(routingText)
     const shouldOpenAgents = explicitPanelOpen && isAgentIntent(routingText)
@@ -1987,6 +1991,13 @@ function App() {
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri a Knowledge Base ao lado. Vou indexar conhecimento local/projeto sem executar conteúdo e sem marcar global sem aprovação do Owner.' }])
       setKnowledgeBaseOutput({ goal: layerGoalText, conversationContext: context })
+      setInput('')
+      return
+    }
+    if (shouldOpenAps) {
+      closeOtherPanels('aps')
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o conector Autodesk Platform Services ao lado. Verifique o status live e obtenha um token 2-legged direto do servidor.' }])
+      setApsOpen(true)
       setInput('')
       return
     }
@@ -3610,6 +3621,10 @@ function App() {
 
           {authOutput && (
             null
+          )}
+
+          {apsOpen && (
+            <ApsPanel onClear={() => setApsOpen(false)} />
           )}
 
           {agentsOutput && (
