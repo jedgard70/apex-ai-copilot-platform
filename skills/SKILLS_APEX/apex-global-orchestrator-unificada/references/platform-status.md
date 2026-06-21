@@ -38,18 +38,38 @@
 | 24 | Avatar / Voice pipeline | ElevenLabs TTS + avatar | ✅ |
 | 25 | Multi-tenant / PWA | tenant isolation + PWA manifest | ✅ |
 
-## Providers AI configurados (Vercel production)
+## ENV Sync — Local ↔ Vercel (auditado 2026-06-21)
 
-`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `FAL_KEY`, `ELEVENLABS_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `TAVILY_API_KEY`
+**Status: SINCRONIZADO** — 16 chaves críticas confirmadas. **Não perguntar novamente.**
 
-## Regras operacionais
+### ✅ Confirmadas em LOCAL + VERCEL
+`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `FAL_KEY`, `ELEVENLABS_API_KEY`,
+`SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_PROJECT_REF`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`,
+`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `TAVILY_API_KEY`, `GITHUB_TOKEN`,
+`VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID`
 
-- Nunca declarar módulo pendente sem evidência.
-- O site `www.apexglobalai.com` é o deploy de produção (branch `main`).
-- App local: `server.mjs` na porta 3000.
-- Para re-deploy manual: `POST https://api.vercel.com/v1/integrations/deploy/prj_uVRjNyFprz8NyzVcb8NTdnALr1Xm/JfL6z7rJ2e`
+### ⚠️ Pendente para Vercel (Phase 4)
+- `APS_CLIENT_ID` + `APS_CLIENT_SECRET` — Autodesk em produção
+- `CRON_SECRET` — segurança cron endpoint
+- `VITE_FIREBASE_*` — PWA push (quando ativado)
+- `AUTHKEY_*` — WhatsApp/SMS (quando ativado)
+
+### ✅ Apenas local (correto, não vai para Vercel)
+`LOCAL_WORKER_*`, `REVIT_MCP_*`, `APEX_PROJECT_PATH`, `ALLOW_RAW_SHELL_IN_ANY_ENV`
 
 ---
 
-*Last updated: 2026-06-21 — ALL 25 MODULES DONE*
+## Próximo ciclo: Phase 4 — Real Data & Auth
+
+| ID | Módulo | Status |
+| --- | --- | --- |
+| `supabase-auth-login` | Supabase Auth login/signup UI | pending |
+| `supabase-rls-tenant` | RLS + tenant isolation | pending |
+| `vercel-env-aps` | APS + CRON_SECRET no Vercel | pending |
+| `sinapi-api-live` | SINAPI API live price lookup | pending |
+| `whatsapp-notifications` | WhatsApp/SMS real notifications | pending |
+
+---
+
+*Last updated: 2026-06-21 — ENV SYNC AUDITADO — ALL 25 MODULES DONE*
 

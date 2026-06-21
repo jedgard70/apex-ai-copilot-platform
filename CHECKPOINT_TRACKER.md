@@ -80,6 +80,16 @@ Core chat/copilot engine, AI runtime provider resolution, advanced model selecti
 
 ---
 
+## ENV sync — auditado 2026-06-21
+
+**Status: SINCRONIZADO** — 16 chaves críticas confirmadas em LOCAL + VERCEL. Não re-auditar a menos que o Owner solicite.
+
+Chaves OK: todos os AI providers (OpenAI/Anthropic/Gemini/fal.ai/ElevenLabs), Supabase (service role + anon + URL + project ref), Stripe (secret + webhook), Tavily, GitHub, Vercel (token + project + team).
+
+Pendentes para Vercel no Phase 4: `APS_CLIENT_ID/SECRET`, `CRON_SECRET`, `VITE_FIREBASE_*`, `AUTHKEY_*`.
+
+Apenas local (não vai para Vercel): `LOCAL_WORKER_*`, `REVIT_MCP_*`, shell/path vars.
+
 ## Deployment status
 
 | Environment | Status | URL |
@@ -88,8 +98,18 @@ Core chat/copilot engine, AI runtime provider resolution, advanced model selecti
 | Vercel Production | ✅ Live | `www.apexglobalai.com` |
 | GitHub | ✅ Main branch | `jedgard70/apex-ai-copilot-platform` |
 
+## Próximo ciclo: Phase 4 — Real Data & Auth
+
+| Todo | Descrição |
+| --- | --- |
+| `supabase-auth-login` | Login/signup UI com Supabase Auth |
+| `supabase-rls-tenant` | RLS + tenant isolation por usuário |
+| `vercel-env-aps` | APS + CRON_SECRET no Vercel production |
+| `sinapi-api-live` | SINAPI API live (busca de preços) |
+| `whatsapp-notifications` | WhatsApp/SMS real via AUTHKEY |
+
 ---
 
 *Last updated: 2026-06-21*
-*All 25 modules: DONE. Build: GREEN. Tests: 84/84. Deploy: apexglobalai.com LIVE.*
+*All 25 modules: DONE. ENV: SYNC auditado. Build: GREEN. Tests: 84/84. Deploy: apexglobalai.com LIVE.*
 
