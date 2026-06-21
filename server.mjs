@@ -4853,6 +4853,31 @@ const server = http.createServer(async (req, res) => {
     handler(req, res)
     return
   }
+  if (req.url === "/api/stripe/status" && req.method === "GET") {
+    const { default: handler } = await import("./api/stripe/status.mjs")
+    handler(req, res)
+    return
+  }
+  if (req.url === "/api/ifc/ifcopenshell-status" && req.method === "GET") {
+    const { default: handler } = await import("./api/ifc/ifcopenshell-status.mjs")
+    handler(req, res)
+    return
+  }
+  if (req.url === "/api/aps/status" && req.method === "GET") {
+    const { default: handler } = await import("./api/aps/status.mjs")
+    handler(req, res)
+    return
+  }
+  if (req.url === "/api/aps/token" && req.method === "POST") {
+    const { default: handler } = await import("./api/aps/token.mjs")
+    handler(req, res)
+    return
+  }
+  if (req.url === "/api/aps/hubs" && req.method === "GET") {
+    const { default: handler } = await import("./api/aps/hubs.mjs")
+    handler(req, res)
+    return
+  }
   if (req.url === "/api/vercel/deploy" && req.method === "POST") {
     const { default: handler } = await import("./api/vercel/deploy.mjs")
     handler(req, res)

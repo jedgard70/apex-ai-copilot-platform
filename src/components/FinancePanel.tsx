@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Copy, DollarSign, RefreshCw, Save, X } from 'lucide-react'
 import { BusinessCurrency, localDemoModeNotice, paymentConnectorNotice } from '../lib/saasBusinessModel'
 import { BusinessPlan, businessCurrencies, createBusinessPlan } from '../lib/crmFinanceKnowledge'
@@ -42,6 +42,38 @@ export function FinancePanel({ goal, conversationContext, onSaveToProject, onCle
   const [plan, setPlan] = useState<BusinessPlan>(() => createBusinessPlan(goal || 'Finance layer setup', 'USD'))
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [checkingStripe, setCheckingStripe] = useState(false)
+  const [stripeConfigured, setStripeConfigured] = useState(false)
+  const [stripeStatusMessage, setStripeStatusMessage] = useState('Checking Stripe connector...')
+  const [stripePriceId, setStripePriceId] = useState('')
+  const [tenantId, setTenantId] = useState('tenant-local')
+  const [userId, setUserId] = useState('user-local')
+  const [customerEmail, setCustomerEmail] = useState('')
+  const [startingCheckout, setStartingCheckout] = useState(false)
+
+  async function refreshStripeStatus() {
+    setCheckingStripe(true)
+    try {
+      const response = await fetch('/api/stripe/status')
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        setStripeConfigured(false)
+        setStripeStatusMessage(data.reason || data.error || 'Stripe connector is not configured.')
+        return
+      }
+      setStripeConfigured(Boolean(data.configured))
+      setStripeStatusMessage(data.configured ? 'Stripe connector is configured and ready for checkout session creation.' : (data.reason || 'Stripe connector is not configured.'))
+    } catch (error) {
+      setStripeConfigured(false)
+      setStripeStatusMessage(error instanceof Error ? error.message : 'Failed to check Stripe connector status.')
+    } finally {
+      setCheckingStripe(false)
+    }
+  }
+
+  useEffect(() => {
+    refreshStripeStatus()
+  }, [])
 
   async function generatePlan(nextCurrency = currency) {
     setLoading(true)
@@ -63,13 +95,48 @@ export function FinancePanel({ goal, conversationContext, onSaveToProject, onCle
     }
   }
 
+  async function openStripeCheckout() {
+    if (!stripePriceId.trim()) {
+      setMessage('Stripe priceId is required to start a real checkout session.')
+      return
+    }
+    setStartingCheckout(true)
+    setMessage('')
+    try {
+      const response = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tenantId: tenantId.trim() || 'tenant-local',
+          userId: userId.trim() || 'user-local',
+          plan: 'Business',
+          priceId: stripePriceId.trim(),
+          customerEmail: customerEmail.trim() || undefined,
+          successUrl: `${window.location.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancelUrl: `${window.location.origin}/billing`,
+        }),
+      })
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(data.error || 'Failed to create Stripe checkout session.')
+      if (data.url) {
+        window.location.assign(data.url)
+        return
+      }
+      throw new Error('Stripe checkout URL was not returned.')
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Failed to start Stripe checkout.')
+    } finally {
+      setStartingCheckout(false)
+    }
+  }
+
   return (
     <section className="business-studio contracts-studio">
       <div className="contracts-heading">
         <div>
           <span><DollarSign size={16} /> Finance</span>
           <h2>Invoices, revenue placeholders and project profit</h2>
-          <p>{localDemoModeNotice}. {paymentConnectorNotice}</p>
+          <p>{localDemoModeNotice}. {stripeConfigured ? 'Stripe connector active for real checkout flow.' : paymentConnectorNotice}</p>
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
           <button onClick={() => generatePlan()} disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', gap: '7px' }}>
@@ -98,8 +165,34 @@ export function FinancePanel({ goal, conversationContext, onSaveToProject, onCle
           </select>
         </label>
         <div className="business-alert">
-          <strong>No fake payment</strong>
-          <span>Draft invoices are not sent, paid or verified. Revenue remains placeholder until entered or connector-backed.</span>
+          <strong>{stripeConfigured ? 'Stripe connector active' : 'Stripe connector pending'}</strong>
+          <span>{stripeStatusMessage}</span>
+        </div>
+        <div className="contracts-grid" style={{ marginTop: '12px' }}>
+          <label className="business-field">
+            Stripe priceId
+            <input value={stripePriceId} onChange={event => setStripePriceId(event.target.value)} placeholder="price_..." />
+          </label>
+          <label className="business-field">
+            Tenant ID
+            <input value={tenantId} onChange={event => setTenantId(event.target.value)} />
+          </label>
+          <label className="business-field">
+            User ID
+            <input value={userId} onChange={event => setUserId(event.target.value)} />
+          </label>
+          <label className="business-field">
+            Customer email (optional)
+            <input value={customerEmail} onChange={event => setCustomerEmail(event.target.value)} placeholder="client@domain.com" />
+          </label>
+        </div>
+        <div className="contracts-actions">
+          <button type="button" onClick={() => refreshStripeStatus()} disabled={checkingStripe}>
+            <RefreshCw size={15} className={checkingStripe ? 'spin-icon' : ''} /> {checkingStripe ? 'Checking...' : 'Check Stripe status'}
+          </button>
+          <button type="button" onClick={openStripeCheckout} disabled={startingCheckout || !stripeConfigured}>
+            <DollarSign size={15} /> {startingCheckout ? 'Starting checkout...' : 'Open real Stripe checkout'}
+          </button>
         </div>
       </div>
 
