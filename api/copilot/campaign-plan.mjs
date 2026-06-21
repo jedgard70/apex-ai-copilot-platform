@@ -133,6 +133,97 @@ function createCampaignAutomationPlan(goal = '', campaignGoal = 'lead-generation
   }
 }
 
+function scrubError(value) {
+  return String(value || 'Request failed.')
+    .replace(/sk-[A-Za-z0-9_-]+/g, '[redacted]')
+    .replace(/Key_[A-Za-z0-9_-]+/g, '[redacted]')
+    .slice(0, 800)
+}
+
+async function callOpenAI(apiKey, apiBase, model, systemPrompt, userPrompt) {
+  const resp = await fetch(`${apiBase}/chat/completions`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model,
+      messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }],
+      max_tokens: 1800,
+      temperature: 0.75,
+      response_format: { type: 'json_object' },
+    }),
+  })
+  const data = await resp.json().catch(() => ({}))
+  if (!resp.ok) throw new Error(scrubError(data?.error?.message || `OpenAI HTTP ${resp.status}`))
+  return data?.choices?.[0]?.message?.content || ''
+}
+
+async function callGemini(apiKey, model, prompt) {
+  const resp = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { maxOutputTokens: 1800, responseMimeType: 'application/json' },
+      }),
+    }
+  )
+  const data = await resp.json().catch(() => ({}))
+  if (!resp.ok) throw new Error(scrubError(data?.error?.message || `Gemini HTTP ${resp.status}`))
+  return data?.candidates?.[0]?.content?.parts?.[0]?.text || ''
+}
+
+function parseAiResponse(text) {
+  const clean = text.trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim()
+  try { return JSON.parse(clean) } catch { return null }
+}
+
+function buildSystemPrompt() {
+  return `You are a senior marketing strategist specialized in architecture, construction, real estate, and design industries. You create high-converting social media campaign packs.
+
+Your output MUST be valid JSON matching the exact structure requested. Be specific, action-oriented, and write for a Latin American / Brazilian Portuguese-speaking market unless the audience clearly points to another market. Keep all text in the same language as the goal/offer provided.`
+}
+
+function buildUserPrompt(goal, campaignGoal, channel, format, audience, offer) {
+  const channelLabel = { instagram: 'Instagram', facebook: 'Facebook', 'instagram-facebook': 'Instagram + Facebook', whatsapp: 'WhatsApp' }[channel] || channel
+  return `Create a complete campaign pack for this project:
+
+PROJECT GOAL: ${String(goal || '').slice(0, 500)}
+CAMPAIGN GOAL: ${campaignGoal}
+CHANNEL: ${channelLabel}
+FORMAT: ${format}
+AUDIENCE: ${String(audience || '').slice(0, 300)}
+OFFER / FOCUS: ${String(offer || '').slice(0, 400)}
+
+Return ONLY this JSON structure, no markdown:
+{
+  "primaryCaption": "one ready-to-post caption for the primary channel",
+  "alternateCaptions": ["caption variant 2", "caption variant 3", "caption variant 4"],
+  "hookOptions": ["attention hook 1", "hook 2", "hook 3"],
+  "ctaOptions": ["CTA text 1", "CTA text 2", "CTA text 3", "CTA text 4"],
+  "storyboard": ["scene 1 description", "scene 2", "scene 3", "scene 4", "scene 5"],
+  "adVariations": [
+    { "title": "angle name", "copy": "ad text", "creativeDirection": "visual direction" },
+    { "title": "angle 2", "copy": "...", "creativeDirection": "..." },
+    { "title": "angle 3", "copy": "...", "creativeDirection": "..." }
+  ],
+  "publishingChecklist": ["step 1", "step 2", "step 3", "step 4", "step 5"],
+  "vslLanding": {
+    "urgencyBar": "urgency bar text",
+    "heroHeadline": "main headline",
+    "heroSubheadline": "subheadline",
+    "autoplayPrompt": "video autoplay instruction",
+    "ctaLabel": "CTA button text",
+    "ctaDestinationHint": "destination hint",
+    "playerBehavior": ["behavior 1", "behavior 2", "behavior 3"],
+    "pageSections": ["section 1", "section 2", "section 3", "section 4", "section 5"],
+    "trustElements": ["trust 1", "trust 2", "trust 3"],
+    "trackingChecklist": ["track 1", "track 2", "track 3"]
+  }
+}`
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST')
@@ -141,17 +232,75 @@ export default async function handler(req, res) {
 
   try {
     const body = req.body && typeof req.body === 'object' ? req.body : {}
+    const goal = String(body.goal || '')
+    const campaignGoal = String(body.campaignGoal || 'lead-generation')
+    const channel = String(body.channel || 'instagram-facebook')
+    const format = String(body.format || 'social-pack')
+    const audience = String(body.audience || '')
+    const offer = String(body.offer || '')
+
+    const openaiKey = process.env.OPENAI_API_KEY
+    const openaiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
+    const openaiModel = process.env.OPENAI_MODEL || 'gpt-4o-mini'
+    const geminiKey = process.env.GEMINI_API_KEY
+
+    const localPlan = createCampaignAutomationPlan(goal, campaignGoal, channel, format, audience, offer)
+
+    let rawText = ''
+    let providerStatus = 'LOCAL_CAMPAIGN_PACK'
+
+    if (openaiKey) {
+      rawText = await callOpenAI(openaiKey, openaiBase, openaiModel, buildSystemPrompt(), buildUserPrompt(goal, campaignGoal, channel, format, audience, offer))
+      providerStatus = 'openai'
+    } else if (geminiKey) {
+      rawText = await callGemini(geminiKey, 'gemini-1.5-flash-latest', `${buildSystemPrompt()}\n\n${buildUserPrompt(goal, campaignGoal, channel, format, audience, offer)}`)
+      providerStatus = 'gemini'
+    }
+
+    if (rawText) {
+      const aiData = parseAiResponse(rawText)
+      if (aiData) {
+        const merged = {
+          ...localPlan,
+          providerStatus,
+          primaryCaption: aiData.primaryCaption || localPlan.primaryCaption,
+          alternateCaptions: aiData.alternateCaptions || localPlan.alternateCaptions,
+          hookOptions: aiData.hookOptions || localPlan.hookOptions,
+          ctaOptions: aiData.ctaOptions || localPlan.ctaOptions,
+          storyboard: aiData.storyboard || localPlan.storyboard,
+          adVariations: aiData.adVariations || localPlan.adVariations,
+          publishingChecklist: aiData.publishingChecklist || localPlan.publishingChecklist,
+          vslLanding: aiData.vslLanding ? { ...localPlan.vslLanding, ...aiData.vslLanding } : localPlan.vslLanding,
+        }
+        merged.report = [
+          'Campaign Automation Pack (AI)',
+          `Generated: ${new Date().toISOString()}`,
+          `Goal: ${campaignGoal} | Channel: ${channel} | Format: ${format}`,
+          `Audience: ${merged.audience}`,
+          `Offer: ${merged.offerSummary}`,
+          '',
+          'Primary caption:',
+          merged.primaryCaption,
+          '',
+          'CTAs:',
+          ...merged.ctaOptions.map(c => `- ${c}`),
+          '',
+          'VSL Headline:',
+          merged.vslLanding.heroHeadline,
+        ].join('\n')
+        return sendJson(res, 200, { plan: merged })
+      }
+    }
+
+    return sendJson(res, 200, { plan: localPlan })
+  } catch (error) {
+    const body = req.body && typeof req.body === 'object' ? req.body : {}
     return sendJson(res, 200, {
       plan: createCampaignAutomationPlan(
-        String(body.goal || ''),
-        String(body.campaignGoal || 'lead-generation'),
-        String(body.channel || 'instagram-facebook'),
-        String(body.format || 'social-pack'),
-        String(body.audience || ''),
-        String(body.offer || ''),
+        String(body.goal || ''), String(body.campaignGoal || 'lead-generation'),
+        String(body.channel || 'instagram-facebook'), String(body.format || 'social-pack'),
+        String(body.audience || ''), String(body.offer || ''),
       ),
     })
-  } catch (error) {
-    return sendJson(res, 500, { error: error?.message || 'campaign_plan_failed', providerStatus: 'LOCAL_CAMPAIGN_PACK' })
   }
 }

@@ -2265,6 +2265,157 @@ textarea {
   border-color: transparent;
 }
 
+.contracts-secondary {
+  background: rgba(109, 168, 255, 0.1);
+  border-color: rgba(109, 168, 255, 0.3);
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+/* Campaign Social Content */
+.campaign-tab-bar {
+  display: flex;
+  border-bottom: 1px solid rgba(109, 168, 255, 0.15);
+  margin-bottom: 14px;
+  gap: 4px;
+}
+
+.campaign-tab-bar button {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: rgba(180, 200, 255, 0.5);
+  font-size: 13px;
+  padding: 8px 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.campaign-tab-bar button.active {
+  color: #9bc4ff;
+  border-bottom-color: #6da8ff;
+}
+
+.social-hashtag-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.social-hashtag-label {
+  font-size: 11px;
+  color: rgba(180, 200, 255, 0.45);
+  min-width: 50px;
+  padding-top: 4px;
+}
+
+.social-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.social-tags span {
+  background: rgba(109, 168, 255, 0.1);
+  border: 1px solid rgba(109, 168, 255, 0.2);
+  border-radius: 999px;
+  font-size: 11px;
+  color: rgba(180, 200, 255, 0.75);
+  padding: 2px 8px;
+}
+
+.social-caption-block {
+  border: 1px solid rgba(109, 168, 255, 0.12);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+
+.social-caption-type {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(180, 200, 255, 0.4);
+  margin-bottom: 6px;
+}
+
+.social-caption-text {
+  font-size: 13px;
+  color: #eaf0ff;
+  margin: 0 0 8px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.social-reels-timing {
+  background: rgba(109, 168, 255, 0.04);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-top: 6px;
+}
+
+.social-reels-timing strong {
+  font-size: 11px;
+  display: block;
+  margin-bottom: 8px;
+  color: rgba(180, 200, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.social-timing-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 5px;
+  font-size: 12px;
+  color: rgba(180, 200, 255, 0.8);
+}
+
+.timing-segment {
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 2px 6px;
+  min-width: 54px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.timing-segment.hook { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+.timing-segment.content { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; }
+.timing-segment.cta { background: rgba(34, 197, 94, 0.2); color: #86efac; }
+.timing-segment.total { background: rgba(109, 168, 255, 0.15); color: #9bc4ff; }
+
+.social-calendar {
+  display: grid;
+  gap: 4px;
+}
+
+.social-cal-row {
+  display: grid;
+  grid-template-columns: 72px 100px 90px 1fr;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  background: rgba(109, 168, 255, 0.04);
+  align-items: start;
+}
+
+.cal-day { font-weight: 600; color: #9bc4ff; }
+.cal-type { color: rgba(180, 200, 255, 0.65); }
+.cal-format { color: rgba(180, 200, 255, 0.45); font-size: 11px; }
+.cal-suggestion { color: rgba(180, 200, 255, 0.8); }
+/* end Campaign Social Content */
+
 .contracts-section-head {
   display: flex;
   align-items: center;
