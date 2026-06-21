@@ -3360,8 +3360,8 @@ function App() {
                   ? (uiLanguage === 'EN' ? 'Model working...' : 'Modelo trabalhando...')
                   : modelRuntimeState === 'ok'
                     ? (uiLanguage === 'EN'
-                      ? `Online · ${lastResponseMode || 'ok'}`
-                      : `Online · ${lastResponseMode || 'ok'}`)
+                                          ? `Active · ${lastResponseMode || 'ok'}`
+                                          : `Active · ${lastResponseMode || 'ok'}`)
                     : modelRuntimeState === 'fallback'
                       ? (uiLanguage === 'EN'
                         ? 'Fallback mode (auto-retry active)'
