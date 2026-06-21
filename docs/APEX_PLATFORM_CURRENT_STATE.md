@@ -56,14 +56,44 @@ For execution tracking use `CHECKPOINT_TRACKER.md`.
 | Vercel preview | `apex-ai-copilot-platform.vercel.app` | ✅ Live |
 | GitHub | `jedgard70/apex-ai-copilot-platform` | ✅ main branch |
 
-## AI provider keys (Vercel production)
+## ENV sync — Local ↔ Vercel (auditado 2026-06-21)
 
-All configured: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `FAL_KEY`, `ELEVENLABS_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `TAVILY_API_KEY`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.
+**Status: SINCRONIZADO** — 16 chaves críticas confirmadas em ambos os ambientes.
+
+### ✅ Chaves confirmadas em LOCAL + VERCEL production
+| Chave | Serviço |
+| --- | --- |
+| `OPENAI_API_KEY` | OpenAI GPT |
+| `ANTHROPIC_API_KEY` | Claude |
+| `GEMINI_API_KEY` | Google Gemini |
+| `FAL_KEY` | fal.ai (ArchVis image) |
+| `ELEVENLABS_API_KEY` | ElevenLabs TTS / Avatar |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase backend |
+| `SUPABASE_PROJECT_REF` | Supabase project |
+| `VITE_SUPABASE_URL` | Supabase client |
+| `VITE_SUPABASE_ANON_KEY` | Supabase client |
+| `STRIPE_SECRET_KEY` | Stripe payments |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook |
+| `TAVILY_API_KEY` | Web research |
+| `GITHUB_TOKEN` | GitHub API |
+| `VERCEL_TOKEN` | Vercel API |
+| `VERCEL_PROJECT_ID` | Vercel project |
+| `VERCEL_TEAM_ID` | Vercel team |
+
+### ⚠️ Chaves apenas locais (próximo ciclo — Phase 4)
+| Chave | Motivo | Prioridade |
+| --- | --- | --- |
+| `APS_CLIENT_ID` + `APS_CLIENT_SECRET` | Autodesk APS em produção | Alta |
+| `CRON_SECRET` | Segurança do cron endpoint | Alta |
+| `VITE_FIREBASE_*` (7 chaves) | PWA push + Firebase auth | Média |
+| `AUTHKEY_*` | WhatsApp/SMS notifications | Média |
+| `OPENAI_API_BASE` | AI Gateway routing | Baixa |
+| `LOCAL_WORKER_*`, `REVIT_MCP_*` | Apenas local — não vai para Vercel | N/A |
 
 ---
 
 *Last updated: 2026-06-21*
-*Status: ALL 25 MODULES DONE — Build GREEN — Tests 84/84 — Deploy LIVE on apexglobalai.com*
+*Status: ALL 25 MODULES DONE — ENV SYNC AUDITADO — Build GREEN — Tests 84/84 — Deploy LIVE on apexglobalai.com*
 
 - Active pending work moved to `CHECKPOINT_TRACKER.md`.
 
