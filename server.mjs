@@ -39,30 +39,10 @@ const DIRECT_GEMINI_MODELS = [
 ]
 
 const GATEWAY_OPENAI_MODELS = [
-  { id: 'openai/gpt-4.1', name: 'GPT-4.1' },
-  { id: 'openai/gpt-4.1-mini', name: 'GPT-4.1 Mini' },
-  { id: 'openai/gpt-4.1-nano', name: 'GPT-4.1 Nano' },
-  { id: 'openai/gpt-4o', name: 'GPT-4o' },
   { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini' },
-  { id: 'openai/gpt-5', name: 'GPT-5' },
-  { id: 'openai/gpt-5-chat', name: 'GPT-5 Chat' },
-  { id: 'openai/gpt-5-mini', name: 'GPT-5 Mini' },
-  { id: 'openai/gpt-5-nano', name: 'GPT-5 Nano' },
-  { id: 'openai/gpt-5-pro', name: 'GPT-5 Pro' },
-  { id: 'openai/gpt-5.1-codex', name: 'GPT-5.1 Codex' },
-  { id: 'openai/gpt-5.1-codex-max', name: 'GPT-5.1 Codex Max' },
-  { id: 'openai/gpt-5.1-codex-mini', name: 'GPT-5.1 Codex Mini' },
-  { id: 'openai/gpt-5.1-instant', name: 'GPT-5.1 Instant' },
-  { id: 'openai/gpt-5.1-thinking', name: 'GPT-5.1 Thinking' },
-  { id: 'openai/gpt-5.2', name: 'GPT-5.2' },
-  { id: 'openai/gpt-5.2-chat', name: 'GPT-5.2 Chat' },
-  { id: 'openai/gpt-5.2-codex', name: 'GPT-5.2 Codex' },
-  { id: 'openai/gpt-5.2-pro', name: 'GPT-5.2 Pro' },
+  { id: 'openai/gpt-4o', name: 'GPT-4o' },
   { id: 'openai/o1', name: 'o1' },
-  { id: 'openai/o3', name: 'o3' },
   { id: 'openai/o3-mini', name: 'o3 Mini' },
-  { id: 'openai/o3-pro', name: 'o3 Pro' },
-  { id: 'openai/o4-mini', name: 'o4 Mini' },
 ]
 
 function composeModelValue(provider, modelId) {
@@ -1540,7 +1520,15 @@ async function handleModelsList(req, res) {
         })
         if (response.ok) {
           const data = await response.json()
+          const allowedOpenRouterModels = new Set([
+            'openai/gpt-4o-mini',
+            'openai/gpt-4o',
+            'openai/o1',
+            'openai/o3-mini',
+            'google/gemini-2.5-flash',
+          ])
           for (const model of data.data || []) {
+            if (!allowedOpenRouterModels.has(String(model.id || ''))) continue
             addModel({
               id: composeModelValue('openrouter', model.id),
               modelId: model.id,
@@ -1794,7 +1782,7 @@ async function handleChat(req, res) {
       messages[messages.length - 1],
     ]
 
-    const requestModel = model
+    let requestModel = model
     const requestProvider = modelProvider
 
     if (requestProvider === 'gateway' || requestModel.startsWith('openai/')) {
@@ -1814,10 +1802,10 @@ async function handleChat(req, res) {
         })
       } catch (gatewayError) {
         console.error('[Gateway Error]:', gatewayError)
-        return chatJson(res, 200, {
-          finalReply: buildChatFallbackReply(userText, identityContext),
-          mode: 'local-fallback-gateway',
-        })
+        if (requestModel.startsWith('openai/')) {
+          requestModel = requestModel.replace(/^openai\//, '')
+        }
+        // Continue to provider fallback path instead of returning repetitive local fallback.
       }
     }
 
@@ -4927,5 +4915,3 @@ const port = Number(process.env.PORT || 4177)
 server.listen(port, () => {
   console.log(`Apex AI Copilot platform listening on http://127.0.0.1:${port}`)
 })
-
-
