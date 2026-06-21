@@ -80,6 +80,27 @@ function splitModelValue(value) {
   return { provider, modelId, raw }
 }
 
+function normalizeLegacyChatModel(modelId) {
+  const raw = String(modelId || '').trim()
+  if (!raw) return 'gpt-4o-mini'
+  const lower = raw.toLowerCase()
+  const alias = {
+    'gpt-4o mini': 'openai/gpt-4o-mini',
+    'gpt-4o-mini': 'openai/gpt-4o-mini',
+    'gpt-4o': 'openai/gpt-4o',
+    'gpt-4': 'openai/gpt-4o',
+    'o1-mini': 'openai/o1',
+    'o1-preview': 'openai/o1',
+    'o1': 'openai/o1',
+    'o3-mini': 'openai/o3-mini',
+    'o3': 'openai/o3',
+    'o3-pro': 'openai/o3-pro',
+    'o4-mini': 'openai/o4-mini',
+  }
+  if (alias[lower]) return alias[lower]
+  if (!raw.includes('/') && /^(gpt-|o[0-9])/i.test(raw)) return 'openai/' + raw
+  return raw
+}
 function buildStaticModelCatalog() {
   return [
     ...DIRECT_GEMINI_MODELS.map(model => ({
@@ -1623,10 +1644,11 @@ async function handleChat(req, res) {
     let apiKey = process.env.OPENAI_API_KEY
     let apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
 
-    const selectedModel = splitModelValue(body.model || process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini')
-    const model = selectedModel.modelId || 'gpt-4o-mini'
+        const selectedModel = splitModelValue(body.model || process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini')
+    const model = normalizeLegacyChatModel(selectedModel.modelId || 'gpt-4o-mini')
     const modelProvider = selectedModel.provider
-    const isGatewayModel = modelProvider === 'gateway' || model.startsWith('openai/')
+    const inferredGatewayModel = !modelProvider && model.startsWith('openai/')
+    const isGatewayModel = modelProvider === 'gateway' || inferredGatewayModel
     const isDirectGeminiModel = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.0-pro', 'gemini-2.5-flash'].includes(model)
 
     if (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_KEYROUTER) {
@@ -4905,3 +4927,5 @@ const port = Number(process.env.PORT || 4177)
 server.listen(port, () => {
   console.log(`Apex AI Copilot platform listening on http://127.0.0.1:${port}`)
 })
+
+
