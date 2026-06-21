@@ -230,30 +230,10 @@ const DIRECT_GEMINI_MODELS = [
 ]
 
 const GATEWAY_OPENAI_MODELS = [
-  { id: 'openai/gpt-4.1', name: 'GPT-4.1' },
-  { id: 'openai/gpt-4.1-mini', name: 'GPT-4.1 Mini' },
-  { id: 'openai/gpt-4.1-nano', name: 'GPT-4.1 Nano' },
-  { id: 'openai/gpt-4o', name: 'GPT-4o' },
   { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini' },
-  { id: 'openai/gpt-5', name: 'GPT-5' },
-  { id: 'openai/gpt-5-chat', name: 'GPT-5 Chat' },
-  { id: 'openai/gpt-5-mini', name: 'GPT-5 Mini' },
-  { id: 'openai/gpt-5-nano', name: 'GPT-5 Nano' },
-  { id: 'openai/gpt-5-pro', name: 'GPT-5 Pro' },
-  { id: 'openai/gpt-5.1-codex', name: 'GPT-5.1 Codex' },
-  { id: 'openai/gpt-5.1-codex-max', name: 'GPT-5.1 Codex Max' },
-  { id: 'openai/gpt-5.1-codex-mini', name: 'GPT-5.1 Codex Mini' },
-  { id: 'openai/gpt-5.1-instant', name: 'GPT-5.1 Instant' },
-  { id: 'openai/gpt-5.1-thinking', name: 'GPT-5.1 Thinking' },
-  { id: 'openai/gpt-5.2', name: 'GPT-5.2' },
-  { id: 'openai/gpt-5.2-chat', name: 'GPT-5.2 Chat' },
-  { id: 'openai/gpt-5.2-codex', name: 'GPT-5.2 Codex' },
-  { id: 'openai/gpt-5.2-pro', name: 'GPT-5.2 Pro' },
+  { id: 'openai/gpt-4o', name: 'GPT-4o' },
   { id: 'openai/o1', name: 'o1' },
-  { id: 'openai/o3', name: 'o3' },
   { id: 'openai/o3-mini', name: 'o3 Mini' },
-  { id: 'openai/o3-pro', name: 'o3 Pro' },
-  { id: 'openai/o4-mini', name: 'o4 Mini' },
 ]
 
 function composeModelValue(provider: string, modelId: string) {
@@ -1177,6 +1157,8 @@ function App() {
   const [uiLanguage, setUiLanguage] = useState<UiLanguage>('EN')
   const [archVisRevisionConstraints, setArchVisRevisionConstraints] = useState<string[]>(initialProject.revisionConstraints || [])
   const [loading, setLoading] = useState(false)
+  const [modelRuntimeState, setModelRuntimeState] = useState<'idle' | 'running' | 'ok' | 'fallback'>('idle')
+  const [lastResponseMode, setLastResponseMode] = useState('')
   const [messages, setMessages] = useState<Message[]>([
     {
       id: id(),
@@ -2234,6 +2216,7 @@ function App() {
     setMessages(prev => [...prev, userMessage])
     setInput('')
     setLoading(true)
+    setModelRuntimeState('running')
     try {
       const response = await fetch('/api/copilot/chat', {
         method: 'POST',
@@ -2272,6 +2255,15 @@ function App() {
       // H5.0D: log response mode so version is visible in browser console
       if (data?.mode) console.log('[Apex H5] response mode:', data.mode)
       if (data?.provider) console.log('[Apex H5] provider:', data.provider)
+      const mode = String(data?.mode || '')
+      if (mode) setLastResponseMode(mode)
+      if (response.ok && !mode.startsWith('local-fallback')) {
+        setModelRuntimeState('ok')
+      } else {
+        setModelRuntimeState('fallback')
+        const safeFallbackModel = 'gateway|openai/gpt-4o-mini'
+        if (selectedModel !== safeFallbackModel) setSelectedModel(safeFallbackModel)
+      }
       if (data?.memoryPatch && typeof data.memoryPatch === 'object') {
         setClientMemory(current => {
           const next = { ...current, ...data.memoryPatch }
@@ -2329,6 +2321,7 @@ function App() {
         setMessages(prev => [...prev, { id: id(), role: 'assistant', text: reply, toolCards, confirmation }])
       }
     } catch (error) {
+      setModelRuntimeState('fallback')
       setMessages(prev => [
         ...prev,
         {
@@ -2980,6 +2973,17 @@ function App() {
               <label style={{ color: 'rgba(150, 164, 195, 0.7)', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '6px' }}>
                 Modelo de IA {selectedModelInfo.provider ? `(${getProviderLabel(selectedModelInfo.provider)})` : ''}
               </label>
+              <div className={`model-runtime-pill ${modelRuntimeState}`}>
+                <span className="runtime-dot" />
+                {loading
+                  ? (uiLanguage === 'EN' ? 'Model working...' : 'Modelo trabalhando...')
+                  : modelRuntimeState === 'ok'
+                    ? (uiLanguage === 'EN' ? `Online · ${lastResponseMode || 'ok'}` : `Online · ${lastResponseMode || 'ok'}`)
+                    : modelRuntimeState === 'fallback'
+                      ? (uiLanguage === 'EN' ? 'Fallback mode (auto-retry active)' : 'Modo fallback (auto-retry ativo)')
+                      : (uiLanguage === 'EN' ? 'Ready' : 'Pronto')}
+              </div>
+
               <select
                 value={selectedModel}
                 onChange={e => setSelectedModel(e.target.value)}
@@ -3309,6 +3313,12 @@ function App() {
                   {loading ? <Square size={17} /> : <ArrowUp size={20} />}
                 </button>
               </div>
+              {loading && (
+                <div className="model-working-inline">
+                  <span className="runtime-dot" />
+                  {uiLanguage === 'EN' ? 'Model is processing your request...' : 'Modelo está processando sua solicitação...'}
+                </div>
+              )}
               {voiceNotice && (
                 <div className="voice-notice">{voiceStatus}</div>
               )}
@@ -3786,5 +3796,11 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </Auth0Provider>
 )
+
+
+
+
+
+
 
 
