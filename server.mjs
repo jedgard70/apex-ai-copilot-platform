@@ -39,30 +39,10 @@ const DIRECT_GEMINI_MODELS = [
 ]
 
 const GATEWAY_OPENAI_MODELS = [
-  { id: 'openai/gpt-4.1', name: 'GPT-4.1' },
-  { id: 'openai/gpt-4.1-mini', name: 'GPT-4.1 Mini' },
-  { id: 'openai/gpt-4.1-nano', name: 'GPT-4.1 Nano' },
-  { id: 'openai/gpt-4o', name: 'GPT-4o' },
   { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini' },
-  { id: 'openai/gpt-5', name: 'GPT-5' },
-  { id: 'openai/gpt-5-chat', name: 'GPT-5 Chat' },
-  { id: 'openai/gpt-5-mini', name: 'GPT-5 Mini' },
-  { id: 'openai/gpt-5-nano', name: 'GPT-5 Nano' },
-  { id: 'openai/gpt-5-pro', name: 'GPT-5 Pro' },
-  { id: 'openai/gpt-5.1-codex', name: 'GPT-5.1 Codex' },
-  { id: 'openai/gpt-5.1-codex-max', name: 'GPT-5.1 Codex Max' },
-  { id: 'openai/gpt-5.1-codex-mini', name: 'GPT-5.1 Codex Mini' },
-  { id: 'openai/gpt-5.1-instant', name: 'GPT-5.1 Instant' },
-  { id: 'openai/gpt-5.1-thinking', name: 'GPT-5.1 Thinking' },
-  { id: 'openai/gpt-5.2', name: 'GPT-5.2' },
-  { id: 'openai/gpt-5.2-chat', name: 'GPT-5.2 Chat' },
-  { id: 'openai/gpt-5.2-codex', name: 'GPT-5.2 Codex' },
-  { id: 'openai/gpt-5.2-pro', name: 'GPT-5.2 Pro' },
+  { id: 'openai/gpt-4o', name: 'GPT-4o' },
   { id: 'openai/o1', name: 'o1' },
-  { id: 'openai/o3', name: 'o3' },
   { id: 'openai/o3-mini', name: 'o3 Mini' },
-  { id: 'openai/o3-pro', name: 'o3 Pro' },
-  { id: 'openai/o4-mini', name: 'o4 Mini' },
 ]
 
 function composeModelValue(provider, modelId) {
@@ -101,6 +81,14 @@ function normalizeLegacyChatModel(modelId) {
   if (!raw.includes('/') && /^(gpt-|o[0-9])/i.test(raw)) return 'openai/' + raw
   return raw
 }
+
+function sanitizeAssistantReply(value) {
+  return String(value || '')
+    .replace(/<\|eom\|>/g, '')
+    .replace(/<\|endoftext\|>/g, '')
+    .trim()
+}
+
 function buildStaticModelCatalog() {
   return [
     ...DIRECT_GEMINI_MODELS.map(model => ({
@@ -1024,7 +1012,7 @@ function buildToolSummary(tools) {
 }
 
 function buildFileContext(file) {
-  if (!file) return 'No uploaded file.'
+  if (!file) return ''
   return [
     'Uploaded file metadata:',
     `- name: ${file.name || 'unknown'}`,
@@ -1248,6 +1236,18 @@ function buildIdentityContextSummary(identity) {
   ].join('\n')
 }
 
+function hasIdentityContext(identity) {
+  return Boolean(
+    identity?.email ||
+    identity?.role ||
+    identity?.workspaceName ||
+    identity?.persistenceMode ||
+    identity?.tenantId ||
+    identity?.profileName ||
+    identity?.isOwnerAdmin
+  )
+}
+
 function buildIdentityReply(userText, identity) {
   if (!isIdentityQuestionText(userText)) return ''
   if (!identity.email && !identity.role && !identity.workspaceName && !identity.persistenceMode && !identity.tenantId && !identity.profileName) {
@@ -1270,7 +1270,7 @@ function prefersPortugueseText(text = '') {
 }
 
 function isCapabilitiesQuestionText(text = '') {
-  return /\b(o que (mais )?(vc|voce|você)?\s*sabe( fazer)?|o que (vc|voce|você)?\s*faz|o que mais (vc|voce|você)?\s*faz|quais (são os )?servi[cç]os|lista de servi[cç]os|seus servi[cç]os|funcionalidades|habilidades|capabilities|what else can you do|what can you do|what do you do|features)\b/i.test(text.trim())
+  return /\b(o que (mais )?(vc|voce|você)?\s*sabe( fazer)?|o que (vc|voce|você)?\s*faz|o que mais (vc|voce|você)?\s*faz|quais (são os )?servi[cç]os|lista de servi[cç]os|seus servi[cç]os|funcionalidades|habilidades|vc sabe responder|voce sabe responder|você sabe responder|capabilities|what else can you do|what can you do|what do you do|features)\b/i.test(text.trim())
 }
 
 function isContactQuestionText(text = '') {
@@ -1284,7 +1284,7 @@ function isUploadQuestionText(text = '') {
 }
 
 function isGreetingText(text = '') {
-  return /^\s*(oi|ola|ol[aá]|bom dia|boa tarde|boa noite|hello|hi|hey|test|teste)\s*[.!?]?\s*$/i.test(text.trim())
+  return /^\s*(oi|ola|ol[aá]|bom dia|boa tarde|boa noite|hello|hi|hey|test|teste)(\s+apex)?\s*[.!?]?\s*$/i.test(text.trim())
 }
 
 function buildChatFallbackReply(userText, identity) {
@@ -1293,12 +1293,12 @@ function buildChatFallbackReply(userText, identity) {
   const pt = prefersPortugueseText(userText)
   if (isGreetingText(userText)) {
     return pt
-      ? 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.'
-      : 'I am Apex. Give me the task to execute now. If a connector is missing, I will tell you exactly what is missing and proceed with a useful fallback.'
+      ? 'Olá! Estou online e pronta para ajudar. Você pode me pedir criação, revisão, orçamento, contratos, marketing, automação ou análise de projeto.'
+      : 'Hello! I am online and ready to help. You can ask for creation, review, budgeting, contracts, marketing, automation or project analysis.'
   }
   if (isCapabilitiesQuestionText(userText)) {
     return pt
-      ? 'Consigo resolver tarefas reais. Quando uma etapa depender de conector/credencial, eu vou responder direto: "ok, para executar isso agora precisamos de X e Y; você já está providenciando; enquanto isso eu sigo com fallback útil".'
+      ? 'Sim. Eu consigo responder normalmente e também executar fluxos da plataforma, como fachada, planta, orçamento, contratos, cronograma, relatórios, campanhas e automações.'
       : 'I can read, explain, summarize, edit, validate and execute safe workflows inside Apex. If you ask for an action, I try to do it directly and report back with evidence. I also cover BIM, 3D, ArchViz, code, data, sales, marketing, contracts, finance and field operations.'
   }
   if (isContactQuestionText(userText)) {
@@ -1541,6 +1541,7 @@ async function handleModelsList(req, res) {
         if (response.ok) {
           const data = await response.json()
           for (const model of data.data || []) {
+            if (!model?.id) continue
             addModel({
               id: composeModelValue('openrouter', model.id),
               modelId: model.id,
@@ -1557,6 +1558,12 @@ async function handleModelsList(req, res) {
     for (const model of buildStaticModelCatalog()) {
       addModel(model)
     }
+
+    models.sort((left, right) => {
+      const providerCompare = String(left.provider || '').localeCompare(String(right.provider || ''))
+      if (providerCompare !== 0) return providerCompare
+      return String(left.name || left.id || '').localeCompare(String(right.name || right.id || ''))
+    })
 
     return chatJson(res, 200, {
       ok: true,
@@ -1585,32 +1592,35 @@ async function handleChat(req, res) {
         operator: { intent: 'tool_execution', toolExecution: _toolExecution },
       })
     }
-    if (!APEX_FREE_AGENT && !body.file) {
-      const productionStatus = collectProductionOperatorStatus()
-      const operatorResult = await runApexOperatorProductionSafe({
-        userMessage: userText,
-        identityContext,
-        workspaceContext: body.workspaceContext || {},
-        repoPath: authorizedExecutionCwd,
-        permissions: {},
-        productionStatus,
-        clientMemory: body.clientMemory || {},
-        messages: Array.isArray(body.messages) ? body.messages : [],
-      })
-      return chatJson(res, 200, {
-        finalReply: operatorResult.finalReply,
-        memoryPatch: operatorResult.memoryPatch || null,
-        mode: 'apex-operator-production-safe',
-        operator: operatorResult,
-        productionStatus,
-      })
-    }
-
     const identityReply = buildIdentityReply(userText, identityContext)
     if (identityReply) {
       return chatJson(res, 200, {
         finalReply: identityReply,
         mode: 'identity-context',
+      })
+    }
+
+    const languageSwitch = String(userText || '').trim().toLowerCase()
+    if (['en', 'english'].includes(languageSwitch)) {
+      return chatJson(res, 200, {
+        finalReply: 'English mode enabled. Tell me what you want to create, review or fix.',
+        mode: 'language-switch',
+      })
+    }
+    if (['pt', 'pt-br', 'portugues', 'português'].includes(languageSwitch)) {
+      return chatJson(res, 200, {
+        finalReply: 'Modo em português ativado. Me diga o que você quer criar, revisar ou corrigir.',
+        mode: 'language-switch',
+      })
+    }
+
+    if (
+      isGreetingText(userText) ||
+      isCapabilitiesQuestionText(userText)
+    ) {
+      return chatJson(res, 200, {
+        finalReply: buildChatFallbackReply(userText, identityContext),
+        mode: 'conversation-direct',
       })
     }
 
@@ -1644,7 +1654,7 @@ async function handleChat(req, res) {
     let apiKey = process.env.OPENAI_API_KEY
     let apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
 
-        const selectedModel = splitModelValue(body.model || process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini')
+    const selectedModel = splitModelValue(body.model || process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini')
     const model = normalizeLegacyChatModel(selectedModel.modelId || 'gpt-4o-mini')
     const modelProvider = selectedModel.provider
     const inferredGatewayModel = !modelProvider && model.startsWith('openai/')
@@ -1697,14 +1707,17 @@ async function handleChat(req, res) {
       'Production memory summary:',
       runtime.memorySummary.join('\n'),
       '',
-      'Authenticated session context:',
-      buildIdentityContextSummary(identityContext),
-      'Use this context when the user asks who they are. Do not invent a full name if profileName is unknown.',
-      '',
       'Relevant local skill knowledge:',
       buildLocalSkillContext(userText, file),
-      '',
-      buildFileContext(file),
+      ...(hasIdentityContext(identityContext)
+        ? [
+            '',
+            'Authenticated session context:',
+            buildIdentityContextSummary(identityContext),
+            'Use this context when the user asks who they are. Do not invent a full name if profileName is unknown.',
+          ]
+        : []),
+      ...(file ? ['', buildFileContext(file)] : []),
       '',
       'If image content is supplied, analyze visible image content directly. If not, do not pretend to see pixels or file internals.',
       'Command-first rule: obey the user direct instruction first. Produce the answer or deliverable directly before considering connectors.',
@@ -1717,6 +1730,7 @@ async function handleChat(req, res) {
       'If the user has not typed a natural-language message yet, use the browser/session language when supplied.',
       'Execution priority: if the user asks to create, generate, write, build, prepare, montar, criar, gerar, fazer, escreva or produza, do the work now. Do not explain the process unless asked.',
       'Runtime response rule: Do not format the response as a report. Do not use markdown headings unless requested. Prefer natural paragraphs.',
+      'For simple conversation, greetings, connection checks or "are you online" style prompts, answer directly and naturally. Do not mention missing session, auth, files or context unless the user specifically asks about them.',
       'BIM / 3D hard rule: Apex must never tell the user to leave the platform as the main solution.',
       'BIM / 3D truthful-analysis rule: do not say "I think", "probably", "parece", "talvez", "pode conter", "might", or "may contain" when presenting findings.',
       'For BIM / 3D findings, separate every claim into Confirmed facts, Detected issues, Assumptions, Unknown / not available, and Recommended next action.',
@@ -1735,20 +1749,16 @@ async function handleChat(req, res) {
     ].join('\n')
 
     const userContent = []
+    const userContentText = [
+      userText || 'The user uploaded a file and asks for guidance.',
+      hasIdentityContext(identityContext) ? ['Authenticated session context:', buildIdentityContextSummary(identityContext)].join('\n') : '',
+      file ? buildFileContext(file) : '',
+      buildStyleInstruction(userText, file),
+      intentInstruction,
+    ].filter(Boolean).join('\n\n')
     userContent.push({
       type: 'text',
-      text: [
-        userText || 'The user uploaded a file and asks for guidance.',
-        '',
-        'Authenticated session context:',
-        buildIdentityContextSummary(identityContext),
-        '',
-        buildFileContext(file),
-        '',
-        buildStyleInstruction(userText, file),
-        '',
-        intentInstruction,
-      ].join('\n'),
+      text: userContentText,
     })
     if (file?.dataUrl && String(file.type || '').startsWith('image/')) {
       userContent.push({
@@ -1775,6 +1785,7 @@ async function handleChat(req, res) {
         content: [
           'Apex Live Agent Runtime is enabled.',
           'The user can talk naturally, like with ChatGPT or Codex. Do not require exact command phrases.',
+          'For simple conversation or connection-check prompts, reply directly like a normal assistant and do not add warnings about missing context unless explicitly asked.',
           'You are a full coding copilot with REAL access to this platform repository. You have tools to read files (read_file), list directories (list_dir), search code (search_code), write files (write_file), edit files (edit_file) and run commands (run_command).',
           'CRITICAL: You are an autonomous agentic AI. Never describe file contents, directory layouts, or platform status from memory or using static information in the prompt. You MUST call the appropriate tool (list_dir, read_file, search_code, run_safe_local_command) in your first turn to verify the actual files on disk before responding. If the user asks to review, audit, check, verify, update, or edit anything, immediately invoke the tools to perform the actions.',
           'When the user asks about the code, the platform, or to change/fix/build something, USE these tools to actually inspect and modify the real repository. Do not guess file contents — read them. Do not claim a file exists without checking.',
@@ -1794,10 +1805,10 @@ async function handleChat(req, res) {
       messages[messages.length - 1],
     ]
 
-    const requestModel = model
-    const requestProvider = modelProvider
+    let requestModel = model
+    const requestProvider = isGatewayModel ? 'gateway' : modelProvider
 
-    if (requestProvider === 'gateway' || requestModel.startsWith('openai/')) {
+    if (requestProvider === 'gateway') {
       try {
         const gatewayResult = await generateText({
           model: requestModel,
@@ -1807,17 +1818,17 @@ async function handleChat(req, res) {
         })
 
         return chatJson(res, 200, {
-          finalReply: gatewayResult.text || buildChatFallbackReply(userText, identityContext),
+          finalReply: sanitizeAssistantReply(gatewayResult.text) || buildChatFallbackReply(userText, identityContext),
           model: requestModel,
           usage: gatewayResult.usage,
           mode: 'live-agent-chat-gateway',
         })
       } catch (gatewayError) {
         console.error('[Gateway Error]:', gatewayError)
-        return chatJson(res, 200, {
-          finalReply: buildChatFallbackReply(userText, identityContext),
-          mode: 'local-fallback-gateway',
-        })
+        if (requestModel.startsWith('openai/')) {
+          requestModel = requestModel.replace(/^openai\//, '')
+        }
+        // Continue to provider fallback path instead of returning repetitive local fallback.
       }
     }
 
@@ -1941,7 +1952,7 @@ async function handleChat(req, res) {
 
         if (!currentToolCalls.length) {
           return chatJson(res, 200, {
-            finalReply: currentAssistant.content || buildChatFallbackReply(userText, identityContext),
+            finalReply: sanitizeAssistantReply(currentAssistant.content) || buildChatFallbackReply(userText, identityContext),
             model: nextData.model,
             usage: nextData.usage,
             mode: 'live-agent-tool-calling',
@@ -1952,13 +1963,13 @@ async function handleChat(req, res) {
 
       // Exceeded max rounds — return the last assistant content if any.
       return chatJson(res, 200, {
-        finalReply: currentAssistant.content || 'Atingi o limite de etapas de ferramentas nesta resposta. Posso continuar se você confirmar.',
+        finalReply: sanitizeAssistantReply(currentAssistant.content) || 'Atingi o limite de etapas de ferramentas nesta resposta. Posso continuar se você confirmar.',
         mode: 'live-agent-tool-calling-maxed',
         toolCalls: usedToolNames,
       })
     }
 
-    const reply = assistantMessage.content || ''
+    const reply = sanitizeAssistantReply(assistantMessage.content)
     return chatJson(res, 200, {
       finalReply: reply || buildChatFallbackReply(userText, identityContext),
       model: data.model,
@@ -4749,7 +4760,14 @@ const server = http.createServer(async (req, res) => {
     handleToolExecute(req, res)
     return
   }
-  if (req.url === '/api/copilot/models' && req.method === 'GET') {
+  const requestUrl = new URL(req.url, 'http://127.0.0.1')
+  if (
+    req.method === 'GET' &&
+    (
+      req.url === '/api/copilot/models' ||
+      (requestUrl.pathname === '/api/copilot/chat' && requestUrl.searchParams.get('models') === '1')
+    )
+  ) {
     handleModelsList(req, res)
     return
   }

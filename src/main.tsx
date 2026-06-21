@@ -230,30 +230,10 @@ const DIRECT_GEMINI_MODELS = [
 ]
 
 const GATEWAY_OPENAI_MODELS = [
-  { id: 'openai/gpt-4.1', name: 'GPT-4.1' },
-  { id: 'openai/gpt-4.1-mini', name: 'GPT-4.1 Mini' },
-  { id: 'openai/gpt-4.1-nano', name: 'GPT-4.1 Nano' },
-  { id: 'openai/gpt-4o', name: 'GPT-4o' },
   { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini' },
-  { id: 'openai/gpt-5', name: 'GPT-5' },
-  { id: 'openai/gpt-5-chat', name: 'GPT-5 Chat' },
-  { id: 'openai/gpt-5-mini', name: 'GPT-5 Mini' },
-  { id: 'openai/gpt-5-nano', name: 'GPT-5 Nano' },
-  { id: 'openai/gpt-5-pro', name: 'GPT-5 Pro' },
-  { id: 'openai/gpt-5.1-codex', name: 'GPT-5.1 Codex' },
-  { id: 'openai/gpt-5.1-codex-max', name: 'GPT-5.1 Codex Max' },
-  { id: 'openai/gpt-5.1-codex-mini', name: 'GPT-5.1 Codex Mini' },
-  { id: 'openai/gpt-5.1-instant', name: 'GPT-5.1 Instant' },
-  { id: 'openai/gpt-5.1-thinking', name: 'GPT-5.1 Thinking' },
-  { id: 'openai/gpt-5.2', name: 'GPT-5.2' },
-  { id: 'openai/gpt-5.2-chat', name: 'GPT-5.2 Chat' },
-  { id: 'openai/gpt-5.2-codex', name: 'GPT-5.2 Codex' },
-  { id: 'openai/gpt-5.2-pro', name: 'GPT-5.2 Pro' },
+  { id: 'openai/gpt-4o', name: 'GPT-4o' },
   { id: 'openai/o1', name: 'o1' },
-  { id: 'openai/o3', name: 'o3' },
   { id: 'openai/o3-mini', name: 'o3 Mini' },
-  { id: 'openai/o3-pro', name: 'o3 Pro' },
-  { id: 'openai/o4-mini', name: 'o4 Mini' },
 ]
 
 function composeModelValue(provider: string, modelId: string) {
@@ -433,7 +413,7 @@ function pickCanonicalReply(data: Record<string, unknown>, fallback: string) {
 
 function isArchVisIntent(text: string, attachment?: IntakeFile) {
   const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|gerar|gere|crie|criar|renderizar|renderize|humanizar|humanize|refazer|refaça|editar|edit)\b/i.test(lower)
+  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|gerar|gere|crie|criar|renderizar|renderize|humanizar|humanize|refazer|refaça|editar|edit|quero|preciso|faça|faca|prepare|monte)\b/i.test(lower)
   const hasKeyword = /\b(archvis|render|planta humanizada|planta|fachada|interior|imagem|área gourmet|area gourmet|prompt de render)\b/i.test(lower)
   if (hasVerb && hasKeyword) return true
 
@@ -444,28 +424,28 @@ function isArchVisIntent(text: string, attachment?: IntakeFile) {
 
 function isDirectCutIntent(text: string) {
   const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|criar|create|gerar|generate|fazer|make|editar|edit|cortar|cut|montar)\b/i.test(lower)
+  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|criar|create|gerar|generate|fazer|make|editar|edit|cortar|cut|montar|quero|preciso|faça|faca|prepare)\b/i.test(lower)
   const hasKeyword = /\b(video|v[ií]deo|directcut|roteiro|reels|apresenta[cç][aã]o|tour|anima[cç][aã]o|v[ií]deo de venda|video de venda|timelapse|shot list|storyboard|cinematic|cinem[aá]tico|transformar imagem em v[ií]deo|imagem em v[ií]deo|image to video|adicionar voz|add voice|mudar luz|alterar luz|relight|melhorar v[ií]deo|improve video|clip editor|editar v[ií]deo|3d scenes|movimento de c[aâ]mera|camera movement)\b/i.test(lower)
   return hasVerb && hasKeyword
 }
 
 function isBudgetIntent(text: string) {
   const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|gerar|generate|fazer|make|calcular|calculate|estimar|estimate|montar)\b/i.test(lower)
+  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|gerar|generate|fazer|make|calcular|calculate|estimar|estimate|montar|quero|preciso|faça|faca|prepare)\b/i.test(lower)
   const hasKeyword = /\b(or[cç]amento|orcamento|quantitativo|estimativa|materiais|proposta|quanto custa|custo de obra|memorial de compra|budget|estimate|quantity|takeoff|materials|proposal|construction cost)\b/i.test(lower)
   return hasVerb && hasKeyword
 }
 
 function isContractsIntent(text: string) {
   const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|revisar|review|criar|create|gerar|generate|analisar|analyze|validar|validate)\b/i.test(lower)
+  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|revisar|review|criar|create|gerar|generate|analisar|analyze|validar|validate|quero|preciso|faça|faca|prepare|montar)\b/i.test(lower)
   const hasKeyword = /\b(contrato|contrato simples|revisar contrato|jur[ií]dico|juridico|cl[aá]usula|clausula|proposta jur[ií]dica|memorial|memorial descritivo|alvar[aá]|licen[cç]a|permits?|permits americanos|documentos para aprova[cç][aã]o nos eua|us permits?|european permits?|eu building permit|planning permission|ahj|certificate of occupancy|fire marshal|ada|building control|compliance|endossos|endosso|art|rrt|habite-se|scope agreement|addendum|lawyer|legal|contract)\b/i.test(lower)
   return hasVerb && hasKeyword
 }
 
 function isResearchIntent(text: string) {
   const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|pesquisar|search|buscar|find|analisar|analyze|investigar|investigate)\b/i.test(lower)
+  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|pesquisar|search|buscar|find|analisar|analyze|investigar|investigate|quero|preciso|faça|faca|prepare)\b/i.test(lower)
   const hasKeyword = /\b(pesquisa de mercado|pesquisa na internet|faça uma pesquisa|faca uma pesquisa|concorrentes|pre[cç]o atualizado|sinapi|tabela sinapi|proposta comercial com pesquisa|estudo de mercado|market research|competitor|benchmark|pricing research|source check)\b/i.test(lower)
   return hasVerb && hasKeyword
 }
@@ -473,7 +453,7 @@ function isResearchIntent(text: string) {
 function isFieldOpsIntent(text: string, attachment?: IntakeFile) {
   if (attachment?.kind === 'image' && /\b(obra|campo|rdo|di[aá]rio|relat[oó]rio|andamento|progresso|qualidade|seguran[cç]a|punch|pend[eê]ncia|foto de obra)\b/i.test(text)) return true
   const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|criar|create|gerar|generate|preencher|fill|fazer|make)\b/i.test(lower)
+  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|criar|create|gerar|generate|preencher|fill|fazer|make|quero|preciso|faça|faca|prepare)\b/i.test(lower)
   const hasKeyword = /\b(rdo|di[aá]rio de obra|relat[oó]rio de obra|andamento da obra|progresso da obra|checklist de qualidade|checklist de seguran[cç]a|equipe de obra|materiais entregues|pend[eê]ncia de obra|punch list|foto de obra|field operations|daily report|jobsite|site report|quality checklist|safety checklist|field photo)\b/i.test(lower)
   return hasVerb && hasKeyword
 }
@@ -780,7 +760,7 @@ function buildIdentityAnswer(text: string, identity: ChatIdentityContext) {
 }
 
 function isCapabilitiesQuestion(text: string) {
-  return /\b(o que (mais )?(vc|voce|você)?\s*sabe( fazer)?|o que (vc|voce|você)?\s*faz|o que mais (vc|voce|você)?\s*faz|quais (são os )?servi[cç]os|lista de servi[cç]os|seus servi[cç]os|funcionalidades|habilidades|capabilities|what else can you do|what can you do|what do you do|features)\b/i.test(text.trim())
+  return /\b(o que (mais )?(vc|voce|você)?\s*sabe( fazer)?|o que (vc|voce|você)?\s*faz|o que mais (vc|voce|você)?\s*faz|quais (são os )?servi[cç]os|lista de servi[cç]os|seus servi[cç]os|funcionalidades|habilidades|vc sabe responder|voce sabe responder|você sabe responder|capabilities|what else can you do|what can you do|what do you do|features)\b/i.test(text.trim())
 }
 
 function isContactQuestion(text: string) {
@@ -802,8 +782,8 @@ function buildGreetingReply(text: string) {
   if (/obrigad|valeu|tamo junto/.test(lower)) return 'Por nada! Se precisar de mais alguma coisa, é só falar.'
   const pt = prefersPortuguese(text)
   return pt
-    ? 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.'
-    : 'I am Apex. Give me the task to execute now. If a connector is missing, I will tell you exactly what is missing and proceed with a useful fallback.'
+    ? 'Olá! Estou online e posso te ajudar com projeto, fachada, planta, orçamento, contratos, marketing e automações. Me diga o que você quer criar ou corrigir.'
+    : 'Hello! I am online and can help with design, plans, budgets, contracts, marketing and automations. Tell me what you want to create or fix.'
 }
 
 function buildProductFallbackAnswer(userText: string, identity: ChatIdentityContext) {
@@ -820,8 +800,8 @@ function buildProductFallbackAnswer(userText: string, identity: ChatIdentityCont
   const pt = prefersPortuguese(userText)
   if (isCapabilitiesQuestion(userText)) {
     return pt
-      ? 'Diga a tarefa e eu sigo direto, sem listar menu automático.'
-      : 'Tell me the task and I will proceed directly, without an automatic capability menu.'
+      ? 'Sim. Eu consigo responder, criar e executar fluxos da plataforma — por exemplo fachada, planta humanizada, orçamento, contratos, cronograma, relatórios, campanhas e automações. Me diga o resultado que você quer e eu sigo direto.'
+      : 'Yes. I can answer, create and run platform workflows — for example facade concepts, floor plan work, budgets, contracts, schedules, reports, campaigns and automations. Tell me the result you want and I will proceed directly.'
   }
   if (isContactQuestion(userText)) {
     return pt
@@ -1177,6 +1157,8 @@ function App() {
   const [uiLanguage, setUiLanguage] = useState<UiLanguage>('EN')
   const [archVisRevisionConstraints, setArchVisRevisionConstraints] = useState<string[]>(initialProject.revisionConstraints || [])
   const [loading, setLoading] = useState(false)
+  const [modelRuntimeState, setModelRuntimeState] = useState<'idle' | 'running' | 'ok' | 'fallback'>('idle')
+  const [lastResponseMode, setLastResponseMode] = useState('')
   const [messages, setMessages] = useState<Message[]>([
     {
       id: id(),
@@ -1739,6 +1721,16 @@ function App() {
         : 'User uploaded this file. Analyze it as project context and continue naturally in a short conversational reply. Do not write a report, heading, observations list, or capabilities list.'
       : '')
     const userMessage: Message = { id: id(), role: 'user', text: userText, attachment }
+    if (/^(en|english)$/i.test(clean)) {
+      setUiLanguage('EN')
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'English mode enabled. Tell me what you want to create, review or fix.' }])
+      return
+    }
+    if (/^(pt|pt-br|portugues|português)$/i.test(clean)) {
+      setUiLanguage('PT')
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Modo em português ativado. Me diga o que você quer criar, revisar ou corrigir.' }])
+      return
+    }
     if (attachment && attachment.file.name.toLowerCase().endsWith('.md')) {
       if (!isOwnerUser) {
         setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'This tool is restricted to workspace owners/admins.' }])
@@ -1823,12 +1815,12 @@ function App() {
     }
     // Let natural conversations go to the server, so they are processed by the live AI agent (or fall back to local answers on failure)
     const explicitPanelOpen = Boolean(routingText) && isExplicitPanelOpenRequest(routingText)
-    const shouldOpenArchVis = explicitPanelOpen && isArchVisIntent(routingText, attachment)
-    const shouldOpenDirectCut = explicitPanelOpen && isDirectCutIntent(routingText)
-    const shouldOpenContracts = explicitPanelOpen && isContractsIntent(routingText)
-    const shouldOpenBudget = explicitPanelOpen && isBudgetIntent(routingText)
-    const shouldOpenResearch = explicitPanelOpen && isResearchIntent(routingText)
-    const shouldOpenFieldOps = explicitPanelOpen && isFieldOpsIntent(routingText, attachment)
+    const shouldOpenArchVis = ((attachment?.kind === 'image') || explicitPanelOpen) && isArchVisIntent(routingText, attachment)
+    const shouldOpenDirectCut = isDirectCutIntent(routingText)
+    const shouldOpenContracts = isContractsIntent(routingText)
+    const shouldOpenBudget = isBudgetIntent(routingText)
+    const shouldOpenResearch = isResearchIntent(routingText)
+    const shouldOpenFieldOps = isFieldOpsIntent(routingText, attachment)
     const shouldOpenAuth = explicitPanelOpen && isAuthIntent(routingText)
     const shouldOpenBusiness = explicitPanelOpen && isBusinessLayerIntent(routingText)
     const shouldOpenControlsAgents = explicitPanelOpen && isEvmSchedulerComplianceIntent(routingText)
@@ -1843,7 +1835,7 @@ function App() {
     const shouldOpenMetrics = explicitPanelOpen && isMetricsIntent(routingText)
     const shouldOpenCopilotExecution = explicitPanelOpen && isCopilotExecutionIntent(routingText)
     const shouldOpenAgents = explicitPanelOpen && isAgentIntent(routingText)
-    const shouldOpenBim3D = explicitPanelOpen && isBim3DIntent(routingText, attachment)
+    const shouldOpenBim3D = ((attachment?.kind === 'bim-cad') || explicitPanelOpen) && isBim3DIntent(routingText, attachment)
     const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
     const shouldTreatAsConversation = clean && isOperationalGovernancePrompt(clean)
     const shouldOpenSkillExport = clean && !shouldTreatAsConversation && (isSkillExportIntent(clean) || isSkillExportFactoryAlias(clean))
@@ -2234,6 +2226,7 @@ function App() {
     setMessages(prev => [...prev, userMessage])
     setInput('')
     setLoading(true)
+    setModelRuntimeState('running')
     try {
       const response = await fetch('/api/copilot/chat', {
         method: 'POST',
@@ -2272,6 +2265,13 @@ function App() {
       // H5.0D: log response mode so version is visible in browser console
       if (data?.mode) console.log('[Apex H5] response mode:', data.mode)
       if (data?.provider) console.log('[Apex H5] provider:', data.provider)
+      const mode = String(data?.mode || '')
+      if (mode) setLastResponseMode(mode)
+      if (response.ok && !mode.startsWith('local-fallback')) {
+        setModelRuntimeState('ok')
+      } else {
+        setModelRuntimeState('fallback')
+      }
       if (data?.memoryPatch && typeof data.memoryPatch === 'object') {
         setClientMemory(current => {
           const next = { ...current, ...data.memoryPatch }
@@ -2329,6 +2329,7 @@ function App() {
         setMessages(prev => [...prev, { id: id(), role: 'assistant', text: reply, toolCards, confirmation }])
       }
     } catch (error) {
+      setModelRuntimeState('fallback')
       setMessages(prev => [
         ...prev,
         {
@@ -2980,6 +2981,17 @@ function App() {
               <label style={{ color: 'rgba(150, 164, 195, 0.7)', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '6px' }}>
                 Modelo de IA {selectedModelInfo.provider ? `(${getProviderLabel(selectedModelInfo.provider)})` : ''}
               </label>
+              <div className={`model-runtime-pill ${modelRuntimeState}`}>
+                <span className="runtime-dot" />
+                {loading
+                  ? (uiLanguage === 'EN' ? 'Model working...' : 'Modelo trabalhando...')
+                  : modelRuntimeState === 'ok'
+                    ? (uiLanguage === 'EN' ? `Online · ${lastResponseMode || 'ok'}` : `Online · ${lastResponseMode || 'ok'}`)
+                    : modelRuntimeState === 'fallback'
+                      ? (uiLanguage === 'EN' ? 'Fallback mode (auto-retry active)' : 'Modo fallback (auto-retry ativo)')
+                      : (uiLanguage === 'EN' ? 'Ready' : 'Pronto')}
+              </div>
+
               <select
                 value={selectedModel}
                 onChange={e => setSelectedModel(e.target.value)}
@@ -3309,6 +3321,12 @@ function App() {
                   {loading ? <Square size={17} /> : <ArrowUp size={20} />}
                 </button>
               </div>
+              {loading && (
+                <div className="model-working-inline">
+                  <span className="runtime-dot" />
+                  {uiLanguage === 'EN' ? 'Model is processing your request...' : 'Modelo está processando sua solicitação...'}
+                </div>
+              )}
               {voiceNotice && (
                 <div className="voice-notice">{voiceStatus}</div>
               )}

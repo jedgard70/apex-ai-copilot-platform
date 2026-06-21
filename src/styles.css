@@ -5549,3 +5549,90 @@ body {
     content: "";
   }
 }
+
+/* Chat runtime indicators + unified composer look (local + online) */
+.model-runtime-pill {
+  margin: 0 0 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #c7d2fe;
+  background: rgba(37, 99, 235, 0.2);
+}
+
+.model-runtime-pill.fallback {
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.model-working-inline {
+  max-width: 920px;
+  margin: 8px auto 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #07183f;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.runtime-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #22c55e;
+  box-shadow: 0 0 0 rgba(34, 197, 94, 0.6);
+  animation: apex-runtime-pulse 1.1s infinite;
+}
+
+.model-runtime-pill.fallback .runtime-dot {
+  background: #ef4444;
+  box-shadow: 0 0 0 rgba(239, 68, 68, 0.6);
+}
+
+@keyframes apex-runtime-pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.55); }
+  70% { transform: scale(1.2); box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+/* Final composer override to keep local and online UI identical */
+.composer .input-row {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 42px 42px 42px;
+  gap: 8px;
+  align-items: center;
+  max-width: 920px;
+  margin: 0 auto;
+  border: 1px solid #dfe5ee;
+  border-radius: 28px;
+  padding: 8px;
+  background: #ffffff;
+}
+
+.composer .input-row textarea {
+  min-height: 40px;
+  max-height: 220px;
+  border: 0;
+  border-radius: 18px;
+  padding: 10px 8px;
+  box-shadow: none;
+  background: transparent;
+}
+
+.composer .input-row textarea:focus {
+  box-shadow: none;
+  border: 0;
+}
+
+.composer .icon-button,
+.composer .send-button,
+.composer .composer-language-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+}
