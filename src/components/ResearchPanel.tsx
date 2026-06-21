@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Clipboard, Download, FileJson, Globe, Save, Search, X } from 'lucide-react'
 import { ResearchFinding, ResearchPlan, ResearchType, researchTypes, sourceConfidenceOptions } from '../lib/researchKnowledge'
-import { SourceConfidence, noLiveSourceWarning } from '../lib/sourceConfidence'
+import { liveSourceConnectedMessage, noLiveSourceWarning, SourceConfidence, sourceConfidenceLabel } from '../lib/sourceConfidence'
 
 type ResearchPanelProps = {
   goal: string
@@ -27,9 +27,10 @@ function copyText(text: string) {
 }
 
 function proposalText(plan: ResearchPlan) {
+  const sourceStatusText = plan.providerStatus === 'web-search-live' ? liveSourceConnectedMessage : noLiveSourceWarning
   return [
     `Provider status: ${plan.providerStatus}`,
-    noLiveSourceWarning,
+    sourceStatusText,
     '',
     'Executive summary:',
     plan.proposalBuilder.executiveSummary,
@@ -54,6 +55,11 @@ function proposalText(plan: ResearchPlan) {
     '',
     'CTA / next step:',
     plan.proposalBuilder.ctaNextStep,
+    '',
+    'Citations:',
+    ...(plan.sources.length
+      ? plan.sources.map(source => `- [${source.citationId || 'S?'}] ${source.title} | ${source.sourceName || source.url || 'source'} | ${source.url || 'no-url'} | ${source.dateChecked}`)
+      : ['- No citations attached.']),
   ].join('\n')
 }
 
@@ -91,13 +97,15 @@ export function ResearchPanel({ goal, conversationContext, onSaveToProject, onCl
     setPlan({ ...plan, findings: plan.findings.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item) })
   }
 
+  const sourceStatusText = plan?.providerStatus === 'web-search-live' ? liveSourceConnectedMessage : noLiveSourceWarning
+
   return (
     <section className="research-studio" aria-label="Research Market Intelligence Studio">
       <div className="research-heading">
         <div>
           <span>Research / Market Intelligence Studio</span>
           <h2>Source-aware research workspace</h2>
-          <p>{noLiveSourceWarning}</p>
+          <p>{sourceStatusText}</p>
         </div>
         <button className="ghost-action" type="button" onClick={onClear} aria-label="Close Research Studio"><X size={16} /></button>
       </div>
@@ -122,7 +130,7 @@ export function ResearchPanel({ goal, conversationContext, onSaveToProject, onCl
             </label>
             <button className="research-primary" type="button" onClick={generateResearch} disabled={loading}>
               <Search size={16} />
-              {loading ? 'Preparing source plan...' : 'Generate research plan'}
+              {loading ? 'Searching live sources...' : 'Generate research plan'}
             </button>
             {message && <p className="research-message">{message}</p>}
           </div>
@@ -157,9 +165,14 @@ export function ResearchPanel({ goal, conversationContext, onSaveToProject, onCl
               <article className="research-source-item" key={`${source.title}-${source.dateChecked}`}>
                 <Globe size={16} />
                 <div>
-                  <strong>{source.title}</strong>
+                  <strong>{source.citationId ? `[${source.citationId}] ` : ''}{source.title}</strong>
                   <span>{source.sourceName || source.url || 'source not connected'} · {source.dateChecked}</span>
-                  <small>{source.evidenceLevel}: {source.note}</small>
+                  <small>{sourceConfidenceLabel(source.evidenceLevel)}: {source.note}</small>
+                  {source.url && (
+                    <a className="research-source-link" href={source.url} target="_blank" rel="noreferrer">
+                      Open source
+                    </a>
+                  )}
                 </div>
               </article>
             ))}
@@ -221,4 +234,3 @@ export function ResearchPanel({ goal, conversationContext, onSaveToProject, onCl
     </section>
   )
 }
-

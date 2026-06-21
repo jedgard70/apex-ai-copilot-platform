@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import {
   ArrowUp,
   Bot,
@@ -16,9 +18,12 @@ import {
 import { ArchVisPanel } from './components/ArchVisPanel'
 import { AgentsPanel } from './components/AgentsPanel'
 import { AiCostDashboardPanel } from './components/AiCostDashboardPanel'
+import { AutoupgradePanel } from './components/AutoupgradePanel'
+import { AvatarVoicePanel } from './components/AvatarVoicePanel'
 import { AuthPanel } from './components/AuthPanel'
 import { Bim3DPanel, BimArchVisOutput, BimTourOutput } from './components/Bim3DPanel'
 import { BudgetPanel } from './components/BudgetPanel'
+import { CampaignAutomationPanel } from './components/CampaignAutomationPanel'
 import { ContractsPanel } from './components/ContractsPanel'
 import { CopilotExecutionPanel } from './components/CopilotExecutionPanel'
 import { CrmPanel } from './components/CrmPanel'
@@ -28,11 +33,13 @@ import { EvmSchedulerCompliancePanel } from './components/EvmSchedulerCompliance
 import { ExportCenterPanel } from './components/ExportCenterPanel'
 import { FinancePanel } from './components/FinancePanel'
 import { FieldOpsPanel } from './components/FieldOpsPanel'
+import { GenerationHistoryPanel } from './components/GenerationHistoryPanel'
 import { ApsPanel } from './components/ApsPanel'
 import { KnowledgeBasePanel } from './components/KnowledgeBasePanel'
 import { MetricsDashboardPanel } from './components/MetricsDashboardPanel'
 import { MultiTenantPanel } from './components/MultiTenantPanel'
 import { NotificationsPanel } from './components/NotificationsPanel'
+import { ProjectPackagePanel } from './components/ProjectPackagePanel'
 import { ProjectWorkspacePanel } from './components/ProjectWorkspacePanel'
 import { PwaMobilePanel } from './components/PwaMobilePanel'
 import { ResearchPanel } from './components/ResearchPanel'
@@ -40,15 +47,19 @@ import { SaasAdminPanel } from './components/SaasAdminPanel'
 import { SkillExportPanel } from './components/SkillExportPanel'
 import { SkillUpdatePanel } from './components/SkillUpdatePanel'
 import { SupplyChainPanel } from './components/SupplyChainPanel'
+import { PlatformMapPanel } from './components/PlatformMapPanel'
+import { PublicVslLandingPage } from './components/PublicVslLandingPage'
 import { UserAccountPanel } from './components/UserAccountPanel'
 import { classifyFile, formatSize, IntakeFile, isVisionReady, readFileAsDataUrl, readImageDimensions } from './lib/fileIntake'
 import { extractPdfText } from './lib/pdfExtractor'
 import {
+  createProjectProfile,
   createProject,
   exportProject,
   importProject,
   loadActiveProject,
   loadProjects,
+  ProjectProfileDraft,
   ProjectFileRecord,
   ProjectWorkspace,
   removeAllProjects,
@@ -58,6 +69,7 @@ import {
 import { syncProjectLocalToRemote } from './lib/projectPersistenceAdapter'
 import { SupabaseAccountState, loadSupabaseAccountState } from './lib/supabaseAuthBootstrap'
 import { getBrowserSupabaseClient, getSupabaseProviderStatus } from './lib/supabaseClient'
+import { syncFieldOpsPlanRemote } from './lib/fieldOpsPersistence'
 import { isSkillUpdateIntent, isTrustedGlobalSkillSource, ProjectMemoryUpdate, SkillUpdateApplyResult } from './lib/skillUpdateEngine'
 import { isSkillExportIntent } from './lib/skillExportFactory'
 import { BudgetPlan } from './lib/budgetKnowledge'
@@ -65,19 +77,26 @@ import type { CopilotExecutionResult } from './lib/copilotExecutionModel'
 import { ContractsPlan } from './lib/contractsKnowledge'
 import { BusinessPlan } from './lib/crmFinanceKnowledge'
 import { isExportIntent } from './lib/exportCenter'
-import { FieldOpsPlan } from './lib/fieldOpsKnowledge'
+import { FieldOpsPlan, FieldRdoContext } from './lib/fieldOpsKnowledge'
+import { ProjectPackagePlan } from './lib/projectPackageKnowledge'
+import { GenerationHistoryEntry } from './lib/generationHistory'
 import { ResearchPlan } from './lib/researchKnowledge'
 import { selectTool, tools } from './lib/toolRegistry'
 import { isAgentIntent } from './lib/apexAgents'
 import { AiCostPlan, isAiCostIntent } from './lib/aiCostKnowledge'
+import { AutoupgradePlan, isAutoupgradeIntent } from './lib/autoupgradeKnowledge'
+import { AvatarVoicePlan, isAvatarVoiceIntent } from './lib/avatarVoiceKnowledge'
+import { CampaignAutomationPlan, isCampaignAutomationIntent } from './lib/campaignAutomationKnowledge'
 import { DigitalTwinPlan, isDigitalTwinIntent } from './lib/digitalTwinKnowledge'
 import { EvmSchedulerCompliancePlan, isEvmSchedulerComplianceIntent } from './lib/evmSchedulerComplianceKnowledge'
 import { KnowledgeBasePlan, isKnowledgeBaseIntent } from './lib/knowledgeBaseKnowledge'
 import { MetricsPlan, isMetricsIntent } from './lib/metricsKnowledge'
 import { MultiTenantPlan, isMultiTenantIntent } from './lib/multiTenantKnowledge'
 import { isNotificationsIntent, NotificationsPlan } from './lib/notificationsKnowledge'
+import { createPlatformMapSummary, isPlatformMapIntent } from './lib/platformMapKnowledge'
 import { PwaMobilePlan, isPwaMobileIntent } from './lib/pwaMobileKnowledge'
 import { isSupplyChainIntent, SupplyChainPlan } from './lib/supplyChainKnowledge'
+import './lib/observability'
 import './styles.css'
 
 type H5ToolCard = {
@@ -220,6 +239,8 @@ type ModelOption = {
   provider: string
   modelId: string
 }
+
+type ManualModelProvider = 'gateway' | 'openrouter' | 'gemini'
 
 const DIRECT_GEMINI_MODELS = [
   { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' },
@@ -436,6 +457,20 @@ function isBudgetIntent(text: string) {
   return hasVerb && hasKeyword
 }
 
+function isProjectPackageIntent(text: string) {
+  const lower = text.toLowerCase()
+  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|criar|create|gerar|generate|montar|assemble|preparar|prepare|organizar|build|quero|preciso|faça|faca)\b/i.test(lower)
+  const hasKeyword = /\b(pacote completo|pacote do projeto|project package|complete package|entrega completa|prancha|apresenta[cç][aã]o para cliente|client presentation|cronograma f[ií]sico|cronograma financeiro|cronograma f[ií]sico financeiro|execution docs|documentos de execu[cç][aã]o|contract package|proposal package|full delivery bundle)\b/i.test(lower)
+  return hasVerb && hasKeyword
+}
+
+function isGenerationHistoryIntent(text: string) {
+  const lower = text.toLowerCase()
+  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|listar|list|consultar|check|revisar|review|quero|preciso|faça|faca)\b/i.test(lower)
+  const hasKeyword = /\b(fila de gera[cç][aã]o|historico de gera[cç][aã]o|hist[oó]rico de gera[cç][aã]o|generation queue|generation history|history of generations|fila de render|hist[oó]rico de render|queue de exporta[cç][aã]o|export history)\b/i.test(lower)
+  return hasVerb && hasKeyword
+}
+
 function isContractsIntent(text: string) {
   const lower = text.toLowerCase()
   const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|revisar|review|criar|create|gerar|generate|analisar|analyze|validar|validate|quero|preciso|faça|faca|prepare|montar)\b/i.test(lower)
@@ -479,6 +514,8 @@ function isCopilotExecutionIntent(text: string) {
 function suggestLayerOpenDecision(text: string, attachment?: IntakeFile): PendingLayerDecision | null {
   if (!text.trim()) return null
   if (isDirectCutIntent(text)) return { label: 'DirectCut Studio', openCommand: 'abrir directcut studio', goal: text }
+  if (isProjectPackageIntent(text)) return { label: 'Project Package Pipeline', openCommand: 'abrir project package pipeline', goal: text }
+  if (isGenerationHistoryIntent(text)) return { label: 'Generation Queue / History', openCommand: 'abrir generation history panel', goal: text }
   if (isContractsIntent(text)) return { label: 'Contracts / Permits Studio', openCommand: 'abrir contracts studio', goal: text }
   if (isBudgetIntent(text)) return { label: 'Budget / Quantity Studio', openCommand: 'abrir budget studio', goal: text }
   if (isResearchIntent(text)) return { label: 'Research / Market Intelligence Studio', openCommand: 'abrir research studio', goal: text }
@@ -506,7 +543,7 @@ function isExplicitPanelOpenRequest(text: string) {
   const hasOpenVerb = /\b(abrir|abra|abre|open|ativar|ative|activate|launch|iniciar|start)\b/.test(lower)
   if (!hasOpenVerb) return false
   const hasPanelWord = /\b(layer|painel|panel|studio|estudio|workspace|m[oó]dulo|modulo|console)\b/.test(lower)
-  const hasKnownLayer = /\b(archvis|directcut|contracts?|permits?|research|field\s*ops|budget|bim|3d|crm|sales|finance|accounting|agents?|evm|scheduler|supply\s*chain|notifications?|ai\s*cost|multi-tenant|pwa|digital twin|knowledge\s*base|metrics|copilot execution|owner console|auth)\b/.test(lower)
+  const hasKnownLayer = /\b(archvis|directcut|contracts?|permits?|research|field\s*ops|budget|bim|3d|crm|sales|finance|accounting|generation history|generation queue|agents?|evm|scheduler|supply\s*chain|notifications?|ai\s*cost|multi-tenant|pwa|digital twin|knowledge\s*base|metrics|copilot execution|owner console|auth)\b/.test(lower)
   return hasPanelWord || hasKnownLayer
 }
 
@@ -957,6 +994,8 @@ type ChatConversation = {
 }
 
 function App() {
+  const pathname = useMemo(() => window.location.pathname, [])
+  const isPublicVslRoute = useMemo(() => /^(\/(vsl|oferta|apresentacao|landing\/vsl|campaign\/vsl))\/?$/i.test(pathname), [pathname])
   const fileInput = useRef<HTMLInputElement | null>(null)
   const composerTextarea = useRef<HTMLTextAreaElement | null>(null)
   const messagesEnd = useRef<HTMLDivElement | null>(null)
@@ -1067,9 +1106,30 @@ function App() {
     const stored = initialAppState.knowledgeBaseOutput as SimpleStudioOutput | undefined
     return stored || null
   })
+  const [projectPackageOutput, setProjectPackageOutput] = useState<SimpleStudioOutput | null>(() => {
+    const stored = initialAppState.projectPackageOutput as SimpleStudioOutput | undefined
+    return stored || null
+  })
+  const [generationHistoryOpen, setGenerationHistoryOpen] = useState(Boolean(initialAppState.generationHistoryOpen))
   const [apsOpen, setApsOpen] = useState(false)
   const [metricsOutput, setMetricsOutput] = useState<SimpleStudioOutput | null>(() => {
     const stored = initialAppState.metricsOutput as SimpleStudioOutput | undefined
+    return stored || null
+  })
+  const [avatarVoiceOutput, setAvatarVoiceOutput] = useState<SimpleStudioOutput | null>(() => {
+    const stored = initialAppState.avatarVoiceOutput as SimpleStudioOutput | undefined
+    return stored || null
+  })
+  const [autoupgradeOutput, setAutoupgradeOutput] = useState<SimpleStudioOutput | null>(() => {
+    const stored = initialAppState.autoupgradeOutput as SimpleStudioOutput | undefined
+    return stored || null
+  })
+  const [platformMapOutput, setPlatformMapOutput] = useState<SimpleStudioOutput | null>(() => {
+    const stored = initialAppState.platformMapOutput as SimpleStudioOutput | undefined
+    return stored || null
+  })
+  const [campaignAutomationOutput, setCampaignAutomationOutput] = useState<SimpleStudioOutput | null>(() => {
+    const stored = initialAppState.campaignAutomationOutput as SimpleStudioOutput | undefined
     return stored || null
   })
   const [copilotExecutionOutput, setCopilotExecutionOutput] = useState<SimpleStudioOutput | null>(() => {
@@ -1194,10 +1254,12 @@ function App() {
     return localStorage.getItem('apex_active_conversation_id') || 'default'
   })
   const [selectedModel, setSelectedModel] = useState<string>(() => {
-    return localStorage.getItem('apex_selected_model') || 'gpt-4o-mini'
+    return localStorage.getItem('apex_selected_model') || composeModelValue('gateway', 'openai/gpt-4o-mini')
   })
   const [availableModels, setAvailableModels] = useState<ModelOption[]>([])
   const [modelProvider, setModelProvider] = useState<string>('')
+  const [manualModelProvider, setManualModelProvider] = useState<ManualModelProvider>('openrouter')
+  const [manualModelId, setManualModelId] = useState('')
 
   useEffect(() => {
     const loadModels = async () => {
@@ -1252,6 +1314,22 @@ function App() {
       modelId: selected.modelId || selectedModel,
     }
   }, [availableModels, selectedModel, modelProvider])
+
+  const modelOptions = useMemo(() => {
+    const base = availableModels.length === 0 ? buildStaticModelCatalog() : availableModels
+    return base.some(model => model.id === selectedModelInfo.id)
+      ? base
+      : [...base, selectedModelInfo]
+  }, [availableModels, selectedModelInfo])
+
+  useEffect(() => {
+    if (!selectedModelInfo?.modelId) return
+    const provider = (selectedModelInfo.provider || 'openrouter') as ManualModelProvider
+    if (provider === 'gateway' || provider === 'openrouter' || provider === 'gemini') {
+      setManualModelProvider(provider)
+    }
+    setManualModelId(selectedModelInfo.modelId)
+  }, [selectedModelInfo.id, selectedModelInfo.modelId, selectedModelInfo.provider])
 
   useEffect(() => {
     localStorage.setItem('apex_selected_model', selectedModel)
@@ -1386,6 +1464,7 @@ function App() {
     tenants: activeProject.tenants.length,
     knowledgeItems: activeProject.knowledgeItems.length,
     metricsRecords: activeProject.metricsRecords.length,
+    upgradePlans: activeProject.upgradePlans.length,
     executionRuns: executionRuns.length,
   }), [activeProject, archVisOutput, archVisRevisionConstraints.length, bim3DOutput, directCutOutput, executionRuns.length, messages.length])
 
@@ -1445,7 +1524,13 @@ function App() {
     setPwaMobileOutput(null)
     setDigitalTwinOutput(null)
     setKnowledgeBaseOutput(null)
+    setProjectPackageOutput(null)
+    setGenerationHistoryOpen(false)
     setMetricsOutput(null)
+    setAvatarVoiceOutput(null)
+    setAutoupgradeOutput(null)
+    setPlatformMapOutput(null)
+    setCampaignAutomationOutput(null)
     setCopilotExecutionOutput(null)
     setAuthOutput(null)
     setExportCenterOpen(false)
@@ -1471,8 +1556,14 @@ function App() {
     if (except !== 'pwaMobile') setPwaMobileOutput(null)
     if (except !== 'digitalTwin') setDigitalTwinOutput(null)
     if (except !== 'knowledgeBase') setKnowledgeBaseOutput(null)
+    if (except !== 'projectPackage') setProjectPackageOutput(null)
+    if (except !== 'generationHistory') setGenerationHistoryOpen(false)
     if (except !== 'aps') setApsOpen(false)
     if (except !== 'metrics') setMetricsOutput(null)
+    if (except !== 'avatarVoice') setAvatarVoiceOutput(null)
+    if (except !== 'autoupgrade') setAutoupgradeOutput(null)
+    if (except !== 'platformMap') setPlatformMapOutput(null)
+    if (except !== 'campaignAutomation') setCampaignAutomationOutput(null)
     if (except !== 'copilotExecution') setCopilotExecutionOutput(null)
     if (except !== 'auth') setAuthOutput(null)
     if (except !== 'exportCenter') setExportCenterOpen(false)
@@ -1601,7 +1692,7 @@ function App() {
           activeRecord,
         ]
       : activeProject.files
-    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : fieldOpsOutput ? 'fieldops' : businessOutput ? 'business' : agentsOutput ? 'agents' : evmSchedulerComplianceOutput ? 'evm-scheduler-compliance' : supplyChainOutput ? 'supply-chain' : notificationsOutput ? 'notifications' : aiCostOutput ? 'ai-cost' : multiTenantOutput ? 'multi-tenant' : pwaMobileOutput ? 'pwa-mobile' : digitalTwinOutput ? 'digital-twin' : knowledgeBaseOutput ? 'knowledge-base' : metricsOutput ? 'metrics-dashboard' : copilotExecutionOutput ? 'copilot-execution' : authOutput ? 'auth' : null
+    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : fieldOpsOutput ? 'fieldops' : businessOutput ? 'business' : projectPackageOutput ? 'project-package' : generationHistoryOpen ? 'generation-history' : agentsOutput ? 'agents' : evmSchedulerComplianceOutput ? 'evm-scheduler-compliance' : supplyChainOutput ? 'supply-chain' : notificationsOutput ? 'notifications' : aiCostOutput ? 'ai-cost' : multiTenantOutput ? 'multi-tenant' : pwaMobileOutput ? 'pwa-mobile' : digitalTwinOutput ? 'digital-twin' : knowledgeBaseOutput ? 'knowledge-base' : metricsOutput ? 'metrics-dashboard' : avatarVoiceOutput ? 'avatar-voice' : autoupgradeOutput ? 'autoupgrade' : platformMapOutput ? 'platform-map' : campaignAutomationOutput ? 'campaign-automation' : copilotExecutionOutput ? 'copilot-execution' : authOutput ? 'auth' : null
     return {
       ...activeProject,
       language: navigator.language || activeProject.language,
@@ -1614,6 +1705,7 @@ function App() {
       })),
       revisionConstraints: archVisRevisionConstraints,
       projectMemory: activeProject.projectMemory,
+      projectProfile: activeProject.projectProfile,
       skillUpdates: activeProject.skillUpdates,
       preferences: activeProject.preferences,
       generatedImages: activeProject.generatedImages,
@@ -1629,8 +1721,10 @@ function App() {
       digitalTwinItems: activeProject.digitalTwinItems,
       knowledgeItems: activeProject.knowledgeItems,
       metricsRecords: activeProject.metricsRecords,
+      upgradePlans: activeProject.upgradePlans,
       executionRuns,
       lastExecutionSummary,
+      generationHistory: activeProject.generationHistory,
       activeTool: activeTool.id,
       activeFileId: activeRecord?.id || activeProject.activeFileId,
       activeStudio,
@@ -1661,7 +1755,13 @@ function App() {
         pwaMobileOutput,
         digitalTwinOutput,
         knowledgeBaseOutput,
+        projectPackageOutput,
+        generationHistoryOpen,
         metricsOutput,
+        avatarVoiceOutput,
+        autoupgradeOutput,
+        platformMapOutput,
+        campaignAutomationOutput,
         copilotExecutionOutput,
         authOutput,
       },
@@ -1673,6 +1773,27 @@ function App() {
     setActiveProject(saved)
     setProjects(loadProjects())
     setWorkspaceSavedAt(new Date().toLocaleTimeString())
+  }
+
+  function updateProjectProfile(profile: ProjectProfileDraft) {
+    const nextProfile = createProjectProfile(profile)
+    const saved = upsertProject({
+      ...activeProject,
+      projectProfile: nextProfile,
+    })
+    setActiveProject(saved)
+    setProjects(loadProjects())
+    setWorkspaceSavedAt(new Date().toLocaleTimeString())
+    if (nextProfile?.clientName) {
+      setClientMemory(prev => {
+        const next = {
+          ...prev,
+          displayName: nextProfile.clientName,
+        }
+        saveClientMemory(next)
+        return next
+      })
+    }
   }
 
   async function syncWorkspaceToSupabase() {
@@ -1696,7 +1817,7 @@ function App() {
     }, 650)
     return () => window.clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, budgetOutput, contractsOutput, researchOutput, fieldOpsOutput, businessOutput, agentsOutput, evmSchedulerComplianceOutput, supplyChainOutput, notificationsOutput, aiCostOutput, multiTenantOutput, pwaMobileOutput, digitalTwinOutput, knowledgeBaseOutput, metricsOutput, copilotExecutionOutput, authOutput, archVisRevisionConstraints, activeTool.id, executionRuns, lastExecutionSummary])
+  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, budgetOutput, contractsOutput, researchOutput, fieldOpsOutput, businessOutput, agentsOutput, evmSchedulerComplianceOutput, supplyChainOutput, notificationsOutput, aiCostOutput, multiTenantOutput, pwaMobileOutput, digitalTwinOutput, knowledgeBaseOutput, projectPackageOutput, generationHistoryOpen, metricsOutput, avatarVoiceOutput, autoupgradeOutput, platformMapOutput, campaignAutomationOutput, copilotExecutionOutput, authOutput, archVisRevisionConstraints, activeTool.id, executionRuns, lastExecutionSummary])
 
   useEffect(() => {
     const textarea = composerTextarea.current
@@ -1819,6 +1940,8 @@ function App() {
     const shouldOpenDirectCut = isDirectCutIntent(routingText)
     const shouldOpenContracts = isContractsIntent(routingText)
     const shouldOpenBudget = isBudgetIntent(routingText)
+    const shouldOpenProjectPackage = isProjectPackageIntent(routingText)
+    const shouldOpenGenerationHistory = isGenerationHistoryIntent(routingText)
     const shouldOpenResearch = isResearchIntent(routingText)
     const shouldOpenFieldOps = isFieldOpsIntent(routingText, attachment)
     const shouldOpenAuth = explicitPanelOpen && isAuthIntent(routingText)
@@ -1832,7 +1955,11 @@ function App() {
     const shouldOpenDigitalTwin = explicitPanelOpen && isDigitalTwinIntent(routingText)
     const shouldOpenKnowledgeBase = explicitPanelOpen && isKnowledgeBaseIntent(routingText)
     const shouldOpenAps = explicitPanelOpen && /\b(aps|autodesk platform services?|autodesk platform|bim360|acc.*hub|forge.*api|aps.*connector|autodesk.*connector)\b/i.test(routingText)
-    const shouldOpenMetrics = explicitPanelOpen && isMetricsIntent(routingText)
+    const shouldOpenMetrics = (explicitPanelOpen && isMetricsIntent(routingText)) || /\b(status da plataforma|status geral da plataforma|painel da plataforma|platform status|status geral|painel geral)\b/i.test(routingText)
+    const shouldOpenPlatformMap = isPlatformMapIntent(routingText)
+    const shouldOpenAutoupgrade = isAutoupgradeIntent(routingText)
+    const shouldOpenAvatarVoice = isAvatarVoiceIntent(routingText)
+    const shouldOpenCampaignAutomation = isCampaignAutomationIntent(routingText)
     const shouldOpenCopilotExecution = explicitPanelOpen && isCopilotExecutionIntent(routingText)
     const shouldOpenAgents = explicitPanelOpen && isAgentIntent(routingText)
     const shouldOpenBim3D = ((attachment?.kind === 'bim-cad') || explicitPanelOpen) && isBim3DIntent(routingText, attachment)
@@ -1840,6 +1967,39 @@ function App() {
     const shouldTreatAsConversation = clean && isOperationalGovernancePrompt(clean)
     const shouldOpenSkillExport = clean && !shouldTreatAsConversation && (isSkillExportIntent(clean) || isSkillExportFactoryAlias(clean))
     const shouldOpenExportCenter = clean && isExportIntent(clean)
+    if (shouldOpenProjectPackage) {
+      closeOtherPanels('projectPackage')
+      setProjectPackageOutput({
+        goal: clean || 'Montar pacote completo do projeto',
+        conversationContext: [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`),
+      })
+      setMessages(prev => [
+        ...prev,
+        userMessage,
+        {
+          id: id(),
+          role: 'assistant',
+          text: 'Abri o Project Package Pipeline ao lado. Vou consolidar briefing, orçamento, pesquisa, contratos e cronograma em um pacote único baseado no que já existe no workspace.',
+        },
+      ])
+      setInput('')
+      return
+    }
+    if (shouldOpenGenerationHistory) {
+      closeOtherPanels('generationHistory')
+      setGenerationHistoryOpen(true)
+      setMessages(prev => [
+        ...prev,
+        userMessage,
+        {
+          id: id(),
+          role: 'assistant',
+          text: 'Abri a fila e o histórico de gerações ao lado. Lá você acompanha imagens, planos de vídeo e pacotes já gerados neste projeto.',
+        },
+      ])
+      setInput('')
+      return
+    }
     if (shouldOpenExportCenter) {
       closeOtherPanels('exportCenter')
       setExportCenterOpen(true)
@@ -2016,8 +2176,40 @@ function App() {
     if (shouldOpenMetrics) {
       closeOtherPanels('metrics')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
-      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Metrics Dashboard ao lado. Métricas são LOCAL_DEMO/ESTIMATED_LOCAL até existir telemetria real.' }])
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Platform Status ao lado. Ele mostra o estado atual do chat, projeto, endpoints e conectores sem fingir telemetria externa.' }])
       setMetricsOutput({ goal: layerGoalText, conversationContext: context })
+      setInput('')
+      return
+    }
+    if (shouldOpenPlatformMap) {
+      closeOtherPanels('platformMap')
+      const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Platform Map ao lado. Ele funciona como manual interativo com os módulos, comandos naturais, status e entregas da Apex.' }])
+      setPlatformMapOutput({ goal: layerGoalText, conversationContext: context })
+      setInput('')
+      return
+    }
+    if (shouldOpenAutoupgrade) {
+      closeOtherPanels('autoupgrade')
+      const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Autoupgrade Center ao lado. Ele audita a plataforma, monta a fila de melhorias e prepara execução aprovada com segurança.' }])
+      setAutoupgradeOutput({ goal: layerGoalText, conversationContext: context })
+      setInput('')
+      return
+    }
+    if (shouldOpenAvatarVoice) {
+      closeOtherPanels('avatarVoice')
+      const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Avatar / Voice Pipeline ao lado. Ele organiza fotos, voz, roteiro e pacote de produção com consentimento explícito do owner.' }])
+      setAvatarVoiceOutput({ goal: layerGoalText, conversationContext: context })
+      setInput('')
+      return
+    }
+    if (shouldOpenCampaignAutomation) {
+      closeOtherPanels('campaignAutomation')
+      const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Campaign Automation ao lado. Ele monta hooks, copies, CTAs, anúncios, storyboard e blueprint de landing VSL dentro da Apex.' }])
+      setCampaignAutomationOutput({ goal: layerGoalText, conversationContext: context })
       setInput('')
       return
     }
@@ -2228,6 +2420,22 @@ function App() {
     setLoading(true)
     setModelRuntimeState('running')
     try {
+      const workspaceContext = {
+        projectId: activeProject.id,
+        projectName: activeProject.name,
+        activeStudio: activeProject.activeStudio,
+        fileCount: activeProject.files.length,
+        projectMemoryCount: activeProject.projectMemory.length,
+        projectProfile: activeProject.projectProfile || null,
+        recentProjectMemory: activeProject.projectMemory.slice(-3),
+        platformMapSummary: createPlatformMapSummary(),
+        avatarVoiceSummary: activeProject.exports.some(item => typeof item === 'object' && item && 'type' in item && String((item as { type?: unknown }).type) === 'avatar-voice-plan')
+          ? 'Avatar/voice planning exists in project exports with consent-gated workflow.'
+          : '',
+        campaignAutomationSummary: activeProject.exports.some(item => typeof item === 'object' && item && 'type' in item && String((item as { type?: unknown }).type) === 'campaign-automation-pack')
+          ? 'Campaign automation pack exists in project exports with captions, CTAs, storyboard and ad variations.'
+          : '',
+      }
       const response = await fetch('/api/copilot/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2237,6 +2445,7 @@ function App() {
           language: navigator.language || 'en',
           identityContext,
           clientMemory,
+          workspaceContext,
           messages: [
             ...messages.map(message => ({
               role: message.role,
@@ -2499,7 +2708,13 @@ function App() {
     setPwaMobileOutput(null)
     setDigitalTwinOutput(null)
     setKnowledgeBaseOutput(null)
+    setProjectPackageOutput(null)
+    setGenerationHistoryOpen(false)
     setMetricsOutput(null)
+    setAvatarVoiceOutput(null)
+    setAutoupgradeOutput(null)
+    setPlatformMapOutput(null)
+    setCampaignAutomationOutput(null)
     setCopilotExecutionOutput(null)
     setAuthOutput(null)
     setExportCenterOpen(false)
@@ -2551,7 +2766,13 @@ function App() {
     setPwaMobileOutput((state.pwaMobileOutput as SimpleStudioOutput | null | undefined) || null)
     setDigitalTwinOutput((state.digitalTwinOutput as SimpleStudioOutput | null | undefined) || null)
     setKnowledgeBaseOutput((state.knowledgeBaseOutput as SimpleStudioOutput | null | undefined) || null)
+    setProjectPackageOutput((state.projectPackageOutput as SimpleStudioOutput | null | undefined) || null)
+    setGenerationHistoryOpen(Boolean(state.generationHistoryOpen))
     setMetricsOutput((state.metricsOutput as SimpleStudioOutput | null | undefined) || null)
+    setAvatarVoiceOutput((state.avatarVoiceOutput as SimpleStudioOutput | null | undefined) || null)
+    setAutoupgradeOutput((state.autoupgradeOutput as SimpleStudioOutput | null | undefined) || null)
+    setPlatformMapOutput((state.platformMapOutput as SimpleStudioOutput | null | undefined) || null)
+    setCampaignAutomationOutput((state.campaignAutomationOutput as SimpleStudioOutput | null | undefined) || null)
     setCopilotExecutionOutput((state.copilotExecutionOutput as SimpleStudioOutput | null | undefined) || null)
     setExecutionRuns(Array.isArray(project.executionRuns) ? project.executionRuns as CopilotExecutionResult[] : [])
     setLastExecutionSummary(project.lastExecutionSummary || null)
@@ -2609,7 +2830,13 @@ function App() {
     setPwaMobileOutput(null)
     setDigitalTwinOutput(null)
     setKnowledgeBaseOutput(null)
+    setProjectPackageOutput(null)
+    setGenerationHistoryOpen(false)
     setMetricsOutput(null)
+    setAvatarVoiceOutput(null)
+    setAutoupgradeOutput(null)
+    setPlatformMapOutput(null)
+    setCampaignAutomationOutput(null)
     setCopilotExecutionOutput(null)
     setAuthOutput(null)
     setArchVisRevisionConstraints([])
@@ -2651,8 +2878,104 @@ function App() {
     ])
   }
 
+  function saveProjectWithUpdate(nextProject: ProjectWorkspace) {
+    const saved = upsertProject(nextProject)
+    setActiveProject(saved)
+    setProjects(loadProjects())
+    return saved
+  }
+
+  function recordGenerationHistory(entry: GenerationHistoryEntry, patch?: Partial<ProjectWorkspace>) {
+    const nextHistory = [entry, ...(activeProject.generationHistory || [])].slice(0, 60)
+    return saveProjectWithUpdate({
+      ...activeProject,
+      ...patch,
+      generationHistory: nextHistory,
+    })
+  }
+
+  function handleArchVisGeneration(payload: { sourceName: string; outputType: string; items: Array<{ id: string; timestamp: string; prompt: string; imageDataUrl: string; style: string }> }) {
+    if (!payload.items.length) return
+    recordGenerationHistory({
+      id: `archvis-${payload.items[payload.items.length - 1].id}`,
+      kind: 'archvis-image',
+      title: `ArchVis ${payload.outputType}`,
+      sourceName: payload.sourceName,
+      createdAt: payload.items[payload.items.length - 1].timestamp,
+      status: 'completed',
+      summary: `${payload.items.length} image variation(s) generated from ${payload.sourceName}.`,
+      artifactCount: payload.items.length,
+      artifacts: payload.items.map(item => `${item.style} · ${item.timestamp}`),
+      metadata: {
+        outputType: payload.outputType,
+        prompts: payload.items.map(item => item.prompt).slice(0, 4),
+      },
+    }, {
+      generatedImages: [...activeProject.generatedImages, ...payload.items],
+    })
+  }
+
+  function handleDirectCutGeneration(payload: { item: { id: string; title?: string; timestamp: string; sourceMedia?: string; duration: string; aspectRatio: string; mode: string; sceneList?: string[] } }) {
+    const { item } = payload
+    recordGenerationHistory({
+      id: `directcut-${item.id}`,
+      kind: 'directcut-plan',
+      title: item.title || 'DirectCut plan',
+      sourceName: item.sourceMedia,
+      createdAt: item.timestamp,
+      status: 'completed',
+      summary: `${item.mode} plan generated with ${item.duration} / ${item.aspectRatio}.`,
+      artifactCount: Array.isArray(item.sceneList) ? item.sceneList.length : 0,
+      artifacts: item.sceneList || [],
+      metadata: {
+        duration: item.duration,
+        aspectRatio: item.aspectRatio,
+        mode: item.mode,
+      },
+    }, {
+      directCutPlans: [...activeProject.directCutPlans, item],
+    })
+  }
+
+  function handleExportCenterGeneration(payload: { result: { files: Array<{ filename: string }>; providerStatus?: string }; exportScope: string; format: string; selectedSections: string[] }) {
+    recordGenerationHistory({
+      id: `export-${Date.now()}`,
+      kind: 'export-package',
+      title: `Export Center ${payload.format.toUpperCase()}`,
+      createdAt: new Date().toISOString(),
+      status: 'completed',
+      summary: `${payload.result.files.length} export file(s) generated for scope ${payload.exportScope}.`,
+      artifactCount: payload.result.files.length,
+      artifacts: payload.result.files.map(file => file.filename),
+      metadata: {
+        exportScope: payload.exportScope,
+        format: payload.format,
+        selectedSections: payload.selectedSections,
+        providerStatus: payload.result.providerStatus,
+      },
+    })
+  }
+
+  function handleProjectPackageGeneration(plan: ProjectPackagePlan) {
+    recordGenerationHistory({
+      id: `project-package-${Date.now()}`,
+      kind: 'project-package',
+      title: 'Project Package Pipeline',
+      sourceName: activeProject.name,
+      createdAt: new Date().toISOString(),
+      status: 'completed',
+      summary: `Package status ${plan.packageStatus} for ${plan.projectName}.`,
+      artifactCount: Array.isArray(plan.artifacts) ? plan.artifacts.length : 0,
+      artifacts: Array.isArray(plan.artifacts) ? plan.artifacts.map(item => `${item.title}: ${item.status}`) : [],
+      metadata: {
+        packageStatus: plan.packageStatus,
+        providerStatus: plan.providerStatus,
+      },
+    })
+  }
+
   function saveBudgetToProject(plan: BudgetPlan) {
-    const saved = upsertProject({
+    saveProjectWithUpdate({
       ...activeProject,
       exports: [
         ...activeProject.exports,
@@ -2663,8 +2986,6 @@ function App() {
         },
       ],
     })
-    setActiveProject(saved)
-    setProjects(loadProjects())
     setMessages(prev => [
       ...prev,
       {
@@ -2676,7 +2997,7 @@ function App() {
   }
 
   function saveContractsToProject(plan: ContractsPlan) {
-    const saved = upsertProject({
+    saveProjectWithUpdate({
       ...activeProject,
       exports: [
         ...activeProject.exports,
@@ -2687,8 +3008,6 @@ function App() {
         },
       ],
     })
-    setActiveProject(saved)
-    setProjects(loadProjects())
     setMessages(prev => [
       ...prev,
       {
@@ -2700,7 +3019,7 @@ function App() {
   }
 
   function saveResearchToProject(plan: ResearchPlan) {
-    const saved = upsertProject({
+    saveProjectWithUpdate({
       ...activeProject,
       exports: [
         ...activeProject.exports,
@@ -2711,8 +3030,6 @@ function App() {
         },
       ],
     })
-    setActiveProject(saved)
-    setProjects(loadProjects())
     setMessages(prev => [
       ...prev,
       {
@@ -2723,7 +3040,29 @@ function App() {
     ])
   }
 
-  function saveFieldOpsToProject(plan: FieldOpsPlan) {
+  function saveProjectPackageToProject(plan: ProjectPackagePlan) {
+    saveProjectWithUpdate({
+      ...activeProject,
+      exports: [
+        ...activeProject.exports,
+        {
+          type: 'project-package-pipeline',
+          timestamp: new Date().toISOString(),
+          plan,
+        },
+      ],
+    })
+    setMessages(prev => [
+      ...prev,
+      {
+        id: id(),
+        role: 'assistant',
+        text: 'Salvei o pacote completo do projeto no Project Workspace local.',
+      },
+    ])
+  }
+
+  async function saveFieldOpsToProject(plan: FieldOpsPlan, context: FieldRdoContext) {
     const saved = upsertProject({
       ...activeProject,
       exports: [
@@ -2737,14 +3076,26 @@ function App() {
     })
     setActiveProject(saved)
     setProjects(loadProjects())
+    const remoteResult = await syncFieldOpsPlanRemote({
+      project: saved,
+      context,
+      plan,
+      source: fieldOpsOutput?.source,
+    })
+    const savedMessage = remoteResult.providerStatus === 'synced'
+      ? 'Salvei o RDO / Field Operations report no Project Workspace local e sincronizei no Supabase.'
+      : remoteResult.providerStatus === 'supabase-not-connected'
+        ? 'Salvei o RDO / Field Operations report no Project Workspace local. Supabase ainda não está conectado para persistência remota.'
+        : `Salvei o RDO / Field Operations report no Project Workspace local. A sincronização Supabase ficou pendente: ${remoteResult.message}`
     setMessages(prev => [
       ...prev,
       {
         id: id(),
         role: 'assistant',
-        text: 'Salvei o RDO / Field Operations report no Project Workspace local.',
+        text: savedMessage,
       },
     ])
+    return savedMessage
   }
 
   function saveBusinessToProject(plan: BusinessPlan) {
@@ -2880,6 +3231,24 @@ function App() {
     setMessages(prev => [...prev, { id: id(), role: 'assistant', text: 'Salvei o relatório de métricas local demo no Project Workspace.' }])
   }
 
+  function saveAvatarVoiceToProject(plan: AvatarVoicePlan) {
+    const saved = upsertProject({ ...activeProject, exports: [...activeProject.exports, { type: 'avatar-voice-plan', timestamp: new Date().toISOString(), plan }] })
+    setActiveProject(saved); setProjects(loadProjects())
+    setMessages(prev => [...prev, { id: id(), role: 'assistant', text: 'Salvei o plano de avatar/voz no Project Workspace com consentimento e pack de produção.' }])
+  }
+
+  function saveCampaignAutomationToProject(plan: CampaignAutomationPlan) {
+    const saved = upsertProject({ ...activeProject, exports: [...activeProject.exports, { type: 'campaign-automation-pack', timestamp: new Date().toISOString(), plan }] })
+    setActiveProject(saved); setProjects(loadProjects())
+    setMessages(prev => [...prev, { id: id(), role: 'assistant', text: 'Salvei o pack de campanha no Project Workspace com copies, CTAs, anúncios e storyboard.' }])
+  }
+
+  function saveAutoupgradeToProject(plan: AutoupgradePlan) {
+    const saved = upsertProject({ ...activeProject, upgradePlans: [plan], exports: [...activeProject.exports, { type: 'autoupgrade-plan', timestamp: new Date().toISOString(), plan }] })
+    setActiveProject(saved); setProjects(loadProjects())
+    setMessages(prev => [...prev, { id: id(), role: 'assistant', text: 'Salvei o plano de Autoupgrade no Project Workspace como fila segura de melhoria aprovada.' }])
+  }
+
   const signedInEmail = accountState?.user?.email || accountState?.profile?.email || ''
   const signedInRole = accountState?.role || (accountState?.sessionStatus === 'signed-in' ? 'pending role' : '')
   const signedInWorkspace = accountState?.tenant?.name || (accountState?.sessionStatus === 'signed-in' ? 'pending workspace' : '')
@@ -2909,8 +3278,12 @@ function App() {
       )}
     </div>
   )
-  const hasOperationalPanel = archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || evmSchedulerComplianceOutput || supplyChainOutput || notificationsOutput || aiCostOutput || multiTenantOutput || pwaMobileOutput || digitalTwinOutput || knowledgeBaseOutput || metricsOutput || exportCenterOpen
+  const hasOperationalPanel = archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || evmSchedulerComplianceOutput || supplyChainOutput || notificationsOutput || aiCostOutput || multiTenantOutput || pwaMobileOutput || digitalTwinOutput || knowledgeBaseOutput || projectPackageOutput || generationHistoryOpen || metricsOutput || avatarVoiceOutput || autoupgradeOutput || platformMapOutput || campaignAutomationOutput || exportCenterOpen
   const workspaceClass = hasOperationalPanel ? 'studio-open' : ''
+
+  if (isPublicVslRoute) {
+    return <PublicVslLandingPage />
+  }
 
   if (isSupabaseConfigured && (!isSignedIn || authLoading)) {
     return (
@@ -2987,6 +3360,7 @@ function App() {
                   ? (uiLanguage === 'EN' ? 'Model working...' : 'Modelo trabalhando...')
                   : modelRuntimeState === 'ok'
                     ? (uiLanguage === 'EN' ? `Online · ${lastResponseMode || 'ok'}` : `Online · ${lastResponseMode || 'ok'}`)
+                    ? (uiLanguage === 'EN' ? `Active · ${lastResponseMode || 'ok'}` : `Ativo · ${lastResponseMode || 'ok'}`)
                     : modelRuntimeState === 'fallback'
                       ? (uiLanguage === 'EN' ? 'Fallback mode (auto-retry active)' : 'Modo fallback (auto-retry ativo)')
                       : (uiLanguage === 'EN' ? 'Ready' : 'Pronto')}
@@ -3007,10 +3381,62 @@ function App() {
                   outline: 'none',
                 }}
               >
-                {(availableModels.length === 0 ? buildStaticModelCatalog() : availableModels).map((m: ModelOption) => (
-                  <option key={m.id} value={m.id}>{m.name || m.id}</option>
+               {modelOptions.map((m: ModelOption) => (
+                  <option key={m.id} value={m.id}>{`${m.name || m.id}${m.provider ? ` · ${getProviderLabel(m.provider)}` : ''}`}</option>
                 ))}
               </select>
+              <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr auto', gap: '8px', marginTop: '8px' }}>
+                <select
+                  value={manualModelProvider}
+                  onChange={e => setManualModelProvider(e.target.value as ManualModelProvider)}
+                  style={{
+                    background: '#1a233d',
+                    color: '#fff',
+                    border: '1px solid rgba(150, 164, 195, 0.25)',
+                    borderRadius: '6px',
+                    padding: '6px 8px',
+                    fontSize: '12px',
+                    outline: 'none',
+                  }}
+                >
+                  <option value="openrouter">OpenRouter</option>
+                  <option value="gateway">Gateway</option>
+                  <option value="gemini">Gemini</option>
+                </select>
+                <input
+                  value={manualModelId}
+                  onChange={e => setManualModelId(e.target.value)}
+                  placeholder="provider model id"
+                  style={{
+                    background: '#1a233d',
+                    color: '#fff',
+                    border: '1px solid rgba(150, 164, 195, 0.25)',
+                    borderRadius: '6px',
+                    padding: '6px 10px',
+                    fontSize: '12px',
+                    outline: 'none',
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const value = manualModelId.trim()
+                    if (!value) return
+                    setSelectedModel(composeModelValue(manualModelProvider, value))
+                  }}
+                  style={{
+                    background: 'rgba(74, 144, 226, 0.18)',
+                    color: '#fff',
+                    border: '1px solid rgba(74, 144, 226, 0.35)',
+                    borderRadius: '6px',
+                    padding: '6px 10px',
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Use
+                </button>
+              </div>
             </div>
             <div className="chat-sidebar-list" style={{ flex: 1, overflowY: 'auto', padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {conversations.map(conv => {
@@ -3367,7 +3793,88 @@ function App() {
               onAddRevisionConstraint={constraint => setArchVisRevisionConstraints(prev => prev.includes(constraint) ? prev : [...prev, constraint])}
               onRemoveRevisionConstraint={constraint => setArchVisRevisionConstraints(prev => prev.filter(item => item !== constraint))}
               onClearRevisionConstraints={() => setArchVisRevisionConstraints([])}
+              onRecordGeneration={handleArchVisGeneration}
               onClear={() => setArchVisOutput(null)}
+            />
+          )}
+
+          {avatarVoiceOutput && (
+            <AvatarVoicePanel
+              goal={avatarVoiceOutput.goal}
+              conversationContext={avatarVoiceOutput.conversationContext}
+              onSaveToProject={saveAvatarVoiceToProject}
+              onClear={() => setAvatarVoiceOutput(null)}
+            />
+          )}
+
+          {autoupgradeOutput && (
+            <AutoupgradePanel
+              goal={autoupgradeOutput.goal}
+              conversationContext={autoupgradeOutput.conversationContext}
+              project={buildProjectSnapshot()}
+              runtimeSummary={{
+                selectedModel: selectedModelInfo.name || selectedModel,
+                modelState: loading ? 'running' : modelRuntimeState,
+                lastResponseMode: lastResponseMode || 'n/a',
+                persistenceMode: signedInPersistence,
+              }}
+              isOwnerAdmin={isOwnerUser}
+              onSaveToProject={saveAutoupgradeToProject}
+              onOpenExecution={recommendation => {
+                if (!isOwnerUser) {
+                  setMessages(prev => [...prev, { id: id(), role: 'assistant', text: 'Autoupgrade pode sugerir execução, mas apenas Owner/Admin pode abrir a fila de execução aprovada.' }])
+                  return
+                }
+                closeOtherPanels('copilotExecution')
+                setCopilotExecutionOutput({
+                  goal: recommendation.suggestedCommand || recommendation.title,
+                  conversationContext: [
+                    `assistant: Approved autoupgrade handoff`,
+                    `assistant: ${recommendation.title}`,
+                    `assistant: ${recommendation.action}`,
+                  ],
+                })
+                setMessages(prev => [...prev, { id: id(), role: 'assistant', text: `Enviei "${recommendation.title}" para a área de execução aprovada.` }])
+              }}
+              onExecuteRecommendation={async recommendation => {
+                if (!isOwnerUser || !recommendation.commandId) {
+                  setMessages(prev => [...prev, { id: id(), role: 'assistant', text: 'Somente Owner/Admin pode executar ações aprovadas do Autoupgrade.' }])
+                  return
+                }
+                try {
+                  const response = await fetch('/api/copilot/execution/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      commandId: recommendation.commandId,
+                      note: `Autoupgrade approved action: ${recommendation.title}`,
+                    }),
+                  })
+                  const data = await response.json().catch(() => ({}))
+                  if (!response.ok || !data.result) throw new Error(data.error || 'Autoupgrade execution failed.')
+                  const result = data.result as CopilotExecutionResult
+                  setExecutionRuns(prev => [result, ...prev].slice(0, 12))
+                  setLastExecutionSummary({
+                    commandId: result.commandId,
+                    status: result.status,
+                    exitCode: result.exitCode,
+                    finishedAt: result.finishedAt,
+                    durationMs: result.durationMs,
+                  })
+                  openOwnerConsole()
+                  setCopilotExecutionOutput({
+                    goal: recommendation.title,
+                    conversationContext: [
+                      `assistant: Autoupgrade executed`,
+                      `assistant: ${recommendation.title}`,
+                    ],
+                  })
+                  setMessages(prev => [...prev, { id: id(), role: 'assistant', text: `Executei a ação aprovada "${recommendation.title}" e registrei o resultado no Owner Console.` }])
+                } catch (error) {
+                  setMessages(prev => [...prev, { id: id(), role: 'assistant', text: error instanceof Error ? error.message : 'Autoupgrade execution failed.' }])
+                }
+              }}
+              onClear={() => setAutoupgradeOutput(null)}
             />
           )}
 
@@ -3377,6 +3884,7 @@ function App() {
               goal={directCutOutput.goal}
               conversationContext={directCutOutput.conversationContext}
               initialConfig={directCutOutput.initialConfig}
+              onRecordGeneration={handleDirectCutGeneration}
               onClear={() => setDirectCutOutput(null)}
             />
           )}
@@ -3644,12 +4152,70 @@ function App() {
             />
           )}
 
+          {projectPackageOutput && (
+            <ProjectPackagePanel
+              project={buildProjectSnapshot()}
+              goal={projectPackageOutput.goal}
+              conversationContext={projectPackageOutput.conversationContext}
+              onSaveToProject={saveProjectPackageToProject}
+              onRecordGeneration={handleProjectPackageGeneration}
+              onClear={() => setProjectPackageOutput(null)}
+            />
+          )}
+
+          {generationHistoryOpen && (
+            <GenerationHistoryPanel
+              project={buildProjectSnapshot()}
+              onClear={() => setGenerationHistoryOpen(false)}
+            />
+          )}
+
           {metricsOutput && (
             <MetricsDashboardPanel
               goal={metricsOutput.goal}
               conversationContext={metricsOutput.conversationContext}
+              project={buildProjectSnapshot()}
+              runtimeSummary={{
+                selectedModel: selectedModelInfo.name || selectedModel,
+                modelState: loading ? 'running' : modelRuntimeState,
+                lastResponseMode: lastResponseMode || 'n/a',
+                persistenceMode: signedInPersistence,
+              }}
               onSaveToProject={saveMetricsToProject}
               onClear={() => setMetricsOutput(null)}
+            />
+          )}
+
+          {platformMapOutput && (
+            <PlatformMapPanel
+              onClear={() => setPlatformMapOutput(null)}
+            />
+          )}
+
+          {campaignAutomationOutput && (
+            <CampaignAutomationPanel
+              goal={campaignAutomationOutput.goal}
+              conversationContext={campaignAutomationOutput.conversationContext}
+              onSaveToProject={saveCampaignAutomationToProject}
+              onSendToDirectCut={summary => {
+                closeOtherPanels('directCut')
+                setDirectCutOutput({
+                  goal: summary,
+                  conversationContext: [`assistant: ${summary}`],
+                  initialConfig: {
+                    videoMode: 'social-media-short',
+                    duration: '30s',
+                    aspectRatio: '9:16',
+                    audio: 'on',
+                    voice: 'narrator',
+                    style: 'professional-real-estate',
+                    lighting: 'daylight',
+                    cameraMovement: 'dolly-in',
+                  },
+                })
+                setMessages(prev => [...prev, { id: id(), role: 'assistant', text: 'Enviei o pack de campanha para o DirectCut Studio como base de vídeo curto para redes sociais.' }])
+              }}
+              onClear={() => setCampaignAutomationOutput(null)}
             />
           )}
 
@@ -3684,6 +4250,7 @@ function App() {
           {exportCenterOpen && (
             <ExportCenterPanel
               project={buildProjectSnapshot()}
+              onRecordExport={handleExportCenterGeneration}
               onClear={() => setExportCenterOpen(false)}
             />
           )}
@@ -3731,6 +4298,7 @@ function App() {
               project={activeProject}
               projects={projects}
               summary={projectSummary}
+              onUpdateProfile={updateProjectProfile}
               onRename={renameProject}
               onNewProject={createNewProject}
               onSwitchProject={switchProject}
@@ -3801,8 +4369,10 @@ const _AUTH0_DOMAIN = (import.meta.env.VITE_AUTH0_DOMAIN || 'icfg-6yanelekncpdkv
 const _AUTH0_CLIENT_ID = (import.meta.env.VITE_AUTH0_CLIENT_ID || 'Ldyth7MciFnivVvNzg9WZa8PoFd63lfo');
 createRoot(document.getElementById('root')!).render(
   <Auth0Provider domain={_AUTH0_DOMAIN} clientId={_AUTH0_CLIENT_ID} authorizationParams={{ redirect_uri: window.location.origin }}>
-    <App />
+    <>
+      <App />
+      <Analytics />
+      <SpeedInsights />
+    </>
   </Auth0Provider>
 )
-
-

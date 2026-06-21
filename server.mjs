@@ -1,3 +1,4 @@
+import './server/env.mjs'
 import http from 'node:http'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -6,6 +7,7 @@ import { spawn } from 'node:child_process'
 import crypto from 'node:crypto'
 import { createClient } from '@supabase/supabase-js'
 import { generateText } from 'ai'
+import { captureServerException, flushObservability, isServerObservabilityEnabled } from './server/lib/observability.mjs'
 import { generateEmbedding } from './server/agent/embeddings.mjs'
 import {
   isOperatorIntent,
@@ -108,6 +110,24 @@ function buildStaticModelCatalog() {
   ]
 }
 
+function getModelProviderDiagnostics() {
+  const apiBase = String(process.env.OPENAI_API_BASE || '').trim()
+  const routerBase = String(process.env.OPENAI_API_BASEROUTER || '').trim()
+  const routerKey = String(process.env.OPENAI_API_KEYROUTER || '').trim()
+  const openAiKey = String(process.env.OPENAI_API_KEY || '').trim()
+  const apiBaseIsOpenRouter = apiBase.includes('openrouter.ai')
+  const openrouterConfigured = Boolean((routerBase.includes('openrouter.ai') && routerKey) || (apiBaseIsOpenRouter && openAiKey))
+  const openaiConfigured = Boolean(openAiKey) && !apiBaseIsOpenRouter
+  const gatewayConfigured = openrouterConfigured || openaiConfigured
+  const geminiConfigured = openrouterConfigured
+  return {
+    openrouterConfigured,
+    openaiConfigured,
+    gatewayConfigured,
+    geminiConfigured,
+  }
+}
+
 // Auto-detect and fix swapped router variables
 if (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_KEYROUTER) {
   const baseVal = String(process.env.OPENAI_API_BASEROUTER).trim()
@@ -172,7 +192,7 @@ const copilotExecutionCommands = [
     args: [],
     acceptsRawCommand: true,
     risk: 'high',
-    requiresApproval: false,
+    requiresApproval: true,
     timeoutMs: 60000,
     source: 'raw-shell',
   },
@@ -365,10 +385,10 @@ const copilotExecutionCommands = [
   },
 ]
 
-// If TRUSTED_DOMAINS contains apexglobalai.com, bypass approval requirements for high-risk commands
+// Trusted domains can relax approval for allowlisted commands, never for raw shell.
 if (TRUSTED_DOMAINS.includes('apexglobalai.com') || TRUSTED_DOMAINS.includes('*')) {
   for (const cmd of copilotExecutionCommands) {
-    cmd.requiresApproval = false
+    if (!cmd.acceptsRawCommand) cmd.requiresApproval = false
   }
 }
 
@@ -715,10 +735,16 @@ function chatJson(res, status, body = {}) {
 }
 
 function publicExecutionCommand(command) {
+  if (command.acceptsRawCommand && !isRawShellAllowed()) return null
   return {
     ...command,
     cwd: command.acceptsRawCommand ? 'User selected cwd' : authorizedExecutionCwd,
   }
+}
+
+function isRawShellAllowed() {
+  const runtimeEnv = String(process.env.NODE_ENV || process.env.APP_ENV || '').trim().toLowerCase()
+  return allowRawShellInAnyEnv || rawShellAllowedEnvironments.has(runtimeEnv)
 }
 
 function isPathInsideAuthorizedRepo(candidatePath) {
@@ -728,7 +754,9 @@ function isPathInsideAuthorizedRepo(candidatePath) {
 }
 
 function getExecutionCommand(commandId) {
-  return copilotExecutionCommands.find(command => command.id === commandId)
+  const command = copilotExecutionCommands.find(item => item.id === commandId)
+  if (command?.acceptsRawCommand && !isRawShellAllowed()) return null
+  return command
 }
 
 function shellQuote(value) {
@@ -847,7 +875,7 @@ async function runCopilotExecutionCommand(command, body) {
 async function handleExecutionCommands(_req, res) {
   json(res, 200, {
     providerStatus: 'local-execution-v0',
-    commands: copilotExecutionCommands.map(publicExecutionCommand),
+    commands: copilotExecutionCommands.map(publicExecutionCommand).filter(Boolean),
   })
 }
 
@@ -871,11 +899,17 @@ async function handleExecutionRun(req, res) {
       })
     }
     if (command.acceptsRawCommand) {
+      if (!isRawShellAllowed()) {
+        return json(res, 403, { error: 'Raw shell is disabled in this environment.', providerStatus: 'blocked' })
+      }
       const rawCommand = String(body.rawCommand || '').trim()
       const requestedCwd = String(body.cwd || '').trim()
       const executionCwd = path.resolve(requestedCwd || authorizedExecutionCwd)
       if (!rawCommand) {
         return json(res, 400, { error: 'Raw command is required for raw_shell.', providerStatus: 'blocked' })
+      }
+      if (!isPathInsideAuthorizedRepo(executionCwd)) {
+        return json(res, 403, { error: 'Raw shell cwd must stay inside the authorized local repo.', cwd: executionCwd, providerStatus: 'blocked' })
       }
       if (!fs.existsSync(executionCwd) || !fs.statSync(executionCwd).isDirectory()) {
         return json(res, 400, { error: 'Requested cwd does not exist or is not a directory.', cwd: executionCwd, providerStatus: 'blocked' })
@@ -1236,6 +1270,63 @@ function buildIdentityContextSummary(identity) {
   ].join('\n')
 }
 
+function buildWorkspaceContextSummary(workspaceContext) {
+  if (!workspaceContext || typeof workspaceContext !== 'object') return ''
+  const profile = workspaceContext.projectProfile && typeof workspaceContext.projectProfile === 'object'
+    ? workspaceContext.projectProfile
+    : null
+  const lines = [
+    `projectId: ${String(workspaceContext.projectId || 'unknown').slice(0, 80)}`,
+    `projectName: ${String(workspaceContext.projectName || 'unknown').slice(0, 160)}`,
+    `activeStudio: ${String(workspaceContext.activeStudio || 'none').slice(0, 60)}`,
+    `fileCount: ${Number.isFinite(Number(workspaceContext.fileCount)) ? Number(workspaceContext.fileCount) : 0}`,
+    `projectMemoryCount: ${Number.isFinite(Number(workspaceContext.projectMemoryCount)) ? Number(workspaceContext.projectMemoryCount) : 0}`,
+  ]
+  if (profile) {
+    lines.push(
+      `clientName: ${String(profile.clientName || 'unknown').slice(0, 160)}`,
+      `projectType: ${String(profile.projectType || 'unknown').slice(0, 160)}`,
+      `brief: ${String(profile.brief || 'none').slice(0, 600)}`,
+      `styleNotes: ${String(profile.styleNotes || 'none').slice(0, 400)}`,
+      `brandingNotes: ${String(profile.brandingNotes || 'none').slice(0, 400)}`,
+      `preferredOutputs: ${String(profile.preferredOutputs || 'none').slice(0, 400)}`,
+      `lockedConstraints: ${String(profile.lockedConstraints || 'none').slice(0, 400)}`,
+    )
+  }
+  const recentProjectMemory = Array.isArray(workspaceContext.recentProjectMemory)
+    ? workspaceContext.recentProjectMemory
+      .slice(-3)
+      .map((entry, index) => `${index + 1}. ${String(typeof entry === 'string' ? entry : JSON.stringify(entry)).slice(0, 280)}`)
+    : []
+  if (recentProjectMemory.length) {
+    lines.push('recentProjectMemory:')
+    lines.push(...recentProjectMemory)
+  }
+  const platformMapSummary = typeof workspaceContext.platformMapSummary === 'string'
+    ? workspaceContext.platformMapSummary
+    : ''
+  if (platformMapSummary.trim()) {
+    lines.push('platformMapSummary:')
+    lines.push(platformMapSummary.slice(0, 4000))
+  }
+  if (workspaceContext.avatarVoiceSummary && typeof workspaceContext.avatarVoiceSummary === 'string') {
+    lines.push('avatarVoiceSummary:')
+    lines.push(String(workspaceContext.avatarVoiceSummary).slice(0, 1000))
+  }
+  if (workspaceContext.campaignAutomationSummary && typeof workspaceContext.campaignAutomationSummary === 'string') {
+    lines.push('campaignAutomationSummary:')
+    lines.push(String(workspaceContext.campaignAutomationSummary).slice(0, 1000))
+  }
+  return lines.join('\n')
+}
+
+function vercelObservabilityStatus() {
+  if (process.env.VERCEL || process.env.VERCEL_ENV) {
+    return `Vercel runtime detected (${process.env.VERCEL_ENV || 'runtime'}). Logs/Analytics can be viewed in the Vercel project.`
+  }
+  return 'Vercel runtime not detected in this process. Logs/Analytics depend on Vercel deployment.'
+}
+
 function hasIdentityContext(identity) {
   return Boolean(
     identity?.email ||
@@ -1518,6 +1609,7 @@ async function handleModelsList(req, res) {
     const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
     const models = []
     const seen = new Set()
+    const diagnostics = getModelProviderDiagnostics()
     const addModel = model => {
       if (!model?.id || seen.has(model.id)) return
       seen.add(model.id)
@@ -1525,6 +1617,7 @@ async function handleModelsList(req, res) {
     }
 
     const isOpenRouterConfigured =
+      diagnostics.openrouterConfigured ||
       apiBase.includes('openrouter.ai') ||
       (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_BASEROUTER.includes('openrouter.ai'))
 
@@ -1556,6 +1649,8 @@ async function handleModelsList(req, res) {
     }
 
     for (const model of buildStaticModelCatalog()) {
+      if (model.provider === 'gemini' && !diagnostics.geminiConfigured) continue
+      if (model.provider === 'gateway' && !diagnostics.gatewayConfigured) continue
       addModel(model)
     }
 
@@ -1569,6 +1664,7 @@ async function handleModelsList(req, res) {
       ok: true,
       provider: 'mixed',
       models,
+      providerDiagnostics: diagnostics,
     })
   } catch (err) {
     return chatJson(res, 500, { error: err.message })
@@ -1651,6 +1747,7 @@ async function handleChat(req, res) {
       }
     }
 
+    const providerDiagnostics = getModelProviderDiagnostics()
     let apiKey = process.env.OPENAI_API_KEY
     let apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
 
@@ -1659,10 +1756,14 @@ async function handleChat(req, res) {
     const modelProvider = selectedModel.provider
     const inferredGatewayModel = !modelProvider && model.startsWith('openai/')
     const isGatewayModel = modelProvider === 'gateway' || inferredGatewayModel
+    const isGeminiProvider = modelProvider === 'gemini'
     const isDirectGeminiModel = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.0-pro', 'gemini-2.5-flash'].includes(model)
 
     if (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_KEYROUTER) {
-      if ((model.includes('/') || !isDirectGeminiModel) && !isGatewayModel) {
+      if (isGeminiProvider && providerDiagnostics.openrouterConfigured) {
+        apiBase = process.env.OPENAI_API_BASEROUTER
+        apiKey = process.env.OPENAI_API_KEYROUTER
+      } else if ((model.includes('/') || !isDirectGeminiModel) && !isGatewayModel) {
         apiBase = process.env.OPENAI_API_BASEROUTER
         apiKey = process.env.OPENAI_API_KEYROUTER
       } else if (!apiKey && !isGatewayModel) {
@@ -1698,6 +1799,7 @@ async function handleChat(req, res) {
     const preferredLanguage = String(body.language || body.locale || '').slice(0, 40)
     const intentInstruction = buildIntentInstruction(userText, file, conversation, preferredLanguage)
     const toolSummary = buildToolSummary(runtime.tools)
+    const workspaceSummary = buildWorkspaceContextSummary(body.workspaceContext)
     const systemPrompt = [
       runtime.systemPrompt.join('\n'),
       '',
@@ -1709,6 +1811,14 @@ async function handleChat(req, res) {
       '',
       'Relevant local skill knowledge:',
       buildLocalSkillContext(userText, file),
+      ...(workspaceSummary
+        ? [
+            '',
+            'Active project workspace context:',
+            workspaceSummary,
+            'Use this as persistent client/project memory when drafting, researching, generating or revising outputs.',
+          ]
+        : []),
       ...(hasIdentityContext(identityContext)
         ? [
             '',
@@ -1833,7 +1943,7 @@ async function handleChat(req, res) {
     }
 
     let finalModel = requestModel
-    if (isDirectGeminiModel && apiBase?.includes('openrouter.ai') && !requestModel.includes('/')) {
+    if (requestProvider === 'gemini' && apiBase?.includes('openrouter.ai') && !requestModel.includes('/')) {
       finalModel = `google/${requestModel}`
     }
 
@@ -1904,10 +2014,8 @@ async function handleChat(req, res) {
 
         for (const toolCall of currentToolCalls) {
           usedToolNames.push(toolCall?.function?.name || 'unknown')
-          console.log(`[ROUND ${round}] Tool Call:`, toolCall?.function?.name, toolCall?.function?.arguments)
           const toolResult = await executeLiveAgentToolCall(toolCall)
           const toolResultStr = JSON.stringify(toolResult)
-          console.log(`[ROUND ${round}] Tool Result Length:`, toolResultStr.length)
           conversationMessages.push({
             role: 'tool',
             tool_call_id: toolCall.id,
@@ -1978,6 +2086,11 @@ async function handleChat(req, res) {
     })
 
   } catch (error) {
+    captureServerException(error, {
+      route: '/api/copilot/chat',
+      method: 'POST',
+      mode: 'local-fallback',
+    })
     return chatJson(res, 200, {
       finalReply: buildChatFallbackReply('', {}),
       mode: 'local-fallback',
@@ -3527,6 +3640,189 @@ async function handleContractsPlan(req, res) {
   }
 }
 
+function decodeXmlText(value) {
+  return String(value || '')
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .trim()
+}
+
+function stripHtmlTags(value) {
+  return decodeXmlText(String(value || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim())
+}
+
+function extractXmlTag(block, tag) {
+  const match = block.match(new RegExp(`<${tag}>([\\s\\S]*?)<\\/${tag}>`, 'i'))
+  return match ? decodeXmlText(match[1]) : ''
+}
+
+function extractSourceNameFromUrl(value) {
+  try {
+    return new URL(String(value || '')).hostname.replace(/^www\./i, '')
+  } catch {
+    return ''
+  }
+}
+
+async function fetchText(url, { timeoutMs = 10000, maxBytes = 1024 * 1024 } = {}) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'user-agent': 'ApexAIResearch/1.0 (+https://www.apexglobalai.com)',
+        accept: 'application/rss+xml, application/xml, text/xml, text/html;q=0.9, */*;q=0.8',
+      },
+      signal: controller.signal,
+    })
+    if (!response.ok) {
+      const error = new Error(`Source request failed with status ${response.status}`)
+      error.status = response.status
+      throw error
+    }
+    const declaredLength = Number(response.headers.get('content-length') || 0)
+    if (declaredLength && declaredLength > maxBytes) {
+      const error = new Error('Source response too large')
+      error.status = 413
+      throw error
+    }
+    const reader = response.body?.getReader?.()
+    if (!reader) return await response.text()
+    const chunks = []
+    let size = 0
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      size += value.byteLength
+      if (size > maxBytes) {
+        controller.abort()
+        const error = new Error('Source response too large')
+        error.status = 413
+        throw error
+      }
+      chunks.push(value)
+    }
+    return new TextDecoder().decode(Buffer.concat(chunks.map(chunk => Buffer.from(chunk))))
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+function buildResearchSearchQuery(researchType, query, region, freshness) {
+  return [researchType, query, region, freshness]
+    .map(item => String(item || '').trim())
+    .filter(Boolean)
+    .join(' ')
+}
+
+function parseBingRssSources(xml, checked) {
+  const items = []
+  const itemMatches = String(xml || '').match(/<item>[\s\S]*?<\/item>/gi) || []
+  for (const block of itemMatches) {
+    const title = stripHtmlTags(extractXmlTag(block, 'title'))
+    const url = extractXmlTag(block, 'link')
+    const description = stripHtmlTags(extractXmlTag(block, 'description'))
+    const pubDate = extractXmlTag(block, 'pubDate') || checked
+    if (!title || !url || !/^https?:\/\//i.test(url)) continue
+    if (items.some(item => item.url === url)) continue
+    items.push({
+      citationId: `S${items.length + 1}`,
+      title,
+      sourceName: extractSourceNameFromUrl(url),
+      url,
+      dateChecked: pubDate,
+      evidenceLevel: 'CONFIRMED_SOURCE',
+      note: description || `Live search result captured for ${title}.`,
+    })
+    if (items.length >= 6) break
+  }
+  return items
+}
+
+function buildResearchFindingsFromSources({ researchType, query, region, checked, sources }) {
+  const findings = [
+    {
+      id: 'finding-research-plan',
+      claim: `Live research executed for: ${query || researchType}.`,
+      evidence: `Apex searched public web sources using the query "${query || researchType}".`,
+      confidence: 'USER_PROVIDED',
+      source: 'User prompt',
+      date: checked,
+    },
+  ]
+  if (region) {
+    findings.push({
+      id: 'finding-region',
+      claim: `Regional scope applied: ${region}.`,
+      evidence: 'User-provided region field was included in the search query.',
+      confidence: 'USER_PROVIDED',
+      source: 'User input',
+      date: checked,
+    })
+  }
+  for (const source of sources.slice(0, 4)) {
+    findings.push({
+      id: `finding-${String(source.citationId || source.title).toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+      claim: source.title,
+      evidence: source.note,
+      confidence: source.evidenceLevel,
+      source: `${source.citationId || 'S?'} · ${source.sourceName || source.url || 'live source'}`,
+      date: source.dateChecked,
+    })
+  }
+  return findings
+}
+
+function buildResearchProposalFromSources({ researchType, query, region, freshness, sinapiIntent, sources }) {
+  const top = sources[0]
+  const second = sources[1]
+  const citationLine = sources.slice(0, 3).map(source => `[${source.citationId}] ${source.sourceName}`).join(', ')
+  const regionalText = region ? ` for ${region}` : ''
+  return {
+    executiveSummary: `Apex found ${sources.length} live source${sources.length === 1 ? '' : 's'}${regionalText} for "${query || researchType}". The current evidence base starts with ${citationLine || 'the attached citations'}.`,
+    marketOpportunity: top?.note || 'Use the attached live source snippets to qualify the current market opportunity before presenting a commercial recommendation.',
+    clientPainPoints: [
+      'Client needs current evidence with clickable citations before approving strategy or pricing.',
+      region ? `Regional constraints for ${region} must stay tied to the cited sources.` : 'Regional scope should be confirmed before turning research into execution.',
+      sinapiIntent ? 'SINAPI values still require official table/API confirmation before using any price as final.' : 'Competitor and pricing claims should keep the attached citation trail.',
+    ],
+    valueProposition: second?.note
+      ? `Apex can transform the cited findings into proposals, decks, budgets and next actions while preserving source traceability. Example evidence: ${second.note}`
+      : 'Apex can transform the cited findings into proposals, decks, budgets and next actions while preserving source traceability.',
+    competitivePositioning: sources.slice(0, 2).map(source => `[${source.citationId}] ${source.title}`).join(' | ') || 'Use the attached live citations to position the offer against the current market.',
+    pricingAssumptions: sinapiIntent
+      ? [
+          'SINAPI web references were found, but no official uploaded table/API is active yet.',
+          'Treat live snippets as directional only until official SINAPI bases are attached.',
+        ]
+      : [
+          `Freshness requested: ${freshness || 'Current source required'}.`,
+          'Use the cited source snippets as the current reference layer before closing pricing or positioning.',
+        ],
+    recommendedOffer: `Prepare the next client-facing deliverable using citations ${citationLine || '[S1]'} as the evidence baseline.`,
+    ctaNextStep: sinapiIntent
+      ? 'Upload the official SINAPI table or connect the pricing source, then rerun the research to lock final values with citations.'
+      : 'Review the attached citations, keep the relevant ones, and convert them into a proposal, benchmark or execution package.',
+  }
+}
+
+function buildResearchPendingVerification({ researchType, region, sinapiIntent, liveSources }) {
+  const items = [
+    'Open the cited URLs and confirm the exact claim wording before publishing client-facing conclusions.',
+    region ? `Validate whether ${region} needs narrower local authority or city-specific sources.` : 'Add city/state/country scope if the decision depends on a specific jurisdiction or market.',
+    `Current result count: ${liveSources.length}. Expand the search if you need deeper coverage for ${researchType.toLowerCase()}.`,
+  ]
+  if (sinapiIntent) {
+    items.push('Do not finalize SINAPI values until an official uploaded table or connected source is active.')
+  }
+  return items
+}
+
 async function handleResearchPlan(req, res) {
   try {
     const body = await readJson(req)
@@ -3536,85 +3832,130 @@ async function handleResearchPlan(req, res) {
     const freshness = String(body.freshness || 'Current source required')
     const checked = new Date().toISOString()
     const sinapiIntent = /sinapi|construction cost source|pricing|pre[cç]o|custo/i.test(`${researchType} ${query}`)
-    const sources = [
-      {
-        title: 'Live web connector',
-        sourceName: 'Not connected in local runtime',
-        url: '',
-        dateChecked: checked,
-        evidenceLevel: 'NEEDS_WEB_VERIFICATION',
-        note: 'Apex did not browse the web or verify current sources in this request.',
-      },
-    ]
-    if (sinapiIntent) {
-      sources.push({
-        title: 'SINAPI source',
-        sourceName: 'not-connected',
-        url: '',
-        dateChecked: checked,
-        evidenceLevel: 'NEEDS_WEB_VERIFICATION',
-        note: 'No SINAPI table/API is connected. Do not use any SINAPI value until a source is uploaded or connected.',
+    const searchQuery = buildResearchSearchQuery(researchType, query, region, freshness)
+    let liveSources = []
+    try {
+      const rss = await fetchText(`https://www.bing.com/search?q=${encodeURIComponent(searchQuery)}&format=rss`, { timeoutMs: 12000 })
+      liveSources = parseBingRssSources(rss, checked)
+    } catch (searchError) {
+      console.error('[Research Search Error]:', scrubProviderError(searchError.message || searchError))
+    }
+
+    if (!liveSources.length) {
+      const sources = [
+        {
+          citationId: 'S1',
+          title: 'Live web connector',
+          sourceName: 'Not connected in local runtime',
+          url: '',
+          dateChecked: checked,
+          evidenceLevel: 'NEEDS_WEB_VERIFICATION',
+          note: 'Apex did not browse the web or verify current sources in this request.',
+        },
+      ]
+      if (sinapiIntent) {
+        sources.push({
+          citationId: 'S2',
+          title: 'SINAPI source',
+          sourceName: 'not-connected',
+          url: '',
+          dateChecked: checked,
+          evidenceLevel: 'NEEDS_WEB_VERIFICATION',
+          note: 'No SINAPI table/API is connected. Do not use any SINAPI value until a source is uploaded or connected.',
+        })
+      }
+      const findings = [
+        {
+          id: 'finding-source-status',
+          claim: 'Current market/pricing/legal data was not verified live.',
+          evidence: 'Local runtime has no configured web/source connector for this endpoint.',
+          confidence: 'NEEDS_WEB_VERIFICATION',
+          source: 'Apex local runtime status',
+          date: checked,
+        },
+        {
+          id: 'finding-research-plan',
+          claim: `Research plan needed for: ${query || researchType}.`,
+          evidence: 'User request and selected research type.',
+          confidence: 'USER_PROVIDED',
+          source: 'User prompt',
+          date: checked,
+        },
+        {
+          id: 'finding-assumption',
+          claim: region ? `Region context: ${region}.` : 'Region/location is not confirmed.',
+          evidence: region ? 'User-provided region field.' : 'Missing region field.',
+          confidence: region ? 'USER_PROVIDED' : 'NEEDS_WEB_VERIFICATION',
+          source: region ? 'User input' : 'missing input',
+          date: checked,
+        },
+      ]
+      const proposalBuilder = {
+        executiveSummary: `Apex prepared a source-aware ${researchType.toLowerCase()} plan for "${query || 'the requested topic'}". This is a research plan, not verified live market intelligence.`,
+        marketOpportunity: 'Define opportunity only after live web/source verification or user-provided evidence is attached.',
+        clientPainPoints: [
+          'Client needs credible current evidence before decisions.',
+          'Pricing, competitors and regulations must be sourced before proposal claims.',
+          'Apex should label assumptions separately from confirmed facts.',
+        ],
+        valueProposition: 'Apex can convert verified sources into a proposal, positioning, offer, pricing assumptions and next-step CTA.',
+        competitivePositioning: 'Needs competitor/source verification before making current-market claims.',
+        pricingAssumptions: sinapiIntent
+          ? ['SINAPI source is not connected.', 'Use placeholder pricing only until uploaded SINAPI table or live source is connected.']
+          : ['Pricing is not verified.', 'Use user-provided or placeholder assumptions until sources are connected.'],
+        recommendedOffer: 'Prepare a source-backed proposal after collecting web/source evidence, competitor examples, pricing basis and regional constraints.',
+        ctaNextStep: 'Connect web/source provider or upload source files, then rerun research with citations.',
+      }
+      json(res, 200, {
+        plan: {
+          providerStatus: 'web-not-connected',
+          researchType,
+          query,
+          region,
+          freshness,
+          sinapiStatus: 'not-connected',
+          sources,
+          findings,
+          proposalBuilder,
+          pendingVerification: [
+            'Connect live web/source provider before claiming current market data.',
+            'Attach user-provided source files for pricing, competitor or regulatory claims.',
+            'For SINAPI, upload an official table or configure a real connector before using values.',
+          ],
+          message: 'Research Studio produced a connector-ready plan. No live web research, fake citations, fake SINAPI prices or current legal/regulatory claims were generated.',
+        },
       })
+      return
     }
-    const findings = [
-      {
-        id: 'finding-source-status',
-        claim: 'Current market/pricing/legal data was not verified live.',
-        evidence: 'Local runtime has no configured web/source connector for this endpoint.',
-        confidence: 'NEEDS_WEB_VERIFICATION',
-        source: 'Apex local runtime status',
-        date: checked,
-      },
-      {
-        id: 'finding-research-plan',
-        claim: `Research plan needed for: ${query || researchType}.`,
-        evidence: 'User request and selected research type.',
-        confidence: 'USER_PROVIDED',
-        source: 'User prompt',
-        date: checked,
-      },
-      {
-        id: 'finding-assumption',
-        claim: region ? `Region context: ${region}.` : 'Region/location is not confirmed.',
-        evidence: region ? 'User-provided region field.' : 'Missing region field.',
-        confidence: region ? 'USER_PROVIDED' : 'NEEDS_WEB_VERIFICATION',
-        source: region ? 'User input' : 'missing input',
-        date: checked,
-      },
-    ]
-    const proposalBuilder = {
-      executiveSummary: `Apex prepared a source-aware ${researchType.toLowerCase()} plan for "${query || 'the requested topic'}". This is a research plan, not verified live market intelligence.`,
-      marketOpportunity: 'Define opportunity only after live web/source verification or user-provided evidence is attached.',
-      clientPainPoints: [
-        'Client needs credible current evidence before decisions.',
-        'Pricing, competitors and regulations must be sourced before proposal claims.',
-        'Apex should label assumptions separately from confirmed facts.',
-      ],
-      valueProposition: 'Apex can convert verified sources into a proposal, positioning, offer, pricing assumptions and next-step CTA.',
-      competitivePositioning: 'Needs competitor/source verification before making current-market claims.',
-      pricingAssumptions: sinapiIntent
-        ? ['SINAPI source is not connected.', 'Use placeholder pricing only until uploaded SINAPI table or live source is connected.']
-        : ['Pricing is not verified.', 'Use user-provided or placeholder assumptions until sources are connected.'],
-      recommendedOffer: 'Prepare a source-backed proposal after collecting web/source evidence, competitor examples, pricing basis and regional constraints.',
-      ctaNextStep: 'Connect web/source provider or upload source files, then rerun research with citations.',
-    }
+
+    const findings = buildResearchFindingsFromSources({
+      researchType,
+      query,
+      region,
+      checked,
+      sources: liveSources,
+    })
+    const proposalBuilder = buildResearchProposalFromSources({
+      researchType,
+      query,
+      region,
+      freshness,
+      sinapiIntent,
+      sources: liveSources,
+    })
     json(res, 200, {
       plan: {
-        providerStatus: 'web-not-connected',
+        providerStatus: 'web-search-live',
         researchType,
         query,
         region,
         freshness,
-        sinapiStatus: sinapiIntent ? 'not-connected' : 'not-connected',
-        sources,
+        sinapiStatus: 'not-connected',
+        sources: liveSources,
         findings,
         proposalBuilder,
-        pendingVerification: [
-          'Connect live web/source provider before claiming current market data.',
-          'Attach user-provided source files for pricing, competitor or regulatory claims.',
-          'For SINAPI, upload an official table or configure a real connector before using values.',
-        ],
-        message: 'Research Studio produced a connector-ready plan. No live web research, fake citations, fake SINAPI prices or current legal/regulatory claims were generated.',
+        pendingVerification: buildResearchPendingVerification({ researchType, region, sinapiIntent, liveSources }),
+        message: `Research Studio searched live public sources and attached ${liveSources.length} citation(s) for ${query || researchType}.`,
       },
     })
   } catch (error) {
@@ -3626,8 +3967,32 @@ async function handleSourceEvidence(req, res) {
   try {
     const body = await readJson(req)
     const title = String(body.title || 'Source evidence request')
+    const url = String(body.url || '').trim()
+    if (url) {
+      if (!isPublicHttpUrl(url)) {
+        return json(res, 400, {
+          error: 'Only public http/https source URLs are allowed.',
+        })
+      }
+      const html = await fetchText(url, { timeoutMs: 12000 })
+      const pageTitleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)
+      const pageDescriptionMatch = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i)
+      json(res, 200, {
+        evidence: {
+          citationId: 'S1',
+          title: stripHtmlTags(pageTitleMatch ? pageTitleMatch[1] : title),
+          sourceName: extractSourceNameFromUrl(url),
+          url,
+          dateChecked: new Date().toISOString(),
+          evidenceLevel: 'CONFIRMED_SOURCE',
+          note: stripHtmlTags(pageDescriptionMatch ? pageDescriptionMatch[1] : `Live source fetched from ${url}.`),
+        },
+      })
+      return
+    }
     json(res, 200, {
       evidence: {
+        citationId: 'S1',
         title,
         sourceName: 'not-connected',
         url: '',
@@ -3638,6 +4003,238 @@ async function handleSourceEvidence(req, res) {
     })
   } catch (error) {
     json(res, error.status || 500, { error: scrubProviderError(error.message || error) })
+  }
+}
+
+function findLatestProjectExport(project, type) {
+  const exportsList = Array.isArray(project?.exports) ? project.exports : []
+  for (let index = exportsList.length - 1; index >= 0; index -= 1) {
+    const item = exportsList[index]
+    if (item && typeof item === 'object' && item.type === type) return item
+  }
+  return null
+}
+
+function totalBudgetValue(plan) {
+  const items = Array.isArray(plan?.estimateItems) ? plan.estimateItems : []
+  return Number(items.reduce((sum, item) => sum + Number(item?.subtotal || 0), 0).toFixed(2))
+}
+
+function packageStatusFromFlags(flags = []) {
+  if (flags.includes('BLOCKED')) return 'BLOCKED'
+  if (flags.includes('PARTIAL')) return 'PARTIAL'
+  return 'READY'
+}
+
+function buildProjectPackageArtifact({ id, title, checks = [], summary, nextAction }) {
+  return {
+    id,
+    title,
+    status: packageStatusFromFlags(checks.map(item => item.status)),
+    summary,
+    evidence: checks.map(item => `${item.label}: ${item.value}`),
+    nextAction,
+  }
+}
+
+function isPublicHttpUrl(value) {
+  let parsed
+  try {
+    parsed = new URL(String(value || '').trim())
+  } catch {
+    return false
+  }
+  if (!['http:', 'https:'].includes(parsed.protocol)) return false
+  const hostname = parsed.hostname.toLowerCase()
+  if (!hostname || hostname === 'localhost' || hostname.endsWith('.local')) return false
+  if (hostname === '0.0.0.0' || hostname === '127.0.0.1' || hostname === '::1') return false
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
+    const parts = hostname.split('.').map(Number)
+    const [a, b] = parts
+    if (a === 10) return false
+    if (a === 127) return false
+    if (a === 169 && b === 254) return false
+    if (a === 172 && b >= 16 && b <= 31) return false
+    if (a === 192 && b === 168) return false
+    if (a === 0) return false
+  }
+  if (hostname.includes(':')) return false
+  return true
+}
+
+async function handleGenerationHistory(req, res) {
+  try {
+    const body = await readJson(req)
+    const project = body.project || {}
+    if (!project || typeof project !== 'object' || !project.name) {
+      return json(res, 400, { error: 'Valid project state is required for generation history.' })
+    }
+    const entries = Array.isArray(project.generationHistory) ? [...project.generationHistory] : []
+    entries.sort((a, b) => String(b?.createdAt || '').localeCompare(String(a?.createdAt || '')))
+    const byKind = entries.reduce((acc, entry) => {
+      const key = String(entry?.kind || 'unknown')
+      acc[key] = (acc[key] || 0) + 1
+      return acc
+    }, {})
+    return json(res, 200, {
+      providerStatus: 'workspace-history',
+      summary: {
+        total: entries.length,
+        completed: entries.filter(entry => entry?.status === 'completed').length,
+        failed: entries.filter(entry => entry?.status === 'failed').length,
+        byKind,
+      },
+      entries,
+    })
+  } catch (error) {
+    return json(res, error.status || 500, { error: scrubProviderError(error.message || error) })
+  }
+}
+
+async function handleProjectPackage(req, res) {
+  try {
+    const body = await readJson(req)
+    const project = body.project || {}
+    const goal = String(body.goal || 'Complete project package').trim()
+    if (!project || typeof project !== 'object' || !project.name) {
+      return json(res, 400, { error: 'Valid project state is required for project package pipeline.' })
+    }
+
+    const profile = project.projectProfile && typeof project.projectProfile === 'object' ? project.projectProfile : {}
+    const files = Array.isArray(project.files) ? project.files : []
+    const exportsList = Array.isArray(project.exports) ? project.exports : []
+    const latestBudget = findLatestProjectExport(project, 'budget-estimate')
+    const latestContracts = findLatestProjectExport(project, 'contracts-permits-review')
+    const latestResearch = findLatestProjectExport(project, 'research-market-intelligence')
+    const latestBusiness = findLatestProjectExport(project, 'saas-crm-finance-business-layer')
+    const latestFieldOps = findLatestProjectExport(project, 'field-operations-rdo')
+    const budgetTotal = totalBudgetValue(latestBudget?.plan)
+    const budgetCurrency = latestBudget?.plan?.assumptions?.currency || 'BRL'
+    const researchSources = Array.isArray(latestResearch?.plan?.sources) ? latestResearch.plan.sources.length : 0
+    const permitItems = Array.isArray(latestContracts?.plan?.permitPackage) ? latestContracts.plan.permitPackage.length : 0
+    const pendingContractQuestions = Array.isArray(latestContracts?.plan?.pendingQuestions) ? latestContracts.plan.pendingQuestions.length : 0
+    const fileKinds = Array.from(new Set(files.map(file => String(file?.kind || 'unknown'))))
+
+    const designArtifact = buildProjectPackageArtifact({
+      id: 'design-review',
+      title: 'Design review and board package',
+      checks: [
+        { label: 'briefing', value: profile.brief ? 'saved in workspace' : 'missing', status: profile.brief ? 'READY' : 'PARTIAL' },
+        { label: 'project type', value: profile.projectType || 'missing', status: profile.projectType ? 'READY' : 'PARTIAL' },
+        { label: 'files', value: `${files.length} file(s) / kinds: ${fileKinds.join(', ') || 'none'}`, status: files.length ? 'READY' : 'BLOCKED' },
+      ],
+      summary: files.length
+        ? 'Apex can structure the review package, board narrative and drawing handoff from the current workspace evidence.'
+        : 'No source files are attached yet, so the board package cannot move past planning status.',
+      nextAction: files.length ? 'Confirm which drawing should become the main presentation board and lock the revision constraints.' : 'Upload the base plan, facade, BIM or reference files first.',
+    })
+
+    const budgetArtifact = buildProjectPackageArtifact({
+      id: 'budget-quantity',
+      title: 'Quantity takeoff and budget package',
+      checks: [
+        { label: 'budget export', value: latestBudget ? 'available' : 'missing', status: latestBudget ? 'READY' : 'PARTIAL' },
+        { label: 'budget total', value: latestBudget ? `${budgetCurrency} ${budgetTotal.toFixed(2)}` : 'not calculated', status: latestBudget ? 'READY' : 'PARTIAL' },
+        { label: 'SINAPI / pricing evidence', value: latestResearch ? `${researchSources} cited source(s)` : 'no research export', status: latestResearch ? 'PARTIAL' : 'PARTIAL' },
+      ],
+      summary: latestBudget
+        ? 'Apex found a saved budget export and can include quantity/budget context in the complete package.'
+        : 'Budget structure is still missing, so the complete package can only include a budget placeholder and checklist.',
+      nextAction: latestBudget ? 'Review line items and attach official SINAPI or supplier pricing if final cost approval is needed.' : 'Generate the budget studio output or upload pricing basis before finalizing the package.',
+    })
+
+    const legalArtifact = buildProjectPackageArtifact({
+      id: 'contracts-permits',
+      title: 'Contracts, permits and execution docs',
+      checks: [
+        { label: 'contracts export', value: latestContracts ? 'available' : 'missing', status: latestContracts ? 'READY' : 'PARTIAL' },
+        { label: 'permit items', value: latestContracts ? `${permitItems} item(s)` : 'not prepared', status: latestContracts ? 'READY' : 'PARTIAL' },
+        { label: 'pending legal questions', value: latestContracts ? `${pendingContractQuestions}` : 'unknown', status: latestContracts ? 'PARTIAL' : 'PARTIAL' },
+      ],
+      summary: latestContracts
+        ? 'Apex can bundle the current permit checklist and contract review into the execution package.'
+        : 'Contracts / permits still need to be generated before the package can be considered complete.',
+      nextAction: latestContracts ? 'Resolve the pending legal/jurisdiction questions before client or authority submission.' : 'Open Contracts / Permits Studio and generate the first legal package.',
+    })
+
+    const salesArtifact = buildProjectPackageArtifact({
+      id: 'client-sales',
+      title: 'Client presentation, proposal and commercial handoff',
+      checks: [
+        { label: 'client profile', value: profile.clientName || 'missing', status: profile.clientName ? 'READY' : 'PARTIAL' },
+        { label: 'preferred outputs', value: profile.preferredOutputs || 'not set', status: profile.preferredOutputs ? 'READY' : 'PARTIAL' },
+        { label: 'research citations', value: latestResearch ? `${researchSources} live citation(s)` : 'none saved', status: latestResearch ? 'READY' : 'PARTIAL' },
+      ],
+      summary: 'Apex can prepare the client-facing board, proposal structure and approval narrative from the saved workspace context and cited research.',
+      nextAction: latestResearch ? 'Use the cited research and project brief to tailor the final sales deck and approval script.' : 'Save a research output first if the presentation depends on market references.',
+    })
+
+    const scheduleArtifact = buildProjectPackageArtifact({
+      id: 'schedule-finance',
+      title: 'Physical-financial schedule and field execution handoff',
+      checks: [
+        { label: 'field ops export', value: latestFieldOps ? 'available' : 'missing', status: latestFieldOps ? 'READY' : 'PARTIAL' },
+        { label: 'business/finance export', value: latestBusiness ? 'available' : 'missing', status: latestBusiness ? 'READY' : 'PARTIAL' },
+        { label: 'budget anchor', value: latestBudget ? `${budgetCurrency} ${budgetTotal.toFixed(2)}` : 'missing', status: latestBudget ? 'READY' : 'PARTIAL' },
+      ],
+      summary: 'Apex can draft the physical-financial schedule with current milestones, but final phase dates still depend on owner approval and field data.',
+      nextAction: latestFieldOps ? 'Align the saved field plan with payment milestones and phase owners.' : 'Generate the field/reporting layer if you want site-phase detail in the package.',
+    })
+
+    const artifacts = [designArtifact, budgetArtifact, legalArtifact, salesArtifact, scheduleArtifact]
+    const packageStatus = packageStatusFromFlags(artifacts.map(item => item.status))
+    const missingInputs = []
+    if (!profile.clientName) missingInputs.push('Client / account name is missing in Project Workspace memory.')
+    if (!profile.projectType) missingInputs.push('Project type is missing in Project Workspace memory.')
+    if (!profile.brief) missingInputs.push('Project briefing is missing in Project Workspace memory.')
+    if (!files.length) missingInputs.push('No source files are attached to the project workspace yet.')
+    if (!latestBudget) missingInputs.push('No saved budget export exists yet.')
+    if (!latestContracts) missingInputs.push('No saved contracts / permits export exists yet.')
+    if (!latestFieldOps) missingInputs.push('No saved field / execution export exists yet.')
+
+    const outputs = {
+      designReview: `Main source files: ${files.map(file => file.name).slice(0, 5).join(', ') || 'none'}. Style notes: ${profile.styleNotes || 'not defined'}. Branding notes: ${profile.brandingNotes || 'not defined'}.`,
+      boardPackage: `Prepare the board package around ${project.name} for ${profile.clientName || 'the client'}. Include scope, visuals, revision constraints and approval path. Preferred outputs: ${profile.preferredOutputs || 'not defined'}.`,
+      quantityAndBudget: latestBudget
+        ? `Saved budget export found with total ${budgetCurrency} ${budgetTotal.toFixed(2)} and ${Array.isArray(latestBudget.plan?.estimateItems) ? latestBudget.plan.estimateItems.length : 0} line item(s).`
+        : 'Budget still needs to be generated. The package should keep a quantity/budget placeholder until Apex Budget Studio is saved.',
+      clientPresentation: `Use the project brief "${profile.brief || goal}" and ${researchSources} cited research source(s) to assemble the client-facing presentation and approval narrative.`,
+      executionDocs: latestContracts
+        ? `Contracts / permits export is available with ${permitItems} permit/checklist item(s). Include execution docs, approvals and missing-document report.`
+        : 'Contracts / permits export is missing, so execution docs remain at planning stage.',
+      contractAndFinance: latestBusiness
+        ? 'Business/finance export exists and can be attached to the final package.'
+        : 'Finance package is still placeholder-only; use saved budget plus contract deliverables until the business layer is exported.',
+      physicalFinancialSchedule: latestBudget
+        ? `Anchor the physical-financial schedule on the current budget total (${budgetCurrency} ${budgetTotal.toFixed(2)}), splitting design, approvals, procurement, execution and closeout milestones.`
+        : 'Create the initial budget first so the physical-financial schedule can be grounded in a numeric baseline.',
+    }
+
+    const nextActions = [
+      designArtifact.nextAction,
+      budgetArtifact.nextAction,
+      legalArtifact.nextAction,
+      salesArtifact.nextAction,
+      scheduleArtifact.nextAction,
+    ]
+
+    return json(res, 200, {
+      plan: {
+        providerStatus: 'package-draft',
+        goal,
+        projectName: String(project.name || 'Apex Project'),
+        clientName: String(profile.clientName || ''),
+        packageStatus,
+        executiveSummary: `Apex evaluated ${exportsList.length} saved export(s), ${files.length} file(s) and the persistent project brief to assemble the current complete package status for "${project.name}".`,
+        outputs,
+        artifacts,
+        missingInputs,
+        nextActions,
+        message: `Project Package Pipeline evaluated ${artifacts.length} delivery tracks from the current workspace.`,
+      },
+    })
+  } catch (error) {
+    return json(res, error.status || 500, { error: scrubProviderError(error.message || 'Project package pipeline failed.') })
   }
 }
 
@@ -4055,11 +4652,354 @@ async function handleKnowledgeBaseInsert(req, res) {
   }
 }
 
-function createMetricsPlan(goal = '') {
+function createMetricsPlan(goal = '', projectSummary = null, runtimeSummary = null) {
   const modules = ['Chat', 'ArchVis', 'DirectCut', 'BIM/3D', 'Budget', 'Contracts', 'FieldOps', 'Research', 'Export']
-  return { providerStatus: 'LOCAL_DEMO', apiMetrics: ['/api/copilot/chat', '/api/copilot/export-package', '/api/copilot/metrics-plan'].map(endpoint => ({ endpoint, health: 'not production monitored', source: 'LOCAL_DEMO' })), moduleUsage: modules.map((module, index) => ({ module, activity: index === 0 ? 1 : 0, source: 'ESTIMATED_LOCAL' })), projectActivity: ['Local project state can count files, messages, exports and active panels.', 'No production telemetry source is connected.'], connectorStatus: ['Supabase: not connected', 'Vercel telemetry: not connected', 'Provider billing: not connected', 'Push/email/SMS: not connected'], metricsReport: `Metrics dashboard local demo for: ${goal || 'Apex platform'}. No fake production telemetry.` }
+  const project = projectSummary && typeof projectSummary === 'object' ? projectSummary : {}
+  const runtime = runtimeSummary && typeof runtimeSummary === 'object' ? runtimeSummary : {}
+  const sentryFrontendConfigured = Boolean(process.env.VITE_SENTRY_DSN)
+  const sentryBackendConfigured = isServerObservabilityEnabled()
+  const providerDiagnostics = getModelProviderDiagnostics()
+  return {
+    providerStatus: 'LOCAL_RUNTIME_STATUS',
+    apiMetrics: ['/api/copilot/chat', '/api/copilot/export-package', '/api/copilot/metrics-plan', '/api/copilot/generation-history', '/api/copilot/project-package'].map(endpoint => ({ endpoint, health: 'reachable in shared runtime', source: 'LOCAL_DEMO' })),
+    moduleUsage: modules.map((module, index) => ({ module, activity: index === 0 ? 1 : 0, source: 'ESTIMATED_LOCAL' })),
+    projectActivity: [
+      `Project: ${String(project.name || 'Apex Project')}`,
+      `Files: ${Number(project.files || 0)} · Messages: ${Number(project.messages || 0)} · Exports: ${Number(project.exports || 0)}`,
+      `Active studio: ${String(project.activeStudio || 'none')}`,
+      `Generation history: ${Number(project.generationHistory || 0)} run(s)`,
+    ],
+    connectorStatus: [
+      `Sentry frontend: ${sentryFrontendConfigured ? 'configured' : 'not configured'}`,
+      `Sentry backend: ${sentryBackendConfigured ? 'configured' : 'not configured'}`,
+      vercelObservabilityStatus(),
+      `Gateway models: ${providerDiagnostics.gatewayConfigured ? 'configured' : 'not configured'}`,
+      `Gemini models: ${providerDiagnostics.geminiConfigured ? 'configured through OpenRouter' : 'not configured'}`,
+      'Provider billing: not connected',
+      'Push/email/SMS: not connected',
+      'Playwright smoke tests: available through npm run test:e2e',
+    ],
+    runtimeStatus: [
+      `Model: ${String(runtime.selectedModel || 'unknown')}`,
+      `Model state: ${String(runtime.modelState || 'ready')}`,
+      `Last response mode: ${String(runtime.lastResponseMode || 'n/a')}`,
+      `Persistence: ${String(runtime.persistenceMode || 'localStorage')}`,
+    ],
+    metricsReport: `Platform status for: ${goal || 'Apex platform'}. Project=${String(project.name || 'Apex Project')} | Model=${String(runtime.selectedModel || 'unknown')} | State=${String(runtime.modelState || 'ready')}.`,
+  }
 }
-async function handleMetricsPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createMetricsPlan(String(body.goal || '')) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'LOCAL_DEMO' }) } }
+async function handleMetricsPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createMetricsPlan(String(body.goal || ''), body.projectSummary || null, body.runtimeSummary || null) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'LOCAL_RUNTIME_STATUS' }) } }
+
+function createAutoupgradePlan(goal = '', projectSummary = null, runtimeSummary = null) {
+  const project = projectSummary && typeof projectSummary === 'object' ? projectSummary : {}
+  const runtime = runtimeSummary && typeof runtimeSummary === 'object' ? runtimeSummary : {}
+  const modelState = String(runtime.modelState || 'ready')
+  const lastResponseMode = String(runtime.lastResponseMode || 'n/a')
+  const persistenceMode = String(runtime.persistenceMode || 'localStorage')
+  const modelName = String(runtime.selectedModel || 'unknown')
+  const fileCount = Number(project.files || 0)
+  const exportCount = Number(project.exports || 0)
+  const generationCount = Number(project.generationHistory || 0)
+  const recommendations = [
+    {
+      id: 'upgrade-observability',
+      title: 'Connect observability stack',
+      area: 'Platform reliability',
+      priority: 'high',
+      status: 'needs-connector',
+      why: 'Platform telemetry is still local/shared rather than production-observed.',
+      action: 'Connect Sentry, Vercel logs and end-to-end checks before relying on automatic upgrades from runtime evidence.',
+      commandId: 'code_analyze',
+      requiresApproval: true,
+      evidence: [`Persistence mode: ${persistenceMode}`, `Model state: ${modelState}`, 'No external telemetry connector is confirmed in runtime state.'],
+    },
+    {
+      id: 'upgrade-owner-execution',
+      title: 'Convert approved recommendations into execution queue',
+      area: 'Owner operations',
+      priority: 'high',
+      status: 'ready-now',
+      why: 'The platform can inspect itself now, but execution needs a controlled owner handoff.',
+      action: 'Send approved improvements to the owner execution panel instead of mutating the platform silently.',
+      suggestedCommand: 'abrir copilot execution panel',
+      commandId: 'build',
+      requiresApproval: true,
+      evidence: ['Owner execution panel exists.', 'Raw public shell remains intentionally restricted.'],
+    },
+    {
+      id: 'upgrade-remote-files',
+      title: 'Persist full remote file blobs',
+      area: 'Project persistence',
+      priority: 'medium',
+      status: 'planned',
+      why: 'Remote restore is still metadata-first for files.',
+      action: 'Add blob sync/storage references so remote restore can recover full BIM/image-heavy projects.',
+      requiresApproval: true,
+      evidence: [`Current project files: ${fileCount}`, 'Remote sync is metadata-first before full blob restore.'],
+    },
+    {
+      id: 'upgrade-provider-validation',
+      title: 'Validate model/provider runtime continuously',
+      area: 'AI runtime quality',
+      priority: modelState === 'fallback' || /fallback/i.test(lastResponseMode) ? 'critical' : 'medium',
+      status: 'ready-now',
+      why: 'Provider/runtime drift degrades user trust quickly.',
+      action: 'Track fallback frequency and continuously validate the currently selected model/runtime before enabling more autonomous changes.',
+      suggestedCommand: 'status geral da plataforma',
+      commandId: 'check_server',
+      requiresApproval: false,
+      evidence: [`Selected model: ${modelName}`, `Last response mode: ${lastResponseMode}`, `Model state: ${modelState}`],
+    },
+    {
+      id: 'upgrade-growth-pipelines',
+      title: 'Stage next expansion pipelines',
+      area: 'Product roadmap',
+      priority: 'medium',
+      status: generationCount > 0 || exportCount > 0 ? 'ready-now' : 'planned',
+      why: 'The platform foundation is now broad enough to sequence higher-value pipelines.',
+      action: 'Sequence approved packages after autoupgrade: owner execution handoff, avatar/voice, campaign automation and full project delivery orchestration.',
+      commandId: 'skill_audit',
+      requiresApproval: true,
+      evidence: [`Generation history items: ${generationCount}`, `Exports created: ${exportCount}`, `Active studio: ${String(project.activeStudio || 'none')}`],
+    },
+  ]
+  const platformSignals = [
+    `Project: ${String(project.name || 'Apex Project')}`,
+    `Model: ${modelName}`,
+    `Runtime: ${modelState} / ${lastResponseMode}`,
+    `Persistence: ${persistenceMode}`,
+    `Files: ${fileCount} · Exports: ${exportCount} · Generations: ${generationCount}`,
+  ]
+  const safeAutomationRules = [
+    'Never expose unrestricted public shell from autoupgrade.',
+    'Only queue owner-reviewed changes for execution.',
+    'Use real telemetry when connected; otherwise label evidence as local/shared only.',
+    'Prefer build/test/check automation before code-changing automation.',
+  ]
+  const executionQueue = recommendations
+    .filter(item => item.status === 'ready-now')
+    .sort((a, b) => ['critical', 'high', 'medium'].indexOf(a.priority) - ['critical', 'high', 'medium'].indexOf(b.priority))
+    .map(item => `${item.priority.toUpperCase()} · ${item.title}`)
+  return {
+    providerStatus: 'LOCAL_SAFE_AUTOGRADE',
+    generatedAt: new Date().toISOString(),
+    cadence: 'Every 30 minutes while the panel is open; owner approval required for mutating execution.',
+    postureSummary: `Autoupgrade is running as a safe recommendation engine for ${goal || 'the Apex platform'}: it inspects, prioritizes and prepares execution, but final mutating steps still require explicit approval.`,
+    platformSignals,
+    safeAutomationRules,
+    executionQueue,
+    recommendations,
+    report: [
+      'Autoupgrade report',
+      `Generated: ${new Date().toISOString()}`,
+      `Goal: ${goal || 'Apex platform'}`,
+      '',
+      'Platform signals:',
+      ...platformSignals.map(item => `- ${item}`),
+      '',
+      'Priority queue:',
+      ...executionQueue.map(item => `- ${item}`),
+    ].join('\n'),
+  }
+}
+async function handleAutoupgradePlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createAutoupgradePlan(String(body.goal || ''), body.projectSummary || null, body.runtimeSummary || null) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'LOCAL_SAFE_AUTOGRADE' }) } }
+
+function createAvatarVoicePlan(goal = '', useCase = 'internal-demo', brandNotes = '', assetSummary = null, consentConfirmed = false) {
+  const assets = assetSummary && typeof assetSummary === 'object' ? assetSummary : {}
+  const photos = Number(assets.photos || 0)
+  const audio = Number(assets.audio || 0)
+  const videos = Number(assets.videos || 0)
+  const useCaseLabel = {
+    'internal-demo': 'internal demo',
+    'client-presentation': 'client presentation',
+    'real-estate-sales': 'real-estate sales',
+    'social-campaign': 'social campaign',
+  }[String(useCase)] || 'internal demo'
+  const summary = `Avatar/voice workflow prepared for ${useCaseLabel}: Apex can organize assets, script, production steps and delivery, while final synthesis remains connector-dependent and consent-gated.`
+  return {
+    providerStatus: consentConfirmed ? 'CONSENT_GATED_PROVIDER_PENDING' : 'CONSENT_REQUIRED',
+    generatedAt: new Date().toISOString(),
+    useCase,
+    consentRequired: true,
+    summary,
+    identityGuidelines: [
+      'Use only owner-provided photos/audio/video with explicit consent.',
+      'Do not present generated media as real/live without disclosure when required.',
+      'Keep avatar appearance, tone and script aligned with approved business use.',
+      'Block third-party identity cloning workflows.',
+    ],
+    assetChecklist: [
+      `Reference photos: ${photos} uploaded`,
+      `Voice references: ${audio} uploaded`,
+      `Supporting videos: ${videos} uploaded`,
+      `Brand notes: ${String(brandNotes || goal || 'not provided').slice(0, 240)}`,
+      'Owner consent confirmation for image and voice use',
+    ],
+    scriptOutline: [
+      `Opening hook for ${useCaseLabel}`,
+      'Owner introduction / authority statement',
+      'Project or offer value proposition',
+      'Property or feature walkthrough',
+      'CTA for next action',
+    ],
+    productionSteps: [
+      'Curate best photos with consistent lighting.',
+      'Select clean voice samples with low noise.',
+      'Approve script and speaking style before synthesis.',
+      'Generate avatar/voice pack through a connected provider when available.',
+      'Review final media before publication or client delivery.',
+    ],
+    deliveryPack: [
+      'Talking-head script',
+      'Shot list / animation brief',
+      'Voice style brief',
+      'Caption / CTA pack',
+      'Approval checklist',
+    ],
+    safetyRules: [
+      'Owner consent is mandatory.',
+      'Final synthesis depends on connected media provider.',
+      'No third-party face or voice cloning without permission.',
+      'Use legal/internal review before public campaign deployment.',
+    ],
+    report: [
+      'Avatar / Voice plan',
+      `Generated: ${new Date().toISOString()}`,
+      `Use case: ${useCaseLabel}`,
+      summary,
+      '',
+      'Assets:',
+      `- Photos: ${photos}`,
+      `- Audio: ${audio}`,
+      `- Videos: ${videos}`,
+    ].join('\n'),
+  }
+}
+async function handleAvatarVoicePlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createAvatarVoicePlan(String(body.goal || ''), String(body.useCase || 'internal-demo'), String(body.brandNotes || ''), body.assetSummary || null, body.consentConfirmed === true) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'CONSENT_REQUIRED' }) } }
+
+function createCampaignAutomationPlan(goal = '', campaignGoal = 'lead-generation', channel = 'instagram-facebook', format = 'social-pack', audience = '', offer = '') {
+  const resolvedAudience = String(audience || '').trim() || 'Prospective architecture / construction clients'
+  const resolvedOffer = String(offer || '').trim() || String(goal || '').trim() || 'Apex architecture and project delivery package'
+  const channelLabel = {
+    instagram: 'Instagram',
+    facebook: 'Facebook',
+    'instagram-facebook': 'Instagram + Facebook',
+    whatsapp: 'WhatsApp',
+  }[String(channel)] || 'Instagram + Facebook'
+  const hookOptions = [
+    `See how ${resolvedOffer} becomes a client-ready presentation faster.`,
+    `From concept to approval pack: one clearer path for ${resolvedOffer}.`,
+    `Turn project complexity into an easy yes with a stronger visual and commercial story.`,
+  ]
+  const ctaOptions = [
+    'Request your presentation pack',
+    'Book a discovery call',
+    'Send your plan to start',
+    'Approve the next design step',
+  ]
+  const vslLanding = {
+    urgencyBar: 'Use a real deadline banner only when the launch, price change or closing window is verified.',
+    autoplayPrompt: 'Open with muted autoplay when needed and show a visible click-to-unmute prompt.',
+    heroHeadline: `Present ${resolvedOffer} with a premium VSL conversion page.`,
+    heroSubheadline: `Use a direct video-first page for ${resolvedAudience} with a clear CTA to checkout, WhatsApp or booking.`,
+    playerBehavior: [
+      'Keep the video above the fold with CTA visible immediately below it.',
+      'Prompt the user to enable audio when browser autoplay starts muted.',
+      'Maintain a conversion CTA while the video explains the offer.',
+    ],
+    ctaLabel: ctaOptions[0],
+    ctaDestinationHint: 'Connect to Hotmart, Stripe, WhatsApp or a booking URL.',
+    pageSections: [
+      'Urgency / availability bar at the top.',
+      'Hero section with headline, video player and CTA.',
+      'Trust and deliverables section below the fold.',
+      'Secondary CTA after proof / objections handling.',
+      'Footer with terms and privacy links.',
+    ],
+    trustElements: [
+      'Real urgency only when true.',
+      'Visible terms of use and privacy links.',
+      'Support/contact destination and brand signature.',
+    ],
+    trackingChecklist: [
+      'Preserve UTM and source parameters.',
+      'Track video play, audio enable, CTA click and checkout start.',
+      'Create A/B variants for headline, urgency copy and CTA.',
+    ],
+  }
+  const primaryCaption = `Present ${resolvedOffer} with faster approvals, clearer visuals and a stronger next step. Campaign drafted for ${resolvedAudience} on ${channelLabel}.`
+  const alternateCaptions = [
+    `A cleaner campaign flow for ${resolvedAudience}.`,
+    'One message connecting design, technical clarity and commercial value.',
+    'Show the project, explain the benefit and move the client to action.',
+  ]
+  const adVariations = [
+    {
+      title: 'Fast approval angle',
+      copy: `Use Apex to transform ${resolvedOffer} into a presentation that clients understand quickly.`,
+      creativeDirection: 'Before/after, value-first messaging, premium visuals',
+    },
+    {
+      title: 'Complete package angle',
+      copy: `Bundle visuals, technical clarity and next steps in one campaign asset instead of fragmented files.`,
+      creativeDirection: 'Carousel or vertical short with package sequence',
+    },
+    {
+      title: 'Trust and premium angle',
+      copy: `Position ${resolvedOffer} as a premium, organized and decision-ready service.`,
+      creativeDirection: 'Minimalist premium design with direct CTA',
+    },
+  ]
+  const storyboard = [
+    'Open with the strongest result or benefit in 3 seconds.',
+    'Show the hero visual or transformed outcome.',
+    'Highlight package components and client clarity.',
+    'Reinforce urgency or convenience.',
+    'End with a direct CTA.',
+  ]
+  const publishingChecklist = [
+    `Confirm channel and format for ${channelLabel}.`,
+    'Approve brand tone and legal/commercial wording.',
+    'Prepare landing page, WhatsApp or booking destination.',
+    'Generate A/B hook and CTA variants.',
+    'If needed, hand off to marketing_generate or DirectCut for execution assets.',
+  ]
+  return {
+    providerStatus: 'LOCAL_CAMPAIGN_PACK',
+    generatedAt: new Date().toISOString(),
+    goal: String(campaignGoal || 'lead-generation'),
+    channel: String(channel || 'instagram-facebook'),
+    format: String(format || 'social-pack'),
+    audience: resolvedAudience,
+    offerSummary: resolvedOffer,
+    hookOptions,
+    primaryCaption,
+    alternateCaptions,
+    ctaOptions,
+    adVariations,
+    storyboard,
+    publishingChecklist,
+    vslLanding,
+    report: [
+      'Campaign Automation Pack',
+      `Generated: ${new Date().toISOString()}`,
+      `Goal: ${String(campaignGoal || 'lead-generation')}`,
+      `Channel: ${channelLabel}`,
+      `Audience: ${resolvedAudience}`,
+      `Offer: ${resolvedOffer}`,
+      `Format: ${String(format || 'social-pack')}`,
+      '',
+      'CTA options:',
+      ...ctaOptions.map(item => `- ${item}`),
+      '',
+      'VSL landing essentials:',
+      `- Headline: ${vslLanding.heroHeadline}`,
+      `- CTA: ${vslLanding.ctaLabel}`,
+      `- Destination: ${vslLanding.ctaDestinationHint}`,
+    ].join('\n'),
+  }
+}
+async function handleCampaignAutomationPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createCampaignAutomationPlan(String(body.goal || ''), String(body.campaignGoal || 'lead-generation'), String(body.channel || 'instagram-facebook'), String(body.format || 'social-pack'), String(body.audience || ''), String(body.offer || '')) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'LOCAL_CAMPAIGN_PACK' }) } }
 
 const authRoles = [
   'Owner/Admin',
@@ -4728,6 +5668,7 @@ function serveStatic(req, res) {
 }
 
 const server = http.createServer(async (req, res) => {
+  try {
   if (req.url === '/api/copilot/code-executor/plan' && req.method === 'POST') {
     handleOwnerCodeExecutorPlan(req, res)
     return
@@ -4819,6 +5760,14 @@ const server = http.createServer(async (req, res) => {
     handleExportPackage(req, res)
     return
   }
+  if (req.url === '/api/copilot/generation-history' && req.method === 'POST') {
+    handleGenerationHistory(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/project-package' && req.method === 'POST') {
+    handleProjectPackage(req, res)
+    return
+  }
   if (req.url === '/api/copilot/business-plan' && req.method === 'POST') {
     handleBusinessPlan(req, res)
     return
@@ -4865,6 +5814,18 @@ const server = http.createServer(async (req, res) => {
   }
   if (req.url === '/api/copilot/metrics-plan' && req.method === 'POST') {
     handleMetricsPlan(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/avatar-voice-plan' && req.method === 'POST') {
+    handleAvatarVoicePlan(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/campaign-plan' && req.method === 'POST') {
+    handleCampaignAutomationPlan(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/autoupgrade-plan' && req.method === 'POST') {
+    handleAutoupgradePlan(req, res)
     return
   }
   if (req.url === '/api/copilot/auth-plan' && req.method === 'POST') {
@@ -4939,6 +5900,21 @@ const server = http.createServer(async (req, res) => {
     return
   }
   serveStatic(req, res)
+  } catch (error) {
+    const normalized = captureServerException(error, {
+      route: req.url,
+      method: req.method,
+    })
+    if (!res.headersSent) {
+      json(res, 500, {
+        error: 'Unexpected server error.',
+        detail: normalized.message,
+        providerStatus: 'SERVER_ERROR_CAPTURED',
+      })
+    } else {
+      await flushObservability()
+    }
+  }
 })
 
 const port = Number(process.env.PORT || 4177)

@@ -80,6 +80,8 @@
     "For Supply Chain / Suppliers requests, create local supplier registry, procurement items, RFQs and supplier comparisons. Do not fake ERP integration, supplier price, supplier availability or verification. Label supplier/pricing data USER_ENTERED, PLACEHOLDER or NEEDS_VERIFICATION.",
     "For Notifications / Alerts requests, create local alerts only. Do not claim push, email, SMS, calendar or external notification delivery unless a connector is actually connected. Label as Local alert only — notification connector not connected yet.",
     "For AI Cost / Observability requests, show local estimated usage/cost by module/project/model only. Do not claim OpenAI/provider billing accuracy unless a real billing/usage API source is connected. Use ESTIMATED_LOCAL for local estimates.",
+    "For model/provider status requests, report only what the current runtime really exposes: Gateway path, Gemini path via OpenRouter, Sentry frontend/backend and Vercel detection. If a path is not configured, say not configured instead of assuming availability.",
+    "For advanced model access requests, Apex can use the standard picker plus manual provider/model entry for Gateway, OpenRouter and Gemini paths. Manual entry does not guarantee the provider supports that model; report provider errors truthfully.",
     "For questions or reviews about platform skills (like Apex Global Orchestrator, Revit Customization, Documentation Governance, Hotmart Campaign, Support Skills, MCP Builder, or Analyzer Agent), you MUST call run_safe_local_command with commandId: skill_audit."
   ],
   "memorySummary": [
@@ -95,7 +97,12 @@
     "Cognitive Agents layer integrated: 8 legacy agents mapped to current studios with implemented/partial/planned status, evidence rules, gaps and recommended checkpoints.",
     "CP11C integrated: EVM Analyst, Scheduler and NR Compliance now have local-first workspace, backend endpoint, evidence labels, reports and Export Center support. Future connectors are required for live cost/progress feeds, baseline schedule imports and official safety/compliance review.",
     "CP11E integrated: Supply Chain / Suppliers, Notifications / Alerts and AI Cost / Observability are local-first workspaces with backend endpoints, Project Workspace persistence and Export Center support. Future connectors are required for ERP/supplier data, push/email/SMS and provider billing accuracy.",
-    "CP11F integrated: Multi-tenant readiness, PWA/mobile field mode, Digital Twin UI, Knowledge Base UI and Metrics Dashboard UI are local-first planning/workspace modules. Future connectors are required for Supabase/auth/RLS tenant isolation, installable PWA validation, real-time IoT/model sync, governed knowledge base and production telemetry."
+    "CP11F integrated: Multi-tenant readiness, PWA/mobile field mode, Digital Twin UI, Knowledge Base UI and Metrics Dashboard UI are local-first planning/workspace modules. Future connectors are required for Supabase/auth/RLS tenant isolation, installable PWA validation, real-time IoT/model sync, governed knowledge base and production telemetry.",
+    "AI runtime hardening integrated: the shared server runtime now loads local env before boot, the model picker defaults to a valid Gateway model, only configured Gateway/Gemini paths are exposed, and Gemini requests are routed through OpenRouter when configured.",
+    "Platform Status + interactive manual updated: Apex can explain the current provider/observability state, the owner-run Autoupgrade model and the canonical status sources README + CHECKPOINT_TRACKER + APEX_PLATFORM_CURRENT_STATE.",
+    "Campaign Automation expanded: Apex now prepares both social campaign packs and VSL/video-sales landing blueprints with urgency bar, autoplay/audio prompt, CTA destination, proof/footer structure and tracking checklist.",
+    "Public stakeholder route integrated: Apex now exposes a standalone public VSL landing at /vsl with aliases /oferta and /apresentacao, preserving UTM parameters into the CTA destination.",
+    "Model access expanded: the UI now allows manual provider/model entry so the Owner can keep using broader Gateway, OpenRouter and Gemini model IDs without waiting for the static picker catalog."
   ],
   "tools": [
     {

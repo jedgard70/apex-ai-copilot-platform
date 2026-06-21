@@ -2169,6 +2169,32 @@ textarea {
   line-height: 1.4;
 }
 
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.status-chip.ready {
+  background: rgba(34, 197, 94, 0.18);
+  color: #86efac;
+}
+
+.status-chip.partial {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fcd34d;
+}
+
+.status-chip.planned {
+  background: rgba(59, 130, 246, 0.18);
+  color: #93c5fd;
+}
+
 .fieldops-photo-preview {
   overflow: hidden;
   border: 1px solid rgba(150, 164, 195, 0.18);
@@ -2238,6 +2264,157 @@ textarea {
   background: linear-gradient(135deg, #d7192a, #6d7cff);
   border-color: transparent;
 }
+
+.contracts-secondary {
+  background: rgba(109, 168, 255, 0.1);
+  border-color: rgba(109, 168, 255, 0.3);
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+/* Campaign Social Content */
+.campaign-tab-bar {
+  display: flex;
+  border-bottom: 1px solid rgba(109, 168, 255, 0.15);
+  margin-bottom: 14px;
+  gap: 4px;
+}
+
+.campaign-tab-bar button {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: rgba(180, 200, 255, 0.5);
+  font-size: 13px;
+  padding: 8px 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.campaign-tab-bar button.active {
+  color: #9bc4ff;
+  border-bottom-color: #6da8ff;
+}
+
+.social-hashtag-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.social-hashtag-label {
+  font-size: 11px;
+  color: rgba(180, 200, 255, 0.45);
+  min-width: 50px;
+  padding-top: 4px;
+}
+
+.social-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.social-tags span {
+  background: rgba(109, 168, 255, 0.1);
+  border: 1px solid rgba(109, 168, 255, 0.2);
+  border-radius: 999px;
+  font-size: 11px;
+  color: rgba(180, 200, 255, 0.75);
+  padding: 2px 8px;
+}
+
+.social-caption-block {
+  border: 1px solid rgba(109, 168, 255, 0.12);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+
+.social-caption-type {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(180, 200, 255, 0.4);
+  margin-bottom: 6px;
+}
+
+.social-caption-text {
+  font-size: 13px;
+  color: #eaf0ff;
+  margin: 0 0 8px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.social-reels-timing {
+  background: rgba(109, 168, 255, 0.04);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-top: 6px;
+}
+
+.social-reels-timing strong {
+  font-size: 11px;
+  display: block;
+  margin-bottom: 8px;
+  color: rgba(180, 200, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.social-timing-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 5px;
+  font-size: 12px;
+  color: rgba(180, 200, 255, 0.8);
+}
+
+.timing-segment {
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 2px 6px;
+  min-width: 54px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.timing-segment.hook { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+.timing-segment.content { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; }
+.timing-segment.cta { background: rgba(34, 197, 94, 0.2); color: #86efac; }
+.timing-segment.total { background: rgba(109, 168, 255, 0.15); color: #9bc4ff; }
+
+.social-calendar {
+  display: grid;
+  gap: 4px;
+}
+
+.social-cal-row {
+  display: grid;
+  grid-template-columns: 72px 100px 90px 1fr;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  background: rgba(109, 168, 255, 0.04);
+  align-items: start;
+}
+
+.cal-day { font-weight: 600; color: #9bc4ff; }
+.cal-type { color: rgba(180, 200, 255, 0.65); }
+.cal-format { color: rgba(180, 200, 255, 0.45); font-size: 11px; }
+.cal-suggestion { color: rgba(180, 200, 255, 0.8); }
+/* end Campaign Social Content */
 
 .contracts-section-head {
   display: flex;
@@ -3509,7 +3686,8 @@ body {
 }
 
 .project-field input,
-.project-field select {
+.project-field select,
+.project-field textarea {
   min-height: 40px;
   border: 1px solid #dfe5ee;
   border-radius: 11px;
@@ -3517,6 +3695,12 @@ body {
   color: #07183f;
   background: #ffffff;
   font: inherit;
+}
+
+.project-field textarea {
+  min-height: 88px;
+  padding: 10px;
+  resize: vertical;
 }
 
 .project-summary-grid {
@@ -3549,6 +3733,57 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.project-profile-card {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #edf1f6;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.project-profile-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.project-profile-head strong {
+  display: block;
+  color: #07183f;
+}
+
+.project-profile-head p {
+  margin: 4px 0 0;
+  color: #64708b;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.project-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.project-field-wide {
+  grid-column: 1 / -1;
+}
+
+.research-source-link {
+  display: inline-flex;
+  margin-top: 6px;
+  color: #0f62fe;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.research-source-link:hover {
+  text-decoration: underline;
 }
 
 .project-actions button:first-child {
@@ -4625,6 +4860,176 @@ body {
   border-color: rgba(109, 168, 255, 0.32);
   background: rgba(109, 168, 255, 0.12);
 }
+
+/* DirectCut Node Board */
+.directcut-view-toggle {
+  display: flex;
+  border: 1px solid rgba(109, 168, 255, 0.25);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.directcut-view-toggle button {
+  background: transparent;
+  border: none;
+  color: rgba(180, 200, 255, 0.6);
+  font-size: 12px;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.directcut-view-toggle button.active {
+  background: rgba(109, 168, 255, 0.2);
+  color: #9bc4ff;
+}
+
+.directcut-view-toggle button:hover:not(.active) {
+  background: rgba(109, 168, 255, 0.08);
+}
+
+.node-board-hint {
+  font-size: 11px;
+  color: rgba(180, 200, 255, 0.45);
+  margin: 0 0 10px;
+}
+
+.directcut-node-board {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.directcut-node {
+  background: rgba(109, 168, 255, 0.05);
+  border: 1px solid rgba(109, 168, 255, 0.18);
+  border-radius: 10px;
+  padding: 10px 12px;
+  transition: border-color 0.15s, opacity 0.15s;
+}
+
+.directcut-node.locked {
+  border-color: rgba(255, 200, 100, 0.3);
+  background: rgba(255, 200, 100, 0.04);
+}
+
+.directcut-node.dragging {
+  opacity: 0.45;
+}
+
+.directcut-node-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.node-grip {
+  color: rgba(180, 200, 255, 0.3);
+  cursor: grab;
+  flex-shrink: 0;
+}
+
+.node-num {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(180, 200, 255, 0.55);
+  flex: 1;
+}
+
+.node-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.node-actions button {
+  background: transparent;
+  border: 1px solid rgba(109, 168, 255, 0.2);
+  border-radius: 5px;
+  color: rgba(180, 200, 255, 0.55);
+  font-size: 11px;
+  padding: 3px 7px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.node-actions button:hover:not(:disabled) {
+  background: rgba(109, 168, 255, 0.15);
+  color: #9bc4ff;
+}
+
+.node-actions button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.node-scene-text {
+  width: 100%;
+  background: rgba(109, 168, 255, 0.06);
+  border: 1px solid rgba(109, 168, 255, 0.15);
+  border-radius: 7px;
+  color: #eaf0ff;
+  font-size: 13px;
+  padding: 8px 10px;
+  resize: vertical;
+  box-sizing: border-box;
+  line-height: 1.5;
+}
+
+.node-scene-text:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.node-ai-note {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  color: rgba(180, 255, 200, 0.6);
+  font-style: italic;
+}
+
+.node-settings {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.node-settings select {
+  background: rgba(109, 168, 255, 0.08);
+  border: 1px solid rgba(109, 168, 255, 0.2);
+  border-radius: 6px;
+  color: rgba(180, 200, 255, 0.8);
+  font-size: 11px;
+  padding: 4px 7px;
+  flex: 1;
+}
+
+.directcut-node-add {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px dashed rgba(109, 168, 255, 0.25);
+  border-radius: 10px;
+  color: rgba(180, 200, 255, 0.5);
+  font-size: 13px;
+  padding: 10px;
+  cursor: pointer;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.directcut-node-add:hover {
+  background: rgba(109, 168, 255, 0.08);
+  color: #9bc4ff;
+}
+
+/* end DirectCut Node Board */
 
 .video-constraints-panel {
   display: grid;

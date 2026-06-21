@@ -5,6 +5,7 @@ import {
   Clipboard,
   Download,
   FileJson,
+  FileText,
   HardHat,
   Plus,
   Save,
@@ -13,6 +14,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react'
+import { exportFieldOpsPdf } from '../lib/fieldOpsPdfExport'
 import { formatSize, IntakeFile } from '../lib/fileIntake'
 import {
   FieldAcceptanceStatus,
@@ -38,7 +40,7 @@ type FieldOpsPanelProps = {
   source?: IntakeFile
   goal: string
   conversationContext: string[]
-  onSaveToProject?: (payload: FieldOpsPlan) => void
+  onSaveToProject?: (payload: FieldOpsPlan, context: FieldRdoContext) => Promise<string | void> | string | void
   onSendToBudget?: (summary: string) => void
   onSendToContracts?: (summary: string) => void
   onSendToDirectCut?: (summary: string) => void
@@ -104,6 +106,7 @@ export function FieldOpsPanel({
   }))
   const [plan, setPlan] = useState<FieldOpsPlan | null>(null)
   const [loading, setLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [draftActivity, setDraftActivity] = useState('Field activity performed today')
   const [draftIssue, setDraftIssue] = useState('Open field issue / punch item')
@@ -216,6 +219,20 @@ export function FieldOpsPanel({
       ],
     })
     setDraftPhotoCaption('')
+  }
+
+  async function savePlan() {
+    if (!onSaveToProject) return
+    setSaving(true)
+    setMessage('')
+    try {
+      const result = await onSaveToProject(snapshot, context)
+      setMessage(result || 'Field report saved.')
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Field report save failed.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const snapshot = currentPlan()
@@ -469,8 +486,9 @@ export function FieldOpsPanel({
 
           <div className="contracts-actions">
             <button type="button" onClick={() => downloadTextFile('apex-field-rdo.json', JSON.stringify(snapshot, null, 2), 'application/json;charset=utf-8')}><FileJson size={15} /> Export RDO JSON</button>
+            <button type="button" onClick={() => exportFieldOpsPdf(snapshot, context)}><FileText size={15} /> Export RDO PDF</button>
             <button type="button" onClick={() => copyText(planText(snapshot))}><Clipboard size={15} /> Copy RDO text</button>
-            <button type="button" onClick={() => onSaveToProject?.(snapshot)}><Save size={15} /> Save to Project Workspace</button>
+            <button type="button" onClick={savePlan} disabled={saving}><Save size={15} /> {saving ? 'Saving...' : 'Save to Project Workspace'}</button>
             <button type="button" onClick={() => onSendToBudget?.(snapshot.nextDayPlan || snapshot.clientSummary)}><Send size={15} /> Send blockers to Budget</button>
             <button type="button" onClick={() => onSendToContracts?.(snapshot.qualityPunchList || snapshot.internalFieldReport)}><Send size={15} /> Send contract issue to Contracts</button>
             <button type="button" onClick={() => onSendToDirectCut?.(snapshot.clientSummary || snapshot.rdoDraft)}><Download size={15} /> Send progress to DirectCut</button>

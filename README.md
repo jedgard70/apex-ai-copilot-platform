@@ -23,6 +23,12 @@ Create `.env.local` locally:
 ```env
 [REDACTED]
 OPENAI_MODEL=gpt-4o-mini
+VITE_SENTRY_DSN=
+SENTRY_DSN=
+VITE_SENTRY_ENVIRONMENT=development
+SENTRY_ENVIRONMENT=development
+VITE_SENTRY_TRACES_SAMPLE_RATE=0.2
+SENTRY_TRACES_SAMPLE_RATE=0.2
 ```
 
 Run:
@@ -31,6 +37,27 @@ Run:
 npm run build
 npm start
 ```
+
+## Observability and E2E
+
+- **Vercel Analytics / Speed Insights** are mounted in the frontend runtime.
+- **Sentry frontend** uses `VITE_SENTRY_DSN`.
+- **Sentry backend** uses `SENTRY_DSN`.
+- **Server runtime** now loads local env configuration before boot, so model/provider keys in `.env.local` are available to `server.mjs`.
+- **Platform Status** now reports whether Sentry frontend/backend are configured and whether the runtime is running on Vercel.
+- **Platform Status** also reports whether Gateway and Gemini model paths are actually configured.
+- **Model picker** supports manual advanced provider/model entry for Gateway, OpenRouter and Gemini paths.
+- **Field Operations / RDO** now saves to the local Project Workspace and, when Supabase session + tenant bootstrap are ready, syncs the report into `rdos`, `rdo_activities`, `field_issues`, `punch_items`, `field_photos`, `safety_checklists`, `quality_checklists` and `corrective_actions`.
+- **Campaign Automation** now includes a VSL / video-sales landing blueprint with CTA destination, urgency bar, player behavior and tracking checklist.
+- **Public VSL route** is available at `/vsl` (also `/oferta` and `/apresentacao`) with configurable `headline`, `subheadline`, `video`, `cta`, `ctaLabel`, `terms`, `privacy`, `brand` and `support` query parameters.
+- **Online campaign endpoint** is available at `/api/copilot/campaign-plan` for the shared web runtime.
+- **Playwright smoke tests** are green and now run with a stable split:
+
+```bash
+npm run test:e2e
+```
+
+- `npm run test:e2e` now builds first, then starts only the shared Node runtime for Playwright, avoiding the previous combined build/webServer hang on Windows.
 
 Open:
 
@@ -45,3 +72,6 @@ The platform documentation and target objective details are located in the `docs
 Operational status source of truth for phases/modules/connectors:
 
 - `CHECKPOINT_TRACKER.md`
+- `docs/APEX_PLATFORM_CURRENT_STATE.md`
+
+The Apex AI Copilot runtime and platform-map/manual flows should treat these files as the canonical operational summary when answering platform-status and capability questions.
