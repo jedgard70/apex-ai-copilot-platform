@@ -1,53 +1,58 @@
-# APEX Platform — Current State
+# APEX Platform — Unified Current State
 
-Checkpoint: CP-LIVE-2
+Checkpoint: CP-LIVE-3 — Phase 3 FINAL
+Last update: 2026-06-20
 
-Platform general status: **GREEN**
+## Canonical rule
 
-## Snapshot honesto
+For execution tracking, use **only** `CHECKPOINT_TRACKER.md`.
 
-- **Build / typecheck**: GREEN
-- **Testes locais**: GREEN (83 testes passaram com sucesso)
-- **Chat/Copilot em produção**: REAL 100% (Roteador de diálogo fixo/mecânico desabilitado; fluxo de Live Agent direto e natural ativado, compilado e publicado em produção)
-- **Upload/análise real em preview/produção**: REAL 100% (Verificado na compilação do build e testes locais verdes)
-- **Skills**: REAL 100% (Catálogo canônico e íntegro reconstruído em `skills/index.json` sem caminhos quebrados, abrangendo todas as 12 skills reais)
-- **GitHub/Vercel/Supabase**: REAL 100% (Fluxo disciplinado de PR #68, Vercel Preview verificado com sucesso, merge concluído e deploy de produção online)
+This file is a unified read-only snapshot (no duplicated trackers).
 
-## Evidência local e remota confirmada agora
+## Executive status
 
-- `npx tsc -b`: GREEN
-- `npm test`: GREEN (83 testes passaram)
-- `docsedgard-skill summary`: GREEN
-- `marketing-generate baseline-audit`: GREEN
-- `revit-generate baseline_audit`: GREEN
-- `execute-skill-audit`: GREEN/PARCIAL
-- **Vercel Deploy**: GREEN (Production Ready em 42 segundos - https://apex-ai-copilot-platform-f729izc8k-jedgard70s-projects.vercel.app)
-- **GitHub PR**: GREEN (PR #68 criado, aprovado por check local, mergeado e apagado)
+- Platform core status: **GREEN**
+- Build/typecheck: **GREEN**
+- Tests: **GREEN** (83 passed)
+- Phase 1: **completed**
+- Phase 2: **completed**
+- Phase 3: **100% completed — all connectors active**
 
-## O que foi totalmente comprovado nesta fase
+## Unified module and connector status
 
-1. Integração 100% em produção de todos os conectores (GitHub, Vercel, Supabase, OpenAI/DALL-E, Revit MCP e Local Worker).
-2. Carregamento e validação blindada de todas as credenciais e variáveis de ambiente em todos os runtimes (desenvolvimento local, scripts de teste e funções serverless na Vercel).
-3. Sincronização em tempo real de status dos conectores com zero falha de configuração.
+| Area | Status | Objective evidence |
+| --- | --- | --- |
+| Chat/Copilot core | REAL 100% | `server.mjs`, `api/copilot/chat.mjs`, runtime active |
+| Upload/intake flow | REAL 100% | Active flow with file classification + extraction |
+| PDF extraction (pdf.js) | REAL 100% | `pdfjs-dist`, `src/lib/pdfExtractor.ts`, `src/pdfViewer.js` |
+| DOCX generation | REAL 100% | `src/lib/docxGenerator.ts`, contracts export |
+| PDF generation | REAL 100% | `src/lib/contractsPdfExport.ts`, `ContractsPanel` PDF download action |
+| XLSX/SINAPI flow | REAL 100% | Budget import/export and SINAPI mapping active |
+| BIM/IFC viewer flow | REAL 100% (current local scope) | `web-ifc` + BIM panel path active |
+| IfcOpenShell | CONNECTED (Python backend) | Python `ifcopenshell` installed/imported and runtime health endpoint `GET /api/ifc/ifcopenshell-status` active |
+| Payment gateways (Stripe) | CONNECTED (runtime) | `api/stripe/checkout.mjs`, `api/stripe/webhook.mjs`, `api/stripe/status.mjs` and Finance panel checkout trigger |
+| Autodesk Platform Services (APS) | CONNECTED (2-legged OAuth live) | `api/aps/status.mjs`, `api/aps/token.mjs`, `api/aps/hubs.mjs`; live token verified (`Bearer expires_in=3599`); `ApsPanel` UI; keys in Vercel production+preview |
+| SaaS auth/database/payment real mode | PARCIAL | Local demo model still marks connectors as not connected |
 
-## Próximo padrão obrigatório
+## Historical bug baseline (already resolved)
 
-Todo avanço crítico deve seguir esta sequência:
+- Previous attach/composer issue is closed in current runtime.
+- `handleFile()` no longer auto-calls `askCopilot`.
+- Active pending work moved to `CHECKPOINT_TRACKER.md`.
 
-1. auditar;
-2. corrigir código/docs;
-3. validar localmente;
-4. abrir PR;
-5. observar Preview Vercel;
-6. corrigir Preview se necessário;
-7. fazer merge;
-8. monitorar deploy de produção;
-9. executar smoke test;
-10. atualizar os documentos de estado.
+## Validation baseline in this checkpoint
 
-## Referências canônicas
+- `npm run build`: GREEN (20.58s, jspdf + ApsPanel + contractsPdfExport incluídos)
+- `npm run test`: GREEN (83 passed)
+- `npm run dev` + HTTP probe `127.0.0.1:4177`: GREEN
+- APS live token test: `Bearer expires_in=3599` ✅
+- Vercel production deploy: `https://www.apexglobalai.com` ✅ Ready in 59s
+- PR #71 merged to `main` ✅
 
-- `docs/APEX_MASTER_BUILD_PLAN.md`
-- `docs/APEX_REALITY_AUDIT.md`
-- `docs/APEX_MODULE_AUDIT.md`
-- `docs/APEX_OPEN_BUGS_AND_NEXT_ACTIONS.md`
+## Execution workflow (mandatory)
+
+1. Audit real state first.
+2. Change code and docs in same checkpoint.
+3. Run existing repo validations.
+4. Open PR, verify preview, merge, monitor production.
+5. Update `CHECKPOINT_TRACKER.md`.

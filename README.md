@@ -42,3 +42,6 @@ Open:
 
 The platform documentation and target objective details are located in the `docs/` directory.
 
+Operational status source of truth for phases/modules/connectors:
+
+- `CHECKPOINT_TRACKER.md`

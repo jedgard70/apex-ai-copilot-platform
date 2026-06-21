@@ -39,6 +39,7 @@
     "firebase": "^12.15.0",
     "firebase-admin": "^14.0.0",
     "genkit": "^1.37.0",
+    "jspdf": "^4.2.1",
     "lucide-react": "^0.511.0",
     "pdfjs-dist": "^6.0.227",
     "react": "^19.0.0",
