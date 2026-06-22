@@ -1,6 +1,7 @@
 const { app, BrowserWindow, Menu, utilityProcess, ipcMain, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const http = require('http');
 
 let mainWindow = null;
 let serverProcess = null;
@@ -93,6 +94,29 @@ function startServers() {
   }
 }
 
+function waitForServerReady(timeoutMs = 20000, intervalMs = 500) {
+  const startedAt = Date.now();
+  return new Promise((resolve) => {
+    const check = () => {
+      const req = http.get('http://127.0.0.1:4177/api/copilot/models', (res) => {
+        res.resume();
+        resolve(true);
+      });
+      req.on('error', () => {
+        if (Date.now() - startedAt >= timeoutMs) {
+          resolve(false);
+          return;
+        }
+        setTimeout(check, intervalMs);
+      });
+      req.setTimeout(2000, () => {
+        req.destroy();
+      });
+    };
+    check();
+  });
+}
+
 function createWindow() {
   log('[electron-main] Creating main window...');
   mainWindow = new BrowserWindow({
@@ -139,7 +163,6 @@ function cleanup() {
   }
 }
 
-const http = require('http');
 const crypto = require('crypto');
 
 function base64URLEncode(buf) { return buf.toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
@@ -212,8 +235,14 @@ app.on('ready', () => {
   log('[electron-main] App starting on ready event');
   
   startServers();
-  // Wait a small buffer (1.5 seconds) for servers to start and bind to ports
-  setTimeout(createWindow, 1500);
+  waitForServerReady(20000, 500).then((ready) => {
+    if (!ready) {
+      log('[electron-main] Backend readiness timed out. Opening window anyway.');
+    } else {
+      log('[electron-main] Backend ready. Opening window.');
+    }
+    createWindow();
+  });
 });
 
 app.on('window-all-closed', () => {

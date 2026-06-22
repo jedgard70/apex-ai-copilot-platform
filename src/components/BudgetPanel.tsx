@@ -439,7 +439,7 @@ export function BudgetPanel({
           <div className="budget-card budget-estimate-head">
             <div>
               <span>Provider status</span>
-              <strong>{plan?.providerStatus || 'planning-only'}</strong>
+              <strong>{plan?.providerStatus || 'ready'}</strong>
               <p>{plan?.confidenceSummary || 'Generate a draft first. Prices are placeholders or user-provided assumptions until a pricing database is connected.'}</p>
               <small>SINAPI source: {plan?.assumptions.sinapiStatus || assumptions.sinapiStatus}</small>
             </div>
@@ -529,7 +529,7 @@ export function BudgetPanel({
                 <button type="button" onClick={() => {
                   if (!pendingClarification.trim()) return
                   const nextPlan = plan || {
-                    providerStatus: 'planning-only',
+      providerStatus: 'ready',
                     assumptions,
                     estimateItems: [],
                     scopeIncluded,

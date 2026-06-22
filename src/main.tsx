@@ -3,9 +3,11 @@ import { createRoot } from 'react-dom/client'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 import {
+  Activity,
   ArrowUp,
   Bot,
   Building2,
+  Compass,
   LogOut,
   Mic,
   Paperclip,
@@ -906,54 +908,30 @@ function isInternalImportFormat(fileName: string) {
 function inferDirectCutConfig(text: string, attachment?: IntakeFile): DirectCutInitialConfig {
   const lower = text.toLowerCase()
   const config: DirectCutInitialConfig = {
-    videoMode: attachment?.kind === 'image' ? 'image-to-video' : 'generate-videos',
-    duration: '15s',
+    duration: '8',
     aspectRatio: '16:9',
-    audio: 'on',
-    voice: 'narrator',
-    style: 'professional-real-estate',
-    lighting: 'keep-original',
+    style: 'hyper-real',
     cameraMovement: 'dolly-in',
   }
 
   if (/(reels|short|story|stories|tiktok|instagram|vertical|9:16)/i.test(lower)) {
-    config.videoMode = 'social-media-short'
     config.aspectRatio = '9:16'
-    config.style = 'social-media'
+    config.style = 'cinematic'
     config.cameraMovement = 'dolly-in'
   }
   if (/(venda|sales|comercial|cliente|real estate|imobili[aá]rio)/i.test(lower)) {
-    config.videoMode = config.videoMode === 'social-media-short' ? 'social-media-short' : 'real-estate-sales-video'
-    config.style = config.style === 'social-media' ? 'social-media' : 'professional-real-estate'
-  }
-  if (/(transformar imagem em v[ií]deo|imagem em v[ií]deo|image to video|a partir dessa imagem|a partir da imagem)/i.test(lower)) {
-    config.videoMode = 'image-to-video'
-  }
-  if (/(alterar luz|mudar luz|relight|reiluminar|transfer light|transferir luz)/i.test(lower)) {
-    config.videoMode = 'relight-video'
-    config.lighting = /transfer/i.test(lower) ? 'transfer-light' : 'relight'
-  }
-  if (/(adicionar voz|add voice|narra[cç][aã]o|narrador|voiceover)/i.test(lower)) {
-    config.videoMode = 'add-voice'
-    config.audio = 'on'
-    config.voice = 'narrator'
+    config.style = config.style === 'cinematic' ? 'cinematic' : 'hyper-real'
   }
   if (/(tour|walkthrough|caminhada|3d scenes|movimento de c[aâ]mera|camera movement)/i.test(lower)) {
-    config.videoMode = '3d-scenes-camera-movement'
     config.cameraMovement = 'walkthrough'
     config.style = 'cinematic'
   }
   if (/(cinematic|cinem[aá]tico|efeito cinematogr[aá]fico)/i.test(lower)) {
-    config.videoMode = 'cinematic-effect'
     config.style = 'cinematic'
     config.cameraMovement = 'orbit'
   }
-  if (/(mudar luz|noite|night)/i.test(lower)) config.lighting = 'night'
-  if (/(daylight|dia|luz natural)/i.test(lower)) config.lighting = 'daylight'
-  if (/(warm|quente|aconchegante)/i.test(lower)) config.lighting = 'warm'
   if (/(bim|t[eé]cnico|technical)/i.test(lower)) {
-    config.videoMode = 'technical-walkthrough'
-    config.style = 'technical-bim'
+    config.style = 'architectural'
     config.cameraMovement = 'top-reveal'
   }
   return config
@@ -1274,12 +1252,18 @@ function App() {
 
   useEffect(() => {
     const loadModels = async () => {
-      const primary = await fetch('/api/copilot/chat?models=1').catch(() => null)
-      if (primary?.ok) return primary.json()
+      const maxAttempts = 6
+      for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        const primary = await fetch('/api/copilot/chat?models=1').catch(() => null)
+        if (primary?.ok) return primary.json()
 
-      const fallback = await fetch('/api/copilot/models').catch(() => null)
-      if (fallback?.ok) return fallback.json()
+        const fallback = await fetch('/api/copilot/models').catch(() => null)
+        if (fallback?.ok) return fallback.json()
 
+        if (attempt < maxAttempts) {
+          await new Promise(resolve => window.setTimeout(resolve, 450))
+        }
+      }
       return null
     }
 
@@ -1628,13 +1612,9 @@ function App() {
         goal: 'Prepare video draft for project sales',
         conversationContext: ['assistant: Ativei o DirectCut Studio com a configuração inicial de apresentação imobiliária.'],
         initialConfig: {
-          videoMode: 'construction-presentation',
-          duration: '30s',
+          duration: '10',
           aspectRatio: '16:9',
-          audio: 'on',
-          voice: 'narrator',
-          style: 'professional-real-estate',
-          lighting: 'daylight',
+          style: 'hyper-real',
           cameraMovement: 'dolly-in',
         }
       })
@@ -1950,8 +1930,8 @@ function App() {
     // Let natural conversations go to the server, so they are processed by the live AI agent (or fall back to local answers on failure)
     const explicitPanelOpen = Boolean(routingText) && isExplicitPanelOpenRequest(routingText)
     const shouldOpenArchVis = ((attachment?.kind === 'image') || explicitPanelOpen) && isArchVisIntent(routingText, attachment)
-    const shouldOpenDirectCut = isDirectCutIntent(routingText)
-    const shouldRenderVideoDirectly = shouldOpenDirectCut && isDirectVideoNoPanelIntent(routingText)
+    const shouldOpenDirectCut = explicitPanelOpen && isDirectCutIntent(routingText)
+    const shouldRenderVideoDirectly = isDirectCutIntent(routingText) && (isDirectVideoNoPanelIntent(routingText) || attachment?.kind === 'image' || !explicitPanelOpen)
     const shouldOpenContracts = isContractsIntent(routingText)
     const shouldOpenBudget = isBudgetIntent(routingText)
     const shouldOpenProjectPackage = isProjectPackageIntent(routingText)
@@ -2486,40 +2466,55 @@ function App() {
           ? 'Campaign automation pack exists in project exports with captions, CTAs, storyboard and ad variations.'
           : '',
       }
-      const response = await fetch('/api/copilot/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: modelText,
-          model: selectedModel,
-          language: navigator.language || 'en',
-          identityContext,
-          clientMemory,
-          workspaceContext,
-          messages: [
-            ...messages.map(message => ({
-              role: message.role,
-              text: message.text,
-            })),
-            {
-              role: userMessage.role,
-              text: modelText,
-            },
-          ],
-          file: attachment
-            ? {
-                name: attachment.file.name,
-                type: attachment.file.type,
-                size: attachment.file.size,
-                kind: attachment.kind,
-                dataUrl: attachment.kind === 'image' ? attachment.dataUrl : undefined,
-                extractedText: attachment.extractedText || undefined,
-                extractionStatus: attachment.extractedText ? 'ready' : undefined,
-                pageCount: attachment.pageCount || undefined,
-              }
-            : null,
-        }),
+      const requestBody = JSON.stringify({
+        message: modelText,
+        model: selectedModel,
+        language: navigator.language || 'en',
+        identityContext,
+        clientMemory,
+        workspaceContext,
+        messages: [
+          ...messages.map(message => ({
+            role: message.role,
+            text: message.text,
+          })),
+          {
+            role: userMessage.role,
+            text: modelText,
+          },
+        ],
+        file: attachment
+          ? {
+              name: attachment.file.name,
+              type: attachment.file.type,
+              size: attachment.file.size,
+              kind: attachment.kind,
+              dataUrl: attachment.kind === 'image' ? attachment.dataUrl : undefined,
+              extractedText: attachment.extractedText || undefined,
+              extractionStatus: attachment.extractedText ? 'ready' : undefined,
+              pageCount: attachment.pageCount || undefined,
+            }
+          : null,
       })
+
+      let response: Response | null = null
+      for (let attempt = 1; attempt <= 2; attempt += 1) {
+        try {
+          const candidate = await fetch('/api/copilot/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: requestBody,
+          })
+          response = candidate
+          if (candidate.ok || candidate.status < 500 || attempt === 2) break
+        } catch {
+          if (attempt === 2) throw new Error('Chat runtime unavailable.')
+        }
+        await new Promise(resolve => window.setTimeout(resolve, 300))
+      }
+      if (!response) {
+        throw new Error('Chat runtime unavailable.')
+      }
       const data = await response.json().catch(() => ({}))
       // H5.0D: log response mode so version is visible in browser console
       if (data?.mode) console.log('[Apex H5] response mode:', data.mode)
@@ -2692,13 +2687,9 @@ function App() {
       goal,
       conversationContext: [`assistant: ${goal}`],
       initialConfig: {
-        videoMode: 'technical-walkthrough',
-        duration: '30s',
+        duration: '10',
         aspectRatio: '16:9',
-        audio: 'on',
-        voice: 'narrator',
-        style: 'technical-bim',
-        lighting: 'daylight',
+        style: 'architectural',
         cameraMovement: 'walkthrough',
       },
     })
@@ -2944,14 +2935,14 @@ function App() {
     })
   }
 
-  function handleArchVisGeneration(payload: { sourceName: string; outputType: string; items: Array<{ id: string; timestamp: string; prompt: string; imageDataUrl: string; style: string }> }) {
+  function handleArchVisGeneration(payload: { sourceName?: string; outputType: string; items: Array<{ id: string; timestamp?: string; prompt: string; imageDataUrl?: string; image?: string; imageUrl?: string; style: string }> }) {
     if (!payload.items.length) return
     recordGenerationHistory({
       id: `archvis-${payload.items[payload.items.length - 1].id}`,
       kind: 'archvis-image',
       title: `ArchVis ${payload.outputType}`,
       sourceName: payload.sourceName,
-      createdAt: payload.items[payload.items.length - 1].timestamp,
+      createdAt: payload.items[payload.items.length - 1].timestamp || new Date().toISOString(),
       status: 'completed',
       summary: `${payload.items.length} image variation(s) generated from ${payload.sourceName}.`,
       artifactCount: payload.items.length,
@@ -2965,22 +2956,23 @@ function App() {
     })
   }
 
-  function handleDirectCutGeneration(payload: { item: { id: string; title?: string; timestamp: string; sourceMedia?: string; duration: string; aspectRatio: string; mode: string; sceneList?: string[] } }) {
+  function handleDirectCutGeneration(payload: { item: { id: string; modelId?: string; modelLabel?: string; videoUrl?: string; status?: string; startedAt?: string; title?: string; timestamp?: string; sourceMedia?: string; duration?: string; aspectRatio?: string; mode?: string; sceneList?: string[] } }) {
     const { item } = payload
     recordGenerationHistory({
       id: `directcut-${item.id}`,
       kind: 'directcut-plan',
-      title: item.title || 'DirectCut plan',
+      title: item.title || item.modelLabel || 'DirectCut render',
       sourceName: item.sourceMedia,
-      createdAt: item.timestamp,
-      status: 'completed',
-      summary: `${item.mode} plan generated with ${item.duration} / ${item.aspectRatio}.`,
-      artifactCount: Array.isArray(item.sceneList) ? item.sceneList.length : 0,
+      createdAt: item.timestamp || item.startedAt || new Date().toISOString(),
+      status: item.status === 'done' ? 'completed' : 'completed',
+      summary: `${item.modelLabel || item.modelId || 'fal.ai'} render — ${item.duration || ''}s / ${item.aspectRatio || ''}.`,
+      artifactCount: item.videoUrl ? 1 : 0,
       artifacts: item.sceneList || [],
       metadata: {
         duration: item.duration,
         aspectRatio: item.aspectRatio,
-        mode: item.mode,
+        mode: item.mode || item.modelId,
+        videoUrl: item.videoUrl,
       },
     }, {
       directCutPlans: [...activeProject.directCutPlans, item],
@@ -3967,13 +3959,9 @@ function App() {
                   goal: summary,
                   conversationContext: [`assistant: ${summary}`],
                   initialConfig: {
-                    videoMode: 'construction-presentation',
-                    duration: '30s',
+                    duration: '10',
                     aspectRatio: '16:9',
-                    audio: 'on',
-                    voice: 'narrator',
-                    style: 'professional-real-estate',
-                    lighting: 'daylight',
+                    style: 'hyper-real',
                     cameraMovement: 'dolly-in',
                   },
                 })
@@ -4070,13 +4058,9 @@ function App() {
                   goal: summary,
                   conversationContext: [`assistant: ${summary}`],
                   initialConfig: {
-                    videoMode: 'construction-presentation',
-                    duration: '30s',
+                    duration: '10',
                     aspectRatio: '16:9',
-                    audio: 'on',
-                    voice: 'narrator',
                     style: 'documentary',
-                    lighting: 'keep-original',
                     cameraMovement: 'walkthrough',
                   },
                 })
@@ -4258,13 +4242,9 @@ function App() {
                   goal: summary,
                   conversationContext: [`assistant: ${summary}`],
                   initialConfig: {
-                    videoMode: 'social-media-short',
-                    duration: '30s',
+                    duration: '10',
                     aspectRatio: '9:16',
-                    audio: 'on',
-                    voice: 'narrator',
-                    style: 'professional-real-estate',
-                    lighting: 'daylight',
+                    style: 'hyper-real',
                     cameraMovement: 'dolly-in',
                   },
                 })
@@ -4332,6 +4312,15 @@ function App() {
               <span>Role: {accountState?.role || 'local-owner'}</span>
               <span>Workspace: {accountState?.tenant?.name || 'local workspace'}</span>
               <span>Persistence: {accountState?.persistenceMode || 'localStorage'}</span>
+              <span>Auth mode: {accountState?.providerStatus === 'supabase-not-configured' ? 'local demo' : 'supabase'}</span>
+            </div>
+            <div className="owner-console-actions" style={{ marginBottom: 0 }}>
+              <button type="button" onClick={() => { setPlatformMapOutput({ goal: 'status das keys', conversationContext: [] }); setOwnerConsoleOpen(false) }}>
+                <Activity size={16} /> Status das Keys / Provedores
+              </button>
+              <button type="button" onClick={() => { setPlatformMapOutput({ goal: 'mapa da plataforma', conversationContext: [] }); setOwnerConsoleOpen(false) }}>
+                <Compass size={16} /> Mapa da Plataforma
+              </button>
             </div>
 
             <div className="owner-console-actions">

@@ -1,519 +1,590 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Copy, Download, Eraser, ImagePlus, Layers, RotateCcw, Save, Sparkles, Wand2 } from 'lucide-react'
+/**
+ * ArchVis Studio — Full-Screen Component
+ * Migrated from the ArchVis Pro HTML prototype (stitch_revit_render_studio)
+ * Design system: dark navy (#0b1326), blue primary (#b4c5ff / #2563eb)
+ */
+
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
-  archvisCameraPresets,
-  archvisPromptStyleLabels,
-  ArchVisCameraPreset,
-  ArchVisPromptStyle,
-  getArchVisNegativePrompt,
-  getArchVisStylePrompt,
-} from '../lib/archvisPromptLibrary'
-import { formatSize, IntakeFile } from '../lib/fileIntake'
+  ArrowLeft, ChevronDown, ChevronRight, Download, Grid2x2, Image,
+  ImageIcon, Layers, LayoutDashboard, Maximize2, Plus, RefreshCw,
+  Save, Search, Settings, Share2, Sliders, Sparkles, Sun, Trash2,
+  X, ZoomIn, ZoomOut,
+} from 'lucide-react'
+import { IntakeFile } from '../lib/fileIntake'
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type ArchVisTab = 'dashboard' | 'editor' | 'materials' | 'gallery'
 type GenerationMode = 'preserve-layout' | 'creative-redesign'
-type ReferenceMode = 'original' | 'selected-generation'
 type OutputType = 'humanized-floor-plan' | '3d-perspective' | 'facade-render' | 'interior-render' | 'creative-concept'
-
-type ArchVisPanelProps = {
-  source: IntakeFile
-  output: string
-  conversationContext: string[]
-  revisionConstraints: string[]
-  onAddRevisionConstraint: (constraint: string) => void
-  onRemoveRevisionConstraint: (constraint: string) => void
-  onClearRevisionConstraints: () => void
-  onRecordGeneration?: (payload: { sourceName: string; outputType: OutputType; items: GalleryItem[] }) => void
-  onClear: () => void
-}
-
-type GeneratedImageResponse = {
-  providerStatus?: string
-  message?: string
-  image?: string
-  imageUrl?: string
-  revisedPrompt?: string
-  model?: string
-  warning?: string
-  images?: {
-    image?: string
-    imageUrl?: string
-    revisedPrompt?: string
-  }[]
-}
+type PromptStyle = 'humanized-floor-plan' | 'photorealistic-facade' | 'cinematic-real-estate' | 'top-down-2d' | 'technical-drawing'
 
 type GalleryItem = {
   id: string
-  imageDataUrl: string
+  image?: string
+  imageUrl?: string
   prompt: string
-  negativePrompt: string
-  revisionConstraints: string[]
-  mode: GenerationMode
-  style: ArchVisPromptStyle
-  cameraPreset: ArchVisCameraPreset
+  style: string
   timestamp: string
-  sourceUsed: ReferenceMode
+  selected?: boolean
 }
 
-function id() {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+type ArchVisPanelProps = {
+  source?: IntakeFile
+  output?: string
+  conversationContext?: string[]
+  revisionConstraints?: string[]
+  onAddRevisionConstraint?: (c: string) => void
+  onRemoveRevisionConstraint?: (c: string) => void
+  onClearRevisionConstraints?: () => void
+  onRecordGeneration?: (payload: { sourceName?: string; outputType: string; items: GalleryItem[] }) => void
+  onClear: () => void
 }
 
-function preservePlanPrompt(lockBoundaries: boolean, preserveLabels: boolean, noInventedAreas: boolean) {
-  return [
-    getArchVisStylePrompt('humanized-floor-plan'),
-    'Transform this exact uploaded architectural floor plan into a high-quality humanized floor plan visualization.',
-    'Keep strict top-down orthographic view. This is a floor plan humanization, not a 3D perspective render.',
-    'Do not convert into eye-level, side-view, room perspective, facade, or 3D interior camera.',
-    'Preserve the original geometry, walls, room positions, pool location, garage location, road/access, lot shape, proportions and top-down camera.',
-    preserveLabels ? 'Preserve labels where possible and do not create misspelled labels.' : '',
-    lockBoundaries ? 'Preserve exact lot boundary, building footprint, exterior/service areas and blank/technical zones.' : '',
-    noInventedAreas ? 'Do not invent gardens, patios, decks, walls, openings, sidewalks or landscaping outside areas shown in the source image. Treat unclear areas as neutral.' : '',
-    'Do not redesign the plan. Do not add/remove rooms. Do not change layout.',
-    'Only improve materials, floor textures, furniture, existing landscaping, shadows, water, lighting and presentation quality.',
-  ].filter(Boolean).join('\n')
+// ─── Design tokens ────────────────────────────────────────────────────────────
+
+const T = {
+  bg: '#0b1326',
+  surface: '#0b1326',
+  surfaceContainer: '#171f33',
+  surfaceContainerHigh: '#222a3d',
+  surfaceContainerHighest: '#2d3449',
+  surfaceContainerLow: '#131b2e',
+  surfaceContainerLowest: '#060e20',
+  surfaceVariant: '#2d3449',
+  primary: '#b4c5ff',
+  primaryContainer: '#2563eb',
+  onPrimaryContainer: '#eeefff',
+  secondaryContainer: '#404a59',
+  onSecondaryContainer: '#afb9cb',
+  outline: '#8d90a0',
+  outlineVariant: '#434655',
+  onSurface: '#dae2fd',
+  onSurfaceVariant: '#c3c6d7',
+  error: '#ffb4ab',
+  tertiary: '#89ceff',
 }
 
-function creativePrompt(style: ArchVisPromptStyle, cameraPreset: ArchVisCameraPreset) {
-  return [
-    getArchVisStylePrompt(style),
-    'Creative redesign mode. This is an exploratory concept, not a faithful construction plan.',
-    cameraPreset === 'auto' ? '' : `Camera / movement: ${cameraPreset}.`,
-    'Use the active project image as inspiration, but allow stronger architecture, mood, materials and presentation.',
-  ].filter(Boolean).join('\n')
+// ─── Nav Item ─────────────────────────────────────────────────────────────────
+
+function NavItem({ icon, label, active, onClick }: {
+  icon: React.ReactNode
+  label: string
+  active: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+        padding: '8px 12px', borderRadius: 12, border: 'none', cursor: 'pointer',
+        background: active ? T.secondaryContainer : 'transparent',
+        color: active ? T.onSecondaryContainer : T.onSurfaceVariant,
+        fontSize: 12, fontWeight: 500, textAlign: 'left',
+        transition: 'all 0.15s',
+      }}
+      onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = T.surfaceContainerHighest }}
+      onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+    >
+      <span style={{ flexShrink: 0 }}>{icon}</span>
+      <span>{label}</span>
+    </button>
+  )
 }
 
-const defaultFloorPlanConstraints = [
-  'Preserve 1 bathroom and 1 laundry/service room, do not create two bathrooms.',
-  'Keep grass/green area only where it appears in the original plan.',
-  'Do not extend grass beyond the original left strip/half.',
-  'Keep all walls, openings and layout positions.',
-]
+// ─── Rendering Editor Tab ─────────────────────────────────────────────────────
 
-function outputTypePrompt(outputType: OutputType) {
-  switch (outputType) {
-    case 'humanized-floor-plan':
-      return 'Output type: Humanized floor plan / Top-down. Keep strict top-down orthographic view. No side camera, no eye-level view, no facade, no interior photograph, no 3D perspective room render.'
-    case '3d-perspective':
-      return 'Output type: 3D perspective render. Perspective/eye-level or 3/4 camera is allowed because the user explicitly requested 3D/perspective.'
-    case 'facade-render':
-      return 'Output type: Facade render. Exterior/facade camera is allowed because the user explicitly selected facade.'
-    case 'interior-render':
-      return 'Output type: Interior render. Interior camera is allowed because the user explicitly selected interior.'
-    case 'creative-concept':
-      return 'Output type: Creative concept. Redesign and interpretation are allowed; do not present this as a faithful plan.'
-  }
-}
-
-function buildRevisionConstraintBlock(revisionConstraints: string[]) {
-  if (!revisionConstraints.length) return ''
-  return [
-    'User correction constraints from previous failed outputs:',
-    ...revisionConstraints.map((constraint, index) => `${index + 1}. ${constraint}`),
-  ].join('\n')
-}
-
-function effectiveRevisionConstraints(outputType: OutputType, revisionConstraints: string[]) {
-  return outputType === 'humanized-floor-plan'
-    ? [...defaultFloorPlanConstraints, ...revisionConstraints]
-    : revisionConstraints
-}
-
-function mergeRevisionConstraintBlock(prompt: string, revisionConstraints: string[]) {
-  const withoutOldBlock = prompt
-    .replace(/\n*User correction constraints from previous failed outputs:\n(?:\d+\.\s.*\n?)*/i, '')
-    .trim()
-  const block = buildRevisionConstraintBlock(revisionConstraints)
-  return [withoutOldBlock, block].filter(Boolean).join('\n\n')
-}
-
-function buildInitialPrompt(
-  mode: GenerationMode,
-  outputType: OutputType,
-  style: ArchVisPromptStyle,
-  camera: ArchVisCameraPreset,
-  lock: boolean,
-  labels: boolean,
-  noInvented: boolean,
-  copilotOutput: string,
-  revisionConstraints: string[],
-) {
-  const base = mode === 'preserve-layout'
-    ? preservePlanPrompt(lock, labels, noInvented)
-    : creativePrompt(style, camera)
-  return [
-    outputTypePrompt(outputType),
-    base,
-    buildRevisionConstraintBlock(revisionConstraints),
-    copilotOutput ? `Copilot context:\n${copilotOutput}` : '',
-  ].filter(Boolean).join('\n\n').trim()
-}
-
-export function ArchVisPanel({
-  source,
-  output,
-  conversationContext,
-  revisionConstraints,
-  onAddRevisionConstraint,
-  onRemoveRevisionConstraint,
-  onClearRevisionConstraints,
-  onRecordGeneration,
-  onClear,
-}: ArchVisPanelProps) {
-  const [generationMode, setGenerationMode] = useState<GenerationMode>('preserve-layout')
+function RenderingEditor({ source, output, conversationContext, revisionConstraints = [], onAddRevisionConstraint, onRemoveRevisionConstraint, onClearRevisionConstraints, onRecordGeneration }: Omit<ArchVisPanelProps, 'onClear'>) {
+  const [mode, setMode] = useState<GenerationMode>('preserve-layout')
   const [outputType, setOutputType] = useState<OutputType>('humanized-floor-plan')
-  const [promptStyle, setPromptStyle] = useState<ArchVisPromptStyle>('humanized-floor-plan')
-  const [cameraPreset, setCameraPreset] = useState<ArchVisCameraPreset>('Top-Down / Vista Superior 2D')
-  const [referenceMode, setReferenceMode] = useState<ReferenceMode>('original')
+  const [promptStyle, setPromptStyle] = useState<PromptStyle>('humanized-floor-plan')
+  const [cameraPreset, setCameraPreset] = useState('Top-Down (Vista Superior 2D)')
   const [lockBoundaries, setLockBoundaries] = useState(true)
   const [preserveLabels, setPreserveLabels] = useState(true)
   const [noInventedAreas, setNoInventedAreas] = useState(true)
-  const [strength, setStrength] = useState(85)
+  const [fidelity, setFidelity] = useState(75)
   const [outputCount, setOutputCount] = useState(1)
-  const [prompt, setPrompt] = useState(() => buildInitialPrompt('preserve-layout', 'humanized-floor-plan', 'humanized-floor-plan', 'Top-Down / Vista Superior 2D', true, true, true, output, effectiveRevisionConstraints('humanized-floor-plan', revisionConstraints)))
-  const [negativePrompt, setNegativePrompt] = useState(() => getArchVisNegativePrompt('humanized-floor-plan', true))
-  const [manualCorrection, setManualCorrection] = useState('')
+  const [referenceMode, setReferenceMode] = useState<'original' | 'selected'>('original')
+  const [prompt, setPrompt] = useState(() => output || '')
+  const [negativePrompt, setNegativePrompt] = useState('cartoon, anime, 3d model look, low quality, blurry, distorted, deformed, wrong perspective, text, watermark, logo, extra rooms, different layout')
   const [gallery, setGallery] = useState<GalleryItem[]>([])
-  const [selectedId, setSelectedId] = useState<string>('')
-  const [imageLoading, setImageLoading] = useState(false)
-  const [providerMessage, setProviderMessage] = useState('')
-  const [providerWarning, setProviderWarning] = useState('')
-  const [copied, setCopied] = useState(false)
-  const [saved, setSaved] = useState(false)
+  const [selectedId, setSelectedId] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [manualCorrection, setManualCorrection] = useState('')
+  const [samples, setSamples] = useState(0)
+  const samplesRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const selectedItem = gallery.find(item => item.id === selectedId)
-  const selectedImage = selectedItem?.imageDataUrl
-  const activeReference = referenceMode === 'selected-generation' && selectedImage ? selectedImage : source.dataUrl
-  const currentPreview = selectedImage || gallery[gallery.length - 1]?.imageDataUrl
+  const selected = gallery.find(g => g.id === selectedId)
+  const currentImage = selected?.image || selected?.imageUrl || source?.dataUrl
 
-  const sourceMeta = useMemo(() => {
-    const parts = [source.file.type || 'unknown type', formatSize(source.file.size)]
-    if (source.dimensions) parts.push(`${source.dimensions.width}x${source.dimensions.height}`)
-    return parts.join(' · ')
-  }, [source])
+  async function generate() {
+    setLoading(true)
+    setSamples(0)
+    if (samplesRef.current) clearInterval(samplesRef.current)
+    samplesRef.current = setInterval(() => setSamples(s => Math.min(s + Math.round(Math.random() * 15), 500)), 400)
 
-  useEffect(() => {
-    const constraints = effectiveRevisionConstraints(outputType, revisionConstraints)
-    const nextPrompt = buildInitialPrompt(generationMode, outputType, promptStyle, outputType === 'humanized-floor-plan' ? 'Top-Down / Vista Superior 2D' : cameraPreset, lockBoundaries, preserveLabels, noInventedAreas, output, constraints)
-    setPrompt(nextPrompt)
-    const baseNegative = getArchVisNegativePrompt(generationMode === 'preserve-layout' ? 'humanized-floor-plan' : promptStyle, generationMode === 'preserve-layout' && lockBoundaries)
-    const floorPlanNegative = 'eye-level view, side view, perspective room render, facade, interior photograph, camera inside room, 3D walkthrough, changed viewpoint'
-    setNegativePrompt(outputType === 'humanized-floor-plan' ? `${baseNegative}, ${floorPlanNegative}` : baseNegative)
-    if (outputType === 'humanized-floor-plan') {
-      setCameraPreset('Top-Down / Vista Superior 2D')
-      setGenerationMode('preserve-layout')
-      setPromptStyle('humanized-floor-plan')
-    }
-  }, [generationMode, outputType, promptStyle, cameraPreset, lockBoundaries, preserveLabels, noInventedAreas, output])
-
-  useEffect(() => {
-    setPrompt(value => mergeRevisionConstraintBlock(value, effectiveRevisionConstraints(outputType, revisionConstraints)))
-  }, [revisionConstraints, outputType])
-
-  function addManualCorrection() {
-    const correction = manualCorrection.trim()
-    if (!correction) return
-    onAddRevisionConstraint(correction)
-    setManualCorrection('')
-  }
-
-  async function copyPrompt() {
-    await navigator.clipboard.writeText(prompt)
-    setCopied(true)
-    window.setTimeout(() => setCopied(false), 1600)
-  }
-
-  function saveBriefing() {
-    const payload = {
-      savedAt: new Date().toISOString(),
-      source: source.file.name,
-      prompt,
-      negativePrompt,
-      revisionConstraints,
-      generationMode,
-      promptStyle,
-      cameraPreset,
-      gallery,
-    }
-    localStorage.setItem('apex_archvis_studio_briefing', JSON.stringify(payload))
-    setSaved(true)
-    window.setTimeout(() => setSaved(false), 1600)
-  }
-
-  function downloadImage(image: string, name = `apex-archvis-${Date.now()}.png`) {
-    const link = document.createElement('a')
-    link.href = image
-    link.download = name
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
-  }
-
-  function downloadSelected() {
-    const item = selectedItem || gallery[gallery.length - 1]
-    if (item) downloadImage(item.imageDataUrl, `apex-archvis-selected-${item.timestamp.replace(/[:.]/g, '-')}.png`)
-  }
-
-  function downloadAll() {
-    gallery.forEach((item, index) => {
-      window.setTimeout(() => downloadImage(item.imageDataUrl, `apex-archvis-${index + 1}-${item.timestamp.replace(/[:.]/g, '-')}.png`), index * 250)
-    })
-  }
-
-  async function generateImage() {
-    setImageLoading(true)
-    setProviderMessage('')
-    setProviderWarning('')
     try {
-      const response = await fetch('/api/copilot/generate-image', {
+      const res = await fetch('/api/copilot/generate-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt,
           negativePrompt,
-          sourceImageDataUrl: activeReference,
-          referenceMode,
-          mode: generationMode,
           outputType,
           promptStyle,
           cameraPreset,
+          mode,
           lockBoundaries,
           preserveLabels,
           noInventedAreas,
-          revisionConstraints: effectiveRevisionConstraints(outputType, revisionConstraints),
-          strength,
+          strength: fidelity,
           outputCount,
-          file: {
-            name: source.file.name,
-            type: source.file.type,
-            size: source.file.size,
-            dimensions: source.dimensions,
-          },
+          referenceMode,
+          revisionConstraints,
           conversationContext,
+          sourceImageDataUrl: source?.dataUrl,
+          file: source ? { name: source.file.name, type: source.file.type, kind: source.kind, size: source.file.size } : undefined,
         }),
       })
-      const data: GeneratedImageResponse = await response.json().catch(() => ({
-        providerStatus: 'not-connected',
-        message: 'Image connector returned a non-JSON response.',
+      const data = await res.json().catch(() => ({}))
+      if (samplesRef.current) clearInterval(samplesRef.current)
+      setSamples(500)
+
+      const newItems: GalleryItem[] = (data.images || (data.image || data.imageUrl ? [{ image: data.image, imageUrl: data.imageUrl }] : [])).map((img: { image?: string; imageUrl?: string }) => ({
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        image: img.image,
+        imageUrl: img.imageUrl,
+        prompt,
+        style: promptStyle,
+        timestamp: new Date().toISOString(),
       }))
-      setProviderMessage(data.message || '')
-      setProviderWarning(data.warning || '')
-      const results = data.images?.length ? data.images : [{ image: data.image, imageUrl: data.imageUrl, revisedPrompt: data.revisedPrompt }]
-      const newItems = results
-        .map(result => result.image || result.imageUrl)
-        .filter(Boolean)
-        .map(image => ({
-          id: id(),
-          imageDataUrl: image as string,
-          prompt,
-          negativePrompt,
-          revisionConstraints: [...effectiveRevisionConstraints(outputType, revisionConstraints)],
-          mode: generationMode,
-          style: promptStyle,
-          cameraPreset,
-          timestamp: new Date().toISOString(),
-          sourceUsed: referenceMode,
-        }))
+
       if (newItems.length) {
         setGallery(prev => [...prev, ...newItems])
-        setSelectedId(newItems[newItems.length - 1].id)
-        onRecordGeneration?.({
-          sourceName: source.file.name,
-          outputType,
-          items: newItems,
-        })
+        setSelectedId(newItems[0].id)
+        onRecordGeneration?.({ sourceName: source?.file.name, outputType, items: newItems })
       }
+    } catch {
+      if (samplesRef.current) clearInterval(samplesRef.current)
     } finally {
-      setImageLoading(false)
+      setLoading(false)
     }
   }
 
+  function addConstraint() {
+    if (manualCorrection.trim()) {
+      onAddRevisionConstraint?.(manualCorrection.trim())
+      setManualCorrection('')
+    }
+  }
+
+  const progressPct = Math.round((samples / 500) * 100)
+
   return (
-    <section className="archvis-studio" aria-label="ArchVis Studio">
-      <div className="archvis-heading">
-        <div>
-          <span>ArchVis Studio</span>
-          <h2>Side-by-side image workflow</h2>
-        </div>
-        <button className="ghost-action" onClick={onClear} type="button">
-          <Eraser size={16} /> Close
-        </button>
-      </div>
-
-      <div className="archvis-studio-grid">
-        <div className="archvis-preview-stack">
-          <div className="archvis-source">
-            <img src={source.previewUrl || source.url || source.dataUrl || ''} alt={source.file.name} />
-            <div>
-              <strong>Original reference</strong>
-              <span>{source.file.name}</span>
-              <span>{sourceMeta}</span>
-            </div>
+    <div style={{ display: 'flex', flex: 1, overflow: 'hidden', height: '100%' }}>
+      {/* ── Left: Source + Preview + Gallery ────────────────────── */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', borderRight: `1px solid ${T.outlineVariant}` }}>
+        {/* Source image */}
+        <div style={{ padding: '12px 16px', borderBottom: `1px solid ${T.outlineVariant}` }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: T.onSurfaceVariant, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>
+            Imagem original (referência)
           </div>
-
-          <div className="archvis-current-preview">
-            <strong>Current generated image</strong>
-            {currentPreview ? <img src={currentPreview} alt="Selected ArchVis generation" /> : <p>No generated image yet.</p>}
-          </div>
-
-          <div className="archvis-gallery">
-            <div className="archvis-gallery-head">
-              <strong>Iteration gallery</strong>
-              <span>{gallery.length} item{gallery.length === 1 ? '' : 's'}</span>
-            </div>
-            <div className="archvis-thumbs">
-              {gallery.map(item => (
-                <button
-                  key={item.id}
-                  className={item.id === selectedId ? 'active' : ''}
-                  type="button"
-                  onClick={() => setSelectedId(item.id)}
-                  title={`${item.style} · ${item.timestamp}`}
-                >
-                  <img src={item.imageDataUrl} alt="ArchVis iteration thumbnail" />
-                </button>
-              ))}
-              {!gallery.length && <span className="empty-gallery">Generated images will stay here for iteration.</span>}
-            </div>
-          </div>
-        </div>
-
-        <div className="archvis-controls">
-          <label className="archvis-style-selector">
-            <span>Output type</span>
-            <select value={outputType} onChange={event => setOutputType(event.target.value as OutputType)}>
-              <option value="humanized-floor-plan">Humanized floor plan / Top-down</option>
-              <option value="3d-perspective">3D perspective render</option>
-              <option value="facade-render">Facade render</option>
-              <option value="interior-render">Interior render</option>
-              <option value="creative-concept">Creative concept</option>
-            </select>
-          </label>
-
-          <label className="archvis-style-selector">
-            <span>Mode</span>
-            <select value={generationMode} onChange={event => setGenerationMode(event.target.value as GenerationMode)}>
-              <option value="preserve-layout">Preserve exact plan</option>
-              <option value="creative-redesign">Creative redesign</option>
-            </select>
-          </label>
-
-          <label className="archvis-style-selector">
-            <span>Prompt style</span>
-            <select value={promptStyle} onChange={event => setPromptStyle(event.target.value as ArchVisPromptStyle)}>
-              {Object.entries(archvisPromptStyleLabels).map(([value, label]) => (
-                <option key={value} value={value}>{label}</option>
-              ))}
-            </select>
-          </label>
-
-          <label className="archvis-style-selector">
-            <span>Camera / movement preset</span>
-            <select
-              value={cameraPreset}
-              disabled={outputType === 'humanized-floor-plan'}
-              onChange={event => setCameraPreset(event.target.value as ArchVisCameraPreset)}
-            >
-              {archvisCameraPresets.map(preset => <option key={preset} value={preset}>{preset}</option>)}
-            </select>
-            {outputType === 'humanized-floor-plan' && <small>Locked to top-down for floor plan humanization.</small>}
-          </label>
-
-          <div className="archvis-checks">
-            <label><input type="checkbox" checked={lockBoundaries} onChange={event => setLockBoundaries(event.target.checked)} /> Lock original boundaries</label>
-            <label><input type="checkbox" checked={preserveLabels} onChange={event => setPreserveLabels(event.target.checked)} /> Preserve labels where possible</label>
-            <label><input type="checkbox" checked={noInventedAreas} onChange={event => setNoInventedAreas(event.target.checked)} /> Do not invent new areas</label>
-          </div>
-
-          <div className="revision-constraints-panel">
-            <div className="revision-head">
-              <strong>Revision constraints</strong>
-              <button type="button" onClick={onClearRevisionConstraints} disabled={!revisionConstraints.length}>Clear corrections</button>
-            </div>
-            {outputType === 'humanized-floor-plan' && (
-              <div className="auto-constraints">
-                <strong>Auto floor-plan constraints</strong>
-                {defaultFloorPlanConstraints.map(constraint => (
-                  <span key={constraint}>{constraint}</span>
-                ))}
+          <div style={{ height: 220, background: T.surfaceContainerLowest, borderRadius: 8, overflow: 'hidden', position: 'relative', border: `1px solid ${T.outlineVariant}` }}>
+            {source?.dataUrl ? (
+              <img src={source.dataUrl} alt="Source" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: T.onSurfaceVariant, gap: 6 }}>
+                <ImageIcon size={24} />
+                <span style={{ fontSize: 11 }}>Nenhuma imagem enviada</span>
               </div>
             )}
-            {revisionConstraints.length ? (
-              <ul>
-                {revisionConstraints.map(constraint => (
-                  <li key={constraint}>
-                    <span>{constraint}</span>
-                    <button type="button" onClick={() => onRemoveRevisionConstraint(constraint)}>Remove</button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>No locked revision constraints yet.</p>
+            <div style={{ position: 'absolute', bottom: 6, right: 6, background: 'rgba(11,19,38,0.8)', backdropFilter: 'blur(8px)', borderRadius: 4, padding: '2px 6px', fontSize: 10, color: T.onSurfaceVariant }}>
+              1024 × 1024
+            </div>
+          </div>
+        </div>
+
+        {/* Current generation preview */}
+        <div style={{ padding: '12px 16px', flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: T.onSurfaceVariant, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              Preview atual (geração) — {cameraPreset.split('(')[1]?.replace(')', '') || cameraPreset}
+            </div>
+            {loading && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, color: T.tertiary }}>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: T.tertiary, animation: 'pulse 1s infinite' }} />
+                Samples: {samples} / 500
+              </div>
             )}
-            <div className="revision-add-row">
-              <input
-                value={manualCorrection}
-                onChange={event => setManualCorrection(event.target.value)}
-                placeholder="Add correction, e.g. do not create garden behind the suite"
-              />
-              <button type="button" onClick={addManualCorrection}>Add correction</button>
+          </div>
+          <div style={{ flex: 1, background: T.surfaceContainerLowest, borderRadius: 8, overflow: 'hidden', position: 'relative', border: `1px solid ${T.outlineVariant}`, minHeight: 200 }}>
+            {currentImage ? (
+              <img src={currentImage} alt="Generation" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: T.onSurfaceVariant, gap: 8 }}>
+                {loading
+                  ? <><RefreshCw size={22} color={T.primary} style={{ animation: 'spin 1s linear infinite' }} /><span style={{ fontSize: 11 }}>Gerando...</span></>
+                  : <><Sparkles size={22} color={T.onSurfaceVariant} style={{ opacity: 0.4 }} /><span style={{ fontSize: 11 }}>Nenhuma geração ainda</span></>}
+              </div>
+            )}
+            {loading && (
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 2, background: T.surfaceVariant }}>
+                <div style={{ height: '100%', width: `${progressPct}%`, background: `linear-gradient(90deg, ${T.tertiary}, ${T.primary})`, transition: 'width 0.4s ease' }} />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Gallery strip */}
+        {gallery.length > 0 && (
+          <div style={{ padding: '8px 16px', borderTop: `1px solid ${T.outlineVariant}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: T.onSurfaceVariant, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                Galeria de iterações ({gallery.length})
+              </span>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => { const g = gallery.find(i => i.id === selectedId); if (g?.image || g?.imageUrl) { const a = document.createElement('a'); a.href = g.image || g.imageUrl!; a.download = `archvis-${g.id}.png`; a.click() }}} style={{ fontSize: 10, color: T.primary, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}><Download size={10} /> Download selecionada</button>
+                <button onClick={() => { window.open(gallery.find(i => i.id === selectedId)?.image || gallery.find(i => i.id === selectedId)?.imageUrl || '') }} style={{ fontSize: 10, color: T.primary, background: 'none', border: 'none', cursor: 'pointer' }}>Ver original</button>
+                <button onClick={() => setGallery([])} style={{ fontSize: 10, color: T.error, background: 'none', border: 'none', cursor: 'pointer' }}>Limpar galeria</button>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4 }}>
+              {gallery.map(item => (
+                <div key={item.id} onClick={() => setSelectedId(item.id)}
+                  style={{ flexShrink: 0, width: 80, height: 60, borderRadius: 6, overflow: 'hidden', cursor: 'pointer', border: `2px solid ${item.id === selectedId ? T.primaryContainer : T.outlineVariant}`, position: 'relative' }}>
+                  <img src={item.image || item.imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  {item.id === selectedId && (
+                    <div style={{ position: 'absolute', top: 3, right: 3, width: 14, height: 14, borderRadius: '50%', background: T.primaryContainer, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ fontSize: 8, color: T.onPrimaryContainer, fontWeight: 700 }}>✓</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Prompt editor */}
+        <div style={{ padding: '10px 16px', borderTop: `1px solid ${T.outlineVariant}` }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: T.onSurfaceVariant, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6 }}>Prompt editor</div>
+          <textarea
+            value={prompt} onChange={e => setPrompt(e.target.value)} rows={4}
+            style={{ width: '100%', fontSize: 12, background: T.surfaceContainerLow, color: T.onSurface, border: `1px solid ${T.outlineVariant}`, borderRadius: 6, padding: '8px 10px', resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5 }}
+          />
+
+          {/* Revision constraints */}
+          {revisionConstraints.length > 0 && (
+            <div style={{ marginTop: 6 }}>
+              <div style={{ fontSize: 10, color: T.onSurfaceVariant, marginBottom: 4 }}>Restrições do usuário (correções travadas):</div>
+              {revisionConstraints.map(c => (
+                <div key={c} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: T.primary, marginBottom: 2 }}>
+                  <span style={{ color: T.primary, fontSize: 10 }}>✓</span>
+                  <span style={{ flex: 1 }}>{c}</span>
+                  <button onClick={() => onRemoveRevisionConstraint?.(c)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.error, padding: 0, fontSize: 12 }}>×</button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+            <input value={manualCorrection} onChange={e => setManualCorrection(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && addConstraint()}
+              placeholder="+ Adicionar correção..."
+              style={{ flex: 1, fontSize: 11, background: T.surfaceContainerLow, color: T.onSurface, border: `1px solid ${T.outlineVariant}`, borderRadius: 4, padding: '4px 8px' }} />
+            <button onClick={addConstraint} style={{ fontSize: 11, padding: '4px 10px', background: T.surfaceContainerHighest, border: `1px solid ${T.outlineVariant}`, borderRadius: 4, color: T.onSurface, cursor: 'pointer' }}>Add</button>
+            {revisionConstraints.length > 0 && <button onClick={onClearRevisionConstraints} style={{ fontSize: 11, padding: '4px 10px', background: 'none', border: `1px solid ${T.error}33`, borderRadius: 4, color: T.error, cursor: 'pointer' }}>Limpar todas</button>}
+          </div>
+
+          <div style={{ fontSize: 10, color: T.onSurfaceVariant, marginTop: 6, opacity: 0.7 }}>
+            {prompt.length} / 4000
+            <button onClick={() => navigator.clipboard.writeText(prompt)} style={{ marginLeft: 12, fontSize: 10, color: T.primary, background: 'none', border: 'none', cursor: 'pointer' }}>Copiar prompt</button>
+          </div>
+        </div>
+
+        {/* Negative prompt */}
+        <div style={{ padding: '8px 16px', borderTop: `1px solid ${T.outlineVariant}` }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: T.onSurfaceVariant, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Negative prompt editor</span>
+            <button onClick={() => navigator.clipboard.writeText(negativePrompt)} style={{ fontSize: 10, color: T.primary, background: 'none', border: 'none', cursor: 'pointer' }}>Copiar negativo</button>
+          </div>
+          <textarea value={negativePrompt} onChange={e => setNegativePrompt(e.target.value)} rows={2}
+            style={{ width: '100%', fontSize: 11, background: T.surfaceContainerLow, color: T.onSurfaceVariant, border: `1px solid ${T.outlineVariant}`, borderRadius: 6, padding: '6px 8px', resize: 'none', fontFamily: 'inherit', lineHeight: 1.4 }} />
+        </div>
+
+        {/* Gallery actions */}
+        {gallery.length > 0 && (
+          <div style={{ padding: '8px 16px', borderTop: `1px solid ${T.outlineVariant}`, display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: T.onSurfaceVariant, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 2 }}>Ações da galeria</div>
+            <button onClick={() => { if (selected) setReferenceMode('selected') }} style={{ fontSize: 11, padding: '5px 8px', background: 'none', border: `1px solid ${T.outlineVariant}`, borderRadius: 4, color: T.onSurface, cursor: 'pointer', textAlign: 'left' }}>Usar selecionada como referência</button>
+            <button onClick={() => setReferenceMode('original')} style={{ fontSize: 11, padding: '5px 8px', background: 'none', border: `1px solid ${T.outlineVariant}`, borderRadius: 4, color: T.onSurface, cursor: 'pointer', textAlign: 'left' }}>Voltar para imagem original</button>
+            <button onClick={() => gallery.forEach(g => { const a = document.createElement('a'); a.href = g.image || g.imageUrl || ''; a.download = `archvis-${g.id}.png`; a.click() })}
+              style={{ fontSize: 11, padding: '5px 8px', background: 'none', border: `1px solid ${T.outlineVariant}`, borderRadius: 4, color: T.onSurface, cursor: 'pointer', textAlign: 'left' }}>Download todas</button>
+            <button onClick={() => { setGallery([]); setSelectedId('') }} style={{ fontSize: 11, padding: '5px 8px', background: `${T.error}22`, border: `1px solid ${T.error}44`, borderRadius: 4, color: T.error, cursor: 'pointer', textAlign: 'left' }}>Limpar galeria</button>
+          </div>
+        )}
+      </div>
+
+      {/* ── Right: Controls ─────────────────────────────────────── */}
+      <div style={{ width: 280, background: T.surfaceContainer, borderLeft: `1px solid ${T.outlineVariant}`, display: 'flex', flexDirection: 'column', overflowY: 'auto', flexShrink: 0 }}>
+        <div style={{ padding: '14px 16px', borderBottom: `1px solid ${T.outlineVariant}` }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: T.onSurfaceVariant, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 12 }}>Controles principais</div>
+
+          {/* Mode */}
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ fontSize: 10, color: T.onSurfaceVariant, display: 'block', marginBottom: 4 }}>Modo</label>
+            <div style={{ display: 'flex', gap: 6 }}>
+              {(['preserve-layout', 'creative-redesign'] as GenerationMode[]).map(m => (
+                <button key={m} onClick={() => setMode(m)}
+                  style={{ flex: 1, padding: '6px 4px', borderRadius: 6, fontSize: 11, cursor: 'pointer', fontWeight: mode === m ? 700 : 400, background: mode === m ? T.primaryContainer : 'transparent', color: mode === m ? T.onPrimaryContainer : T.onSurfaceVariant, border: `1px solid ${mode === m ? T.primaryContainer : T.outlineVariant}` }}>
+                  {m === 'preserve-layout' ? 'Preserve exact plan' : 'Creative redesign'}
+                </button>
+              ))}
             </div>
           </div>
 
-          <div className="archvis-range-grid">
-            <label>
-              <span>Strength / fidelity</span>
-              <input type="range" min="30" max="100" value={strength} onChange={event => setStrength(Number(event.target.value))} />
-              <small>{strength}%</small>
-            </label>
-            <label>
-              <span>Output count</span>
-              <input type="number" min="1" max="4" value={outputCount} onChange={event => setOutputCount(Math.max(1, Math.min(4, Number(event.target.value) || 1)))} />
-            </label>
-          </div>
-
-          <label className="archvis-style-selector">
-            <span>Reference source</span>
-            <select value={referenceMode} onChange={event => setReferenceMode(event.target.value as ReferenceMode)}>
-              <option value="original">Original uploaded image</option>
-              <option value="selected-generation" disabled={!selectedImage}>Selected generated image</option>
+          {/* Prompt style */}
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ fontSize: 10, color: T.onSurfaceVariant, display: 'block', marginBottom: 4 }}>Prompt style</label>
+            <select value={promptStyle} onChange={e => setPromptStyle(e.target.value as PromptStyle)}
+              style={{ width: '100%', fontSize: 12, background: T.surfaceContainerHighest, color: T.onSurface, border: `1px solid ${T.outlineVariant}`, borderRadius: 6, padding: '6px 8px' }}>
+              <option value="humanized-floor-plan">Humanized floor plan</option>
+              <option value="photorealistic-facade">Photorealistic facade</option>
+              <option value="cinematic-real-estate">Cinematic real estate</option>
+              <option value="top-down-2d">Top-Down 2D</option>
+              <option value="technical-drawing">Technical drawing</option>
             </select>
-          </label>
-
-          <label className="archvis-editor-label">
-            <span>Prompt editor</span>
-            <textarea value={prompt} onChange={event => setPrompt(event.target.value)} />
-          </label>
-
-          <label className="archvis-editor-label">
-            <span>Negative prompt editor</span>
-            <textarea value={negativePrompt} onChange={event => setNegativePrompt(event.target.value)} />
-          </label>
-
-          <p className="archvis-fidelity-warning">
-            Preserve mode keeps layout, walls, rooms, pool, road, lot shape and proportions. Creative mode may redesign.
-          </p>
-
-          <div className="archvis-actions">
-            <button onClick={generateImage} type="button" disabled={imageLoading}><Wand2 size={16} /> {imageLoading ? 'Generating...' : outputType === 'humanized-floor-plan' ? 'Humanize floor plan' : 'Generate / Regenerate'}</button>
-            <button onClick={() => setReferenceMode('selected-generation')} type="button" disabled={!selectedImage}><ImagePlus size={16} /> Use current generated image as new reference</button>
-            <button onClick={() => setReferenceMode('original')} type="button"><RotateCcw size={16} /> Reuse original image as reference</button>
-            <button onClick={copyPrompt} type="button"><Copy size={16} /> {copied ? 'Copied' : 'Copy prompt'}</button>
-            <button onClick={saveBriefing} type="button"><Save size={16} /> {saved ? 'Saved' : 'Save briefing'}</button>
-            <button onClick={downloadSelected} type="button" disabled={!gallery.length}><Download size={16} /> Download selected</button>
-            <button onClick={downloadAll} type="button" disabled={!gallery.length}><Download size={16} /> Download all</button>
-            <button onClick={() => { setGallery([]); setSelectedId('') }} type="button" disabled={!gallery.length}><Eraser size={16} /> Clear gallery</button>
-            <button onClick={() => setPrompt(value => `${value}\n\n${creativePrompt(promptStyle, cameraPreset)}`)} type="button"><Sparkles size={16} /> Generate variations</button>
           </div>
 
-          {providerMessage && (
-            <div className="provider-error">
-              <strong>{providerMessage}</strong>
-              {providerWarning && <span>{providerWarning}</span>}
-              <span>AI image editing may still vary details; verify against the original plan.</span>
+          {/* Camera preset */}
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ fontSize: 10, color: T.onSurfaceVariant, display: 'block', marginBottom: 4 }}>Câmera / movement preset</label>
+            <select value={cameraPreset} onChange={e => setCameraPreset(e.target.value)}
+              style={{ width: '100%', fontSize: 12, background: T.surfaceContainerHighest, color: T.onSurface, border: `1px solid ${T.outlineVariant}`, borderRadius: 6, padding: '6px 8px' }}>
+              {['Top-Down (Vista Superior 2D)', 'Eye-level (Fachada)', 'Perspective 3/4', 'Cinematic orbit', 'Flyover', 'Interior walkthrough'].map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </div>
+
+          {/* Checkboxes */}
+          {[
+            { key: 'lockBoundaries', label: 'Lock original boundaries', value: lockBoundaries, set: setLockBoundaries },
+            { key: 'preserveLabels', label: 'Preserve labels where possible', value: preserveLabels, set: setPreserveLabels },
+            { key: 'noInventedAreas', label: 'Do not invent new areas', value: noInventedAreas, set: setNoInventedAreas },
+          ].map(({ key, label, value, set }) => (
+            <div key={key} onClick={() => set(!value)} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, cursor: 'pointer' }}>
+              <div style={{ width: 16, height: 16, borderRadius: 3, background: value ? T.primaryContainer : 'transparent', border: `1.5px solid ${value ? T.primaryContainer : T.outlineVariant}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                {value && <span style={{ fontSize: 10, color: T.onPrimaryContainer, fontWeight: 700 }}>✓</span>}
+              </div>
+              <span style={{ fontSize: 11, color: T.onSurface }}>{label}</span>
+            </div>
+          ))}
+
+          {/* Fidelity slider */}
+          <div style={{ marginBottom: 12, marginTop: 8 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+              <label style={{ fontSize: 10, color: T.onSurfaceVariant }}>Fidelity / Fidelidade</label>
+              <span style={{ fontSize: 11, fontWeight: 600, color: T.onSurface }}>{(fidelity / 100).toFixed(2)}</span>
+            </div>
+            <input type="range" min={30} max={100} value={fidelity} onChange={e => setFidelity(Number(e.target.value))}
+              style={{ width: '100%', accentColor: T.primaryContainer }} />
+          </div>
+
+          {/* Output count */}
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+              <label style={{ fontSize: 10, color: T.onSurfaceVariant }}>Output count</label>
+              <span style={{ fontSize: 11, fontWeight: 600, color: T.onSurface }}>{outputCount}</span>
+            </div>
+            <input type="range" min={1} max={4} value={outputCount} onChange={e => setOutputCount(Number(e.target.value))}
+              style={{ width: '100%', accentColor: T.primaryContainer }} />
+          </div>
+
+          {/* Reference image */}
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ fontSize: 10, color: T.onSurfaceVariant, display: 'block', marginBottom: 6 }}>Reference image</label>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={() => setReferenceMode('original')}
+                style={{ flex: 1, padding: '6px', fontSize: 11, borderRadius: 6, cursor: 'pointer', background: referenceMode === 'original' ? T.primaryContainer : 'transparent', color: referenceMode === 'original' ? T.onPrimaryContainer : T.onSurfaceVariant, border: `1px solid ${referenceMode === 'original' ? T.primaryContainer : T.outlineVariant}`, fontWeight: referenceMode === 'original' ? 700 : 400 }}>
+                Original upload
+              </button>
+              <button onClick={() => selected && setReferenceMode('selected')}
+                style={{ flex: 1, padding: '6px', fontSize: 11, borderRadius: 6, cursor: 'pointer', background: referenceMode === 'selected' ? T.secondaryContainer : 'transparent', color: referenceMode === 'selected' ? T.onSecondaryContainer : T.onSurfaceVariant, border: `1px solid ${referenceMode === 'selected' ? T.secondaryContainer : T.outlineVariant}`, fontWeight: referenceMode === 'selected' ? 700 : 400 }}>
+                Current generation
+              </button>
+            </div>
+          </div>
+
+          {/* Regenerate button */}
+          <button onClick={generate} disabled={loading}
+            style={{ width: '100%', padding: '12px', background: loading ? T.surfaceContainerHighest : T.primaryContainer, color: loading ? T.onSurfaceVariant : T.onPrimaryContainer, border: 'none', borderRadius: 8, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            {loading
+              ? <><RefreshCw size={15} style={{ animation: 'spin 1s linear infinite' }} /> Gerando...</>
+              : <><Sparkles size={15} /> Regenerate image</>}
+          </button>
+        </div>
+
+        {/* Revision constraints panel */}
+        <div style={{ padding: '12px 16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: T.onSurfaceVariant, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Revision constraints</span>
+            {revisionConstraints.length > 0 && (
+              <button onClick={onClearRevisionConstraints} style={{ fontSize: 10, color: T.error, background: 'none', border: 'none', cursor: 'pointer' }}>Limpar todas</button>
+            )}
+          </div>
+          {revisionConstraints.length === 0 && (
+            <p style={{ fontSize: 11, color: T.onSurfaceVariant, opacity: 0.6 }}>Estas correções serão aplicadas em todas as próximas gerações.</p>
+          )}
+          {revisionConstraints.map(c => (
+            <div key={c} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 8, background: T.surfaceContainerHighest, borderRadius: 6, padding: '7px 10px' }}>
+              <span style={{ color: T.primary, fontSize: 14, flexShrink: 0 }}>✓</span>
+              <span style={{ fontSize: 11, color: T.onSurface, flex: 1, lineHeight: 1.4 }}>{c}</span>
+              <button onClick={() => onRemoveRevisionConstraint?.(c)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.error, padding: 0, fontSize: 14, lineHeight: 1, flexShrink: 0 }}>×</button>
+            </div>
+          ))}
+          <p style={{ fontSize: 10, color: T.onSurfaceVariant, opacity: 0.6, marginTop: 4 }}>Estas correções serão aplicadas em todas as próximas gerações.</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Gallery Tab ──────────────────────────────────────────────────────────────
+
+function ResultsGallery() {
+  return (
+    <div style={{ flex: 1, padding: 24, overflowY: 'auto', color: T.onSurface }}>
+      <h2 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 6px', letterSpacing: '-0.01em' }}>Results Gallery</h2>
+      <p style={{ fontSize: 13, color: T.onSurfaceVariant, marginBottom: 20 }}>Review, compare, and export your high-fidelity architectural visualizations.</p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+        <div style={{ display: 'flex', background: T.surfaceContainerHighest, borderRadius: 8, padding: 2, gap: 2 }}>
+          {[{ icon: <Grid2x2 size={14} />, label: 'Grid' }, { icon: <Layers size={14} />, label: 'Timeline' }].map((b, i) => (
+            <button key={b.label} style={{ padding: '5px 10px', borderRadius: 6, border: 'none', cursor: 'pointer', background: i === 0 ? T.secondaryContainer : 'transparent', color: i === 0 ? T.onSecondaryContainer : T.onSurfaceVariant, display: 'flex', alignItems: 'center', gap: 5, fontSize: 12 }}>
+              {b.icon} {b.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} style={{ background: T.surfaceContainerHighest, borderRadius: 10, overflow: 'hidden', border: `1px solid ${T.outlineVariant}` }}>
+            <div style={{ height: 140, background: T.surfaceContainerLowest, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ImageIcon size={28} color={T.onSurfaceVariant} style={{ opacity: 0.3 }} />
+            </div>
+            <div style={{ padding: '8px 10px' }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: T.onSurface, marginBottom: 2 }}>Render iteration #{i + 1}</div>
+              <div style={{ fontSize: 10, color: T.onSurfaceVariant }}>1024×1024 · PNG</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <p style={{ fontSize: 12, color: T.onSurfaceVariant, marginTop: 16, textAlign: 'center' }}>Gere imagens no Rendering Editor para populá-las aqui.</p>
+    </div>
+  )
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+
+export function ArchVisPanel({ source, output, conversationContext, revisionConstraints, onAddRevisionConstraint, onRemoveRevisionConstraint, onClearRevisionConstraints, onRecordGeneration, onClear }: ArchVisPanelProps) {
+  const [tab, setTab] = useState<ArchVisTab>(source ? 'editor' : 'editor')
+  const projectName = source?.file.name?.replace(/\.[^.]+$/, '') || 'Projeto Apex'
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9000,
+      background: T.bg, display: 'flex', flexDirection: 'column', fontFamily: "'Inter', sans-serif",
+    }}>
+      {/* ── Top App Bar ─────────────────────────────────────────── */}
+      <header style={{
+        height: 48, background: `${T.surface}cc`, backdropFilter: 'blur(20px)',
+        borderBottom: `1px solid ${T.outlineVariant}`, display: 'flex', alignItems: 'center',
+        justifyContent: 'space-between', padding: '0 16px', flexShrink: 0, zIndex: 10,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button onClick={onClear} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.onSurfaceVariant, display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, padding: '4px 6px', borderRadius: 6 }}>
+            <ArrowLeft size={15} /> Fechar studio
+          </button>
+          <div style={{ width: 1, height: 20, background: T.outlineVariant }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Search size={14} color={T.primary} />
+            <span style={{ fontSize: 13, fontWeight: 700, color: T.onSurface }}>{projectName}</span>
+          </div>
+          <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 10, background: `${T.primary}20`, color: T.primary, fontWeight: 700, letterSpacing: '0.05em' }}>ATIVO</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button style={{ padding: '5px 12px', border: `1px solid ${T.outlineVariant}`, borderRadius: 6, background: 'transparent', color: T.onSurface, fontSize: 12, cursor: 'pointer' }}>
+            + Fechar studio
+          </button>
+          <button style={{ padding: '5px 12px', background: T.primaryContainer, color: T.onPrimaryContainer, border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+            <Plus size={13} /> Novo projeto
+          </button>
+        </div>
+      </header>
+
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        {/* ── Left Sidebar Navigation ─────────────────────────── */}
+        <aside style={{
+          width: 220, background: T.surfaceContainer, borderRight: `1px solid ${T.outlineVariant}`,
+          display: 'flex', flexDirection: 'column', padding: '16px 12px', flexShrink: 0, overflowY: 'auto',
+        }}>
+          {/* Brand */}
+          <div style={{ padding: '4px 12px 16px', borderBottom: `1px solid ${T.outlineVariant}`, marginBottom: 12 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: T.primary, letterSpacing: '-0.01em' }}>ArchVis Studio</div>
+            <div style={{ fontSize: 10, color: T.onSurfaceVariant, fontFamily: 'JetBrains Mono, monospace', marginTop: 2 }}>AI Rendering Engine</div>
+          </div>
+
+          {/* Nav */}
+          <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <NavItem icon={<LayoutDashboard size={16} />} label="Dashboard" active={tab === 'dashboard'} onClick={() => setTab('dashboard')} />
+            <NavItem icon={<Settings size={16} />} label="Rendering Editor" active={tab === 'editor'} onClick={() => setTab('editor')} />
+            <NavItem icon={<Layers size={16} />} label="Material Library" active={tab === 'materials'} onClick={() => setTab('materials')} />
+            <NavItem icon={<ImageIcon size={16} />} label="Results Gallery" active={tab === 'gallery'} onClick={() => setTab('gallery')} />
+          </nav>
+
+          <div style={{ marginTop: 'auto', paddingTop: 12, borderTop: `1px solid ${T.outlineVariant}` }}>
+            <NavItem icon={<Search size={16} />} label="Documentation" active={false} onClick={() => {}} />
+            <NavItem icon={<Settings size={16} />} label="Support" active={false} onClick={() => {}} />
+            <button onClick={() => setTab('editor')} style={{
+              width: '100%', marginTop: 10, padding: '10px', background: T.primaryContainer, color: T.onPrimaryContainer,
+              border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+            }}>
+              + New Render
+            </button>
+          </div>
+        </aside>
+
+        {/* ── Main Content ─────────────────────────────────────── */}
+        <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+          {tab === 'editor' && (
+            <RenderingEditor
+              source={source} output={output} conversationContext={conversationContext}
+              revisionConstraints={revisionConstraints} onAddRevisionConstraint={onAddRevisionConstraint}
+              onRemoveRevisionConstraint={onRemoveRevisionConstraint} onClearRevisionConstraints={onClearRevisionConstraints}
+              onRecordGeneration={onRecordGeneration}
+            />
+          )}
+          {tab === 'gallery' && <ResultsGallery />}
+          {(tab === 'dashboard' || tab === 'materials') && (
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 10, color: T.onSurfaceVariant }}>
+              {tab === 'dashboard' ? <LayoutDashboard size={36} style={{ opacity: 0.3 }} /> : <Layers size={36} style={{ opacity: 0.3 }} />}
+              <p style={{ fontSize: 13 }}>{tab === 'dashboard' ? 'Dashboard' : 'Material Library'} — em breve</p>
+              <button onClick={() => setTab('editor')} style={{ fontSize: 12, color: T.primary, background: 'none', border: 'none', cursor: 'pointer' }}>Ir para Rendering Editor →</button>
             </div>
           )}
         </div>
       </div>
-    </section>
+
+      <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+        * { box-sizing: border-box; }
+        input[type=range] { cursor: pointer; }
+        textarea, input, select { outline: none; }
+        textarea:focus, input:focus, select:focus { border-color: ${T.primaryContainer} !important; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-thumb { background: ${T.outlineVariant}; border-radius: 2px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+      `}</style>
+    </div>
   )
 }

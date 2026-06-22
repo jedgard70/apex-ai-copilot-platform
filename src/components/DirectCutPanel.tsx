@@ -1,710 +1,863 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+/**
+ * DirectCut Studio — Full-Screen Component
+ * Migrated from the Director's Cut HTML prototype (stitch_director_s_cut_ai_studio)
+ * Design system: dark charcoal (#131313), electric cyan (#00f0ff), purple (#cf5cff)
+ */
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Camera,
-  Clapperboard,
-  Copy,
-  Download,
-  Eraser,
-  Film,
-  GripVertical,
-  Lightbulb,
-  Lock,
-  Mic,
-  Play,
-  Plus,
-  Save,
-  Sparkles,
-  Trash2,
-  Unlock,
-  UploadCloud,
-  Video,
-  Wand2,
+  AlertTriangle, CheckCircle, ChevronDown, ChevronRight,
+  Download, ExternalLink, Film, Folder, GripVertical,
+  Layers, LayoutDashboard, Lock, Maximize2, Mic, Monitor,
+  Move, Pause, Play, Plus, RefreshCw, Search, Send,
+  Settings, Share2, Sparkles, Trash2, Unlock, Upload,
+  Video, Volume2, X, ZoomIn, ZoomOut,
 } from 'lucide-react'
-import { formatSize, IntakeFile } from '../lib/fileIntake'
+import { IntakeFile } from '../lib/fileIntake'
 
-type VideoMode =
-  | 'generate-videos'
-  | 'image-to-video'
-  | 'video-editor'
-  | 'clip-editor'
-  | 'relight-video'
-  | 'add-voice'
-  | 'improve-video'
-  | 'cinematic-effect'
-  | '3d-scenes-camera-movement'
-  | 'construction-presentation'
-  | 'real-estate-sales-video'
-  | 'technical-walkthrough'
-  | 'social-media-short'
+// ─── Design Tokens (Director's Cut system) ───────────────────────────────────
 
-type Duration = '5s' | '10s' | '15s' | '30s'
-type AspectRatio = '16:9' | '9:16' | '1:1'
-type AudioMode = 'on' | 'off'
-type Voice = 'none' | 'narrator' | 'presenter-script'
-type VideoStyle = 'cinematic' | 'professional-real-estate' | 'technical-bim' | 'social-media' | 'documentary'
-type Lighting = 'keep-original' | 'relight' | 'transfer-light' | 'warm' | 'night' | 'daylight'
-type CameraMovement = 'static' | 'dolly-in' | 'dolly-out' | 'orbit' | 'pan' | 'tilt' | 'flyover' | 'walkthrough' | 'top-reveal'
+const D = {
+  bg: '#131313',
+  surface: '#131313',
+  surfaceContainerLowest: '#0e0e0e',
+  surfaceContainerLow: '#1c1b1b',
+  surfaceContainer: '#201f1f',
+  surfaceContainerHigh: '#2a2a2a',
+  surfaceContainerHighest: '#353534',
+  primary: '#dbfcff',
+  primaryContainer: '#00f0ff',
+  onPrimaryContainer: '#006970',
+  secondary: '#ecb2ff',
+  secondaryContainer: '#cf5cff',
+  onSecondaryContainer: '#1a0029',
+  tertiary: '#fed639',
+  tertiaryContainer: '#fed639',
+  outline: '#5a6e6f',
+  outlineVariant: '#3b494b',
+  onSurface: '#e5e2e1',
+  onSurfaceVariant: '#b9cacb',
+  error: '#cf6679',
+}
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type DCTab = 'storyboard' | '3d-workspace' | 'library' | 'review'
+type StylePreset = 'hyper-real' | 'cyberpunk' | 'cinematic' | 'architectural' | 'documentary'
+type TrackType = 'frames' | 'video' | 'audio'
+
+type SceneLayer = {
+  id: string
+  name: string
+  type: 'image' | 'video' | 'render' | 'audio'
+  visible: boolean
+  opacity: number
+  blendMode?: string
+  active: boolean
+}
+
+type TimelineClip = {
+  id: string
+  track: TrackType
+  label: string
+  startPct: number
+  widthPct: number
+  thumbnail?: string
+  status?: 'ready' | 'syncing' | 'error'
+}
+
+type RenderJob = {
+  id: string
+  modelId: string
+  modelLabel: string
+  prompt: string
+  status: 'submitting' | 'queued' | 'generating' | 'done' | 'error'
+  progress: number
+  videoUrl?: string
+  imageUrl?: string
+  error?: string
+  startedAt: string
+}
 
 export type DirectCutInitialConfig = Partial<{
-  videoMode: VideoMode
-  duration: Duration
-  aspectRatio: AspectRatio
-  audio: AudioMode
-  voice: Voice
-  style: VideoStyle
-  lighting: Lighting
-  cameraMovement: CameraMovement
+  duration: string
+  aspectRatio: string
+  style: StylePreset
+  cameraMovement: string
 }>
-
-type DirectCutPlan = {
-  providerStatus?: string
-  title?: string
-  objective?: string
-  audience?: string
-  sceneList?: string[]
-  cameraMovements?: string[]
-  narrationScript?: string
-  videoPrompt?: string
-  negativePrompt?: string
-  recommendedAspectRatio?: AspectRatio
-  recommendedDuration?: Duration
-  message?: string
-}
-
-type MediaReference = {
-  id: string
-  role: 'initial' | 'final' | 'additional'
-  name: string
-  type: string
-  size: number
-  dataUrl?: string
-}
-
-type GalleryItem = DirectCutPlan & {
-  id: string
-  timestamp: string
-  sourceMedia?: string
-  mode: VideoMode
-  duration: Duration
-  aspectRatio: AspectRatio
-  audio: AudioMode
-  voice: Voice
-  style: VideoStyle
-  lighting: Lighting
-  cameraMovement: CameraMovement
-  model: 'auto'
-  lockedConstraints: string[]
-  planEditor: string
-  references: MediaReference[]
-}
-
-type SceneNode = {
-  id: string
-  scene: string
-  camera: CameraMovement
-  style: VideoStyle
-  locked: boolean
-  aiNote?: string
-}
 
 type DirectCutPanelProps = {
   source?: IntakeFile
   goal: string
   conversationContext: string[]
   initialConfig?: DirectCutInitialConfig
-  onRecordGeneration?: (payload: { item: GalleryItem }) => void
+  onRecordGeneration?: (payload: { item: { id: string; modelId?: string; modelLabel?: string; videoUrl?: string; status?: string; startedAt?: string; [key: string]: unknown } }) => void
   onClear: () => void
 }
 
-const modeLabels: Record<VideoMode, string> = {
-  'generate-videos': 'Generate videos',
-  'image-to-video': 'Image to video',
-  'video-editor': 'Video editor',
-  'clip-editor': 'Clip editor',
-  'relight-video': 'Relight video',
-  'add-voice': 'Add voice',
-  'improve-video': 'Improve video',
-  'cinematic-effect': 'Cinematic effect',
-  '3d-scenes-camera-movement': '3D scenes / camera movement',
-  'construction-presentation': 'Construction presentation',
-  'real-estate-sales-video': 'Real estate sales video',
-  'technical-walkthrough': 'Technical walkthrough',
-  'social-media-short': 'Social media short',
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function uid() { return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}` }
+
+// ─── Icon Sidebar ─────────────────────────────────────────────────────────────
+
+function IconSidebar({ tab, onTab, onClose }: { tab: DCTab; onTab: (t: DCTab) => void; onClose: () => void }) {
+  const items: { id: DCTab; icon: React.ReactNode; label: string }[] = [
+    { id: 'storyboard', icon: <Video size={18} />, label: 'Editor' },
+    { id: '3d-workspace', icon: <Monitor size={18} />, label: 'Render' },
+    { id: 'library', icon: <Folder size={18} />, label: 'Assets' },
+    { id: 'review', icon: <Share2 size={18} />, label: 'Review' },
+  ]
+  return (
+    <aside style={{
+      width: 64, background: D.surfaceContainerLowest, borderRight: `1px solid ${D.outlineVariant}`,
+      display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 0', flexShrink: 0,
+    }}>
+      {/* Project thumb */}
+      <div style={{ width: 40, height: 40, borderRadius: 6, background: `${D.primaryContainer}18`, border: `1px solid ${D.primaryContainer}30`, marginBottom: 12, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Film size={18} color={D.primaryContainer} />
+      </div>
+
+      {/* Dashboard */}
+      <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, width: '100%', padding: '8px 0', background: 'none', border: 'none', cursor: 'pointer', color: D.onSurfaceVariant, fontSize: 9 }}>
+        <LayoutDashboard size={18} />
+        <span>Dashboard</span>
+      </button>
+
+      {/* Nav items */}
+      {items.map(item => (
+        <button key={item.id} onClick={() => onTab(item.id)}
+          style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+            width: '100%', padding: '8px 0', background: tab === item.id ? `${D.primaryContainer}12` : 'none',
+            borderLeft: tab === item.id ? `2px solid ${D.primaryContainer}` : '2px solid transparent',
+            border: `none`, borderLeftStyle: 'solid',
+            borderLeftWidth: 2, borderLeftColor: tab === item.id ? D.primaryContainer : 'transparent',
+            cursor: 'pointer', color: tab === item.id ? D.primaryContainer : D.onSurfaceVariant, fontSize: 9, fontWeight: tab === item.id ? 700 : 400,
+          }}>
+          {item.icon}
+          <span>{item.label}</span>
+        </button>
+      ))}
+
+      <div style={{ marginTop: 'auto', width: '100%' }}>
+        <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, width: '100%', padding: '8px 0', background: 'none', border: 'none', cursor: 'pointer', color: D.onSurfaceVariant, fontSize: 9 }}>
+          <Settings size={18} />
+        </button>
+      </div>
+    </aside>
+  )
 }
 
-const styleLabels: Record<VideoStyle, string> = {
-  cinematic: 'cinematic',
-  'professional-real-estate': 'real estate',
-  'technical-bim': 'technical BIM',
-  'social-media': 'social',
-  documentary: 'documentary',
+// ─── Scene Layers Panel ───────────────────────────────────────────────────────
+
+function SceneLayers({ layers, onToggle, onAdd }: {
+  layers: SceneLayer[]
+  onToggle: (id: string) => void
+  onAdd: () => void
+}) {
+  const ICONS: Record<string, React.ReactNode> = {
+    image: <span style={{ fontSize: 14 }}>🖼️</span>,
+    video: <Film size={14} />,
+    render: <Monitor size={14} />,
+    audio: <Volume2 size={14} />,
+  }
+  return (
+    <aside style={{ width: 220, background: D.surfaceContainerLowest, borderRight: `1px solid ${D.outlineVariant}`, display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+      <div style={{ padding: '8px 12px', borderBottom: `1px solid ${D.outlineVariant}`, background: D.surfaceContainerLow, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: 9, fontWeight: 700, color: D.onSurfaceVariant, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Scene Layers</span>
+        <button onClick={onAdd} style={{ background: 'none', border: 'none', cursor: 'pointer', color: D.onSurfaceVariant, display: 'flex', alignItems: 'center' }}>
+          <Plus size={14} />
+        </button>
+      </div>
+      <div style={{ flex: 1, overflowY: 'auto', padding: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {layers.map(layer => (
+          <div key={layer.id}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '7px 8px', borderRadius: 4, cursor: 'pointer',
+              background: layer.active ? D.surfaceContainerHigh : 'transparent',
+              border: `1px solid ${layer.active ? `${D.primaryContainer}40` : 'transparent'}`,
+              transition: 'all 0.1s',
+            }}>
+            <span style={{ color: layer.active ? D.primaryContainer : D.onSurfaceVariant, flexShrink: 0 }}>{ICONS[layer.type]}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: D.onSurface, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{layer.name}</div>
+              <div style={{ fontSize: 9, color: D.onSurfaceVariant }}>{layer.blendMode ? `${layer.blendMode} • ` : 'Visible • '}{layer.opacity}%</div>
+            </div>
+            <button onClick={() => onToggle(layer.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0, color: D.onSurfaceVariant, fontSize: 12, padding: 0 }}
+              onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+              onMouseLeave={e => (e.currentTarget.style.opacity = '0')}>
+              👁
+            </button>
+          </div>
+        ))}
+      </div>
+    </aside>
+  )
 }
 
-const lightingLabels: Record<Lighting, string> = {
-  'keep-original': 'keep original',
-  relight: 'relight',
-  'transfer-light': 'transfer light',
-  warm: 'warm',
-  night: 'night',
-  daylight: 'daylight',
+// ─── Central Canvas ────────────────────────────────────────────────────────────
+
+function CentralCanvas({ source, currentImage, timecode, fps, loading }: {
+  source?: IntakeFile
+  currentImage?: string
+  timecode: string
+  fps: number
+  loading: boolean
+}) {
+  const [zoom, setZoom] = useState(85)
+  const displayImg = currentImage || source?.dataUrl
+
+  return (
+    <section style={{ flex: 1, display: 'flex', flexDirection: 'column', background: D.surface, overflow: 'hidden', position: 'relative', minWidth: 0 }}>
+      {/* Live badge */}
+      <div style={{ position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 10, display: 'flex', alignItems: 'center', gap: 6, background: `${D.surfaceContainerHighest}cc`, backdropFilter: 'blur(10px)', padding: '3px 10px', borderRadius: 20, border: `1px solid ${D.outlineVariant}`, fontSize: 10, color: D.onSurface }}>
+        <span style={{ width: 6, height: 6, borderRadius: '50%', background: D.error, animation: 'pulse 1.5s infinite' }} />
+        Live Viewport • 4K
+      </div>
+
+      {/* Canvas frame */}
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, overflow: 'hidden' }}>
+        <div style={{
+          position: 'relative', width: '100%', maxWidth: 800,
+          aspectRatio: '16/9', background: D.surfaceContainerLowest,
+          border: `1px solid ${D.outlineVariant}`, overflow: 'hidden',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.6)',
+          transform: `scale(${zoom / 100})`, transition: 'transform 0.2s',
+        }}>
+          {displayImg ? (
+            <img src={displayImg} alt="Canvas" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, color: D.onSurfaceVariant }}>
+              {loading
+                ? <><RefreshCw size={28} color={D.primaryContainer} style={{ animation: 'spin 1s linear infinite' }} /><span style={{ fontSize: 12 }}>Gerando...</span></>
+                : <><Film size={28} style={{ opacity: 0.3 }} /><span style={{ fontSize: 12 }}>Carregue mídia ou gere via AI</span></>}
+            </div>
+          )}
+
+          {/* TC overlay */}
+          <div style={{ position: 'absolute', top: 8, left: 8, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <span style={{ fontSize: 10, fontFamily: 'monospace', color: D.primaryContainer, background: 'rgba(0,0,0,0.5)', padding: '1px 4px' }}>TC: {timecode}</span>
+            <span style={{ fontSize: 10, fontFamily: 'monospace', color: D.onSurfaceVariant, background: 'rgba(0,0,0,0.5)', padding: '1px 4px' }}>FPS: {fps.toFixed(2)}</span>
+          </div>
+
+          {/* Border overlay */}
+          <div style={{ position: 'absolute', inset: 0, border: '10px solid rgba(0,0,0,0.08)', pointerEvents: 'none' }} />
+        </div>
+      </div>
+
+      {/* Canvas toolbar */}
+      <div style={{ height: 38, background: D.surfaceContainerLow, borderTop: `1px solid ${D.outlineVariant}`, display: 'flex', alignItems: 'center', padding: '0 16px', gap: 12, flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: D.onSurfaceVariant }}>
+          <button onClick={() => setZoom(z => Math.min(z + 10, 150))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: D.onSurfaceVariant, display: 'flex' }}><ZoomIn size={16} /></button>
+          <span style={{ fontSize: 11, fontFamily: 'monospace', color: D.onSurface, minWidth: 32, textAlign: 'center' }}>{zoom}%</span>
+          <button onClick={() => setZoom(z => Math.max(z - 10, 30))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: D.onSurfaceVariant, display: 'flex' }}><ZoomOut size={16} /></button>
+        </div>
+        <div style={{ width: 1, height: 14, background: D.outlineVariant }} />
+        <div style={{ display: 'flex', gap: 8, color: D.onSurfaceVariant }}>
+          <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: D.onSurfaceVariant, display: 'flex' }}><Layers size={15} /></button>
+          <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: D.onSurfaceVariant, display: 'flex' }}><Maximize2 size={15} /></button>
+        </div>
+        <span style={{ marginLeft: 'auto', fontSize: 10, color: D.onSurfaceVariant, fontStyle: 'italic' }}>Press [V] to select, [H] to pan</span>
+      </div>
+    </section>
+  )
 }
 
-const cameraMovementLabels: Record<CameraMovement, string> = {
-  static: 'static',
-  'dolly-in': 'dolly in',
-  'dolly-out': 'dolly out',
-  orbit: 'orbit',
-  pan: 'pan',
-  tilt: 'tilt',
-  flyover: 'flyover',
-  walkthrough: 'walkthrough',
-  'top-reveal': 'top reveal',
+// ─── AI Generation Panel ──────────────────────────────────────────────────────
+
+function AIGenerationPanel({ onGenerate, loading, source, initialImage, setInitialImage, finalImage, setFinalImage }: {
+  onGenerate: (prompt: string, style: StylePreset, settings: { intensity: number; temperature: number }) => void
+  loading: boolean
+  source?: IntakeFile
+  initialImage?: string
+  setInitialImage: (img: string | undefined) => void
+  finalImage?: string
+  setFinalImage: (img: string | undefined) => void
+}) {
+  const [prompt, setPrompt] = useState('')
+  const [style, setStyle] = useState<StylePreset>('hyper-real')
+  const [intensity, setIntensity] = useState(75)
+  const [temperature, setTemperature] = useState(33)
+  const [advancedOpen, setAdvancedOpen] = useState(false)
+
+  const styles: { id: StylePreset; label: string; color: string }[] = [
+    { id: 'hyper-real', label: 'Hyper-Real', color: D.primaryContainer },
+    { id: 'cyberpunk', label: 'Cyberpunk', color: D.secondaryContainer },
+    { id: 'cinematic', label: 'Cinematic', color: D.tertiary },
+    { id: 'architectural', label: 'Arch', color: D.primary },
+    { id: 'documentary', label: 'Documentary', color: D.onSurfaceVariant },
+  ]
+
+  return (
+    <aside style={{ width: 260, background: D.surfaceContainerLowest, borderLeft: `1px solid ${D.outlineVariant}`, display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+      <div style={{ padding: '8px 12px', borderBottom: `1px solid ${D.outlineVariant}`, background: D.surfaceContainerLow }}>
+        <span style={{ fontSize: 9, fontWeight: 700, color: D.onSurfaceVariant, letterSpacing: '0.12em', textTransform: 'uppercase' }}>AI Generation</span>
+      </div>
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: 12, display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {/* Prompt */}
+        <div>
+          <label style={{ fontSize: 10, color: D.onSurfaceVariant, display: 'block', marginBottom: 6 }}>AI Prompt</label>
+          <textarea
+            value={prompt} onChange={e => setPrompt(e.target.value)} rows={5}
+            placeholder="Describe your shot... e.g. Cinematic wide shot of brutalist architecture, dusk lighting, volumetric fog..."
+            style={{ width: '100%', fontSize: 11, background: D.surfaceContainerHigh, color: D.onSurface, border: `1px solid ${D.outlineVariant}`, borderRadius: 4, padding: '8px', resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5, outline: 'none' }}
+          />
+        </div>
+
+        {/* Reference Images */}
+        <div style={{ background: `${D.surfaceContainerHigh}80`, borderRadius: 6, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <label style={{ fontSize: 10, color: D.onSurfaceVariant, display: 'block' }}>Reference Images (FFmpeg slideshow)</label>
+          <div style={{ display: 'flex', gap: 10 }}>
+            {/* Initial Reference Slot */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontSize: 9, color: D.onSurfaceVariant }}>Initial Frame</span>
+              <div style={{
+                position: 'relative', width: '100%', aspectRatio: '1/1', background: D.surfaceContainerHighest,
+                border: `1px dashed ${D.outline}`, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden'
+              }}>
+                {initialImage ? (
+                  <>
+                    <img src={initialImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Initial" />
+                    <button onClick={() => setInitialImage(undefined)} style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#fff', fontSize: 8 }}>×</button>
+                  </>
+                ) : (
+                  <label style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, color: D.onSurfaceVariant }}>
+                    <Upload size={14} />
+                    <span style={{ fontSize: 8 }}>Upload</span>
+                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        const r = new FileReader()
+                        r.onload = () => setInitialImage(r.result as string)
+                        r.readAsDataURL(file)
+                      }
+                    }} />
+                  </label>
+                )}
+              </div>
+            </div>
+
+            {/* Final Reference Slot */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontSize: 9, color: D.onSurfaceVariant }}>Final Frame</span>
+              <div style={{
+                position: 'relative', width: '100%', aspectRatio: '1/1', background: D.surfaceContainerHighest,
+                border: `1px dashed ${D.outline}`, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden'
+              }}>
+                {finalImage ? (
+                  <>
+                    <img src={finalImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Final" />
+                    <button onClick={() => setFinalImage(undefined)} style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#fff', fontSize: 8 }}>×</button>
+                  </>
+                ) : (
+                  <label style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, color: D.onSurfaceVariant }}>
+                    <Upload size={14} />
+                    <span style={{ fontSize: 8 }}>Upload</span>
+                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        const r = new FileReader()
+                        r.onload = () => setFinalImage(r.result as string)
+                        r.readAsDataURL(file)
+                      }
+                    }} />
+                  </label>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Style presets */}
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <label style={{ fontSize: 10, color: D.onSurfaceVariant }}>Style Preset</label>
+            <span style={{ fontSize: 10, color: D.primaryContainer, cursor: 'pointer' }}>See All</span>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+            {styles.map(s => (
+              <button key={s.id} onClick={() => setStyle(s.id)}
+                style={{
+                  padding: '4px 8px', borderRadius: 4, fontSize: 10, cursor: 'pointer', fontWeight: style === s.id ? 700 : 400,
+                  background: style === s.id ? `${s.color}22` : D.surfaceContainerHigh,
+                  color: style === s.id ? s.color : D.onSurfaceVariant,
+                  border: `1px solid ${style === s.id ? `${s.color}60` : D.outlineVariant}`,
+                }}>
+                {s.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Lighting & Mood */}
+        <div style={{ background: `${D.surfaceContainerHigh}80`, borderRadius: 6, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <label style={{ fontSize: 10, color: D.onSurfaceVariant }}>Lighting & Mood</label>
+
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+              <span style={{ fontSize: 10, color: D.onSurfaceVariant }}>Intensity</span>
+              <span style={{ fontSize: 10, color: D.primaryContainer, fontWeight: 600 }}>{intensity}%</span>
+            </div>
+            <div style={{ position: 'relative', height: 4, background: D.surfaceContainerHighest, borderRadius: 2 }}>
+              <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: `${intensity}%`, background: D.primaryContainer, borderRadius: 2 }} />
+              <input type="range" min={0} max={100} value={intensity} onChange={e => setIntensity(Number(e.target.value))}
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }} />
+            </div>
+          </div>
+
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+              <span style={{ fontSize: 10, color: D.onSurfaceVariant }}>Temperature</span>
+              <span style={{ fontSize: 10, color: D.tertiary, fontWeight: 600 }}>{Math.round(2500 + (temperature / 100) * 8000)}K</span>
+            </div>
+            <div style={{ position: 'relative', height: 4, background: 'linear-gradient(to right, #60a5fa, white, #fb923c)', borderRadius: 2 }}>
+              <div style={{ position: 'absolute', top: '50%', left: `${temperature}%`, transform: 'translate(-50%, -50%)', width: 10, height: 10, background: '#fff', border: `1px solid ${D.outlineVariant}`, borderRadius: '50%', boxShadow: '0 1px 4px rgba(0,0,0,0.4)' }} />
+              <input type="range" min={0} max={100} value={temperature} onChange={e => setTemperature(Number(e.target.value))}
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Advanced */}
+        <button onClick={() => setAdvancedOpen(!advancedOpen)}
+          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', background: 'none', border: 'none', borderTop: `1px solid ${D.outlineVariant}`, padding: '8px 0', cursor: 'pointer', color: D.onSurfaceVariant, fontSize: 11 }}>
+          <span>Advanced Config</span>
+          <ChevronDown size={14} style={{ transform: advancedOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+        </button>
+
+        {advancedOpen && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 11 }}>
+            {[
+              { label: 'Negative space', placeholder: 'Elements to avoid...' },
+              { label: 'Camera angle', placeholder: 'Wide, close-up, POV...' },
+            ].map(f => (
+              <div key={f.label}>
+                <label style={{ fontSize: 10, color: D.onSurfaceVariant, display: 'block', marginBottom: 3 }}>{f.label}</label>
+                <input placeholder={f.placeholder} style={{ width: '100%', fontSize: 11, background: D.surfaceContainerHigh, color: D.onSurface, border: `1px solid ${D.outlineVariant}`, borderRadius: 4, padding: '5px 8px', outline: 'none' }} />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Render button */}
+      <div style={{ padding: '10px 12px', borderTop: `1px solid ${D.outlineVariant}`, background: D.surfaceContainerLow }}>
+        <button
+          onClick={() => onGenerate(prompt, style, { intensity, temperature })}
+          disabled={loading}
+          style={{
+            width: '100%', padding: '11px', background: loading ? D.surfaceContainerHighest : D.primaryContainer,
+            color: loading ? D.onSurfaceVariant : D.onPrimaryContainer, border: 'none', borderRadius: 4,
+            fontSize: 12, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+            boxShadow: loading ? 'none' : `0 4px 20px ${D.primaryContainer}30`,
+          }}>
+          {loading
+            ? <><RefreshCw size={14} style={{ animation: 'spin 1s linear infinite' }} /> Gerando...</>
+            : <><Sparkles size={14} /> Render Current Shot</>}
+        </button>
+      </div>
+    </aside>
+  )
 }
 
-function id() {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+// ─── Multi-Track Timeline ─────────────────────────────────────────────────────
+
+function MultiTrackTimeline({ timecode, onSeek }: { timecode: string; onSeek?: (pct: number) => void }) {
+  const [playheadPct, setPlayheadPct] = useState(27)
+  const [playing, setPlaying] = useState(false)
+  const timelineRef = useRef<HTMLDivElement>(null)
+
+  const tracks = [
+    {
+      id: 'frames', label: 'Frames', icon: <Film size={14} />,
+      clips: [
+        { id: 'f1', label: 'Shot_01.exr', startPct: 0, widthPct: 18, color: D.primaryContainer, status: 'ready' },
+        { id: 'f2', label: 'Shot_02.exr', startPct: 19, widthPct: 24, color: D.onSurfaceVariant, status: 'ready' },
+        { id: 'f3', label: '⟳ AI syncing', startPct: 44, widthPct: 10, color: D.primaryContainer, status: 'syncing' },
+      ],
+      height: 48,
+    },
+    {
+      id: 'video', label: 'Video', icon: <Video size={14} />,
+      clips: [
+        { id: 'v1', label: 'B_ROLL_DRONE_PAN.mp4', startPct: 13, widthPct: 28, color: D.secondaryContainer, status: 'ready' },
+        { id: 'v2', label: 'DETAIL_MACRO.mp4', startPct: 42, widthPct: 16, color: D.secondaryContainer, status: 'ready' },
+      ],
+      height: 30,
+    },
+    {
+      id: 'audio', label: 'Audio', icon: <Volume2 size={14} />,
+      clips: [
+        { id: 'a1', label: 'AMBIENT_STREET_01.wav', startPct: 0, widthPct: 55, color: D.tertiary, status: 'ready' },
+      ],
+      height: 30,
+    },
+  ]
+
+  function handleTimelineClick(e: React.MouseEvent<HTMLDivElement>) {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const pct = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100))
+    setPlayheadPct(pct)
+    onSeek?.(pct)
+  }
+
+  const timeMarkers = ['00:00:00', '00:00:05', '00:00:10', '00:00:15', '00:00:20', '00:00:25']
+
+  return (
+    <footer style={{ height: 220, background: D.surfaceContainerLowest, borderTop: `1px solid ${D.outlineVariant}`, display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+      {/* Timeline header */}
+      <div style={{ height: 32, background: D.surfaceContainerLow, borderBottom: `1px solid ${D.outlineVariant}`, display: 'flex', alignItems: 'center', padding: '0 16px', justifyContent: 'space-between', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <span style={{ fontSize: 9, fontWeight: 700, color: D.onSurfaceVariant, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Timeline</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, fontFamily: 'monospace', color: D.primaryContainer }}>
+            <span>⏱</span> {timecode}
+          </div>
+          <div style={{ display: 'flex', gap: 4 }}>
+            <button onClick={() => setPlaying(!playing)}
+              style={{ background: D.surfaceContainerHigh, border: `1px solid ${D.outlineVariant}`, borderRadius: 3, padding: '2px 6px', cursor: 'pointer', color: D.onSurface, display: 'flex', alignItems: 'center', gap: 3 }}>
+              {playing ? <Pause size={12} /> : <Play size={12} />}
+            </button>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: D.onSurfaceVariant }}>
+          {[<Layers size={14} />, <Settings size={14} />, <Maximize2 size={14} />].map((icon, i) => (
+            <button key={i} style={{ background: 'none', border: 'none', cursor: 'pointer', color: D.onSurfaceVariant, display: 'flex' }}>{icon}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Tracks area */}
+      <div style={{ flex: 1, overflowX: 'auto', overflowY: 'hidden' }}>
+        <div ref={timelineRef} style={{ minWidth: 1400, position: 'relative', padding: '6px 0' }} onClick={handleTimelineClick}>
+          {/* Time markers */}
+          <div style={{ display: 'flex', marginLeft: 112, marginBottom: 4 }}>
+            {timeMarkers.map(m => (
+              <div key={m} style={{ width: 160, flexShrink: 0, borderLeft: `1px solid ${D.outlineVariant}`, paddingLeft: 4, fontSize: 9, color: D.onSurfaceVariant, fontFamily: 'monospace' }}>{m}</div>
+            ))}
+          </div>
+
+          {/* Tracks */}
+          {tracks.map(track => (
+            <div key={track.id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 5 }}>
+              {/* Track label */}
+              <div style={{ width: 100, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: D.onSurfaceVariant, paddingLeft: 12 }}>
+                {track.icon}
+                <span>{track.label}</span>
+              </div>
+              {/* Clips */}
+              <div style={{ flex: 1, height: track.height, position: 'relative', background: `${D.surfaceContainer}40`, borderRadius: 3 }}>
+                {track.clips.map(clip => (
+                  <div key={clip.id} style={{
+                    position: 'absolute', top: 0, height: '100%',
+                    left: `${clip.startPct}%`, width: `${clip.widthPct}%`,
+                    background: `${clip.color}18`, border: `1px solid ${clip.color}50`,
+                    borderRadius: 3, display: 'flex', alignItems: 'center', padding: '0 6px', overflow: 'hidden',
+                  }}>
+                    {clip.status === 'syncing' && (
+                      <RefreshCw size={10} color={clip.color} style={{ animation: 'spin 1.5s linear infinite', marginRight: 4, flexShrink: 0 }} />
+                    )}
+                    <span style={{ fontSize: 9, fontFamily: 'monospace', color: clip.color, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{clip.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {/* Playhead */}
+          <div style={{ position: 'absolute', top: 0, bottom: 0, left: `calc(112px + ${playheadPct}% * (100% - 112px) / 100)`, width: 2, background: D.primaryContainer, zIndex: 10, pointerEvents: 'none' }}>
+            <div style={{ position: 'absolute', top: -4, left: -5, width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderTop: `8px solid ${D.primaryContainer}` }} />
+          </div>
+        </div>
+      </div>
+    </footer>
+  )
 }
 
-function normalizeVideoConstraint(text: string) {
-  const lower = text.toLowerCase()
-  if (/(não|nao).*(pessoa|people|person)/i.test(lower)) return 'Do not show people or presenters in the video.'
-  if (/(começar|comecar|iniciar|start).*(fachada|facade)/i.test(lower)) return 'Start the video with the facade/exterior establishing shot.'
-  if (/(c[aâ]mera lenta|slow motion|slow)/i.test(lower)) return 'Use slow camera movement and slower pacing.'
-  if (/(vertical|reels|story|9:16)/i.test(lower)) return 'Use vertical 9:16 social-video framing.'
-  if (/(mais comercial|more commercial|venda|sales)/i.test(lower)) return 'Make the video more commercial, persuasive and real-estate-sales focused.'
-  if (/(luz|light|relight|ilumina)/i.test(lower)) return `Apply this lighting correction: ${text.trim()}`
-  return `Apply this locked video correction: ${text.trim()}`
+// ─── Render History ───────────────────────────────────────────────────────────
+
+function RenderHistory({ jobs }: { jobs: RenderJob[] }) {
+  if (jobs.length === 0) return (
+    <div style={{ padding: 24, textAlign: 'center', color: D.onSurfaceVariant, fontSize: 12 }}>
+      <Film size={28} style={{ opacity: 0.3, marginBottom: 8 }} />
+      <p>Nenhum render ainda. Use AI Generate para começar.</p>
+    </div>
+  )
+  return (
+    <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto', flex: 1 }}>
+      {jobs.map(job => {
+        const statusColor = job.status === 'done' ? '#22c55e' : job.status === 'error' ? D.error : D.tertiary
+        return (
+          <div key={job.id} style={{ background: D.surfaceContainerHigh, border: `1px solid ${statusColor}33`, borderRadius: 8, padding: '10px 12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: D.onSurface }}>{job.modelLabel}</span>
+              <span style={{ fontSize: 9, color: statusColor, fontWeight: 700, textTransform: 'uppercase' }}>{job.status}</span>
+            </div>
+            <div style={{ fontSize: 10, color: D.onSurfaceVariant, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 5 }}>{job.prompt.slice(0, 60)}</div>
+            {job.status !== 'done' && job.status !== 'error' && (
+              <div style={{ height: 2, background: D.surfaceContainerHighest, borderRadius: 1, marginBottom: 5 }}>
+                <div style={{ height: '100%', width: `${job.progress}%`, background: D.primaryContainer, borderRadius: 1, transition: 'width 0.5s' }} />
+              </div>
+            )}
+            {job.videoUrl && <video controls src={job.videoUrl} style={{ width: '100%', borderRadius: 4, maxHeight: 140, marginTop: 5 }} />}
+            {job.imageUrl && !job.videoUrl && <img src={job.imageUrl} alt="" style={{ width: '100%', borderRadius: 4, maxHeight: 140, objectFit: 'cover', marginTop: 5 }} />}
+            {job.error && <div style={{ fontSize: 10, color: D.error, marginTop: 4 }}>{job.error}</div>}
+          </div>
+        )
+      })}
+    </div>
+  )
 }
 
-function readFileReference(file: File, role: MediaReference['role']): Promise<MediaReference> {
-  return new Promise(resolve => {
-    const reference: MediaReference = {
-      id: id(),
-      role,
-      name: file.name,
-      type: file.type || 'unknown',
-      size: file.size,
-    }
-    if (!/^image\/|^video\//i.test(file.type || '')) {
-      resolve(reference)
-      return
-    }
-    const reader = new FileReader()
-    reader.onload = () => resolve({ ...reference, dataUrl: String(reader.result || '') })
-    reader.onerror = () => resolve(reference)
-    reader.readAsDataURL(file)
-  })
-}
-
-function downloadTextFile(name: string, text: string) {
-  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = name
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
-  URL.revokeObjectURL(url)
-}
+// ─── Main Panel ───────────────────────────────────────────────────────────────
 
 export function DirectCutPanel({ source, goal, conversationContext, initialConfig, onRecordGeneration, onClear }: DirectCutPanelProps) {
-  const addMediaInput = useRef<HTMLInputElement | null>(null)
-  const [videoMode, setVideoMode] = useState<VideoMode>(initialConfig?.videoMode || (source ? 'image-to-video' : 'generate-videos'))
-  const [duration, setDuration] = useState<Duration>(initialConfig?.duration || '15s')
-  const [aspectRatio, setAspectRatio] = useState<AspectRatio>(initialConfig?.aspectRatio || '16:9')
-  const [audio, setAudio] = useState<AudioMode>(initialConfig?.audio || 'on')
-  const [voice, setVoice] = useState<Voice>(initialConfig?.voice || 'narrator')
-  const [style, setStyle] = useState<VideoStyle>(initialConfig?.style || 'professional-real-estate')
-  const [lighting, setLighting] = useState<Lighting>(initialConfig?.lighting || 'keep-original')
-  const [cameraMovement, setCameraMovement] = useState<CameraMovement>(initialConfig?.cameraMovement || 'dolly-in')
-  const [planEditor, setPlanEditor] = useState(goal)
-  const [plan, setPlan] = useState<DirectCutPlan | null>(null)
-  const [gallery, setGallery] = useState<GalleryItem[]>([])
-  const [selectedId, setSelectedId] = useState('')
-  const [manualCorrection, setManualCorrection] = useState('')
-  const [lockedConstraints, setLockedConstraints] = useState<string[]>([])
-  const [mediaReferences, setMediaReferences] = useState<MediaReference[]>([])
+  const [tab, setTab] = useState<DCTab>('storyboard')
+  const [timecode, setTimecode] = useState('00:04:12:08')
   const [loading, setLoading] = useState(false)
-  const [viewMode, setViewMode] = useState<'plan' | 'nodes'>('plan')
-  const [nodes, setNodes] = useState<SceneNode[]>([])
-  const [draggingId, setDraggingId] = useState<string | null>(null)
-  const [refiningId, setRefiningId] = useState<string | null>(null)
-  const [rendering, setRendering] = useState(false)
-  const [renderedVideoUrl, setRenderedVideoUrl] = useState('')
-  const [renderedStatus, setRenderedStatus] = useState('')
+  const [currentImage, setCurrentImage] = useState<string | undefined>(source?.dataUrl)
+  const [initialImage, setInitialImage] = useState<string | undefined>(source?.dataUrl)
+  const [finalImage, setFinalImage] = useState<string | undefined>(undefined)
+  const [renderJobs, setRenderJobs] = useState<RenderJob[]>([])
+  const [models, setModels] = useState<{ all: { id: string; label: string; category: string }[] } | null>(null)
+  const [selectedModelId, setSelectedModelId] = useState('kling-video/v1.6/standard/text-to-video')
+  const pollTimers = useRef<Record<string, ReturnType<typeof setInterval>>>({})
 
-  const selected = gallery.find(item => item.id === selectedId)
-  const activePlan = selected || plan
-  const referenceList = useMemo(() => {
-    const initial: MediaReference[] = source
-      ? [{
-          id: 'source',
-          role: 'initial',
-          name: source.file.name,
-          type: source.file.type || source.kind,
-          size: source.file.size,
-          dataUrl: source.dataUrl,
-        }]
-      : []
-    return [...initial, ...mediaReferences]
-  }, [mediaReferences, source])
+  const [layers, setLayers] = useState<SceneLayer[]>(() => [
+    { id: uid(), name: source?.file.name || 'Photo_Background_01', type: 'image', visible: true, opacity: 100, active: true },
+    { id: uid(), name: 'Video_Overlay_Grain', type: 'video', visible: true, opacity: 45, blendMode: 'Multiply', active: false },
+    { id: uid(), name: 'Revit_Render_Final', type: 'render', visible: true, opacity: 100, active: false },
+  ])
 
-  const sourceMeta = useMemo(() => {
-    if (!source) return 'No source media uploaded.'
-    return `${source.file.name} · ${source.kind} · ${formatSize(source.file.size)}`
+  useEffect(() => { fetch('/api/fal/models').then(r => r.json()).then(setModels).catch(() => null) }, [])
+  useEffect(() => { return () => { Object.values(pollTimers.current).forEach(clearInterval) } }, [])
+  useEffect(() => {
+    if (source?.dataUrl) {
+      setCurrentImage(source.dataUrl)
+      setInitialImage(source.dataUrl)
+    }
   }, [source])
 
-  async function requestPlan(planEditorOverride?: string) {
+  const videoModels = useMemo(() => models?.all.filter(m => m.category.startsWith('video')) || [], [models])
+
+  function toggleLayer(id: string) {
+    setLayers(prev => prev.map(l => l.id === id ? { ...l, visible: !l.visible } : l))
+  }
+  function addLayer() {
+    setLayers(prev => [...prev, { id: uid(), name: `Layer_${prev.length + 1}`, type: 'image', visible: true, opacity: 100, active: false }])
+  }
+
+  function startPollJob(jobId: string, requestId: string) {
+    let attempts = 0
+    pollTimers.current[jobId] = setInterval(async () => {
+      attempts++
+      try {
+        const res = await fetch(`/api/fal/webhook-status?request_id=${requestId}`)
+        const data = await res.json()
+        if (data.status === 'completed') {
+          clearInterval(pollTimers.current[jobId])
+          delete pollTimers.current[jobId]
+          setRenderJobs(prev => prev.map(j => j.id !== jobId ? j : { ...j, status: 'done', progress: 100, videoUrl: data.videoUrl, imageUrl: data.imageUrl }))
+          if (data.videoUrl) setCurrentImage(undefined) // show video in canvas area
+          setLoading(false)
+        } else if (data.status === 'error') {
+          clearInterval(pollTimers.current[jobId])
+          delete pollTimers.current[jobId]
+          setRenderJobs(prev => prev.map(j => j.id !== jobId ? j : { ...j, status: 'error', error: data.error || 'Erro.' }))
+          setLoading(false)
+        } else {
+          setRenderJobs(prev => prev.map(j => j.id !== jobId ? j : { ...j, status: 'generating', progress: Math.min(90, attempts * 3) }))
+        }
+        if (attempts > 120) {
+          clearInterval(pollTimers.current[jobId])
+          delete pollTimers.current[jobId]
+          setRenderJobs(prev => prev.map(j => j.id !== jobId ? j : { ...j, status: 'error', error: 'Timeout 10min.' }))
+          setLoading(false)
+        }
+      } catch { /* hiccup */ }
+    }, 5000)
+  }
+
+  async function handleGenerate(prompt: string, style: StylePreset, settings: { intensity: number; temperature: number }) {
+    const activeModel = videoModels.find(m => m.id === selectedModelId) || { id: selectedModelId, label: selectedModelId }
+    const jobId = uid()
+    const job: RenderJob = {
+      id: jobId, modelId: activeModel.id, modelLabel: activeModel.label,
+      prompt: prompt || goal, status: 'submitting', progress: 5,
+      startedAt: new Date().toISOString(),
+    }
+    setRenderJobs(prev => [job, ...prev])
     setLoading(true)
+
     try {
-      const response = await fetch('/api/copilot/video-plan', {
+      const res = await fetch('/api/copilot/video-render', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           goal,
-          planEditor: planEditorOverride ?? planEditor,
-          file: source ? {
-            name: source.file.name,
-            type: source.file.type,
-            size: source.file.size,
-            kind: source.kind,
-            dataUrl: source.kind === 'image' ? source.dataUrl : undefined,
-          } : null,
-          videoMode,
-          duration,
-          aspectRatio,
-          model: 'auto',
-          audio,
-          voice,
-          style,
-          lighting,
-          cameraMovement,
-          references: referenceList.map(reference => ({
-            role: reference.role,
-            name: reference.name,
-            type: reference.type,
-            size: reference.size,
-            hasPreview: Boolean(reference.dataUrl),
-          })),
-          lockedConstraints,
-          conversationContext,
+          prompt: prompt || goal,
+          duration: initialConfig?.duration || '8',
+          aspectRatio: initialConfig?.aspectRatio || '16:9',
+          modelId: activeModel.id,
+          sourceImageDataUrl: initialImage,
+          finalImageDataUrl: finalImage,
         }),
       })
-      const data: DirectCutPlan = await response.json().catch(() => ({
-        providerStatus: 'planning-only',
-        message: 'DirectCut planner returned a non-JSON response.',
-      }))
-      setPlan(data)
-      if (data.videoPrompt) setPlanEditor(data.videoPrompt)
-      if (data.sceneList?.length) {
-        setNodes(data.sceneList.map(scene => ({
-          id: id(), scene, camera: cameraMovement, style, locked: false,
-        })))
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setRenderJobs(prev => prev.map(j => j.id !== jobId ? j : { ...j, status: 'error', error: data?.message || 'Render failed.' }))
+        setLoading(false)
+        return
       }
-      const item: GalleryItem = {
-        ...data,
-        id: id(),
-        timestamp: new Date().toISOString(),
-        sourceMedia: source?.file.name,
-        mode: videoMode,
-        duration,
-        aspectRatio,
-        audio,
-        voice,
-        style,
-        lighting,
-        cameraMovement,
-        model: 'auto',
-        lockedConstraints: [...lockedConstraints],
-        planEditor: data.videoPrompt || planEditorOverride || planEditor,
-        references: referenceList,
+      if (data?.async && data?.requestId) {
+        setRenderJobs(prev => prev.map(j => j.id !== jobId ? j : { ...j, status: 'queued', progress: 10, requestId: data.requestId }))
+        startPollJob(jobId, data.requestId)
+      } else {
+        const videoUrl = data?.videoDataUrl || data?.videoUrl
+        setRenderJobs(prev => prev.map(j => j.id !== jobId ? j : { ...j, status: 'done', progress: 100, videoUrl }))
+        if (videoUrl) { /* update canvas */ }
+        setLoading(false)
+      onRecordGeneration?.({ item: { id: jobId, modelId: job.modelId, modelLabel: job.modelLabel, status: 'done', videoUrl, startedAt: job.startedAt } })
       }
-      setGallery(prev => [...prev, item])
-      setSelectedId(item.id)
-      onRecordGeneration?.({ item })
-    } finally {
+    } catch (err) {
+      setRenderJobs(prev => prev.map(j => j.id !== jobId ? j : { ...j, status: 'error', error: err instanceof Error ? err.message : 'Error' }))
       setLoading(false)
     }
   }
 
-  useEffect(() => {
-    if (!goal.trim() && !source) return
-    requestPlan()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [goal, source])
-
-  function copyText(value = '') {
-    navigator.clipboard.writeText(value)
-  }
-
-  function exportPlan(item = selected || gallery[gallery.length - 1]) {
-    if (!item) return
-    const text = [
-      `Title: ${item.title || ''}`,
-      `Mode: ${modeLabels[item.mode]}`,
-      `Model: ${item.model}`,
-      `Duration: ${item.duration}`,
-      `Aspect: ${item.aspectRatio}`,
-      `Audio: ${item.audio}`,
-      `Voice: ${item.voice}`,
-      `Style: ${item.style}`,
-      `Lighting: ${item.lighting}`,
-      `Camera movement: ${item.cameraMovement}`,
-      `Objective: ${item.objective || ''}`,
-      `Audience: ${item.audience || ''}`,
-      '',
-      'References:',
-      ...(item.references || []).map(reference => `- ${reference.role}: ${reference.name} (${reference.type}, ${formatSize(reference.size)})`),
-      '',
-      'Storyboard / shot list:',
-      ...(item.sceneList || []).map((scene, index) => `${index + 1}. ${scene}`),
-      '',
-      'Camera movements:',
-      ...(item.cameraMovements || []).map((movement, index) => `${index + 1}. ${movement}`),
-      '',
-      'Narration:',
-      item.narrationScript || '',
-      '',
-      'Video prompt:',
-      item.videoPrompt || '',
-      '',
-      'Negative prompt:',
-      item.negativePrompt || '',
-    ].join('\n')
-    downloadTextFile(`directcut-plan-${item.timestamp.replace(/[:.]/g, '-')}.txt`, text)
-  }
-
-  function exportStoryboard() {
-    const list = activePlan?.sceneList || []
-    if (!list.length) return
-    downloadTextFile('directcut-storyboard.txt', list.map((scene, index) => `${index + 1}. ${scene}`).join('\n'))
-  }
-
-  function addCorrection() {
-    const text = manualCorrection.trim()
-    if (!text) return
-    const constraint = normalizeVideoConstraint(text)
-    setLockedConstraints(prev => prev.includes(constraint) ? prev : [...prev, constraint])
-    setManualCorrection('')
-  }
-
-  async function handleReferenceUpload(file: File, role: MediaReference['role']) {
-    const reference = await readFileReference(file, role)
-    setMediaReferences(prev => [...prev, reference])
-  }
-
-  function updateNode(nodeId: string, field: keyof SceneNode, value: string | boolean) {
-    setNodes(prev => prev.map(n => n.id === nodeId ? { ...n, [field]: value } : n))
-  }
-
-  function toggleLock(nodeId: string) {
-    setNodes(prev => prev.map(n => n.id === nodeId ? { ...n, locked: !n.locked } : n))
-  }
-
-  function removeNode(nodeId: string) {
-    setNodes(prev => prev.filter(n => n.id !== nodeId))
-  }
-
-  function addNode() {
-    setNodes(prev => [...prev, { id: id(), scene: '', camera: cameraMovement, style, locked: false }])
-  }
-
-  function reorderNodes(fromId: string, toId: string) {
-    setNodes(prev => {
-      const arr = [...prev]
-      const fromIdx = arr.findIndex(n => n.id === fromId)
-      const toIdx = arr.findIndex(n => n.id === toId)
-      if (fromIdx === -1 || toIdx === -1) return arr
-      const [moved] = arr.splice(fromIdx, 1)
-      arr.splice(toIdx, 0, moved)
-      return arr
-    })
-  }
-
-  async function refineNode(nodeId: string) {
-    const node = nodes.find(n => n.id === nodeId)
-    if (!node || node.locked) return
-    setRefiningId(nodeId)
-    try {
-      const resp = await fetch('/api/copilot/directcut-refine', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          scene: node.scene, camera: node.camera, style: node.style,
-          goal, videoMode, duration, aspectRatio, conversationContext,
-        }),
-      })
-      const data = await resp.json().catch(() => ({}))
-      if (data.refinedScene) {
-        setNodes(prev => prev.map(n =>
-          n.id === nodeId
-            ? { ...n, scene: data.refinedScene, aiNote: data.aiNote, camera: (data.suggestedCamera || n.camera) as CameraMovement, style: (data.suggestedStyle || n.style) as VideoStyle }
-            : n
-        ))
-      }
-    } finally {
-      setRefiningId(null)
-    }
-  }
-
-  function compileNodes() {
-    if (!nodes.length) return
-    const compiled = nodes
-      .map((n, i) => `Scene ${i + 1}: ${n.scene}${n.camera !== 'static' ? ` [camera: ${n.camera}]` : ''}`)
-      .join('\n')
-    setPlanEditor(compiled)
-    requestPlan(compiled)
-  }
-
-  async function renderVideoNow() {
-    setRendering(true)
-    setRenderedStatus('')
-    try {
-      const response = await fetch('/api/copilot/video-render', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          goal,
-          prompt: activePlan?.videoPrompt || planEditor,
-          duration,
-          aspectRatio,
-          sourceImageDataUrl: source?.kind === 'image' ? source.dataUrl : undefined,
-        }),
-      })
-      const data = await response.json().catch(() => ({}))
-      if (!response.ok) {
-        setRenderedVideoUrl('')
-        setRenderedStatus(String(data?.message || 'Video render failed.'))
-        return
-      }
-      if (data?.videoDataUrl) setRenderedVideoUrl(String(data.videoDataUrl))
-      setRenderedStatus(String(data?.message || `Render status: ${data?.providerStatus || 'unknown'}`))
-    } catch (error) {
-      setRenderedVideoUrl('')
-      setRenderedStatus(error instanceof Error ? error.message : 'Video render failed.')
-    } finally {
-      setRendering(false)
-    }
-  }
+  const doneJob = renderJobs.find(j => j.status === 'done' && j.videoUrl)
 
   return (
-    <section className="directcut-studio" aria-label="DirectCut Studio">
-      <div className="directcut-heading">
-        <div>
-          <span>DirectCut Studio</span>
-          <h2>Video generation planner</h2>
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9000,
+      background: D.bg, display: 'flex', flexDirection: 'column',
+      fontFamily: "'Inter', sans-serif", color: D.onSurface,
+    }}>
+      {/* ── Top App Bar ─────────────────────────────────────────── */}
+      <header style={{
+        height: 48, background: D.surfaceContainerLowest, borderBottom: `1px solid ${D.outlineVariant}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 16px', flexShrink: 0, zIndex: 10,
+      }}>
+        {/* Left */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button onClick={onClear} style={{ background: 'none', border: 'none', cursor: 'pointer', color: D.onSurfaceVariant, display: 'flex', alignItems: 'center', gap: 4, fontSize: 11 }}>
+              ← Fechar
+            </button>
+            <div style={{ width: 1, height: 16, background: D.outlineVariant }} />
+            <span style={{ fontSize: 13, fontWeight: 700, color: D.onSurface, letterSpacing: '-0.03em' }}>DIRECTOR'S CUT</span>
+          </div>
+          <nav style={{ display: 'flex', gap: 12 }}>
+            {[
+              { id: 'storyboard', label: 'Storyboard' },
+              { id: '3d-workspace', label: '3D Workspace' },
+              { id: 'library', label: 'Library' },
+            ].map(item => (
+              <button key={item.id} onClick={() => setTab(item.id as DCTab)}
+                style={{
+                  fontSize: 11, fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer',
+                  color: tab === item.id ? D.primaryContainer : D.onSurfaceVariant,
+                  borderBottom: `2px solid ${tab === item.id ? D.primaryContainer : 'transparent'}`,
+                  paddingBottom: 2,
+                }}>
+                {item.label}
+              </button>
+            ))}
+          </nav>
         </div>
-        <button className="ghost-action" onClick={onClear} type="button"><Eraser size={16} /> Close</button>
-      </div>
 
-      <div className="directcut-layout">
-        <aside className="directcut-controls">
-          <div className="directcut-source">
-            <strong>Reference media</strong>
-            <span>{sourceMeta}</span>
-            {source?.kind === 'image' && source.dataUrl && <img src={source.dataUrl} alt={source.file.name} />}
-            <div className="directcut-reference-grid">
-              <button type="button" className="directcut-reference-tile active">
-                <UploadCloud size={16} />
-                <span>Initial reference</span>
-                <small>{source ? source.file.name : 'none'}</small>
-              </button>
-              <button type="button" className="directcut-reference-tile">
-                <Film size={16} />
-                <span>Final reference</span>
-                <small>{referenceList.find(item => item.role === 'final')?.name || 'not set'}</small>
-              </button>
-              <button type="button" className="directcut-reference-tile" onClick={() => addMediaInput.current?.click()}>
-                <UploadCloud size={16} />
-                <span>Add media</span>
-                <small>{mediaReferences.length ? `${mediaReferences.length} added` : 'image/video/file'}</small>
-              </button>
-              <input
-                ref={addMediaInput}
-                hidden
-                type="file"
-                accept="*/*"
-                onChange={event => {
-                  const file = event.target.files?.[0]
-                  if (file) handleReferenceUpload(file, file.type.startsWith('video/') ? 'final' : 'additional')
-                  event.currentTarget.value = ''
-                }}
-              />
-            </div>
+        {/* Right */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {/* Play controls */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 3, background: D.surfaceContainerHigh, padding: '3px 8px', borderRadius: 4 }}>
+            <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: D.onSurface, display: 'flex' }}><Play size={15} /></button>
+            <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: D.onSurface, display: 'flex' }}><Pause size={15} /></button>
           </div>
+          <button style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', background: D.surfaceContainerHighest, border: `1px solid ${D.outlineVariant}`, borderRadius: 4, cursor: 'pointer', color: D.onSurface, fontSize: 11 }}>
+            <Plus size={12} /> Add Frame
+          </button>
+          <button onClick={() => handleGenerate('', 'hyper-real', { intensity: 75, temperature: 33 })} disabled={loading}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', background: D.primaryContainer, color: D.onPrimaryContainer, border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+            <Sparkles size={12} /> AI Generate
+          </button>
+          {/* Model selector */}
+          {videoModels.length > 0 && (
+            <select value={selectedModelId} onChange={e => setSelectedModelId(e.target.value)}
+              style={{ fontSize: 10, background: D.surfaceContainerHigh, color: D.onSurfaceVariant, border: `1px solid ${D.outlineVariant}`, borderRadius: 4, padding: '4px 6px', maxWidth: 160 }}>
+              {videoModels.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}
+            </select>
+          )}
+          <div style={{ width: 1, height: 16, background: D.outlineVariant }} />
+          <Settings size={15} color={D.onSurfaceVariant} style={{ cursor: 'pointer' }} />
+        </div>
+      </header>
 
-          <label><span>Model</span><select value="auto" disabled><option value="auto">Auto</option></select></label>
-          <label><span>Tool mode</span><select value={videoMode} onChange={event => setVideoMode(event.target.value as VideoMode)}>{Object.entries(modeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-          <div className="directcut-select-grid">
-            <label><span>Duration</span><select value={duration} onChange={event => setDuration(event.target.value as Duration)}>{['5s', '10s', '15s', '30s'].map(value => <option key={value} value={value}>{value}</option>)}</select></label>
-            <label><span>Aspect</span><select value={aspectRatio} onChange={event => setAspectRatio(event.target.value as AspectRatio)}>{['16:9', '9:16', '1:1'].map(value => <option key={value} value={value}>{value}</option>)}</select></label>
-          </div>
-          <div className="directcut-select-grid">
-            <label><span>Audio</span><select value={audio} onChange={event => setAudio(event.target.value as AudioMode)}>{['on', 'off'].map(value => <option key={value} value={value}>{value}</option>)}</select></label>
-            <label><span>Voice</span><select value={voice} onChange={event => setVoice(event.target.value as Voice)}>{['none', 'narrator', 'presenter-script'].map(value => <option key={value} value={value}>{value}</option>)}</select></label>
-          </div>
-          <label><span>Style</span><select value={style} onChange={event => setStyle(event.target.value as VideoStyle)}>{Object.entries(styleLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-          <label><span>Lighting</span><select value={lighting} onChange={event => setLighting(event.target.value as Lighting)}>{Object.entries(lightingLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-          <label><span>Camera movement</span><select value={cameraMovement} onChange={event => setCameraMovement(event.target.value as CameraMovement)}>{Object.entries(cameraMovementLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+      {/* ── Body ─────────────────────────────────────────────────── */}
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        {/* Icon sidebar */}
+        <IconSidebar tab={tab} onTab={setTab} onClose={onClear} />
 
-          <div className="video-constraints-panel">
-            <strong>Video revision constraints</strong>
-            {lockedConstraints.length ? lockedConstraints.map(item => (
-              <span key={item}>{item}<button type="button" onClick={() => setLockedConstraints(prev => prev.filter(value => value !== item))}>Remove</button></span>
-            )) : <p>No locked corrections yet.</p>}
-            <div>
-              <input value={manualCorrection} onChange={event => setManualCorrection(event.target.value)} placeholder="e.g. começar pela fachada" />
-              <button type="button" onClick={addCorrection}>Add</button>
-            </div>
-          </div>
-
-          <button className="directcut-primary" onClick={() => requestPlan()} disabled={loading} type="button"><Play size={16} /> {loading ? 'Planning...' : 'Generate / Regenerate plan'}</button>
-        </aside>
-
-        <div className="directcut-main">
-          <div className="directcut-preview">
-            <div className="directcut-preview-icon"><Video size={34} /></div>
-            <strong>{renderedVideoUrl ? 'Rendered preview' : 'Preview placeholder'}</strong>
-            {renderedVideoUrl ? (
-              <video controls src={renderedVideoUrl} style={{ width: '100%', borderRadius: '10px', marginTop: '8px' }} />
-            ) : (
-              <span>No final video yet. Use Render video now.</span>
-            )}
-            {renderedStatus && <span>{renderedStatus}</span>}
-            <small>Provider status: {activePlan?.providerStatus || 'planning-only'}</small>
-          </div>
-
-          <div className="directcut-plan">
-            <div className="directcut-plan-head">
-              <div>
-                <h3>{activePlan?.title || 'Current video plan'}</h3>
-                <p>{activePlan?.objective || 'DirectCut will generate a plan from your project goal.'}</p>
-                <small>Audience: {activePlan?.audience || 'not set'}</small>
+        {/* Main workspace */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          {tab === 'storyboard' && (
+            <>
+              <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+                <SceneLayers layers={layers} onToggle={toggleLayer} onAdd={addLayer} />
+                <CentralCanvas
+                  source={source}
+                  currentImage={doneJob?.videoUrl ? undefined : currentImage}
+                  timecode={timecode}
+                  fps={24}
+                  loading={loading}
+                />
+                <AIGenerationPanel
+                  onGenerate={handleGenerate}
+                  loading={loading}
+                  source={source}
+                  initialImage={initialImage}
+                  setInitialImage={setInitialImage}
+                  finalImage={finalImage}
+                  setFinalImage={setFinalImage}
+                />
               </div>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <div className="directcut-view-toggle">
-                  <button type="button" className={viewMode === 'plan' ? 'active' : ''} onClick={() => setViewMode('plan')}>Plan</button>
-                  <button type="button" className={viewMode === 'nodes' ? 'active' : ''} onClick={() => setViewMode('nodes')}>Node Board</button>
-                </div>
-                <div className="directcut-status-pill"><Clapperboard size={15} /> {activePlan?.providerStatus || 'planning-only'}</div>
+              <MultiTrackTimeline timecode={timecode} />
+            </>
+          )}
+
+          {tab === '3d-workspace' && (
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+              <div style={{ flex: 1, overflow: 'hidden' }}>
+                <CentralCanvas source={source} currentImage={currentImage} timecode={timecode} fps={24} loading={loading} />
               </div>
+              <MultiTrackTimeline timecode={timecode} />
             </div>
+          )}
 
-            {viewMode === 'plan' ? (
-              <>
-                <label className="directcut-editor-label">
-                  <span><Wand2 size={15} /> Prompt / plan editor</span>
-                  <textarea value={planEditor} onChange={event => setPlanEditor(event.target.value)} />
-                </label>
-
-                <h4>Storyboard / shot list</h4>
-                <ol>{(activePlan?.sceneList || []).map(scene => <li key={scene}>{scene}</li>)}</ol>
-
-                <h4>Scene-by-scene narration script</h4>
-                <pre>{activePlan?.narrationScript || 'No script generated yet.'}</pre>
-
-                <h4>Video generator prompt</h4>
-                <pre>{activePlan?.videoPrompt || ''}</pre>
-
-                <h4>Negative prompt / avoid list</h4>
-                <pre>{activePlan?.negativePrompt || ''}</pre>
-
-                <div className="directcut-actions">
-                  <button type="button" onClick={() => copyText(activePlan?.videoPrompt)}><Copy size={16} /> Copy prompt</button>
-                  <button type="button" onClick={() => copyText(activePlan?.narrationScript)}><Mic size={16} /> Copy script</button>
-                  <button type="button" onClick={() => copyText((activePlan?.sceneList || []).join('\n'))}><Camera size={16} /> Copy storyboard</button>
-                  <button type="button" onClick={exportStoryboard}><Download size={16} /> Export storyboard</button>
-                  <button type="button" onClick={() => exportPlan()}><Download size={16} /> Export plan</button>
-                  <button type="button" onClick={renderVideoNow} disabled={rendering}><Video size={16} /> {rendering ? 'Rendering...' : 'Render video now'}</button>
-                  <button type="button" onClick={() => localStorage.setItem('apex_directcut_last_plan', JSON.stringify(activePlan))}><Save size={16} /> Save plan</button>
-                </div>
-              </>
-            ) : (
-              <>
-                <p className="node-board-hint">Drag scenes to reorder · Edit inline · Refine with AI · Compile to generate new plan</p>
-                <div
-                  className="directcut-node-board"
-                  onDragOver={event => event.preventDefault()}
-                >
-                  {nodes.map((node, index) => (
-                    <div
-                      key={node.id}
-                      className={`directcut-node${node.locked ? ' locked' : ''}${draggingId === node.id ? ' dragging' : ''}`}
-                      draggable={!node.locked}
-                      onDragStart={() => setDraggingId(node.id)}
-                      onDragEnd={() => setDraggingId(null)}
-                      onDragOver={event => event.preventDefault()}
-                      onDrop={event => {
-                        event.preventDefault()
-                        if (draggingId && draggingId !== node.id) {
-                          reorderNodes(draggingId, node.id)
-                          setDraggingId(null)
-                        }
-                      }}
-                    >
-                      <div className="directcut-node-head">
-                        <GripVertical size={13} className="node-grip" />
-                        <span className="node-num">Scene {index + 1}</span>
-                        <div className="node-actions">
-                          <button type="button" onClick={() => refineNode(node.id)} disabled={refiningId === node.id || node.locked} title="Refine with AI">
-                            <Sparkles size={12} />{refiningId === node.id ? ' ...' : ' Refine'}
-                          </button>
-                          <button type="button" onClick={() => toggleLock(node.id)} title={node.locked ? 'Unlock' : 'Lock'}>
-                            {node.locked ? <Lock size={12} /> : <Unlock size={12} />}
-                          </button>
-                          <button type="button" onClick={() => removeNode(node.id)} title="Remove scene"><Trash2 size={12} /></button>
-                        </div>
-                      </div>
-                      <textarea
-                        className="node-scene-text"
-                        value={node.scene}
-                        onChange={event => updateNode(node.id, 'scene', event.target.value)}
-                        disabled={node.locked}
-                        rows={4}
-                        placeholder="Describe this scene..."
-                      />
-                      {node.aiNote && <small className="node-ai-note">✦ {node.aiNote}</small>}
-                      <div className="node-settings">
-                        <select value={node.camera} onChange={event => updateNode(node.id, 'camera', event.target.value)} disabled={node.locked}>
-                          {Object.entries(cameraMovementLabels).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                        </select>
-                        <select value={node.style} onChange={event => updateNode(node.id, 'style', event.target.value)} disabled={node.locked}>
-                          {Object.entries(styleLabels).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                        </select>
-                      </div>
-                    </div>
-                  ))}
-                  <button type="button" className="directcut-node-add" onClick={addNode}>
-                    <Plus size={15} /> Add scene
-                  </button>
-                </div>
-                <div className="directcut-actions">
-                  <button type="button" className="directcut-primary" onClick={compileNodes} disabled={loading || !nodes.length}>
-                    <Play size={15} /> Compile nodes → generate plan
-                  </button>
-                  <button type="button" onClick={() => copyText(nodes.map((n, i) => `Scene ${i + 1}: ${n.scene}`).join('\n'))}>
-                    <Copy size={15} /> Copy board
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-
-          <div className="directcut-gallery">
-            <div><strong>Iteration gallery</strong><span>{gallery.length} plan{gallery.length === 1 ? '' : 's'}</span></div>
-            <div className="directcut-gallery-list">
-              {gallery.map(item => (
-                <button type="button" key={item.id} className={item.id === selectedId ? 'active' : ''} onClick={() => setSelectedId(item.id)}>
-                  <Film size={16} />
-                  <span>{item.title || modeLabels[item.mode]}</span>
-                  <small>{item.duration} · {item.aspectRatio} · {styleLabels[item.style]} · {lightingLabels[item.lighting]} · {cameraMovementLabels[item.cameraMovement]}</small>
-                </button>
-              ))}
+          {tab === 'library' && (
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+              <div style={{ padding: '16px 20px', borderBottom: `1px solid ${D.outlineVariant}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 14, fontWeight: 700 }}>Render History</span>
+                <span style={{ fontSize: 11, color: D.onSurfaceVariant }}>{renderJobs.length} renders</span>
+              </div>
+              <RenderHistory jobs={renderJobs} />
             </div>
-          </div>
+          )}
         </div>
       </div>
-    </section>
+
+      <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+        * { box-sizing: border-box; }
+        textarea, input, select { outline: none; }
+        textarea:focus, input:focus { border-color: ${D.primaryContainer} !important; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-thumb { background: ${D.outlineVariant}; border-radius: 2px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+      `}</style>
+    </div>
   )
 }

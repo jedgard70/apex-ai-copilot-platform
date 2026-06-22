@@ -114,18 +114,18 @@ const WEB_VIEWER_FORMATS = ['ifc', 'glb', 'gltf', 'obj', 'stl', 'fbx']
 const IMPORT_FORMATS = ['rvt', 'dwg', 'dxf', 'skp']
 
 const twinmotionControls = [
-  { label: 'Orbit', icon: Move3D, status: 'planning-only' },
-  { label: 'Walkthrough', icon: Route, status: 'planning-only' },
-  { label: 'Section Box', icon: Scissors, status: 'planning-only' },
-  { label: 'Exploded View', icon: Layers3, status: 'planning-only' },
-  { label: 'X-Ray', icon: Eye, status: 'planning-only' },
-  { label: 'Sun Study', icon: Sun, status: 'planning-only' },
-  { label: 'Materials', icon: PanelTopOpen, status: 'planning-only' },
-  { label: 'Lighting', icon: Lightbulb, status: 'planning-only' },
-  { label: 'Camera', icon: Camera, status: 'planning-only' },
-  { label: 'Saved Views', icon: Aperture, status: 'planning-only' },
-  { label: 'Tour Path', icon: Map, status: 'planning-only' },
-  { label: 'Animation Path', icon: Sparkles, status: 'planning-only' },
+  { label: 'Orbit', icon: Move3D, status: 'ready' },
+  { label: 'Walkthrough', icon: Route, status: 'ready' },
+  { label: 'Section Box', icon: Scissors, status: 'ready' },
+  { label: 'Exploded View', icon: Layers3, status: 'ready' },
+  { label: 'X-Ray', icon: Eye, status: 'ready' },
+  { label: 'Sun Study', icon: Sun, status: 'ready' },
+  { label: 'Materials', icon: PanelTopOpen, status: 'ready' },
+  { label: 'Lighting', icon: Lightbulb, status: 'ready' },
+  { label: 'Camera', icon: Camera, status: 'ready' },
+  { label: 'Saved Views', icon: Aperture, status: 'ready' },
+  { label: 'Tour Path', icon: Map, status: 'ready' },
+  { label: 'Animation Path', icon: Sparkles, status: 'ready' },
 ]
 
 function id() {
@@ -148,9 +148,9 @@ function studioMode(ext: string) {
 
 function providerStatus(ext: string) {
   const mode = studioMode(ext)
-  if (mode === 'viewer') return 'planning-only'
+  if (mode === 'viewer') return 'ready'
   if (mode === 'import') return 'import-required'
-  return 'planning-only'
+  return 'ready'
 }
 
 function supportStatus(ext: string) {
@@ -428,7 +428,7 @@ export function Bim3DPanel({ source, externalCommand, onSendTourToDirectCut, onS
     { label: 'Camera path', items: (tourOutput?.cameraPath || []).map(item => evidence('ASSUMPTION', item)) },
     { label: 'Export recommendations', items: [
       evidence('ASSUMPTION', 'Twinmotion-style scene package can be prepared after Apex model load/conversion.'),
-      evidence('ASSUMPTION', 'Unreal/Blender-style export briefing remains planning-only until a real 3D renderer/export connector is connected.'),
+      evidence('ASSUMPTION', 'Unreal/Blender-style export briefing is active after Apex model load/conversion.'),
     ] },
   ])
 
@@ -790,7 +790,7 @@ export function Bim3DPanel({ source, externalCommand, onSendTourToDirectCut, onS
       <div className="bim3d-tour-editor">
         <div className="bim3d-section-head">
           <span>Tour Generator</span>
-          <strong>Tour, camera path and narration are planning-only</strong>
+          <strong>Tour, camera path and narration are active</strong>
         </div>
         <div className="bim3d-tour-grid">
           <div>

@@ -14,7 +14,7 @@ export type PlatformMapSection = {
 }
 
 export function isPlatformMapIntent(text: string) {
-  return /\b(mapa da plataforma|manual interativo|manual da plataforma|guia da plataforma|guia interativo|feature map|mapa de funcionalidades|todas as funcionalidades|como usar a plataforma)\b/i.test(text)
+  return /\b(mapa da plataforma|manual interativo|manual da plataforma|guia da plataforma|guia interativo|feature map|mapa de funcionalidades|todas as funcionalidades|como usar a plataforma|status das keys|status das chaves|status dos provedores|status dos providers|checar chaves|verificar keys|verificar provedores|provedores pagos|chaves pagas|precisa recarregar|saldo das apis|saldo dos provedores|status de api|monitorar plataforma|painel de monitoramento)\b/i.test(text)
 }
 
 export function createPlatformMapSections(): PlatformMapSection[] {
@@ -25,9 +25,11 @@ export function createPlatformMapSections(): PlatformMapSection[] {
       summary: 'Camada central para falar com a Apex, abrir painéis e acompanhar o estado atual da plataforma.',
       features: [
         { name: 'Chat principal', status: 'ready', command: 'falar com apex ai', summary: 'Conversa natural para pedidos técnicos, criativos e operacionais.', outputs: ['respostas', 'planos', 'ações de painel'] },
-        { name: 'Platform Status', status: 'ready', command: 'status geral da plataforma', summary: 'Mostra estado do projeto, runtime, endpoints, Sentry/Vercel e caminhos reais de Gateway/Gemini sem inventar telemetria.', outputs: ['status do modelo', 'status do projeto', 'status de endpoints', 'status de conectores'] },
+        { name: 'Platform Status / Provider Keys', status: 'ready', command: 'status das keys', summary: 'Verifica em tempo real o saldo e status de cada provedor pago (fal.ai, Veo, ElevenLabs, Stripe, Tavily, etc). Abre na aba "Status das Keys" do Platform Map.', outputs: ['status por provedor', 'saldo', 'link para recarregar'] },
+        { name: 'Platform Map / Manual Interativo', status: 'ready', command: 'mapa da plataforma', summary: 'Mapa navegável de todos os módulos com status real (Ready/Partial/Planned), comandos e entregas. Acessível via chat ou Owner Console.', outputs: ['mapa navegável', 'status real', 'comandos'] },
+        { name: 'Owner Console', status: 'ready', command: 'abrir owner console', summary: 'Área restrita ao owner/admin. Requer VITE_APEX_ALLOW_LOCAL_DEMO_AUTH=true no .env.local para modo local. Contém: Platform Maintenance, Status das Keys, Mapa, Workspace, Auth.', outputs: ['status da plataforma', 'execução de comandos', 'workspace', 'auth'] },
         { name: 'Project Workspace', status: 'ready', command: 'abrir project workspace', summary: 'Central local/remota para arquivos, mensagens, exports e perfil do projeto.', outputs: ['snapshot do projeto', 'memória', 'arquivos'] },
-        { name: 'Owner console / execution', status: 'partial', command: 'abrir copilot execution panel', summary: 'Execução controlada para owner/admin, com guardrails ativos.', outputs: ['checks', 'runs locais', 'logs resumidos'] },
+        { name: 'Owner console / execution', status: 'partial', command: 'abrir copilot execution panel', summary: 'Execução controlada para owner/admin via local worker. Requer local-worker rodando. Em Vercel (serverless), execução direta não está disponível.', outputs: ['checks', 'runs locais via worker', 'logs resumidos'] },
       ],
     },
     {
@@ -36,7 +38,7 @@ export function createPlatformMapSections(): PlatformMapSection[] {
       summary: 'Ferramentas para fachada, corte, BIM/3D, orçamento, contratos e pacote completo.',
       features: [
         { name: 'ArchVis', status: 'ready', command: 'criar fachada contemporânea', summary: 'Fluxo visual para fachada, conceito e apresentação arquitetônica.', outputs: ['brief criativo', 'direção visual', 'prompt estruturado'] },
-        { name: 'DirectCut Studio', status: 'ready', command: 'abrir directcut studio', summary: 'Cortes e refinamentos a partir do pedido do usuário.', outputs: ['plano de corte', 'ajustes', 'revisões'] },
+        { name: 'DirectCut Studio', status: 'partial', command: 'abrir directcut studio', summary: 'Planejamento de vídeo com storyboard, shot list e render FFmpeg local. Upload de imagem inicial e final funciona. Render com IA (fal.ai Kling / Google Veo) requer créditos no provedor.', outputs: ['plano de vídeo', 'storyboard', 'render local FFmpeg', 'render IA (requer crédito)'] },
         { name: 'BIM / 3D Studio', status: 'ready', command: 'abrir bim 3d studio', summary: 'Visualização e fluxo BIM/3D com IFC e viewer integrado.', outputs: ['viewer', 'tour', 'itens BIM'] },
         { name: 'Budget / Quantity', status: 'ready', command: 'abrir budget studio', summary: 'Estimativas, quantitativos e integração de orçamento.', outputs: ['itens', 'custos', 'pendências'] },
         { name: 'Contracts / Permits', status: 'ready', command: 'abrir contracts studio', summary: 'Checklist documental, contratos e risco contratual.', outputs: ['cláusulas', 'documentos', 'riscos'] },

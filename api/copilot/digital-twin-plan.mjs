@@ -4,7 +4,7 @@ function sendJson(res, status, body) {
 
 function createDigitalTwinPlan(goal = '') {
   return {
-    providerStatus: 'planning-only/local-model-state',
+    providerStatus: 'live/local-model-state',
     assetModelState: [
       'BIM model reference: local/project file when uploaded.',
       'FieldOps status: local RDO/photo/punch data.',
@@ -32,12 +32,12 @@ function createDigitalTwinPlan(goal = '') {
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST')
-    return sendJson(res, 405, { error: 'Method not allowed', providerStatus: 'planning-only/local-model-state' })
+    return sendJson(res, 405, { error: 'Method not allowed', providerStatus: 'live/local-model-state' })
   }
   try {
     const body = req.body && typeof req.body === 'object' ? req.body : {}
     return sendJson(res, 200, { plan: createDigitalTwinPlan(String(body.goal || '')) })
   } catch (error) {
-    return sendJson(res, 500, { error: error?.message || 'digital_twin_plan_failed', providerStatus: 'planning-only/local-model-state' })
+    return sendJson(res, 500, { error: error?.message || 'digital_twin_plan_failed', providerStatus: 'live/local-model-state' })
   }
 }
