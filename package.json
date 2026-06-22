@@ -64,11 +64,13 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.61.0",
+    "@rollup/rollup-win32-x64-msvc": "^4.62.2",
     "@testing-library/jest-dom": "^6.4.8",
     "@testing-library/react": "^16.3.2",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitest/coverage-v8": "^4.1.9",
+    "ajv": "^8.17.1",
     "electron": "^42.4.1",
     "electron-builder": "^26.15.3",
     "jsdom": "^29.1.1",
