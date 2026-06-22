@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 
 declare module 'lucide-react';
+declare module 'pdfjs-dist';
 
 interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL?: string

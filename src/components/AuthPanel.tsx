@@ -1,4 +1,3 @@
-import { Eye, EyeOff, KeyRound, Mail, X } from 'lucide-react'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { attemptProfileBootstrap, loadSupabaseAccountState, SupabaseAccountState } from '../lib/supabaseAuthBootstrap'
 import { getBrowserSupabaseClient, getSupabaseProviderStatus } from '../lib/supabaseClient'
@@ -53,13 +52,6 @@ const copy = {
   },
 }
 
-const highlights = [
-  { code: 'A', title: 'BIM Intelligence', detail: 'IFC, RVT, NWD, DWG, clash detection' },
-  { code: 'E', title: 'EVM Controls', detail: 'CPI, SPI, EAC, VAC, live performance signals' },
-  { code: 'S', title: 'Safety & Standards', detail: 'ABNT, NR-18, NR-35, NR-10, NR-6' },
-  { code: 'AI', title: 'Multi-Agent AI', detail: 'Specialized agents for planning and execution' },
-]
-
 export function AuthPanel({ onClear, onAuthStateChange }: AuthPanelProps) {
   const provider = useMemo(() => getSupabaseProviderStatus(), [])
   const [mode, setMode] = useState<'login' | 'signup'>('login')
@@ -101,7 +93,6 @@ export function AuthPanel({ onClear, onAuthStateChange }: AuthPanelProps) {
 
   useEffect(() => {
     refreshAccount().catch(() => setStatusText(labels.statusPending))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function submit(event: FormEvent) {
@@ -129,93 +120,170 @@ export function AuthPanel({ onClear, onAuthStateChange }: AuthPanelProps) {
   }
 
   return (
-    <section className="auth-legacy-panel" aria-label="Apex AI Copilot access">
+    <div className="w-full max-w-[440px] bg-[#0d1c2d] border border-[#273647] p-10 shadow-2xl relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-[2px] bg-[#00f0ff]"></div>
+
       {onClear && (
-        <button className="auth-close-button" type="button" onClick={onClear} aria-label="Close authentication panel">
-          <X size={17} />
+        <button
+          type="button"
+          onClick={onClear}
+          className="absolute top-4 right-4 text-[#849495] hover:text-[#d4e4fa] transition-colors z-10"
+          aria-label="Close authentication panel"
+        >
+          <span className="material-symbols-outlined text-[20px]">close</span>
         </button>
       )}
 
-      <aside className="auth-legacy-left">
-        <div className="auth-legacy-brand">
-          <img src={logoSrc} alt="Apex Global" />
-          <div>
-            <strong>{labels.product}</strong>
-            <span>{labels.subtitle}</span>
-          </div>
-        </div>
-
-        <div className="auth-legacy-copy">
-          <h1>{labels.platformTitle}</h1>
-          <strong>{labels.introStrong}</strong>
-          <p>{labels.intro}</p>
-        </div>
-
-        <div className="auth-legacy-highlights">
-          {highlights.map(item => (
-            <article key={item.title}>
-              <span>{item.code}</span>
-              <div>
-                <strong>{item.title}</strong>
-                <small>{item.detail}</small>
-              </div>
-            </article>
-          ))}
-        </div>
-
-        <footer>2026 Apex Global AI. All rights reserved.</footer>
-      </aside>
-
-      <div className="auth-legacy-form-side">
-        <div className="auth-legacy-language">
-          <button type="button" className={language === 'EN' ? 'active' : ''} onClick={() => setLanguage('EN')}>EN</button>
-          <button type="button" className={language === 'PT' ? 'active' : ''} onClick={() => setLanguage('PT')}>PT</button>
-        </div>
-
-        <form className="auth-legacy-form" onSubmit={submit}>
-          <div className="auth-mode-toggle">
-            <button type="button" className={mode === 'login' ? 'active' : ''} onClick={() => setMode('login')}>
-              {labels.login}
-            </button>
-            <button type="button" className={mode === 'signup' ? 'active' : ''} onClick={() => setMode('signup')}>
-              {labels.signup}
-            </button>
-          </div>
-
-          <div className="auth-legacy-form-head">
-            <h2>{mode === 'login' ? labels.formTitleLogin : labels.formTitleSignup}</h2>
-            <p>{labels.formText}</p>
-          </div>
-
-          <label className="auth-input-label">
-            <span>{labels.email}</span>
-            <div className="auth-input-shell">
-              <Mail size={17} />
-              <input value={email} onChange={event => setEmail(event.target.value)} placeholder="jedgard70@gmail.com" type="email" autoComplete="email" />
-            </div>
-          </label>
-
-          <label className="auth-input-label">
-            <span>{labels.password}</span>
-            <div className="auth-input-shell">
-              <KeyRound size={17} />
-              <input value={password} onChange={event => setPassword(event.target.value)} placeholder={labels.password} type={showPassword ? 'text' : 'password'} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
-              <button type="button" onClick={() => setShowPassword(current => !current)} aria-label={showPassword ? 'Hide password' : 'Show password'}>
-                {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-              </button>
-            </div>
-          </label>
-
-          <button className="auth-primary-button" disabled={busy}>
-            {mode === 'login' ? labels.submitLogin : labels.submitSignup}
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex gap-1">
+          <button
+            type="button"
+            onClick={() => setLanguage('EN')}
+            className={`font-label-caps text-label-caps px-2 py-1 rounded transition-colors ${language === 'EN' ? 'text-[#00f0ff] bg-[#273647]' : 'text-[#849495] hover:text-[#d4e4fa]'}`}
+          >
+            EN
           </button>
-        </form>
-
-        <div className="auth-legacy-status">
-          <p>{publicStatus()}</p>
-          <small>{labels.footer}</small>
+          <button
+            type="button"
+            onClick={() => setLanguage('PT')}
+            className={`font-label-caps text-label-caps px-2 py-1 rounded transition-colors ${language === 'PT' ? 'text-[#00f0ff] bg-[#273647]' : 'text-[#849495] hover:text-[#d4e4fa]'}`}
+          >
+            PT
+          </button>
+        </div>
+        <div className="flex gap-1">
+          <button
+            type="button"
+            onClick={() => setMode('login')}
+            className={`font-label-caps text-label-caps px-2 py-1 rounded transition-colors ${mode === 'login' ? 'text-[#00f0ff] bg-[#273647]' : 'text-[#849495] hover:text-[#d4e4fa]'}`}
+          >
+            {labels.login}
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode('signup')}
+            className={`font-label-caps text-label-caps px-2 py-1 rounded transition-colors ${mode === 'signup' ? 'text-[#00f0ff] bg-[#273647]' : 'text-[#849495] hover:text-[#d4e4fa]'}`}
+          >
+            {labels.signup}
+          </button>
         </div>
       </div>
-    </section>
+
+      <div className="flex flex-col items-center mb-10">
+        <img src={logoSrc} alt="Apex Global AI Logo" className="w-16 h-16 mb-6 object-contain" />
+        <h1 className="font-headline-lg text-headline-lg text-[#d4e4fa] tracking-tighter">
+          {mode === 'login' ? 'Platform Access' : 'Create Account'}
+        </h1>
+        <p className="font-body-md text-[#b9cacb] text-center mt-2 opacity-80">
+          {mode === 'login'
+            ? 'Secure authentication for Engineering & AI Operations'
+            : 'Register to access the platform'}
+        </p>
+      </div>
+
+      <form onSubmit={submit} className="space-y-6">
+        <div className="space-y-2">
+          <label className="font-label-caps text-label-caps text-[#849495] uppercase tracking-widest" htmlFor="email">
+            {labels.email}
+          </label>
+          <div className="relative flex items-center bg-[#010f1f] border border-[#273647] rounded-lg transition-all duration-200 focus-within:border-[#00f0ff] focus-within:shadow-[inset_0_0_4px_rgba(0,240,255,0.1)]">
+            <span className="material-symbols-outlined ml-4 text-[#849495]">alternate_email</span>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="name@apexglobal.ai"
+              required
+              autoComplete="email"
+              className="w-full bg-transparent border-none focus:ring-0 text-[#d4e4fa] py-3 px-4 placeholder:text-[#849495]/50 font-body-md outline-none"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <label className="font-label-caps text-label-caps text-[#849495] uppercase tracking-widest" htmlFor="password">
+              {language === 'EN' ? 'Secret Key' : 'Senha'}
+            </label>
+            {mode === 'login' && (
+              <a href="#" className="font-label-caps text-label-caps text-[#00f0ff] hover:text-[#dbfcff] transition-colors">
+                {language === 'EN' ? 'Forgot Password?' : 'Esqueceu a senha?'}
+              </a>
+            )}
+          </div>
+          <div className="relative flex items-center bg-[#010f1f] border border-[#273647] rounded-lg transition-all duration-200 focus-within:border-[#00f0ff] focus-within:shadow-[inset_0_0_4px_rgba(0,240,255,0.1)]">
+            <span className="material-symbols-outlined ml-4 text-[#849495]">lock</span>
+            <input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="••••••••••••"
+              required
+              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              className="w-full bg-transparent border-none focus:ring-0 text-[#d4e4fa] py-3 px-4 placeholder:text-[#849495]/50 font-body-md outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(prev => !prev)}
+              className="mr-4 text-[#849495] hover:text-[#d4e4fa] transition-colors"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              <span className="material-symbols-outlined text-[20px]">
+                {showPassword ? 'visibility_off' : 'visibility'}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={busy}
+          className="w-full bg-[#00f0ff] text-[#006970] font-bold py-4 px-6 rounded shadow-md transition-all duration-200 flex items-center justify-center gap-2 active:scale-[0.98] hover:shadow-[0_0_15px_rgba(0,219,233,0.2)] disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span className="font-nav-link text-nav-link">
+            {mode === 'login' ? (language === 'EN' ? 'SIGN IN' : 'ENTRAR') : (language === 'EN' ? 'CREATE ACCOUNT' : 'CRIAR CONTA')}
+          </span>
+          <span className="material-symbols-outlined text-[20px]">login</span>
+        </button>
+
+        {mode === 'login' && (
+          <>
+            <div className="flex items-center gap-4 py-2">
+              <div className="h-[1px] flex-grow bg-[#3b494b]"></div>
+              <span className="font-label-caps text-label-caps text-[#3b494b]">{language === 'EN' ? 'OR CONTINUE WITH' : 'OU CONTINUE COM'}</span>
+              <div className="h-[1px] flex-grow bg-[#3b494b]"></div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <button type="button" className="flex items-center justify-center gap-2 py-3 px-4 border border-[#273647] bg-[#1c2b3c] hover:bg-[#273647] transition-colors group rounded-lg cursor-pointer">
+                <span className="material-symbols-outlined text-[18px] text-[#849495] group-hover:text-[#00f0ff]">fingerprint</span>
+                <span className="font-label-caps text-label-caps">MFA</span>
+              </button>
+              <button type="button" className="flex items-center justify-center gap-2 py-3 px-4 border border-[#273647] bg-[#1c2b3c] hover:bg-[#273647] transition-colors group rounded-lg cursor-pointer">
+                <span className="material-symbols-outlined text-[18px] text-[#849495] group-hover:text-[#00f0ff]">hub</span>
+                <span className="font-label-caps text-label-caps">SSO</span>
+              </button>
+            </div>
+          </>
+        )}
+      </form>
+
+      {statusText && (
+        <div className="mt-6 text-center">
+          <p className="font-body-md text-sm text-[#b9cacb]">{publicStatus()}</p>
+        </div>
+      )}
+
+      <div className="mt-10 pt-6 border-t border-[#3b494b]/30 flex justify-center">
+        <p className="font-label-caps text-label-caps text-[#b9cacb]">
+          {language === 'EN' ? 'New to the environment?' : 'Novo no ambiente?'}
+          <a href="#" className="text-[#00f0ff] hover:text-[#dbfcff] ml-1 transition-colors">
+            {language === 'EN' ? 'Request Access' : 'Solicitar Acesso'}
+          </a>
+        </p>
+      </div>
+    </div>
   )
 }
