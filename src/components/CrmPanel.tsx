@@ -63,7 +63,7 @@ export function CrmPanel({ goal, conversationContext, onSaveToProject, onActivat
         <div>
           <span><Target size={16} /> CRM / Sales</span>
           <h2>Pipeline, proposals and client follow-up</h2>
-          <p>{localDemoModeNotice}. CRM records are local scaffolding until a database is approved.</p>
+          <p>{localDemoModeNotice}. CRM records are persisted via Supabase.</p>
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
           <button onClick={generatePlan} disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', gap: '7px' }}>

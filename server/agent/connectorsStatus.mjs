@@ -224,6 +224,16 @@ export function collectConnectorsStatus() {
       nextRequired: authkeyPresent ? '' : 'Configurar AUTHKEY_AUTHKEY no backend.',
     },
     firebaseMessaging,
+    saas_crm_finance: {
+      id: 'saas_crm_finance',
+      label: 'SaaS / CRM / Finance',
+      status: hasEnv('VITE_SUPABASE_URL') && hasEnv('VITE_SUPABASE_ANON_KEY') ? 'configured' : 'local_demo',
+      configured: hasEnv('VITE_SUPABASE_URL') && hasEnv('VITE_SUPABASE_ANON_KEY'),
+      databaseConnected: hasEnv('VITE_SUPABASE_URL') && hasEnv('VITE_SUPABASE_ANON_KEY'),
+      detail: hasEnv('VITE_SUPABASE_URL') && hasEnv('VITE_SUPABASE_ANON_KEY')
+        ? 'Supabase configurado. SaaS/CRM/Finance operacional com persistência.'
+        : 'Modo demonstração local — configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY para ativar.',
+    },
     executor: {
       localExecutor: process.env.VERCEL === '1' ? 'unavailable_in_vercel' : 'available_when_git_and_repo_exist',
       connectorExecutor: githubConfigured || vercelConfigured ? 'configured' : 'pending',
@@ -463,6 +473,15 @@ export function connectorsAsProductionList(status = collectConnectorsStatus()) {
       detail: status.authkey?.configured
         ? `SMS ${status.authkey.smsConfigured ? 'configurado' : 'pendente'}, OTP ${status.authkey.otpConfigured ? 'configurado' : 'pendente'}, WhatsApp ${status.authkey.whatsappConfigured ? 'configurado' : 'depende de SID/template aprovado'}.`
         : 'Necessario para SMS, OTP, WhatsApp e fallback multicanal via Authkey.',
+    },
+    {
+      id: 'saas_crm_finance',
+      label: 'SaaS / CRM / Finance',
+      status: status.saas_crm_finance?.configured ? 'configured' : 'local_demo',
+      configured: Boolean(status.saas_crm_finance?.configured),
+      detail: status.saas_crm_finance?.configured
+        ? 'Supabase configurado — CRM, leads, propostas, financeiro e planos SaaS operacionais com persistência.'
+        : 'Modo demonstração local — configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY para ativar.',
     },
     {
       id: 'firebase_messaging',

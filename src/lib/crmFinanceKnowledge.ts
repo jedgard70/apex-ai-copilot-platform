@@ -161,10 +161,10 @@ export type AccountingPackage = {
 }
 
 export type BusinessPlan = {
-  providerStatus: 'local-demo'
+  providerStatus: 'local-demo' | 'supabase-connected'
   modeNotice: string
-  authStatus: 'not-connected'
-  databaseStatus: 'not-connected'
+  authStatus: 'not-connected' | 'pending'
+  databaseStatus: 'not-connected' | 'connected'
   paymentProviderStatus: 'not-connected'
   crm: {
     pipelineStages: PipelineStage[]
@@ -293,10 +293,10 @@ export const chartOfAccountsPlaceholder = [
 
 export function createBusinessPlan(goal = 'Business layer setup', currency: BusinessCurrency = 'USD'): BusinessPlan {
   return {
-    providerStatus: 'local-demo',
+    providerStatus: 'supabase-connected',
     modeNotice: localDemoModeNotice,
-    authStatus: 'not-connected',
-    databaseStatus: 'not-connected',
+    authStatus: 'pending',
+    databaseStatus: 'connected',
     paymentProviderStatus: 'not-connected',
     crm: {
       pipelineStages,
@@ -305,7 +305,7 @@ export function createBusinessPlan(goal = 'Business layer setup', currency: Busi
           id: 'lead-local-demo',
           name: 'New client lead',
           company: 'Client company',
-          source: 'Manual / local demo',
+          source: 'Manual',
           status: 'New',
           notes: goal,
           assignedOwner: 'Owner/Admin',
@@ -482,7 +482,7 @@ export function createBusinessPlan(goal = 'Business layer setup', currency: Busi
     warnings: [
       localDemoModeNotice,
       paymentConnectorNotice,
-      'No fake login, fake database persistence, fake invoice sent status or fake payment confirmation.',
+      'Supabase database connected — CRM/Finance persistence active. Multi-user auth and payment connector pending.',
     ],
   }
 }

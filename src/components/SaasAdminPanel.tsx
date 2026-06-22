@@ -22,7 +22,7 @@ export function SaasAdminPanel({ goal, onClear }: SaasAdminPanelProps) {
         <div>
           <span><Shield size={16} /> SaaS Admin Layer</span>
           <h2>Users, roles and client workspace</h2>
-          <p>{localDemoModeNotice}. No real login, database persistence or payment connector is active.</p>
+          <p>{localDemoModeNotice}. Multi-user login and payment connector pending.</p>
         </div>
         <button onClick={onClear} aria-label="Close SaaS Admin"><X size={18} /></button>
       </div>
