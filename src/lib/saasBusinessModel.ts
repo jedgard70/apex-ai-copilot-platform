@@ -1,4 +1,4 @@
-export const localDemoModeNotice = 'Local demo mode — auth/database not connected yet'
+export const localDemoModeNotice = 'SaaS/CRM/Finance: configured with Supabase persistence after owner approval.'
 export const paymentConnectorNotice = 'Payment connector not connected yet — no real payment was processed or confirmed.'
 
 export type SaasRole =
@@ -281,7 +281,8 @@ export function createAdminDashboard(): SaasAdminDashboard {
     revenuePlaceholder: 'Revenue not connected — use Finance Studio with user-entered data only.',
     usageSummary: [
       'Local Project Workspace is active.',
-      'Auth/database/payment connectors are not connected.',
+      'Supabase database configured — SaaS/CRM/Finance persistence active.',
+      'Payment connector is not connected yet.',
       'Client data boundaries are modeled but not enforced by a backend yet.',
     ],
     moduleUsage: [
@@ -294,7 +295,7 @@ export function createAdminDashboard(): SaasAdminDashboard {
     ],
     openTasks: [
       'Connect real auth before production client access.',
-      'Connect database/RLS before multi-client persistence.',
+      'Configure RLS policies for multi-client isolation.',
       'Connect payment provider before invoices can be sent/paid.',
     ],
   }
