@@ -46,8 +46,31 @@ Core chat/copilot engine, AI runtime provider resolution, advanced model selecti
 | ArchVis → Render API (real images) | **done** | `api/copilot/generate-image.mjs` — OpenAI + fal.ai providers, 8 styles |
 | DirectCut → Node Board editing | **done** | `DirectCutPanel.tsx` node board + `api/copilot/directcut-refine.mjs` |
 | DirectCut → Dual video render (AWS + local) | **done** | `api/copilot/video-render.mjs` + `server/videoRenderPipeline.mjs` |
+| DirectCut → Imagem inicial + final no render | **done** | `DirectCutPanel.tsx` tiles com upload, `videoRenderPipeline.mjs` slideshow FFmpeg |
 | Chat → Video render sem painel DirectCut | **done** | `src/main.tsx` (`/api/copilot/video-render` direto no chat) |
 | Campaign → Social Content Pipeline | **done** | `api/copilot/social-content.mjs` + `api/copilot/campaign-plan.mjs` (real AI) |
+
+---
+
+## Status Real dos Provedores de Vídeo (auditado 2026-06-22)
+
+| Provedor | Status | Observação |
+| --- | --- | --- |
+| FFmpeg local | ✅ Funcional | Converte foto(s) em vídeo. Suporta inicial + final (slideshow). Sem IA. |
+| fal.ai Kling (image-to-video) | ⚠️ Saldo esgotado | Recarregar em fal.ai/dashboard/billing para ativar vídeo com IA |
+| AI Gateway / Google Veo | ⚠️ Quota atingida | Requer $100+ em créditos no Vercel AI Dashboard |
+| AWS MediaConvert | ⚫ Não configurado | Requer MEDIACONVERT_ENDPOINT + MEDIACONVERT_ROLE_ARN |
+
+---
+
+## Owner Console — corrigido 2026-06-22
+
+| Item | Status | Solução |
+| --- | --- | --- |
+| Acesso local sem Supabase | ✅ Corrigido | `VITE_APEX_ALLOW_LOCAL_DEMO_AUTH=true` adicionado ao `.env.local` |
+| Botão Status das Keys no console | ✅ Adicionado | Abre Platform Map na aba de status |
+| Botão Mapa da Plataforma no console | ✅ Adicionado | Abre Platform Map na aba de mapa |
+| Execução de comandos (local worker) | ⚠️ Parcial | Requer `local-worker` rodando (`npm run dev`) |
 
 ---
 

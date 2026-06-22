@@ -52,7 +52,7 @@ function runSpawn(command, args) {
   })
 }
 
-async function renderWithFfmpeg({ sourceImageDataUrl, duration, aspectRatio }) {
+async function renderWithFfmpeg({ sourceImageDataUrl, duration, aspectRatio, finalImageDataUrl }) {
   const ffmpegPath = require('ffmpeg-static')
   if (!ffmpegPath) {
     throw new Error('ffmpeg-static not available in runtime.')
@@ -64,39 +64,53 @@ async function renderWithFfmpeg({ sourceImageDataUrl, duration, aspectRatio }) {
   const outputPath = path.join(tmpDir, 'output.mp4')
 
   const sourceImage = parseDataUrl(sourceImageDataUrl)
+  const finalImage = finalImageDataUrl ? parseDataUrl(finalImageDataUrl) : null
+
   try {
-    if (sourceImage) {
+    if (sourceImage && finalImage) {
+      // Slideshow: initial frame + final frame, each gets half the duration
+      const ext1 = sourceImage.mimeType.includes('png') ? 'png' : 'jpg'
+      const ext2 = finalImage.mimeType.includes('png') ? 'png' : 'jpg'
+      const inputPath1 = path.join(tmpDir, `initial.${ext1}`)
+      const inputPath2 = path.join(tmpDir, `final.${ext2}`)
+      const concatFile = path.join(tmpDir, 'concat.txt')
+      const half = Math.max(1, Math.floor(seconds / 2))
+      const remainder = seconds - half
+
+      await fs.writeFile(inputPath1, sourceImage.buffer)
+      await fs.writeFile(inputPath2, finalImage.buffer)
+
+      // Create intermediate clips for each frame
+      const clip1 = path.join(tmpDir, 'clip1.mp4')
+      const clip2 = path.join(tmpDir, 'clip2.mp4')
+      const scaleFilter = `scale=${canvas.width}:${canvas.height}:force_original_aspect_ratio=decrease,pad=${canvas.width}:${canvas.height}:(ow-iw)/2:(oh-ih)/2`
+
+      await runSpawn(ffmpegPath, ['-y', '-loop', '1', '-i', inputPath1, '-t', String(half), '-vf', scaleFilter, '-pix_fmt', 'yuv420p', '-c:v', 'libx264', '-movflags', '+faststart', clip1])
+      await runSpawn(ffmpegPath, ['-y', '-loop', '1', '-i', inputPath2, '-t', String(remainder), '-vf', scaleFilter, '-pix_fmt', 'yuv420p', '-c:v', 'libx264', '-movflags', '+faststart', clip2])
+
+      await fs.writeFile(concatFile, `file '${clip1.replace(/\\/g, '/')}'\nfile '${clip2.replace(/\\/g, '/')}'`)
+      await runSpawn(ffmpegPath, ['-y', '-f', 'concat', '-safe', '0', '-i', concatFile, '-c', 'copy', outputPath])
+    } else if (sourceImage) {
       const ext = sourceImage.mimeType.includes('png') ? 'png' : 'jpg'
       const inputPath = path.join(tmpDir, `source.${ext}`)
       await fs.writeFile(inputPath, sourceImage.buffer)
       await runSpawn(ffmpegPath, [
-        '-y',
-        '-loop', '1',
-        '-i', inputPath,
-        '-t', String(seconds),
+        '-y', '-loop', '1', '-i', inputPath, '-t', String(seconds),
         '-vf', `scale=${canvas.width}:${canvas.height}:force_original_aspect_ratio=decrease,pad=${canvas.width}:${canvas.height}:(ow-iw)/2:(oh-ih)/2`,
-        '-pix_fmt', 'yuv420p',
-        '-c:v', 'libx264',
-        '-movflags', '+faststart',
-        outputPath,
+        '-pix_fmt', 'yuv420p', '-c:v', 'libx264', '-movflags', '+faststart', outputPath,
       ])
     } else {
       await runSpawn(ffmpegPath, [
-        '-y',
-        '-f', 'lavfi',
-        '-i', `testsrc=size=${canvas.width}x${canvas.height}:rate=30`,
-        '-t', String(seconds),
-        '-pix_fmt', 'yuv420p',
-        '-c:v', 'libx264',
-        '-movflags', '+faststart',
-        outputPath,
+        '-y', '-f', 'lavfi', '-i', `testsrc=size=${canvas.width}x${canvas.height}:rate=30`,
+        '-t', String(seconds), '-pix_fmt', 'yuv420p', '-c:v', 'libx264', '-movflags', '+faststart', outputPath,
       ])
     }
 
     const outputBuffer = await fs.readFile(outputPath)
+    const mode = sourceImage && finalImage ? 'initial+final-slideshow' : sourceImage ? 'initial-frame' : 'testsrc'
     return {
       providerStatus: 'generated-local-ffmpeg',
-      message: 'Video rendered with local FFmpeg fallback.',
+      message: `Video rendered with local FFmpeg (${mode}).`,
       mimeType: 'video/mp4',
       videoDataUrl: `data:video/mp4;base64,${outputBuffer.toString('base64')}`,
       durationSeconds: seconds,
@@ -219,6 +233,7 @@ export async function renderVideoPayload(payload = {}) {
   const duration = String(payload.duration || '15s')
   const aspectRatio = String(payload.aspectRatio || '16:9')
   const sourceImageDataUrl = typeof payload.sourceImageDataUrl === 'string' ? payload.sourceImageDataUrl : ''
+  const finalImageDataUrl = typeof payload.finalImageDataUrl === 'string' ? payload.finalImageDataUrl : ''
   const prompt = String(payload.prompt || payload.goal || 'Generate a professional architecture video').trim()
   const model = typeof payload.model === 'string' ? payload.model : undefined
   const sourceS3Uri =
@@ -240,7 +255,7 @@ export async function renderVideoPayload(payload = {}) {
     const mediaConvertResult = await queueMediaConvertJob({ duration, aspectRatio, sourceS3Uri })
     if (mediaConvertResult) return mediaConvertResult
 
-    return await renderWithFfmpeg({ sourceImageDataUrl, duration, aspectRatio })
+    return await renderWithFfmpeg({ sourceImageDataUrl: sourceImageDataUrl || finalImageDataUrl, duration, aspectRatio, finalImageDataUrl: sourceImageDataUrl && finalImageDataUrl ? finalImageDataUrl : undefined })
   } catch (error) {
     return {
       providerStatus: 'error',

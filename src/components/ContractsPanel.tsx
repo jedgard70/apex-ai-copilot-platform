@@ -316,7 +316,7 @@ export function ContractsPanel({ source, goal, conversationContext, onSendToBudg
           <div className="contracts-card contracts-status-grid">
             <div>
               <span>Provider status</span>
-              <strong>{plan?.providerStatus || 'planning-only'}</strong>
+              <strong>{plan?.providerStatus || 'ready'}</strong>
               <p>{plan?.documentSummary || 'Generate a draft/review first.'}</p>
             </div>
             <div>

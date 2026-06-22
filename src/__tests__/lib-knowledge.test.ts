@@ -79,9 +79,9 @@ describe('emptyContractsPlan', () => {
     reviewMode: 'Risk review' as const,
   }
 
-  it('returns planning-only status', () => {
+  it('returns ready status', () => {
     const plan = emptyContractsPlan(ctx)
-    expect(plan.providerStatus).toBe('planning-only')
+    expect(plan.providerStatus).toBe('ready')
   })
 
   it('sets detectedDocumentType from context', () => {

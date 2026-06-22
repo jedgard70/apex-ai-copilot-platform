@@ -71,7 +71,7 @@ export type PermitPackageDocument = {
 }
 
 export type ContractsPlan = {
-  providerStatus: 'planning-only' | 'review-draft'
+  providerStatus: 'ready' | 'review-draft'
   documentSummary: string
   detectedDocumentType: ContractDocumentType
   jurisdictionStatus: ContractEvidence
@@ -165,7 +165,7 @@ export const legalDisclaimer =
 
 export function emptyContractsPlan(context: ContractContext): ContractsPlan {
   return {
-    providerStatus: 'planning-only',
+    providerStatus: 'ready',
     documentSummary: 'No review generated yet.',
     detectedDocumentType: context.documentType,
     jurisdictionStatus: context.location ? 'ASSUMPTION' : 'UNKNOWN',

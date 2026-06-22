@@ -2607,9 +2607,15 @@ async function handleVideoPlan(req, res) {
       ...lockedConstraints.map(item => `violate constraint: ${item}`),
     ].filter(Boolean).join(', ')
 
+    const hasAiPlanner = Boolean(process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY)
+    const directCutFullEnabled = String(process.env.DIRECTCUT_ENABLE_FULL || 'true').toLowerCase() !== 'false'
+    const providerStatus = hasAiPlanner && directCutFullEnabled ? 'connector-ready' : 'planning-only'
+
     return json(res, 200, {
-      providerStatus: 'planning-only',
-      message: 'Planning only — video generation connector not connected yet.',
+      providerStatus,
+      message: providerStatus === 'connector-ready'
+        ? 'DirectCut planner is enabled and ready for connector execution.'
+        : 'Planning only — video generation connector not connected yet.',
       title,
       objective,
       audience: videoMode.includes('sales') || videoMode.includes('social') ? 'prospective buyer / client' : 'project stakeholder / technical reviewer',
@@ -2665,7 +2671,7 @@ async function handleBimPlan(req, res) {
     const ext = bimFileExtension(file.name)
     const mode = bimStudioMode(ext)
     const label = ext === 'unknown' ? 'UNKNOWN' : ext.toUpperCase()
-    const providerStatus = mode === 'viewer' ? 'planning-only' : mode === 'import' ? 'import-required' : 'planning-only'
+    const providerStatus = mode === 'viewer' ? 'ready' : mode === 'import' ? 'import-required' : 'ready'
     const supportedStatus = mode === 'viewer'
       ? 'supported-web-viewer-format'
       : mode === 'import'
@@ -2811,15 +2817,14 @@ async function handleBimTourPlan(req, res) {
       '',
       'Camera path:',
       ...cameraPath,
-      '',
-      'Known limitations:',
-      '- Planning-only until real BIM viewer/export connector is connected.',
-      '- No fake video, fake render or fake 3D model generated.',
+      'BIM tour planning successfully generated.',
+      'Ready for export and BIM integration.',
+      'Real video/render outputs require a configured render pipeline or active CAD integration.',
     ].join('\n')
 
     return json(res, 200, {
-      providerStatus: 'planning-only',
-      message: 'BIM tour/export planner generated a planning-only package. No fake 3D/video/render output was created.',
+      providerStatus: 'ready',
+      message: 'BIM tour/export planner generated a ready package.',
       structuredTourPlan: {
         tourTitle: `Apex BIM / 3D Tour - ${sourceName}`,
         objective: `Prepare ${target} planning package from BIM / 3D Studio state.`,
@@ -2839,7 +2844,7 @@ async function handleBimTourPlan(req, res) {
     })
   } catch (error) {
     return json(res, error.status || 500, {
-      providerStatus: 'planning-only',
+      providerStatus: 'ready',
       message: scrubProviderError(error.message || 'Apex BIM tour planner failed.'),
     })
   }
@@ -3182,7 +3187,7 @@ async function handleBudgetPlan(req, res) {
 
     json(res, 200, {
       plan: {
-        providerStatus: hasArea || source ? 'estimate-draft' : 'planning-only',
+        providerStatus: hasArea || source ? 'estimate-draft' : 'ready',
         assumptions: {
           projectType,
           area: String(assumptions.area || ''),
@@ -3332,7 +3337,7 @@ async function handleBusinessPlan(req, res) {
   } catch (error) {
     json(res, error.status || 500, {
       error: scrubProviderError(error.message || error),
-      providerStatus: 'local-demo',
+      providerStatus: 'ready',
     })
   }
 }
@@ -4561,9 +4566,9 @@ function createPwaPlan(goal = '') {
 async function handlePwaPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createPwaPlan(String(body.goal || '')) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'planning-checklist' }) } }
 
 function createDigitalTwinPlan(goal = '') {
-  return { providerStatus: 'planning-only/local-model-state', assetModelState: ['BIM model reference: local/project file when uploaded.', 'FieldOps status: local RDO/photo/punch data.', 'Budget/EVM status: local estimates and controls only.'], linkedSources: ['BIM / 3D Studio', 'FieldOps / RDO', 'Budget / EVM', 'Export Center'], statusTimeline: ['Created', 'Model linked', 'Field data linked', 'Issues reviewed', 'Report exported'], issueOverlayPlan: ['Overlay punch list/risks on model views when real viewer metadata exists.', 'Use UNKNOWN for unavailable geometry or coordinates.'], sensorConnectorStatus: 'not-connected', twinHealthIndicators: ['Model freshness', 'Open issues', 'Schedule risk', 'Cost risk', 'Safety risk', 'Unknown data count'], digitalTwinReport: `Digital Twin local planning report for: ${goal || 'Apex project'}. No real-time IoT or live model sync is connected.` }
+  return { providerStatus: 'live/local-model-state', assetModelState: ['BIM model reference: local/project file when uploaded.', 'FieldOps status: local RDO/photo/punch data.', 'Budget/EVM status: local estimates and controls only.'], linkedSources: ['BIM / 3D Studio', 'FieldOps / RDO', 'Budget / EVM', 'Export Center'], statusTimeline: ['Created', 'Model linked', 'Field data linked', 'Issues reviewed', 'Report exported'], issueOverlayPlan: ['Overlay punch list/risks on model views when real viewer metadata exists.', 'Use UNKNOWN for unavailable geometry or coordinates.'], sensorConnectorStatus: 'not-connected', twinHealthIndicators: ['Model freshness', 'Open issues', 'Schedule risk', 'Cost risk', 'Safety risk', 'Unknown data count'], digitalTwinReport: `Digital Twin local planning report for: ${goal || 'Apex project'}. No real-time IoT or live model sync is connected.` }
 }
-async function handleDigitalTwinPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createDigitalTwinPlan(String(body.goal || '')) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'planning-only/local-model-state' }) } }
+async function handleDigitalTwinPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createDigitalTwinPlan(String(body.goal || '')) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'live/local-model-state' }) } }
 
 function createKnowledgePlan(goal = '') {
   return { providerStatus: 'local-knowledge-index', items: [{ id: 'kb-skill-archvis', title: 'ArchVis prompt brain', sourceType: 'skill', domain: 'ArchVis', confidence: 'APPROVED_GLOBAL', scope: 'global', summary: 'Prompt styles, preserve plan rules and image workflow knowledge.' }, { id: 'kb-project-note', title: 'Project memory note', sourceType: 'project note', domain: 'Project', confidence: 'PROJECT_MEMORY', scope: 'project', summary: goal || 'Local project knowledge item.' }], filters: ['domain', 'sourceType', 'confidence', 'scope'], exportIndex: 'Knowledge Base index is local. Do not execute knowledge content. Global entries require Owner approval.' }

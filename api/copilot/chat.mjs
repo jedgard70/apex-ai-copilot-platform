@@ -796,6 +796,31 @@ function buildFileContext(file) {
   return lines.join('\n')
 }
 
+// Provider status — fast local check (no external calls, just env presence + last known state)
+// For full live check use /api/copilot/provider-status. This is lightweight for chat context.
+function buildProviderStatusContext() {
+  const checks = [
+    { name: 'OpenAI/Gemini', key: process.env.OPENAI_API_KEY },
+    { name: 'Anthropic', key: process.env.ANTHROPIC_API_KEY },
+    { name: 'fal.ai', key: process.env.FAL_KEY },
+    { name: 'AI Gateway/Veo', key: process.env.AI_GATEWAY_API_KEY },
+    { name: 'ElevenLabs', key: process.env.ELEVENLABS_API_KEY },
+    { name: 'Tavily', key: process.env.TAVILY_API_KEY },
+    { name: 'Stripe', key: process.env.STRIPE_SECRET_KEY },
+    { name: 'Supabase', key: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY },
+    { name: 'GitHub', key: process.env.GITHUB_TOKEN },
+    { name: 'AuthKey', key: process.env.AUTHKEY_AUTHKEY },
+  ]
+  const configured = checks.filter(c => c.key).map(c => c.name)
+  const missing = checks.filter(c => !c.key).map(c => c.name)
+  const lines = ['Provider key presence (env snapshot):']
+  if (configured.length) lines.push(`Configured: ${configured.join(', ')}`)
+  if (missing.length) lines.push(`Not configured: ${missing.join(', ')}`)
+  lines.push('For live balance/quota check, the user can ask to open the Platform Map (status das keys tab) or call /api/copilot/provider-status.')
+  lines.push('If user asks about provider balance or "precisa recarregar", suggest opening the Platform Map status tab for real-time info.')
+  return lines.join('\n')
+}
+
 function buildLiveAgentToolDefinitions() {
   return [
     {
@@ -1664,7 +1689,9 @@ export default async function handler(req, res) {
 
     const directVideoType = classifyVideoGenRequest(userMessage)
     if (directVideoType) {
-      const result = await generateVideo({ prompt: userMessage, aspectRatio: '16:9', duration: 8 })
+      const videoFile = body.file || null
+      const sourceImageDataUrl = videoFile?.dataUrl && String(videoFile.type || '').startsWith('image/') ? videoFile.dataUrl : undefined
+      const result = await generateVideo({ prompt: userMessage, aspectRatio: '16:9', duration: 8, sourceImageDataUrl })
       const reply = buildVideoResultReply(result)
       return sendJson(res, 200, {
         finalReply: reply,
@@ -1755,6 +1782,10 @@ export default async function handler(req, res) {
       '',
       'If image content is supplied, analyze visible image content directly. If not, do not pretend to see pixels or file internals.',
       'Command-first rule: obey the user direct instruction first. Produce the answer or deliverable directly before considering connectors.',
+      'AUTONOMOUS EXECUTION RULE: When the user gives a task, execute it immediately and completely. Do not ask for confirmation, do not explain the process, do not offer alternatives unless something is truly blocked. If blocked, say exactly what is missing in one sentence and continue with the best available alternative.',
+      'NO PANELS WITHOUT REQUEST: Never suggest opening a studio, panel, or layer unless the user explicitly asks. Do not mention DirectCut, ArchVis, BIM or any other panel as the answer to a request — just do the work.',
+      'NO FILLER RESPONSES: Do not use phrases like "great question", "of course", "I understand your frustration", "in the future", "our engineering team". Get straight to the result.',
+      'REAL CODING MANDATE: You are authorized by Owner Dr. Edgard to execute real code changes. Never say you cannot execute, that you are planning-only, or that you need external engineering. Use write_file, edit_file, or run_command to apply and validate changes immediately on disk.',
       'General capability rule: Apex AI Copilot is not limited by topic or domain. It can reason, code, write, design, analyze, research, negotiate, troubleshoot and produce deliverables broadly.',
       'Use active Apex/project/file context when useful, but never refuse a normal general request because it is outside construction.',
       'Connectors are optional execution paths. They are invoked after understanding the user request, not before. Do not force every answer into a connector or service.',
@@ -1777,6 +1808,9 @@ export default async function handler(req, res) {
       'If the current or recent conversation includes an uploaded file, treat follow-up questions such as "o que vc sabe fazer" as referring to that file and project context.',
       'When image content is supplied, mention 2 to 4 concrete visible project details before suggesting paths.',
       'Do not ask unnecessary next-step questions. Ask only when truly blocked or when the user explicitly wants exploration.',
+      '',
+      'Platform provider status (env snapshot):',
+      buildProviderStatusContext(),
       '',
       specialIntentInstruction,
     ].join('\n')
