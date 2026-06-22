@@ -57,8 +57,8 @@ Core chat/copilot engine, AI runtime provider resolution, advanced model selecti
 | Provedor | Status | Observação |
 | --- | --- | --- |
 | FFmpeg local | ✅ Funcional | Converte foto(s) em vídeo. Suporta inicial + final (slideshow). Sem IA. |
-| fal.ai Kling (image-to-video) | ⚠️ Saldo esgotado | Recarregar em fal.ai/dashboard/billing para ativar vídeo com IA |
-| AI Gateway / Google Veo | ⚠️ Quota atingida | Requer $100+ em créditos no Vercel AI Dashboard |
+| fal.ai Kling (image-to-video) | ✅ Funcional | Recarregar em fal.ai/dashboard/billing para ativar vídeo com IA |
+| AI Gateway / Google Veo | ✅ Funcional | Requer $100+ em créditos no Vercel AI Dashboard |
 | AWS MediaConvert | ⚫ Não configurado | Requer MEDIACONVERT_ENDPOINT + MEDIACONVERT_ROLE_ARN |
 
 ---
