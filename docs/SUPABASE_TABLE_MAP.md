@@ -1,6 +1,6 @@
 # Supabase Table Map
 
-Status: CP12A draft only.
+Status: CP12A .
 
 This table maps current Apex AI Copilot local-first modules to the planned Supabase tables.
 

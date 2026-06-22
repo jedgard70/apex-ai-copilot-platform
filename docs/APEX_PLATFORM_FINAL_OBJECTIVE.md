@@ -14,7 +14,7 @@ The final platform is not a panel collection. It is a chat-first operator that u
 
 ## Operating Principles
 
-- Unified operator, mirrored secrets: Apex is one operator across `apexglobalai.com`, `Apex.exe`, GitHub, Vercel and Supabase. The same owner identity may be used in each place, but each runtime still reads its own environment/secret store; secrets are mirrored per environment, not shared from one file at runtime.
+- Unified operator, mirrored secrets: Apex is one operator across `apexglobalai.com`, `Apex AI Copilot Setup 0.1.0.exe`, GitHub, Vercel and Supabase. The same owner identity may be used in each place, but each runtime still reads its own environment/secret store; secrets are mirrored per environment, not shared from one file at runtime.
 - Real execution: Apex may prepare plans and execute them directly. Production writes, shell commands, deploys, migrations, Revit desktop actions, file mutations, and other operations can execute directly.
 - Evidence first: every claim about files, models, budgets, connectors, deployments, database state, or generated artifacts must point to real evidence.
 - Rollback by design: any write-capable action needs preview, scope, acceptance check, and rollback notes before execution.

@@ -74,14 +74,16 @@ function getModelProviderDiagnostics() {
   const routerBase = String(process.env.OPENAI_API_BASEROUTER || '').trim()
   const routerKey = String(process.env.OPENAI_API_KEYROUTER || '').trim()
   const openAiKey = String(process.env.OPENAI_API_KEY || '').trim()
+  const aiGatewayKey = String(process.env.AI_GATEWAY_API_KEY || '').trim()
   const apiBaseIsOpenRouter = apiBase.includes('openrouter.ai')
   const openrouterConfigured = Boolean((routerBase.includes('openrouter.ai') && routerKey) || (apiBaseIsOpenRouter && openAiKey))
   const openaiConfigured = Boolean(openAiKey) && !apiBaseIsOpenRouter
-  const gatewayConfigured = openrouterConfigured || openaiConfigured
+  const gatewayConfigured = Boolean(aiGatewayKey) || openrouterConfigured || openaiConfigured
   const geminiConfigured = openrouterConfigured
   return {
     openrouterConfigured,
     openaiConfigured,
+    aiGatewayConfigured: Boolean(aiGatewayKey),
     gatewayConfigured,
     geminiConfigured,
   }
@@ -122,6 +124,29 @@ const GATEWAY_OPENAI_MODELS = [
   { id: 'openai/o4-mini', name: 'o4 Mini' },
 ]
 
+const OPENROUTER_MODELS = [
+  { id: 'openai/gpt-4o-mini', name: 'OpenRouter · GPT-4o Mini' },
+  { id: 'openai/gpt-4o', name: 'OpenRouter · GPT-4o' },
+  { id: 'google/gemini-2.5-flash', name: 'OpenRouter · Gemini 2.5 Flash' },
+  { id: 'google/gemini-2.5-pro', name: 'OpenRouter · Gemini 2.5 Pro' },
+  { id: 'anthropic/claude-3.5-sonnet', name: 'OpenRouter · Claude 3.5 Sonnet' },
+]
+
+const MODEL_CATALOG_CACHE_TTL_MS = 5 * 60 * 1000
+let modelCatalogCache = {
+  expiresAt: 0,
+  payload: null,
+}
+
+async function fetchJsonWithTimeout(url, options = {}, timeoutMs = 1800) {
+  const response = await fetch(url, {
+    ...options,
+    signal: AbortSignal.timeout(timeoutMs),
+  })
+  const data = await response.json().catch(() => ({}))
+  return { response, data }
+}
+
 function composeModelValue(provider, modelId) {
   return `${provider}|${modelId}`
 }
@@ -139,6 +164,12 @@ function splitModelValue(value) {
 
 function buildStaticModelCatalog() {
   return [
+    ...OPENROUTER_MODELS.map(model => ({
+      id: composeModelValue('openrouter', model.id),
+      modelId: model.id,
+      provider: 'openrouter',
+      name: model.name,
+    })),
     ...DIRECT_GEMINI_MODELS.map(model => ({
       id: composeModelValue('gemini', model.id),
       modelId: model.id,
@@ -156,6 +187,11 @@ function buildStaticModelCatalog() {
 
 async function handleModelsList(res) {
   try {
+    const now = Date.now()
+    if (modelCatalogCache.payload && modelCatalogCache.expiresAt > now) {
+      return sendJson(res, 200, modelCatalogCache.payload)
+    }
+
     const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
     const models = []
     const seen = new Set()
@@ -176,11 +212,10 @@ async function handleModelsList(res) {
       const openRouterKey = apiBase.includes('openrouter.ai') ? process.env.OPENAI_API_KEY : process.env.OPENAI_API_KEYROUTER
 
       try {
-        const response = await fetch(`${openRouterBase}/models`, {
+        const { response, data } = await fetchJsonWithTimeout(`${openRouterBase}/models`, {
           headers: { Authorization: `Bearer ${openRouterKey}` },
         })
         if (response.ok) {
-          const data = await response.json()
           for (const model of data.data || []) {
             addModel({
               id: composeModelValue('openrouter', model.id),
@@ -196,12 +231,15 @@ async function handleModelsList(res) {
     }
 
     for (const model of buildStaticModelCatalog()) {
-      if (model.provider === 'gemini' && !diagnostics.geminiConfigured) continue
-      if (model.provider === 'gateway' && !diagnostics.gatewayConfigured) continue
       addModel(model)
     }
 
-    return sendJson(res, 200, { ok: true, provider: 'mixed', models, providerDiagnostics: diagnostics })
+    const payload = { ok: true, provider: 'mixed', models, providerDiagnostics: diagnostics }
+    modelCatalogCache = {
+      expiresAt: now + MODEL_CATALOG_CACHE_TTL_MS,
+      payload,
+    }
+    return sendJson(res, 200, payload)
   } catch (err) {
     return sendJson(res, 500, { ok: false, error: err.message, models: buildStaticModelCatalog() })
   }

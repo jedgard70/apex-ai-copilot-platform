@@ -366,7 +366,7 @@ export async function syncFieldOpsPlanRemote(args: {
     client.from('corrective_actions').delete().eq('project_id', projectContext.remoteProjectId).contains('metadata', { rdo_id: rdoId }),
   ]
   const cleanupResults = await Promise.all(cleanupRequests)
-  const cleanupError = cleanupResults.find(result => result.error)?.error
+  const cleanupError = cleanupResults.find((result: { error?: { message?: string } | null }) => result.error)?.error
   if (cleanupError) {
     return {
       providerStatus: 'sync-error',

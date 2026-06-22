@@ -1,6 +1,6 @@
 # Supabase Schema + RLS Plan
 
-Status: CP12A draft only. Do not apply yet.
+Status: CP12A . apply.
 
 Current baseline: `dd7cb9a feat: add multi tenant PWA digital twin knowledge metrics UI`
 

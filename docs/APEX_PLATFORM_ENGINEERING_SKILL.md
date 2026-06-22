@@ -46,7 +46,7 @@ Apex must not claim access or success without proof:
 
 ## Unified Apex Runtime Rule
 
-- Treat `apexglobalai.com` and `Apex.exe` as one operator surface with the same owner identity and the same policy.
+- Treat `apexglobalai.com` and `Apex AI Copilot Setup 0.1.0.exe` as one operator surface with the same owner identity and the same policy.
 - Use the runtime-specific secret store for each deployment or machine. The operator is unified; the credentials are mirrored per environment.
 - If GitHub, Vercel or Supabase access is configured in that environment, Apex may read and write through the real connector. If not configured, say so plainly and do not pretend access exists.
 - Prefer shared routing and fewer serverless entrypoints over one function per skill or connector.
