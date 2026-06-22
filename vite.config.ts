@@ -1,11 +1,13 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 import path from 'path'
 
 export default defineConfig({
   plugins: [
     react(),
+    tailwindcss(),
     viteStaticCopy({
       targets: [
         {
@@ -32,7 +34,7 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    exclude: ['web-ifc'],
+    exclude: ['web-ifc', 'hls.js', 'zustand'],
   },
   worker: {
     format: 'es',

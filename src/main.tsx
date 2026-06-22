@@ -52,6 +52,15 @@ import { SupplyChainPanel } from './components/SupplyChainPanel'
 import { PlatformMapPanel } from './components/PlatformMapPanel'
 import { PublicVslLandingPage } from './components/PublicVslLandingPage'
 import { UserAccountPanel } from './components/UserAccountPanel'
+import AppLayout from './components/AppLayout'
+import { DashboardPage } from './components/DashboardPage'
+import { OwnerPage } from './components/OwnerPage'
+import { DeploymentFlowPage } from './components/DeploymentFlowPage'
+import { GovernanceHubPage } from './components/GovernanceHubPage'
+import { MarketingAnalyticsPage } from './components/MarketingAnalyticsPage'
+import { PlatformNavigatorPage } from './components/PlatformNavigatorPage'
+import { ModelTrainingPage } from './components/ModelTrainingPage'
+import { TechnicalDocumentationPage } from './components/TechnicalDocumentationPage'
 import { classifyFile, formatSize, IntakeFile, isVisionReady, readFileAsDataUrl, readImageDimensions } from './lib/fileIntake'
 import { extractPdfText } from './lib/pdfExtractor'
 import {
@@ -99,6 +108,7 @@ import { createPlatformMapSummary, isPlatformMapIntent } from './lib/platformMap
 import { PwaMobilePlan, isPwaMobileIntent } from './lib/pwaMobileKnowledge'
 import { isSupplyChainIntent, SupplyChainPlan } from './lib/supplyChainKnowledge'
 import './lib/observability'
+import './design-tokens.css'
 import './styles.css'
 
 type H5ToolCard = {
@@ -1009,6 +1019,7 @@ function App() {
   })
   const [authLoading, setAuthLoading] = useState(isSupabaseConfigured || !localDemoAuthAllowed)
   const [authMessage, setAuthMessage] = useState(supabaseProvider.message)
+  const [activeView, setActiveView] = useState('dashboard')
   const [clientMemory, setClientMemory] = useState<ClientMemory>(() => loadClientMemory())
   const [toolConfirmState, setToolConfirmState] = useState<Record<string, 'idle' | 'confirmed' | 'cancelled'>>({})
   const confirmToolAction = (msgId: string, action: 'confirmed' | 'cancelled') => {
@@ -3329,47 +3340,55 @@ function App() {
 
   if ((!isSignedIn || authLoading) && !isLocalDemoOwner) {
     return (
-      <main className="app auth-only-app">
-        <section className="auth-gate-shell" aria-label="Apex login">
-          <AuthPanel onAuthStateChange={state => {
-            setAccountState(state)
-            setAuthMessage(state.message)
-            setAuthLoading(false)
-          }} />
-        </section>
+      <main
+        className="app"
+        style={{
+          minHeight: '100vh',
+          display: 'grid',
+          placeItems: 'center',
+          backgroundColor: '#051424',
+          backgroundImage: 'radial-gradient(#122131 1px, transparent 1px)',
+          backgroundSize: '32px 32px',
+        }}
+      >
+        <AuthPanel onAuthStateChange={state => {
+          setAccountState(state)
+          setAuthMessage(state.message)
+          setAuthLoading(false)
+        }} />
       </main>
     )
   }
 
   return (
-    <main className="app" onPaste={handlePaste} onDragOver={event => event.preventDefault()} onDrop={handleDrop}>
-      <header className="topbar">
-        <div className="brand">
-          <div className="brand-mark"><img src="/apex-global-logo.png" alt="Apex Global" /></div>
-          <div>
-            <strong>APEX AI COPILOT</strong>
-            <span>Full intelligence copilot platform</span>
-          </div>
-        </div>
-        {authHeader}
-      </header>
-
-      {!isSupabaseConfigured && (
-        <div className="demo-mode-banner">
-          {localDemoAuthAllowed ? 'Local demo mode enabled.' : 'Supabase not configured for this build.'}
-        </div>
-      )}
-
-      <section className={`workspace ${workspaceClass}`}>
-        <nav className="tool-rail" aria-label="Apex tools">
-          {['BIM', 'ArchVis', 'DirectCut', 'Budget', 'Contracts', 'Field', 'Marketing', 'Revit', 'Code', 'Data'].map(toolName => (
-            <button key={toolName} type="button" title={toolName} onClick={() => setInput(current => current || `${toolName}: `)}>
-              {toolName}
-            </button>
-          ))}
-        </nav>
-
-        <section className="chat-shell" aria-label="Apex AI Copilot chat" style={{ display: 'flex', flexDirection: 'row', minHeight: 'calc(100vh - 130px)' }}>
+    <AppLayout
+      activeNav={activeView}
+      onNavChange={setActiveView}
+      connectors={[
+        { label: 'OpenAI', active: true },
+        { label: 'fal.ai', active: true },
+        { label: 'ElevenLabs', active: true },
+      ]}
+    >
+      {activeView === 'dashboard' ? (
+        <DashboardPage onNavigate={setActiveView} />
+      ) : activeView === 'owner' ? (
+        <OwnerPage onNavigate={setActiveView} />
+      ) : activeView === 'deployment' ? (
+        <DeploymentFlowPage />
+      ) : activeView === 'governance' ? (
+        <GovernanceHubPage />
+      ) : activeView === 'marketing' ? (
+        <MarketingAnalyticsPage />
+      ) : activeView === 'navigator' ? (
+        <PlatformNavigatorPage />
+      ) : activeView === 'training' ? (
+        <ModelTrainingPage />
+      ) : activeView === 'docs' ? (
+        <TechnicalDocumentationPage />
+      ) : (
+        <div className="h-full">
+          <section className="chat-shell" aria-label="Apex AI Copilot chat" style={{ display: 'flex', flexDirection: 'row', minHeight: '100%' }}>
           {/* Conversation Sidebar */}
           <aside className="chat-sidebar" style={{ width: '220px', borderRight: '1px solid rgba(150, 164, 195, 0.15)', display: 'flex', flexDirection: 'column', flexShrink: 0, background: '#121a2f' }}>
             <div className="chat-sidebar-header" style={{ padding: '16px', borderBottom: '1px solid rgba(150, 164, 195, 0.15)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -4292,11 +4311,10 @@ function App() {
 
         </aside>
         )}
-      </section>
 
-      {ownerConsoleOpen && isOwnerUser && (
-        <div className="owner-console-backdrop" role="dialog" aria-modal="true" aria-label="Owner Console">
-          <section className="owner-console-drawer">
+        {ownerConsoleOpen && isOwnerUser && (
+          <div className="owner-console-backdrop" role="dialog" aria-modal="true" aria-label="Owner Console">
+            <section className="owner-console-drawer">
             <div className="owner-console-head">
               <div>
                 <span>{uiLanguage === 'EN' ? 'Owner workspace' : 'Area do owner'}</span>
@@ -4397,13 +4415,15 @@ function App() {
                     setAuthMessage(state.message)
                   }}
                 />
-                <UserAccountPanel onClear={() => setAuthOutput(null)} />
-              </div>
-            )}
-          </section>
-        </div>
+                  <UserAccountPanel onClear={() => setAuthOutput(null)} />
+                </div>
+              )}
+            </section>
+          </div>
+        )}
+      </div>
       )}
-    </main>
+    </AppLayout>
   )
 }
 
