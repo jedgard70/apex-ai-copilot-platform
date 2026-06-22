@@ -230,6 +230,9 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
   const [nodes, setNodes] = useState<SceneNode[]>([])
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [refiningId, setRefiningId] = useState<string | null>(null)
+  const [rendering, setRendering] = useState(false)
+  const [renderedVideoUrl, setRenderedVideoUrl] = useState('')
+  const [renderedStatus, setRenderedStatus] = useState('')
 
   const selected = gallery.find(item => item.id === selectedId)
   const activePlan = selected || plan
@@ -326,9 +329,10 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
   }
 
   useEffect(() => {
+    if (!goal.trim() && !source) return
     requestPlan()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [goal, source])
 
   function copyText(value = '') {
     navigator.clipboard.writeText(value)
@@ -453,6 +457,37 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
     requestPlan(compiled)
   }
 
+  async function renderVideoNow() {
+    setRendering(true)
+    setRenderedStatus('')
+    try {
+      const response = await fetch('/api/copilot/video-render', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          goal,
+          prompt: activePlan?.videoPrompt || planEditor,
+          duration,
+          aspectRatio,
+          sourceImageDataUrl: source?.kind === 'image' ? source.dataUrl : undefined,
+        }),
+      })
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        setRenderedVideoUrl('')
+        setRenderedStatus(String(data?.message || 'Video render failed.'))
+        return
+      }
+      if (data?.videoDataUrl) setRenderedVideoUrl(String(data.videoDataUrl))
+      setRenderedStatus(String(data?.message || `Render status: ${data?.providerStatus || 'unknown'}`))
+    } catch (error) {
+      setRenderedVideoUrl('')
+      setRenderedStatus(error instanceof Error ? error.message : 'Video render failed.')
+    } finally {
+      setRendering(false)
+    }
+  }
+
   return (
     <section className="directcut-studio" aria-label="DirectCut Studio">
       <div className="directcut-heading">
@@ -530,8 +565,13 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
         <div className="directcut-main">
           <div className="directcut-preview">
             <div className="directcut-preview-icon"><Video size={34} /></div>
-            <strong>Preview placeholder</strong>
-            <span>Planning only — video generation connector not connected yet.</span>
+            <strong>{renderedVideoUrl ? 'Rendered preview' : 'Preview placeholder'}</strong>
+            {renderedVideoUrl ? (
+              <video controls src={renderedVideoUrl} style={{ width: '100%', borderRadius: '10px', marginTop: '8px' }} />
+            ) : (
+              <span>No final video yet. Use Render video now.</span>
+            )}
+            {renderedStatus && <span>{renderedStatus}</span>}
             <small>Provider status: {activePlan?.providerStatus || 'planning-only'}</small>
           </div>
 
@@ -547,7 +587,7 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
                   <button type="button" className={viewMode === 'plan' ? 'active' : ''} onClick={() => setViewMode('plan')}>Plan</button>
                   <button type="button" className={viewMode === 'nodes' ? 'active' : ''} onClick={() => setViewMode('nodes')}>Node Board</button>
                 </div>
-                <div className="directcut-status-pill"><Clapperboard size={15} /> planning-only</div>
+                <div className="directcut-status-pill"><Clapperboard size={15} /> {activePlan?.providerStatus || 'planning-only'}</div>
               </div>
             </div>
 
@@ -576,6 +616,7 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
                   <button type="button" onClick={() => copyText((activePlan?.sceneList || []).join('\n'))}><Camera size={16} /> Copy storyboard</button>
                   <button type="button" onClick={exportStoryboard}><Download size={16} /> Export storyboard</button>
                   <button type="button" onClick={() => exportPlan()}><Download size={16} /> Export plan</button>
+                  <button type="button" onClick={renderVideoNow} disabled={rendering}><Video size={16} /> {rendering ? 'Rendering...' : 'Render video now'}</button>
                   <button type="button" onClick={() => localStorage.setItem('apex_directcut_last_plan', JSON.stringify(activePlan))}><Save size={16} /> Save plan</button>
                 </div>
               </>

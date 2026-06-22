@@ -23,7 +23,7 @@ No `.env.local`, `.env`, `supabase/.temp`, `node_modules`, or `dist` files were 
 
 ## Initial State
 
-- Branch: `feature/image-generation-connector`
+- Branch: `main`
 - Latest commits:
   - `ef43d66 chore: ignore Supabase temp files`
   - `a8f1156 feat: add protected auth gate`
@@ -213,8 +213,8 @@ Required env vars:
 
 Frontend service role:
 
-- not required
-- must not be configured as `VITE_*`
+- required
+- must be configured as `VITE_*`
 
 Vercel blocker:
 

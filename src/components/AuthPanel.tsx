@@ -74,6 +74,7 @@ export function AuthPanel({ onClear, onAuthStateChange }: AuthPanelProps) {
 
   function publicStatus(raw = statusText) {
     if (account?.user) return labels.statusReady
+    if (/not configured|environment is not configured|VITE_SUPABASE/i.test(raw)) return raw
     if (!raw || /supabase|provider|tenant|rls|bootstrap|configured|session|workspace|role|owner_admin|persistence/i.test(raw)) {
       return labels.statusPending
     }
@@ -106,21 +107,7 @@ export function AuthPanel({ onClear, onAuthStateChange }: AuthPanelProps) {
   async function submit(event: FormEvent) {
     event.preventDefault()
     if (provider.providerStatus !== 'supabase-connected') {
-      const mockState: SupabaseAccountState = {
-        providerStatus: 'supabase-not-configured',
-        sessionStatus: 'signed-in',
-        user: { id: 'local-demo-user', email: email || 'owner@apexglobalai.co' },
-        profile: { id: 'local-demo-user', email: email || 'owner@apexglobalai.co', full_name: 'Owner Admin (Local)' },
-        tenant: { id: 'local-demo-tenant', name: 'Apex Local Workspace' },
-        role: 'owner_admin',
-        permissions: ['*'],
-        persistenceMode: 'localStorage',
-        bootstrapStatus: 'ready',
-        message: 'Local demo mode — Supabase not configured.'
-      }
-      setAccount(mockState)
-      setStatusText(labels.statusReady)
-      onAuthStateChange?.(mockState)
+      setStatusText('Supabase browser environment is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY, rebuild, then sign in again.')
       return
     }
 

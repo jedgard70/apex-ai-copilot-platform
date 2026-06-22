@@ -56,6 +56,13 @@ jobs:
       - name: Validate H44
         run: npm run validate:cp15x-h44
 
+      - name: Validate DirectCut pipeline
+        run: npm run validate:directcut-pipeline
+        env:
+          DIRECTCUT_ENABLE_FULL: "true"
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
   vercel-preview:
     name: Deploy Vercel Preview from exact GitHub commit
     runs-on: ubuntu-latest
@@ -160,6 +167,7 @@ jobs:
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          DIRECTCUT_ENABLE_FULL: "true"
           VITE_APEX_BUILD_MARKER: github-${{ github.sha }}
           APEX_BUILD_MARKER: github-${{ github.sha }}
 

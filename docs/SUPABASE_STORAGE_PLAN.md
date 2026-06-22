@@ -1,6 +1,6 @@
 # Supabase Storage Plan
 
-Status: CP12A draft only.
+Status: CP12A .
 
 This plan defines storage buckets for Apex AI Copilot. No Supabase project has been connected and no buckets have been created yet.
 

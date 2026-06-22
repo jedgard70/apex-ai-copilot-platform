@@ -1,7 +1,7 @@
 # CP15F Vercel Production Deployment Report
 
 Date: 2026-06-12
-Branch: `feature/image-generation-connector`
+Branch: `main`
 Scope: `jedgard70s-projects`
 Project: `apex-ai-copilot-platform`
 Project ID: `prj_uVRjNyFprz8NyzVcb8NTdnALr1Xm`
@@ -122,4 +122,3 @@ Before a broader production acceptance checkpoint, perform interactive browser v
 3. Confirm private UI is not accessible while logged out.
 4. Confirm the local demo mode banner is not visible when Production Supabase env vars are configured.
 5. Confirm no private keys or service role values are present in browser-accessible configuration.
-

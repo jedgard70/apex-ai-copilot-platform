@@ -2,6 +2,7 @@ node_modules
 dist
 .env
 .env.local
+.env.vercel.sync
 .env.*.local
 *.tsbuildinfo
 .DS_Store
@@ -19,3 +20,4 @@ output.png
 output.mp4
 playwright-report/
 test-results/
+integrations/tmp/

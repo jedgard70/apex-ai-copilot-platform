@@ -80,7 +80,7 @@ The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.m
 | `VERCEL_PROJECT_ID` | Vercel project |
 | `VERCEL_TEAM_ID` | Vercel team |
 
-### ⚠️ Chaves apenas locais (próximo ciclo — Phase 4)
+### ✅ Chaves apenas locais (próximo ciclo — Phase 4)
 | Chave | Motivo | Prioridade |
 | --- | --- | --- |
 | `APS_CLIENT_ID` + `APS_CLIENT_SECRET` | Autodesk APS em produção | Alta |

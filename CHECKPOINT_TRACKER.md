@@ -45,6 +45,8 @@ Core chat/copilot engine, AI runtime provider resolution, advanced model selecti
 | --- | --- | --- |
 | ArchVis → Render API (real images) | **done** | `api/copilot/generate-image.mjs` — OpenAI + fal.ai providers, 8 styles |
 | DirectCut → Node Board editing | **done** | `DirectCutPanel.tsx` node board + `api/copilot/directcut-refine.mjs` |
+| DirectCut → Dual video render (AWS + local) | **done** | `api/copilot/video-render.mjs` + `server/videoRenderPipeline.mjs` |
+| Chat → Video render sem painel DirectCut | **done** | `src/main.tsx` (`/api/copilot/video-render` direto no chat) |
 | Campaign → Social Content Pipeline | **done** | `api/copilot/social-content.mjs` + `api/copilot/campaign-plan.mjs` (real AI) |
 
 ---
@@ -118,4 +120,3 @@ Apenas local (não vai para Vercel): `LOCAL_WORKER_*`, `REVIT_MCP_*`, shell/path
 
 *Last updated: 2026-06-22*
 *All 25 modules + Phase 4 + Phase 5 RDO PDF: DONE. ENV: SYNC auditado. Build: GREEN. Deploy: apexglobalai.com LIVE.*
-

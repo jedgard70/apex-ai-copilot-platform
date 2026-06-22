@@ -18,6 +18,7 @@ import { collectProductionOperatorStatus } from './server/agent/productionStatus
 import { classifyToolExecutionRequest, routeToolExecution } from './server/agent/toolExecutionRouter.mjs'
 import { defaultTasks } from './server/agent/backgroundTasksConnector.mjs'
 import { buildCodeToolDefinitions, executeCodeToolCall, CODE_TOOL_NAMES } from './server/agent/codeTools.mjs'
+import { renderVideoPayload } from './server/videoRenderPipeline.mjs'
 
 function normalizeEnvironmentAliases() {
   const aliasPairs = [
@@ -115,14 +116,16 @@ function getModelProviderDiagnostics() {
   const routerBase = String(process.env.OPENAI_API_BASEROUTER || '').trim()
   const routerKey = String(process.env.OPENAI_API_KEYROUTER || '').trim()
   const openAiKey = String(process.env.OPENAI_API_KEY || '').trim()
+  const aiGatewayKey = String(process.env.AI_GATEWAY_API_KEY || '').trim()
   const apiBaseIsOpenRouter = apiBase.includes('openrouter.ai')
   const openrouterConfigured = Boolean((routerBase.includes('openrouter.ai') && routerKey) || (apiBaseIsOpenRouter && openAiKey))
   const openaiConfigured = Boolean(openAiKey) && !apiBaseIsOpenRouter
-  const gatewayConfigured = openrouterConfigured || openaiConfigured
+  const gatewayConfigured = Boolean(aiGatewayKey) || openrouterConfigured || openaiConfigured
   const geminiConfigured = openrouterConfigured
   return {
     openrouterConfigured,
     openaiConfigured,
+    aiGatewayConfigured: Boolean(aiGatewayKey),
     gatewayConfigured,
     geminiConfigured,
   }
@@ -279,6 +282,17 @@ const copilotExecutionCommands = [
     description: 'Queries the live Supabase project database connection, schema info, and tables.',
     executable: 'node',
     args: ['scripts/validate-supabase-live.mjs'],
+    risk: 'medium',
+    requiresApproval: false,
+    timeoutMs: 30000,
+    source: 'allowlist',
+  },
+  {
+    id: 'validate_owner_workspace_live',
+    label: 'Supabase: Check owner workspace',
+    description: 'Verifies the configured owner email has auth user, profile, active tenant and owner_admin membership.',
+    executable: 'node',
+    args: ['scripts/validate-owner-workspace-live.mjs'],
     risk: 'medium',
     requiresApproval: false,
     timeoutMs: 30000,
@@ -1649,8 +1663,6 @@ async function handleModelsList(req, res) {
     }
 
     for (const model of buildStaticModelCatalog()) {
-      if (model.provider === 'gemini' && !diagnostics.geminiConfigured) continue
-      if (model.provider === 'gateway' && !diagnostics.gatewayConfigured) continue
       addModel(model)
     }
 
@@ -2613,6 +2625,21 @@ async function handleVideoPlan(req, res) {
     return json(res, error.status || 500, {
       providerStatus: 'planning-only',
       message: scrubProviderError(error.message || 'DirectCut planner failed.'),
+    })
+  }
+}
+
+async function handleVideoRender(req, res) {
+  try {
+    const body = await readJson(req)
+    const result = await renderVideoPayload(body || {})
+    if (result.providerStatus === 'error') return json(res, 500, result)
+    if (result.providerStatus === 'blocked') return json(res, 403, result)
+    return json(res, 200, result)
+  } catch (error) {
+    return json(res, error.status || 500, {
+      providerStatus: 'error',
+      message: scrubProviderError(error.message || 'DirectCut video render failed.'),
     })
   }
 }
@@ -5728,6 +5755,10 @@ const server = http.createServer(async (req, res) => {
     handleVideoPlan(req, res)
     return
   }
+  if (req.url === '/api/copilot/video-render' && req.method === 'POST') {
+    handleVideoRender(req, res)
+    return
+  }
   if (req.url === '/api/copilot/bim-plan' && req.method === 'POST') {
     handleBimPlan(req, res)
     return
@@ -5921,5 +5952,3 @@ const port = Number(process.env.PORT || 4177)
 server.listen(port, () => {
   console.log(`Apex AI Copilot platform listening on http://127.0.0.1:${port}`)
 })
-
-

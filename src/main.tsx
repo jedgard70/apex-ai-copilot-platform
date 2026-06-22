@@ -67,7 +67,7 @@ import {
   upsertProject,
 } from './lib/projectWorkspace'
 import { syncProjectLocalToRemote } from './lib/projectPersistenceAdapter'
-import { SupabaseAccountState, loadSupabaseAccountState } from './lib/supabaseAuthBootstrap'
+import { SupabaseAccountState, attemptProfileBootstrap, loadSupabaseAccountState } from './lib/supabaseAuthBootstrap'
 import { getBrowserSupabaseClient, getSupabaseProviderStatus } from './lib/supabaseClient'
 import { syncFieldOpsPlanRemote } from './lib/fieldOpsPersistence'
 import { isSkillUpdateIntent, isTrustedGlobalSkillSource, ProjectMemoryUpdate, SkillUpdateApplyResult } from './lib/skillUpdateEngine'
@@ -404,6 +404,25 @@ function isDebugEnabled() {
   }
 }
 
+function isLocalDemoAuthAllowed() {
+  return import.meta.env.VITE_APEX_ALLOW_LOCAL_DEMO_AUTH === 'true'
+}
+
+function buildLocalDemoOwnerState(): SupabaseAccountState {
+  return {
+    providerStatus: 'supabase-not-configured',
+    sessionStatus: 'signed-in',
+    user: { id: 'local-demo-user', email: 'owner@apexglobalai.co' },
+    profile: { id: 'local-demo-user', email: 'owner@apexglobalai.co', full_name: 'Owner Admin (Local)' },
+    tenant: { id: 'local-demo-tenant', name: 'Apex Local Workspace' },
+    role: 'owner_admin',
+    permissions: ['*'],
+    persistenceMode: 'localStorage',
+    bootstrapStatus: 'ready',
+    message: 'Local demo mode enabled by VITE_APEX_ALLOW_LOCAL_DEMO_AUTH.',
+  }
+}
+
 function loadClientMemory(): ClientMemory {
   try {
     const parsed = JSON.parse(localStorage.getItem('apex_copilot_client_memory') || '{}') as ClientMemory
@@ -448,6 +467,10 @@ function isDirectCutIntent(text: string) {
   const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|criar|create|gerar|generate|fazer|make|editar|edit|cortar|cut|montar|quero|preciso|faça|faca|prepare)\b/i.test(lower)
   const hasKeyword = /\b(video|v[ií]deo|directcut|roteiro|reels|apresenta[cç][aã]o|tour|anima[cç][aã]o|v[ií]deo de venda|video de venda|timelapse|shot list|storyboard|cinematic|cinem[aá]tico|transformar imagem em v[ií]deo|imagem em v[ií]deo|image to video|adicionar voz|add voice|mudar luz|alterar luz|relight|melhorar v[ií]deo|improve video|clip editor|editar v[ií]deo|3d scenes|movimento de c[aâ]mera|camera movement)\b/i.test(lower)
   return hasVerb && hasKeyword
+}
+
+function isDirectVideoNoPanelIntent(text: string) {
+  return /\b(sem directcut|without directcut|sem abrir|without opening|sem painel|sem studio|direto no chat|direct in chat|gerar agora)\b/i.test(text)
 }
 
 function isBudgetIntent(text: string) {
@@ -1001,24 +1024,12 @@ function App() {
   const messagesEnd = useRef<HTMLDivElement | null>(null)
   const supabaseProvider = useMemo(() => getSupabaseProviderStatus(), [])
   const isSupabaseConfigured = supabaseProvider.providerStatus === 'supabase-connected'
+  const localDemoAuthAllowed = useMemo(() => isLocalDemoAuthAllowed(), [])
   const [accountState, setAccountState] = useState<SupabaseAccountState | null>(() => {
-    if (!isSupabaseConfigured) {
-      return {
-        providerStatus: 'supabase-not-configured',
-        sessionStatus: 'signed-in',
-        user: { id: 'local-demo-user', email: 'owner@apexglobalai.co' },
-        profile: { id: 'local-demo-user', email: 'owner@apexglobalai.co', full_name: 'Owner Admin (Local)' },
-        tenant: { id: 'local-demo-tenant', name: 'Apex Local Workspace' },
-        role: 'owner_admin',
-        permissions: ['*'],
-        persistenceMode: 'localStorage',
-        bootstrapStatus: 'ready',
-        message: 'Local demo mode — Supabase not configured.'
-      }
-    }
+    if (!isSupabaseConfigured && localDemoAuthAllowed) return buildLocalDemoOwnerState()
     return null
   })
-  const [authLoading, setAuthLoading] = useState(isSupabaseConfigured)
+  const [authLoading, setAuthLoading] = useState(isSupabaseConfigured || !localDemoAuthAllowed)
   const [authMessage, setAuthMessage] = useState(supabaseProvider.message)
   const [clientMemory, setClientMemory] = useState<ClientMemory>(() => loadClientMemory())
   const [toolConfirmState, setToolConfirmState] = useState<Record<string, 'idle' | 'confirmed' | 'cancelled'>>({})
@@ -1468,32 +1479,34 @@ function App() {
     executionRuns: executionRuns.length,
   }), [activeProject, archVisOutput, archVisRevisionConstraints.length, bim3DOutput, directCutOutput, executionRuns.length, messages.length])
 
-  const isSignedIn = isSupabaseConfigured ? accountState?.sessionStatus === 'signed-in' : accountState?.sessionStatus !== 'signed-out'
+  const isSignedIn = accountState?.sessionStatus === 'signed-in'
   const authShellStatus = accountState?.bootstrapStatus || (isSupabaseConfigured ? 'needs-login' : 'local-demo')
-  const isOwnerUser = accountState?.role === 'owner_admin' || accountState?.role === 'admin' || accountState?.role === 'developer' || !isSupabaseConfigured
+  const workspaceAuthReady = accountState?.bootstrapStatus === 'ready'
+  const isLocalDemoOwner = !isSupabaseConfigured && localDemoAuthAllowed && workspaceAuthReady
+  const isOwnerUser = Boolean(
+    isSignedIn
+    && workspaceAuthReady
+    && (accountState?.role === 'owner_admin' || accountState?.role === 'admin' || accountState?.role === 'developer')
+    && (isSupabaseConfigured || isLocalDemoOwner)
+  )
 
   async function refreshAuthState() {
     if (!isSupabaseConfigured) {
-      const defaultState: SupabaseAccountState = {
-        providerStatus: 'supabase-not-configured',
-        sessionStatus: 'signed-in',
-        user: { id: 'local-demo-user', email: 'owner@apexglobalai.co' },
-        profile: { id: 'local-demo-user', email: 'owner@apexglobalai.co', full_name: 'Owner Admin (Local)' },
-        tenant: { id: 'local-demo-tenant', name: 'Apex Local Workspace' },
-        role: 'owner_admin',
-        permissions: ['*'],
-        persistenceMode: 'localStorage',
-        bootstrapStatus: 'ready',
-        message: 'Local demo mode — Supabase not configured.'
-      }
+      const defaultState = localDemoAuthAllowed ? buildLocalDemoOwnerState() : null
       setAccountState(prev => (prev && prev.sessionStatus === 'signed-out') ? prev : defaultState)
       setAuthLoading(false)
-      setAuthMessage('Local demo mode — Supabase not configured.')
+      setAuthMessage(localDemoAuthAllowed ? defaultState?.message || '' : 'Supabase is not configured for this build. Rebuild with VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.')
       return defaultState
     }
 
     try {
-      const state = await loadSupabaseAccountState()
+      let state = await loadSupabaseAccountState()
+      if (
+        state.sessionStatus === 'signed-in'
+        && (state.bootstrapStatus === 'needs-profile-bootstrap' || state.bootstrapStatus === 'needs-tenant-assignment')
+      ) {
+        state = await attemptProfileBootstrap()
+      }
       setAccountState(state)
       setAuthMessage(state.message)
       return state
@@ -1662,7 +1675,7 @@ function App() {
     let mounted = true
     if (!isSupabaseConfigured) {
       setAuthLoading(false)
-      setAuthMessage('Local demo mode — Supabase not configured.')
+      setAuthMessage(localDemoAuthAllowed ? 'Local demo mode enabled.' : 'Supabase is not configured for this build.')
       return
     }
 
@@ -1671,7 +1684,7 @@ function App() {
     })
 
     const { client } = getBrowserSupabaseClient()
-    const subscription = client?.auth.onAuthStateChange((_event, session) => {
+    const subscription = client?.auth.onAuthStateChange((_event: unknown, session: unknown) => {
       if (!mounted) return
       if (!session) clearProtectedPanels()
       refreshAuthState()
@@ -1827,7 +1840,7 @@ function App() {
   }, [input])
 
   useEffect(() => {
-    messagesEnd.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    messagesEnd.current?.scrollIntoView({ behavior: loading ? 'auto' : 'smooth', block: 'end' })
   }, [messages, loading])
 
   async function askCopilot(text = input, attachment = activeFile) {
@@ -1938,6 +1951,7 @@ function App() {
     const explicitPanelOpen = Boolean(routingText) && isExplicitPanelOpenRequest(routingText)
     const shouldOpenArchVis = ((attachment?.kind === 'image') || explicitPanelOpen) && isArchVisIntent(routingText, attachment)
     const shouldOpenDirectCut = isDirectCutIntent(routingText)
+    const shouldRenderVideoDirectly = shouldOpenDirectCut && isDirectVideoNoPanelIntent(routingText)
     const shouldOpenContracts = isContractsIntent(routingText)
     const shouldOpenBudget = isBudgetIntent(routingText)
     const shouldOpenProjectPackage = isProjectPackageIntent(routingText)
@@ -2292,6 +2306,42 @@ function App() {
       setInput('')
       return
     }
+    if (shouldRenderVideoDirectly) {
+      setMessages(prev => [...prev, userMessage])
+      setInput('')
+      setLoading(true)
+      setModelRuntimeState('running')
+      try {
+        const renderConfig = inferDirectCutConfig(clean, attachment)
+        const response = await fetch('/api/copilot/video-render', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            goal: layerGoalText || clean,
+            prompt: clean,
+            duration: renderConfig.duration || '15s',
+            aspectRatio: renderConfig.aspectRatio || '16:9',
+            sourceImageDataUrl: attachment?.kind === 'image' ? attachment.dataUrl : undefined,
+          }),
+        })
+        const data = await response.json().catch(() => ({}))
+        if (response.ok) {
+          setModelRuntimeState('ok')
+          const resultLine = String(data?.message || `Status: ${data?.providerStatus || 'unknown'}`)
+          const videoLine = data?.videoDataUrl ? `\n<video controls src="${String(data.videoDataUrl)}"></video>` : ''
+          setMessages(prev => [...prev, { id: id(), role: 'assistant', text: `Render direto concluído sem abrir o DirectCut.\n${resultLine}${videoLine}` }])
+        } else {
+          setModelRuntimeState('fallback')
+          setMessages(prev => [...prev, { id: id(), role: 'assistant', text: String(data?.message || 'Não consegui renderizar o vídeo direto no chat.') }])
+        }
+      } catch (error) {
+        setModelRuntimeState('fallback')
+        setMessages(prev => [...prev, { id: id(), role: 'assistant', text: error instanceof Error ? error.message : 'Não consegui renderizar o vídeo direto no chat.' }])
+      } finally {
+        setLoading(false)
+      }
+      return
+    }
     if (shouldOpenDirectCut) {
       closeOtherPanels('directCut')
       const context = [...messages, userMessage]
@@ -2303,7 +2353,7 @@ function App() {
         {
           id: id(),
           role: 'assistant',
-          text: 'Abri o DirectCut Studio ao lado com o plano de vídeo, roteiro, shot list e prompt ajustável. Ainda não há conector de vídeo real, então vou trabalhar em modo planning-only.',
+          text: 'Abri o DirectCut Studio ao lado com plano de vídeo, roteiro, shot list, prompt ajustável e render híbrido (MediaConvert + fallback FFmpeg).',
         },
       ])
       setDirectCutOutput({
@@ -3285,7 +3335,7 @@ function App() {
     return <PublicVslLandingPage />
   }
 
-  if (isSupabaseConfigured && (!isSignedIn || authLoading)) {
+  if ((!isSignedIn || authLoading) && !isLocalDemoOwner) {
     return (
       <main className="app auth-only-app">
         <section className="auth-gate-shell" aria-label="Apex login">
@@ -3313,7 +3363,9 @@ function App() {
       </header>
 
       {!isSupabaseConfigured && (
-        <div className="demo-mode-banner">Local demo mode — Supabase not configured.</div>
+        <div className="demo-mode-banner">
+          {localDemoAuthAllowed ? 'Local demo mode enabled.' : 'Supabase not configured for this build.'}
+        </div>
       )}
 
       <section className={`workspace ${workspaceClass}`}>

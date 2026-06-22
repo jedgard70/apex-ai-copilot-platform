@@ -5,9 +5,9 @@ const root = process.cwd()
 const migrationsDir = path.join(root, 'supabase', 'migrations')
 
 const requiredFiles = [
-  '0001_initial_schema_draft.sql',
-  '0002_rls_policies_draft.sql',
-  '0003_storage_buckets_draft.sql',
+  '0001_initial_schema.sql',
+  '0002_rls_policies.sql',
+  '0003_storage_buckets.sql',
 ]
 
 const requiredTables = [
@@ -153,8 +153,8 @@ for (const { file, content } of files) {
   }
 }
 
-const initialSchema = files.find(item => item.file === '0001_initial_schema_draft.sql')?.content || ''
-const storageSchema = files.find(item => item.file === '0003_storage_buckets_draft.sql')?.content || ''
+const initialSchema = files.find(item => item.file === '0001_initial_schema.sql')?.content || ''
+const storageSchema = files.find(item => item.file === '0003_storage_buckets.sql')?.content || ''
 
 const missingTables = requiredTables.filter(table => !initialSchema.includes(`public.${table}`))
 if (missingTables.length) errors.push(`Missing required tables in 0001: ${missingTables.join(', ')}`)
@@ -162,12 +162,12 @@ if (missingTables.length) errors.push(`Missing required tables in 0001: ${missin
 const missingBuckets = requiredBuckets.filter(bucket => !storageSchema.includes(`'${bucket}'`))
 if (missingBuckets.length) errors.push(`Missing required buckets in 0003: ${missingBuckets.join(', ')}`)
 
-const rlsSchema = files.find(item => item.file === '0002_rls_policies_draft.sql')?.content || ''
+const rlsSchema = files.find(item => item.file === '0002_rls_policies.sql')?.content || ''
 if (!/enable row level security/i.test(rlsSchema)) errors.push('0002 does not appear to enable RLS.')
 if (!/app_private\.can_access_project/i.test(rlsSchema)) errors.push('0002 missing app_private project access helper usage.')
 if (!/No policies are granted to anon/i.test(rlsSchema)) warnings.push('0002 missing explicit no-anon policy note.')
 
-console.log('Supabase SQL draft validation')
+console.log('Supabase SQL migration validation')
 console.log(`- Required files: ${requiredFiles.length - files.filter(item => !item.content).length}/${requiredFiles.length}`)
 console.log(`- Required tables present: ${requiredTables.length - missingTables.length}/${requiredTables.length}`)
 console.log(`- Required buckets present: ${requiredBuckets.length - missingBuckets.length}/${requiredBuckets.length}`)
