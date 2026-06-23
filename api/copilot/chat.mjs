@@ -166,6 +166,8 @@ const ANTHROPIC_MODELS = [
 const OPENCODE_GO_MODELS = [
   { id: 'go-code', name: 'Go Code' },
   { id: 'go-reasoning', name: 'Go Reasoning' },
+  { id: 'go-chat', name: 'Go Chat' },
+  { id: 'go-instruct', name: 'Go Instruct' },
 ]
 
 const ELEVENLABS_MODELS = [

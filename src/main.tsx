@@ -317,6 +317,8 @@ const ANTHROPIC_MODELS = [
 const OPENCODE_GO_MODELS = [
   { id: 'go-code', name: 'Go Code' },
   { id: 'go-reasoning', name: 'Go Reasoning' },
+  { id: 'go-chat', name: 'Go Chat' },
+  { id: 'go-instruct', name: 'Go Instruct' },
 ]
 
 const ELEVENLABS_MODELS = [
@@ -1385,12 +1387,9 @@ function App() {
   }, [availableModels, selectedModel, modelProvider])
 
   const filteredModelOptions = useMemo(() => {
-    const serverModels = availableModels.length > 0 ? availableModels : null
-    const staticModels = buildStaticModelCatalog()
-    if (manualModelProvider === 'openrouter') {
-      return serverModels || staticModels
-    }
-    return staticModels.filter(m => m.provider === manualModelProvider)
+    const allModels = availableModels.length > 0 ? availableModels : buildStaticModelCatalog()
+    if (manualModelProvider === 'openrouter') return allModels
+    return allModels.filter(m => m.provider === manualModelProvider)
   }, [availableModels, manualModelProvider])
 
   const modelOptions = useMemo(() => {
