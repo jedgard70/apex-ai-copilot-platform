@@ -6320,6 +6320,37 @@ const server = http.createServer(async (req, res) => {
     handler(req, res)
     return
   }
+
+  if (req.url === '/api/service/order' && req.method === 'POST') {
+    const { createServiceOrder, buildServiceOrderReply } = await import('./server/service/serviceOrder.mjs')
+    const body = await readJson(req)
+    const order = createServiceOrder({
+      clientId: body.clientId,
+      clientName: body.clientName,
+      clientEmail: body.clientEmail,
+      serviceType: body.serviceType,
+      serviceName: body.serviceName,
+      description: body.description,
+      amount: body.amount,
+      currency: body.currency,
+      plan: body.plan,
+    })
+    return chatJson(res, 200, { ok: true, order, reply: buildServiceOrderReply(order) })
+  }
+
+  if (req.url?.startsWith('/api/service/order/') && req.method === 'GET') {
+    const { getServiceOrder, listServiceOrders } = await import('./server/service/serviceOrder.mjs')
+    const parts = req.url.split('/')
+    const id = parts[parts.length - 1]
+    const clientId = new URL(req.url, 'http://localhost').searchParams.get('clientId')
+    if (id && id !== 'order') {
+      const order = getServiceOrder(id)
+      return chatJson(res, 200, order || { error: 'Order not found' })
+    }
+    const list = listServiceOrders(clientId || undefined)
+    return chatJson(res, 200, { ok: true, orders: list })
+  }
+
   serveStatic(req, res)
   } catch (error) {
     const normalized = captureServerException(error, {
