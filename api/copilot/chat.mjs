@@ -57,7 +57,10 @@ export function getOpenAIConfig(model) {
 
   const isDirectGeminiModel = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.0-pro', 'gemini-2.5-flash'].includes(model)
 
-  if (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_KEYROUTER) {
+  if (isDirectGeminiModel && process.env.GEMINI_API_KEY) {
+    apiBase = process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta/openai'
+    apiKey = process.env.GEMINI_API_KEY
+  } else if (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_KEYROUTER) {
     if (model?.includes('/') || !isDirectGeminiModel) {
       apiBase = process.env.OPENAI_API_BASEROUTER
       apiKey = process.env.OPENAI_API_KEYROUTER
@@ -164,12 +167,6 @@ function splitModelValue(value) {
 
 function buildStaticModelCatalog() {
   return [
-    ...OPENROUTER_MODELS.map(model => ({
-      id: composeModelValue('openrouter', model.id),
-      modelId: model.id,
-      provider: 'openrouter',
-      name: model.name,
-    })),
     ...DIRECT_GEMINI_MODELS.map(model => ({
       id: composeModelValue('gemini', model.id),
       modelId: model.id,
@@ -180,6 +177,12 @@ function buildStaticModelCatalog() {
       id: composeModelValue('gateway', model.id),
       modelId: model.id,
       provider: 'gateway',
+      name: model.name,
+    })),
+    ...OPENROUTER_MODELS.map(model => ({
+      id: composeModelValue('openrouter', model.id),
+      modelId: model.id,
+      provider: 'openrouter',
       name: model.name,
     })),
   ]
@@ -234,6 +237,14 @@ async function handleModelsList(res) {
       addModel(model)
     }
 
+    const providerOrder = ['gemini', 'openrouter', 'openai', 'gateway']
+    models.sort((left, right) => {
+      const leftIdx = providerOrder.indexOf(left.provider)
+      const rightIdx = providerOrder.indexOf(right.provider)
+      const providerCompare = (leftIdx === -1 ? 999 : leftIdx) - (rightIdx === -1 ? 999 : rightIdx)
+      if (providerCompare !== 0) return providerCompare
+      return String(left.name || left.id || '').localeCompare(String(right.name || right.id || ''))
+    })
     const payload = { ok: true, provider: 'mixed', models, providerDiagnostics: diagnostics }
     modelCatalogCache = {
       expiresAt: now + MODEL_CATALOG_CACHE_TTL_MS,
@@ -1711,9 +1722,9 @@ export default async function handler(req, res) {
     const isGatewayModel = modelProvider === 'gateway' || model.startsWith('openai/')
     const isGeminiProvider = modelProvider === 'gemini'
     let { apiBase, apiKey: resolvedOpenAIKey } = getOpenAIConfig(model)
-    if (isGeminiProvider && providerDiagnostics.openrouterConfigured) {
-      apiBase = process.env.OPENAI_API_BASEROUTER || apiBase
-      resolvedOpenAIKey = process.env.OPENAI_API_KEYROUTER || resolvedOpenAIKey
+    if (isGeminiProvider && process.env.GEMINI_API_KEY) {
+      apiBase = process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta/openai'
+      resolvedOpenAIKey = process.env.GEMINI_API_KEY
     }
 
     const anthropicKey = process.env.ANTHROPIC_API_KEY
