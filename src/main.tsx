@@ -1385,8 +1385,12 @@ function App() {
   }, [availableModels, selectedModel, modelProvider])
 
   const filteredModelOptions = useMemo(() => {
-    const base = availableModels.length === 0 ? buildStaticModelCatalog() : availableModels
-    return base.filter(m => manualModelProvider === 'openrouter' || m.provider === manualModelProvider)
+    const serverModels = availableModels.length > 0 ? availableModels : null
+    const staticModels = buildStaticModelCatalog()
+    if (manualModelProvider === 'openrouter') {
+      return serverModels || staticModels
+    }
+    return staticModels.filter(m => m.provider === manualModelProvider)
   }, [availableModels, manualModelProvider])
 
   const modelOptions = useMemo(() => {
