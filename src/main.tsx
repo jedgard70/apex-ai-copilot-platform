@@ -53,6 +53,7 @@ import { PlatformMapPanel } from './components/PlatformMapPanel'
 import { PublicVslLandingPage } from './components/PublicVslLandingPage'
 import { UserAccountPanel } from './components/UserAccountPanel'
 import AppLayout from './components/AppLayout'
+import { ClientDashboard } from './components/ClientDashboard'
 import { DashboardPage } from './components/DashboardPage'
 import { OwnerPage } from './components/OwnerPage'
 import { DeploymentFlowPage } from './components/DeploymentFlowPage'
@@ -3452,6 +3453,10 @@ function App() {
     >
       {activeView === 'dashboard' ? (
         <DashboardPage onNavigate={setActiveView} />
+      ) : activeView === 'client-dashboard' ? (
+        <div className="h-full" style={{ background: '#0f172a', minHeight: '100vh' }}>
+          <ClientDashboard email={accountState?.user?.email} onBack={() => setActiveView('chat')} />
+        </div>
       ) : activeView === 'owner' ? (
         <OwnerPage onNavigate={setActiveView} onOpenChat={handleCommand} />
       ) : activeView === 'bim' || activeView === 'fieldops' || activeView === 'budget' || activeView === 'contracts' || activeView === 'research' || activeView === 'crm' || activeView === 'finance' || activeView === 'archvis' || activeView === 'directcut' || activeView === 'deployment' || activeView === 'governance' || activeView === 'marketing' || activeView === 'navigator' || activeView === 'training' || activeView === 'docs' ? (
