@@ -1813,17 +1813,19 @@ async function handleChat(req, res) {
     const body = await readJson(req)
     const identityContext = normalizeChatIdentityContext(body.identityContext)
     const userText = String(body.message || '').slice(0, 12000)
-    // H5.0D: action tools hard-override — must win before any conversation/connector router
-    const _h5ActionTools = new Set(['local_worker.status', 'revit_mcp.status', 'revit_model.status', 'vercel.deploy', 'supabase.migration'])
-    const _h5ToolIds = classifyToolExecutionRequest(userText)
-    if (!APEX_FREE_AGENT && _h5ToolIds.length && _h5ToolIds.some(id => _h5ActionTools.has(id))) {
-      const _toolExecution = await routeToolExecution({ userMessage: userText, requestedToolIds: _h5ToolIds })
-      return chatJson(res, 200, {
-        finalReply: _toolExecution.finalReply,
-        memoryPatch: null,
-        mode: 'apex-h5-tool-execution-direct',
-        operator: { intent: 'tool_execution', toolExecution: _toolExecution },
-      })
+    // H5.0D: action tools hard-override — disabled when APEX_FREE_AGENT=1
+    if (!APEX_FREE_AGENT) {
+      const _h5ActionTools = new Set(['local_worker.status', 'revit_mcp.status', 'revit_model.status', 'vercel.deploy', 'supabase.migration'])
+      const _h5ToolIds = classifyToolExecutionRequest(userText)
+      if (_h5ToolIds.length && _h5ToolIds.some(id => _h5ActionTools.has(id))) {
+        const _toolExecution = await routeToolExecution({ userMessage: userText, requestedToolIds: _h5ToolIds })
+        return chatJson(res, 200, {
+          finalReply: _toolExecution.finalReply,
+          memoryPatch: null,
+          mode: 'apex-h5-tool-execution-direct',
+          operator: { intent: 'tool_execution', toolExecution: _toolExecution },
+        })
+      }
     }
     const identityReply = buildIdentityReply(userText, identityContext)
     if (identityReply) {
