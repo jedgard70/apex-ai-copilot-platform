@@ -6473,6 +6473,18 @@ const server = http.createServer(async (req, res) => {
     return chatJson(res, 200, { ok: true, orders: list })
   }
 
+  if (req.url === '/api/service/my-orders' && req.method === 'GET') {
+    const email = new URL(req.url, 'http://localhost').searchParams.get('email')
+    if (!email) return chatJson(res, 400, { error: 'email required' })
+    const { listServiceOrders } = await import('./server/service/serviceOrder.mjs')
+    const { listInvoices } = await import('./server/service/invoice.mjs')
+    const { getClient } = await import('./server/service/client.mjs')
+    const orders = listServiceOrders(email)
+    const invoices = listInvoices(email)
+    const client = getClient(email)
+    return chatJson(res, 200, { ok: true, client, orders, invoices })
+  }
+
   serveStatic(req, res)
   } catch (error) {
     const normalized = captureServerException(error, {

@@ -60,7 +60,7 @@ Cliente → Frontend (React) → API (server.mjs) → Stripe/Supabase → Painel
 | 3. Pós-Pagamento | ✅ Feito | — | — |
 | 4. Invoice | ✅ Feito | — | `server/service/invoice.mjs` + integração com service order + webhook + rota |
 | 5. CRM Automático | ✅ Feito | — | `server/service/client.mjs` + rota POST /api/service/client + integração create_service_order |
-| 6. Dashboard Cliente | ⏳ Pendente | — | — |
+| 6. Dashboard Cliente | ✅ Feito | — | — |
 
 ---
 
