@@ -3,6 +3,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
 import { createRequire } from 'node:module'
+import { generateWithFal } from './agent/videoGenerationConnector.mjs'
 
 const require = createRequire(import.meta.url)
 
@@ -246,6 +247,30 @@ export async function renderVideoPayload(payload = {}) {
       return {
         providerStatus: 'blocked',
         message: 'DirectCut full mode is disabled by DIRECTCUT_ENABLE_FULL=false.',
+      }
+    }
+
+    if (process.env.FAL_KEY) {
+      const falResult = await generateWithFal({
+        modelId: model,
+        prompt,
+        aspectRatio: aspectRatio === '9:16' ? '9:16' : '16:9',
+        duration: parseDurationSeconds(duration),
+        imageUrl: sourceImageDataUrl || undefined,
+        finalImageUrl: finalImageDataUrl || undefined,
+      })
+      if (falResult.ok) {
+        return {
+          providerStatus: 'connected',
+          provider: 'fal.ai',
+          videoDataUrl: falResult.videoUrl,
+          videoUrl: falResult.videoUrl,
+          imageUrl: falResult.imageUrl,
+          model: falResult.modelId || model,
+          duration,
+          aspectRatio,
+          message: `Vídeo gerado com fal.ai (${falResult.modelLabel || falResult.modelId}).`,
+        }
       }
     }
 

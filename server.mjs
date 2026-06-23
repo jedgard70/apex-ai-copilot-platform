@@ -3999,11 +3999,36 @@ async function handleResearchPlan(req, res) {
     const sinapiIntent = /sinapi|construction cost source|pricing|pre[cç]o|custo/i.test(`${researchType} ${query}`)
     const searchQuery = buildResearchSearchQuery(researchType, query, region, freshness)
     let liveSources = []
-    try {
-      const rss = await fetchText(`https://www.bing.com/search?q=${encodeURIComponent(searchQuery)}&format=rss`, { timeoutMs: 12000 })
-      liveSources = parseBingRssSources(rss, checked)
-    } catch (searchError) {
-      console.error('[Research Search Error]:', scrubProviderError(searchError.message || searchError))
+
+    const tavilyKey = process.env.TAVILY_API_KEY
+    if (tavilyKey && query) {
+      try {
+        const tavilyRes = await fetch('https://api.tavily.com/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tavilyKey}` },
+          body: JSON.stringify({ query: searchQuery, search_depth: 'basic', max_results: 5 }),
+          signal: AbortSignal.timeout(10000),
+        })
+        if (tavilyRes.ok) {
+          const tavilyData = await tavilyRes.json()
+          liveSources = (tavilyData.results || []).map((r, i) => ({
+            citationId: `T${i + 1}`,
+            title: r.title || r.url || 'Fonte web',
+            sourceName: 'Tavily',
+            url: r.url || '',
+            dateChecked: checked,
+            evidenceLevel: 'WEB_SEARCH',
+            note: r.content || '',
+          }))
+        }
+      } catch { /* Tavily search failed, fallback below */ }
+    }
+
+    if (!liveSources.length) {
+      try {
+        const rss = await fetchText(`https://www.bing.com/search?q=${encodeURIComponent(searchQuery)}&format=rss`, { timeoutMs: 12000 })
+        liveSources = parseBingRssSources(rss, checked)
+      } catch { /* Bing RSS also failed */ }
     }
 
     if (!liveSources.length) {
