@@ -1110,8 +1110,10 @@ function buildAnthropicMessages(messages) {
   }
 }
 
-async function callOpenAIChat(requestPayload) {
-  const { apiBase, apiKey } = getOpenAIConfig(requestPayload.model)
+async function callOpenAIChat(requestPayload, overrideConfig) {
+  const resolved = getOpenAIConfig(requestPayload.model)
+  const apiBase = overrideConfig?.apiBase || resolved.apiBase
+  const apiKey = overrideConfig?.apiKey || resolved.apiKey
   const headers = {
     Authorization: `Bearer ${apiKey}`,
     'Content-Type': 'application/json',
@@ -2139,7 +2141,7 @@ export default async function handler(req, res) {
 
     const chatResult = provider === 'anthropic'
       ? await callAnthropicChat(liveAgentMessages, userMessage)
-      : await callOpenAIChat(requestPayload)
+      : await callOpenAIChat(requestPayload, { apiBase, apiKey: resolvedOpenAIKey })
 
     const response = chatResult.response
     const data = chatResult.data
