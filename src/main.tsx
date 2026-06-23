@@ -3423,6 +3423,10 @@ function App() {
     )
   }
 
+  const handleCommand = (cmd: string) => {
+    if (cmd) { setInput(cmd); setTimeout(() => askCopilot(cmd), 50) }
+  }
+
   return (
     <AppLayout
       activeNav={activeView}
@@ -3436,19 +3440,19 @@ function App() {
       {activeView === 'dashboard' ? (
         <DashboardPage onNavigate={setActiveView} />
       ) : activeView === 'owner' ? (
-        <OwnerPage onNavigate={setActiveView} />
-      ) : activeView === 'deployment' ? (
-        <DeploymentFlowPage />
-      ) : activeView === 'governance' ? (
-        <GovernanceHubPage />
-      ) : activeView === 'marketing' ? (
-        <MarketingAnalyticsPage />
-      ) : activeView === 'navigator' ? (
-        <PlatformNavigatorPage />
-      ) : activeView === 'training' ? (
-        <ModelTrainingPage />
-      ) : activeView === 'docs' ? (
-        <TechnicalDocumentationPage />
+        <OwnerPage onNavigate={setActiveView} onOpenChat={handleCommand} />
+      ) : activeView === 'bim' || activeView === 'fieldops' || activeView === 'budget' || activeView === 'contracts' || activeView === 'research' || activeView === 'crm' || activeView === 'finance' || activeView === 'archvis' || activeView === 'directcut' || activeView === 'deployment' || activeView === 'governance' || activeView === 'marketing' || activeView === 'navigator' || activeView === 'training' || activeView === 'docs' ? (
+        <div className="h-full"><section className="chat-shell" aria-label="Apex AI Copilot chat" style={{ display: 'flex', flexDirection: 'row', minHeight: '100%' }}>{(() => {
+          const cmds: Record<string, string> = {
+            bim: 'abrir bim 3d studio', fieldops: 'abrir field ops studio', budget: 'abrir budget studio',
+            contracts: 'abrir contracts studio', research: 'abrir research studio', crm: 'abrir crm layer',
+            finance: 'abrir financeiro', archvis: 'abrir archvis studio', directcut: 'abrir directcut studio',
+            deployment: 'abrir deployment', governance: 'abrir evm scheduler panel', marketing: 'abrir marketing',
+            navigator: 'abrir platform map', training: 'abrir model training', docs: 'abrir documentation',
+          }
+          setTimeout(() => { handleCommand(cmds[activeView] || ''); setActiveView('chat') }, 100)
+          return null
+        })()}</section></div>
       ) : (
         <div className="h-full">
           <section className="chat-shell" aria-label="Apex AI Copilot chat" style={{ display: 'flex', flexDirection: 'row', minHeight: '100%' }}>
@@ -3500,7 +3504,7 @@ function App() {
                 }}
               >
                {modelOptions.map((m: ModelOption) => (
-                  <option key={m.id} value={m.id}>{`${m.name || m.id}${m.provider ? ` · ${getProviderLabel(m.provider)}` : ''}`}</option>
+                  <option key={m.id} value={m.id}>{`${m.provider ? `${getProviderLabel(m.provider)} · ` : ''}${m.name || m.id}`}</option>
                 ))}
               </select>
 

@@ -4844,6 +4844,57 @@ async function handleKnowledgeBaseInsert(req, res) {
   }
 }
 
+async function handleDashboardStatus(req, res) {
+  try {
+    const providerDiagnostics = getModelProviderDiagnostics()
+    const gitSha = await (async () => {
+      try {
+        const { execSync } = await import('node:child_process')
+        return execSync('git rev-parse --short HEAD', { encoding: 'utf8', timeout: 3000 }).trim()
+      } catch { return 'unknown' }
+    })()
+    const gitBranch = await (async () => {
+      try {
+        const { execSync } = await import('node:child_process')
+        return execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf8', timeout: 3000 }).trim()
+      } catch { return 'unknown' }
+    })()
+    const hasFalKey = Boolean(process.env.FAL_KEY)
+    const hasGeminiKey = Boolean(process.env.GEMINI_API_KEY)
+    const hasOpenAI = Boolean(process.env.OPENAI_API_KEY)
+    const hasOpenRouter = Boolean(process.env.OPENAI_API_KEYROUTER)
+    const hasAnthropic = Boolean(process.env.ANTHROPIC_API_KEY)
+    const hasElevenLabs = Boolean(process.env.ELEVENLABS_API_KEY)
+    const providersActive = [hasOpenRouter, hasGeminiKey, hasOpenAI, hasAnthropic, hasFalKey, hasElevenLabs].filter(Boolean).length
+    return json(res, 200, {
+      ok: true,
+      git: { sha: gitSha, branch: gitBranch },
+      providers: {
+        total: 7,
+        active: providersActive,
+        list: {
+          openrouter: hasOpenRouter,
+          gemini: hasGeminiKey,
+          openai: hasOpenAI,
+          anthropic: hasAnthropic,
+          fal: hasFalKey,
+          elevenlabs: hasElevenLabs,
+        }
+      },
+      modelRuntime: {
+        gatewayConfigured: providerDiagnostics.gatewayConfigured,
+        geminiConfigured: providerDiagnostics.geminiConfigured,
+        interactionsConfigured: providerDiagnostics.interactionsConfigured,
+        openrouterConfigured: providerDiagnostics.openrouterConfigured,
+        openaiConfigured: providerDiagnostics.openaiConfigured,
+      },
+      timestamp: new Date().toISOString(),
+    })
+  } catch (error) {
+    return json(res, 500, { error: error.message })
+  }
+}
+
 function createMetricsPlan(goal = '', projectSummary = null, runtimeSummary = null) {
   const modules = ['Chat', 'ArchVis', 'DirectCut', 'BIM/3D', 'Budget', 'Contracts', 'FieldOps', 'Research', 'Export']
   const project = projectSummary && typeof projectSummary === 'object' ? projectSummary : {}
@@ -6026,6 +6077,10 @@ const server = http.createServer(async (req, res) => {
   }
   if (req.url === '/api/copilot/auth-plan' && req.method === 'POST') {
     handleAuthPlan(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/status' && req.method === 'GET') {
+    handleDashboardStatus(req, res)
     return
   }
   if (req.url === '/api/copilot/analyze-skill-update' && req.method === 'POST') {

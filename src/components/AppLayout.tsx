@@ -3,16 +3,19 @@ import { ReactNode, useState } from 'react'
 const sidebarItems = [
   { icon: 'dashboard', label: 'Dashboard', id: 'dashboard' },
   { icon: 'forum', label: 'Chat', id: 'chat' },
-  { icon: 'architecture', label: 'BIM', id: 'bim' },
-  { icon: 'engineering', label: 'Field Ops', id: 'fieldops' },
-  { icon: 'groups', label: 'CRM', id: 'crm' },
-  { icon: 'admin_panel_settings', label: 'Owner', id: 'owner' },
+  { icon: 'architecture', label: 'BIM / 3D Studio', id: 'bim' },
+  { icon: 'engineering', label: 'Field Operations', id: 'fieldops' },
+  { icon: 'request_quote', label: 'Budget / Quantity', id: 'budget' },
+  { icon: 'description', label: 'Contracts / Permits', id: 'contracts' },
+  { icon: 'search', label: 'Research', id: 'research' },
+  { icon: 'groups', label: 'CRM / Sales', id: 'crm' },
+  { icon: 'account_balance', label: 'Finance', id: 'finance' },
+  { icon: 'verified_user', label: 'Governance / EVMS', id: 'governance' },
+  { icon: 'insights', label: 'Marketing / Campaign', id: 'marketing' },
+  { icon: 'photo_camera', label: 'ArchVis Studio', id: 'archvis' },
+  { icon: 'movie_edit', label: "Director's Cut", id: 'directcut' },
+  { icon: 'admin_panel_settings', label: 'Owner Console', id: 'owner' },
   { icon: 'rocket_launch', label: 'Deployment', id: 'deployment' },
-  { icon: 'verified_user', label: 'Governance', id: 'governance' },
-  { icon: 'insights', label: 'Marketing', id: 'marketing' },
-  { icon: 'explore', label: 'Navigator', id: 'navigator' },
-  { icon: 'model_training', label: 'Training', id: 'training' },
-  { icon: 'description', label: 'Docs', id: 'docs' },
 ]
 
 type AppLayoutProps = {
@@ -30,7 +33,7 @@ export default function AppLayout({
   activeNav = 'dashboard',
   onNavChange,
   title = 'Apex AI Copilot',
-  subtitle = 'Main Interface',
+  subtitle = '',
   avatarUrl,
   connectors,
 }: AppLayoutProps) {
