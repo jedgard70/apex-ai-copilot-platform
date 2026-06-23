@@ -585,5 +585,392 @@
     ],
     "owner": "platform-team",
     "version": "0.2.0"
+  },
+  {
+    "id": "algorithmic-art",
+    "path": "skills/imported/algorithmic-art/SKILL.md",
+    "title": "Algorithmic Art",
+    "description": "Creating algorithmic art using p5.js with seeded randomness and interactive parameter exploration.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/algorithmic-art/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/algorithmic-art/SKILL.md",
+      "skills/imported/algorithmic-art/templates/generator_template.js",
+      "skills/imported/algorithmic-art/templates/viewer.html"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "apex-ai-copilot",
+    "path": "skills/imported/apex-ai-copilot/SKILL.md",
+    "title": "Apex AI Copilot",
+    "description": "Use when building, auditing, designing, or operating the Apex AI Copilot platform. Covers live conversational Copilot behavior, construction workflows, production architecture, file intake, ArchVis, DirectCut, BIM/3D viewer strategy, prompt systems, UI patterns, and codebase patterns.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/apex-ai-copilot/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/apex-ai-copilot/SKILL.md",
+      "skills/imported/apex-ai-copilot/agents/openai.yaml",
+      "skills/imported/apex-ai-copilot/references/archvis-production.md",
+      "skills/imported/apex-ai-copilot/references/bim-viewer-production.md",
+      "skills/imported/apex-ai-copilot/references/codebase-patterns.md",
+      "skills/imported/apex-ai-copilot/references/copilot-behavior.md",
+      "skills/imported/apex-ai-copilot/references/directcut-production.md",
+      "skills/imported/apex-ai-copilot/references/file-intake.md",
+      "skills/imported/apex-ai-copilot/references/image-render-references.md",
+      "skills/imported/apex-ai-copilot/references/platform-roadmap.md",
+      "skills/imported/apex-ai-copilot/references/production-architecture.md",
+      "skills/imported/apex-ai-copilot/references/prompt-systems.md",
+      "skills/imported/apex-ai-copilot/references/source-truth-index.md",
+      "skills/imported/apex-ai-copilot/references/ui-ux-patterns.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "apex-global-orchestrator",
+    "path": "skills/imported/apex-global-orchestrator/SKILL.md",
+    "title": "Apex Global Orchestrator",
+    "description": "Complete Apex Global orchestration skill for Jose Edgard and Apex leadership. Coordinate Codex/Claude, review package status, create implementation handoffs, enforce governance, update roadmap.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/apex-global-orchestrator/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/apex-global-orchestrator/SKILL.md",
+      "skills/imported/apex-global-orchestrator/INTEGRACAO_SKILLS_TXT_FINALIZADAS.md",
+      "skills/imported/apex-global-orchestrator/agents/openai.yaml",
+      "skills/imported/apex-global-orchestrator/references/brand-guidelines-playbook.md",
+      "skills/imported/apex-global-orchestrator/references/canvas-design-playbook.md",
+      "skills/imported/apex-global-orchestrator/references/copilot-advanced.md",
+      "skills/imported/apex-global-orchestrator/references/documentation-governance.md",
+      "skills/imported/apex-global-orchestrator/references/generative-viewer-template-guide.md",
+      "skills/imported/apex-global-orchestrator/references/handoff-claude.md",
+      "skills/imported/apex-global-orchestrator/references/handoff-codex.md",
+      "skills/imported/apex-global-orchestrator/references/mcp-builder-playbook.md",
+      "skills/imported/apex-global-orchestrator/references/permissions.md",
+      "skills/imported/apex-global-orchestrator/references/render-3d-humanization.md",
+      "skills/imported/apex-global-orchestrator/references/render-prompts-library.md",
+      "skills/imported/apex-global-orchestrator/references/roadmap-rules.md",
+      "skills/imported/apex-global-orchestrator/references/skill-creator.md",
+      "skills/imported/apex-global-orchestrator/references/support-skills-catalog.md",
+      "skills/imported/apex-global-orchestrator/references/theme-factory-playbook.md",
+      "skills/imported/apex-global-orchestrator/references/web-artifacts-builder-playbook.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "brand-guidelines",
+    "path": "skills/imported/brand-guidelines/SKILL.md",
+    "title": "Brand Guidelines",
+    "description": "Applies official brand colors and typography to any artifact that may benefit from having a branded look-and-feel.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/brand-guidelines/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/brand-guidelines/SKILL.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "canvas-design",
+    "path": "skills/imported/canvas-design/SKILL.md",
+    "title": "Canvas Design",
+    "description": "Create beautiful visual art in .png and .pdf documents using design philosophy. Original visual designs, never copying existing artists' work.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/canvas-design/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/canvas-design/SKILL.md",
+      "skills/imported/canvas-design/canvas-fonts/"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "consolidate-memory",
+    "path": "skills/imported/consolidate-memory/SKILL.md",
+    "title": "Consolidate Memory",
+    "description": "Reflective pass over memory files — merge duplicates, fix stale facts, prune the index.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/consolidate-memory/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/consolidate-memory/SKILL.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "doc-coauthoring",
+    "path": "skills/imported/doc-coauthoring/SKILL.md",
+    "title": "Doc Co-Authoring",
+    "description": "Guide users through a structured workflow for co-authoring documentation, proposals, technical specs, and decision docs.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/doc-coauthoring/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/doc-coauthoring/SKILL.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "humanize-floor-plan-source",
+    "path": "skills/imported/humanize-floor-plan-source/SKILL.md",
+    "title": "Humanize Floor Plan (Source)",
+    "description": "Add realistic human figures and scale to architectural floor plans using AI generation, 3D rendering, and design tools.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/humanize-floor-plan-source/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/humanize-floor-plan-source/SKILL.md",
+      "skills/imported/humanize-floor-plan-source/references/ai-prompts-and-resources.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "internal-comms",
+    "path": "skills/imported/internal-comms/SKILL.md",
+    "title": "Internal Communications",
+    "description": "Resources to help write all kinds of internal communications: status reports, leadership updates, 3P updates, company newsletters, FAQs, incident reports.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/internal-comms/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/internal-comms/SKILL.md",
+      "skills/imported/internal-comms/examples/3p-updates.md",
+      "skills/imported/internal-comms/examples/company-newsletter.md",
+      "skills/imported/internal-comms/examples/faq-answers.md",
+      "skills/imported/internal-comms/examples/general-comms.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "mcp-builder",
+    "path": "skills/imported/mcp-builder/SKILL.md",
+    "title": "MCP Builder",
+    "description": "Guide for creating high-quality MCP (Model Context Protocol) servers that enable LLMs to interact with external services through well-designed tools.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/mcp-builder/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/mcp-builder/SKILL.md",
+      "skills/imported/mcp-builder/scripts/connections.py",
+      "skills/imported/mcp-builder/scripts/evaluation.py",
+      "skills/imported/mcp-builder/scripts/example_evaluation.xml"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "schedule",
+    "path": "skills/imported/schedule/SKILL.md",
+    "title": "Schedule",
+    "description": "Create or update a scheduled task that runs automatically.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/schedule/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/schedule/SKILL.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "setup-cowork",
+    "path": "skills/imported/setup-cowork/SKILL.md",
+    "title": "Setup Cowork",
+    "description": "Guided Cowork setup — install role-matched plugins, connect tools, try a skill.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/setup-cowork/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/setup-cowork/SKILL.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "theme-factory",
+    "path": "skills/imported/theme-factory/SKILL.md",
+    "title": "Theme Factory",
+    "description": "Toolkit for styling artifacts with a theme. 10 pre-set themes with colors/fonts that can be applied to slides, docs, reports, HTML landing pages.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/theme-factory/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/theme-factory/SKILL.md",
+      "skills/imported/theme-factory/theme-showcase.pdf",
+      "skills/imported/theme-factory/themes/arctic-frost.md",
+      "skills/imported/theme-factory/themes/botanical-garden.md",
+      "skills/imported/theme-factory/themes/desert-rose.md",
+      "skills/imported/theme-factory/themes/forest-canopy.md",
+      "skills/imported/theme-factory/themes/golden-hour.md",
+      "skills/imported/theme-factory/themes/midnight-galaxy.md",
+      "skills/imported/theme-factory/themes/modern-minimalist.md",
+      "skills/imported/theme-factory/themes/ocean-depths.md",
+      "skills/imported/theme-factory/themes/sunset-boulevard.md",
+      "skills/imported/theme-factory/themes/tech-innovation.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "web-artifacts-builder",
+    "path": "skills/imported/web-artifacts-builder/SKILL.md",
+    "title": "Web Artifacts Builder",
+    "description": "Suite of tools for creating elaborate, multi-component claude.ai HTML artifacts using modern frontend web technologies (React, Tailwind CSS, shadcn/ui).",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/web-artifacts-builder/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/web-artifacts-builder/SKILL.md",
+      "skills/imported/web-artifacts-builder/scripts/bundle-artifact.sh",
+      "skills/imported/web-artifacts-builder/scripts/init-artifact.sh",
+      "skills/imported/web-artifacts-builder/scripts/shadcn-components.tar.gz"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "apex-copilot-construction-intelligence",
+    "path": "skills/imported/apex-copilot-construction-intelligence/SKILL.md",
+    "title": "Apex Copilot Construction Intelligence",
+    "description": "Full-spectrum copilot intelligence for Apex Global AI covering construction, architecture, engineering, BIM/CAD/IFC/Revit, project images, floor plans, renders, PDF reports, contracts, budgets, schedules, field records, permits, marketing, DirectCut video, ArchVis, and more.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/apex-copilot-construction-intelligence/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/apex-copilot-construction-intelligence/SKILL.md",
+      "skills/imported/apex-copilot-construction-intelligence/agents/openai.yaml",
+      "skills/imported/apex-copilot-construction-intelligence/references/abilities-map.md",
+      "skills/imported/apex-copilot-construction-intelligence/references/archvis.md",
+      "skills/imported/apex-copilot-construction-intelligence/references/bim-3d.md",
+      "skills/imported/apex-copilot-construction-intelligence/references/budget.md",
+      "skills/imported/apex-copilot-construction-intelligence/references/contracts.md",
+      "skills/imported/apex-copilot-construction-intelligence/references/copilot-behavior.md",
+      "skills/imported/apex-copilot-construction-intelligence/references/directcut.md",
+      "skills/imported/apex-copilot-construction-intelligence/references/field.md",
+      "skills/imported/apex-copilot-construction-intelligence/references/file-intake.md",
+      "skills/imported/apex-copilot-construction-intelligence/references/marketing.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "apex-global-orchestrator-unificada-imported",
+    "path": "skills/imported/apex-global-orchestrator-unificada/SKILL.md",
+    "title": "Apex Global Orchestrator Unificada (Imported)",
+    "description": "Skill oficial unificada da Apex Global para governança, orquestração operacional, campanha ebook, plataforma IA Construction e handoff Codex/Claude com política zero-clone.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/apex-global-orchestrator-unificada/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/apex-global-orchestrator-unificada/SKILL.md",
+      "skills/imported/apex-global-orchestrator-unificada/INTEGRACAO_DRAFTS_SKILL.md",
+      "skills/imported/apex-global-orchestrator-unificada/agents/openai.yaml",
+      "skills/imported/apex-global-orchestrator-unificada/assets/legacy-drafts-inventory.md",
+      "skills/imported/apex-global-orchestrator-unificada/references/analyzer-agent.md",
+      "skills/imported/apex-global-orchestrator-unificada/references/claude-handoff.md",
+      "skills/imported/apex-global-orchestrator-unificada/references/codex-handoff.md",
+      "skills/imported/apex-global-orchestrator-unificada/references/copilot-advanced.md",
+      "skills/imported/apex-global-orchestrator-unificada/references/ebook-hotmart.md",
+      "skills/imported/apex-global-orchestrator-unificada/references/evaluation-harness-sample.md",
+      "skills/imported/apex-global-orchestrator-unificada/references/folder-structure.md",
+      "skills/imported/apex-global-orchestrator-unificada/references/governance.md",
+      "skills/imported/apex-global-orchestrator-unificada/references/mcp-builder-guide.md",
+      "skills/imported/apex-global-orchestrator-unificada/references/permissions.md",
+      "skills/imported/apex-global-orchestrator-unificada/references/platform-status.md",
+      "skills/imported/apex-global-orchestrator-unificada/references/roadmap-rules.md",
+      "skills/imported/apex-global-orchestrator-unificada/references/support-skills-map.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
   }
 ]
