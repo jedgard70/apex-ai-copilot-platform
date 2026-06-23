@@ -3916,11 +3916,11 @@ function App() {
               ref={fileInput}
               type="file"
               accept="*/*"
+              multiple
               hidden
-              {...({ webkitdirectory: '' } as any)}
               onChange={event => {
-                const file = event.target.files?.[0]
-                if (file) handleFile(file)
+                const files = event.target.files
+                if (files?.length) handleFile(files[0])
                 event.currentTarget.value = ''
               }}
             />
