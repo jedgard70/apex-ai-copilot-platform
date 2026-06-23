@@ -1384,12 +1384,17 @@ function App() {
     }
   }, [availableModels, selectedModel, modelProvider])
 
-  const modelOptions = useMemo(() => {
+  const filteredModelOptions = useMemo(() => {
     const base = availableModels.length === 0 ? buildStaticModelCatalog() : availableModels
+    return base.filter(m => manualModelProvider === 'openrouter' || m.provider === manualModelProvider)
+  }, [availableModels, manualModelProvider])
+
+  const modelOptions = useMemo(() => {
+    const base = filteredModelOptions.length ? filteredModelOptions : buildStaticModelCatalog().filter(m => m.provider === manualModelProvider)
     return base.some(model => model.id === selectedModelInfo.id)
       ? base
       : [...base, selectedModelInfo]
-  }, [availableModels, selectedModelInfo])
+  }, [filteredModelOptions, selectedModelInfo, manualModelProvider])
 
   useEffect(() => {
     if (!selectedModelInfo?.modelId) return
@@ -3482,7 +3487,7 @@ function App() {
             </div>
             <div className="chat-sidebar-model" style={{ padding: '12px 16px', borderBottom: '1px solid rgba(150, 164, 195, 0.15)' }}>
               <label style={{ color: 'rgba(150, 164, 195, 0.7)', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '6px' }}>
-                Seletor de Modelo
+                Modelos ({getProviderLabel(manualModelProvider)})
               </label>
 
               <select
