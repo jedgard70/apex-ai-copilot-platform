@@ -351,5 +351,239 @@
     ],
     "owner": "platform-team",
     "version": "0.2.0"
+  },
+  {
+    "id": "3d-render-studio",
+    "path": "skills/imported/3d-render-studio/SKILL.md",
+    "title": "3D Render Studio",
+    "description": "Skill operacional para prompts de render 3D, cenas, câmera, iluminação, materiais e briefs visuais.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/3d-render-studio/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/3d-render-studio/references/renderapp.html",
+      "skills/imported/3d-render-studio/references/summary.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "agent-prompt-template",
+    "path": "skills/imported/agent-prompt-template/SKILL.md",
+    "title": "Agent Prompt Template",
+    "description": "Skill operacional para criar prompts de agente, instruções, workflows, limites e testes.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/agent-prompt-template/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/agent-prompt-template/references/Aula+15+-+Prompt+Agente.pdf",
+      "skills/imported/agent-prompt-template/references/summary.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "ai-prompt-library",
+    "path": "skills/imported/ai-prompt-library/SKILL.md",
+    "title": "AI Prompt Library",
+    "description": "Biblioteca operacional para curadoria e adaptação de prompts de IA por domínio.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/ai-prompt-library/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/ai-prompt-library/references/AI_Prompt_Library.pdf",
+      "skills/imported/ai-prompt-library/references/AI_Prompt_Library ECOSSITEM.pdf",
+      "skills/imported/ai-prompt-library/references/+500+Melhores+Prompts+para+ChatGPT.pdf",
+      "skills/imported/ai-prompt-library/references/prompt e link ecossistema AI.txt",
+      "skills/imported/ai-prompt-library/references/prompty e link ecossistema.docx",
+      "skills/imported/ai-prompt-library/references/summary.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "arch-briefing-humanized",
+    "path": "skills/imported/arch-briefing-humanized/SKILL.md",
+    "title": "Architecture Briefing And Humanized Plan",
+    "description": "Skill operacional para briefing de arquitetura e prompts de planta humanizada em PT/EN.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/arch-briefing-humanized/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/arch-briefing-humanized/references/briefing de arquitetura.pdf",
+      "skills/imported/arch-briefing-humanized/references/PROMPT DE PLANTA HUMANIZADA PT.pdf",
+      "skills/imported/arch-briefing-humanized/references/PROMPT PLANTA HUMANIZADA ING.pdf",
+      "skills/imported/arch-briefing-humanized/references/summary.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "arch-design-prompts",
+    "path": "skills/imported/arch-design-prompts/SKILL.md",
+    "title": "Architecture And Interior Design Prompts",
+    "description": "Skill operacional para prompts profissionais de arquitetura, fachadas, interiores e mood boards.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/arch-design-prompts/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/arch-design-prompts/references/30--Prompts--Profissionais--para--Arquitetura--e--Design--de--Interiores.pdf",
+      "skills/imported/arch-design-prompts/references/Prompts Arquitetonicos AI.pdf",
+      "skills/imported/arch-design-prompts/references/design-prompts.html",
+      "skills/imported/arch-design-prompts/references/summary.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "cinematic-rendering",
+    "path": "skills/imported/cinematic-rendering/SKILL.md",
+    "title": "Cinematic Rendering",
+    "description": "Skill operacional para prompts cinematográficos, câmera, shot lists, iluminação, vídeo e DirectCut.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/cinematic-rendering/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/cinematic-rendering/references/guia_cinematografico.pdf",
+      "skills/imported/cinematic-rendering/references/summary.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "floor-plan-humanizer",
+    "path": "skills/imported/floor-plan-humanizer/SKILL.md",
+    "title": "Floor Plan Humanizer",
+    "description": "Skill operacional para humanização de plantas, prompts image-to-image e preservação de geometria.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/floor-plan-humanizer/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/floor-plan-humanizer/references/SKILL-floor-plan-humanization.md",
+      "skills/imported/floor-plan-humanizer/references/floor-plan-humanizer.html",
+      "skills/imported/floor-plan-humanizer/references/humanizador-plantas.html",
+      "skills/imported/floor-plan-humanizer/references/summary.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "interior-mood-board-futuristic",
+    "path": "skills/imported/interior-mood-board-futuristic/SKILL.md",
+    "title": "Futuristic Interior Mood Board",
+    "description": "Skill operacional para mood boards, interiores futuristas, materiais, iluminação e checklists.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/interior-mood-board-futuristic/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/interior-mood-board-futuristic/references/Mood Board — Interiores Futuristas.pdf",
+      "skills/imported/interior-mood-board-futuristic/references/checklist_interior_futurista.pdf",
+      "skills/imported/interior-mood-board-futuristic/references/summary.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "premium-lot-triangle-strategy",
+    "path": "skills/imported/premium-lot-triangle-strategy/SKILL.md",
+    "title": "Premium Triangle Lot Strategy",
+    "description": "Skill operacional para estratégia de lote triangular, conceito residencial premium e visualização neon.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/premium-lot-triangle-strategy/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/premium-lot-triangle-strategy/references/Analise Estrategica Lote Triangulo Conceito Residencial Premium.pdf",
+      "skills/imported/premium-lot-triangle-strategy/references/lot_identifier_generator.json",
+      "skills/imported/premium-lot-triangle-strategy/references/lot_neon_renderer.json",
+      "skills/imported/premium-lot-triangle-strategy/references/lot_neon_visualizer.json",
+      "skills/imported/premium-lot-triangle-strategy/references/examples_lot_neon_complete.json",
+      "skills/imported/premium-lot-triangle-strategy/references/summary.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "topography-landscape",
+    "path": "skills/imported/topography-landscape/SKILL.md",
+    "title": "Topography And Landscape Visualization",
+    "description": "Skill operacional para prompts de topografia, paisagismo, casa holograma e masterplan overlay.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/topography-landscape/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/topography-landscape/references/PROMPT--PARA--TOPOGRAFIA--E--CASA--HOLOGRAMA.pdf",
+      "skills/imported/topography-landscape/references/summary.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
+  },
+  {
+    "id": "web-ui-css-reference",
+    "path": "skills/imported/web-ui-css-reference/SKILL.md",
+    "title": "Web UI CSS Reference",
+    "description": "Skill operacional para auditar CSS externos e extrair padrões UI sem importar minified CSS de terceiros diretamente.",
+    "kind": "runtime-skill",
+    "runtime_status": "REAL 100%",
+    "integration_mode": "dynamic-skill-loader",
+    "runtime_evidence": [
+      "skills/imported/web-ui-css-reference/SKILL.md",
+      "api/copilot/chat.mjs loadDynamicSkills",
+      "server.mjs loadDynamicSkills"
+    ],
+    "source_assets": [
+      "skills/imported/web-ui-css-reference/references/summary.md"
+    ],
+    "owner": "platform-team",
+    "version": "0.2.0"
   }
 ]

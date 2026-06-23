@@ -455,6 +455,86 @@ function saveRuntimeKnowledge(runtime) {
   fs.writeFileSync(runtimeKnowledgePath, `${JSON.stringify(runtime, null, 2)}\n`, 'utf8')
 }
 
+function parseFrontmatter(content) {
+  const match = content.match(/^---\r?\n([\s\S]+?)\r?\n---/)
+  if (!match) return { metadata: {}, body: content }
+  const yaml = match[1]
+  const body = content.slice(match[0].length)
+  const metadata = {}
+  for (const line of yaml.split('\n')) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith('#')) continue
+    const colon = trimmed.indexOf(':')
+    if (colon === -1) continue
+    const key = trimmed.slice(0, colon).trim()
+    const valStr = trimmed.slice(colon + 1).trim()
+
+    let val = valStr
+    if (valStr.startsWith('"') && valStr.endsWith('"')) {
+      val = valStr.slice(1, -1)
+    } else if (valStr.startsWith("'") && valStr.endsWith("'")) {
+      val = valStr.slice(1, -1)
+    } else if (valStr.startsWith('[') && valStr.endsWith(']')) {
+      try {
+        val = JSON.parse(valStr.replace(/'/g, '"'))
+      } catch (_) {
+        val = valStr.slice(1, -1).split(',').map(item => item.trim().replace(/^["']|["']$/g, ''))
+      }
+    }
+    metadata[key] = val
+  }
+  return { metadata, body }
+}
+
+let cachedDynamicSkills = null
+
+function scanSkillMarkdown(dir) {
+  let results = []
+  if (!fs.existsSync(dir)) return results
+  try {
+    for (const file of fs.readdirSync(dir)) {
+      const filepath = path.join(dir, file)
+      const stat = fs.statSync(filepath)
+      if (stat.isDirectory()) {
+        results = results.concat(scanSkillMarkdown(filepath))
+      } else if (file.toLowerCase().endsWith('.md') && (file.toLowerCase().endsWith('_skill.md') || file.toLowerCase().includes('skill'))) {
+        results.push(filepath)
+      }
+    }
+  } catch (err) {
+    console.error(`[server] Erro ao escanear diretório de skills ${dir}:`, err)
+  }
+  return results
+}
+
+function loadDynamicSkills() {
+  if (cachedDynamicSkills) return cachedDynamicSkills
+
+  const skills = []
+  for (const dir of [path.join(root, 'docs'), path.join(root, 'skills')]) {
+    for (const filepath of scanSkillMarkdown(dir)) {
+      try {
+        const file = path.basename(filepath)
+        const content = fs.readFileSync(filepath, 'utf8')
+        const { metadata, body } = parseFrontmatter(content)
+        skills.push({
+          filepath,
+          filename: file,
+          title: metadata.title || file.replace(/\.md$/i, ''),
+          description: metadata.description || '',
+          tags: Array.isArray(metadata.tags) ? metadata.tags : [],
+          body: body.trim(),
+        })
+      } catch (err) {
+        console.error(`[server] Erro ao carregar skill dinâmica ${filepath}:`, err)
+      }
+    }
+  }
+
+  cachedDynamicSkills = skills
+  return skills
+}
+
 function slugifySkillFileName(value = '') {
   const base = String(value || 'skill-update')
     .replace(/\.[^.]+$/, '')
@@ -1073,6 +1153,19 @@ function buildLocalSkillContext(userText, file) {
   if (/(custo de ia|gasto com ia|tokens|observabilidade|custo openai|ai cost|billing|usage dashboard)/.test(text)) {
     contexts.push('CP11E AI Cost / Observability: local estimated usage and cost only. Do not claim provider billing accuracy. Use ESTIMATED_LOCAL until real billing/usage API is connected.')
   }
+
+  try {
+    for (const skill of loadDynamicSkills()) {
+      const matchesTag = skill.tags.some(tag => text.includes(String(tag).toLowerCase()))
+      const matchesTitle = skill.title.toLowerCase().split(/\s+/).some(word => word.length > 3 && text.includes(word))
+      if (matchesTag || matchesTitle) {
+        contexts.push(`Skill [${skill.title}]: ${skill.description}\nRules and Guidelines:\n${skill.body}`)
+      }
+    }
+  } catch (err) {
+    console.error('[server] Erro ao carregar skills dinâmicas:', err)
+  }
+
   if (!contexts.length) {
     contexts.push('Platform: Apex AI Copilot is a command-first full AI assistant. Chat is primary; modules and connectors are optional execution paths.')
   }
