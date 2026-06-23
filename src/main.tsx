@@ -252,7 +252,7 @@ type ModelOption = {
   modelId: string
 }
 
-type ManualModelProvider = 'gateway' | 'openrouter' | 'gemini'
+type ManualModelProvider = 'gateway' | 'openrouter' | 'gemini' | 'gemini-interactions' | 'anthropic' | 'opencode'
 
 const DIRECT_GEMINI_MODELS = [
   { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' },
@@ -287,8 +287,12 @@ function splitModelValue(value: string) {
 function getProviderLabel(provider: string) {
   if (provider === 'openrouter') return 'OpenRouter'
   if (provider === 'gemini') return 'Google AI Studio'
+  if (provider === 'gemini-interactions') return 'Gemini Interactions'
   if (provider === 'gateway') return 'Gateway'
-  return 'OpenAI'
+  if (provider === 'anthropic') return 'Anthropic'
+  if (provider === 'opencode') return 'OpenCode Go'
+  if (provider === 'openai') return 'OpenAI'
+  return provider || 'OpenAI'
 }
 
 function buildStaticModelCatalog(): ModelOption[] {
@@ -3419,22 +3423,21 @@ function App() {
               </label>
               <div className={`model-runtime-pill ${modelRuntimeState}`}>
                 <span className="runtime-dot" />
-                {loading
-                  ? (uiLanguage === 'EN' ? 'Model working...' : 'Modelo trabalhando...')
+                  {loading
+                  ? (uiLanguage === 'EN' ? 'Working...' : 'Trabalhando...')
                   : modelRuntimeState === 'ok'
-                    ? (uiLanguage === 'EN'
-                                          ? `Active · ${lastResponseMode || 'ok'}`
-                                          : `Active · ${lastResponseMode || 'ok'}`)
+                    ? (uiLanguage === 'EN' ? `Active · ${lastResponseMode || 'ok'}` : `Active · ${lastResponseMode || 'ok'}`)
                     : modelRuntimeState === 'fallback'
-                      ? (uiLanguage === 'EN'
-                        ? 'Fallback mode (auto-retry active)'
-                        : 'Modo fallback (auto-retry ativo)')
+                      ? (uiLanguage === 'EN' ? 'Fallback (select other model)' : 'Fallback (selecione outro modelo)')
                       : (uiLanguage === 'EN' ? 'Ready' : 'Pronto')}
               </div>
 
               <select
                 value={selectedModel}
-                onChange={e => setSelectedModel(e.target.value)}
+                onChange={e => {
+                  setSelectedModel(e.target.value)
+                  try { localStorage.setItem('apex_selected_model', e.target.value) } catch {}
+                }}
                 style={{
                   width: '100%',
                   background: '#1a233d',
@@ -3466,8 +3469,11 @@ function App() {
                   }}
                 >
                   <option value="openrouter">OpenRouter</option>
-                  <option value="gateway">Gateway</option>
                   <option value="gemini">Gemini</option>
+                  <option value="gemini-interactions">Gemini Interactions</option>
+                  <option value="gateway">Gateway</option>
+                  <option value="anthropic">Anthropic</option>
+                  <option value="opencode">OpenCode Go</option>
                 </select>
                 <input
                   value={manualModelId}
