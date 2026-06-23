@@ -262,6 +262,12 @@ const DIRECT_GEMINI_MODELS = [
   { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
 ]
 
+const INTERACTION_MODELS = [
+  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash (Interactions)' },
+  { id: 'gemini-3.1-flash-image', name: 'Gemini 3.1 Flash Image (Interactions)' },
+  { id: 'gemini-3.5-flash-tts', name: 'Gemini 3.5 Flash TTS (Interactions)' },
+]
+
 const GATEWAY_OPENAI_MODELS = [
   { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini' },
   { id: 'openai/gpt-4o', name: 'GPT-4o' },
@@ -300,6 +306,12 @@ function getProviderLabel(provider: string) {
 
 function buildStaticModelCatalog(): ModelOption[] {
   return [
+    ...INTERACTION_MODELS.map(model => ({
+      id: composeModelValue('gemini-interactions', model.id),
+      name: model.name,
+      provider: 'gemini-interactions',
+      modelId: model.id,
+    })),
     ...DIRECT_GEMINI_MODELS.map(model => ({
       id: composeModelValue('gemini', model.id),
       name: model.name,
