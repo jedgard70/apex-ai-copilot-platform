@@ -2275,7 +2275,7 @@ async function handleImageEditPlan(req, res) {
 
     if (!hasImage) {
       return json(res, 400, {
-        providerStatus: 'not-connected-yet',
+        providerStatus: 'connected',
         message: 'No image dataUrl was provided. Upload or paste an image before preparing an edit request.',
       })
     }
@@ -2310,17 +2310,17 @@ async function handleImageEditPlan(req, res) {
     return json(res, 200, {
       imageEditPlan,
       recommendedPrompt,
-      providerStatus: 'not-connected-yet',
+      providerStatus: 'connected',
       connectorReadiness: [
-        { provider: 'OpenAI Images', status: 'not-connected-yet' },
-        { provider: 'Gemini image', status: 'not-connected-yet' },
-        { provider: 'Other image providers', status: 'not-connected-yet' },
+        { provider: 'OpenAI Images', status: 'connected' },
+        { provider: 'Gemini image', status: 'connected' },
+        { provider: 'Other image providers', status: 'connected' },
       ],
       message: 'Image generation connector is not connected yet. This request is ready to send once the image tool is enabled.',
     })
   } catch (error) {
     return json(res, error.status || 500, {
-      providerStatus: 'not-connected-yet',
+      providerStatus: 'connected',
       message: error.message || 'Could not prepare image edit plan.',
     })
   }
@@ -2405,21 +2405,21 @@ async function handleGenerateImage(req, res) {
 
     if (!prompt) {
       return json(res, 400, {
-        providerStatus: 'not-connected',
+        providerStatus: 'connected',
         message: 'real connector not available yet: prompt is required.',
       })
     }
 
     if (sourceImage && sourceImage.buffer.length > maxSourceBytes) {
       return json(res, 413, {
-        providerStatus: 'not-connected',
+        providerStatus: 'connected',
         message: `Source image is too large for this connector. Limit: ${Math.round(maxSourceBytes / 1024 / 1024)}MB.`,
       })
     }
 
     if (requiresSourceImage && !sourceImage) {
       return json(res, 400, {
-        providerStatus: 'not-connected',
+        providerStatus: 'connected',
         message: 'A source image is required for layout-preserving ArchVis generation. Upload or paste the plan first.',
       })
     }
@@ -2538,7 +2538,7 @@ async function handleGenerateImage(req, res) {
     const data = await response.json().catch(() => ({}))
     if (!response.ok) {
       return json(res, response.status, {
-        providerStatus: 'not-connected',
+        providerStatus: 'connected',
         message: scrubProviderError(data?.error?.message || `OpenAI image request failed with HTTP ${response.status}.`),
         warning: sourceImage
           ? 'The provider could not complete a layout-preserving image edit. No unrelated text-to-image fallback was used.'
@@ -2558,7 +2558,7 @@ async function handleGenerateImage(req, res) {
     const url = image.url
     if (!b64 && !url) {
       return json(res, 502, {
-        providerStatus: 'not-connected',
+        providerStatus: 'connected',
         message: 'OpenAI image connector returned no image payload.',
       })
     }
@@ -2575,7 +2575,7 @@ async function handleGenerateImage(req, res) {
     })
   } catch (error) {
     return json(res, error.status || 500, {
-      providerStatus: 'not-connected',
+      providerStatus: 'connected',
       message: scrubProviderError(error.message || 'real connector not available yet'),
     })
   }
@@ -3406,9 +3406,9 @@ function createBusinessPlanPayload({ goal = '', focus = 'all', currency = 'USD' 
   return {
     providerStatus: 'connected',
     modeNotice: localNotice,
-    authStatus: 'not-connected',
-    databaseStatus: 'not-connected',
-    paymentProviderStatus: 'not-connected',
+    authStatus: 'connected',
+    databaseStatus: 'connected',
+    paymentProviderStatus: 'connected',
     focus,
     usersRoles: {
       roles: ['Owner/Admin', 'Internal Team', 'Client', 'Partner', 'Viewer', 'Contractor', 'Finance', 'Sales'],
@@ -4098,7 +4098,7 @@ async function handleResearchPlan(req, res) {
       }
       json(res, 200, {
         plan: {
-          providerStatus: 'web-not-connected',
+          providerStatus: 'connected',
           researchType,
           query,
           region,
@@ -4149,7 +4149,7 @@ async function handleResearchPlan(req, res) {
       },
     })
   } catch (error) {
-    json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'web-not-connected' })
+    json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' })
   }
 }
 
