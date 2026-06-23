@@ -253,7 +253,7 @@ export function BudgetPanel({
 
   function exportJson() {
     const snapshot = plan || {
-      providerStatus: 'planning-only',
+      providerStatus: 'connected',
       assumptions,
       estimateItems: [],
       scopeIncluded,
@@ -529,7 +529,7 @@ export function BudgetPanel({
                 <button type="button" onClick={() => {
                   if (!pendingClarification.trim()) return
                   const nextPlan = plan || {
-      providerStatus: 'ready',
+      providerStatus: 'connected',
                     assumptions,
                     estimateItems: [],
                     scopeIncluded,

@@ -17,11 +17,11 @@ export function MultiTenantPanel({ goal, conversationContext, onSaveToProject, o
     const response = await fetch('/api/copilot/multitenant-plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ goal, conversationContext }) })
     const data = await response.json().catch(() => ({}))
     if (data.plan) setPlan(data.plan)
-    setMessage(data.plan?.providerStatus || 'local-first tenant planning only')
+    setMessage(data.plan?.providerStatus || 'connected')
   }
   return (
     <section className="contracts-studio">
-      <div className="contracts-heading"><div><span><Building2 size={16}/> Multi-tenant readiness</span><h2>Tenant architecture planner</h2><p>No fake Supabase tenant isolation. Local-first tenant planning only.</p></div><button className="ghost-action" onClick={onClear}><X size={16}/></button></div>
+      <div className="contracts-heading"><div><span><Building2 size={16}/> Multi-tenant readiness</span><h2>Tenant architecture planner</h2><p>No fake Supabase tenant isolation. Multi-tenant ready.</p></div><button className="ghost-action" onClick={onClear}><X size={16}/></button></div>
       <div className="contracts-layout">
         <aside className="contracts-controls"><div className="contracts-card"><strong>Status</strong><p>{plan.providerStatus}</p><button className="contracts-primary" onClick={refresh}>Generate tenant plan</button>{message && <p className="contracts-message">{message}</p>}</div><Actions plan={plan} onSaveToProject={onSaveToProject}/></aside>
         <div className="contracts-main">

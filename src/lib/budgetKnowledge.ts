@@ -35,7 +35,7 @@ export type BudgetEstimateItem = {
 }
 
 export type BudgetPlan = {
-  providerStatus: 'ready' | 'estimate-draft'
+  providerStatus: 'ready' | 'estimate-draft' | 'connected'
   assumptions: BudgetAssumptions
   estimateItems: BudgetEstimateItem[]
   scopeIncluded: string[]

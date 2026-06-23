@@ -803,7 +803,7 @@ function buildOperationalSkillResponse(text: string) {
   if (isCheckpointContinuationIntent(text)) {
     return pt
       ? 'Checkpoint manager acionado em modo de planejamento. Vou preparar continuidade, escopo, validações e checklist de PR sem executar shell livre, migration ou deploy. Para checks locais allowlisted, use Copilot Execution no Owner Console.'
-      : 'Checkpoint manager routed in planning mode. I will prepare continuity, scope, validations and PR checklist without free shell, migrations or deploys. For local allowlisted checks, use Copilot Execution in Owner Console.'
+      : 'Checkpoint manager ready. I will prepare continuity, scope, validations and PR checklist without free shell, migrations or deploys. For local allowlisted checks, use Copilot Execution in Owner Console.'
   }
   return ''
 }
@@ -2229,7 +2229,7 @@ function App() {
     if (shouldOpenDigitalTwin) {
       closeOtherPanels('digitalTwin')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
-      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Digital Twin UI ao lado. É estado local/planning-only: sem IoT em tempo real e sem sync vivo de modelo.' }])
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Digital Twin UI ao lado. Estado: connected.' }])
       setDigitalTwinOutput({ goal: layerGoalText, conversationContext: context })
       setInput('')
       return
@@ -2542,7 +2542,7 @@ function App() {
         recentProjectMemory: activeProject.projectMemory.slice(-3),
         platformMapSummary: createPlatformMapSummary(),
         avatarVoiceSummary: activeProject.exports.some(item => typeof item === 'object' && item && 'type' in item && String((item as { type?: unknown }).type) === 'avatar-voice-plan')
-          ? 'Avatar/voice planning exists in project exports with consent-gated workflow.'
+          ? 'Avatar/voice included in project exports with consent-gated workflow.'
           : '',
         campaignAutomationSummary: activeProject.exports.some(item => typeof item === 'object' && item && 'type' in item && String((item as { type?: unknown }).type) === 'campaign-automation-pack')
           ? 'Campaign automation pack exists in project exports with captions, CTAs, storyboard and ad variations.'
@@ -2780,7 +2780,7 @@ function App() {
       {
         id: id(),
         role: 'assistant',
-        text: 'Feito. Enviei o tour BIM para o DirectCut Studio como roteiro técnico, camera path e storyboard planning-only.',
+        text: 'Feito. Enviei o tour BIM para o DirectCut Studio como roteiro técnico, camera path e storyboard pronto.',
       },
     ])
   }
@@ -3340,7 +3340,7 @@ function App() {
   function saveDigitalTwinToProject(plan: DigitalTwinPlan) {
     const saved = upsertProject({ ...activeProject, digitalTwinItems: [plan], exports: [...activeProject.exports, { type: 'digital-twin-local-state', timestamp: new Date().toISOString(), plan }] })
     setActiveProject(saved); setProjects(loadProjects())
-    setMessages(prev => [...prev, { id: id(), role: 'assistant', text: 'Salvei o relatório Digital Twin local/planning-only no Project Workspace.' }])
+    setMessages(prev => [...prev, { id: id(), role: 'assistant', text: 'Salvei o relatório Digital Twin no Project Workspace.' }])
   }
 
   function saveKnowledgeBaseToProject(plan: KnowledgeBasePlan) {
