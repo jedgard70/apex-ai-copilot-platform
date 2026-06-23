@@ -6334,6 +6334,16 @@ const server = http.createServer(async (req, res) => {
     handler(req, res)
     return
   }
+  if (req.url === "/api/service/payment-callback" && req.method === "POST") {
+    const { updateServiceOrderStatus } = await import('./server/service/serviceOrder.mjs')
+    const body = await readJson(req)
+    const { order_id, payment_id } = body
+    if (order_id) {
+      updateServiceOrderStatus(order_id, 'paid', { paymentId: payment_id || 'manual' })
+    }
+    json(res, 200, { ok: true })
+    return
+  }
   if (req.url === "/api/stripe/status" && req.method === "GET") {
     const { default: handler } = await import("./api/stripe/status.mjs")
     handler(req, res)
