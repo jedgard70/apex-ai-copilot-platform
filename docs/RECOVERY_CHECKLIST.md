@@ -1,5 +1,15 @@
 # Recovery Checklist for docsedgard Restoration
 
+> 🚨 REGRA ABSOLUTA — Proteção de Environment Variables
+> Nenhum agente, assistente, skill, ferramenta ou processo automatizado pode
+> alterar, modificar, remover ou sobrescrever variáveis no `.env.local` ou
+> nas Environment Variables do Vercel sem autorização EXPLÍCITA e VERBAL
+> do Owner (jedgard70@gmail.com / Dr. Edgard).
+> 
+> Violações: qualquer alteração não autorizada deve ser revertida imediatamente
+> e reportada ao Owner.
+
+
 1. Sanitize recovered files for secrets (API keys, tokens, passwords). Mark files requiring rotation.
 2. Rotate any discovered credentials: GitHub PATs, Supabase, OpenAI, Stripe, Twilio, DB passwords.
 3. Create isolated feature branches for converting assets into SKILL packages and enable selectively.

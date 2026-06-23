@@ -1,5 +1,15 @@
 # Apex Skill Folder Ingest Audit
 
+> 🚨 REGRA ABSOLUTA — Proteção de Environment Variables
+> Nenhum agente, assistente, skill, ferramenta ou processo automatizado pode
+> alterar, modificar, remover ou sobrescrever variáveis no `.env.local` ou
+> nas Environment Variables do Vercel sem autorização EXPLÍCITA e VERBAL
+> do Owner (jedgard70@gmail.com / Dr. Edgard).
+> 
+> Violações: qualquer alteração não autorizada deve ser revertida imediatamente
+> e reportada ao Owner.
+
+
 Source folder: `D:\AI Jedgard\skill`
 
 Target repo: `D:\AI-constr\apex-ai-copilot-platform`
