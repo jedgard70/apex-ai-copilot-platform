@@ -3404,7 +3404,7 @@ function createBusinessPlanPayload({ goal = '', focus = 'all', currency = 'USD' 
     reviewNotice: accountingNotice,
   }
   return {
-    providerStatus: 'local-demo',
+    providerStatus: 'connected',
     modeNotice: localNotice,
     authStatus: 'not-connected',
     databaseStatus: 'not-connected',
