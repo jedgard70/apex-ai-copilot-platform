@@ -1620,6 +1620,17 @@ async function executeLiveAgentToolCall(toolCall) {
         })
         paymentLink = session.url || ''
         updateServiceOrderStatus(order.id, 'pending', { paymentId: session.id })
+        const { createInvoice } = await import('./server/service/invoice.mjs')
+        const invoice = createInvoice({
+          orderId: order.id,
+          clientName: order.clientName,
+          clientEmail: order.clientEmail,
+          serviceName: order.serviceName,
+          amount: order.amount,
+          currency: order.currency,
+          orderNumber: order.number,
+        })
+        updateServiceOrderStatus(order.id, 'pending', { invoiceId: invoice.id })
       } catch (stripeError) {
         console.error('[Stripe] Failed to create session:', stripeError.message)
       }
@@ -6425,6 +6436,17 @@ const server = http.createServer(async (req, res) => {
       plan: body.plan,
     })
     return chatJson(res, 200, { ok: true, order, reply: buildServiceOrderReply(order) })
+  }
+
+  if (req.url === '/api/service/invoice' && req.method === 'POST') {
+    const { createInvoice, listInvoices } = await import('./server/service/invoice.mjs')
+    const body = await readJson(req)
+    if (body.action === 'list') {
+      const list = listInvoices(body.clientEmail)
+      return chatJson(res, 200, { ok: true, invoices: list })
+    }
+    const invoice = createInvoice(body)
+    return chatJson(res, 200, { ok: true, invoice })
   }
 
   if (req.url?.startsWith('/api/service/order/') && req.method === 'GET') {
