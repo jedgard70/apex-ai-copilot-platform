@@ -36,6 +36,7 @@
   --color-background: #fbf8ff;
   --color-on-background: #151a31;
   --color-surface-variant: #dde1ff;
+  --color-secondary-fixed: #0098a8;
 
   --font-sora: Sora, ui-sans-serif, system-ui, sans-serif;
   --font-geist: Geist, ui-sans-serif, system-ui, sans-serif;
@@ -43,6 +44,25 @@
   --font-inter: Inter, ui-sans-serif, system-ui, sans-serif;
   --font-jetbrains-mono: "JetBrains Mono", ui-monospace, monospace;
   --font-metrophobic: Metrophobic, ui-sans-serif, system-ui, sans-serif;
+
+  --spacing-gutter: 24px;
+  --spacing-container-margin: 30px;
+  --spacing-toolbar-width: 64px;
+  --spacing-sidebar-wide: 220px;
+
+  --text-label-caps: 10px;
+  --text-label-caps--font-weight: 600;
+  --text-label-caps--letter-spacing: 0.1em;
+  --text-headline-lg: 36px;
+  --text-headline-lg--line-height: 1.1;
+  --text-headline-md: 24px;
+  --text-headline-md--line-height: 1.2;
+  --text-body-md: 14px;
+  --text-body-md--line-height: 1.6;
+  --text-label-md: 12px;
+  --text-nav-link: 12px;
+  --text-nav-link--font-weight: 600;
+  --text-nav-link--letter-spacing: 0.05em;
 }
 
 [data-theme="dark"] {
@@ -81,6 +101,7 @@
   --color-background: #0b1326;
   --color-on-background: #dbe2fd;
   --color-surface-variant: #2d3449;
+  --color-secondary-fixed: #00f0ff;
 }
 
 :root {

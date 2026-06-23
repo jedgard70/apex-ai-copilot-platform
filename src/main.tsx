@@ -1254,7 +1254,7 @@ function App() {
     return localStorage.getItem('apex_active_conversation_id') || 'default'
   })
   const [selectedModel, setSelectedModel] = useState<string>(() => {
-    return localStorage.getItem('apex_selected_model') || composeModelValue('gemini', 'gemini-2.5-flash')
+    return localStorage.getItem('apex_selected_model') || composeModelValue('openrouter', 'openai/gpt-4o-mini')
   })
   const [availableModels, setAvailableModels] = useState<ModelOption[]>([])
   const [modelProvider, setModelProvider] = useState<string>('')

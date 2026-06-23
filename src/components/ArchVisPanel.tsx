@@ -114,6 +114,7 @@ function RenderingEditor({ source, output, conversationContext, revisionConstrai
   const [loading, setLoading] = useState(false)
   const [manualCorrection, setManualCorrection] = useState('')
   const [samples, setSamples] = useState(0)
+  const [error, setError] = useState<string | null>(null)
   const samplesRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const selected = gallery.find(g => g.id === selectedId)
@@ -148,11 +149,29 @@ function RenderingEditor({ source, output, conversationContext, revisionConstrai
           file: source ? { name: source.file.name, type: source.file.type, kind: source.kind, size: source.file.size } : undefined,
         }),
       })
-      const data = await res.json().catch(() => ({}))
       if (samplesRef.current) clearInterval(samplesRef.current)
+
+      if (!res.ok) {
+        setError(`Erro do servidor: ${res.status}`)
+        setSamples(500)
+        setLoading(false)
+        return
+      }
+
+      const data = await res.json().catch(() => ({}))
       setSamples(500)
 
-      const newItems: GalleryItem[] = (data.images || (data.image || data.imageUrl ? [{ image: data.image, imageUrl: data.imageUrl }] : [])).map((img: { image?: string; imageUrl?: string }) => ({
+      if (data.providerStatus === 'not-configured' || data.providerStatus === 'not-connected') {
+        setError(data.message || 'Provedor de geração de imagem não configurado.')
+        setLoading(false)
+        return
+      }
+
+      const rawImages = data.images || []
+      if (data.image || data.imageUrl) {
+        rawImages.push({ image: data.image, imageUrl: data.imageUrl })
+      }
+      const newItems: GalleryItem[] = rawImages.map((img: { image?: string; imageUrl?: string }) => ({
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         image: img.image,
         imageUrl: img.imageUrl,
@@ -165,9 +184,12 @@ function RenderingEditor({ source, output, conversationContext, revisionConstrai
         setGallery(prev => [...prev, ...newItems])
         setSelectedId(newItems[0].id)
         onRecordGeneration?.({ sourceName: source?.file.name, outputType, items: newItems })
+      } else if (data.providerStatus) {
+        setError(`Status: ${data.providerStatus}. Nenhuma imagem retornada.`)
       }
-    } catch {
+    } catch (err) {
       if (samplesRef.current) clearInterval(samplesRef.current)
+      setError(err instanceof Error ? err.message : 'Erro na geração')
     } finally {
       setLoading(false)
     }
@@ -232,6 +254,12 @@ function RenderingEditor({ source, output, conversationContext, revisionConstrai
             {loading && (
               <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 2, background: T.surfaceVariant }}>
                 <div style={{ height: '100%', width: `${progressPct}%`, background: `linear-gradient(90deg, ${T.tertiary}, ${T.primary})`, transition: 'width 0.4s ease' }} />
+              </div>
+            )}
+            {error && (
+              <div style={{ position: 'absolute', bottom: 8, left: 8, right: 8, background: `${T.error}22`, border: `1px solid ${T.error}44`, borderRadius: 6, padding: '8px 12px', fontSize: 11, color: T.error }}>
+                {error}
+                <button onClick={() => setError(null)} style={{ marginLeft: 8, background: 'none', border: 'none', cursor: 'pointer', color: T.error, fontSize: 12 }}>×</button>
               </div>
             )}
           </div>

@@ -8,6 +8,12 @@ import { runApexOperatorProductionSafe } from '../../server/agent/apexOperatorRu
 import { collectProductionOperatorStatus } from '../../server/agent/productionStatus.mjs'
 import { classifyToolExecutionRequest, routeToolExecution, routeH6ActionRequest } from '../../server/agent/toolExecutionRouter.mjs'
 import { isConfirmationSignal, isCancelSignal, hasPendingAction } from '../../server/agent/confirmationStateMachine.mjs'
+import {
+  generateWithInteractions,
+  streamWithInteractions,
+  INTERACTION_MODELS,
+  isInteractionModel,
+} from '../../server/providers/gemini-interactions.mjs'
 import { buildCodeToolDefinitions, executeCodeToolCall, CODE_TOOL_NAMES } from '../../server/agent/codeTools.mjs'
 import { runLocalWorkerAction } from '../../server/agent/localWorkerClient.mjs'
 import { classifyImageGenRequest, buildImagePrompt, generateImage, buildImageResultReply } from '../../server/agent/imageGenerationConnector.mjs'
@@ -82,13 +88,15 @@ function getModelProviderDiagnostics() {
   const openrouterConfigured = Boolean((routerBase.includes('openrouter.ai') && routerKey) || (apiBaseIsOpenRouter && openAiKey))
   const openaiConfigured = Boolean(openAiKey) && !apiBaseIsOpenRouter
   const gatewayConfigured = Boolean(aiGatewayKey) || openrouterConfigured || openaiConfigured
-  const geminiConfigured = openrouterConfigured
+  const geminiConfigured = Boolean(process.env.GEMINI_API_KEY)
+  const interactionsConfigured = Boolean(process.env.GEMINI_API_KEY)
   return {
     openrouterConfigured,
     openaiConfigured,
     aiGatewayConfigured: Boolean(aiGatewayKey),
     gatewayConfigured,
     geminiConfigured,
+    interactionsConfigured,
   }
 }
 
@@ -167,6 +175,12 @@ function splitModelValue(value) {
 
 function buildStaticModelCatalog() {
   return [
+    ...INTERACTION_MODELS.map(model => ({
+      id: composeModelValue('gemini-interactions', model.id),
+      modelId: model.id,
+      provider: 'gemini-interactions',
+      name: model.name,
+    })),
     ...DIRECT_GEMINI_MODELS.map(model => ({
       id: composeModelValue('gemini', model.id),
       modelId: model.id,
@@ -1721,6 +1735,58 @@ export default async function handler(req, res) {
     const modelProvider = selectedModel.provider
     const isGatewayModel = modelProvider === 'gateway' || model.startsWith('openai/')
     const isGeminiProvider = modelProvider === 'gemini'
+    const isInteractionsProvider = modelProvider === 'gemini-interactions'
+
+    if (isInteractionsProvider) {
+      const interactionsResult = await generateWithInteractions({
+        model,
+        messages: Array.isArray(body.messages) ? body.messages : [],
+        systemPrompt: loadRuntimeKnowledge().systemPrompt?.join('\n') || '',
+        conversationId: body.conversationId || body.workspaceContext?.projectId,
+        enableSearch: true,
+        temperature: 0.72,
+        maxOutputTokens: 900,
+      })
+
+      if (interactionsResult.ok) {
+        let replyText = interactionsResult.text
+        if (interactionsResult.citations?.length) {
+          replyText += '\n\nFontes:\n' + interactionsResult.citations.map(c => `- [${c.title}](${c.url})`).join('\n')
+        }
+        return sendJson(res, 200, {
+          finalReply: replyText || buildChatFallbackReply(userMessage, identityContext, file),
+          reply: replyText || buildChatFallbackReply(userMessage, identityContext, file),
+          model,
+          mode: 'gemini-interactions',
+          interactionId: interactionsResult.interactionId,
+          usage: interactionsResult.usage,
+          providerStatus: interactionsResult.providerStatus,
+          productionStatus,
+        })
+      }
+
+      const result = await runApexOperatorProductionSafe({
+        userMessage,
+        identityContext: normalizeIdentityContext(body.identityContext || {}),
+        workspaceContext: body.workspaceContext || {},
+        repoPath: process.cwd(),
+        permissions: {},
+        productionStatus,
+        clientMemory,
+        messages: Array.isArray(body.messages) ? body.messages : [],
+      })
+
+      return sendJson(res, 200, {
+        finalReply: result.finalReply,
+        reply: result.finalReply,
+        memoryPatch: result.memoryPatch || null,
+        mode: 'apex-operator-production-safe',
+        operator: result,
+        confirmation: buildConfirmationUi(result),
+        productionStatus,
+      })
+    }
+
     let { apiBase, apiKey: resolvedOpenAIKey } = getOpenAIConfig(model)
     if (isGeminiProvider && process.env.GEMINI_API_KEY) {
       apiBase = process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta/openai'
@@ -1978,6 +2044,31 @@ export default async function handler(req, res) {
     const data = chatResult.data
 
     if (!response.ok) {
+      if (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_KEYROUTER && provider !== 'openrouter') {
+        const fallbackApiBase = process.env.OPENAI_API_BASEROUTER
+        const fallbackApiKey = process.env.OPENAI_API_KEYROUTER
+        const fallbackModel = model.includes('/') ? model : `openrouter/${model}`
+        const fallbackHeaders = {
+          Authorization: 'Bearer ' + fallbackApiKey,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://apexglobalai.com',
+          'X-OpenRouter-Title': 'Apex AI Copilot (fallback)',
+        }
+        console.error(`[AI Fallback] Trying OpenRouter with model ${fallbackModel}`)
+        const fallbackResponse = await fetch(`${fallbackApiBase}/chat/completions`, {
+          method: 'POST',
+          headers: fallbackHeaders,
+          body: JSON.stringify({ ...requestPayload, model: fallbackModel }),
+        }).catch(() => null)
+        if (fallbackResponse?.ok) {
+          const fallbackData = await fallbackResponse.json().catch(() => ({}))
+          const fbMessage = fallbackData?.choices?.[0]?.message || {}
+          const fbReply = fbMessage.content || (chatSource === 'anthropic' ? extractAnthropicText(fallbackData) : '') || buildChatFallbackReply(userMessage, identityContext, file)
+          return sendJson(res, 200, { finalReply: fbReply, reply: fbReply, mode: 'live-agent-chat-fallback', model: fallbackModel, productionStatus })
+        }
+        console.error('[AI Fallback] OpenRouter fallback also failed')
+      }
+
       const result = await runApexOperatorProductionSafe({
         userMessage,
         identityContext: normalizeIdentityContext(body.identityContext || {}),

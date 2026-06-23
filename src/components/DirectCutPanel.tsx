@@ -198,9 +198,10 @@ function SceneLayers({ layers, onToggle, onAdd }: {
 
 // ─── Central Canvas ────────────────────────────────────────────────────────────
 
-function CentralCanvas({ source, currentImage, timecode, fps, loading }: {
+function CentralCanvas({ source, currentImage, currentVideo, timecode, fps, loading }: {
   source?: IntakeFile
   currentImage?: string
+  currentVideo?: string
   timecode: string
   fps: number
   loading: boolean
@@ -225,7 +226,9 @@ function CentralCanvas({ source, currentImage, timecode, fps, loading }: {
           boxShadow: '0 8px 40px rgba(0,0,0,0.6)',
           transform: `scale(${zoom / 100})`, transition: 'transform 0.2s',
         }}>
-          {displayImg ? (
+          {currentVideo ? (
+            <video controls autoPlay loop src={currentVideo} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : displayImg ? (
             <img src={displayImg} alt="Canvas" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
             <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, color: D.onSurfaceVariant }}>
@@ -618,6 +621,7 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
   const [timecode, setTimecode] = useState('00:04:12:08')
   const [loading, setLoading] = useState(false)
   const [currentImage, setCurrentImage] = useState<string | undefined>(source?.dataUrl)
+  const [currentVideo, setCurrentVideo] = useState<string | undefined>()
   const [initialImage, setInitialImage] = useState<string | undefined>(source?.dataUrl)
   const [finalImage, setFinalImage] = useState<string | undefined>(undefined)
   const [renderJobs, setRenderJobs] = useState<RenderJob[]>([])
@@ -660,7 +664,7 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
           clearInterval(pollTimers.current[jobId])
           delete pollTimers.current[jobId]
           setRenderJobs(prev => prev.map(j => j.id !== jobId ? j : { ...j, status: 'done', progress: 100, videoUrl: data.videoUrl, imageUrl: data.imageUrl }))
-          if (data.videoUrl) setCurrentImage(undefined) // show video in canvas area
+          if (data.videoUrl) setCurrentVideo(data.videoUrl)
           setLoading(false)
         } else if (data.status === 'error') {
           clearInterval(pollTimers.current[jobId])
@@ -717,7 +721,7 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
       } else {
         const videoUrl = data?.videoDataUrl || data?.videoUrl
         setRenderJobs(prev => prev.map(j => j.id !== jobId ? j : { ...j, status: 'done', progress: 100, videoUrl }))
-        if (videoUrl) { /* update canvas */ }
+        if (videoUrl) setCurrentVideo(videoUrl)
         setLoading(false)
       onRecordGeneration?.({ item: { id: jobId, modelId: job.modelId, modelLabel: job.modelLabel, status: 'done', videoUrl, startedAt: job.startedAt } })
       }
@@ -809,6 +813,7 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
                 <CentralCanvas
                   source={source}
                   currentImage={doneJob?.videoUrl ? undefined : currentImage}
+                  currentVideo={currentVideo}
                   timecode={timecode}
                   fps={24}
                   loading={loading}
@@ -830,7 +835,7 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
           {tab === '3d-workspace' && (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
               <div style={{ flex: 1, overflow: 'hidden' }}>
-                <CentralCanvas source={source} currentImage={currentImage} timecode={timecode} fps={24} loading={loading} />
+                <CentralCanvas source={source} currentImage={currentImage} currentVideo={currentVideo} timecode={timecode} fps={24} loading={loading} />
               </div>
               <MultiTrackTimeline timecode={timecode} />
             </div>
