@@ -12,6 +12,7 @@ import {
   Mic,
   Paperclip,
   Plus,
+  RefreshCw,
   Settings,
   Square,
   Terminal,
@@ -636,6 +637,7 @@ function suggestLayerOpenDecision(text: string, attachment?: IntakeFile): Pendin
   if (isBim3DIntent(text, attachment)) return { label: 'BIM / 3D Studio', openCommand: 'abrir bim 3d studio', goal: text }
   if (isArchVisIntent(text, attachment)) return { label: 'ArchVis Studio', openCommand: 'abrir archvis studio', goal: text }
   if (isAuthIntent(text)) return { label: 'Auth Panel', openCommand: 'abrir auth panel', goal: text }
+  if (isAutoupgradeIntent(text)) return { label: 'Autoupgrade Center', openCommand: 'abrir autoupgrade center', goal: text }
   return null
 }
 
@@ -644,7 +646,7 @@ function isExplicitPanelOpenRequest(text: string) {
   const hasOpenVerb = /\b(abrir|abra|abre|open|ativar|ative|activate|launch|iniciar|start)\b/.test(lower)
   if (!hasOpenVerb) return false
   const hasPanelWord = /\b(layer|painel|panel|studio|estudio|workspace|m[oó]dulo|modulo|console)\b/.test(lower)
-  const hasKnownLayer = /\b(archvis|directcut|contracts?|permits?|research|field\s*ops|budget|bim|3d|crm|sales|finance|accounting|generation history|generation queue|agents?|evm|scheduler|supply\s*chain|notifications?|ai\s*cost|multi-tenant|pwa|digital twin|knowledge\s*base|metrics|copilot execution|owner console|auth)\b/.test(lower)
+  const hasKnownLayer = /\b(archvis|directcut|contracts?|permits?|research|field\s*ops|budget|bim|3d|crm|sales|finance|accounting|generation history|generation queue|agents?|evm|scheduler|supply\s*chain|notifications?|ai\s*cost|multi-tenant|pwa|digital twin|knowledge\s*base|metrics|autoupgrade|copilot execution|owner console|auth)\b/.test(lower)
   return hasPanelWord || hasKnownLayer
 }
 
@@ -3400,6 +3402,14 @@ function App() {
       {isOwnerUser && isSignedIn && (
         <button className="secondary-action owner-console-button" type="button" onClick={() => openOwnerConsole()}>
           <Settings size={15} /> {uiLanguage === 'EN' ? 'Owner Console' : 'Console Owner'}
+        </button>
+      )}
+      {isSignedIn && (
+        <button className="secondary-action owner-console-button" type="button" onClick={() => {
+          setAutoupgradeOutput({ goal: 'Melhorias automáticas da plataforma', conversationContext: ['assistant: Autoupgrade Center aberto manualmente.'] })
+          setMessages(prev => [...prev, { id: id(), role: 'assistant', text: 'Abri o Autoupgrade Center ao lado. Ele audita a plataforma, monta a fila de melhorias e prepara execução aprovada com segurança.' }])
+        }}>
+          <RefreshCw size={15} /> {uiLanguage === 'EN' ? 'Autoupgrade' : 'Autoupgrade'}
         </button>
       )}
       {accountState?.sessionStatus === 'signed-in' && (

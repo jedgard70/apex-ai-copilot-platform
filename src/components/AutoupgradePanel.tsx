@@ -39,6 +39,8 @@ export function AutoupgradePanel({ goal, conversationContext, project, runtimeSu
   const [plan, setPlan] = useState<AutoupgradePlan>(() => createAutoupgradePlan(goal))
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date())
+  const [countdown, setCountdown] = useState(1800)
 
   async function refresh() {
     const projectSummary = {
@@ -66,6 +68,8 @@ export function AutoupgradePanel({ goal, conversationContext, project, runtimeSu
       setMessage(error instanceof Error ? error.message : 'Autoupgrade refresh failed.')
     } finally {
       setLoading(false)
+      setLastRefreshed(new Date())
+      setCountdown(1800)
     }
   }
 
@@ -75,6 +79,11 @@ export function AutoupgradePanel({ goal, conversationContext, project, runtimeSu
     return () => window.clearInterval(timer)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [goal, project.name, project.files.length, project.chatMessages.length, project.exports.length, project.activeStudio, project.generationHistory.length, runtimeSummary.selectedModel, runtimeSummary.modelState, runtimeSummary.lastResponseMode, runtimeSummary.persistenceMode])
+
+  useEffect(() => {
+    const cd = window.setInterval(() => setCountdown(prev => Math.max(0, prev - 1)), 1000)
+    return () => window.clearInterval(cd)
+  }, [])
 
   return (
     <section className="contracts-studio">
@@ -105,6 +114,10 @@ export function AutoupgradePanel({ goal, conversationContext, project, runtimeSu
             <button onClick={() => copy(plan.report)}><Clipboard size={15} /> Copy report</button>
             <button onClick={() => download('apex-autoupgrade-plan.json', JSON.stringify(plan, null, 2))}><Download size={15} /> Export JSON</button>
             <button onClick={() => onSaveToProject?.(plan)}><Save size={15} /> Save to Project Workspace</button>
+            <div style={{ marginTop: 8, fontSize: 11, color: 'rgba(226,232,240,0.6)', display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <span>Last refresh: {lastRefreshed.toLocaleTimeString()}</span>
+              <span>Auto-refresh in: {Math.floor(countdown / 60)}m {countdown % 60}s</span>
+            </div>
           </div>
         </aside>
 

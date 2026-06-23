@@ -5324,7 +5324,46 @@ function createMetricsPlan(goal = '', projectSummary = null, runtimeSummary = nu
 }
 async function handleMetricsPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createMetricsPlan(String(body.goal || ''), body.projectSummary || null, body.runtimeSummary || null) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' }) } }
 
-function createAutoupgradePlan(goal = '', projectSummary = null, runtimeSummary = null) {
+async function fetchExternalUpgradeSignals() {
+  const signals = { githubRelease: null, npmOutdated: null, vercelDeploy: null }
+  try {
+    const ghRes = await fetch('https://api.github.com/repos/jedgard70/apex-ai-copilot-platform/releases/latest', { signal: AbortSignal.timeout(5000) })
+    if (ghRes.ok) {
+      const data = await ghRes.json()
+      signals.githubRelease = { tag: data.tag_name, name: data.name, publishedAt: data.published_at, body: (data.body || '').slice(0, 300) }
+    }
+  } catch { /* non-critical */ }
+  try {
+    const npmRes = await fetch('https://registry.npmjs.org/apex-ai-copilot-platform/latest', { signal: AbortSignal.timeout(5000) })
+    if (npmRes.ok) {
+      const data = await npmRes.json()
+      signals.npmOutdated = { latestVersion: data.version }
+    }
+  } catch { /* non-critical */ }
+  try {
+    const pkg = JSON.parse(fs.readFileSync(new URL('./package.json', import.meta.url), 'utf8'))
+    const deps = { ...pkg.dependencies, ...pkg.devDependencies }
+    const outdated: Array<{ name: string; declared: string }> = []
+    for (const [name, declared] of Object.entries(deps)) {
+      if (typeof declared !== 'string' || declared.startsWith('file:') || declared.startsWith('workspace:')) continue
+      try {
+        const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(name)}/latest`, { signal: AbortSignal.timeout(3000) })
+        if (res.ok) {
+          const data = await res.json()
+          const latest = String(data.version || '')
+          const declaredClean = declared.replace(/^[\^~]/, '')
+          if (latest && declaredClean !== latest) outdated.push({ name, declared })
+        }
+      } catch { /* non-critical */ }
+      if (outdated.length >= 8) break
+    }
+    signals.npmOutdated = signals.npmOutdated || { latestVersion: 'unknown', outdatedDeps: outdated }
+    if (outdated.length > 0) signals.npmOutdated.outdatedDeps = outdated
+  } catch { /* non-critical */ }
+  return signals
+}
+
+function createAutoupgradePlan(goal = '', projectSummary = null, runtimeSummary = null, externalSignals = null) {
   const project = projectSummary && typeof projectSummary === 'object' ? projectSummary : {}
   const runtime = runtimeSummary && typeof runtimeSummary === 'object' ? runtimeSummary : {}
   const modelState = String(runtime.modelState || 'ready')
@@ -5335,6 +5374,19 @@ function createAutoupgradePlan(goal = '', projectSummary = null, runtimeSummary 
   const exportCount = Number(project.exports || 0)
   const generationCount = Number(project.generationHistory || 0)
   const recommendations = [
+    ...(externalSignals?.githubRelease ? [{
+      id: 'upgrade-github-release',
+      title: `New release available: ${externalSignals.githubRelease.tag}`,
+      area: 'Platform version',
+      priority: 'high' as const,
+      status: 'ready-now' as const,
+      why: externalSignals.githubRelease.name || 'A new GitHub release is available for the platform.',
+      action: `Review and merge changes from ${externalSignals.githubRelease.tag} published ${externalSignals.githubRelease.publishedAt ? new Date(externalSignals.githubRelease.publishedAt).toLocaleDateString() : 'recently'}.`,
+      suggestedCommand: 'abrir platform map',
+      commandId: 'code_analyze',
+      requiresApproval: true,
+      evidence: [`Release: ${externalSignals.githubRelease.tag}`, `Published: ${externalSignals.githubRelease.publishedAt || 'unknown'}`, `Notes: ${(externalSignals.githubRelease.body || '(no description)').slice(0, 120)}`],
+    }] : []),
     {
       id: 'upgrade-observability',
       title: 'Connect observability stack',
@@ -5396,9 +5448,24 @@ function createAutoupgradePlan(goal = '', projectSummary = null, runtimeSummary 
       requiresApproval: true,
       evidence: [`Generation history items: ${generationCount}`, `Exports created: ${exportCount}`, `Active studio: ${String(project.activeStudio || 'none')}`],
     },
+    ...(externalSignals?.npmOutdated?.outdatedDeps?.length ? [{
+      id: 'upgrade-npm-deps',
+      title: `${externalSignals.npmOutdated.outdatedDeps.length} npm dependencies outdated`,
+      area: 'Dependency health',
+      priority: 'medium',
+      status: 'ready-now',
+      why: 'Outdated dependencies may include security vulnerabilities or miss performance improvements.',
+      action: 'Run npm update or npm install for each outdated package after reviewing breaking changes.',
+      suggestedCommand: 'abrir copilot execution panel',
+      commandId: 'check_server',
+      requiresApproval: true,
+      evidence: externalSignals.npmOutdated.outdatedDeps.map((d: { name: string; declared: string }) => `${d.name} (declared: ${d.declared})`).slice(0, 8),
+    }] : []),
   ]
   const platformSignals = [
     `Project: ${String(project.name || 'Apex Project')}`,
+    ...(externalSignals?.githubRelease ? [`GitHub latest release: ${externalSignals.githubRelease.tag}`] : ['GitHub release check: no release data (API may be unavailable)']),
+    ...(externalSignals?.npmOutdated?.outdatedDeps?.length ? [`Outdated deps: ${externalSignals.npmOutdated.outdatedDeps.length} package(s) behind latest`] : ['npm dependencies: all declared versions match latest (or check unavailable)']),
     `Model: ${modelName}`,
     `Runtime: ${modelState} / ${lastResponseMode}`,
     `Persistence: ${persistenceMode}`,
@@ -5436,7 +5503,15 @@ function createAutoupgradePlan(goal = '', projectSummary = null, runtimeSummary 
     ].join('\n'),
   }
 }
-async function handleAutoupgradePlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createAutoupgradePlan(String(body.goal || ''), body.projectSummary || null, body.runtimeSummary || null) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' }) } }
+async function handleAutoupgradePlan(req, res) {
+  try {
+    const body = await readJson(req);
+    const external = await fetchExternalUpgradeSignals();
+    return json(res, 200, { plan: createAutoupgradePlan(String(body.goal || ''), body.projectSummary || null, body.runtimeSummary || null, external) })
+  } catch (error) {
+    return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' })
+  }
+}
 
 function createAvatarVoicePlan(goal = '', useCase = 'internal-demo', brandNotes = '', assetSummary = null, consentConfirmed = false) {
   const assets = assetSummary && typeof assetSummary === 'object' ? assetSummary : {}
