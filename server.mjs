@@ -1,3 +1,13 @@
+// ═══════════════════════════════════════════════════════════════════════════════
+// ATENÇÃO — PROPRIEDADE DO OWNER (Dr. Edgard)
+// Nenhum agente, assistente, skill, ferramenta ou processo automatizado pode
+// alterar, modificar, remover ou sobrescrever variáveis no .env.local ou
+// nas Environment Variables do Vercel sem autorização EXPLÍCITA e VERBAL
+// do Owner (jedgard70@gmail.com / Dr. Edgard).
+// VIOLAÇÕES: qualquer alteração não autorizada deve ser revertida imediatamente
+// e reportada ao Owner.
+// ═══════════════════════════════════════════════════════════════════════════════
+
 import './server/env.mjs'
 import http from 'node:http'
 import fs from 'node:fs'
@@ -1787,6 +1797,9 @@ async function handleChat(req, res) {
     const isGatewayModel = modelProvider === 'gateway' || inferredGatewayModel
     const isGeminiProvider = modelProvider === 'gemini'
     const isInteractionsProvider = modelProvider === 'gemini-interactions'
+    const isFalProvider = modelProvider === 'fal'
+    const isElevenLabs = modelProvider === 'elevenlabs'
+    const isFirebase = modelProvider === 'firebase'
     const isDirectGeminiModel = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.0-pro', 'gemini-2.5-flash'].includes(model)
 
     if (isInteractionsProvider) {
@@ -1835,7 +1848,16 @@ async function handleChat(req, res) {
       })
     }
 
-    if (isGeminiProvider && process.env.GEMINI_API_KEY) {
+    if (isFalProvider && process.env.FAL_KEY) {
+      apiBase = 'https://api.fal.ai/v1'
+      apiKey = process.env.FAL_KEY
+    } else if (isElevenLabs && process.env.ELEVENLABS_API_KEY) {
+      apiBase = 'https://api.elevenlabs.io/v1'
+      apiKey = process.env.ELEVENLABS_API_KEY
+    } else if (isFirebase) {
+      apiBase = 'https://firebasedynamiclinks.googleapis.com/v1'
+      apiKey = process.env.VITE_FIREBASE_API_KEY || ''
+    } else if (isGeminiProvider && process.env.GEMINI_API_KEY) {
       apiBase = process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta/openai'
       apiKey = process.env.GEMINI_API_KEY
     } else if (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_KEYROUTER) {
@@ -1848,7 +1870,7 @@ async function handleChat(req, res) {
       }
     }
 
-    if (!apiKey && !isGatewayModel) {
+    if (!apiKey && !isGatewayModel && !isFalProvider && !isElevenLabs && !isFirebase) {
       const result = await runApexOperatorProductionSafe({
         userMessage: userText,
         identityContext,

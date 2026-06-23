@@ -252,7 +252,7 @@ type ModelOption = {
   modelId: string
 }
 
-type ManualModelProvider = 'gateway' | 'openrouter' | 'gemini' | 'gemini-interactions' | 'anthropic' | 'opencode'
+type ManualModelProvider = 'gateway' | 'openrouter' | 'gemini' | 'gemini-interactions' | 'anthropic' | 'opencode' | 'fal' | 'elevenlabs' | 'firebase'
 
 const DIRECT_GEMINI_MODELS = [
   { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' },
@@ -291,6 +291,9 @@ function getProviderLabel(provider: string) {
   if (provider === 'gateway') return 'Gateway'
   if (provider === 'anthropic') return 'Anthropic'
   if (provider === 'opencode') return 'OpenCode Go'
+  if (provider === 'fal') return 'FAL.ai'
+  if (provider === 'elevenlabs') return 'Eleven Labs'
+  if (provider === 'firebase') return 'Firebase'
   if (provider === 'openai') return 'OpenAI'
   return provider || 'OpenAI'
 }
@@ -3474,6 +3477,9 @@ function App() {
                   <option value="gateway">Gateway</option>
                   <option value="anthropic">Anthropic</option>
                   <option value="opencode">OpenCode Go</option>
+                  <option value="fal">FAL.ai</option>
+                  <option value="elevenlabs">Eleven Labs</option>
+                  <option value="firebase">Firebase</option>
                 </select>
                 <input
                   value={manualModelId}
