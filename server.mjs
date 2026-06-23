@@ -1946,6 +1946,7 @@ async function handleChat(req, res) {
       'IMPORTANT: The provider status below is the ACTUAL current configuration. Do NOT rely on your training data about what keys might be missing. Use the list below as the single source of truth.',
       'Current provider status (env snapshot):',
       buildProviderStatusContext(),
+      'When asked about platform status, provider keys, or system health, answer directly in the chat with the actual status. Do NOT open a panel or say "Abri o painel". Just answer conversationally with the real information.',
       ...(workspaceSummary
         ? [
             '',

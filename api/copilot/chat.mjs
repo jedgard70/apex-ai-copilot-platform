@@ -1990,6 +1990,7 @@ export default async function handler(req, res) {
       '',
       'Platform provider status (env snapshot):',
       buildProviderStatusContext(),
+      'When asked about platform status, provider keys, or system health, answer directly in the chat with the actual status. Do NOT open a panel or say "Abri o painel". Just answer conversationally with the real information.',
       '',
       specialIntentInstruction,
     ].join('\n')
