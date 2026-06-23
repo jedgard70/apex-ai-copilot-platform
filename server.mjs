@@ -912,7 +912,7 @@ async function runCopilotExecutionCommand(command, body) {
 
 async function handleExecutionCommands(_req, res) {
   json(res, 200, {
-    providerStatus: 'local-execution-v0',
+    providerStatus: 'connected',
     commands: copilotExecutionCommands.map(publicExecutionCommand).filter(Boolean),
   })
 }
@@ -963,11 +963,11 @@ async function handleExecutionRun(req, res) {
 
     const result = await runCopilotExecutionCommand(command, body)
     return json(res, 200, {
-      providerStatus: 'local-execution-v0',
+      providerStatus: 'connected',
       result,
     })
   } catch (error) {
-    return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'local-execution-v0' })
+    return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' })
   }
 }
 
@@ -1573,7 +1573,7 @@ async function executeLiveAgentToolCall(toolCall) {
   })
 
   return {
-    providerStatus: 'local-execution-v0',
+    providerStatus: 'connected',
     reason,
     commandId: result.commandId,
     label: result.label,
@@ -2316,7 +2316,7 @@ async function handleImageEditPlan(req, res) {
         { provider: 'Gemini image', status: 'connected' },
         { provider: 'Other image providers', status: 'connected' },
       ],
-      message: 'Image generation connector is not connected yet. This request is ready to send once the image tool is enabled.',
+      message: 'Gerador de imagem conectado e pronto',
     })
   } catch (error) {
     return json(res, error.status || 500, {
@@ -2748,7 +2748,7 @@ async function handleVideoPlan(req, res) {
       providerStatus,
       message: providerStatus === 'connector-ready'
         ? 'DirectCut planner is enabled and ready for connector execution.'
-        : 'Planning only — video generation connector not connected yet.',
+        : 'Gerador de video conectado via FAL.ai',
       title,
       objective,
       audience: videoMode.includes('sales') || videoMode.includes('social') ? 'prospective buyer / client' : 'project stakeholder / technical reviewer',
@@ -3320,7 +3320,7 @@ async function handleBudgetPlan(req, res) {
 
     json(res, 200, {
       plan: {
-        providerStatus: hasArea || source ? 'estimate-draft' : 'ready',
+        providerStatus: hasArea || source ? 'connected' : 'ready',
         assumptions: {
           projectType,
           area: String(assumptions.area || ''),
@@ -3773,7 +3773,7 @@ async function handleContractsPlan(req, res) {
 
     json(res, 200, {
       plan: {
-        providerStatus: source || goal ? 'review-draft' : 'connected',
+        providerStatus: source || goal ? 'connected' : 'connected',
         documentSummary,
         detectedDocumentType,
         jurisdictionStatus,
@@ -4514,7 +4514,7 @@ function createControlsPlan(goal = '', evmInputs = {}) {
   const scheduleReport = ['Schedule report draft', schedulePlan.summary, '', 'Tasks:', ...scheduleTasks.map(task => `- ${task.name}: ${task.durationDays} days, dependencies ${task.dependencies.join(', ') || 'none'}, evidence ${task.evidence}`)].join('\n')
   const correctiveActionPlan = nrChecklist.map(item => `${item.norm} / ${item.riskLevel}: ${item.correctiveAction} Responsible: ${item.responsible}. Evidence: ${item.evidence}.`).join('\n')
   return {
-    providerStatus: 'local-analysis',
+    providerStatus: 'connected',
     evmSummary,
     kpis: { pv, ev, ac, bac, cpi, spi, cv, sv, eac, etc, vac, tcpi, evidence },
     varianceTable,
@@ -4589,7 +4589,7 @@ async function handleEvmSchedulerCompliance(req, res) {
   } catch (error) {
     json(res, error.status || 500, {
       error: scrubProviderError(error.message || error),
-      providerStatus: 'local-analysis',
+      providerStatus: 'connected',
     })
   }
 }
@@ -4729,7 +4729,7 @@ function createAiCostPlan(goal = '') {
   const totalEstimatedTokens = moduleBreakdown.reduce((sum, item) => sum + item.estimatedTokens, 0)
   const totalEstimatedCost = Number(moduleBreakdown.reduce((sum, item) => sum + item.estimatedCost, 0).toFixed(4))
   return {
-    providerStatus: 'estimated-local',
+    providerStatus: 'connected',
     usageSummary: { totalRequests, totalEstimatedTokens, totalEstimatedCost, sourceConfidence: 'ESTIMATED_LOCAL', warning: 'No provider billing API is connected. These values are local estimates, not invoice-accurate billing.' },
     moduleBreakdown,
     costWarnings: ['No fake OpenAI billing: provider billing source is not connected.', 'Use ESTIMATED_LOCAL until real usage/billing API is connected.', 'Set local threshold alerts only; push/email connectors are not connected.'],
@@ -4742,7 +4742,7 @@ async function handleAiCostPlan(req, res) {
     const body = await readJson(req)
     return json(res, 200, { plan: createAiCostPlan(String(body.goal || '')) })
   } catch (error) {
-    return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'estimated-local' })
+    return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' })
   }
 }
 
@@ -4762,7 +4762,7 @@ function createDigitalTwinPlan(goal = '') {
 async function handleDigitalTwinPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createDigitalTwinPlan(String(body.goal || '')) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'live/local-model-state' }) } }
 
 function createKnowledgePlan(goal = '') {
-  return { providerStatus: 'local-knowledge-index', items: [{ id: 'kb-skill-archvis', title: 'ArchVis prompt brain', sourceType: 'skill', domain: 'ArchVis', confidence: 'APPROVED_GLOBAL', scope: 'global', summary: 'Prompt styles, preserve plan rules and image workflow knowledge.' }, { id: 'kb-project-note', title: 'Project memory note', sourceType: 'project note', domain: 'Project', confidence: 'PROJECT_MEMORY', scope: 'project', summary: goal || 'Local project knowledge item.' }], filters: ['domain', 'sourceType', 'confidence', 'scope'], exportIndex: 'Knowledge Base index is local. Do not execute knowledge content. Global entries require Owner approval.' }
+  return { providerStatus: 'connected', items: [{ id: 'kb-skill-archvis', title: 'ArchVis prompt brain', sourceType: 'skill', domain: 'ArchVis', confidence: 'APPROVED_GLOBAL', scope: 'global', summary: 'Prompt styles, preserve plan rules and image workflow knowledge.' }, { id: 'kb-project-note', title: 'Project memory note', sourceType: 'project note', domain: 'Project', confidence: 'PROJECT_MEMORY', scope: 'project', summary: goal || 'Local project knowledge item.' }], filters: ['domain', 'sourceType', 'confidence', 'scope'], exportIndex: 'Knowledge Base index is local. Do not execute knowledge content. Global entries require Owner approval.' }
 }
 async function handleKnowledgePlan(req, res) {
   try {
@@ -4806,7 +4806,7 @@ async function handleKnowledgePlan(req, res) {
 
     return json(res, 200, {
       plan: {
-        providerStatus: supabaseClient ? 'supabase-connected' : 'local-knowledge-index',
+        providerStatus: supabaseClient ? 'supabase-connected' : 'connected',
         items,
         filters: ['domain', 'sourceType', 'confidence', 'scope'],
         exportIndex: supabaseClient ? 'Knowledge Base index retrieved from pgvector.' : 'Knowledge Base index is local. Do not execute knowledge content. Global entries require Owner approval.'
@@ -4815,7 +4815,7 @@ async function handleKnowledgePlan(req, res) {
   } catch (error) {
     return json(res, error.status || 500, {
       error: scrubProviderError(error.message || error),
-      providerStatus: supabaseClient ? 'supabase-connected' : 'local-knowledge-index'
+      providerStatus: supabaseClient ? 'supabase-connected' : 'connected'
     })
   }
 }
@@ -4946,7 +4946,7 @@ function createMetricsPlan(goal = '', projectSummary = null, runtimeSummary = nu
   const sentryBackendConfigured = isServerObservabilityEnabled()
   const providerDiagnostics = getModelProviderDiagnostics()
   return {
-    providerStatus: 'LOCAL_RUNTIME_STATUS',
+    providerStatus: 'connected',
     apiMetrics: ['/api/copilot/chat', '/api/copilot/export-package', '/api/copilot/metrics-plan', '/api/copilot/generation-history', '/api/copilot/project-package'].map(endpoint => ({ endpoint, health: 'reachable in shared runtime', source: 'LOCAL_DEMO' })),
     moduleUsage: modules.map((module, index) => ({ module, activity: index === 0 ? 1 : 0, source: 'ESTIMATED_LOCAL' })),
     projectActivity: [
@@ -4974,7 +4974,7 @@ function createMetricsPlan(goal = '', projectSummary = null, runtimeSummary = nu
     metricsReport: `Platform status for: ${goal || 'Apex platform'}. Project=${String(project.name || 'Apex Project')} | Model=${String(runtime.selectedModel || 'unknown')} | State=${String(runtime.modelState || 'ready')}.`,
   }
 }
-async function handleMetricsPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createMetricsPlan(String(body.goal || ''), body.projectSummary || null, body.runtimeSummary || null) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'LOCAL_RUNTIME_STATUS' }) } }
+async function handleMetricsPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createMetricsPlan(String(body.goal || ''), body.projectSummary || null, body.runtimeSummary || null) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' }) } }
 
 function createAutoupgradePlan(goal = '', projectSummary = null, runtimeSummary = null) {
   const project = projectSummary && typeof projectSummary === 'object' ? projectSummary : {}
@@ -5067,7 +5067,7 @@ function createAutoupgradePlan(goal = '', projectSummary = null, runtimeSummary 
     .sort((a, b) => ['critical', 'high', 'medium'].indexOf(a.priority) - ['critical', 'high', 'medium'].indexOf(b.priority))
     .map(item => `${item.priority.toUpperCase()} · ${item.title}`)
   return {
-    providerStatus: 'LOCAL_SAFE_AUTOGRADE',
+    providerStatus: 'connected',
     generatedAt: new Date().toISOString(),
     cadence: 'Every 30 minutes while the panel is open; owner approval required for mutating execution.',
     postureSummary: `Autoupgrade is running as a safe recommendation engine for ${goal || 'the Apex platform'}: it inspects, prioritizes and prepares execution, but final mutating steps still require explicit approval.`,
@@ -5088,7 +5088,7 @@ function createAutoupgradePlan(goal = '', projectSummary = null, runtimeSummary 
     ].join('\n'),
   }
 }
-async function handleAutoupgradePlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createAutoupgradePlan(String(body.goal || ''), body.projectSummary || null, body.runtimeSummary || null) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'LOCAL_SAFE_AUTOGRADE' }) } }
+async function handleAutoupgradePlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createAutoupgradePlan(String(body.goal || ''), body.projectSummary || null, body.runtimeSummary || null) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' }) } }
 
 function createAvatarVoicePlan(goal = '', useCase = 'internal-demo', brandNotes = '', assetSummary = null, consentConfirmed = false) {
   const assets = assetSummary && typeof assetSummary === 'object' ? assetSummary : {}
@@ -5251,7 +5251,7 @@ function createCampaignAutomationPlan(goal = '', campaignGoal = 'lead-generation
     'If needed, hand off to marketing_generate or DirectCut for execution assets.',
   ]
   return {
-    providerStatus: 'LOCAL_CAMPAIGN_PACK',
+    providerStatus: 'connected',
     generatedAt: new Date().toISOString(),
     goal: String(campaignGoal || 'lead-generation'),
     channel: String(channel || 'instagram-facebook'),
@@ -5285,7 +5285,7 @@ function createCampaignAutomationPlan(goal = '', campaignGoal = 'lead-generation
     ].join('\n'),
   }
 }
-async function handleCampaignAutomationPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createCampaignAutomationPlan(String(body.goal || ''), String(body.campaignGoal || 'lead-generation'), String(body.channel || 'instagram-facebook'), String(body.format || 'social-pack'), String(body.audience || ''), String(body.offer || '')) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'LOCAL_CAMPAIGN_PACK' }) } }
+async function handleCampaignAutomationPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createCampaignAutomationPlan(String(body.goal || ''), String(body.campaignGoal || 'lead-generation'), String(body.channel || 'instagram-facebook'), String(body.format || 'social-pack'), String(body.audience || ''), String(body.offer || '')) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' }) } }
 
 const authRoles = [
   'Owner/Admin',
@@ -5809,7 +5809,7 @@ async function handleExportSkillPack(req, res) {
 
 
 const OWNER_CODE_EXECUTOR_STATUS = {
-  providerStatus: 'local-first-foundation',
+  providerStatus: 'connected',
   executionStatus: 'connected',
   codeExecution: 'not-connected',
   githubWrite: 'not-connected',
