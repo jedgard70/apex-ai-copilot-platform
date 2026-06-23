@@ -1598,6 +1598,9 @@ async function executeLiveAgentToolCall(toolCall) {
         currency: 'BRL',
         plan: args.plan || 'unique',
       })
+      const { findOrCreateClient, updateClientAfterOrder } = await import('./server/service/client.mjs')
+      const client = findOrCreateClient({ email: order.clientEmail, name: order.clientName })
+      if (client) updateClientAfterOrder(order.clientEmail, order)
       // Generate Stripe checkout link
       let paymentLink = ''
       try {
@@ -6447,6 +6450,14 @@ const server = http.createServer(async (req, res) => {
     }
     const invoice = createInvoice(body)
     return chatJson(res, 200, { ok: true, invoice })
+  }
+
+  if (req.url === '/api/service/client' && req.method === 'POST') {
+    const { findOrCreateClient, listClients, getClient } = await import('./server/service/client.mjs')
+    const body = await readJson(req)
+    if (body.action === 'list') return chatJson(res, 200, { ok: true, clients: listClients() })
+    const client = findOrCreateClient(body)
+    return chatJson(res, 200, { ok: true, client })
   }
 
   if (req.url?.startsWith('/api/service/order/') && req.method === 'GET') {
