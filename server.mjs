@@ -1358,6 +1358,34 @@ function buildWorkspaceContextSummary(workspaceContext) {
   return lines.join('\n')
 }
 
+function buildProviderStatusContext() {
+  const keys = [
+    'OPENAI_API_KEY',
+    'OPENAI_API_KEYROUTER',
+    'GEMINI_API_KEY',
+    'ANTHROPIC_API_KEY',
+    'FAL_KEY',
+    'ELEVENLABS_API_KEY',
+    'TAVILY_API_KEY',
+    'AI_GATEWAY_API_KEY',
+    'OPENCODE_GO_API_KEY',
+    'AUTHKEY_AUTHKEY',
+    'STRIPE_SECRET_KEY',
+    'CRON_SECRET',
+    'APS_CLIENT_ID',
+    'APS_CLIENT_SECRET',
+    'REVIT_MCP_URL',
+    'REVIT_MCP_TOKEN',
+    'LOCAL_WORKER_TOKEN',
+    'VITE_FIREBASE_API_KEY',
+    'VITE_SUPABASE_URL',
+    'VITE_SUPABASE_ANON_KEY',
+    'SUPABASE_SERVICE_ROLE_KEY',
+    'SUPABASE_ACCESS_TOKEN',
+  ]
+  return keys.map(k => `  ${k}=${process.env[k] ? 'configured' : 'NOT CONFIGURED'}`).join('\n')
+}
+
 function vercelObservabilityStatus() {
   if (process.env.VERCEL || process.env.VERCEL_ENV) {
     return `Vercel runtime detected (${process.env.VERCEL_ENV || 'runtime'}). Logs/Analytics can be viewed in the Vercel project.`
@@ -1914,6 +1942,10 @@ async function handleChat(req, res) {
       '',
       'Relevant local skill knowledge:',
       buildLocalSkillContext(userText, file),
+      '',
+      'IMPORTANT: The provider status below is the ACTUAL current configuration. Do NOT rely on your training data about what keys might be missing. Use the list below as the single source of truth.',
+      'Current provider status (env snapshot):',
+      buildProviderStatusContext(),
       ...(workspaceSummary
         ? [
             '',
