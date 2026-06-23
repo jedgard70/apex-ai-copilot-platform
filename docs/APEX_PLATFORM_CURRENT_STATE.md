@@ -1,7 +1,7 @@
 # APEX Platform — Unified Current State
 
 Checkpoint: CP-LIVE-FINAL — 34 capabilities documented
-Last update: 2026-06-22
+Last update: 2026-06-23
 
 ## Canonical rule
 
@@ -14,7 +14,9 @@ The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.m
 - Tests: **GREEN** (84/84 passed)
 - Local app: **GREEN** (`server.mjs` + Electron `.exe`)
 - Production: **GREEN** (`www.apexglobalai.com` Vercel main branch)
-- AI providers: **GREEN** (OpenAI → Gemini → Anthropic → fal.ai configured in Vercel)
+- AI providers: **GREEN** (OpenRouter → Gemini → OpenAI → Anthropic → FAL → ElevenLabs → OpenCode Go, todos via seletor de modelos)
+- Gemini Interactions SDK: **GREEN** (`@google/genai` v2.9.0 integrado)
+- Env vars protection: **GREEN** (regra absoluta no AGENTS.md, .env.local e server.mjs)
 - Deploy hygiene: **GREEN** — CI workflow now validates builds/tests before deployment
 
 ## Complete module map (34 capabilities — ALL DONE)
@@ -56,18 +58,34 @@ The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.m
 | Vercel preview | `apex-ai-copilot-platform.vercel.app` | ✅ Live |
 | GitHub | `jedgard70/apex-ai-copilot-platform` | ✅ main branch |
 
-## ENV sync — Local ↔ Vercel (auditado 2026-06-21)
+## 🚨 REGRA ABSOLUTA — Proteção de Environment Variables
 
-**Status: SINCRONIZADO** — 16 chaves críticas confirmadas em ambos os ambientes.
+Nenhum agente, assistente, skill, ferramenta ou processo automatizado pode
+alterar, modificar, remover ou sobrescrever variáveis no `.env.local` ou
+nas Environment Variables do Vercel sem autorização EXPLÍCITA e VERBAL
+do Owner (jedgard70@gmail.com / Dr. Edgard).
+
+Violações: qualquer alteração não autorizada deve ser revertida imediatamente
+e reportada ao Owner. Esta regra está documentada em:
+- `AGENTS.md` (regra absoluta)
+- `.env.local` (cabeçalho de proteção)
+- `server.mjs` (cabeçalho de proteção no topo)
+
+## ENV sync — Local ↔ Vercel (auditado 2026-06-23)
+
+**Status: SINCRONIZADO** — 18 chaves críticas confirmadas em ambos os ambientes + 5 novos provedores.
 
 ### ✅ Chaves confirmadas em LOCAL + VERCEL production
 | Chave | Serviço |
 | --- | --- |
 | `OPENAI_API_KEY` | OpenAI GPT |
-| `ANTHROPIC_API_KEY` | Claude |
-| `GEMINI_API_KEY` | Google Gemini |
-| `FAL_KEY` | fal.ai (ArchVis image) |
+| `OPENAI_API_KEYROUTER` | OpenRouter (modelos diversos) |
+| `ANTHROPIC_API_KEY` | Claude / Anthropic |
+| `GEMINI_API_KEY` | Google Gemini + Gemini Interactions |
+| `FAL_KEY` | FAL.ai (Kling, Sora, Veo, FLUX, +50 modelos) |
 | `ELEVENLABS_API_KEY` | ElevenLabs TTS / Avatar |
+| `OPENCODE_GO_API_KEY` | OpenCode Go (código premium) |
+| `AI_GATEWAY_API_KEY` | AI Gateway (imagem/vídeo) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase backend |
 | `SUPABASE_PROJECT_REF` | Supabase project |
 | `VITE_SUPABASE_URL` | Supabase client |
@@ -80,20 +98,51 @@ The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.m
 | `VERCEL_PROJECT_ID` | Vercel project |
 | `VERCEL_TEAM_ID` | Vercel team |
 
-### ✅ Chaves apenas locais (próximo ciclo — Phase 4)
-| Chave | Motivo | Prioridade |
-| --- | --- | --- |
-| `APS_CLIENT_ID` + `APS_CLIENT_SECRET` | Autodesk APS em produção | Alta |
-| `CRON_SECRET` | Segurança do cron endpoint | Alta |
-| `VITE_FIREBASE_*` (7 chaves) | PWA push + Firebase auth | Média |
-| `AUTHKEY_*` | WhatsApp/SMS notifications | Média |
-| `OPENAI_API_BASE` | AI Gateway routing | Baixa |
-| `LOCAL_WORKER_*`, `REVIT_MCP_*` | Apenas local — não vai para Vercel | N/A |
+### ✅ Chaves apenas locais
+| Chave | Motivo |
+| --- | --- |
+| `APS_CLIENT_ID` + `APS_CLIENT_SECRET` | Autodesk APS |
+| `CRON_SECRET` | Segurança do cron endpoint |
+| `VITE_FIREBASE_*` (7 chaves) | Firebase Auth/PWA |
+| `AUTHKEY_*` | WhatsApp/SMS/OTP |
+| `LOCAL_WORKER_*` | Worker de código local |
+| `REVIT_MCP_*` | Conexão Revit local |
 
 ---
 
-*Last updated: 2026-06-22*
-*Status: ALL 25 MODULES DONE — Phase 4 DONE — Phase 5 RDO PDF DONE — ENV SYNC AUDITADO — Deploy LIVE on apexglobalai.com*
+## Correções recentes (2026-06-23)
+
+| Correção | Arquivos | Descrição |
+| --- | --- | --- |
+| Safe mode resolvido | `src/main.tsx`, `server.mjs` | Default alterado para OpenRouter + fallback automático entre providers |
+| Gemini Interactions SDK | `server/providers/gemini-interactions.mjs` | SDK `@google/genai` v2.9.0 integrado com `client.interactions.create()` |
+| FAL image/video gen | `server.mjs` | Suporte FAL para geração de imagem no servidor local |
+| Rotas /api/fal/* | `server.mjs` | Models, webhook-status e webhook adicionados no servidor local |
+| DirectCut video player | `src/components/DirectCutPanel.tsx` | Canvas agora mostra `<video>` player, sync e async funcionando |
+| ArchVisPanel erros | `src/components/ArchVisPanel.tsx` | Tratamento de erro + exibição de mensagens na tela |
+| Tailwind v4 tokens | `src/design-tokens.css` | Spacing, cores e tipografia adicionados ao tema |
+| Local worker | `local-worker/server.mjs` | Auto-discovery de node/npm/git, script `dev:full` |
+| Seletor de modelos | `src/main.tsx`, `api/copilot/chat.mjs` | Todos provedores no catálogo + fallback estático |
+| Proteção env vars | `AGENTS.md`, `.env.local`, `server.mjs` | Regra absoluta contra alteração não autorizada |
+| Modelos sem visão | `server.mjs`, `api/copilot/chat.mjs` | Imagem não enviada para modelos `free`/`schnell`/`gemma` |
+
+## Provedores disponíveis no seletor
+
+| Provedor | Tipo | Modelos |
+| --- | --- | --- |
+| OpenRouter | Chat (default) | 340+ modelos (GPT, Claude, Gemini via router) |
+| Gemini | Chat/Vision | 1.5 Flash/Pro, 2.0 Flash/Pro, 2.5 Flash |
+| Gemini Interactions | Chat/Agent | 3.5 Flash, 3.1 Flash Image, 3.5 Flash TTS |
+| Gateway | Chat/Image | GPT-4o, GPT-5, DALL-E via AI Gateway |
+| OpenAI | Chat | GPT-4o, GPT-4o Mini (direto) |
+| Anthropic | Chat | Claude Sonnet 4.6, Claude 3.5 Haiku |
+| FAL.ai | Chat/Image/Video | LLaMA, FLUX, Kling, Sora, Veo +50 modelos |
+| OpenCode Go | Code | Go Code, Go Reasoning |
+| ElevenLabs | TTS/Voice | Multilingual v2, Turbo v2.5 |
+| Firebase | Backend | Auth, Firestore, Cloud Messaging |
+
+*Last updated: 2026-06-23*
+*Status: ALL 25+ MODULES DONE — 10 PROVEDORES ATIVOS — ENV SYNC AUDITADO — Deploy LIVE*
 
 - Active pending work moved to `CHECKPOINT_TRACKER.md`.
 
