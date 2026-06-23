@@ -2086,37 +2086,6 @@ async function handleChat(req, res) {
     const data = await response.json().catch(() => ({}))
     if (!response.ok) {
       console.error('[AI Provider Error response]:', response.status, data)
-
-      if (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_KEYROUTER && requestProvider !== 'openrouter') {
-        const fallbackApiBase = process.env.OPENAI_API_BASEROUTER
-        const fallbackApiKey = process.env.OPENAI_API_KEYROUTER
-        const fallbackModel = model.includes('/') ? model : `openrouter/${model}`
-        const fallbackHeaders = {
-          Authorization: 'Bearer ' + fallbackApiKey,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://apex-ai-copilot-platform.vercel.app',
-          'X-Title': 'Apex AI Copilot (fallback)',
-        }
-        const fallbackPayload = { ...requestPayload, model: fallbackModel }
-        console.error(`[AI Fallback] Trying OpenRouter with model ${fallbackModel}`)
-        const fallbackResponse = await fetch(`${fallbackApiBase}/chat/completions`, {
-          method: 'POST',
-          headers: fallbackHeaders,
-          body: JSON.stringify(fallbackPayload),
-        }).catch(() => null)
-        if (fallbackResponse?.ok) {
-          const fallbackData = await fallbackResponse.json().catch(() => ({}))
-          const fallbackMessage = fallbackData?.choices?.[0]?.message || {}
-          const fallbackReply = sanitizeAssistantReply(fallbackMessage.content) || buildChatFallbackReply(userText, identityContext)
-          return chatJson(res, 200, {
-            finalReply: fallbackReply,
-            model: fallbackModel,
-            mode: 'live-agent-chat-fallback',
-          })
-        }
-        console.error('[AI Fallback] OpenRouter fallback also failed')
-      }
-
       const result = await runApexOperatorProductionSafe({
         userMessage: userText,
         identityContext,
