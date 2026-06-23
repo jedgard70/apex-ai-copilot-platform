@@ -45,7 +45,7 @@ export default async function handler(req, res) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object
-        const { tenantId, userId, plan } = session.metadata || {}
+        const { tenantId, userId, plan, order_id } = session.metadata || {}
 
         if (tenantId && userId) {
           // 1. First record customer mapping
@@ -71,6 +71,12 @@ export default async function handler(req, res) {
           }, {
             onConflict: 'stripe_subscription_id'
           })
+        }
+
+        // Mark service order as paid if order_id was passed in metadata
+        if (order_id) {
+          const { updateServiceOrderStatus } = await import('../../server/service/serviceOrder.mjs')
+          updateServiceOrderStatus(order_id, 'paid', { paymentId: session.id })
         }
         break
       }
