@@ -10,7 +10,6 @@ import { classifyToolExecutionRequest, routeToolExecution, routeH6ActionRequest 
 import { isConfirmationSignal, isCancelSignal, hasPendingAction } from '../../server/agent/confirmationStateMachine.mjs'
 import {
   generateWithInteractions,
-  streamWithInteractions,
   INTERACTION_MODELS,
   isInteractionModel,
 } from '../../server/providers/gemini-interactions.mjs'
@@ -2101,31 +2100,6 @@ export default async function handler(req, res) {
     const data = chatResult.data
 
     if (!response.ok) {
-      if (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_KEYROUTER && provider !== 'openrouter') {
-        const fallbackApiBase = process.env.OPENAI_API_BASEROUTER
-        const fallbackApiKey = process.env.OPENAI_API_KEYROUTER
-        const fallbackModel = model.includes('/') ? model : `openrouter/${model}`
-        const fallbackHeaders = {
-          Authorization: 'Bearer ' + fallbackApiKey,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://apexglobalai.com',
-          'X-OpenRouter-Title': 'Apex AI Copilot (fallback)',
-        }
-        console.error(`[AI Fallback] Trying OpenRouter with model ${fallbackModel}`)
-        const fallbackResponse = await fetch(`${fallbackApiBase}/chat/completions`, {
-          method: 'POST',
-          headers: fallbackHeaders,
-          body: JSON.stringify({ ...requestPayload, model: fallbackModel }),
-        }).catch(() => null)
-        if (fallbackResponse?.ok) {
-          const fallbackData = await fallbackResponse.json().catch(() => ({}))
-          const fbMessage = fallbackData?.choices?.[0]?.message || {}
-          const fbReply = fbMessage.content || (chatSource === 'anthropic' ? extractAnthropicText(fallbackData) : '') || buildChatFallbackReply(userMessage, identityContext, file)
-          return sendJson(res, 200, { finalReply: fbReply, reply: fbReply, mode: 'live-agent-chat-fallback', model: fallbackModel, productionStatus })
-        }
-        console.error('[AI Fallback] OpenRouter fallback also failed')
-      }
-
       const result = await runApexOperatorProductionSafe({
         userMessage,
         identityContext: normalizeIdentityContext(body.identityContext || {}),
