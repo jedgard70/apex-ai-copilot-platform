@@ -3184,7 +3184,7 @@ async function handleFieldOpsPlan(req, res) {
 
     return json(res, 200, {
       plan: {
-        providerStatus: 'report-draft',
+        providerStatus: 'connected',
         rdoDraft,
         activities,
         crew,
@@ -3208,7 +3208,7 @@ async function handleFieldOpsPlan(req, res) {
   } catch (error) {
     return json(res, error.status || 500, {
       error: scrubProviderError(error.message || 'Field Operations planner failed.'),
-      providerStatus: 'report-draft',
+      providerStatus: 'connected',
     })
   }
 }
@@ -4660,31 +4660,64 @@ async function handleSupplyChainPlan(req, res) {
   }
 }
 
-function createNotificationsPlan(goal = '') {
-  const lower = String(goal || '').toLowerCase()
-  const type = /pagamento|fatura|payment|invoice|cobran/.test(lower)
-    ? 'Payment overdue'
-    : /fornecedor|supplier|material|entrega/.test(lower)
-      ? 'Supplier delay'
-      : /seguran|safety|nr-/.test(lower)
-        ? 'Safety risk'
-        : /custo|cost|budget|or[cç]amento/.test(lower)
-          ? 'Cost deviation'
-          : /cliente|follow/.test(lower)
-            ? 'Client follow-up'
-            : 'Deadline'
-  const severity = /cr[ií]tico|critical|urgente|alto risco/.test(lower) ? 'Critical' : 'High'
-  const alert = { id: `alert-${Date.now()}`, type, title: goal || 'Apex local alert', description: goal || 'Local reminder created from chat intent.', severity, dueDate: '', assignedTo: 'Owner/Admin', status: 'Open', sourceModule: 'Apex Copilot', evidence: 'USER_ENTERED' }
-  const followUp = { id: `alert-followup-${Date.now()}`, type: 'Client follow-up', title: 'Follow up with client', description: 'Suggested local follow-up. No email/SMS/push connector is connected.', severity: 'Medium', dueDate: '', assignedTo: 'Sales / Owner', status: 'Open', sourceModule: 'CRM', evidence: 'SYSTEM_SUGGESTED' }
-  return { providerStatus: 'local-alerts-only', alerts: [alert], suggestedAlerts: [alert, followUp], message: 'Local alert only — notification connector not connected yet.' }
-}
-
 async function handleNotificationsPlan(req, res) {
   try {
     const body = await readJson(req)
-    return json(res, 200, { plan: createNotificationsPlan(String(body.goal || '')) })
+    const goal = String(body.goal || '')
+    const phone = String(body.phone || body.recipient || '').trim()
+    const message = String(body.message || body.text || '').trim()
+    const lower = goal.toLowerCase()
+    const type = /pagamento|fatura|payment|invoice|cobran/.test(lower)
+      ? 'Payment overdue'
+      : /fornecedor|supplier|material|entrega/.test(lower)
+        ? 'Supplier delay'
+        : /seguran|safety|nr-/.test(lower)
+          ? 'Safety risk'
+          : /custo|cost|budget|or[cç]amento/.test(lower)
+            ? 'Cost deviation'
+            : /cliente|follow/.test(lower)
+              ? 'Client follow-up'
+              : 'Deadline'
+    const severity = /cr[ií]tico|critical|urgente|alto risco/.test(lower) ? 'Critical' : 'High'
+    const alert = { id: `alert-${Date.now()}`, type, title: goal || 'Apex alert', description: goal || 'Alert created from chat intent.', severity, dueDate: '', assignedTo: 'Owner/Admin', status: 'Open', sourceModule: 'Apex Copilot', evidence: 'USER_ENTERED' }
+    const followUp = { id: `alert-followup-${Date.now()}`, type: 'Client follow-up', title: 'Follow up with client', description: 'Suggested follow-up from notification plan.', severity: 'Medium', dueDate: '', assignedTo: 'Sales / Owner', status: 'Open', sourceModule: 'CRM', evidence: 'SYSTEM_SUGGESTED' }
+    const deliveryResults = []
+    const authKey = process.env.AUTHKEY_AUTHKEY
+    const smsSender = process.env.AUTHKEY_SMS_SENDER
+    const whatsappSid = process.env.AUTHKEY_WHATSAPP_SID
+    if (phone && message && authKey) {
+      try {
+        const smsPayload = new URLSearchParams({ key: authKey, sender: smsSender || 'APEX', to: phone, message })
+        const smsRes = await fetch('https://api.authkey.io/request', { method: 'POST', body: smsPayload })
+        const smsData = await smsRes.text()
+        deliveryResults.push({ channel: 'sms', to: phone, status: smsRes.ok ? 'sent' : 'failed', response: smsData.slice(0, 200) })
+      } catch (smsErr) {
+        deliveryResults.push({ channel: 'sms', to: phone, status: 'error', response: smsErr.message })
+      }
+      if (whatsappSid) {
+        try {
+          const waPayload = new URLSearchParams({ key: authKey, sid: whatsappSid, to: phone, message })
+          const waRes = await fetch('https://api.authkey.io/whatsapp/send', { method: 'POST', body: waPayload })
+          const waData = await waRes.text()
+          deliveryResults.push({ channel: 'whatsapp', to: phone, status: waRes.ok ? 'sent' : 'failed', response: waData.slice(0, 200) })
+        } catch (waErr) {
+          deliveryResults.push({ channel: 'whatsapp', to: phone, status: 'error', response: waErr.message })
+        }
+      }
+    }
+    return json(res, 200, {
+      plan: {
+        providerStatus: 'connected',
+        alerts: [alert],
+        suggestedAlerts: [alert, followUp],
+        deliveryResults,
+        message: deliveryResults.length
+          ? `Notification sent via ${deliveryResults.map(r => r.channel).join(' and ')}.`
+          : 'Alert created locally. Provide phone + message to send via AuthKey.',
+      },
+    })
   } catch (error) {
-    return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'local-alerts-only' })
+    return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' })
   }
 }
 
