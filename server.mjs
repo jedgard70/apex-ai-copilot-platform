@@ -1560,6 +1560,22 @@ function buildLiveAgentToolDefinitions() {
         },
       },
     },
+    {
+      type: 'function',
+      function: {
+        name: 'approve_service_order',
+        description: 'Mark a service order as approved when the client says "aprovado", "gostei", "quero este", "pode entregar", "fechado", or confirms satisfaction with the result. This generates the final delivery and invoice.',
+        parameters: {
+          type: 'object',
+          properties: {
+            orderId: { type: 'string', description: 'Order ID to approve' },
+            clientEmail: { type: 'string', description: 'Client email for notification' },
+            deliveryUrl: { type: 'string', description: 'URL to the final delivered file (optional)' },
+          },
+          required: ['orderId', 'clientEmail'],
+        },
+      },
+    },
     ...buildCodeToolDefinitions(),
   ]
 }
@@ -1646,6 +1662,43 @@ async function executeLiveAgentToolCall(toolCall) {
       }
     } catch (err) {
       return { providerStatus: 'error', finalReply: 'Erro ao criar pedido: ' + err.message }
+    }
+  }
+
+  if (name === 'approve_service_order') {
+    try {
+      const args = JSON.parse(toolCall.function.arguments || '{}')
+      const { updateServiceOrderStatus, getServiceOrder, buildServiceOrderReply } = await import('./server/service/serviceOrder.mjs')
+      const { payInvoice } = await import('./server/service/invoice.mjs')
+      
+      const order = getServiceOrder(args.orderId)
+      if (!order) return { providerStatus: 'error', finalReply: 'Pedido não encontrado.' }
+      
+      updateServiceOrderStatus(args.orderId, 'approved', { 
+        deliveredAt: new Date().toISOString(),
+        deliveryUrl: args.deliveryUrl || '',
+      })
+      
+      if (order.invoiceId) payInvoice(order.invoiceId, 'manual-' + args.orderId)
+      
+      const updated = getServiceOrder(args.orderId)
+      const receipt = buildServiceOrderReply(updated)
+      
+      return {
+        providerStatus: 'connected',
+        finalReply: [
+          `✅ **Pedido ${updated.number} aprovado e finalizado!**`,
+          '',
+          receipt,
+          '',
+          args.deliveryUrl ? `🔗 **Arquivo final:** ${args.deliveryUrl}` : '',
+          '',
+          'Obrigado por contratar a Apex Global!',
+        ].filter(Boolean).join('\n'),
+        order: updated,
+      }
+    } catch (err) {
+      return { providerStatus: 'error', finalReply: 'Erro ao aprovar pedido: ' + err.message }
     }
   }
 
@@ -2121,6 +2174,12 @@ async function handleChat(req, res) {
       '  3. Call create_service_order to generate order + payment link',
       '  4. Send the payment link to the client',
       '  5. After payment, the service is automatically released',
+      '',
+      'APPROVAL FLOW: After the client reviews the result and says they want it:',
+      '  1. Ask for final confirmation: "Confirma que este resultado está aprovado?"',
+      '  2. If they confirm, call approve_service_order with the order ID',
+      '  3. Send the final delivery URL if available',
+      '  4. Thank the client and ask if they need anything else',
       '',
       intentInstruction,
     ].join('\n')
