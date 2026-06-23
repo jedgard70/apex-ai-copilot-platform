@@ -1686,25 +1686,31 @@ async function handleModelsList(req, res) {
       }
     }
 
-    if (process.env.FAL_KEY) {
+    const fetchModels = async (url, headers, provider, keyField = 'id', nameField = 'name', dataField = 'data') => {
       try {
-        const falRes = await fetch('https://fal.ai/api/models?limit=200', {
-          headers: { Authorization: `Key ${process.env.FAL_KEY}` },
-          signal: AbortSignal.timeout(5000),
-        })
-        if (falRes.ok) {
-          const falData = await falRes.json()
-          const falModels = falData?.models || falData?.data || []
-          for (const m of falModels) {
-            addModel({
-              id: composeModelValue('fal', m.id || m.name),
-              modelId: m.id || m.name,
-              provider: 'fal',
-              name: m.name || m.id || m.model,
-            })
-          }
+        const res = await fetch(url, { headers, signal: AbortSignal.timeout(5000) })
+        if (!res.ok) return
+        const json = await res.json()
+        const items = dataField ? json[dataField] || json.models || json.data || [] : json
+        for (const item of items) {
+          const id = item[keyField] || item.id || item.name
+          if (!id) continue
+          addModel({ id: composeModelValue(provider, id), modelId: id, provider, name: item[nameField] || item.name || id })
         }
-      } catch { /* FAL models fetch failed silently */ }
+      } catch { /* fetch ${provider} models failed */ }
+    }
+
+    if (process.env.GEMINI_API_KEY) {
+      await fetchModels(`https://generativelanguage.googleapis.com/v1/models?key=${process.env.GEMINI_API_KEY}`, {}, 'gemini', 'name', 'displayName', 'models')
+    }
+    if (process.env.ANTHROPIC_API_KEY) {
+      await fetchModels('https://api.anthropic.com/v1/models', { 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' }, 'anthropic')
+    }
+    if (process.env.ELEVENLABS_API_KEY) {
+      await fetchModels('https://api.elevenlabs.io/v1/models', { 'xi-api-key': process.env.ELEVENLABS_API_KEY }, 'elevenlabs', 'model_id', 'name', null)
+    }
+    if (process.env.FAL_KEY) {
+      await fetchModels('https://fal.ai/api/models?limit=200', { Authorization: `Key ${process.env.FAL_KEY}` }, 'fal', 'id', 'name', 'models')
     }
 
     for (const model of buildStaticModelCatalog()) {
