@@ -328,6 +328,9 @@ async function handleModelsList(res) {
     if (process.env.FAL_KEY) {
       await fetchModels('https://fal.ai/api/models?limit=200', { Authorization: `Key ${process.env.FAL_KEY}` }, 'fal', 'id', 'name', 'models')
     }
+    if (process.env.OPENCODE_GO_API_KEY) {
+      await fetchModels('https://opencode.ai/zen/go/v1/models', { Authorization: 'Bearer ' + process.env.OPENCODE_GO_API_KEY }, 'opencode')
+    }
 
     for (const model of buildStaticModelCatalog()) {
       addModel(model)
@@ -1879,6 +1882,9 @@ export default async function handler(req, res) {
     } else if (isElevenLabs && process.env.ELEVENLABS_API_KEY) {
       apiBase = 'https://api.elevenlabs.io/v1'
       resolvedOpenAIKey = process.env.ELEVENLABS_API_KEY
+    } else if (modelProvider === 'opencode' && process.env.OPENCODE_GO_API_KEY) {
+      apiBase = 'https://opencode.ai/zen/go/v1'
+      resolvedOpenAIKey = process.env.OPENCODE_GO_API_KEY
     } else if (isFirebase) {
       apiBase = 'https://firebasedynamiclinks.googleapis.com/v1'
       resolvedOpenAIKey = process.env.VITE_FIREBASE_API_KEY || ''
