@@ -81,6 +81,11 @@ export default async function handler(req, res) {
             const { payInvoice } = await import('../../server/service/invoice.mjs')
             payInvoice(order.invoiceId, session.id)
           }
+
+          // Subscription auto-approve: grant access immediately on payment
+          if (order && order.plan === 'subscription') {
+            updateServiceOrderStatus(order.id, 'approved', { deliveredAt: new Date().toISOString() })
+          }
         }
         break
       }
