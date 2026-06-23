@@ -6412,7 +6412,11 @@ const server = http.createServer(async (req, res) => {
     const body = await readJson(req)
     const { order_id, payment_id } = body
     if (order_id) {
-      updateServiceOrderStatus(order_id, 'paid', { paymentId: payment_id || 'manual' })
+      const order = updateServiceOrderStatus(order_id, 'paid', { paymentId: payment_id || 'manual' })
+      // Subscription auto-approve: grant access immediately on payment
+      if (order && order.plan === 'subscription') {
+        updateServiceOrderStatus(order.id, 'approved', { deliveredAt: new Date().toISOString() })
+      }
     }
     json(res, 200, { ok: true })
     return
