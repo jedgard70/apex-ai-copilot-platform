@@ -58,7 +58,7 @@ Cliente → Frontend (React) → API (server.mjs) → Stripe/Supabase → Painel
 | 1. Service Order | ✅ Feito | `494920a` | `server/service/serviceOrder.mjs` + rotas POST/GET |
 | 2. Chat → Serviço | ✅ Feito | `c6f23a5` | Tool `create_service_order` + Stripe checkout + system prompt |
 | 3. Pós-Pagamento | ✅ Feito | — | — |
-| 4. Invoice | ⏳ Pendente | — | — |
+| 4. Invoice | ✅ Feito | — | `server/service/invoice.mjs` + integração com service order + webhook + rota |
 | 5. CRM Automático | ⏳ Pendente | — | — |
 | 6. Dashboard Cliente | ⏳ Pendente | — | — |
 

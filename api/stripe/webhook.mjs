@@ -75,8 +75,12 @@ export default async function handler(req, res) {
 
         // Mark service order as paid if order_id was passed in metadata
         if (order_id) {
-          const { updateServiceOrderStatus } = await import('../../server/service/serviceOrder.mjs')
-          updateServiceOrderStatus(order_id, 'paid', { paymentId: session.id })
+          const { updateServiceOrderStatus, getServiceOrder } = await import('../../server/service/serviceOrder.mjs')
+          const order = updateServiceOrderStatus(order_id, 'paid', { paymentId: session.id })
+          if (order?.invoiceId) {
+            const { payInvoice } = await import('../../server/service/invoice.mjs')
+            payInvoice(order.invoiceId, session.id)
+          }
         }
         break
       }
