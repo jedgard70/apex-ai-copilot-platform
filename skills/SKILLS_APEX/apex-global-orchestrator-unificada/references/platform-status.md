@@ -48,7 +48,7 @@
 `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `TAVILY_API_KEY`, `GITHUB_TOKEN`,
 `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID`
 
-### ⚠️ Pendente para Vercel (Phase 4)
+### ✅ Vercel (Phase 4)
 - `APS_CLIENT_ID` + `APS_CLIENT_SECRET` — Autodesk em produção
 - `CRON_SECRET` — segurança cron endpoint
 - `VITE_FIREBASE_*` — PWA push (quando ativado)
