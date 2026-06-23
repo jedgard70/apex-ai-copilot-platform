@@ -1540,6 +1540,26 @@ function buildLiveAgentToolDefinitions() {
         },
       },
     },
+    {
+      type: 'function',
+      function: {
+        name: 'create_service_order',
+        description: 'Create a service order when a client decides to hire a service. Call this when the client says "quero", "contratar", "fechar", "comprar", "quanto custa", or accepts a proposal. Creates the order and returns the payment link.',
+        parameters: {
+          type: 'object',
+          properties: {
+            clientName: { type: 'string', description: 'Client name' },
+            clientEmail: { type: 'string', description: 'Client email' },
+            serviceType: { type: 'string', enum: ['render', 'video', 'budget', 'contract', 'bim', 'fieldops', 'consulting'], description: 'Type of service' },
+            serviceName: { type: 'string', description: 'Service name/title' },
+            description: { type: 'string', description: 'Service description/details' },
+            amount: { type: 'number', description: 'Price in BRL' },
+            plan: { type: 'string', enum: ['unique', 'subscription'], description: 'Unique service or monthly subscription' },
+          },
+          required: ['clientName', 'serviceType', 'serviceName', 'amount', 'plan'],
+        },
+      },
+    },
     ...buildCodeToolDefinitions(),
   ]
 }
@@ -1561,6 +1581,58 @@ async function executeLiveAgentToolCall(toolCall) {
 
   if (name === 'get_platform_status') {
     return await handleGetPlatformStatus()
+  }
+
+  if (name === 'create_service_order') {
+    try {
+      const args = JSON.parse(toolCall.function.arguments || '{}')
+      const { createServiceOrder, updateServiceOrderStatus, buildServiceOrderReply } = await import('./server/service/serviceOrder.mjs')
+      const order = createServiceOrder({
+        clientId: args.clientId || args.clientEmail || 'chat-client',
+        clientName: args.clientName || 'Cliente',
+        clientEmail: args.clientEmail || '',
+        serviceType: args.serviceType || 'consulting',
+        serviceName: args.serviceName || 'Servico Apex',
+        description: args.description || '',
+        amount: args.amount || 0,
+        currency: 'BRL',
+        plan: args.plan || 'unique',
+      })
+      // Generate Stripe checkout link
+      let paymentLink = ''
+      try {
+        const stripe = await import('stripe')
+        const stripeClient = stripe.default(process.env.STRIPE_SECRET_KEY)
+        const session = await stripeClient.checkout.sessions.create({
+          mode: order.plan === 'subscription' ? 'subscription' : 'payment',
+          payment_method_types: ['card'],
+          line_items: [{
+            price_data: {
+              currency: 'brl',
+              product_data: { name: order.serviceName, description: order.description },
+              unit_amount: Math.round(order.amount * 100),
+            },
+            quantity: 1,
+          }],
+          metadata: { order_id: order.id },
+          success_url: `${process.env.APEX_PRODUCTION_DOMAIN || 'http://localhost:4177'}/success?order=${order.id}`,
+          cancel_url: `${process.env.APEX_PRODUCTION_DOMAIN || 'http://localhost:4177'}/`,
+        })
+        paymentLink = session.url || ''
+        updateServiceOrderStatus(order.id, 'pending', { paymentId: session.id })
+      } catch (stripeError) {
+        console.error('[Stripe] Failed to create session:', stripeError.message)
+      }
+      const reply = buildServiceOrderReply(order)
+      return {
+        providerStatus: 'connected',
+        finalReply: reply + (paymentLink ? `\n\nLink para pagamento: ${paymentLink}` : '\n\n(Stripe nao configurado)'),
+        order,
+        paymentLink,
+      }
+    } catch (err) {
+      return { providerStatus: 'error', finalReply: 'Erro ao criar pedido: ' + err.message }
+    }
   }
 
   if (name !== 'run_safe_local_command') {
@@ -2028,6 +2100,13 @@ async function handleChat(req, res) {
       'If the current or recent conversation includes an uploaded file, treat follow-up questions such as "o que vc sabe fazer" as referring to that file and project context.',
       'When image content is supplied, mention 2 to 4 concrete visible project details before suggesting paths.',
       'Do not ask unnecessary next-step questions. Assume the most likely next step and proceed unless the task is genuinely blocked.',
+      '',
+      'COMMERCIAL FLOW: When the client asks about price, hiring, or wants to close a service:',
+      '  1. Confirm the service details with the client',
+      '  2. Ask if they want unique service or monthly subscription',
+      '  3. Call create_service_order to generate order + payment link',
+      '  4. Send the payment link to the client',
+      '  5. After payment, the service is automatically released',
       '',
       intentInstruction,
     ].join('\n')
