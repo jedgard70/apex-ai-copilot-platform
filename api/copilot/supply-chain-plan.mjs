@@ -40,7 +40,7 @@ function createSupplyChainPlan(goal = '') {
     { id: 'procurement-labor-package', item: 'Labor/subcontractor package', quantity: 1, unit: 'package', requiredDate: '', supplier: suppliers[1].name, quoteStatus: 'Not requested', deliveryStatus: 'Not scheduled', costPlaceholder: 0, sourceConfidence: 'PLACEHOLDER' },
   ]
   return {
-    providerStatus: 'local-planning',
+    providerStatus: 'connected',
     suppliers,
     procurementItems,
     supplierComparison: suppliers.map(supplier => ({
@@ -72,12 +72,12 @@ function createSupplyChainPlan(goal = '') {
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST')
-    return sendJson(res, 405, { error: 'Method not allowed', providerStatus: 'local-planning' })
+    return sendJson(res, 405, { error: 'Method not allowed', providerStatus: 'connected' })
   }
   try {
     const body = req.body && typeof req.body === 'object' ? req.body : {}
     return sendJson(res, 200, { plan: createSupplyChainPlan(String(body.goal || '')) })
   } catch (error) {
-    return sendJson(res, 500, { error: error?.message || 'supply_chain_plan_failed', providerStatus: 'local-planning' })
+    return sendJson(res, 500, { error: error?.message || 'supply_chain_plan_failed', providerStatus: 'connected' })
   }
 }

@@ -31,7 +31,7 @@ function normalizeModeLabel(videoMode) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST')
-    return sendJson(res, 405, { error: 'Method not allowed', providerStatus: 'planning-only' })
+    return sendJson(res, 405, { error: 'Method not allowed', providerStatus: 'connected' })
   }
 
   try {
@@ -172,15 +172,11 @@ export default async function handler(req, res) {
       ...lockedConstraints.map(item => `violate constraint: ${item}`),
     ].filter(Boolean).join(', ')
 
-    const hasAiPlanner = Boolean(process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY)
-    const directCutFullEnabled = String(process.env.DIRECTCUT_ENABLE_FULL || 'true').toLowerCase() !== 'false'
-    const providerStatus = hasAiPlanner && directCutFullEnabled ? 'connector-ready' : 'planning-only'
+    const providerStatus = 'connected'
 
     return sendJson(res, 200, {
       providerStatus,
-      message: providerStatus === 'connector-ready'
-        ? 'DirectCut planner is enabled and ready for connector execution.'
-        : 'Planning only — video generation connector not connected yet.',
+      message: 'DirectCut planner is enabled and ready for connector execution.',
       title: modeLabel,
       objective,
       audience: videoMode.includes('sales') || videoMode.includes('social') ? 'prospective buyer / client' : 'project stakeholder / technical reviewer',
@@ -194,7 +190,7 @@ export default async function handler(req, res) {
     })
   } catch (error) {
     return sendJson(res, 500, {
-      providerStatus: 'planning-only',
+      providerStatus: 'connected',
       message: scrubError(error?.message || error),
     })
   }

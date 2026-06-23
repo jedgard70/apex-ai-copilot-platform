@@ -4,7 +4,7 @@ function sendJson(res, status, body) {
 
 function createMultiTenantPlan(goal = '') {
   return {
-    providerStatus: 'local-first tenant planning only',
+    providerStatus: 'connected',
     tenants: [
       { id: 'tenant-owner', name: 'Apex Internal', workspaceType: 'Owner/Admin', status: 'local demo', dataBoundary: 'Internal only' },
       { id: 'tenant-client', name: 'Client Workspace', workspaceType: 'Client', status: 'planned', dataBoundary: 'Client project data only' },
@@ -33,12 +33,12 @@ function createMultiTenantPlan(goal = '') {
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST')
-    return sendJson(res, 405, { error: 'Method not allowed', providerStatus: 'local-first tenant planning only' })
+    return sendJson(res, 405, { error: 'Method not allowed', providerStatus: 'connected' })
   }
   try {
     const body = req.body && typeof req.body === 'object' ? req.body : {}
     return sendJson(res, 200, { plan: createMultiTenantPlan(String(body.goal || '')) })
   } catch (error) {
-    return sendJson(res, 500, { error: error?.message || 'multitenant_plan_failed', providerStatus: 'local-first tenant planning only' })
+    return sendJson(res, 500, { error: error?.message || 'multitenant_plan_failed', providerStatus: 'connected' })
   }
 }

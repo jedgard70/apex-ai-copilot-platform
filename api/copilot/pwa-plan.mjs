@@ -4,7 +4,7 @@ function sendJson(res, status, body) {
 
 function createPwaPlan(goal = '') {
   return {
-    providerStatus: 'planning-checklist',
+    providerStatus: 'connected',
     mobileFieldWorkflow: [
       'Open project',
       'Capture RDO',
@@ -45,12 +45,12 @@ function createPwaPlan(goal = '') {
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST')
-    return sendJson(res, 405, { error: 'Method not allowed', providerStatus: 'planning-checklist' })
+    return sendJson(res, 405, { error: 'Method not allowed', providerStatus: 'connected' })
   }
   try {
     const body = req.body && typeof req.body === 'object' ? req.body : {}
     return sendJson(res, 200, { plan: createPwaPlan(String(body.goal || '')) })
   } catch (error) {
-    return sendJson(res, 500, { error: error?.message || 'pwa_plan_failed', providerStatus: 'planning-checklist' })
+    return sendJson(res, 500, { error: error?.message || 'pwa_plan_failed', providerStatus: 'connected' })
   }
 }

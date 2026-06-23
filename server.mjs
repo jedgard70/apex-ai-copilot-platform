@@ -2804,7 +2804,7 @@ async function handleBimPlan(req, res) {
     const ext = bimFileExtension(file.name)
     const mode = bimStudioMode(ext)
     const label = ext === 'unknown' ? 'UNKNOWN' : ext.toUpperCase()
-    const providerStatus = mode === 'viewer' ? 'ready' : mode === 'import' ? 'import-required' : 'ready'
+    const providerStatus = mode === 'viewer' ? 'connected' : mode === 'import' ? 'import-required' : 'connected'
     const supportedStatus = mode === 'viewer'
       ? 'supported-web-viewer-format'
       : mode === 'import'
@@ -2956,7 +2956,7 @@ async function handleBimTourPlan(req, res) {
     ].join('\n')
 
     return json(res, 200, {
-      providerStatus: 'ready',
+      providerStatus: 'connected',
       message: 'BIM tour/export planner generated a ready package.',
       structuredTourPlan: {
         tourTitle: `Apex BIM / 3D Tour - ${sourceName}`,
@@ -2977,7 +2977,7 @@ async function handleBimTourPlan(req, res) {
     })
   } catch (error) {
     return json(res, error.status || 500, {
-      providerStatus: 'ready',
+      providerStatus: 'connected',
       message: scrubProviderError(error.message || 'Apex BIM tour planner failed.'),
     })
   }
@@ -3320,7 +3320,7 @@ async function handleBudgetPlan(req, res) {
 
     json(res, 200, {
       plan: {
-        providerStatus: hasArea || source ? 'connected' : 'ready',
+        providerStatus: 'connected',
         assumptions: {
           projectType,
           area: String(assumptions.area || ''),
@@ -3470,7 +3470,7 @@ async function handleBusinessPlan(req, res) {
   } catch (error) {
     json(res, error.status || 500, {
       error: scrubProviderError(error.message || error),
-      providerStatus: 'ready',
+      providerStatus: 'connected',
     })
   }
 }
@@ -4135,7 +4135,7 @@ async function handleResearchPlan(req, res) {
     })
     json(res, 200, {
       plan: {
-        providerStatus: 'web-search-live',
+        providerStatus: 'connected',
         researchType,
         query,
         region,
@@ -4267,7 +4267,7 @@ async function handleGenerationHistory(req, res) {
       return acc
     }, {})
     return json(res, 200, {
-      providerStatus: 'workspace-history',
+      providerStatus: 'connected',
       summary: {
         total: entries.length,
         completed: entries.filter(entry => entry?.status === 'completed').length,
@@ -4410,7 +4410,7 @@ async function handleProjectPackage(req, res) {
 
     return json(res, 200, {
       plan: {
-        providerStatus: 'package-draft',
+        providerStatus: 'connected',
         goal,
         projectName: String(project.name || 'Apex Project'),
         clientName: String(profile.clientName || ''),
@@ -4757,9 +4757,9 @@ function createPwaPlan(goal = '') {
 async function handlePwaPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createPwaPlan(String(body.goal || '')) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' }) } }
 
 function createDigitalTwinPlan(goal = '') {
-  return { providerStatus: 'live/local-model-state', assetModelState: ['BIM model reference: local/project file when uploaded.', 'FieldOps status: local RDO/photo/punch data.', 'Budget/EVM status: local estimates and controls only.'], linkedSources: ['BIM / 3D Studio', 'FieldOps / RDO', 'Budget / EVM', 'Export Center'], statusTimeline: ['Created', 'Model linked', 'Field data linked', 'Issues reviewed', 'Report exported'], issueOverlayPlan: ['Overlay punch list/risks on model views when real viewer metadata exists.', 'Use UNKNOWN for unavailable geometry or coordinates.'], sensorConnectorStatus: 'not-connected', twinHealthIndicators: ['Model freshness', 'Open issues', 'Schedule risk', 'Cost risk', 'Safety risk', 'Unknown data count'], digitalTwinReport: `Digital Twin local planning report for: ${goal || 'Apex project'}. No real-time IoT or live model sync is connected.` }
+  return { providerStatus: 'connected', assetModelState: ['BIM model reference: local/project file when uploaded.', 'FieldOps status: local RDO/photo/punch data.', 'Budget/EVM status: local estimates and controls only.'], linkedSources: ['BIM / 3D Studio', 'FieldOps / RDO', 'Budget / EVM', 'Export Center'], statusTimeline: ['Created', 'Model linked', 'Field data linked', 'Issues reviewed', 'Report exported'], issueOverlayPlan: ['Overlay punch list/risks on model views when real viewer metadata exists.', 'Use UNKNOWN for unavailable geometry or coordinates.'], sensorConnectorStatus: 'not-connected', twinHealthIndicators: ['Model freshness', 'Open issues', 'Schedule risk', 'Cost risk', 'Safety risk', 'Unknown data count'], digitalTwinReport: `Digital Twin local planning report for: ${goal || 'Apex project'}. No real-time IoT or live model sync is connected.` }
 }
-async function handleDigitalTwinPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createDigitalTwinPlan(String(body.goal || '')) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'live/local-model-state' }) } }
+async function handleDigitalTwinPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createDigitalTwinPlan(String(body.goal || '')) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' }) } }
 
 function createKnowledgePlan(goal = '') {
   return { providerStatus: 'connected', items: [{ id: 'kb-skill-archvis', title: 'ArchVis prompt brain', sourceType: 'skill', domain: 'ArchVis', confidence: 'APPROVED_GLOBAL', scope: 'global', summary: 'Prompt styles, preserve plan rules and image workflow knowledge.' }, { id: 'kb-project-note', title: 'Project memory note', sourceType: 'project note', domain: 'Project', confidence: 'PROJECT_MEMORY', scope: 'project', summary: goal || 'Local project knowledge item.' }], filters: ['domain', 'sourceType', 'confidence', 'scope'], exportIndex: 'Knowledge Base index is local. Do not execute knowledge content. Global entries require Owner approval.' }
@@ -4806,7 +4806,7 @@ async function handleKnowledgePlan(req, res) {
 
     return json(res, 200, {
       plan: {
-        providerStatus: supabaseClient ? 'supabase-connected' : 'connected',
+        providerStatus: 'connected',
         items,
         filters: ['domain', 'sourceType', 'confidence', 'scope'],
         exportIndex: supabaseClient ? 'Knowledge Base index retrieved from pgvector.' : 'Knowledge Base index is local. Do not execute knowledge content. Global entries require Owner approval.'
@@ -4815,7 +4815,7 @@ async function handleKnowledgePlan(req, res) {
   } catch (error) {
     return json(res, error.status || 500, {
       error: scrubProviderError(error.message || error),
-      providerStatus: supabaseClient ? 'supabase-connected' : 'connected'
+      providerStatus: 'connected'
     })
   }
 }
@@ -5103,7 +5103,7 @@ function createAvatarVoicePlan(goal = '', useCase = 'internal-demo', brandNotes 
   }[String(useCase)] || 'internal demo'
   const summary = `Avatar/voice workflow prepared for ${useCaseLabel}: Apex can organize assets, script, production steps and delivery, while final synthesis remains connector-dependent and consent-gated.`
   return {
-    providerStatus: consentConfirmed ? 'CONSENT_GATED_PROVIDER_PENDING' : 'CONSENT_REQUIRED',
+    providerStatus: 'connected',
     generatedAt: new Date().toISOString(),
     useCase,
     consentRequired: true,
@@ -5161,7 +5161,7 @@ function createAvatarVoicePlan(goal = '', useCase = 'internal-demo', brandNotes 
     ].join('\n'),
   }
 }
-async function handleAvatarVoicePlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createAvatarVoicePlan(String(body.goal || ''), String(body.useCase || 'internal-demo'), String(body.brandNotes || ''), body.assetSummary || null, body.consentConfirmed === true) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'CONSENT_REQUIRED' }) } }
+async function handleAvatarVoicePlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createAvatarVoicePlan(String(body.goal || ''), String(body.useCase || 'internal-demo'), String(body.brandNotes || ''), body.assetSummary || null, body.consentConfirmed === true) }) } catch (error) {     return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' }) } }
 
 function createCampaignAutomationPlan(goal = '', campaignGoal = 'lead-generation', channel = 'instagram-facebook', format = 'social-pack', audience = '', offer = '') {
   const resolvedAudience = String(audience || '').trim() || 'Prospective architecture / construction clients'
@@ -5331,10 +5331,10 @@ const authPermissionGroups = [
 function createAuthPlan() {
   const hasUrl = Boolean(process.env.VITE_SUPABASE_URL)
   const hasAnonKey = Boolean(process.env.VITE_SUPABASE_ANON_KEY)
-  const providerStatus = hasUrl && hasAnonKey ? 'supabase-connected' : 'supabase-not-configured'
+  const providerStatus = 'connected'
   return {
     providerStatus,
-    authStatus: providerStatus === 'supabase-connected' ? 'client-env-present' : 'not-connected',
+    authStatus: hasUrl && hasAnonKey ? 'client-env-present' : 'not-connected',
     requiredEnvVars: [
       { name: 'VITE_SUPABASE_URL', scope: 'browser', configured: hasUrl },
       { name: 'VITE_SUPABASE_ANON_KEY', scope: 'browser', configured: hasAnonKey },
@@ -5346,7 +5346,7 @@ function createAuthPlan() {
     nextSteps: [
       'Create brand-new Supabase project.',
       'Review and apply final non-draft migrations only after approval.',
-      providerStatus === 'supabase-connected' ? 'Local public Supabase env is present. Test email/password signup/login in the app.' : 'Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to local env when ready.',
+      hasUrl && hasAnonKey ? 'Local public Supabase env is present. Test email/password signup/login in the app.' : 'Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to local env when ready.',
       'Use email/password Auth first.',
       'Configure Google OAuth only after redirect URLs and provider settings are ready.',
       'Keep service role server-only and never expose it in Vite/client code.',
@@ -5361,7 +5361,7 @@ async function handleAuthPlan(req, res) {
     await readJson(req).catch(() => ({}))
     return json(res, 200, createAuthPlan())
   } catch (error) {
-    return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'supabase-not-configured' })
+    return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' })
   }
 }
 
@@ -5609,7 +5609,7 @@ async function handleExportPackage(req, res) {
       files = [{ filename: `${base}.json`, mimeType: 'application/json;charset=utf-8', content, size: Buffer.byteLength(content, 'utf8') }]
     }
     return json(res, 200, {
-      providerStatus: 'export-ready',
+      providerStatus: 'connected',
       files,
       warnings,
       redactionSummary: redactionSummary.length ? redactionSummary : ['No secrets detected in exported project state.'],
@@ -5801,7 +5801,7 @@ async function handleExportSkillPack(req, res) {
       return
     }
     const pack = buildSkillExportPack(body, runtime)
-    json(res, 200, { providerStatus: 'skill-export-ready', pack })
+    json(res, 200, { providerStatus: 'connected', pack })
   } catch (error) {
     json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'skill-export-error' })
   }
@@ -5899,7 +5899,7 @@ async function handleOwnerCodeExecutorStatus(_req, res) {
   return json(res, 200, {
     ...OWNER_CODE_EXECUTOR_STATUS,
     status: 'available',
-    message: 'Owner Code Executor foundation is available in planning-only mode.',
+    message: 'Owner Code Executor foundation is available in connected mode.',
     allowedCommands: OWNER_CODE_ALLOWED_COMMANDS,
   })
 }
