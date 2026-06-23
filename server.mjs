@@ -1858,23 +1858,9 @@ async function handleChat(req, res) {
         })
       }
 
-      const result = await runApexOperatorProductionSafe({
-        userMessage: userText,
-        identityContext,
-        workspaceContext: body.workspaceContext || {},
-        repoPath: process.cwd(),
-        permissions: {},
-        productionStatus: collectProductionOperatorStatus(),
-        clientMemory: body.clientMemory || {},
-        messages: Array.isArray(body.messages) ? body.messages : [],
-      })
-
       return chatJson(res, 200, {
-        finalReply: result.finalReply,
-        memoryPatch: result.memoryPatch || null,
-        mode: 'apex-operator-production-safe',
-        operator: result,
-        confirmation: result.confirmation || null,
+        finalReply: 'Gemini Interactions temporariamente indisponível. Tente novamente ou selecione outro modelo.',
+        mode: 'provider-error',
       })
     }
 
@@ -1904,23 +1890,9 @@ async function handleChat(req, res) {
     }
 
     if (!apiKey && !isGatewayModel && !isFalProvider && !isElevenLabs && !isFirebase) {
-      const result = await runApexOperatorProductionSafe({
-        userMessage: userText,
-        identityContext,
-        workspaceContext: body.workspaceContext || {},
-        repoPath: process.cwd(),
-        permissions: {},
-        productionStatus: collectProductionOperatorStatus(),
-        clientMemory: body.clientMemory || {},
-        messages: Array.isArray(body.messages) ? body.messages : [],
-      })
-
       return chatJson(res, 200, {
-        finalReply: result.finalReply,
-        memoryPatch: result.memoryPatch || null,
-        mode: 'apex-operator-production-safe',
-        operator: result,
-        confirmation: result.confirmation || null,
+        finalReply: 'Nenhuma chave de API configurada para o provedor selecionado. Selecione outro modelo ou configure a chave no .env.local.',
+        mode: 'provider-error',
       })
     }
 
