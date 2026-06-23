@@ -1528,6 +1528,18 @@ function buildLiveAgentToolDefinitions() {
         }
       }
     },
+    {
+      type: 'function',
+      function: {
+        name: 'get_platform_status',
+        description: 'Get the REAL-TIME platform status including configured API keys, git branch/commit, and provider health. Use this when the user asks about platform status, provider keys, system health, or what is configured.',
+        parameters: {
+          type: 'object',
+          properties: {},
+          required: [],
+        },
+      },
+    },
     ...buildCodeToolDefinitions(),
   ]
 }
@@ -1545,6 +1557,10 @@ async function executeLiveAgentToolCall(toolCall) {
   // Real code/filesystem/command tools (read/list/search/write/edit/run).
   if (CODE_TOOL_NAMES.has(name)) {
     return await executeCodeToolCall(toolCall, authorizedExecutionCwd)
+  }
+
+  if (name === 'get_platform_status') {
+    return await handleGetPlatformStatus()
   }
 
   if (name !== 'run_safe_local_command') {
@@ -1614,6 +1630,30 @@ async function executeLiveAgentToolCall(toolCall) {
   }
 }
 
+async function handleGetPlatformStatus() {
+  const { execSync } = await import('child_process')
+  let branch = 'unknown'
+  let commit = 'unknown'
+  try {
+    branch = String(execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf-8', cwd: authorizedExecutionCwd })).trim()
+    commit = String(execSync('git rev-parse --short HEAD', { encoding: 'utf-8', cwd: authorizedExecutionCwd })).trim()
+  } catch {
+    // git not available in this context
+  }
+
+  const providerLines = buildProviderStatusContext()
+  const configuredCount = providerLines.split('\n').filter(l => l.includes('configured')).length
+
+  return {
+    providerStatus: 'connected',
+    git: { branch, commit },
+    providers: providerLines.split('\n').map(l => {
+      const [name, status] = l.trim().split('=')
+      return { name, configured: status === 'configured' }
+    }),
+    configuredProviderCount: configuredCount,
+  }
+}
 
 function isLiveAgentOperationalPreflightNeeded(text) {
   const value = String(text || '').toLowerCase().trim()
