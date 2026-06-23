@@ -1365,6 +1365,13 @@ function App() {
   }, [])
 
   useEffect(() => {
+    const active = conversations.find(c => c.id === activeConversationId)
+    if (active?.messages?.length) {
+      setMessages(active.messages)
+    }
+  }, [])
+
+  useEffect(() => {
     if (!availableModels.length) return
     const resolved = resolveModelSelection(selectedModel, availableModels)
     if (resolved !== selectedModel) {
