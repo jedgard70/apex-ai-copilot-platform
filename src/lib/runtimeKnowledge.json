@@ -104,6 +104,7 @@
     "Public stakeholder route integrated: Apex now exposes a standalone public VSL landing at /vsl with aliases /oferta and /apresentacao, preserving UTM parameters into the CTA destination.",
     "Model access expanded: the UI now allows manual provider/model entry so the Owner can keep using broader Gateway, OpenRouter and Gemini model IDs without waiting for the static picker catalog.",
     "Imported visual and prompt skill pack integrated: cinematic rendering, topography/landscape, futuristic interiors, agent prompt templates, architecture prompts, humanized floor plans, 3D render studio, AI prompt library and premium triangle lot strategy now live under skills/imported with runtime SKILL.md wrappers.",
+    "Second wave imported skill pack integrated: algorithmic-art, apex-ai-copilot, apex-global-orchestrator, brand-guidelines, canvas-design, consolidate-memory, doc-coauthoring, humanize-floor-plan-source, internal-comms, mcp-builder, schedule, setup-cowork, theme-factory, web-artifacts-builder, apex-copilot-construction-intelligence, and apex-global-orchestrator-unificada now live under skills/imported as dynamic runtime skills.",
     "External CSS archive audited: 36 CSS assets from D:\\AI Jedgard\\skill are classified as UI/design references, not active runtime styling. Use web-ui-css-reference before importing or reimplementing any external CSS patterns."
   ],
   "tools": [

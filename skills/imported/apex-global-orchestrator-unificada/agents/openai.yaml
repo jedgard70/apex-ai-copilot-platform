@@ -1,0 +1,5 @@
+interface:
+  display_name: "Apex Global Orchestrator"
+  short_description: "Owner-level Apex Global command assistant for roadmap, Codex, Claude, governance, and platform execution."
+  icon: "compass"
+  brand_color: "#0F172A"
