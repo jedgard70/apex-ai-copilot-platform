@@ -41,11 +41,21 @@ export function ClientDashboard({ email, onBack }: { email?: string; onBack?: ()
 
   return (
     <div style={{ padding: '24px', maxWidth: '900px', margin: '0 auto', color: '#e2e8f0' }}>
-      {onBack && (
-        <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', fontSize: '13px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-          ← Voltar
-        </button>
-      )}
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', padding: '16px', background: '#1e293b', borderRadius: '12px', border: '1px solid #334155' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 'bold', fontSize: '18px' }}>A</div>
+          <div>
+            <div style={{ fontWeight: 'bold', fontSize: '16px', color: '#f1f5f9' }}>Apex Global</div>
+            <div style={{ fontSize: '11px', color: '#64748b' }}>Apex AI Copilot</div>
+          </div>
+        </div>
+        {onBack && (
+          <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', fontSize: '13px' }}>
+            ← Voltar ao Chat
+          </button>
+        )}
+      </div>
 
       {client && (
         <div style={{ marginBottom: '24px', padding: '16px', background: '#1e293b', borderRadius: '12px', border: '1px solid #334155' }}>
