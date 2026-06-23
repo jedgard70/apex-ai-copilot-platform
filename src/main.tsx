@@ -3478,18 +3478,8 @@ function App() {
             </div>
             <div className="chat-sidebar-model" style={{ padding: '12px 16px', borderBottom: '1px solid rgba(150, 164, 195, 0.15)' }}>
               <label style={{ color: 'rgba(150, 164, 195, 0.7)', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '6px' }}>
-                Modelo de IA {selectedModelInfo.provider ? `(${getProviderLabel(selectedModelInfo.provider)})` : ''}
+                Seletor de Modelo
               </label>
-              <div className={`model-runtime-pill ${modelRuntimeState}`}>
-                <span className="runtime-dot" />
-                  {loading
-                  ? (uiLanguage === 'EN' ? 'Working...' : 'Trabalhando...')
-                  : modelRuntimeState === 'ok'
-                    ? (uiLanguage === 'EN' ? `Active · ${lastResponseMode || 'ok'}` : `Active · ${lastResponseMode || 'ok'}`)
-                    : modelRuntimeState === 'fallback'
-                      ? (uiLanguage === 'EN' ? 'Fallback (select other model)' : 'Fallback (selecione outro modelo)')
-                      : (uiLanguage === 'EN' ? 'Ready' : 'Pronto')}
-              </div>
 
               <select
                 value={selectedModel}
@@ -3513,7 +3503,11 @@ function App() {
                   <option key={m.id} value={m.id}>{`${m.name || m.id}${m.provider ? ` · ${getProviderLabel(m.provider)}` : ''}`}</option>
                 ))}
               </select>
-              <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr auto', gap: '8px', marginTop: '8px' }}>
+
+              <label style={{ color: 'rgba(150, 164, 195, 0.7)', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginTop: '10px', marginBottom: '6px' }}>
+                API Provider Manual
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '6px' }}>
                 <select
                   value={manualModelProvider}
                   onChange={e => setManualModelProvider(e.target.value as ManualModelProvider)}
@@ -3523,13 +3517,13 @@ function App() {
                     border: '1px solid rgba(150, 164, 195, 0.25)',
                     borderRadius: '6px',
                     padding: '6px 8px',
-                    fontSize: '12px',
+                    fontSize: '11px',
                     outline: 'none',
                   }}
                 >
                   <option value="openrouter">OpenRouter</option>
                   <option value="gemini">Gemini</option>
-                  <option value="gemini-interactions">Gemini Interactions</option>
+                  <option value="gemini-interactions">Gemini Interact</option>
                   <option value="gateway">Gateway</option>
                   <option value="anthropic">Anthropic</option>
                   <option value="opencode">OpenCode Go</option>
@@ -3540,14 +3534,14 @@ function App() {
                 <input
                   value={manualModelId}
                   onChange={e => setManualModelId(e.target.value)}
-                  placeholder="provider model id"
+                  placeholder="model id"
                   style={{
                     background: '#1a233d',
                     color: '#fff',
                     border: '1px solid rgba(150, 164, 195, 0.25)',
                     borderRadius: '6px',
-                    padding: '6px 10px',
-                    fontSize: '12px',
+                    padding: '6px 8px',
+                    fontSize: '11px',
                     outline: 'none',
                   }}
                 />
@@ -3570,6 +3564,16 @@ function App() {
                 >
                   Use
                 </button>
+              </div>
+              <div className={`model-runtime-pill ${modelRuntimeState}`} style={{ marginTop: '8px' }}>
+                <span className="runtime-dot" />
+                  {loading
+                  ? (uiLanguage === 'EN' ? 'Working...' : 'Trabalhando...')
+                  : modelRuntimeState === 'ok'
+                    ? (uiLanguage === 'EN' ? `Active · ${lastResponseMode || 'ok'}` : `Active · ${lastResponseMode || 'ok'}`)
+                    : modelRuntimeState === 'fallback'
+                      ? (uiLanguage === 'EN' ? 'Fallback (select other model)' : 'Fallback (selecione outro modelo)')
+                      : (uiLanguage === 'EN' ? 'Ready' : 'Pronto')}
               </div>
             </div>
             <div className="chat-sidebar-list" style={{ flex: 1, overflowY: 'auto', padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
