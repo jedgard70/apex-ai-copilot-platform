@@ -305,7 +305,7 @@ async function handleModelsList(res) {
 
     const fetchModels = async (url, headers, provider, keyField = 'id', nameField = 'name', dataField = 'data') => {
       try {
-        const { response: res, data: json } = await fetchJsonWithTimeout(url, { headers })
+        const { response: res, data: json } = await fetchJsonWithTimeout(url, { headers }, 10000)
         if (!res.ok) return
         const items = dataField ? json[dataField] || json.models || json.data || [] : json
         for (const item of items) {
@@ -313,7 +313,7 @@ async function handleModelsList(res) {
           if (!id) continue
           addModel({ id: composeModelValue(provider, id), modelId: id, provider, name: item[nameField] || item.name || id })
         }
-      } catch { /* fetch ${provider} models failed */ }
+      } catch (e) { console.error(`[fetchModels] ${provider} failed:`, e?.message?.substring(0, 80)) }
     }
 
     if (process.env.GEMINI_API_KEY) {
