@@ -5,11 +5,15 @@ let genaiClient = null
 
 function getClient() {
   if (genaiClient) return genaiClient
-  const { GoogleGenAI } = require('@google/genai')
-  const apiKey = process.env.GEMINI_API_KEY
-  if (!apiKey) return null
-  genaiClient = new GoogleGenAI({ apiKey })
-  return genaiClient
+  try {
+    const { GoogleGenAI } = require('@google/genai')
+    const apiKey = process.env.GEMINI_API_KEY
+    if (!apiKey) return null
+    genaiClient = new GoogleGenAI({ apiKey })
+    return genaiClient
+  } catch {
+    return null
+  }
 }
 
 const INTERACTION_MODELS = [

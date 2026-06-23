@@ -8,11 +8,22 @@ import { runApexOperatorProductionSafe } from '../../server/agent/apexOperatorRu
 import { collectProductionOperatorStatus } from '../../server/agent/productionStatus.mjs'
 import { classifyToolExecutionRequest, routeToolExecution, routeH6ActionRequest } from '../../server/agent/toolExecutionRouter.mjs'
 import { isConfirmationSignal, isCancelSignal, hasPendingAction } from '../../server/agent/confirmationStateMachine.mjs'
-import {
-  generateWithInteractions,
-  INTERACTION_MODELS,
-  isInteractionModel,
-} from '../../server/providers/gemini-interactions.mjs'
+let _interactionsModels = null
+let _isInteractionModel = null
+async function getInteractionsProvider() {
+  if (!_interactionsModels) {
+    try {
+      const mod = await import('../../server/providers/gemini-interactions.mjs')
+      _interactionsModels = mod.INTERACTION_MODELS
+      _isInteractionModel = mod.isInteractionModel
+      return mod.generateWithInteractions
+    } catch {
+      return null
+    }
+  }
+  const mod = await import('../../server/providers/gemini-interactions.mjs')
+  return mod.generateWithInteractions
+}
 import { buildCodeToolDefinitions, executeCodeToolCall, CODE_TOOL_NAMES } from '../../server/agent/codeTools.mjs'
 import { runLocalWorkerAction } from '../../server/agent/localWorkerClient.mjs'
 import { classifyImageGenRequest, buildImagePrompt, generateImage, buildImageResultReply } from '../../server/agent/imageGenerationConnector.mjs'
@@ -194,7 +205,7 @@ function splitModelValue(value) {
 
 function buildStaticModelCatalog() {
   return [
-    ...INTERACTION_MODELS.map(model => ({
+    ...(_interactionsModels || []).map(model => ({
       id: composeModelValue('gemini-interactions', model.id),
       modelId: model.id,
       provider: 'gemini-interactions',
@@ -1784,33 +1795,34 @@ export default async function handler(req, res) {
     const isFirebase = modelProvider === 'firebase'
 
     if (isInteractionsProvider) {
-      const interactionsResult = await generateWithInteractions({
-        model,
-        messages: Array.isArray(body.messages) ? body.messages : [],
-        systemPrompt: loadRuntimeKnowledge().systemPrompt?.join('\n') || '',
-        conversationId: body.conversationId || body.workspaceContext?.projectId,
-        enableSearch: true,
-        temperature: 0.72,
-        maxOutputTokens: 900,
-      })
-
-      if (interactionsResult.ok) {
-        let replyText = interactionsResult.text
-        if (interactionsResult.citations?.length) {
-          replyText += '\n\nFontes:\n' + interactionsResult.citations.map(c => `- [${c.title}](${c.url})`).join('\n')
-        }
-        return sendJson(res, 200, {
-          finalReply: replyText || buildChatFallbackReply(userMessage, identityContext, file),
-          reply: replyText || buildChatFallbackReply(userMessage, identityContext, file),
+      const interactionsFn = await getInteractionsProvider()
+      if (interactionsFn) {
+        const interactionsResult = await interactionsFn({
           model,
-          mode: 'gemini-interactions',
-          interactionId: interactionsResult.interactionId,
-          usage: interactionsResult.usage,
-          providerStatus: interactionsResult.providerStatus,
-          productionStatus,
+          messages: Array.isArray(body.messages) ? body.messages : [],
+          systemPrompt: loadRuntimeKnowledge().systemPrompt?.join('\n') || '',
+          conversationId: body.conversationId || body.workspaceContext?.projectId,
+          enableSearch: true,
+          temperature: 0.72,
+          maxOutputTokens: 900,
         })
+        if (interactionsResult.ok) {
+          let replyText = interactionsResult.text
+          if (interactionsResult.citations?.length) {
+            replyText += '\n\nFontes:\n' + interactionsResult.citations.map(c => `- [${c.title}](${c.url})`).join('\n')
+          }
+          return sendJson(res, 200, {
+            finalReply: replyText || buildChatFallbackReply(userMessage, identityContext, file),
+            reply: replyText || buildChatFallbackReply(userMessage, identityContext, file),
+            model,
+            mode: 'gemini-interactions',
+            interactionId: interactionsResult.interactionId,
+            usage: interactionsResult.usage,
+            providerStatus: interactionsResult.providerStatus,
+            productionStatus,
+          })
+        }
       }
-
       const result = await runApexOperatorProductionSafe({
         userMessage,
         identityContext: normalizeIdentityContext(body.identityContext || {}),
@@ -1821,7 +1833,6 @@ export default async function handler(req, res) {
         clientMemory,
         messages: Array.isArray(body.messages) ? body.messages : [],
       })
-
       return sendJson(res, 200, {
         finalReply: result.finalReply,
         reply: result.finalReply,
