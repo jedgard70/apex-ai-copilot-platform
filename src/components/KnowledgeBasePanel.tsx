@@ -92,10 +92,10 @@ export function KnowledgeBasePanel({ goal, conversationContext, tenantId, projec
     setLoading(true)
     setError('')
     try {
-      const embResp = await fetch('/api/copilot/research', {
+      const embResp = await fetch('/api/copilot/embed', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'embed', text: semanticQuery }),
+        body: JSON.stringify({ text: semanticQuery }),
       })
       const embData = await embResp.json()
       if (!embData.embedding) { setError('Embedding não disponível (configure OPENAI_API_KEY)'); return }
@@ -122,10 +122,10 @@ export function KnowledgeBasePanel({ goal, conversationContext, tenantId, projec
     setError('')
     try {
       let embedding: number[] | null = null
-      const embResp = await fetch('/api/copilot/research', {
+      const embResp = await fetch('/api/copilot/embed', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'embed', text: newText }),
+        body: JSON.stringify({ text: newText }),
       })
       const embData = await embResp.json()
       if (embData.embedding) embedding = embData.embedding
