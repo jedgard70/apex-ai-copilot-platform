@@ -1,8 +1,32 @@
+import { useEffect, useState } from 'react'
+
 type DashboardPageProps = {
   onNavigate?: (view: string) => void
 }
 
+type StatusData = {
+  git: { sha: string; branch: string }
+  providers: { total: number; active: number; list: Record<string, boolean> }
+  modelRuntime: Record<string, boolean>
+  timestamp: string
+}
+
 export function DashboardPage({ onNavigate }: DashboardPageProps) {
+  const [status, setStatus] = useState<StatusData | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/copilot/status')
+      .then(r => r.json())
+      .then(d => { if (d.ok) setStatus(d) })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  const activeProviders = status?.providers?.list
+    ? Object.entries(status.providers.list).filter(([, v]) => v).map(([k]) => k)
+    : ['openrouter', 'gemini', 'openai', 'anthropic', 'fal', 'elevenlabs']
+
   return (
     <div className="max-w-7xl mx-auto space-y-gutter relative z-10">
       {/* Welcome Section */}
@@ -10,69 +34,66 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         <div>
           <h1 className="font-sora text-[48px] text-primary tracking-tight font-semibold leading-[1.1]">System Overview</h1>
           <p className="font-inter text-[16px] text-on-surface-variant max-w-2xl leading-[1.6]">
-            Real-time intelligence dashboard for multi-modal architectural analysis and enterprise field operations.
+            {status ? `${status.providers.active}/${status.providers.total} providers active · ${status.git.branch}@${status.git.sha}` : 'Loading real platform data...'}
           </p>
         </div>
         <div className="flex gap-3">
-          <button className="px-6 py-2 bg-primary-container text-on-primary-container rounded-xl font-jetbrains-mono text-[12px] hover:brightness-110 transition-all">
-            Generate Report
+          <button onClick={() => onNavigate?.('chat')} className="px-6 py-2 bg-primary-container text-on-primary-container rounded-xl font-jetbrains-mono text-[12px] hover:brightness-110 transition-all">
+            Open Chat
           </button>
-          <button className="px-6 py-2 border border-outline-variant text-on-surface rounded-xl font-jetbrains-mono text-[12px] hover:bg-surface-container-highest transition-all">
-            Settings
+          <button onClick={() => onNavigate?.('owner')} className="px-6 py-2 border border-outline-variant text-on-surface rounded-xl font-jetbrains-mono text-[12px] hover:bg-surface-container-highest transition-all">
+            Owner Console
           </button>
         </div>
       </section>
 
-      {/* Status & Stats Grid (Bento) */}
+      {/* Status & Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-gutter">
-        {/* Platform Map Status */}
+        {/* Provider Status */}
         <div className="md:col-span-2 bg-surface-container/70 backdrop-blur-md p-6 rounded-xl border border-outline-variant/10 flex flex-col justify-between">
           <div>
             <div className="flex justify-between items-start mb-6">
-              <h3 className="font-sora text-[20px] text-on-surface font-medium leading-[1.4]">Platform Map</h3>
-              <span className="bg-secondary-fixed/20 text-secondary-fixed px-3 py-1 rounded-full font-jetbrains-mono text-[10px]">28 Modules Total</span>
+              <h3 className="font-sora text-[20px] text-on-surface font-medium leading-[1.4]">Provider Status</h3>
+              <span className="bg-secondary-fixed/20 text-secondary-fixed px-3 py-1 rounded-full font-jetbrains-mono text-[10px]">{status?.providers.active || '?'} Active</span>
             </div>
-            <div className="grid grid-cols-7 gap-2 mb-6">
-              {Array.from({ length: 21 }).map((_, i) => {
-                const active = [0, 1, 2, 3, 5, 6, 7, 11, 12, 13].includes(i)
-                const partial = [4, 10].includes(i)
-                const planned = [8, 9].includes(i)
-                return (
-                  <div
-                    key={i}
-                    className={`h-8 rounded ${active ? 'bg-secondary-fixed' : partial ? 'bg-secondary-fixed/40 border border-secondary-fixed/30' : planned ? 'bg-outline-variant/20' : 'bg-secondary-fixed'}`}
-                    title={active ? 'Active' : partial ? 'Partial' : planned ? 'Planned' : 'Active'}
-                  />
-                )
-              })}
+            <div className="grid grid-cols-3 gap-3 mb-6">
+              {[
+                { key: 'openrouter', label: 'OpenRouter' },
+                { key: 'gemini', label: 'Gemini' },
+                { key: 'openai', label: 'OpenAI' },
+                { key: 'anthropic', label: 'Anthropic' },
+                { key: 'fal', label: 'FAL.ai' },
+                { key: 'elevenlabs', label: 'ElevenLabs' },
+              ].map(p => (
+                <div key={p.key} className={`p-3 rounded-lg border ${status?.providers.list[p.key] ? 'bg-secondary-fixed/10 border-secondary-fixed/30' : 'bg-surface-variant/30 border-outline-variant/10'}`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`w-2 h-2 rounded-full ${status?.providers.list[p.key] ? 'bg-secondary-fixed' : 'bg-outline-variant'}`} />
+                    <span className="font-jetbrains-mono text-[10px] text-on-surface-variant">{p.label}</span>
+                  </div>
+                  <span className="font-sora text-[14px] text-on-surface font-medium">{status?.providers.list[p.key] ? 'Connected' : 'N/A'}</span>
+                </div>
+              ))}
             </div>
           </div>
-          <div className="flex gap-4">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-secondary-fixed" />
-              <span className="font-jetbrains-mono text-[10px] text-on-surface-variant">19 Ready</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-secondary-fixed/40 border border-secondary-fixed/30" />
-              <span className="font-jetbrains-mono text-[10px] text-on-surface-variant">5 Partial</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-outline-variant/20" />
-              <span className="font-jetbrains-mono text-[10px] text-on-surface-variant">4 Planned</span>
-            </div>
+          <div className="flex gap-4 text-[10px] font-jetbrains-mono text-on-surface-variant">
+            <span>Branch: {status?.git.branch || 'main'}</span>
+            <span>Commit: {status?.git.sha || 'unknown'}</span>
+            <span>Updated: {status?.timestamp ? new Date(status.timestamp).toLocaleTimeString() : '-'}</span>
           </div>
         </div>
 
-        {/* Quick Stats */}
-        <div className="bg-surface-container/70 backdrop-blur-md p-6 rounded-xl border border-outline-variant/10 flex flex-col justify-center gap-2 text-center group cursor-pointer hover:bg-surface-bright transition-all">
+        {/* Active Inferences */}
+        <div className="bg-surface-container/70 backdrop-blur-md p-6 rounded-xl border border-outline-variant/10 flex flex-col justify-center gap-2 text-center group cursor-default hover:bg-surface-bright transition-all">
           <span className="material-symbols-outlined text-primary text-4xl mb-2 group-hover:scale-110 transition-transform">bolt</span>
-          <div className="text-3xl font-sora text-on-surface font-medium">1,248</div>
-          <div className="font-jetbrains-mono text-[12px] text-on-surface-variant uppercase tracking-widest">AI Inferences (24h)</div>
+          <div className="text-3xl font-sora text-on-surface font-medium">{loading ? '...' : status?.providers.active || 0}</div>
+          <div className="font-jetbrains-mono text-[12px] text-on-surface-variant uppercase tracking-widest">Active Providers</div>
         </div>
-        <div className="bg-surface-container/70 backdrop-blur-md p-6 rounded-xl border border-outline-variant/10 flex flex-col justify-center gap-2 text-center group cursor-pointer hover:bg-surface-bright transition-all">
+
+        {/* Git Info */}
+        <div className="bg-surface-container/70 backdrop-blur-md p-6 rounded-xl border border-outline-variant/10 flex flex-col justify-center gap-2 text-center group cursor-default hover:bg-surface-bright transition-all">
           <span className="material-symbols-outlined text-tertiary text-4xl mb-2 group-hover:scale-110 transition-transform">database</span>
-          <div className="text-3xl font-sora text-on-surface font-medium">84.2GB</div>
-          <div className="font-jetbrains-mono text-[12px] text-on-surface-variant uppercase tracking-widest">Active Model Cache</div>
+          <div className="text-3xl font-sora text-on-surface font-medium text-[16px] overflow-hidden text-ellipsis">{status?.git.sha || 'dev'}</div>
+          <div className="font-jetbrains-mono text-[12px] text-on-surface-variant uppercase tracking-widest">Current Build</div>
         </div>
       </div>
 
@@ -84,11 +105,11 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
           {[
-            { title: 'ArchVis Studio', subtitle: 'Visual Suite', desc: 'Real-time raytracing and material library for high-fidelity structural visualization.', icon: 'photo_camera', color: 'text-secondary-fixed' },
-            { title: "Director's Cut", subtitle: 'Cinematic Suite', desc: 'Automated narrative fly-throughs and client presentation sequencing.', icon: 'movie_edit', color: 'text-tertiary' },
-            { title: 'BIM Studio', subtitle: 'Engineering Suite', desc: 'Enterprise-grade Building Information Modeling with AI-driven collision detection.', icon: 'architecture', color: 'text-primary' },
+            { title: 'ArchVis Studio', subtitle: 'Visual Suite', desc: 'AI image generation with OpenAI + FAL.ai. 8 styles, preservation mode, revision control.', icon: 'photo_camera', color: 'text-secondary-fixed', action: 'archvis' },
+            { title: "Director's Cut", subtitle: 'Cinematic Suite', desc: 'Video generation with Kling, Sora, Veo, FLUX. Storyboard, timeline, multi-track editing.', icon: 'movie_edit', color: 'text-tertiary', action: 'directcut' },
+            { title: 'BIM Studio', subtitle: 'Engineering Suite', desc: 'IFC/GLB viewing, clash detection, technical reports, measurement and annotation tools.', icon: 'architecture', color: 'text-primary', action: 'bim' },
           ].map((studio) => (
-            <div key={studio.title} className="group relative overflow-hidden rounded-xl h-64 border border-outline-variant/30 hover:border-secondary-fixed/50 transition-all cursor-pointer">
+            <div key={studio.title} onClick={() => onNavigate?.('chat')} className="group relative overflow-hidden rounded-xl h-64 border border-outline-variant/30 hover:border-secondary-fixed/50 transition-all cursor-pointer">
               <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
               <div className="absolute bottom-0 left-0 p-6 w-full">
                 <div className={`flex items-center gap-2 ${studio.color} mb-1`}>
@@ -105,28 +126,31 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
       {/* Activity & System Health */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
-        {/* Activity Feed */}
+        {/* Connected Providers */}
         <div className="lg:col-span-2 bg-surface-container/70 backdrop-blur-md rounded-xl border border-outline-variant/10 overflow-hidden">
           <div className="px-6 py-4 border-b border-outline-variant/10 flex justify-between items-center">
-            <h3 className="font-sora text-[20px] font-medium">Recent Activity</h3>
-            <button className="text-primary font-jetbrains-mono text-[12px] hover:underline">View All History</button>
+            <h3 className="font-sora text-[20px] font-medium">Connected Providers</h3>
+            <span className="text-primary font-jetbrains-mono text-[12px]">{activeProviders.length} active</span>
           </div>
           <div className="divide-y divide-outline-variant/10">
-            {[
-              { icon: 'auto_fix_high', bg: 'bg-secondary-fixed/20', color: 'text-secondary-fixed', title: 'AI Rendering Complete', time: '12m ago', desc: "Project 'Apex Tower' high-fidelity textures processed via fal.ai model. 4K export ready." },
-              { icon: 'group_add', bg: 'bg-tertiary/20', color: 'text-tertiary', title: 'New Collaborator Joined', time: '1h ago', desc: "David Miller joined 'Bridge Nexus' as Lead Structural Engineer." },
-              { icon: 'warning', bg: 'bg-error/20', color: 'text-error', title: 'Collision Warning', time: '3h ago', desc: 'Major MEP conflict detected in Level 4 HVAC ducting vs Structural Steel Beam B12.' },
-            ].map((item) => (
-              <div key={item.title} className="px-6 py-4 flex gap-4 items-start hover:bg-surface-variant/20 transition-colors">
-                <div className={`w-10 h-10 rounded-full ${item.bg} flex items-center justify-center ${item.color}`}>
-                  <span className="material-symbols-outlined">{item.icon}</span>
+            {activeProviders.map(p => (
+              <div key={p} className="px-6 py-4 flex gap-4 items-start hover:bg-surface-variant/20 transition-colors">
+                <div className="w-10 h-10 rounded-full bg-secondary-fixed/20 flex items-center justify-center text-secondary-fixed">
+                  <span className="material-symbols-outlined">check_circle</span>
                 </div>
                 <div className="flex-1">
                   <div className="flex justify-between mb-1">
-                    <span className="font-inter font-bold text-on-surface text-[14px]">{item.title}</span>
-                    <span className="font-jetbrains-mono text-[10px] text-on-surface-variant">{item.time}</span>
+                    <span className="font-inter font-bold text-on-surface text-[14px] capitalize">{p}</span>
+                    <span className="font-jetbrains-mono text-[10px] text-secondary-fixed">Connected</span>
                   </div>
-                  <p className="text-on-surface-variant font-inter text-[14px] leading-[1.5]">{item.desc}</p>
+                  <p className="text-on-surface-variant font-inter text-[14px] leading-[1.5]">
+                    {p === 'openrouter' ? '340+ models available via OpenRouter routing' :
+                     p === 'gemini' ? 'Gemini 2.5 Flash, Gemini 3.5 Flash (Interactions)' :
+                     p === 'openai' ? 'GPT-4o, GPT-4o Mini direct access' :
+                     p === 'anthropic' ? 'Claude Sonnet 4.6, Claude 3.5 Haiku' :
+                     p === 'fal' ? 'Kling, Sora, Veo, FLUX, LLaMA +50 models' :
+                     p === 'elevenlabs' ? 'Text-to-speech and voice generation' : 'Available'}
+                  </p>
                 </div>
               </div>
             ))}
@@ -136,14 +160,14 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         {/* System Health */}
         <div className="bg-surface-container/70 backdrop-blur-md rounded-xl border border-outline-variant/10 overflow-hidden">
           <div className="px-6 py-4 border-b border-outline-variant/10">
-            <h3 className="font-sora text-[20px] text-primary font-medium">System Health</h3>
+            <h3 className="font-sora text-[20px] text-primary font-medium">System</h3>
           </div>
           <div className="p-6 space-y-6">
             <div className="space-y-4">
               {[
-                { label: 'OpenAI API', status: 'Active', value: '98%' },
-                { label: 'fal.ai Cluster', status: 'Optimal', value: '92%' },
-                { label: 'ElevenLabs Voice', status: 'Active', value: '100%' },
+                { label: 'OpenRouter API', status: status?.providers.list?.openrouter ? 'Active' : 'N/A', value: status?.providers.list?.openrouter ? '100%' : '0%' },
+                { label: 'Gemini API', status: status?.providers.list?.gemini ? 'Active' : 'N/A', value: status?.providers.list?.gemini ? '100%' : '0%' },
+                { label: 'FAL.ai', status: status?.providers.list?.fal ? 'Active' : 'N/A', value: status?.providers.list?.fal ? '100%' : '0%' },
               ].map((svc) => (
                 <div key={svc.label} className="flex flex-col gap-2">
                   <div className="flex justify-between items-center">
@@ -159,21 +183,21 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
               <div className="flex items-center gap-3 text-primary mb-2">
                 <span className="material-symbols-outlined">auto_awesome</span>
-                <span className="font-jetbrains-mono text-[12px] font-bold">Copilot Insight</span>
+                <span className="font-jetbrains-mono text-[12px] font-bold">Platform</span>
               </div>
               <p className="font-inter text-[14px] text-on-surface-variant leading-relaxed">
-                I&apos;ve analyzed your recent BIM revisions. Project Alpha is showing a 14% improvement in thermal efficiency after the latest facade update.
+                All providers configured. Use the chat to interact or select a model from the sidebar.
               </p>
             </div>
-            <button className="w-full py-3 bg-transparent border border-outline-variant hover:bg-surface-variant transition-all rounded-lg font-jetbrains-mono text-[12px]">
-              Run Diagnostics
+            <button onClick={() => onNavigate?.('owner')} className="w-full py-3 bg-transparent border border-outline-variant hover:bg-surface-variant transition-all rounded-lg font-jetbrains-mono text-[12px]">
+              Owner Console
             </button>
           </div>
         </div>
       </div>
 
       <footer className="pt-8 pb-12 border-t border-outline-variant/10 text-center text-on-surface-variant max-w-7xl mx-auto z-10 relative">
-        <p className="font-jetbrains-mono text-[10px] opacity-50">&copy; 2024 Apex Enterprise AI Systems. All rights reserved.</p>
+        <p className="font-jetbrains-mono text-[10px] opacity-50">Apex AI Copilot Platform · {status?.git.branch || 'main'}@{status?.git.sha || 'dev'}</p>
       </footer>
     </div>
   )

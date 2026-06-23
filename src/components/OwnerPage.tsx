@@ -1,8 +1,9 @@
 type OwnerPageProps = {
   onNavigate?: (view: string) => void
+  onOpenChat?: (cmd: string) => void
 }
 
-export function OwnerPage({ onNavigate }: OwnerPageProps) {
+export function OwnerPage({ onNavigate, onOpenChat }: OwnerPageProps) {
   return (
     <div className="h-full overflow-y-auto bg-[#0B1221] relative">
       <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-[#6C47FF]/5 blur-[120px] rounded-full pointer-events-none"></div>
