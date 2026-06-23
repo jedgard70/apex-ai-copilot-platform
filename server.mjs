@@ -2915,13 +2915,13 @@ async function handleBimTourPlan(req, res) {
     const steps = (tourSteps.length ? tourSteps : savedViews).map((step, index) => ({
       index: index + 1,
       name: String(step?.name || `Scene ${index + 1}`),
-      description: String(step?.description || 'Planning-only BIM scene.'),
+      description: String(step?.description || 'BIM scene ready for viewing.'),
       cameraMode: String(step?.cameraMode || 'Orbit'),
       purpose: String(step?.purpose || 'Presentation'),
     }))
     const orderedSteps = steps.length
       ? steps.map(step => `${step.index}. ${step.name} - ${step.description}`)
-      : ['1. Model overview - Planning-only overview until Apex viewer/import connector loads geometry.']
+      : ['1. Model overview - Load model in BIM / 3D Studio for full viewing.']
     const cameraPath = animationSteps.length
       ? animationSteps.map((step, index) => `${index + 1}. ${step?.movementType || 'Orbit'} / ${step?.duration || '5s'} / ${step?.transition || 'Smooth'}`)
       : steps.map(step => `${step.index}. ${step.cameraMode} camera for ${step.purpose}`)
@@ -2930,7 +2930,7 @@ async function handleBimTourPlan(req, res) {
       : ['Scene 1: Present the BIM model overview after Apex loads or converts the file.']
     const storyboard = steps.length
       ? steps.map(step => `Frame ${step.index}: ${step.cameraMode} view for ${step.purpose}.`)
-      : ['Frame 1: Internal Apex model overview, planning-only.']
+      : ['Frame 1: Apex BIM model overview - load file to view.']
     const correctionSummary = corrections.map((item, index) => `${index + 1}. ${item?.evidenceLevel || 'ASSUMPTION'} - ${item?.title || 'Correction'}: ${item?.description || ''}`)
 
     const exportBrief = [
