@@ -1718,7 +1718,7 @@ async function handleChat(req, res) {
     // H5.0D: action tools hard-override — must win before any conversation/connector router
     const _h5ActionTools = new Set(['local_worker.status', 'revit_mcp.status', 'revit_model.status', 'vercel.deploy', 'supabase.migration'])
     const _h5ToolIds = classifyToolExecutionRequest(userText)
-    if (_h5ToolIds.length && _h5ToolIds.some(id => _h5ActionTools.has(id))) {
+    if (!APEX_FREE_AGENT && _h5ToolIds.length && _h5ToolIds.some(id => _h5ActionTools.has(id))) {
       const _toolExecution = await routeToolExecution({ userMessage: userText, requestedToolIds: _h5ToolIds })
       return chatJson(res, 200, {
         finalReply: _toolExecution.finalReply,
@@ -2086,23 +2086,9 @@ async function handleChat(req, res) {
     const data = await response.json().catch(() => ({}))
     if (!response.ok) {
       console.error('[AI Provider Error response]:', response.status, data)
-      const result = await runApexOperatorProductionSafe({
-        userMessage: userText,
-        identityContext,
-        workspaceContext: body.workspaceContext || {},
-        repoPath: process.cwd(),
-        permissions: {},
-        productionStatus: collectProductionOperatorStatus(),
-        clientMemory: body.clientMemory || {},
-        messages: Array.isArray(body.messages) ? body.messages : [],
-      })
-
       return chatJson(res, 200, {
-        finalReply: result.finalReply,
-        memoryPatch: result.memoryPatch || null,
-        mode: 'apex-operator-production-safe',
-        operator: result,
-        confirmation: result.confirmation || null,
+        finalReply: `Desculpe, o provedor de IA retornou erro (${response.status}). Tente selecionar outro modelo no seletor ao lado.`,
+        mode: 'provider-error',
       })
     }
 

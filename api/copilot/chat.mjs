@@ -1637,7 +1637,7 @@ export default async function handler(req, res) {
       const MUTATION_TOOLS = new Set(['vercel.deploy', 'supabase.migration'])
       const hasMutationTool = h5ToolIds.some(id => MUTATION_TOOLS.has(id))
 
-      if (h5ToolIds.length && h5ToolIds.some(id => H5_ACTION_TOOLS.has(id)) && !hasMutationTool) {
+      if (!APEX_FREE_AGENT && h5ToolIds.length && h5ToolIds.some(id => H5_ACTION_TOOLS.has(id)) && !hasMutationTool) {
         const toolExecution = await routeToolExecution({ userMessage, requestedToolIds: h5ToolIds })
         return sendJson(res, 200, {
           finalReply: toolExecution.finalReply,
@@ -2111,24 +2111,11 @@ export default async function handler(req, res) {
     const data = chatResult.data
 
     if (!response.ok) {
-      const result = await runApexOperatorProductionSafe({
-        userMessage,
-        identityContext: normalizeIdentityContext(body.identityContext || {}),
-        workspaceContext: body.workspaceContext || {},
-        repoPath: process.cwd(),
-        permissions: {},
-        productionStatus,
-        clientMemory,
-        messages: Array.isArray(body.messages) ? body.messages : [],
-      })
-
+      const errorMsg = `Desculpe, o provedor de IA retornou erro (${response.status}). Tente selecionar outro modelo no seletor ao lado.`
       return sendJson(res, 200, {
-        finalReply: result.finalReply,
-        reply: result.finalReply,
-        memoryPatch: result.memoryPatch || null,
-        mode: 'apex-operator-production-safe',
-        operator: result,
-        confirmation: buildConfirmationUi(result),
+        finalReply: errorMsg,
+        reply: errorMsg,
+        mode: 'provider-error',
         productionStatus,
       })
     }
