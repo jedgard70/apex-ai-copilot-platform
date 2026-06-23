@@ -336,7 +336,7 @@ function resolveModelSelection(selectedValue: string, models: ModelOption[]) {
     return current.raw
   }
 
-  const providerPriority = ['gateway', 'gemini', 'openrouter', 'openai']
+  const providerPriority = ['gemini', 'openrouter', 'openai', 'gateway']
   const bestMatch = [...rawMatches].sort((left, right) => {
     return providerPriority.indexOf(left.provider) - providerPriority.indexOf(right.provider)
   })[0]
@@ -1254,7 +1254,7 @@ function App() {
     return localStorage.getItem('apex_active_conversation_id') || 'default'
   })
   const [selectedModel, setSelectedModel] = useState<string>(() => {
-    return localStorage.getItem('apex_selected_model') || composeModelValue('gateway', 'openai/gpt-4o-mini')
+    return localStorage.getItem('apex_selected_model') || composeModelValue('gemini', 'gemini-2.5-flash')
   })
   const [availableModels, setAvailableModels] = useState<ModelOption[]>([])
   const [modelProvider, setModelProvider] = useState<string>('')
