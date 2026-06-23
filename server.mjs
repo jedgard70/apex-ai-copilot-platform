@@ -1666,8 +1666,11 @@ async function handleModelsList(req, res) {
       addModel(model)
     }
 
+    const providerOrder = ['gemini', 'openrouter', 'openai', 'gateway']
     models.sort((left, right) => {
-      const providerCompare = String(left.provider || '').localeCompare(String(right.provider || ''))
+      const leftIdx = providerOrder.indexOf(left.provider)
+      const rightIdx = providerOrder.indexOf(right.provider)
+      const providerCompare = (leftIdx === -1 ? 999 : leftIdx) - (rightIdx === -1 ? 999 : rightIdx)
       if (providerCompare !== 0) return providerCompare
       return String(left.name || left.id || '').localeCompare(String(right.name || right.id || ''))
     })
@@ -1771,11 +1774,11 @@ async function handleChat(req, res) {
     const isGeminiProvider = modelProvider === 'gemini'
     const isDirectGeminiModel = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.0-pro', 'gemini-2.5-flash'].includes(model)
 
-    if (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_KEYROUTER) {
-      if (isGeminiProvider && providerDiagnostics.openrouterConfigured) {
-        apiBase = process.env.OPENAI_API_BASEROUTER
-        apiKey = process.env.OPENAI_API_KEYROUTER
-      } else if ((model.includes('/') || !isDirectGeminiModel) && !isGatewayModel) {
+    if (isGeminiProvider && process.env.GEMINI_API_KEY) {
+      apiBase = process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta/openai'
+      apiKey = process.env.GEMINI_API_KEY
+    } else if (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_KEYROUTER) {
+      if ((model.includes('/') || !isDirectGeminiModel) && !isGatewayModel) {
         apiBase = process.env.OPENAI_API_BASEROUTER
         apiKey = process.env.OPENAI_API_KEYROUTER
       } else if (!apiKey && !isGatewayModel) {
