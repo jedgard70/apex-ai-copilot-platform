@@ -4,7 +4,6 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { runApexOperatorProductionSafe } from '../../server/agent/apexOperatorRuntime.mjs'
 import { collectProductionOperatorStatus } from '../../server/agent/productionStatus.mjs'
 import { classifyToolExecutionRequest, routeToolExecution, routeH6ActionRequest } from '../../server/agent/toolExecutionRouter.mjs'
 import { isConfirmationSignal, isCancelSignal, hasPendingAction } from '../../server/agent/confirmationStateMachine.mjs'
@@ -1706,26 +1705,12 @@ export default async function handler(req, res) {
 
     // If this message looks like an H6 action (git, npm, etc.), route it directly
     // to the operator runtime so it can prepare a confirmation and set pendingH6Action.
-    const h6Route = routeH6ActionRequest({ userMessage: routingMessage })
+    const h6Route = APEX_FREE_AGENT ? null : routeH6ActionRequest({ userMessage: routingMessage })
     if (h6Route) {
-      const result = await runApexOperatorProductionSafe({
-        userMessage,
-        identityContext: normalizeIdentityContext(body.identityContext || {}),
-        workspaceContext: body.workspaceContext || {},
-        repoPath: process.cwd(),
-        permissions: {},
-        productionStatus,
-        clientMemory,
-        messages: Array.isArray(body.messages) ? body.messages : [],
-      })
-
       return sendJson(res, 200, {
-        finalReply: result.finalReply,
-        reply: result.finalReply,
-        memoryPatch: result.memoryPatch || null,
-        mode: 'apex-operator-production-safe',
-        operator: result,
-        confirmation: buildConfirmationUi(result),
+        finalReply: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente ou selecione outro modelo.',
+        reply: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente ou selecione outro modelo.',
+        mode: 'provider-error',
         productionStatus,
       })
     }
@@ -1737,24 +1722,10 @@ export default async function handler(req, res) {
     const fileCandidate2 = body.file || null
     const looksLikeDocSummary2 = Boolean(fileCandidate2 && fileCandidate2.extractionStatus === 'ready' && String(fileCandidate2.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize|analise o arquivo|resuma o arquivo|analise este arquivo|resuma este arquivo|explique o arquivo|explique este arquivo)\b/i.test(userMessage || ''))
     if (!APEX_FREE_AGENT && !looksLikeDocSummary2 && !body.file) {
-      const result = await runApexOperatorProductionSafe({
-        userMessage,
-        identityContext: normalizeIdentityContext(body.identityContext || {}),
-        workspaceContext: body.workspaceContext || {},
-        repoPath: process.cwd(),
-        permissions: {},
-        productionStatus,
-        clientMemory,
-        messages: Array.isArray(body.messages) ? body.messages : [],
-      })
-
       return sendJson(res, 200, {
-        finalReply: result.finalReply,
-        reply: result.finalReply,
-        memoryPatch: result.memoryPatch || null,
-        mode: 'apex-operator-production-safe',
-        operator: result,
-        confirmation: buildConfirmationUi(result),
+        finalReply: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente ou selecione outro modelo.',
+        reply: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente ou selecione outro modelo.',
+        mode: 'provider-error',
         productionStatus,
       })
     }
@@ -1856,23 +1827,10 @@ export default async function handler(req, res) {
           })
         }
       }
-      const result = await runApexOperatorProductionSafe({
-        userMessage,
-        identityContext: normalizeIdentityContext(body.identityContext || {}),
-        workspaceContext: body.workspaceContext || {},
-        repoPath: process.cwd(),
-        permissions: {},
-        productionStatus,
-        clientMemory,
-        messages: Array.isArray(body.messages) ? body.messages : [],
-      })
       return sendJson(res, 200, {
-        finalReply: result.finalReply,
-        reply: result.finalReply,
-        memoryPatch: result.memoryPatch || null,
-        mode: 'apex-operator-production-safe',
-        operator: result,
-        confirmation: buildConfirmationUi(result),
+        finalReply: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente ou selecione outro modelo.',
+        reply: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente ou selecione outro modelo.',
+        mode: 'provider-error',
         productionStatus,
       })
     }
@@ -1899,24 +1857,10 @@ export default async function handler(req, res) {
     const openaiKey = resolvedOpenAIKey
     const apiKey = anthropicKey || openaiKey
     if (!apiKey && !isGatewayModel && !isFalProvider && !isElevenLabs && !isFirebase) {
-      const result = await runApexOperatorProductionSafe({
-        userMessage,
-        identityContext: normalizeIdentityContext(body.identityContext || {}),
-        workspaceContext: body.workspaceContext || {},
-        repoPath: process.cwd(),
-        permissions: {},
-        productionStatus,
-        clientMemory,
-        messages: Array.isArray(body.messages) ? body.messages : [],
-      })
-
       return sendJson(res, 200, {
-        finalReply: result.finalReply,
-        reply: result.finalReply,
-        memoryPatch: result.memoryPatch || null,
-        mode: 'apex-operator-production-safe',
-        operator: result,
-        confirmation: buildConfirmationUi(result),
+        finalReply: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente ou selecione outro modelo.',
+        reply: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente ou selecione outro modelo.',
+        mode: 'provider-error',
         productionStatus,
       })
     }
