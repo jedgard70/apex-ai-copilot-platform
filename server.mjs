@@ -2179,7 +2179,8 @@ async function handleChat(req, res) {
       })
     }
 
-    const reply = sanitizeAssistantReply(assistantMessage.content)
+    const replyText = assistantMessage.content || assistantMessage.reasoning_content || ''
+    const reply = sanitizeAssistantReply(replyText)
     return chatJson(res, 200, {
       finalReply: reply || buildChatFallbackReply(userText, identityContext),
       model: data.model,

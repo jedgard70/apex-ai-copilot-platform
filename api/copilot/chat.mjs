@@ -2223,7 +2223,7 @@ export default async function handler(req, res) {
           currentToolCalls = Array.isArray(currentAssistant.tool_calls) ? currentAssistant.tool_calls : []
 
           if (!currentToolCalls.length) {
-            const finalReply = currentAssistant.content || ''
+            const finalReply = currentAssistant.content || currentAssistant.reasoning_content || ''
             return sendJson(res, 200, {
               finalReply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
               reply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
@@ -2238,8 +2238,8 @@ export default async function handler(req, res) {
         }
 
         return sendJson(res, 200, {
-          finalReply: currentAssistant.content || 'Atingi o limite de etapas de ferramentas nesta resposta. Posso continuar se você confirmar.',
-          reply: currentAssistant.content || 'Atingi o limite de etapas de ferramentas nesta resposta. Posso continuar se você confirmar.',
+          finalReply: currentAssistant.content || currentAssistant.reasoning_content || 'Atingi o limite de etapas de ferramentas nesta resposta. Posso continuar se você confirmar.',
+          reply: currentAssistant.content || currentAssistant.reasoning_content || 'Atingi o limite de etapas de ferramentas nesta resposta. Posso continuar se você confirmar.',
           mode: 'live-agent-tool-calling-maxed',
           toolCalls: usedToolNames,
           confirmation: null,
@@ -2247,7 +2247,7 @@ export default async function handler(req, res) {
         })
       }
 
-      const reply = assistantMessage.content || ''
+      const reply = assistantMessage.content || assistantMessage.reasoning_content || ''
       return sendJson(res, 200, {
         finalReply: reply || buildChatFallbackReply(userMessage, identityContext, file),
         reply: reply || buildChatFallbackReply(userMessage, identityContext, file),
