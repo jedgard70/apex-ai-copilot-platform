@@ -1710,7 +1710,7 @@ async function handleModelsList(req, res) {
       await fetchModels('https://api.elevenlabs.io/v1/models', { 'xi-api-key': process.env.ELEVENLABS_API_KEY }, 'elevenlabs', 'model_id', 'name', null)
     }
     if (process.env.FAL_KEY) {
-      await fetchModels('https://fal.ai/api/models?limit=200', { Authorization: `Key ${process.env.FAL_KEY}` }, 'fal', 'id', 'name', 'models')
+      await fetchModels('https://fal.ai/api/models?limit=200', { Authorization: `Key ${process.env.FAL_KEY}` }, 'fal', 'id', 'title', 'items')
     }
     if (process.env.OPENCODE_GO_API_KEY) {
       await fetchModels('https://opencode.ai/zen/go/v1/models', { Authorization: 'Bearer ' + process.env.OPENCODE_GO_API_KEY }, 'opencode')
