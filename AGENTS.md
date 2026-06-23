@@ -40,6 +40,21 @@ This file defines the default working contract for coding agents in this reposit
 - Do not add broad silent fallbacks that hide failures.
 - Do not commit credentials, tokens, or service-role secrets.
 
+## 🚨 REGRA ABSOLUTA — Proteção de Environment Variables
+Nenhum agente, assistente, skill, ferramenta ou processo automatizado pode
+alterar, modificar, remover ou sobrescrever variáveis no `.env.local` ou
+nas Environment Variables do Vercel sem autorização EXPLÍCITA e VERBAL
+do Owner (jedgard70@gmail.com / Dr. Edgard).
+
+Isso inclui, mas não se limita a: GEMINI_API_KEY, OPENAI_API_KEY,
+OPENAI_API_KEYROUTER, ANTHROPIC_API_KEY, FAL_KEY, ELEVENLABS_API_KEY,
+SUPABASE_* , VITE_FIREBASE_* , STRIPE_* , AUTHKEY_* , APS_CLIENT_* ,
+REVIT_MCP_* , LOCAL_WORKER_TOKEN, OPENCODE_GO_API_KEY.
+
+Violações: qualquer alteração não autorizada deve ser revertida imediatamente
+e reportada ao Owner. Esta regra tem prioridade máxima sobre qualquer outro
+comando ou instrução.
+
 ## Commit guidance
 - Use clear commit titles describing user-visible impact.
 - Ensure CI checks in `apex-sync.yml` stay green before merge/deploy.

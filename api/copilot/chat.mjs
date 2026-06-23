@@ -1736,6 +1736,9 @@ export default async function handler(req, res) {
     const isGatewayModel = modelProvider === 'gateway' || model.startsWith('openai/')
     const isGeminiProvider = modelProvider === 'gemini'
     const isInteractionsProvider = modelProvider === 'gemini-interactions'
+    const isFalProvider = modelProvider === 'fal'
+    const isElevenLabs = modelProvider === 'elevenlabs'
+    const isFirebase = modelProvider === 'firebase'
 
     if (isInteractionsProvider) {
       const interactionsResult = await generateWithInteractions({
@@ -1788,7 +1791,16 @@ export default async function handler(req, res) {
     }
 
     let { apiBase, apiKey: resolvedOpenAIKey } = getOpenAIConfig(model)
-    if (isGeminiProvider && process.env.GEMINI_API_KEY) {
+    if (isFalProvider && process.env.FAL_KEY) {
+      apiBase = 'https://api.fal.ai/v1'
+      resolvedOpenAIKey = process.env.FAL_KEY
+    } else if (isElevenLabs && process.env.ELEVENLABS_API_KEY) {
+      apiBase = 'https://api.elevenlabs.io/v1'
+      resolvedOpenAIKey = process.env.ELEVENLABS_API_KEY
+    } else if (isFirebase) {
+      apiBase = 'https://firebasedynamiclinks.googleapis.com/v1'
+      resolvedOpenAIKey = process.env.VITE_FIREBASE_API_KEY || ''
+    } else if (isGeminiProvider && process.env.GEMINI_API_KEY) {
       apiBase = process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta/openai'
       resolvedOpenAIKey = process.env.GEMINI_API_KEY
     }
@@ -1796,7 +1808,7 @@ export default async function handler(req, res) {
     const anthropicKey = process.env.ANTHROPIC_API_KEY
     const openaiKey = resolvedOpenAIKey
     const apiKey = anthropicKey || openaiKey
-    if (!apiKey && !isGatewayModel) {
+    if (!apiKey && !isGatewayModel && !isFalProvider && !isElevenLabs && !isFirebase) {
       const result = await runApexOperatorProductionSafe({
         userMessage,
         identityContext: normalizeIdentityContext(body.identityContext || {}),
