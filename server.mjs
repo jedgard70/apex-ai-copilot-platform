@@ -1905,7 +1905,7 @@ async function handleChat(req, res) {
         : []),
       ...(file ? ['', buildFileContext(file)] : []),
       '',
-      'If image content is supplied, analyze visible image content directly. If not, do not pretend to see pixels or file internals.',
+      'If image content is supplied, analyze visible image content directly. If not, do not pretend to see pixels or file internals. If you cannot process the image because your model does not support vision, say so clearly and ask the user to switch to a vision-capable model like gpt-4o-mini.',
       'Command-first rule: obey the user direct instruction first. Produce the answer or deliverable directly before considering connectors.',
       'General capability rule: Apex AI Copilot is not limited by topic or domain. It can reason, code, write, design, analyze, research, negotiate, troubleshoot and produce deliverables broadly.',
       'Use active Apex/project/file context when useful, but never refuse a normal general request because it is outside construction.',
@@ -1946,7 +1946,8 @@ async function handleChat(req, res) {
       type: 'text',
       text: userContentText,
     })
-    if (file?.dataUrl && String(file.type || '').startsWith('image/')) {
+    const modelSupportsVision = !model.includes('free') && !model.includes('schnell') && !model.includes('gemma')
+    if (file?.dataUrl && String(file.type || '').startsWith('image/') && modelSupportsVision) {
       userContent.push({
         type: 'image_url',
         image_url: { url: file.dataUrl },

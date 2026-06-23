@@ -1909,7 +1909,8 @@ export default async function handler(req, res) {
       ].join('\n'),
     })
 
-    if (file?.dataUrl && String(file.type || '').startsWith('image/')) {
+    const modelSupportsVision = !model.includes('free') && !model.includes('schnell') && !model.includes('gemma')
+    if (file?.dataUrl && String(file.type || '').startsWith('image/') && modelSupportsVision) {
       userContent.push({
         type: 'image_url',
         image_url: { url: file.dataUrl },
