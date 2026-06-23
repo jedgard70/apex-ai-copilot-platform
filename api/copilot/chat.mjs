@@ -143,6 +143,26 @@ const OPENROUTER_MODELS = [
   { id: 'anthropic/claude-3.5-sonnet', name: 'OpenRouter · Claude 3.5 Sonnet' },
 ]
 
+const FAL_CHAT_MODELS = [
+  { id: 'fal-ai/llama-3.3-70b', name: 'LLaMA 3.3 70B (FAL)' },
+  { id: 'fal-ai/mistral-large', name: 'Mistral Large (FAL)' },
+]
+
+const ANTHROPIC_MODELS = [
+  { id: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6' },
+  { id: 'claude-3.5-haiku', name: 'Claude 3.5 Haiku' },
+]
+
+const OPENCODE_GO_MODELS = [
+  { id: 'go-code', name: 'Go Code' },
+  { id: 'go-reasoning', name: 'Go Reasoning' },
+]
+
+const ELEVENLABS_MODELS = [
+  { id: 'eleven_multilingual_v2', name: 'Eleven Multilingual v2' },
+  { id: 'eleven_turbo_v2_5', name: 'Eleven Turbo v2.5' },
+]
+
 const MODEL_CATALOG_CACHE_TTL_MS = 5 * 60 * 1000
 let modelCatalogCache = {
   expiresAt: 0,
@@ -199,6 +219,30 @@ function buildStaticModelCatalog() {
       provider: 'openrouter',
       name: model.name,
     })),
+    ...FAL_CHAT_MODELS.map(model => ({
+      id: composeModelValue('fal', model.id),
+      modelId: model.id,
+      provider: 'fal',
+      name: model.name,
+    })),
+    ...ANTHROPIC_MODELS.map(model => ({
+      id: composeModelValue('anthropic', model.id),
+      modelId: model.id,
+      provider: 'anthropic',
+      name: model.name,
+    })),
+    ...OPENCODE_GO_MODELS.map(model => ({
+      id: composeModelValue('opencode', model.id),
+      modelId: model.id,
+      provider: 'opencode',
+      name: model.name,
+    })),
+    ...ELEVENLABS_MODELS.map(model => ({
+      id: composeModelValue('elevenlabs', model.id),
+      modelId: model.id,
+      provider: 'elevenlabs',
+      name: model.name,
+    })),
   ]
 }
 
@@ -251,7 +295,7 @@ async function handleModelsList(res) {
       addModel(model)
     }
 
-    const providerOrder = ['gemini', 'openrouter', 'openai', 'gateway']
+    const providerOrder = ['gemini-interactions', 'gemini', 'openrouter', 'openai', 'anthropic', 'gateway', 'fal', 'opencode', 'elevenlabs', 'firebase']
     models.sort((left, right) => {
       const leftIdx = providerOrder.indexOf(left.provider)
       const rightIdx = providerOrder.indexOf(right.provider)
