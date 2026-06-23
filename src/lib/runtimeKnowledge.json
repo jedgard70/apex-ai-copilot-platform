@@ -102,7 +102,9 @@
     "Platform Status + interactive manual updated: Apex can explain the current provider/observability state, the owner-run Autoupgrade model and the canonical status sources README + CHECKPOINT_TRACKER + APEX_PLATFORM_CURRENT_STATE.",
     "Campaign Automation expanded: Apex now prepares both social campaign packs and VSL/video-sales landing blueprints with urgency bar, autoplay/audio prompt, CTA destination, proof/footer structure and tracking checklist.",
     "Public stakeholder route integrated: Apex now exposes a standalone public VSL landing at /vsl with aliases /oferta and /apresentacao, preserving UTM parameters into the CTA destination.",
-    "Model access expanded: the UI now allows manual provider/model entry so the Owner can keep using broader Gateway, OpenRouter and Gemini model IDs without waiting for the static picker catalog."
+    "Model access expanded: the UI now allows manual provider/model entry so the Owner can keep using broader Gateway, OpenRouter and Gemini model IDs without waiting for the static picker catalog.",
+    "Imported visual and prompt skill pack integrated: cinematic rendering, topography/landscape, futuristic interiors, agent prompt templates, architecture prompts, humanized floor plans, 3D render studio, AI prompt library and premium triangle lot strategy now live under skills/imported with runtime SKILL.md wrappers.",
+    "External CSS archive audited: 36 CSS assets from D:\\AI Jedgard\\skill are classified as UI/design references, not active runtime styling. Use web-ui-css-reference before importing or reimplementing any external CSS patterns."
   ],
   "tools": [
     {
