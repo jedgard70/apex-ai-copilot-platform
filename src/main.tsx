@@ -1409,7 +1409,7 @@ function App() {
   useEffect(() => {
     if (!selectedModelInfo?.modelId) return
     const provider = (selectedModelInfo.provider || 'openrouter') as ManualModelProvider
-    if (provider === 'gateway' || provider === 'openrouter' || provider === 'gemini') {
+    if (provider === 'gateway' || provider === 'openrouter' || provider === 'gemini' || provider === 'gemini-interactions' || provider === 'anthropic' || provider === 'opencode' || provider === 'fal' || provider === 'elevenlabs' || provider === 'firebase') {
       setManualModelProvider(provider)
     }
     setManualModelId(selectedModelInfo.modelId)
