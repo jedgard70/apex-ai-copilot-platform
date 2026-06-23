@@ -1686,6 +1686,27 @@ async function handleModelsList(req, res) {
       }
     }
 
+    if (process.env.FAL_KEY) {
+      try {
+        const falRes = await fetch('https://fal.ai/api/models?limit=200', {
+          headers: { Authorization: `Key ${process.env.FAL_KEY}` },
+          signal: AbortSignal.timeout(5000),
+        })
+        if (falRes.ok) {
+          const falData = await falRes.json()
+          const falModels = falData?.models || falData?.data || []
+          for (const m of falModels) {
+            addModel({
+              id: composeModelValue('fal', m.id || m.name),
+              modelId: m.id || m.name,
+              provider: 'fal',
+              name: m.name || m.id || m.model,
+            })
+          }
+        }
+      } catch { /* FAL models fetch failed silently */ }
+    }
+
     for (const model of buildStaticModelCatalog()) {
       addModel(model)
     }
