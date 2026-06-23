@@ -1561,6 +1561,7 @@ function App() {
     && (accountState?.role === 'owner_admin' || accountState?.role === 'admin' || accountState?.role === 'developer')
     && (isSupabaseConfigured || isLocalDemoOwner)
   )
+  const isInternalUser = isOwnerUser || accountState?.role === 'Internal Team' || accountState?.role === 'Finance' || accountState?.role === 'Sales' || accountState?.user?.email?.includes('apexglobal')
 
   async function refreshAuthState() {
     if (!isSupabaseConfigured) {
@@ -3434,6 +3435,15 @@ function App() {
           setAuthLoading(false)
         }} />
       </main>
+    )
+  }
+
+  // Client users see a simplified view
+  if (isSignedIn && !isInternalUser) {
+    return (
+      <div style={{ background: '#0f172a', minHeight: '100vh' }}>
+        <ClientDashboard email={accountState?.user?.email || accountState?.profile?.email} onBack={() => {}} />
+      </div>
     )
   }
 
