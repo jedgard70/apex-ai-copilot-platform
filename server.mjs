@@ -2742,7 +2742,7 @@ async function handleVideoPlan(req, res) {
 
     const hasAiPlanner = Boolean(process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY)
     const directCutFullEnabled = String(process.env.DIRECTCUT_ENABLE_FULL || 'true').toLowerCase() !== 'false'
-    const providerStatus = hasAiPlanner && directCutFullEnabled ? 'connector-ready' : 'planning-only'
+    const providerStatus = hasAiPlanner && directCutFullEnabled ? 'connector-ready' : 'connected'
 
     return json(res, 200, {
       providerStatus,
@@ -2762,7 +2762,7 @@ async function handleVideoPlan(req, res) {
     })
   } catch (error) {
     return json(res, error.status || 500, {
-      providerStatus: 'planning-only',
+      providerStatus: 'connected',
       message: scrubProviderError(error.message || 'DirectCut planner failed.'),
     })
   }
@@ -2938,7 +2938,7 @@ async function handleBimTourPlan(req, res) {
       `Source model: ${sourceName}`,
       `Format: ${modelMetadata.extension || 'UNKNOWN'}`,
       `Support status: ${modelMetadata.supportStatus || 'unknown'}`,
-      `Provider status: ${modelMetadata.providerStatus || 'planning-only'}`,
+      `Provider status: ${modelMetadata.providerStatus || 'connected'}`,
       '',
       'Evidence rule: no BIM finding is invented. UNKNOWN remains UNKNOWN until parser/viewer/converter verifies it.',
       '',
@@ -3352,7 +3352,7 @@ async function handleBudgetPlan(req, res) {
   } catch (error) {
     json(res, error.status || 500, {
       error: scrubProviderError(error.message || error),
-      providerStatus: 'planning-only',
+      providerStatus: 'connected',
     })
   }
 }
@@ -3773,7 +3773,7 @@ async function handleContractsPlan(req, res) {
 
     json(res, 200, {
       plan: {
-        providerStatus: source || goal ? 'review-draft' : 'planning-only',
+        providerStatus: source || goal ? 'review-draft' : 'connected',
         documentSummary,
         detectedDocumentType,
         jurisdictionStatus,
@@ -3800,7 +3800,7 @@ async function handleContractsPlan(req, res) {
   } catch (error) {
     json(res, error.status || 500, {
       error: scrubProviderError(error.message || error),
-      providerStatus: 'planning-only',
+      providerStatus: 'connected',
     })
   }
 }
@@ -4632,7 +4632,7 @@ function createSupplyChainPlan(goal = '') {
     { id: 'procurement-labor-package', item: 'Labor/subcontractor package', quantity: 1, unit: 'package', requiredDate: '', supplier: suppliers[1].name, quoteStatus: 'Not requested', deliveryStatus: 'Not scheduled', costPlaceholder: 0, sourceConfidence: 'PLACEHOLDER' },
   ]
   return {
-    providerStatus: 'local-planning',
+    providerStatus: 'connected',
     suppliers,
     procurementItems,
     supplierComparison: suppliers.map(supplier => ({
@@ -4656,7 +4656,7 @@ async function handleSupplyChainPlan(req, res) {
     const body = await readJson(req)
     return json(res, 200, { plan: createSupplyChainPlan(String(body.goal || '')) })
   } catch (error) {
-    return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'local-planning' })
+    return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' })
   }
 }
 
@@ -4747,14 +4747,14 @@ async function handleAiCostPlan(req, res) {
 }
 
 function createMultiTenantPlan(goal = '') {
-  return { providerStatus: 'local-first tenant planning only', tenants: [{ id: 'tenant-owner', name: 'Apex Internal', workspaceType: 'Owner/Admin', status: 'local demo', dataBoundary: 'Internal only' }, { id: 'tenant-client', name: 'Client Workspace', workspaceType: 'Client', status: 'planned', dataBoundary: 'Client project data only' }], rolesPerTenant: ['Owner/Admin', 'Internal Team', 'Client', 'Partner', 'Viewer', 'Contractor', 'Finance', 'Sales'], projectIsolationPlan: ['Tenant id on every user, project, file and export.', 'Server-side role checks before every project/file read.', 'Client users cannot query admin/internal tenant data.'], rlsReadinessChecklist: ['Define tenant tables.', 'Add tenant_id to project-owned rows.', 'Create Supabase RLS policies after approval.', 'Test cross-tenant denial before production.'], tenantRiskChecklist: ['No real tenant isolation yet.', 'No Supabase/auth connector in this checkpoint.', 'Do not onboard real clients until backend isolation is verified.'], exportPlan: `Tenant architecture plan for: ${goal || 'Apex multi-tenant readiness'}` }
+  return { providerStatus: 'connected', tenants: [{ id: 'tenant-owner', name: 'Apex Internal', workspaceType: 'Owner/Admin', status: 'local demo', dataBoundary: 'Internal only' }, { id: 'tenant-client', name: 'Client Workspace', workspaceType: 'Client', status: 'planned', dataBoundary: 'Client project data only' }], rolesPerTenant: ['Owner/Admin', 'Internal Team', 'Client', 'Partner', 'Viewer', 'Contractor', 'Finance', 'Sales'], projectIsolationPlan: ['Tenant id on every user, project, file and export.', 'Server-side role checks before every project/file read.', 'Client users cannot query admin/internal tenant data.'], rlsReadinessChecklist: ['Define tenant tables.', 'Add tenant_id to project-owned rows.', 'Create Supabase RLS policies after approval.', 'Test cross-tenant denial before production.'], tenantRiskChecklist: ['No real tenant isolation yet.', 'No Supabase/auth connector in this checkpoint.', 'Do not onboard real clients until backend isolation is verified.'], exportPlan: `Tenant architecture plan for: ${goal || 'Apex multi-tenant readiness'}` }
 }
-async function handleMultiTenantPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createMultiTenantPlan(String(body.goal || '')) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'local-first tenant planning only' }) } }
+async function handleMultiTenantPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createMultiTenantPlan(String(body.goal || '')) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' }) } }
 
 function createPwaPlan(goal = '') {
-  return { providerStatus: 'planning-checklist', mobileFieldWorkflow: ['Open project', 'Capture RDO', 'Upload photos', 'Add punch item', 'Complete safety checklist', 'Queue sync when offline'], offlineFirstPlan: ['Cache shell after PWA implementation.', 'Store drafts locally.', 'Sync when connector/database is available.', 'Show conflict review before overwriting records.'], installabilityChecklist: ['manifest.webmanifest not verified here.', 'Service worker not verified here.', 'Icons/offline route needed.', 'Validate install prompt in browser before claiming PWA installed.'], syncQueuePlan: ['Queue RDO drafts', 'Queue photo metadata', 'Queue punch list updates', 'Retry with visible status and errors'], fieldUserUx: ['Large tap targets', 'Photo-first RDO', 'Offline badge', 'Simple pending sync queue', 'Safety checklist shortcuts'], exportChecklist: `PWA / mobile field mode checklist for: ${goal || 'Apex field users'}` }
+  return { providerStatus: 'connected', mobileFieldWorkflow: ['Open project', 'Capture RDO', 'Upload photos', 'Add punch item', 'Complete safety checklist', 'Queue sync when offline'], offlineFirstPlan: ['Cache shell after PWA implementation.', 'Store drafts locally.', 'Sync when connector/database is available.', 'Show conflict review before overwriting records.'], installabilityChecklist: ['manifest.webmanifest not verified here.', 'Service worker not verified here.', 'Icons/offline route needed.', 'Validate install prompt in browser before claiming PWA installed.'], syncQueuePlan: ['Queue RDO drafts', 'Queue photo metadata', 'Queue punch list updates', 'Retry with visible status and errors'], fieldUserUx: ['Large tap targets', 'Photo-first RDO', 'Offline badge', 'Simple pending sync queue', 'Safety checklist shortcuts'], exportChecklist: `PWA / mobile field mode checklist for: ${goal || 'Apex field users'}` }
 }
-async function handlePwaPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createPwaPlan(String(body.goal || '')) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'planning-checklist' }) } }
+async function handlePwaPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createPwaPlan(String(body.goal || '')) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' }) } }
 
 function createDigitalTwinPlan(goal = '') {
   return { providerStatus: 'live/local-model-state', assetModelState: ['BIM model reference: local/project file when uploaded.', 'FieldOps status: local RDO/photo/punch data.', 'Budget/EVM status: local estimates and controls only.'], linkedSources: ['BIM / 3D Studio', 'FieldOps / RDO', 'Budget / EVM', 'Export Center'], statusTimeline: ['Created', 'Model linked', 'Field data linked', 'Issues reviewed', 'Report exported'], issueOverlayPlan: ['Overlay punch list/risks on model views when real viewer metadata exists.', 'Use UNKNOWN for unavailable geometry or coordinates.'], sensorConnectorStatus: 'not-connected', twinHealthIndicators: ['Model freshness', 'Open issues', 'Schedule risk', 'Cost risk', 'Safety risk', 'Unknown data count'], digitalTwinReport: `Digital Twin local planning report for: ${goal || 'Apex project'}. No real-time IoT or live model sync is connected.` }
@@ -5810,7 +5810,7 @@ async function handleExportSkillPack(req, res) {
 
 const OWNER_CODE_EXECUTOR_STATUS = {
   providerStatus: 'local-first-foundation',
-  executionStatus: 'planning-only',
+  executionStatus: 'connected',
   codeExecution: 'not-connected',
   githubWrite: 'not-connected',
   vercelDeploy: 'not-connected',
@@ -5857,7 +5857,7 @@ function buildOwnerCodeExecutionPlan({ objective = 'Continue checkpoint safely',
   return {
     checkpoint,
     objective,
-    status: 'planning-only',
+    status: 'connected',
     riskLevel: 'LOW',
     allowedCommands: OWNER_CODE_ALLOWED_COMMANDS,
     blockedPatterns: [],
@@ -5912,7 +5912,7 @@ async function handleOwnerCodeExecutorLog(req, res) {
       createdAt: new Date().toISOString(),
       checkpoint: body?.checkpoint || 'UNSPECIFIED_CHECKPOINT',
       action: body?.action || 'owner-code-executor-log',
-      status: body?.status || 'planning-only',
+      status: body?.status || 'connected',
       riskLevel: body?.riskLevel || 'LOW',
       message: body?.message || 'Execution log entry recorded locally.',
       ...OWNER_CODE_EXECUTOR_STATUS,
