@@ -1812,7 +1812,7 @@ async function handleChat(req, res) {
   try {
     const body = await readJson(req)
     const identityContext = normalizeChatIdentityContext(body.identityContext)
-    const userText = String(body.message || '').slice(0, 12000)
+    let userText = String(body.message || '').slice(0, 12000)
     // H5.0D: action tools hard-override — disabled when APEX_FREE_AGENT=1
     if (!APEX_FREE_AGENT) {
       const _h5ActionTools = new Set(['local_worker.status', 'revit_mcp.status', 'revit_model.status', 'vercel.deploy', 'supabase.migration'])
@@ -2031,6 +2031,12 @@ async function handleChat(req, res) {
       '',
       intentInstruction,
     ].join('\n')
+
+    const statusPattern = /\b(status|verifique|verificar|plataforma|funcionamento|conectado|conector|funcionalidade)\b/i
+    if (statusPattern.test(userText)) {
+      const realStatus = buildProviderStatusContext()
+      userText = `[STATUS REAL DA PLATAFORMA]\n${realStatus}\n\n[PERGUNTA DO USUARIO]\n${userText}`
+    }
 
     const userContent = []
     const userContentText = [
