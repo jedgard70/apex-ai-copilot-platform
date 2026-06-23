@@ -126,12 +126,24 @@ INTERNO
 
 ---
 
+## Diferenciação de Login
+
+| Usuário | O que vê |
+|---------|----------|
+| **Cliente externo** | ClientDashboard: pedidos, faturas, downloads |
+| **Equipe interna** | Plataforma completa: chat, painéis, estúdios |
+| **Owner/Admin** | Tudo + Owner Console + comandos |
+
+✅ Implementado em `306d654` — `isInternalUser` detecta por role ou email @apexglobal.
+
+---
+
 ## O Que Falta Implementar (Prioridade)
 
 | Prioridade | O que fazer | Módulo |
 |-----------|------------|--------|
-| 🔴 Alta | Frontend do dashboard do cliente | ClientDashboard.tsx |
-| 🔴 Alta | Fluxo de aprovação no preview | main.tsx + serviceOrder |
+| ✅ Feito | Frontend do dashboard do cliente | ClientDashboard.tsx `752e644` |
+| ✅ Feito | Fluxo de aprovação + assinatura libera no pagamento | `approve_service_order` tool + webhook `8975444` |
 | 🟡 Média | Notificações automáticas pós-pagamento | Notifications + WhatsApp |
 | 🟡 Média | Controle financeiro (receitas/despesas) | FinancePanel.tsx |
 | 🟢 Baixa | Relatórios gerenciais | Export Center |
