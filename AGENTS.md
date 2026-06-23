@@ -49,7 +49,15 @@ do Owner (jedgard70@gmail.com / Dr. Edgard).
 Isso inclui, mas não se limita a: GEMINI_API_KEY, OPENAI_API_KEY,
 OPENAI_API_KEYROUTER, ANTHROPIC_API_KEY, FAL_KEY, ELEVENLABS_API_KEY,
 SUPABASE_* , VITE_FIREBASE_* , STRIPE_* , AUTHKEY_* , APS_CLIENT_* ,
-REVIT_MCP_* , LOCAL_WORKER_TOKEN, OPENCODE_GO_API_KEY.
+REVIT_MCP_* , LOCAL_WORKER_TOKEN, OPENCODE_GO_API_KEY,
+AI_GATEWAY_API_KEY, TAVILY_API_KEY, CRON_SECRET.
+
+Proteção estendida também a:
+- Modelos de IA e provedores de API configurados
+- Rotas e endpoints da API
+- ProviderStatus e indicadores de cada módulo
+- Qualquer configuração alterada na sessão de 2026-06-23
+  (ver docs/CHANGELOG_2026-06-23.md para lista completa)
 
 Violações: qualquer alteração não autorizada deve ser revertida imediatamente
 e reportada ao Owner. Esta regra tem prioridade máxima sobre qualquer outro
