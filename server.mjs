@@ -4762,6 +4762,18 @@ async function handleKnowledgePlan(req, res) {
   }
 }
 
+async function handleEmbed(req, res) {
+  try {
+    const body = await readJson(req)
+    const text = String(body.text || body.query || '').trim()
+    if (!text) return json(res, 400, { error: 'text is required' })
+    const embedding = await generateEmbedding(text)
+    return json(res, 200, { ok: true, embedding })
+  } catch (error) {
+    return json(res, 500, { error: error.message })
+  }
+}
+
 async function handleKnowledgeBaseInsert(req, res) {
   try {
     const body = await readJson(req)
@@ -6028,6 +6040,10 @@ const server = http.createServer(async (req, res) => {
     handleKnowledgeBaseInsert(req, res)
     return
   }
+  if (req.url === '/api/copilot/embed' && req.method === 'POST') {
+    handleEmbed(req, res)
+    return
+  }
   if (req.url === '/api/copilot/knowledge-plan' && req.method === 'POST') {
     handleKnowledgePlan(req, res)
     return
@@ -6135,6 +6151,11 @@ const server = http.createServer(async (req, res) => {
   }
   if (req.url === '/api/fal/webhook' && req.method === 'POST') {
     const { default: handler } = await import('./api/fal/webhook.mjs')
+    handler(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/provider-status' && req.method === 'GET') {
+    const { default: handler } = await import('./api/copilot/provider-status.mjs')
     handler(req, res)
     return
   }
