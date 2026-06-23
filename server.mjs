@@ -3406,9 +3406,9 @@ function createBusinessPlanPayload({ goal = '', focus = 'all', currency = 'USD' 
   return {
     providerStatus: 'connected',
     modeNotice: localNotice,
-    authStatus: 'connected',
-    databaseStatus: 'connected',
-    paymentProviderStatus: 'connected',
+    authStatus: process.env.VITE_SUPABASE_URL && process.env.VITE_SUPABASE_ANON_KEY ? 'connected' : 'not-configured',
+    databaseStatus: process.env.VITE_SUPABASE_URL && process.env.VITE_SUPABASE_ANON_KEY ? 'connected' : 'not-configured',
+    paymentProviderStatus: process.env.STRIPE_SECRET_KEY ? 'connected' : 'not-configured',
     focus,
     usersRoles: {
       roles: ['Owner/Admin', 'Internal Team', 'Client', 'Partner', 'Viewer', 'Contractor', 'Finance', 'Sales'],
