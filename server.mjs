@@ -1847,16 +1847,6 @@ async function handleChat(req, res) {
       })
     }
 
-    if (
-      isGreetingText(userText) ||
-      isCapabilitiesQuestionText(userText)
-    ) {
-      return chatJson(res, 200, {
-        finalReply: buildChatFallbackReply(userText, identityContext),
-        mode: 'conversation-direct',
-      })
-    }
-
     if (!APEX_FREE_AGENT && isOperatorIntent(userText)) {
       try {
         const operatorResult = await runApexOperator({
