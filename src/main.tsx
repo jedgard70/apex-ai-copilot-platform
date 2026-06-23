@@ -304,6 +304,26 @@ function getProviderLabel(provider: string) {
   return provider || 'OpenAI'
 }
 
+const FAL_CHAT_MODELS = [
+  { id: 'fal-ai/llama-3.3-70b', name: 'LLaMA 3.3 70B (FAL)' },
+  { id: 'fal-ai/mistral-large', name: 'Mistral Large (FAL)' },
+]
+
+const ANTHROPIC_MODELS = [
+  { id: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6' },
+  { id: 'claude-3.5-haiku', name: 'Claude 3.5 Haiku' },
+]
+
+const OPENCODE_GO_MODELS = [
+  { id: 'go-code', name: 'Go Code' },
+  { id: 'go-reasoning', name: 'Go Reasoning' },
+]
+
+const ELEVENLABS_MODELS = [
+  { id: 'eleven_multilingual_v2', name: 'Eleven Multilingual v2' },
+  { id: 'eleven_turbo_v2_5', name: 'Eleven Turbo v2.5' },
+]
+
 function buildStaticModelCatalog(): ModelOption[] {
   return [
     ...INTERACTION_MODELS.map(model => ({
@@ -322,6 +342,30 @@ function buildStaticModelCatalog(): ModelOption[] {
       id: composeModelValue('gateway', model.id),
       name: model.name,
       provider: 'gateway',
+      modelId: model.id,
+    })),
+    ...FAL_CHAT_MODELS.map(model => ({
+      id: composeModelValue('fal', model.id),
+      name: model.name,
+      provider: 'fal',
+      modelId: model.id,
+    })),
+    ...ANTHROPIC_MODELS.map(model => ({
+      id: composeModelValue('anthropic', model.id),
+      name: model.name,
+      provider: 'anthropic',
+      modelId: model.id,
+    })),
+    ...OPENCODE_GO_MODELS.map(model => ({
+      id: composeModelValue('opencode', model.id),
+      name: model.name,
+      provider: 'opencode',
+      modelId: model.id,
+    })),
+    ...ELEVENLABS_MODELS.map(model => ({
+      id: composeModelValue('elevenlabs', model.id),
+      name: model.name,
+      provider: 'elevenlabs',
       modelId: model.id,
     })),
   ]
