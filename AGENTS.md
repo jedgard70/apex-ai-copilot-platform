@@ -33,12 +33,6 @@ This file defines the default working contract for coding agents in this reposit
 - Keep `providerStatus` explicit and truthful (`planning-only`, `connector-ready`, etc.).
 - Preserve parity between local runtime (`server.mjs`) and serverless endpoints in `api/copilot/`.
 
-## ⚠️ ENV VAR & PROVIDER CONFIG LOCK
-- **NUNCA** altere, adicione ou remova variáveis de ambiente (`.env.local`, Vercel env, etc.) sem autorização explícita do proprietário (Dr. Edgard).
-- **NUNCA** altere a ordem, prioridade ou roteamento dos provedores de IA (Gemini, OpenRouter, OpenAI, AI Gateway, Anthropic) sem autorização explícita.
-- A ordem vigente é: **1º Gemini → 2º OpenRouter → 3º OpenAI → 4º AI Gateway → 5º Anthropic**.
-- Qualquer mudança nas chaves de API, endpoints ou modelo padrão requer aprovação direta.
-
 ## PR and change rules
 - Keep changes surgical and scoped to the requested task.
 - Reuse existing patterns/helpers before adding new abstractions.
