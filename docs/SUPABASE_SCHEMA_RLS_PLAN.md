@@ -1,5 +1,15 @@
 # Supabase Schema + RLS Plan
 
+> 🚨 REGRA ABSOLUTA — Proteção de Environment Variables
+> Nenhum agente, assistente, skill, ferramenta ou processo automatizado pode
+> alterar, modificar, remover ou sobrescrever variáveis no `.env.local` ou
+> nas Environment Variables do Vercel sem autorização EXPLÍCITA e VERBAL
+> do Owner (jedgard70@gmail.com / Dr. Edgard).
+> 
+> Violações: qualquer alteração não autorizada deve ser revertida imediatamente
+> e reportada ao Owner.
+
+
 Status: CP12A . apply.
 
 Current baseline: `dd7cb9a feat: add multi tenant PWA digital twin knowledge metrics UI`

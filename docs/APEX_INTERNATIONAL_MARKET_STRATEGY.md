@@ -1,5 +1,15 @@
 # Apex International Market Strategy
 
+> 🚨 REGRA ABSOLUTA — Proteção de Environment Variables
+> Nenhum agente, assistente, skill, ferramenta ou processo automatizado pode
+> alterar, modificar, remover ou sobrescrever variáveis no `.env.local` ou
+> nas Environment Variables do Vercel sem autorização EXPLÍCITA e VERBAL
+> do Owner (jedgard70@gmail.com / Dr. Edgard).
+> 
+> Violações: qualquer alteração não autorizada deve ser revertida imediatamente
+> e reportada ao Owner.
+
+
 Status: CP8C integrated into Apex AI Copilot runtime knowledge.
 
 Source: `C:\Users\apexg\Downloads\Venda EUA Edgard .pdf`, extracted during the CP8C PDF update. The earlier CP8C brief was used as the first pass; this version preserves the PDF strategy so the original market-entry vision is not lost.

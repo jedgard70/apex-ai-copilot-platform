@@ -1,5 +1,15 @@
 # Apex Module Validation Tracker
 
+> 🚨 REGRA ABSOLUTA — Proteção de Environment Variables
+> Nenhum agente, assistente, skill, ferramenta ou processo automatizado pode
+> alterar, modificar, remover ou sobrescrever variáveis no `.env.local` ou
+> nas Environment Variables do Vercel sem autorização EXPLÍCITA e VERBAL
+> do Owner (jedgard70@gmail.com / Dr. Edgard).
+> 
+> Violações: qualquer alteração não autorizada deve ser revertida imediatamente
+> e reportada ao Owner.
+
+
 ## Source of truth (do not re-ask)
 
 Use this file as the canonical checkpoint snapshot for module/connector status. The platform is now documented as a consolidated inventory of 34 operational capabilities; the primary runtime modules are all done and live.
