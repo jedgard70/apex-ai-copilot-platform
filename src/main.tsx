@@ -1324,7 +1324,6 @@ function App() {
   const [availableModels, setAvailableModels] = useState<ModelOption[]>([])
   const [modelProvider, setModelProvider] = useState<string>('')
   const [manualModelProvider, setManualModelProvider] = useState<ManualModelProvider>('openrouter')
-  const [manualModelId, setManualModelId] = useState('')
 
   useEffect(() => {
     const loadModels = async () => {
@@ -1412,7 +1411,6 @@ function App() {
     if (provider === 'gateway' || provider === 'openrouter' || provider === 'gemini' || provider === 'gemini-interactions' || provider === 'anthropic' || provider === 'opencode' || provider === 'fal' || provider === 'elevenlabs' || provider === 'firebase') {
       setManualModelProvider(provider)
     }
-    setManualModelId(selectedModelInfo.modelId)
   }, [selectedModelInfo.id, selectedModelInfo.modelId, selectedModelInfo.provider])
 
   useEffect(() => {
@@ -3524,9 +3522,9 @@ function App() {
               </select>
 
               <label style={{ color: 'rgba(150, 164, 195, 0.7)', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginTop: '10px', marginBottom: '6px' }}>
-                API Provider Manual
+                Filtrar por provedor
               </label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '6px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '6px' }}>
                 <select
                   value={manualModelProvider}
                   onChange={e => setManualModelProvider(e.target.value as ManualModelProvider)}
@@ -3550,39 +3548,6 @@ function App() {
                   <option value="elevenlabs">Eleven Labs</option>
                   <option value="firebase">Firebase</option>
                 </select>
-                <input
-                  value={manualModelId}
-                  onChange={e => setManualModelId(e.target.value)}
-                  placeholder="model id"
-                  style={{
-                    background: '#1a233d',
-                    color: '#fff',
-                    border: '1px solid rgba(150, 164, 195, 0.25)',
-                    borderRadius: '6px',
-                    padding: '6px 8px',
-                    fontSize: '11px',
-                    outline: 'none',
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    const value = manualModelId.trim()
-                    if (!value) return
-                    setSelectedModel(composeModelValue(manualModelProvider, value))
-                  }}
-                  style={{
-                    background: 'rgba(74, 144, 226, 0.18)',
-                    color: '#fff',
-                    border: '1px solid rgba(74, 144, 226, 0.35)',
-                    borderRadius: '6px',
-                    padding: '6px 10px',
-                    fontSize: '12px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Use
-                </button>
               </div>
               <div className={`model-runtime-pill ${modelRuntimeState}`} style={{ marginTop: '8px' }}>
                 <span className="runtime-dot" />
