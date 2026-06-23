@@ -87,7 +87,7 @@ function getModelProviderDiagnostics() {
   const apiBaseIsOpenRouter = apiBase.includes('openrouter.ai')
   const openrouterConfigured = Boolean((routerBase.includes('openrouter.ai') && routerKey) || (apiBaseIsOpenRouter && openAiKey))
   const openaiConfigured = Boolean(openAiKey) && !apiBaseIsOpenRouter
-  const gatewayConfigured = Boolean(aiGatewayKey) || openrouterConfigured || openaiConfigured
+  const gatewayConfigured = Boolean(aiGatewayKey)
   const geminiConfigured = Boolean(process.env.GEMINI_API_KEY)
   const interactionsConfigured = Boolean(process.env.GEMINI_API_KEY)
   return {

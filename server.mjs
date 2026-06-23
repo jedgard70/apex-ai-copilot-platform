@@ -142,7 +142,7 @@ function getModelProviderDiagnostics() {
   const apiBaseIsOpenRouter = apiBase.includes('openrouter.ai')
   const openrouterConfigured = Boolean((routerBase.includes('openrouter.ai') && routerKey) || (apiBaseIsOpenRouter && openAiKey))
   const openaiConfigured = Boolean(openAiKey) && !apiBaseIsOpenRouter
-  const gatewayConfigured = Boolean(aiGatewayKey) || openrouterConfigured || openaiConfigured
+  const gatewayConfigured = Boolean(aiGatewayKey)
   const geminiConfigured = Boolean(process.env.GEMINI_API_KEY)
   const interactionsConfigured = Boolean(process.env.GEMINI_API_KEY)
   return {
@@ -2018,26 +2018,38 @@ async function handleChat(req, res) {
     const requestProvider = isGatewayModel ? 'gateway' : modelProvider
 
     if (requestProvider === 'gateway') {
-      try {
-        const gatewayResult = await generateText({
-          model: requestModel,
-          messages: liveAgentMessages,
-          temperature: 0.72,
-          maxOutputTokens: 900,
-        })
-
-        return chatJson(res, 200, {
-          finalReply: sanitizeAssistantReply(gatewayResult.text) || buildChatFallbackReply(userText, identityContext),
-          model: requestModel,
-          usage: gatewayResult.usage,
-          mode: 'live-agent-chat-gateway',
-        })
-      } catch (gatewayError) {
-        console.error('[Gateway Error]:', gatewayError)
-        if (requestModel.startsWith('openai/')) {
-          requestModel = requestModel.replace(/^openai\//, '')
+      const gatewayApiKey = process.env.AI_GATEWAY_API_KEY
+      if (!gatewayApiKey) {
+        console.error('[Gateway] AI_GATEWAY_API_KEY not configured')
+      } else {
+        const gatewayBase = process.env.AI_GATEWAY_API_BASE || 'https://gateway.ai.vercel.ai/v1'
+        try {
+          const gatewayRes = await fetch(`${gatewayBase}/chat/completions`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${gatewayApiKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              model: requestModel,
+              messages: liveAgentMessages,
+              temperature: 0.72,
+              max_tokens: 900,
+            }),
+            signal: AbortSignal.timeout(30000),
+          })
+          if (gatewayRes.ok) {
+            const gatewayData = await gatewayRes.json()
+            const gatewayText = gatewayData?.choices?.[0]?.message?.content || ''
+            if (gatewayText) {
+              return chatJson(res, 200, {
+                finalReply: sanitizeAssistantReply(gatewayText),
+                model: requestModel,
+                mode: 'live-agent-chat-gateway',
+              })
+            }
+          }
+          console.error('[Gateway] HTTP error:', gatewayRes.status)
+        } catch (gatewayError) {
+          console.error('[Gateway Error]:', gatewayError.message || gatewayError)
         }
-        // Continue to provider fallback path instead of returning repetitive local fallback.
       }
     }
 
