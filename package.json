@@ -6,6 +6,8 @@
   "main": "electron-main.cjs",
   "scripts": {
     "dev": "npm run build && node server.mjs",
+    "dev:full": "node scripts/dev-full.mjs",
+    "worker": "node local-worker/server.mjs",
     "electron:dev": "node scripts/start-electron-dev.mjs",
     "electron:build": "npm run build && node node_modules/electron-builder/cli.js",
     "dev:ui": "node node_modules/vite/bin/vite.js --host 0.0.0.0",
@@ -29,6 +31,7 @@
     "@auth0/auth0-react": "^2.19.0",
     "@auth0/nextjs-auth0": "^4.22.0",
     "@genkit-ai/googleai": "^1.28.0",
+    "@google/genai": "^2.9.0",
     "@openrouter/agent": "^0.7.2",
     "@openrouter/sdk": "^0.13.7",
     "@react-three/drei": "^10.7.7",

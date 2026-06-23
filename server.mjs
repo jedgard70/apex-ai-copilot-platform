@@ -19,6 +19,11 @@ import { classifyToolExecutionRequest, routeToolExecution } from './server/agent
 import { defaultTasks } from './server/agent/backgroundTasksConnector.mjs'
 import { buildCodeToolDefinitions, executeCodeToolCall, CODE_TOOL_NAMES } from './server/agent/codeTools.mjs'
 import { renderVideoPayload } from './server/videoRenderPipeline.mjs'
+import {
+  generateWithInteractions,
+  INTERACTION_MODELS,
+  isInteractionModel,
+} from './server/providers/gemini-interactions.mjs'
 
 function normalizeEnvironmentAliases() {
   const aliasPairs = [
@@ -94,6 +99,13 @@ function sanitizeAssistantReply(value) {
 
 function buildStaticModelCatalog() {
   return [
+    ...INTERACTION_MODELS.map(model => ({
+      ...model,
+      provider: 'gemini-interactions',
+      id: composeModelValue('gemini-interactions', model.id),
+      modelId: model.id,
+      name: model.name,
+    })),
     ...DIRECT_GEMINI_MODELS.map(model => ({
       ...model,
       provider: 'gemini',
@@ -121,13 +133,15 @@ function getModelProviderDiagnostics() {
   const openrouterConfigured = Boolean((routerBase.includes('openrouter.ai') && routerKey) || (apiBaseIsOpenRouter && openAiKey))
   const openaiConfigured = Boolean(openAiKey) && !apiBaseIsOpenRouter
   const gatewayConfigured = Boolean(aiGatewayKey) || openrouterConfigured || openaiConfigured
-  const geminiConfigured = openrouterConfigured
+  const geminiConfigured = Boolean(process.env.GEMINI_API_KEY)
+  const interactionsConfigured = Boolean(process.env.GEMINI_API_KEY)
   return {
     openrouterConfigured,
     openaiConfigured,
     aiGatewayConfigured: Boolean(aiGatewayKey),
     gatewayConfigured,
     geminiConfigured,
+    interactionsConfigured,
   }
 }
 
@@ -1772,7 +1786,54 @@ async function handleChat(req, res) {
     const inferredGatewayModel = !modelProvider && model.startsWith('openai/')
     const isGatewayModel = modelProvider === 'gateway' || inferredGatewayModel
     const isGeminiProvider = modelProvider === 'gemini'
+    const isInteractionsProvider = modelProvider === 'gemini-interactions'
     const isDirectGeminiModel = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.0-pro', 'gemini-2.5-flash'].includes(model)
+
+    if (isInteractionsProvider) {
+      const interactionsResult = await generateWithInteractions({
+        model,
+        messages: body.messages || [],
+        systemPrompt: loadRuntimeKnowledge().systemPrompt?.join('\n') || '',
+        conversationId: body.conversationId || body.workspaceContext?.projectId,
+        enableSearch: true,
+        temperature: 0.72,
+        maxOutputTokens: 900,
+      })
+
+      if (interactionsResult.ok) {
+        let replyText = interactionsResult.text
+        if (interactionsResult.citations?.length) {
+          replyText += '\n\nFontes:\n' + interactionsResult.citations.map(c => `- [${c.title}](${c.url})`).join('\n')
+        }
+        return chatJson(res, 200, {
+          finalReply: replyText || buildChatFallbackReply(userText, identityContext),
+          model: model,
+          usage: interactionsResult.usage,
+          mode: 'gemini-interactions',
+          interactionId: interactionsResult.interactionId,
+          providerStatus: interactionsResult.providerStatus,
+        })
+      }
+
+      const result = await runApexOperatorProductionSafe({
+        userMessage: userText,
+        identityContext,
+        workspaceContext: body.workspaceContext || {},
+        repoPath: process.cwd(),
+        permissions: {},
+        productionStatus: collectProductionOperatorStatus(),
+        clientMemory: body.clientMemory || {},
+        messages: Array.isArray(body.messages) ? body.messages : [],
+      })
+
+      return chatJson(res, 200, {
+        finalReply: result.finalReply,
+        memoryPatch: result.memoryPatch || null,
+        mode: 'apex-operator-production-safe',
+        operator: result,
+        confirmation: result.confirmation || null,
+      })
+    }
 
     if (isGeminiProvider && process.env.GEMINI_API_KEY) {
       apiBase = process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta/openai'
@@ -1989,7 +2050,38 @@ async function handleChat(req, res) {
 
     const data = await response.json().catch(() => ({}))
     if (!response.ok) {
-      console.error('[OpenAI Error response]:', response.status, data)
+      console.error('[AI Provider Error response]:', response.status, data)
+
+      if (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_KEYROUTER && requestProvider !== 'openrouter') {
+        const fallbackApiBase = process.env.OPENAI_API_BASEROUTER
+        const fallbackApiKey = process.env.OPENAI_API_KEYROUTER
+        const fallbackModel = model.includes('/') ? model : `openrouter/${model}`
+        const fallbackHeaders = {
+          Authorization: 'Bearer ' + fallbackApiKey,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://apex-ai-copilot-platform.vercel.app',
+          'X-Title': 'Apex AI Copilot (fallback)',
+        }
+        const fallbackPayload = { ...requestPayload, model: fallbackModel }
+        console.error(`[AI Fallback] Trying OpenRouter with model ${fallbackModel}`)
+        const fallbackResponse = await fetch(`${fallbackApiBase}/chat/completions`, {
+          method: 'POST',
+          headers: fallbackHeaders,
+          body: JSON.stringify(fallbackPayload),
+        }).catch(() => null)
+        if (fallbackResponse?.ok) {
+          const fallbackData = await fallbackResponse.json().catch(() => ({}))
+          const fallbackMessage = fallbackData?.choices?.[0]?.message || {}
+          const fallbackReply = sanitizeAssistantReply(fallbackMessage.content) || buildChatFallbackReply(userText, identityContext)
+          return chatJson(res, 200, {
+            finalReply: fallbackReply,
+            model: fallbackModel,
+            mode: 'live-agent-chat-fallback',
+          })
+        }
+        console.error('[AI Fallback] OpenRouter fallback also failed')
+      }
+
       const result = await runApexOperatorProductionSafe({
         userMessage: userText,
         identityContext,
@@ -2241,23 +2333,65 @@ async function handleImageEditPlan(req, res) {
 async function handleGenerateImage(req, res) {
   try {
     const apiKey = process.env.OPENAI_API_KEY
-    if (!apiKey) {
+    const falKey = process.env.FAL_KEY || process.env.FAL_API_KEY
+    if (!apiKey && !falKey) {
       return json(res, 200, {
         providerStatus: 'not-connected',
-        message: 'real connector not available yet: OPENAI_API_KEY is not configured.',
+        message: 'Nenhum provedor configurado. Configure OPENAI_API_KEY ou FAL_KEY.',
       })
     }
-    const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
 
     const body = await readJson(req)
     const prompt = String(body.prompt || '').trim()
     const mode = String(body.mode || 'text-to-image')
     const file = body.file || {}
-    const sourceImage = parseDataUrl(body.sourceImageDataUrl)
+    const sourceImageDataUrl = body.sourceImageDataUrl
     const negativePrompt = String(body.negativePrompt || '').trim()
     const lockBoundaries = body.lockBoundaries === true
     const preserveLabels = body.preserveLabels !== false
     const noInventedAreas = body.noInventedAreas !== false
+
+    if (!apiKey && falKey) {
+      const isImageToImage = mode === 'preserve-layout' || mode === 'image-to-image'
+      const endpoint = isImageToImage ? 'fal-ai/flux/dev/image-to-image' : 'fal-ai/flux/schnell'
+      const falPayload = { prompt, num_inference_steps: isImageToImage ? 28 : 4 }
+      if (isImageToImage && sourceImageDataUrl) falPayload.image_url = sourceImageDataUrl
+      if (isImageToImage) falPayload.strength = 0.85
+      if (negativePrompt) falPayload.negative_prompt = negativePrompt
+      falPayload.image_size = body.imageSize || body.outputType || '1024x1024'
+
+      try {
+        const falRes = await fetch(`https://fal.run/${endpoint}`, {
+          method: 'POST',
+          headers: { Authorization: `Key ${falKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(falPayload),
+          signal: AbortSignal.timeout(60000),
+        })
+        if (!falRes.ok) {
+          const errText = await falRes.text().catch(() => '')
+          return json(res, 200, { providerStatus: 'error', message: `FAL ${falRes.status}: ${errText.slice(0, 200)}` })
+        }
+        const falData = await falRes.json()
+        const images = Array.isArray(falData.images) ? falData.images.map(img => ({
+          imageUrl: img.url || img.image_url,
+          image: undefined,
+        })).filter(img => img.imageUrl) : []
+        return json(res, 200, {
+          providerStatus: 'connected',
+          provider: 'fal.ai',
+          images,
+          imageUrl: images[0]?.imageUrl || null,
+          image: undefined,
+          model: endpoint.split('/').slice(-1)[0],
+          mode,
+        })
+      } catch (falErr) {
+        return json(res, 200, { providerStatus: 'error', message: `FAL: ${falErr.message || falErr}` })
+      }
+    }
+    const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
+
+    const sourceImage = parseDataUrl(body.sourceImageDataUrl)
     const referenceMode = String(body.referenceMode || 'original')
     const revisionConstraints = Array.isArray(body.revisionConstraints)
       ? body.revisionConstraints.map(item => String(item).slice(0, 600)).filter(Boolean).slice(0, 20)
@@ -5935,6 +6069,21 @@ const server = http.createServer(async (req, res) => {
   }
   if (req.url === "/api/revit/mcp" && req.method === "POST") {
     const { default: handler } = await import("./api/revit/mcp.mjs")
+    handler(req, res)
+    return
+  }
+  if (req.url === '/api/fal/models' && req.method === 'GET') {
+    const { default: handler } = await import('./api/fal/models.mjs')
+    handler(req, res)
+    return
+  }
+  if (req.url?.startsWith('/api/fal/webhook-status') && req.method === 'GET') {
+    const { default: handler } = await import('./api/fal/webhook-status.mjs')
+    handler(req, res)
+    return
+  }
+  if (req.url === '/api/fal/webhook' && req.method === 'POST') {
+    const { default: handler } = await import('./api/fal/webhook.mjs')
     handler(req, res)
     return
   }
