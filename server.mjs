@@ -2295,7 +2295,7 @@ async function handleModelsList(req, res) {
     }
 
     if (process.env.GEMINI_API_KEY) {
-      await fetchModels(`https://generativelanguage.googleapis.com/v1/models?key=${process.env.GEMINI_API_KEY}`, {}, 'gemini', 'name', 'displayName', 'models')
+      await fetchModels('https://generativelanguage.googleapis.com/v1/models', { 'x-goog-api-key': process.env.GEMINI_API_KEY }, 'gemini', 'name', 'displayName', 'models')
     }
     if (process.env.ELEVENLABS_API_KEY) {
       await fetchModels('https://api.elevenlabs.io/v1/models', { 'xi-api-key': process.env.ELEVENLABS_API_KEY }, 'elevenlabs', 'model_id', 'name', null)
