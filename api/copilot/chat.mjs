@@ -2027,10 +2027,10 @@ export default async function handler(req, res) {
     const requestPayload = {
       model: finalModel,
       messages: liveAgentMessages,
-      tools: buildLiveAgentToolDefinitions(),
-      tool_choice: 'auto',
+      tools: isGeminiProvider ? undefined : buildLiveAgentToolDefinitions(),
+      tool_choice: isGeminiProvider ? undefined : 'auto',
       temperature: 0.72,
-      frequency_penalty: 0.2,
+      frequency_penalty: isGeminiProvider ? undefined : 0.2,
       max_tokens: 900,
     }
 
