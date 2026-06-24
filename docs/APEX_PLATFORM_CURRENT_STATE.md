@@ -67,6 +67,7 @@ do Owner (`jedgard70@gmail.com` / Dr. Edgard).
 
 Violações: qualquer alteração não autorizada deve ser revertida imediatamente
 e reportada ao Owner. Esta regra está documentada em:
+
 - `AGENTS.md` (regra absoluta)
 - `.env.local` (cabeçalho de proteção)
 - `server.mjs` (cabeçalho de proteção no topo)
