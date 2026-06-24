@@ -2636,7 +2636,7 @@ function App() {
     }
     if (shouldOpenAps) {
       closeOtherPanels('aps')
-      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o conector Autodesk Platform Services ao lado. Verifique o status live e obtenha um token 2-legged direto do servidor.' }])
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Conector Autodesk Platform Services disponível. Token 2-legged pode ser obtido via API.' }])
       setApsOpen(true)
       setInput('')
       return
