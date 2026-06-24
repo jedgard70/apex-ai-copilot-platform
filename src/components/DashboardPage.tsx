@@ -24,9 +24,29 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const [offline, setOffline] = useState(false)
 
   useEffect(() => {
-    fetch('/api/copilot/status')
+    fetch('/api/copilot/provider-status')
       .then(r => r.json())
-      .then(d => { if (d.ok) { setStatus(d); setOffline(false) } else setOffline(true) })
+      .then(d => {
+        if (d?.providers) {
+          // Convert provider-status format to Dashboard format
+          const list: Record<string, boolean> = {}
+          for (const p of d.providers) {
+            const key = p.id === 'ai-gateway' || p.id === 'gateway' ? 'gateway' : p.id
+            list[key] = p.status === 'ok' || p.status === 'warning'
+          }
+          const active = Object.values(list).filter(Boolean).length
+          setStatus({
+            ok: true,
+            git: { sha: 'live', branch: 'main' },
+            providers: { total: 8, active, list },
+            modelRuntime: {},
+            timestamp: d.checkedAt || new Date().toISOString(),
+          })
+          setOffline(false)
+        } else {
+          setOffline(true)
+        }
+      })
       .catch(() => setOffline(true))
       .finally(() => setLoading(false))
   }, [])
