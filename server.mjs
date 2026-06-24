@@ -6854,6 +6854,13 @@ const server = http.createServer(async (req, res) => {
     return
   }
 
+  // ── Workflow Tasks API (ACIP) ──────────────────────────────────────────────────
+  if (req.url?.startsWith('/api/workflow/') && ['GET', 'POST', 'PATCH'].includes(req.method)) {
+    const { default: handler } = await import('./api/workflow/index.mjs')
+    handler(req, res)
+    return
+  }
+
   // ── Pipeline Status API ───────────────────────────────────────────────────────
   if (req.url === '/api/pipeline/active' && req.method === 'GET') {
     const ps = await import('./server/service/pipelineStatus.mjs')
