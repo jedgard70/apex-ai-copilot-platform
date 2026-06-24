@@ -735,9 +735,9 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, zIndex: 9000,
+      width: '100%', height: '100%',
       background: D.bg, display: 'flex', flexDirection: 'column',
-      fontFamily: "'Inter', sans-serif", color: D.onSurface,
+      fontFamily: "'Inter', sans-serif", color: D.onSurface, overflow: 'hidden',
     }}>
       {/* ── Top App Bar ─────────────────────────────────────────── */}
       <header style={{

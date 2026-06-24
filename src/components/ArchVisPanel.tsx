@@ -519,8 +519,8 @@ export function ArchVisPanel({ source, output, conversationContext, revisionCons
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, zIndex: 9000,
-      background: T.bg, display: 'flex', flexDirection: 'column', fontFamily: "'Inter', sans-serif",
+      width: '100%', height: '100%',
+      background: T.bg, display: 'flex', flexDirection: 'column', fontFamily: "'Inter', sans-serif", overflow: 'hidden',
     }}>
       {/* ── Top App Bar ─────────────────────────────────────────── */}
       <header style={{
