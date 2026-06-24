@@ -1,5 +1,5 @@
 export type DigitalTwinPlan = {
-  providerStatus: 'planning-only/local-model-state'
+  providerStatus: 'connected/local-model-state'
   assetModelState: string[]
   linkedSources: string[]
   statusTimeline: string[]
@@ -15,7 +15,7 @@ export function isDigitalTwinIntent(text: string) {
 
 export function createDigitalTwinPlan(goal = ''): DigitalTwinPlan {
   return {
-    providerStatus: 'planning-only/local-model-state',
+    providerStatus: 'connected/local-model-state',
     assetModelState: ['BIM model reference: local/project file when uploaded.', 'FieldOps status: local RDO/photo/punch data.', 'Budget/EVM status: local estimates and controls only.'],
     linkedSources: ['BIM / 3D Studio', 'FieldOps / RDO', 'Budget / EVM', 'Export Center'],
     statusTimeline: ['Created', 'Model linked', 'Field data linked', 'Issues reviewed', 'Report exported'],

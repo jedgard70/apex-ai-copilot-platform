@@ -47,7 +47,7 @@ export type ExecutionLogEntry = {
 
 export const OWNER_CODE_EXECUTOR_STATUS = {
   providerStatus: "local-first-foundation",
-  executionStatus: "planning-only",
+  executionStatus: "ready-for-owner-approval",
   codeExecution: "not-connected",
   githubWrite: "not-connected",
   vercelDeploy: "not-connected",
@@ -129,7 +129,7 @@ export function buildExecutionPlan(input: ExecutionPlanInput): ExecutionPlan {
   return {
     checkpoint,
     objective: input.objective,
-    status: "planning-only",
+    status: "ready-for-owner-approval",
     riskLevel: "LOW",
     allowedCommands: [...ALLOWED_COMMANDS],
     blockedPatterns: [],
