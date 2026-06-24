@@ -21,133 +21,46 @@
 export function getProviderChain(options = {}) {
   const chain = []
 
-  // 1. Gemini (direct) — free, 1M tokens/min
-  const geminiKey = (process.env.GEMINI_API_KEY || '').trim()
-  if (geminiKey) {
-    chain.push({
-      name: 'gemini',
-      baseUrl: process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta/openai',
-      apiKey: geminiKey,
-      model: 'gemini-2.0-flash',
-      label: 'Gemini (Free)',
-    })
-  }
-
-  // 2. OpenRouter FREE — Llama 3.3 70B, Qwen3, Nemotron (grátis)
+  // 1. OpenRouter — TODOS os modelos numa API só
   const orKey = (process.env.OPENAI_API_KEYROUTER || process.env.OPENAI_API_KEY || '').trim()
   if (orKey) {
-    const orFreeBase = (process.env.OPENAI_API_BASEROUTER || process.env.OPENAI_API_BASE || 'https://openrouter.ai/api/v1').trim()
-    chain.push({
-      name: 'openrouter-free',
-      baseUrl: orFreeBase,
-      apiKey: orKey,
-      model: 'meta-llama/llama-3.3-70b-instruct:free',
-      label: 'OpenRouter Free (Llama 3.3)',
-    })
-    chain.push({
-      name: 'openrouter-free',
-      baseUrl: orFreeBase,
-      apiKey: orKey,
-      model: 'qwen/qwen3-next-80b-a3b:free',
-      label: 'OpenRouter Free (Qwen3)',
-    })
-  }
-
-  // 3. OpenRouter PAID — seus créditos pagos
-  const orBase = (process.env.OPENAI_API_BASEROUTER || '').trim()
-  if (orBase && orBase.includes('openrouter.ai') && orKey) {
-    chain.push({
-      name: 'openrouter',
-      baseUrl: orBase,
-      apiKey: orKey,
-      model: 'openai/gpt-4o-mini',
-      label: 'OpenRouter (Pago)',
-    })
-  }
-  if (!chain.some(p => p.name === 'openrouter')) {
-    const apiBase = (process.env.OPENAI_API_BASE || '').trim()
-    if (apiBase && apiBase.includes('openrouter.ai') && orKey) {
-      chain.push({
-        name: 'openrouter',
-        baseUrl: apiBase,
-        apiKey: orKey,
-        model: 'openai/gpt-4o-mini',
-        label: 'OpenRouter (Pago)',
-      })
+    const orBase = (process.env.OPENAI_API_BASEROUTER || process.env.OPENAI_API_BASE || 'https://openrouter.ai/api/v1').trim()
+    if (orBase.includes('openrouter.ai')) {
+      chain.push({ name: 'openrouter', baseUrl: orBase, apiKey: orKey, model: 'openai/gpt-4o-mini', label: 'OpenRouter' })
     }
   }
 
-  // 4. OpenCode Go — assinatura US$10/mês
+  // 2. Gemini (direct) — free
+  const geminiKey = (process.env.GEMINI_API_KEY || '').trim()
+  if (geminiKey) {
+    chain.push({ name: 'gemini', baseUrl: process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta/openai', apiKey: geminiKey, model: 'gemini-3.1-flash-lite', label: 'Gemini Free' })
+  }
+
+  // 3. OpenCode Go — US$10/mês
   const ocKey = (process.env.OPENCODE_GO_API_KEY || '').trim()
   if (ocKey) {
-    chain.push({
-      name: 'opencode',
-      baseUrl: 'https://opencode.ai/zen/go/v1',
-      apiKey: ocKey,
-      model: 'deepseek-v4-flash',
-      label: 'OpenCode Go (DeepSeek V4)',
-    })
+    chain.push({ name: 'opencode', baseUrl: 'https://opencode.ai/zen/go/v1', apiKey: ocKey, model: 'deepseek-v4-flash', label: 'OpenCode Go' })
   }
 
-  // 4. FAL.ai — pago mensal
+  // 4. FAL.ai — créditos
   const falKey = (process.env.FAL_KEY || process.env.FAL_API_KEY || '').trim()
   if (falKey) {
-    chain.push({
-      name: 'fal',
-      baseUrl: 'https://api.fal.ai/v1',
-      apiKey: falKey,
-      model: 'fal-ai/mistral-large',
-      label: 'FAL.ai',
-    })
+    chain.push({ name: 'fal', baseUrl: 'https://api.fal.ai/v1', apiKey: falKey, model: 'fal-ai/mistral-large', label: 'FAL.ai' })
   }
 
-  // 5. DeepSeek via OpenRouter — barato/gratuito
-  if (chain.some(p => p.name === 'openrouter')) {
-    const or = chain.find(p => p.name === 'openrouter')
-    chain.push({
-      name: 'deepseek',
-      baseUrl: or.baseUrl,
-      apiKey: or.apiKey,
-      model: 'deepseek/deepseek-chat',
-      label: 'DeepSeek',
-    })
+  // 5. OpenAI direct (fallback se OpenRouter não configurado)
+  if (!chain.some(p => p.name === 'openrouter')) {
+    const openaiKey = (process.env.OPENAI_API_KEY || '').trim()
+    const openaiBase = (process.env.OPENAI_API_BASE || 'https://api.openai.com/v1').trim()
+    if (openaiKey && !openaiBase.includes('openrouter.ai')) {
+      chain.push({ name: 'openai', baseUrl: openaiBase, apiKey: openaiKey, model: 'gpt-4o-mini', label: 'OpenAI' })
+    }
   }
 
-  // 6. Anthropic (direct) — pago
-  const anthKey = (process.env.ANTHROPIC_API_KEY || '').trim()
-  if (anthKey) {
-    chain.push({
-      name: 'anthropic',
-      baseUrl: process.env.ANTHROPIC_API_BASE || 'https://api.anthropic.com/v1',
-      apiKey: anthKey,
-      model: 'claude-sonnet-4-6',
-      label: 'Anthropic',
-    })
-  }
-
-  // 7. OpenAI (direct) — pago
-  const openaiKey = (process.env.OPENAI_API_KEY || '').trim()
-  const openaiBase = (process.env.OPENAI_API_BASE || 'https://api.openai.com/v1').trim()
-  if (openaiKey && !openaiBase.includes('openrouter.ai') && !openaiBase.includes('generativelanguage') && !openaiBase.includes('anthropic')) {
-    chain.push({
-      name: 'openai',
-      baseUrl: openaiBase,
-      apiKey: openaiKey,
-      model: 'gpt-4o-mini',
-      label: 'OpenAI',
-    })
-  }
-
-  // 8. AI Gateway — último recurso
+  // 6. AI Gateway — último recurso
   const gwKey = (process.env.AI_GATEWAY_API_KEY || '').trim()
   if (gwKey) {
-    chain.push({
-      name: 'gateway',
-      baseUrl: process.env.AI_GATEWAY_API_BASE || 'https://gateway.ai.vercel.ai/v1',
-      apiKey: gwKey,
-      model: 'openai/gpt-4o-mini',
-      label: 'AI Gateway',
-    })
+    chain.push({ name: 'gateway', baseUrl: process.env.AI_GATEWAY_API_BASE || 'https://gateway.ai.vercel.ai/v1', apiKey: gwKey, model: 'openai/gpt-4o-mini', label: 'AI Gateway' })
   }
 
   return chain
