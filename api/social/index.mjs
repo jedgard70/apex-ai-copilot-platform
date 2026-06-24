@@ -17,6 +17,7 @@ export default async function handler(req, res) {
     const body = req.method === 'POST' ? (typeof req.body === 'object' ? req.body : JSON.parse(req.body || '{}')) : {}
     const path = req.url?.split('?')[0] || ''
     const mod = await import('../../server/service/socialMedia.mjs')
+    const pipeline = await import('../../server/service/pipelineStatus.mjs')
 
     // POST /api/social/campaign
     if (path === '/api/social/campaign' && req.method === 'POST') {
@@ -46,10 +47,17 @@ export default async function handler(req, res) {
       const campaign = mod.getCampaign(id)
       if (!campaign) return res.status(404).json({ error: 'Campanha nao encontrada' })
 
+      // Criar pipeline task para tracking em tempo real
+      const task = pipeline.createTask('generate-campaign', { campaignId: id, product: campaign.product }, `Gerando campanha: ${campaign.product}`)
+
       const falKey = process.env.FAL_KEY || process.env.FAL_API_KEY
       if (!falKey) {
+        pipeline.updateStep(task.id, 'FAL_KEY nao configurada, usando placeholders', 'running')
+        await new Promise(r => setTimeout(r, 500))
+        pipeline.completeTask(task.id, 'Placeholder gerado (sem FAL)')
         return res.status(200).json({
           providerStatus: 'connected',
+          pipelineTaskId: task.id,
           message: 'FAL_KEY nao configurada. Gerando conteudo placeholder.',
           content: {
             images: [
@@ -79,10 +87,16 @@ export default async function handler(req, res) {
 
       // Gerar com FAL
       try {
-        const result = await mod.generateCampaignContent(id, falKey)
-        return res.status(200).json({ providerStatus: 'connected', content: result })
+        pipeline.updateStep(task.id, 'Gerando imagens com FAL.ai...', 'running')
+        const result = await mod.generateCampaignContent(id, falKey, task.id)
+        return res.status(200).json({
+          providerStatus: 'connected',
+          pipelineTaskId: task.id,
+          content: result,
+        })
       } catch (genErr) {
-        return res.status(200).json({ providerStatus: 'error', message: genErr.message })
+        pipeline.failTask(task.id, genErr.message)
+        return res.status(200).json({ providerStatus: 'error', pipelineTaskId: task.id, message: genErr.message })
       }
     }
 

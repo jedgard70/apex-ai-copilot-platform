@@ -7006,6 +7006,40 @@ const server = http.createServer(async (req, res) => {
     return
   }
 
+  // ── Social / Marketing API (Vercel-style) ─────────────────────────────────────
+  if (req.url?.startsWith('/api/social/') && ['GET', 'POST', 'DELETE'].includes(req.method)) {
+    const { default: handler } = await import('./api/social/index.mjs')
+    handler(req, res)
+    return
+  }
+
+  // ── Pipeline Status API ───────────────────────────────────────────────────────
+  if (req.url === '/api/pipeline/active' && req.method === 'GET') {
+    const ps = await import('./server/service/pipelineStatus.mjs')
+    const tasks = ps.listActiveTasks()
+    const brief = ps.getBriefStatus()
+    return json(res, 200, { providerStatus: 'connected', tasks, brief })
+  }
+  if (req.url?.startsWith('/api/pipeline/task/') && req.method === 'GET') {
+    const id = req.url.replace('/api/pipeline/task/', '').split('?')[0]
+    if (!id) return json(res, 400, { error: 'Missing task id' })
+    const ps = await import('./server/service/pipelineStatus.mjs')
+    const task = ps.getTask(id)
+    if (!task) return json(res, 404, { error: 'Task not found' })
+    return json(res, 200, { providerStatus: 'connected', task })
+  }
+  if (req.url === '/api/pipeline/recent' && req.method === 'GET') {
+    const ps = await import('./server/service/pipelineStatus.mjs')
+    const tasks = ps.listRecentTasks()
+    const brief = ps.getBriefStatus()
+    return json(res, 200, { providerStatus: 'connected', tasks, brief })
+  }
+  if (req.url === '/api/pipeline/brief' && req.method === 'GET') {
+    const ps = await import('./server/service/pipelineStatus.mjs')
+    const brief = ps.getBriefStatus()
+    return json(res, 200, { providerStatus: 'connected', brief })
+  }
+
   serveStatic(req, res)
   } catch (error) {
     const normalized = captureServerException(error, {

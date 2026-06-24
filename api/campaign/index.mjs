@@ -9,6 +9,7 @@ export default async function handler(req, res) {
     const body = (req.method === 'POST') ? (typeof req.body === 'object' ? req.body : JSON.parse(req.body || '{}')) : {}
     const path = req.url?.split('?')[0] || ''
     const mod = await import('../../server/service/socialMedia.mjs')
+    const pipeline = await import('../../server/service/pipelineStatus.mjs')
 
     if (path === '/api/campaign/create' && req.method === 'POST') {
       const c = mod.createCampaign(body)
@@ -23,9 +24,13 @@ export default async function handler(req, res) {
       return res.status(200).json({ providerStatus: 'connected', campaign: c })
     }
     if (path === '/api/campaign/generate' && req.method === 'POST') {
-      const result = await mod.generateCampaignContent(body.id, process.env.FAL_KEY || process.env.FAL_API_KEY)
-      if (result?.error) return res.status(200).json({ providerStatus: 'planning-only', error: result.error })
-      return res.status(200).json({ providerStatus: 'connected', content: result })
+      const task = pipeline.createTask('generate-campaign', { campaignId: body.id }, 'Gerando campanha...')
+      const result = await mod.generateCampaignContent(body.id, process.env.FAL_KEY || process.env.FAL_API_KEY, task.id)
+      if (result?.error) {
+        pipeline.failTask(task.id, result.error)
+        return res.status(200).json({ providerStatus: 'planning-only', pipelineTaskId: task.id, error: result.error })
+      }
+      return res.status(200).json({ providerStatus: 'connected', pipelineTaskId: task.id, content: result })
     }
     if (path === '/api/campaign/delete' && req.method === 'POST') {
       return res.status(200).json({ providerStatus: 'connected', deleted: mod.deleteCampaign(body.id) })
