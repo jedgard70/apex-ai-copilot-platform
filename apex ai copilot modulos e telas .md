@@ -1,7 +1,7 @@
 apex ai copilot
 
 Prompt para Google Stitch — Apex AI Copilot Platform
-Crie a interface completa do Apex AI Copilot Platform, uma plataforma SaaS 
+Crie a interface completa do Apex AI Copilot Platform, uma plataforma SaaS
 de inteligência artificial para construção civil, arquitetura e negócios.
 
 A plataforma tem os seguintes módulos e telas:
@@ -45,7 +45,7 @@ SISTEMA GERAL
 DESIGN E VISUALIZAÇÃO
 ═══════════════════════════════════════════════════
 
-6. ARCHVIS STUDIO (tela cheia)
+1. ARCHVIS STUDIO (tela cheia)
    - Sidebar esquerda: Dashboard / Rendering Editor / Material Library / Results Gallery
    - Imagem original de referência (upload)
    - Preview da geração atual (IA)
@@ -53,18 +53,18 @@ DESIGN E VISUALIZAÇÃO
    - Editor de prompt ajustável
    - Negative prompt editor
    - Painel direito de controles:
-     * Modo: Preserve exact plan / Creative redesign
-     * Prompt style (humanized floor plan, photorealistic facade, etc.)
-     * Camera preset (Top-Down 2D, Eye-level, Cinematic orbit, etc.)
-     * Checkboxes: Lock boundaries, Preserve labels, No invented areas
-     * Slider Fidelity / Fidelidade
-     * Output count (1 a 4 imagens)
-     * Reference image (original / geração atual)
-     * Botão Regenerate Image
+     - Modo: Preserve exact plan / Creative redesign
+     - Prompt style (humanized floor plan, photorealistic facade, etc.)
+     - Camera preset (Top-Down 2D, Eye-level, Cinematic orbit, etc.)
+     - Checkboxes: Lock boundaries, Preserve labels, No invented areas
+     - Slider Fidelity / Fidelidade
+     - Output count (1 a 4 imagens)
+     - Reference image (original / geração atual)
+     - Botão Regenerate Image
    - Revision Constraints (lista de correções travadas com ✓)
    - Ações da galeria (usar como referência, download, limpar)
 
-7. DIRECTOR'S CUT STUDIO (tela cheia)
+2. DIRECTOR'S CUT STUDIO (tela cheia)
    - Icon sidebar (64px): Dashboard / Editor / Render / Assets / Review
    - Top bar: "DIRECTOR'S CUT" + nav Storyboard / 3D Workspace / Library
    - Play/Pause, Add Frame, botão AI Generate (cyan)
@@ -72,19 +72,19 @@ DESIGN E VISUALIZAÇÃO
    - Painel Scene Layers (esquerda): lista de layers com tipo, opacidade, blend mode
    - Canvas central: viewport 16:9 com timecode/FPS overlay, zoom, toolbar
    - Painel AI Generation (direita):
-     * AI Prompt textarea
-     * Style Presets: Hyper-Real, Cyberpunk, Cinematic, Architectural, Documentary
-     * Sliders: Intensity, Temperature (gradiente azul→branco→laranja)
-     * Advanced Config (colapsável)
-     * Botão Render Current Shot
+     - AI Prompt textarea
+     - Style Presets: Hyper-Real, Cyberpunk, Cinematic, Architectural, Documentary
+     - Sliders: Intensity, Temperature (gradiente azul→branco→laranja)
+     - Advanced Config (colapsável)
+     - Botão Render Current Shot
    - Timeline multi-track (fundo, 220px):
-     * Track Frames: thumbnails de shots com AI syncing
-     * Track Video: clips coloridos
-     * Track Audio: waveform amarelo
-     * Playhead ciano arrastável
+     - Track Frames: thumbnails de shots com AI syncing
+     - Track Video: clips coloridos
+     - Track Audio: waveform amarelo
+     - Playhead ciano arrastável
    - Library tab: histórico de renders com status e preview
 
-8. BIM / 3D STUDIO
+3. BIM / 3D STUDIO
    - Viewer IFC/3D integrado (WebGL)
    - Painel de elementos BIM (árvore de componentes)
    - Análise técnica com etiquetas: CONFIRMED / ASSUMPTION / UNKNOWN
@@ -96,27 +96,27 @@ DESIGN E VISUALIZAÇÃO
 ORÇAMENTO E DOCUMENTAÇÃO
 ═══════════════════════════════════════════════════
 
-9. BUDGET / QUANTITY STUDIO
+1. BUDGET / QUANTITY STUDIO
    - Importação SINAPI (CSV/XLSX)
    - Tabela de itens com quantidade, preço unitário, total
    - Busca de preços SINAPI por código
    - Exportar proposta PDF
    - Enviar para DirectCut (vídeo de apresentação)
 
-10. CONTRACTS / PERMITS STUDIO
+2. CONTRACTS / PERMITS STUDIO
     - Rascunho de contratos por IA
     - Checklist de documentos e licenças
     - Análise de risco contratual por cláusula
     - Export DOCX + PDF profissional
     - Controle de versões do documento
 
-11. PROJECT PACKAGE PIPELINE
+3. PROJECT PACKAGE PIPELINE
     - Consolida: briefing + orçamento + pesquisa + contratos + cronograma
     - Gera pacote completo do projeto em um clique
     - Resumo executivo gerado por IA
     - Export ZIP com todos os documentos
 
-12. GENERATION HISTORY
+4. GENERATION HISTORY
     - Fila e histórico de todas as gerações (ArchVis, DirectCut, Export)
     - Status em tempo real (em fila / gerando / concluído / erro)
     - Download das saídas
@@ -126,7 +126,7 @@ ORÇAMENTO E DOCUMENTAÇÃO
 OPERAÇÃO E CAMPO
 ═══════════════════════════════════════════════════
 
-13. FIELD OPS / RDO STUDIO
+1. FIELD OPS / RDO STUDIO
     - Diário de Obra (RDO) digital
     - Registro de atividades, pendências, fotos de campo
     - Checklist de segurança e qualidade
@@ -134,13 +134,13 @@ OPERAÇÃO E CAMPO
     - Export RDO em PDF profissional via jsPDF
     - Enviar progresso para DirectCut
 
-14. SUPPLY CHAIN STUDIO
+2. SUPPLY CHAIN STUDIO
     - Cadastro de fornecedores
     - Cotações e comparação de preços
     - Acompanhamento de pedidos de compra
     - Alertas de prazo e estoque
 
-15. NOTIFICATIONS CENTER
+3. NOTIFICATIONS CENTER
     - Central de alertas da obra e do projeto
     - Envio via WhatsApp/SMS (AuthKey)
     - Fila local de notificações
@@ -150,7 +150,7 @@ OPERAÇÃO E CAMPO
 VENDAS E MARKETING
 ═══════════════════════════════════════════════════
 
-16. CAMPAIGN AUTOMATION STUDIO
+1. CAMPAIGN AUTOMATION STUDIO
     - Gerador de hooks, copies e CTAs por IA
     - Storyboard de campanha
     - Variações de anúncio (A/B)
@@ -158,14 +158,14 @@ VENDAS E MARKETING
     - Calendário editorial
     - Enviar para DirectCut (vídeo de campanha)
 
-17. VSL LANDING PAGE
+2. VSL LANDING PAGE
     - Tela pública de vendas (/vsl, /oferta)
     - Vídeo hero com player configurável
     - Barra de urgência com timer
     - CTA rastreado com UTM
     - Integração com Stripe (checkout)
 
-18. CRM / FINANCE / ADMIN
+3. CRM / FINANCE / ADMIN
     - Pipeline de leads e oportunidades
     - Gestão financeira (receitas, despesas)
     - Workspace do cliente (área restrita)
@@ -175,43 +175,43 @@ VENDAS E MARKETING
 INTELIGÊNCIA E EXPANSÃO
 ═══════════════════════════════════════════════════
 
-19. RESEARCH STUDIO
+1. RESEARCH STUDIO
     - Pesquisa web com fontes citadas (Tavily)
     - Análise comparativa de mercado
     - Inteligência competitiva
     - Síntese automática com referências
 
-20. KNOWLEDGE BASE
+2. KNOWLEDGE BASE
     - Índice de conhecimento do projeto
     - Aprovação de itens pelo owner
     - Busca semântica
     - Base de dados de normas e referências
 
-21. COGNITIVE AGENTS
+3. COGNITIVE AGENTS
     - Painel de agentes especializados
     - Agente de BIM, vendas, campo, jurídico, financeiro
     - Orquestração de tarefas entre agentes
     - Log de execução por agente
 
-22. DIGITAL TWIN
+4. DIGITAL TWIN
     - Representação digital do estado operacional da obra
     - Componentes conectados a dados reais
     - Alertas de desvio de projeto
     - Integração com sensores IoT (planejado)
 
-23. AVATAR & VOICE PIPELINE
+5. AVATAR & VOICE PIPELINE
     - Clonagem de voz (ElevenLabs)
     - Geração de avatar para apresentações
     - Pipeline de vídeo com narração personalizada
     - Pack de entrega para campanhas
 
-24. AUTOUPGRADE
+6. AUTOUPGRADE
     - Auditoria automática da plataforma
     - Sugestões de melhorias priorizadas
     - Fila de aprovação pelo owner
     - Execução controlada de upgrades
 
-25. AI COST DASHBOARD
+7. AI COST DASHBOARD
     - Breakdown de custo por módulo de IA
     - Estimativas de uso por provedor
     - Alertas de consumo elevado
@@ -221,21 +221,21 @@ INTELIGÊNCIA E EXPANSÃO
 AUTENTICAÇÃO E INFRAESTRUTURA
 ═══════════════════════════════════════════════════
 
-26. AUTH / LOGIN
+1. AUTH / LOGIN
     - Login/signup com Supabase Auth
     - Modo local (demo sem Supabase)
     - Multi-tenant com isolamento por usuário
     - Roles: owner_admin / admin / developer / viewer
 
-27. MULTI-TENANT / PWA
+2. MULTI-TENANT / PWA
     - Isolamento de dados por tenant
     - PWA manifest para instalação mobile
     - Modo offline para campo
     - Sincronização ao voltar online
 
-28. PLATFORM STATUS / PROVIDER KEYS
+3. PLATFORM STATUS / PROVIDER KEYS
     - Status ao vivo de cada provedor pago
-    - Provedores: OpenAI/Gemini, Anthropic, fal.ai, AI Gateway, 
+    - Provedores: OpenAI/Gemini, Anthropic, fal.ai, AI Gateway,
       ElevenLabs, Tavily, Stripe, Supabase, GitHub, AuthKey
     - Saldo real quando disponível
     - Link direto para recarregar cada provedor
@@ -248,6 +248,7 @@ SISTEMA DE DESIGN
 Design dark, profissional, para engenheiros e criadores.
 
 Dois sistemas visuais:
+
 - ARCHVIS STUDIO: dark navy (#0b1326), azul primário (#b4c5ff / #2563eb),
   sidebar 280px, fonte Metropolis + Inter + JetBrains Mono
   
@@ -255,6 +256,7 @@ Dois sistemas visuais:
   roxo (#cf5cff), amarelo (#fed639), icon sidebar 64px, fonte Inter
 
 Elementos comuns:
+
 - Glass panels (backdrop-blur)
 - Progress bars animadas
 - Status badges (OK / Atenção / Recarregar / Erro)
@@ -265,18 +267,14 @@ Elementos comuns:
 - Split layouts (imagem original vs geração)
 Cole esse texto no Stitch e peça as telas que quiser — por exemplo: "crie a tela do BIM Studio", "crie o CRM Dashboard", "crie a tela de Login multi-tenant", etc. O Stitch vai ter contexto completo de toda a plataforma para gerar as interfaces certas.
 
-
 arquivo Stich novo visual
 D:\AI-constr\stitch_apex_ai_design_system
 
-
-ou 
-
+ou
 
 src\lib\contractsKnowledge.ts
 
-
-https://stitch.withgoogle.com/projects/5245843412174667030?pli=1
+<https://stitch.withgoogle.com/projects/5245843412174667030?pli=1>
 
 Apex AI Design System
 Todas as telas que desenvolvemos estão salvas no seu Canvas e no seu FileSystem. Para facilitar sua navegação, acabei de criar o Master Platform Navigator (Mapa da Plataforma), que serve como um diretório centralizado para você localizar e exportar cada interface individualmente.
@@ -292,17 +290,17 @@ Owner Panel: Visão Executiva, Finanças, CRM e Marketing.
 SaaS Infrastructure: Marketplace, Billing, Portal API e Onboarding.
 Precisa de ajuda para encontrar uma funcionalidade específica ou deseja ajustar o zoom de alguma tela agora?
 
-
-
 ## Stitch Instructions
 
 Get the images and code for the following Stitch project's screens:
 
 ## Project
+
 Title: Apex AI Design System
 ID: 5245843412174667030
 
-## Screens:
+## Screens
+
 1. Design System
     ID: asset-stub-assets_86faf86258264d00acf6476dc41f0d5f
 
@@ -321,7 +319,7 @@ ID: 5245843412174667030
 6. Apex AI Copilot - Central Experience
     ID: 468573ae351b426ab5c33e9b19dc881a
 
-7. Image from https://www.apexglobalai.com/apex-global-logo.png
+7. Image from <https://www.apexglobalai.com/apex-global-logo.png>
     ID: e6b1a128b1a6475ca26241b698accffb
 
 8. Design System
@@ -358,10 +356,12 @@ Use a utility like `curl -L` to download the hosted URLs.
 Get the images and code for the following Stitch project's screens:
 
 ## Project
+
 Title: Apex AI Design System
 ID: 5245843412174667030
 
-## Screens:
+## Screens
+
 1. AI Copilot - Advanced Chat Interface
     ID: 2699aa201f6b4474bd14b430a0925c95
 
@@ -408,10 +408,12 @@ Use a utility like `curl -L` to download the hosted URLs.
 Get the images and code for the following Stitch project's screens:
 
 ## Project
+
 Title: Apex AI Design System
 ID: 5245843412174667030
 
-## Screens:
+## Screens
+
 1. Supply Chain Studio - Apex AI Platform
     ID: 57aba0b165f64905ab57196b5104d9a5
 
@@ -450,16 +452,17 @@ ID: 5245843412174667030
 
 Use a utility like `curl -L` to download the hosted URLs.
 
-
 ## Stitch Instructions
 
 Get the images and code for the following Stitch project's screens:
 
 ## Project
+
 Title: Apex AI Design System
 ID: 5245843412174667030
 
-## Screens:
+## Screens
+
 1. Design System
     ID: asset-stub-assets_63a5e32451e9498caab193a3268faf77
 
@@ -488,4 +491,3 @@ ID: 5245843412174667030
     ID: 0a817339ace54eb0b08ec186123fbb50
 
 Use a utility like `curl -L` to download the hosted URLs.
-

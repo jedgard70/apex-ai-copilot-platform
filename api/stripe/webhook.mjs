@@ -86,6 +86,19 @@ export default async function handler(req, res) {
           if (order && order.plan === 'subscription') {
             updateServiceOrderStatus(order.id, 'approved', { deliveredAt: new Date().toISOString() })
           }
+
+          // WhatsApp/SMS notification on payment
+          if (order) {
+            try {
+              const { notifyPaymentConfirmation } = await import('../../server/service/notification.mjs')
+              const clientPhone = order.clientPhone || process.env.AUTHKEY_DEFAULT_MOBILE
+              if (clientPhone) {
+                notifyPaymentConfirmation(order, clientPhone).catch(() => {})
+              }
+            } catch {
+              // notification connector not available
+            }
+          }
         }
         break
       }

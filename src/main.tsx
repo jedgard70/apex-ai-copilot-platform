@@ -1558,7 +1558,7 @@ function App() {
 
     loadModels()
       .then(data => {
-        if (data?.ok && Array.isArray(data.models)) {
+        if (data?.models && Array.isArray(data.models)) {
           const models = data.models.map((model: any) => {
             const split = splitModelValue(model.id)
             return {
@@ -1568,13 +1568,24 @@ function App() {
               modelId: String(model.modelId || split.modelId || model.id),
             }
           })
-          setAvailableModels(models)
+          if (models.length > 0) {
+            setAvailableModels(models)
+          }
           if (data.provider && data.provider !== 'mixed') {
             setModelProvider(String(data.provider))
           }
         }
+        // If API returned empty models, force static catalog
+        if (!data?.models || !Array.isArray(data.models) || !data.models.length) {
+          const staticModels = buildStaticModelCatalog()
+          setAvailableModels(staticModels)
+        }
       })
-      .catch(() => undefined)
+      .catch(() => {
+        // API unreachable — use static catalog immediately
+        const staticModels = buildStaticModelCatalog()
+        setAvailableModels(staticModels)
+      })
   }, [])
 
   useEffect(() => {
@@ -2912,6 +2923,8 @@ function App() {
     }
   }
 
+  const activeFiles = useRef<IntakeFile[]>([])
+
   async function handleFile(file: File) {
     const kind = classifyFile(file)
     const dataUrl = kind === 'image' ? await readFileAsDataUrl(file) : undefined
@@ -2950,7 +2963,13 @@ function App() {
       pageCount,
       dimensions: dataUrl ? await readImageDimensions(dataUrl).catch(() => undefined) : undefined,
     }
-    setActiveFile(intake)
+
+    // Add to active files list
+    const currentFiles = activeFiles.current
+    if (currentFiles.length === 0) {
+      setActiveFile(intake)
+    }
+    activeFiles.current = [...currentFiles, intake]
 
     setSkillUpdateAutoAnalyzeSignal('')
     setSkillUpdateAutoApplyProjectMemory(false)
@@ -4183,7 +4202,12 @@ function App() {
               hidden
               onChange={event => {
                 const files = event.target.files
-                if (files?.length) handleFile(files[0])
+                if (files?.length) {
+                  for (let i = 0; i < Math.min(files.length, 20); i++) {
+                    const f = files[i];
+                    (async () => { await handleFile(f); })();
+                  }
+                }
                 event.currentTarget.value = ''
               }}
             />

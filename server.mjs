@@ -6959,6 +6959,13 @@ const server = http.createServer(async (req, res) => {
     return chatJson(res, 200, { ok: true, client, orders, invoices })
   }
 
+  // ── Finance / Controle Financeiro ──────────────────────────────────────────
+  if (req.url?.startsWith('/api/finance/') && ['GET', 'POST'].includes(req.method)) {
+    const { default: handler } = await import('./api/finance/index.mjs')
+    handler(req, res)
+    return
+  }
+
   serveStatic(req, res)
   } catch (error) {
     const normalized = captureServerException(error, {
