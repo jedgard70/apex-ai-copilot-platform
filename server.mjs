@@ -316,7 +316,7 @@ const APEX_FREE_AGENT = !/^(0|false|off)$/i.test(String(process.env.APEX_FREE_AG
 const supabaseUrl = process.env.VITE_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || ''
 const supabaseClient = (supabaseUrl && supabaseAnonKey) ? createClient(supabaseUrl, supabaseAnonKey) : null
-const localMemoryKnowledgeItems = []
+if (!globalThis.localMemoryKnowledgeItems) globalThis.localMemoryKnowledgeItems = []
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = __dirname
@@ -571,18 +571,26 @@ if (TRUSTED_DOMAINS.includes('apexglobalai.com') || TRUSTED_DOMAINS.includes('*'
 loadEnvLocal()
 normalizeEnvironmentAliases()
 
-function loadEnvLocal() {
-  const envPath = path.join(root, '.env.local')
-  if (!fs.existsSync(envPath)) return
-  const lines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/)
-  for (const line of lines) {
-    if (!line || line.trim().startsWith('#')) continue
-    const match = line.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/)
-    if (!match) continue
-    const [, key, rawValue] = match
-    if (process.env[key]) continue
-    process.env[key] = rawValue.replace(/^["']|["']$/g, '')
+function loadEnvFiles(...paths) {
+  for (const envPath of paths) {
+    if (!fs.existsSync(envPath)) continue
+    const lines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/)
+    for (const line of lines) {
+      if (!line || line.trim().startsWith('#')) continue
+      const match = line.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/)
+      if (!match) continue
+      const [, key, rawValue] = match
+      if (process.env[key]) continue
+      process.env[key] = rawValue.replace(/^["']|["']$/g, '')
+    }
   }
+}
+
+function loadEnvLocal() {
+  loadEnvFiles(
+    path.join(root, '.env.local'),
+    path.join(root, '.env.local.full'),
+  )
 }
 
 function loadRuntimeKnowledge() {

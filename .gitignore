@@ -15,6 +15,7 @@ supabase/.temp/
 dist_electron
 server/service-account.json
 .env.local.backup*
+.env.local.full
 *.backup*
 output.png
 output.mp4
