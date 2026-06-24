@@ -69,6 +69,9 @@ import { ModelTrainingPage } from './components/ModelTrainingPage'
 import { TechnicalDocumentationPage } from './components/TechnicalDocumentationPage'
 import { StockMarketPanel } from './components/StockMarketPanel'
 import { TripPlannerPanel } from './components/TripPlannerPanel'
+import { NRCompliancePanel } from './components/NRCompliancePanel'
+import { AccountingPanel } from './components/AccountingPanel'
+import { AmericanPermitsPanel } from './components/AmericanPermitsPanel'
 import { classifyFile, formatSize, IntakeFile, isVisionReady, readFileAsDataUrl, readImageDimensions } from './lib/fileIntake'
 import { extractPdfText } from './lib/pdfExtractor'
 import {
@@ -1410,6 +1413,9 @@ function App() {
   })
   const [stockOutput, setStockOutput] = useState<boolean>(false)
   const [tripOutput, setTripOutput] = useState<boolean>(false)
+  const [nrOutput, setNrOutput] = useState<boolean>(false)
+  const [accountingOutput, setAccountingOutput] = useState<boolean>(false)
+  const [permitsOutput, setPermitsOutput] = useState<boolean>(false)
   const [campaignAutomationOutput, setCampaignAutomationOutput] = useState<SimpleStudioOutput | null>(() => {
     const stored = initialAppState.campaignAutomationOutput as SimpleStudioOutput | undefined
     return stored || null
@@ -1872,6 +1878,9 @@ function App() {
     setCampaignAutomationOutput(null)
     setStockOutput(false)
     setTripOutput(false)
+    setNrOutput(false)
+    setAccountingOutput(false)
+    setPermitsOutput(false)
     setCopilotExecutionOutput(null)
     setAuthOutput(null)
     setExportCenterOpen(false)
@@ -3115,6 +3124,9 @@ function App() {
     setCampaignAutomationOutput(null)
     setStockOutput(false)
     setTripOutput(false)
+    setNrOutput(false)
+    setAccountingOutput(false)
+    setPermitsOutput(false)
     setCopilotExecutionOutput(null)
     setAuthOutput(null)
     setExportCenterOpen(false)
@@ -3239,6 +3251,9 @@ function App() {
     setCampaignAutomationOutput(null)
     setStockOutput(false)
     setTripOutput(false)
+    setNrOutput(false)
+    setAccountingOutput(false)
+    setPermitsOutput(false)
     setCopilotExecutionOutput(null)
     setAuthOutput(null)
     setArchVisRevisionConstraints([])
@@ -3689,7 +3704,7 @@ function App() {
       )}
     </div>
   )
-  const hasOperationalPanel = archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || evmSchedulerComplianceOutput || supplyChainOutput || notificationsOutput || aiCostOutput || multiTenantOutput || pwaMobileOutput || digitalTwinOutput || knowledgeBaseOutput || projectPackageOutput || generationHistoryOpen || metricsOutput || avatarVoiceOutput || autoupgradeOutput || platformMapOutput || stockOutput || tripOutput || campaignAutomationOutput || exportCenterOpen
+  const hasOperationalPanel = archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || evmSchedulerComplianceOutput || supplyChainOutput || notificationsOutput || aiCostOutput || multiTenantOutput || pwaMobileOutput || digitalTwinOutput || knowledgeBaseOutput || projectPackageOutput || generationHistoryOpen || metricsOutput || avatarVoiceOutput || autoupgradeOutput || platformMapOutput || stockOutput || tripOutput || nrOutput || accountingOutput || permitsOutput || campaignAutomationOutput || exportCenterOpen
   const workspaceClass = hasOperationalPanel ? 'studio-open' : ''
 
   if (isPublicVslRoute) {
@@ -4735,6 +4750,12 @@ function App() {
               </button>
               <button type="button" onClick={() => { setStockOutput(true); setOwnerConsoleOpen(false) }}>Bolsa de Valores</button>
               <button type="button" onClick={() => { setTripOutput(true); setOwnerConsoleOpen(false) }}>Trip Planner</button>
+              <button type="button" onClick={() => { setNrOutput(true); setOwnerConsoleOpen(false) }}>NR CREA/OE</button>
+              <button type="button" onClick={() => { setAccountingOutput(true); setOwnerConsoleOpen(false) }}>Contabilidade CRC</button>
+              <button type="button" onClick={() => { setPermitsOutput(true); setOwnerConsoleOpen(false) }}>American Permits</button>
+              <button type="button" onClick={() => { setNrOutput(true); setOwnerConsoleOpen(false) }}>NR CREA/OE</button>
+              <button type="button" onClick={() => { setAccountingOutput(true); setOwnerConsoleOpen(false) }}>Contabilidade CRC</button>
+              <button type="button" onClick={() => { setPermitsOutput(true); setOwnerConsoleOpen(false) }}>American Permits</button>
               <button type="button" onClick={() => { setPlatformMapOutput({ goal: 'mapa da plataforma', conversationContext: [] }); setOwnerConsoleOpen(false) }}>
                 <Compass size={16} /> Mapa da Plataforma
               </button>
