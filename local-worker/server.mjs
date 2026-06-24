@@ -594,6 +594,337 @@ function buildActionMap() {
         return [{ ok: true, bin: cmd, args: [], tag: 'shell', shell: true }]
       }
     },
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // WINDOWS DIAGNOSTICS & MAINTENANCE
+    // ═══════════════════════════════════════════════════════════════════════
+
+    'system.diag_full': {
+      label: 'Diagnóstico completo do Windows',
+      risk: RISK_CLASS.READ,
+      build: () => {
+        const script = IS_WINDOWS
+          ? `$os = Get-CimInstance Win32_OperatingSystem; $uptime = (Get-Date) - $os.LastBootUpTime; `
+          : ''
+        return [
+          // System info
+          { ...requireTool(IS_WINDOWS ? 'git' : 'node'), tag: 'system-info',
+            bin: IS_WINDOWS ? 'powershell' : 'echo',
+            args: IS_WINDOWS ? [
+              '-ExecutionPolicy', 'Bypass', '-Command', `
+                Write-Host "=== SISTEMA ===";
+                $os = Get-CimInstance Win32_OperatingSystem;
+                $uptime = (Get-Date) - $os.LastBootUpTime;
+                Write-Host ("OS: " + $os.Caption + " Build " + $os.BuildNumber);
+                Write-Host ("Arquitetura: " + $os.OSArchitecture);
+                Write-Host ("Uptime: " + $uptime.Days + "d " + $uptime.Hours + "h " + $uptime.Minutes + "m");
+                Write-Host ("Ultimo boot: " + $os.LastBootUpTime);
+              `
+            ] : ['Sistema: modo diagnóstico não-Windows limitado'],
+            shell: false },
+        ]
+      }
+    },
+
+    'system.diag_cpu_ram': {
+      label: 'Diagnóstico CPU e RAM',
+      risk: RISK_CLASS.READ,
+      build: () => {
+        if (!IS_WINDOWS) return [{ ...requireTool('node'), tag: 'system', bin: 'echo', args: ['Diagnóstico CPU/RAM apenas no Windows'], shell: false }]
+        return [{ ...requireTool('git'), tag: 'cpu-ram', bin: 'powershell', args: [
+          '-ExecutionPolicy', 'Bypass', '-Command', `
+            Write-Host "=== CPU ===";
+            $cpu = Get-CimInstance Win32_Processor | Select-Object -First 1;
+            $cpuLoad = (Get-CimInstance Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average;
+            Write-Host ("Modelo: " + $cpu.Name);
+            Write-Host ("Nucleos: " + $cpu.NumberOfCores + " fisicos / " + $cpu.NumberOfLogicalProcessors + " logicos");
+            Write-Host ("Clock: " + [math]::Round($cpu.MaxClockSpeed/1000,2) + " GHz");
+            Write-Host ("Uso: " + [math]::Round($cpuLoad,1) + "%");
+            Write-Host "";
+            Write-Host "=== RAM ===";
+            $os = Get-CimInstance Win32_OperatingSystem;
+            $totalGB = [math]::Round($os.TotalVisibleMemorySize/1MB, 1);
+            $freeGB = [math]::Round($os.FreePhysicalMemory/1MB, 1);
+            $usedGB = [math]::Round($totalGB - $freeGB, 1);
+            $pctMem = [math]::Round(($usedGB/$totalGB)*100, 1);
+            Write-Host ("Total: " + $totalGB + " GB");
+            Write-Host ("Em uso: " + $usedGB + " GB (" + $pctMem + "%)");
+            Write-Host ("Disponivel: " + $freeGB + " GB");
+            Write-Host "";
+            Write-Host "=== TOP 10 PROCESSOS (RAM) ===";
+            Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 10 | % {
+              $mb = [math]::Round($_.WorkingSet64 / 1MB, 1);
+              Write-Host ($_.ProcessName.Substring(0, [Math]::Min($_.ProcessName.Length, 25)).PadRight(26) + $mb.ToString().PadLeft(8) + " MB (PID " + $_.Id + ")");
+            }
+          `
+        ], shell: false }]
+      }
+    },
+
+    'system.diag_disk': {
+      label: 'Diagnóstico de discos',
+      risk: RISK_CLASS.READ,
+      build: () => {
+        if (!IS_WINDOWS) return [{ ...requireTool('node'), tag: 'system', bin: 'echo', args: ['Diagnóstico de disco apenas no Windows'], shell: false }]
+        return [{ ...requireTool('git'), tag: 'disk', bin: 'powershell', args: [
+          '-ExecutionPolicy', 'Bypass', '-Command', `
+            Write-Host "=== DISCOS ===";
+            Get-CimInstance Win32_LogicalDisk -Filter "DriveType=3" | % {
+              $total = [math]::Round($_.Size/1GB, 1);
+              $free = [math]::Round($_.FreeSpace/1GB, 1);
+              $used = [math]::Round($total - $free, 1);
+              $pct = [math]::Round(($used/$total)*100, 1);
+              Write-Host ($_.DeviceID + " " + $total + " GB total, " + $used + " GB usados (" + $pct + "%), " + $free + " GB livres");
+            }
+            Write-Host "";
+            Write-Host "=== PERFORMANCE DE DISCO ===";
+            Get-CimInstance Win32_PerfFormattedData_PerfDisk_LogicalDisk | ? Name -notlike '_*' | Sort Name | % {
+              Write-Host ($_.Name + ": fila " + $_.AvgDiskQueueLength + " | leituras/s " + $_.DiskReadsPerSec + " | escritas/s " + $_.DiskWritesPerSec + " | tempo% " + $_.PercentDiskTime + "%");
+            }
+          `
+        ], shell: false }]
+      }
+    },
+
+    'system.diag_services': {
+      label: 'Diagnóstico de serviços do Windows',
+      risk: RISK_CLASS.READ,
+      build: () => {
+        if (!IS_WINDOWS) return [{ ...requireTool('node'), tag: 'system', bin: 'echo', args: ['Diagnóstico de serviços apenas no Windows'], shell: false }]
+        return [{ ...requireTool('git'), tag: 'services', bin: 'powershell', args: [
+          '-ExecutionPolicy', 'Bypass', '-Command', `
+            Write-Host "=== SERVICOS IMPORTANTES ===";
+            @("WSearch","wuauserv","Spooler","MpsSvc","Dnscache","DHCP","Winmgmt","RemoteRegistry","Themes","UxSms","Audiosrv","Schedule","BFE","iphlpsvc","lmhosts","PolicyAgent","WdiServiceHost","WdiSystemHost","WinHttpAutoProxySvc","WlanSvc") | % {
+              $s = Get-Service -Name $_ -ErrorAction SilentlyContinue;
+              if ($s) {
+                $flag = if ($s.StartType -eq 'Disabled') { ' (DESABILITADO!)' } else { '' };
+                Write-Host ($_.PadRight(25) + $s.Status.ToString().PadRight(15) + "(" + $s.StartType + ")" + $flag);
+              }
+            }
+          `
+        ], shell: false }]
+      }
+    },
+
+    'system.diag_startup': {
+      label: 'Listar programas de inicialização',
+      risk: RISK_CLASS.READ,
+      build: () => {
+        if (!IS_WINDOWS) return [{ ...requireTool('node'), tag: 'system', bin: 'echo', args: ['Diagnóstico de inicialização apenas no Windows'], shell: false }]
+        return [{ ...requireTool('git'), tag: 'startup', bin: 'powershell', args: [
+          '-ExecutionPolicy', 'Bypass', '-Command', `
+            Write-Host "=== PROGRAMAS DE INICIALIZACAO ===";
+            $startup = Get-CimInstance Win32_StartupCommand | Sort Name;
+            if ($startup) { $startup | % { Write-Host ($_.Name + " - " + $_.Command + (if ($_.User) { " (Usuario: " + $_.User + ")" } else { "" })); } }
+            else { Write-Host "Nenhum programa de inicializacao encontrado." }
+          `
+        ], shell: false }]
+      }
+    },
+
+    'system.temp_audit': {
+      label: 'Auditar arquivos temporários (somente leitura)',
+      risk: RISK_CLASS.READ,
+      build: () => {
+        if (!IS_WINDOWS) return [{ ...requireTool('node'), tag: 'system', bin: 'echo', args: ['Auditoria de temporários apenas no Windows'], shell: false }]
+        return [{ ...requireTool('git'), tag: 'temp', bin: 'powershell', args: [
+          '-ExecutionPolicy', 'Bypass', '-Command', `
+            Write-Host "=== ARQUIVOS TEMPORARIOS ===";
+            $paths = @("$env:TEMP", "$env:WINDIR\\Prefetch", "$env:WINDIR\\Temp", "$env:LOCALAPPDATA\\Temp");
+            foreach ($p in $paths) {
+              if (Test-Path $p) {
+                $size = [math]::Round((Get-ChildItem $p -Recurse -File -ErrorAction SilentlyContinue | Measure-Object Length -Sum).Sum / 1MB, 1);
+                $count = (Get-ChildItem $p -Recurse -File -ErrorAction SilentlyContinue).Count;
+                Write-Host ($p + ": " + $count + " arquivos, " + $size + " MB");
+              }
+            }
+            Write-Host "";
+            Write-Host "=== LIXEIRA ===";
+            $rb = (New-Object -ComObject Shell.Application).NameSpace(0xa);
+            $rbCount = $rb.Items().Count;
+            Write-Host ("Itens na lixeira: " + $rbCount);
+          `
+        ], shell: false }]
+      }
+    },
+
+    'system.temp_clean': {
+      label: 'Limpar arquivos temporários (recomendado executar temp_audit primeiro)',
+      risk: RISK_CLASS.WRITE,
+      requiresConfirmation: true,
+      build: () => {
+        if (!IS_WINDOWS) return [{ ...requireTool('node'), tag: 'system', bin: 'echo', args: ['Limpeza de temporários apenas no Windows'], shell: false }]
+        return [{ ...requireTool('git'), tag: 'clean', bin: 'powershell', args: [
+          '-ExecutionPolicy', 'Bypass', '-Command', `
+            Write-Host "Limpando arquivos temporarios...";
+            $paths = @("$env:TEMP\\*", "$env:WINDIR\\Temp\\*", "$env:LOCALAPPDATA\\Temp\\*");
+            $totalRemoved = 0;
+            foreach ($p in $paths) {
+              $count = (Get-ChildItem $p -Recurse -File -ErrorAction SilentlyContinue).Count;
+              if ($count -gt 0) {
+                Remove-Item $p -Recurse -Force -ErrorAction SilentlyContinue;
+                $totalRemoved += $count;
+                Write-Host ("Limpou " + $count + " arquivos de: " + $p.Replace('\\*',''));
+              }
+            }
+            Write-Host ("Total removido: " + $totalRemoved + " arquivos.");
+            Write-Host "Arquivos temporarios limpos com sucesso.";
+          `
+        ], shell: false }]
+      }
+    },
+
+    'system.startup_disable': {
+      label: 'Desabilitar programa de inicialização',
+      risk: RISK_CLASS.WRITE,
+      requiresConfirmation: true,
+      build: (params = {}) => {
+        const name = String(params.name || '').trim()
+        if (!name) return [{ ok: false, tag: 'system', reason: 'nome do programa obrigatório (params.name)' }]
+        if (!IS_WINDOWS) return [{ ...requireTool('node'), tag: 'system', bin: 'echo', args: ['Gestão de inicialização apenas no Windows'], shell: false }]
+        return [{ ...requireTool('git'), tag: 'startup-disable', bin: 'powershell', args: [
+          '-ExecutionPolicy', 'Bypass', '-Command', `
+            Write-Host "Desabilitando entrada de inicializacao: ${name}";
+            Get-CimInstance Win32_StartupCommand | Where-Object { \$_.Name -like "*${name}*" -or \$_.Command -like "*${name}*" } | % {
+              Write-Host "Removendo: " + \$_.Name;
+              # Disable via registry
+              if (\$_.User) {
+                Remove-ItemProperty -Path "Registry::\\HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" -Name \$_.Name -ErrorAction SilentlyContinue;
+              }
+            }
+            Write-Host "Entrada de inicializacao desabilitada. Recomenda-se reiniciar o computador.";
+          `
+        ], shell: false }]
+      }
+    },
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // REVIT INTEGRATION
+    // ═══════════════════════════════════════════════════════════════════════
+
+    'revit.info': {
+      label: 'Verificar instalação do Revit',
+      risk: RISK_CLASS.READ,
+      build: () => {
+        if (!IS_WINDOWS) return [{ ...requireTool('node'), tag: 'revit', bin: 'echo', args: ['Revit apenas no Windows'], shell: false }]
+        return [{ ...requireTool('git'), tag: 'revit', bin: 'powershell', args: [
+          '-ExecutionPolicy', 'Bypass', '-Command', `
+            Write-Host "=== VERIFICANDO INSTALACAO DO REVIT ===";
+            $paths = @(
+              "C:\\Program Files\\Autodesk\\Revit *\\Revit.exe",
+              "C:\\Program Files (x86)\\Autodesk\\Revit *\\Revit.exe",
+              "$env:LOCALAPPDATA\\Autodesk\\Revit *\\Revit.exe"
+            );
+            $found = $false;
+            foreach ($pattern in $paths) {
+              $items = Get-ChildItem $pattern -ErrorAction SilentlyContinue;
+              foreach ($item in $items) {
+                $found = $true;
+                $ver = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($item.FullName);
+                Write-Host ("Encontrado: " + $item.FullName);
+                Write-Host ("  Versao: " + $ver.FileVersion);
+                Write-Host ("  Product: " + $ver.ProductVersion);
+                $parent = Split-Path $item.FullName -Parent;
+                Write-Host ("  Pasta: " + $parent);
+                # Check pyRevit
+                $pyRevitPaths = @(
+                  "$env:APPDATA\\pyRevit",
+                  "$env:PROGRAMDATA\\pyRevit",
+                  "$env:LOCALAPPDATA\\pyRevit"
+                );
+                foreach ($pr in $pyRevitPaths) {
+                  if (Test-Path $pr) {
+                    Write-Host ("  pyRevit detectado em: " + $pr);
+                  }
+                }
+                # Check Revit addins folder
+                $addins = "$env:APPDATA\\Autodesk\\Revit\\Addins";
+                if (Test-Path $addins) {
+                  $files = Get-ChildItem "$addins\\*\\*.addin" -ErrorAction SilentlyContinue;
+                  if ($files) { Write-Host ("  Add-ins registrados: " + $files.Count); }
+                }
+              }
+            }
+            if (-not $found) { Write-Host "Revit nao encontrado nos diretorios padrao." }
+          `
+        ], shell: false }]
+      }
+    },
+
+    'revit.run_pyrevit': {
+      label: 'Executar script Python no Revit via pyRevit',
+      risk: RISK_CLASS.WRITE,
+      requiresConfirmation: true,
+      build: (params = {}) => {
+        const script = String(params.script || '').trim()
+        if (!script) return [{ ok: false, tag: 'revit', reason: 'código Python obrigatório (params.script)' }]
+        // Write script to temp file and execute via pyRevit CLI
+        const scriptPath = `$env:TEMP\\apex_revit_${Date.now()}.py`
+        return [
+          { ...requireTool('git'), tag: 'revit', bin: 'powershell', args: [
+            '-ExecutionPolicy', 'Bypass', '-Command', `
+              $scriptContent = @'
+${script}
+'@;
+              $scriptPath = "${scriptPath}";
+              Set-Content -Path $scriptPath -Value $scriptContent -Encoding utf8;
+              Write-Host "Script salvo em: $scriptPath";
+              # Try pyRevit CLI
+              $pyRevitCli = Get-ChildItem "$env:APPDATA\\pyRevit\\*\\pyrevit.exe" -ErrorAction SilentlyContinue | Select-Object -First 1;
+              if ($pyRevitCli) {
+                Write-Host "Executando via pyRevit CLI...";
+                & $pyRevitCli.FullName run $scriptPath 2>&1;
+              } else {
+                Write-Host "pyRevit CLI nao encontrado. Tentando RevitPythonShell...";
+                $rps = Get-ChildItem "C:\\Program Files\\*\\RevitPythonShell*\\RevitPythonShell.exe" -ErrorAction SilentlyContinue | Select-Object -First 1;
+                if ($rps) {
+                  & $rps.FullName $scriptPath 2>&1;
+                } else {
+                  Write-Host "Nenhum executor Revit encontrado.";
+                  Write-Host "Script salvo em: $scriptPath - execute manualmente no Revit.";
+                }
+              }
+            `
+          ], shell: false }
+        ]
+      }
+    },
+
+    'revit.addin_list': {
+      label: 'Listar add-ins do Revit instalados',
+      risk: RISK_CLASS.READ,
+      build: () => {
+        if (!IS_WINDOWS) return [{ ...requireTool('node'), tag: 'revit', bin: 'echo', args: ['Revit apenas no Windows'], shell: false }]
+        return [{ ...requireTool('git'), tag: 'revit', bin: 'powershell', args: [
+          '-ExecutionPolicy', 'Bypass', '-Command', `
+            Write-Host "=== ADD-INS DO REVIT ===";
+            $addinDirs = @(
+              "$env:APPDATA\\Autodesk\\Revit\\Addins",
+              "$env:PROGRAMDATA\\Autodesk\\Revit\\Addins"
+            );
+            foreach ($dir in $addinDirs) {
+              if (Test-Path $dir) {
+                Get-ChildItem $dir -Recurse -Filter "*.addin" -ErrorAction SilentlyContinue | % {
+                  Write-Host ("Add-in: " + $_.Name);
+                  Write-Host ("  Caminho: " + $_.FullName);
+                  [xml]$xml = Get-Content $_.FullName;
+                  if ($xml) {
+                    $client = $xml.Extension.AddIn | Select-Object -First 1;
+                    if ($client) {
+                      Write-Host ("  Classe: " + $client.ClassName);
+                      Write-Host ("  Assembly: " + $client.Assembly);
+                      Write-Host ("  Vendor: " + $client.VendorId);
+                      Write-Host ("  Description: " + $client.Description);
+                    }
+                  }
+                  Write-Host "";
+                }
+              }
+            }
+          `
+        ], shell: false }]
+      }
+    },
   }
 }
 

@@ -43,18 +43,21 @@
 **Status: SINCRONIZADO** — 16 chaves críticas confirmadas. **Não perguntar novamente.**
 
 ### ✅ Confirmadas em LOCAL + VERCEL
+
 `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `FAL_KEY`, `ELEVENLABS_API_KEY`,
 `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_PROJECT_REF`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`,
 `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `TAVILY_API_KEY`, `GITHUB_TOKEN`,
 `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID`
 
 ### ✅ Vercel (Phase 4)
+
 - `APS_CLIENT_ID` + `APS_CLIENT_SECRET` — Autodesk em produção
 - `CRON_SECRET` — segurança cron endpoint
 - `VITE_FIREBASE_*` — PWA push (quando ativado)
 - `AUTHKEY_*` — WhatsApp/SMS (quando ativado)
 
 ### ✅ Apenas local (correto, não vai para Vercel)
+
 `LOCAL_WORKER_*`, `REVIT_MCP_*`, `APEX_PROJECT_PATH`, `ALLOW_RAW_SHELL_IN_ANY_ENV`
 
 ---
@@ -77,7 +80,6 @@
 
 ---
 
-*Last updated: 2026-06-22 — Phase 4 ✅ — Phase 5 RDO PDF ✅ — ALL 25 MODULES DONE — Deploy LIVE*
+**Last updated: 2026-06-22 — Phase 4 ✅ — Phase 5 RDO PDF ✅ — ALL 25 MODULES DONE — Deploy LIVE*
 
 **Default branch for commits/merges/deploys: `main`** — Apex AI MUST use `main` as the canonical base for commits, PR targets, and production deploys. Do not auto-push feature branches to production. This file is the single source of truth for branch policy.
-

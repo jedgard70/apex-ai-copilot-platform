@@ -45,6 +45,7 @@ O MS Project Integration permite que a Apex AI Copilot:
 Parseia XML do MS Project e retorna dados estruturados.
 
 **Body:**
+
 ```json
 {
   "xml": "<?xml version='1.0'?> <Project> ... </Project>"
@@ -52,6 +53,7 @@ Parseia XML do MS Project e retorna dados estruturados.
 ```
 
 **Response:**
+
 ```json
 {
   "providerStatus": "connected",
@@ -113,6 +115,7 @@ Estrutura básica:
 ```
 
 **Para exportar do MS Project:**
+
 1. Abra o arquivo `.mpp` no MS Project
 2. File → Save As → XML Format (.xml)
 3. Copie o conteúdo do XML

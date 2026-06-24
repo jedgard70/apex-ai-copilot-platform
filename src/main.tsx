@@ -8,14 +8,18 @@ import {
   Bot,
   Building2,
   Compass,
+  Copy,
+  Download,
   LogOut,
   Mic,
   Paperclip,
   Plus,
   RefreshCw,
   Settings,
+  Share2,
   Square,
   Terminal,
+  Volume2,
   X,
 } from 'lucide-react'
 import { ArchVisPanel } from './components/ArchVisPanel'
@@ -459,6 +463,112 @@ function revisionChatLabel(text: string) {
 
 function id() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+}
+
+async function copyToClipboard(text: string) {
+  try {
+    await navigator.clipboard.writeText(text)
+  } catch {
+    // Fallback for older browsers or non-secure contexts
+    const textarea = document.createElement('textarea')
+    textarea.value = text
+    textarea.style.position = 'fixed'
+    textarea.style.opacity = '0'
+    document.body.appendChild(textarea)
+    textarea.select()
+    document.execCommand('copy')
+    document.body.removeChild(textarea)
+  }
+}
+
+let currentSpeech: SpeechSynthesisUtterance | null = null
+
+function speakMessage(text: string, messageId: string) {
+  if (!('speechSynthesis' in window)) return
+
+  // Stop current speech if same message clicked again
+  if (currentSpeech && window.speechSynthesis.speaking) {
+    window.speechSynthesis.cancel()
+    currentSpeech = null
+    return
+  }
+
+  // Strip markdown, HTML tags, and code blocks for cleaner speech
+  const cleanText = text
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/#{1,6}\s/g, '')
+    .replace(/[*_~]/g, '')
+    .replace(/<[^>]*>/g, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .trim()
+
+  if (!cleanText) return
+
+  const utterance = new SpeechSynthesisUtterance(cleanText)
+  utterance.rate = 1.1
+  utterance.pitch = 1.0
+  utterance.volume = 1.0
+
+  // Try to use a Portuguese voice if available
+  const voices = window.speechSynthesis.getVoices()
+  const ptVoice = voices.find(v => v.lang.startsWith('pt'))
+  if (ptVoice) utterance.voice = ptVoice
+  else utterance.lang = 'pt-BR'
+
+  utterance.onend = () => { currentSpeech = null }
+  utterance.onerror = () => { currentSpeech = null }
+
+  currentSpeech = utterance
+  window.speechSynthesis.speak(utterance)
+}
+
+function isSpeaking() {
+  return currentSpeech !== null && window.speechSynthesis.speaking
+}
+
+async function shareMessage(text: string) {
+  const shareData = { text }
+  if (navigator.share) {
+    try {
+      await navigator.share(shareData)
+    } catch {
+      // User cancelled or share not supported
+    }
+  } else {
+    // Fallback: copy to clipboard
+    await copyToClipboard(text)
+  }
+}
+
+function downloadConversation(messages: {id: string, role: string, text: string, timestamp?: string}[]) {
+  const lines: string[] = []
+  lines.push('# Apex AI Copilot — Conversa Exportada')
+  lines.push(`# Data: ${new Date().toLocaleString('pt-BR')}`)
+  lines.push('')
+  messages.forEach(msg => {
+    const role = msg.role === 'assistant' ? '🤖 Apex' : '👤 Você'
+    const text = msg.text
+      .replace(/```/g, '\n```\n')
+      .trim()
+    lines.push(`---`)
+    lines.push(`### ${role}`)
+    lines.push('')
+    lines.push(text)
+    lines.push('')
+  })
+  lines.push('---')
+  lines.push(`*Exportado por Apex AI Copilot — ${messages.length} mensagens*`)
+
+  const blob = new Blob([lines.join('\n')], { type: 'text/markdown;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `apex-conversa-${timestampForFileName()}.md`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
 }
 
 function timestampForFileName() {
@@ -3659,6 +3769,48 @@ function App() {
                   <div className="avatar">{message.role === 'assistant' ? <Bot size={18} /> : <Building2 size={18} />}</div>
                   <div className={`bubble ${message.text.length > 900 || message.text.includes('\n') ? 'long-text' : ''}`}>
                     <div className="message-body">{renderMessageText(message.text)}</div>
+                    <div className="message-actions" style={{ display: 'flex', gap: '6px', marginTop: '10px', opacity: 0.6 }}>
+                      <button
+                        onClick={() => copyToClipboard(message.text)}
+                        title="Copiar mensagem"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '3px 8px', background: 'transparent', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '11px', color: 'inherit', transition: 'background 0.15s' }}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(0,0,0,0.08)')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                      >
+                        <Copy size={13} />
+                        Copiar
+                      </button>
+                      <button
+                        onClick={() => shareMessage(message.text)}
+                        title="Compartilhar mensagem"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '3px 8px', background: 'transparent', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '11px', color: 'inherit', transition: 'background 0.15s' }}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(0,0,0,0.08)')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                      >
+                        <Share2 size={13} />
+                        {'Compartilhar'}
+                      </button>
+                      <button
+                        onClick={() => speakMessage(message.text, message.id)}
+                        title={isSpeaking() ? 'Parar leitura' : 'Ouvir mensagem'}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '3px 8px', background: 'transparent', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '11px', color: 'inherit', transition: 'background 0.15s' }}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(0,0,0,0.08)')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                      >
+                        <Volume2 size={13} />
+                        {'Ouvir'}
+                      </button>
+                      <button
+                        onClick={() => downloadConversation(messages)}
+                        title="Exportar conversa como .md"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '3px 8px', background: 'transparent', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '11px', color: 'inherit', transition: 'background 0.15s' }}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(0,0,0,0.08)')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                      >
+                        <Download size={13} />
+                        {'Derivar'}
+                      </button>
+                    </div>
                     {message.attachment && (
                       <div className="attachment-chip">
                         <Paperclip size={15} />

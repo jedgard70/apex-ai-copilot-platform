@@ -4,13 +4,13 @@
 > Nenhum agente, assistente, skill, ferramenta ou processo automatizado pode
 > alterar, modificar, remover ou sobrescrever variáveis no `.env.local` ou
 > nas Environment Variables do Vercel sem autorização EXPLÍCITA e VERBAL
-> do Owner (jedgard70@gmail.com / Dr. Edgard).
-> 
+> do Owner (<jedgard70@gmail.com> / Dr. Edgard).
+>
 > Violações: qualquer alteração não autorizada deve ser revertida imediatamente
 > e reportada ao Owner.
 
-
 ## Status global
+
 - Plataforma: **operacional e documentada**
 - Build: **verde**
 - Testes: **verde** (84/84)
@@ -56,13 +56,16 @@
 | 34 | Auto-upgrade / versioning | ✅ | upgrade tracker + trigger |
 
 ## Observação de deploy
+
 A causa mais provável de cancelamento recorrente não é o código em si, mas um fluxo de deploy sem gate de verificação confiável. Para resolver isso de forma duradoura:
+
 1. manter branch `main` protegida;
 2. exigir status checks do GitHub Actions antes de merge/deploy;
 3. usar commits assinados (GPG/SSH) quando possível;
 4. deixar o deploy do Vercel acoplado ao workflow aprovado.
 
 ## Source of truth
+
 - `CHECKPOINT_TRACKER.md`
 - `docs/APEX_PLATFORM_CURRENT_STATE.md`
 - `skills/SKILLS_APEX/apex-global-orchestrator-unificada/references/platform-status.md`
