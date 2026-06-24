@@ -1663,13 +1663,11 @@ export default async function handler(req, res) {
       })
     }
 
-    // H5.0D: hard override — but skip if user is confirming a pending H7 action or if it's a mutation tool
+    // H5.0D: hard override — but skip if user is confirming a pending H7 action
     if (!(isConfirm && hasPending)) {
       const h5ToolIds = classifyToolExecutionRequest(routingMessage)
-      const MUTATION_TOOLS = new Set(['vercel.deploy', 'supabase.migration'])
-      const hasMutationTool = h5ToolIds.some(id => MUTATION_TOOLS.has(id))
 
-      if (!APEX_FREE_AGENT && h5ToolIds.length && h5ToolIds.some(id => H5_ACTION_TOOLS.has(id)) && !hasMutationTool) {
+      if (h5ToolIds.length && h5ToolIds.some(id => H5_ACTION_TOOLS.has(id))) {
         const toolExecution = await routeToolExecution({ userMessage, requestedToolIds: h5ToolIds })
         return sendJson(res, 200, {
           finalReply: toolExecution.finalReply,
