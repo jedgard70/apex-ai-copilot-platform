@@ -5,6 +5,7 @@ import {
   RefreshCw, Search, WifiOff, X, XCircle,
 } from 'lucide-react'
 import { createPlatformMapSections } from '../lib/platformMapKnowledge'
+import { getManualSections } from '../lib/platformManualData'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -284,9 +285,109 @@ function StatusTab() {
   )
 }
 
+// ─── Tab: Manual do Usuário ───────────────────────────────────────────────────
+
+function ManualTab() {
+  const [search, setSearch] = useState('')
+  const [expanded, setExpanded] = useState<string | null>(null)
+  const sections = useMemo(() => getManualSections(), [])
+  const q = search.trim().toLowerCase()
+
+  const visible = sections
+    .map(sec => ({
+      ...sec,
+      items: sec.items.filter(i => !q
+        || i.name.toLowerCase().includes(q)
+        || i.description.toLowerCase().includes(q)
+        || i.howToUse.toLowerCase().includes(q)
+        || sec.title.toLowerCase().includes(q)),
+    }))
+    .filter(sec => sec.items.length > 0)
+
+  return (
+    <div className="contracts-layout">
+      <aside className="contracts-controls">
+        <div className="contracts-card">
+          <strong>Buscar</strong>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <Search size={14} />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Ex: orçamento, contrato, vídeo..." />
+          </div>
+        </div>
+        <div className="contracts-card">
+          <strong>Sobre este manual</strong>
+          <p style={{ margin: '8px 0 0', color: 'rgba(226,232,240,0.78)', lineHeight: 1.5, fontSize: 12 }}>
+            Este manual descreve <strong>tudo que a Apex AI faz</strong> em linguagem simples.
+            Cada funcionalidade pode ser acessada pelo chat — é só pedir.
+            <br /><br />
+            <span style={{ color: '#22c55e' }}>🟢 Todos</span> = disponível para qualquer usuário<br />
+            <span style={{ color: '#3b82f6' }}>🔵 Clientes</span> = disponível para clientes pagantes<br />
+            <span style={{ color: '#ef4444' }}>🔴 Owner</span> = apenas o dono da plataforma
+          </p>
+        </div>
+        <div className="contracts-card">
+          <strong>Dica</strong>
+          <p style={{ margin: '8px 0 0', color: 'rgba(226,232,240,0.78)', lineHeight: 1.5, fontSize: 12 }}>
+            Você não precisa de botões. <strong>Peça no chat</strong> exatamente o que precisa.
+            Se quiser um painel visual, é só pedir "abrir [funcionalidade]".
+          </p>
+        </div>
+      </aside>
+
+      <div className="contracts-main">
+        {visible.map(sec => (
+          <div key={sec.id} className="contracts-card" style={{ marginBottom: 12 }}>
+            <div className="contracts-section-head">
+              <strong>{sec.icon} {sec.title}</strong>
+              <span>{sec.items.length} item(ns)</span>
+            </div>
+            <p style={{ margin: '8px 0 14px', color: 'rgba(226,232,240,0.78)', lineHeight: 1.5, fontSize: 13 }}>{sec.summary}</p>
+            <div style={{ display: 'grid', gap: 10 }}>
+              {sec.items.map(item => (
+                <details
+                  key={item.name}
+                  open={expanded === item.name}
+                  onToggle={e => setExpanded(e.currentTarget.open ? item.name : null)}
+                >
+                  <summary style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                    <span style={{ fontWeight: 600, fontSize: 13 }}>{item.name}</span>
+                    <span style={{
+                      fontSize: 10, fontWeight: 700, padding: '2px 10px', borderRadius: 12, textTransform: 'uppercase',
+                      background: item.availableTo === 'owner' ? '#ef444422' : item.availableTo === 'clientes' ? '#3b82f622' : '#22c55e22',
+                      color: item.availableTo === 'owner' ? '#ef4444' : item.availableTo === 'clientes' ? '#3b82f6' : '#22c55e',
+                    }}>
+                      {item.availableTo === 'owner' ? '🔴 Owner' : item.availableTo === 'clientes' ? '🔵 Clientes' : '🟢 Todos'}
+                    </span>
+                  </summary>
+                  <div style={{ marginTop: 10, display: 'grid', gap: 8, fontSize: 13 }}>
+                    <div style={{ lineHeight: 1.6, color: 'rgba(226,232,240,0.85)' }}>{item.description}</div>
+                    <div style={{ background: 'rgba(59,130,246,0.08)', padding: '8px 12px', borderRadius: 6, borderLeft: '3px solid #3b82f6' }}>
+                      <strong style={{ fontSize: 11, color: '#93c5fd' }}>📖 Como usar:</strong>
+                      <div style={{ marginTop: 4, fontSize: 12, color: 'rgba(226,232,240,0.78)' }}>{item.howToUse}</div>
+                    </div>
+                    <div style={{ background: 'rgba(251,191,36,0.08)', padding: '8px 12px', borderRadius: 6, borderLeft: '3px solid #f59e0b' }}>
+                      <strong style={{ fontSize: 11, color: '#fcd34d' }}>💡 Exemplo:</strong>
+                      <code style={{ display: 'block', marginTop: 4, fontSize: 12, color: '#fde68a' }}>{item.example}</code>
+                    </div>
+                  </div>
+                </details>
+              ))}
+            </div>
+          </div>
+        ))}
+        {visible.length === 0 && (
+          <div style={{ textAlign: 'center', padding: 48, color: '#64748b' }}>
+            <p>Nenhum resultado para "{search}"</p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ─── Main Panel ───────────────────────────────────────────────────────────────
 
-type Tab = 'map' | 'status'
+type Tab = 'map' | 'status' | 'manual'
 
 export function PlatformMapPanel({ onClear }: Props) {
   const [tab, setTab] = useState<Tab>('map')
@@ -296,13 +397,15 @@ export function PlatformMapPanel({ onClear }: Props) {
       <div className="contracts-heading">
         <div>
           <span>
-            {tab === 'map' ? <><Compass size={16} /> Platform Map</> : <><Activity size={16} /> Status ao Vivo</>}
+            {tab === 'map' ? <><Compass size={16} /> Platform Map</> : tab === 'status' ? <><Activity size={16} /> Status ao Vivo</> : <><BookOpen size={16} /> Manual do Usuário</>}
           </span>
-          <h2>{tab === 'map' ? 'Manual interativo da plataforma' : 'Provedores e chaves de API'}</h2>
+          <h2>{tab === 'map' ? 'Manual interativo da plataforma' : tab === 'status' ? 'Provedores e chaves de API' : '📖 Manual do Usuário'}</h2>
           <p>
             {tab === 'map'
               ? 'Mapa navegável de todas as funcionalidades — comando, status e entrega de cada módulo.'
-              : 'Status real de cada provedor pago. Indica quando precisa recarregar créditos.'}
+              : tab === 'status'
+                ? 'Status real de cada provedor pago. Indica quando precisa recarregar créditos.'
+                : 'Tudo que a Apex AI faz, explicado em linguagem simples. Clientes pagantes podem usar tudo.'}
           </p>
         </div>
         <button className="ghost-action" onClick={onClear}><X size={16} /></button>
@@ -310,7 +413,7 @@ export function PlatformMapPanel({ onClear }: Props) {
 
       {/* Tab switcher */}
       <div style={{ display: 'flex', gap: 4, padding: '0 20px 12px', borderBottom: '1px solid rgba(255,255,255,0.07)', marginBottom: 4 }}>
-        {(['map', 'status'] as Tab[]).map(t => (
+        {(['manual', 'map', 'status'] as Tab[]).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -322,12 +425,12 @@ export function PlatformMapPanel({ onClear }: Props) {
               cursor: 'pointer', transition: 'all 0.15s',
             }}
           >
-            {t === 'map' ? '🗺️ Mapa Interativo' : '🔑 Status das Keys'}
+            {t === 'manual' ? '📖 Manual' : t === 'map' ? '🗺️ Mapa' : '🔑 Status'}
           </button>
         ))}
       </div>
 
-      {tab === 'map' ? <MapTab onClear={onClear} /> : <StatusTab />}
+      {tab === 'manual' ? <ManualTab /> : tab === 'map' ? <MapTab onClear={onClear} /> : <StatusTab />}
 
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </section>
