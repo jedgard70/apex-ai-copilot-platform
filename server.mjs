@@ -6819,6 +6819,13 @@ const server = http.createServer(async (req, res) => {
     return
   }
 
+  // ── DashboardByRole API (ACIP) ────────────────────────────────────────────────
+  if ((req.url === '/api/dashboard/roles' || req.url === '/api/dashboard/generate') && ['GET', 'POST'].includes(req.method)) {
+    const { default: handler } = await import('./api/dashboard/index.mjs')
+    handler(req, res)
+    return
+  }
+
   // ── Cognitive Agents API ───────────────────────────────────────────────────────
   if (req.url?.startsWith('/api/agents/') && ['GET', 'POST'].includes(req.method)) {
     const { default: handler } = await import('./api/agents/index.mjs')
