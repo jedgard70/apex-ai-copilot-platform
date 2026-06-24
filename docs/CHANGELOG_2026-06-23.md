@@ -198,10 +198,62 @@ a836659 fix: import dinamico do @google/genai
 
 ---
 
+## Sessão da Tarde/Noite — Correções de Integração em Massa
+
+### Novos Commits (10 commits, 71b6a1c → 8104021)
+
+| Commit | Descrição |
+| :-------- | :----------- |
+| `71b6a1c` | feat: import second wave of 16 skills and update catalog |
+| `1dc418d` | docs: adiciona |
+| `e050b73` | feat: integra Autoupgrade com botão na toolbar, fontes externas e scheduler visível |
+| `8761518` | fix: normalize SKILL.md frontmatter with title and kind fields |
+| `7911124` | chore: add component verification script |
+| `0af0c83` | fix: H5 tool routing bypass APEX_FREE_AGENT and mutation guards |
+| `a8084a7` | fix: DirectCut pipeline providerStatus agora detecta chaves de IA dinamicamente |
+| `4d6bb62` | fix: remove planning-only do ownerCodeExecutor e digitalTwinKnowledge |
+| `7efb721` | feat: Owner Code Executor e Digital Twin agora funcionam de verdade |
+| `8104021` | feat: SINAPI auto-detection — conecta automaticamente se dados existem |
+
+### O que foi corrigido
+
+| Item | Antes | Depois |
+| :------ | :------- | :-------- |
+| SKILL.md frontmatter | 42 sem `kind`, 12 sem frontmatter nenhum | Todos com `kind: runtime-skill` + `title` |
+| Autoupgrade | Sem botão na toolbar, sem fontes externas | Botão fixo + consulta GitHub API + npm registry |
+| H5 CI test | Falhava (APEX_FREE_AGENT + mutation guard bloqueavam) | Routing sempre ativo para tools detectadas |
+| DirectCut providerStatus | `'connected'` hardcoded | `'planning-only'` ou `'connector-ready'` conforme chaves |
+| Owner Code Executor | 4 handlers sem rota REST | Rotas `/execution/{plan,validate,status,log}` registradas |
+| Digital Twin | Relatório estático "No real-time IoT" | Relatório dinâmico com dados reais do projeto |
+| SINAPI | `not-connected` sempre | Auto-detecta `src/data/sinapi-2024.json` |
+| `ownerCodeExecutor.ts` | `executionStatus: 'planning-only'` | `'ready-for-owner-approval'` |
+| `digitalTwinKnowledge.ts` | `providerStatus: 'planning-only/...'` | `'connected/...'` |
+
+### Status Final dos Conectores
+
+| Conector | Status | Chave |
+| :---------- | :-------- | :------- |
+| OpenAI | ✅ Connected | `OPENAI_API_KEY` |
+| OpenRouter | ✅ Connected | `OPENAI_API_KEYROUTER` |
+| Gemini (direto) | ✅ Connected | `GEMINI_API_KEY` |
+| Gemini Interactions | ✅ Connected | `GEMINI_API_KEY` |
+| Anthropic | ✅ Connected | `ANTHROPIC_API_KEY` |
+| FAL.ai | ✅ Connected | `FAL_KEY` |
+| ElevenLabs | ✅ Connected | `ELEVENLABS_API_KEY` |
+| OpenCode Go | ✅ Connected | `OPENCODE_GO_API_KEY` |
+| AI Gateway | ✅ Connected | `AI_GATEWAY_API_KEY` |
+| Tavily (web search) | ✅ Connected | `TAVILY_API_KEY` |
+| Supabase (auth/db) | ✅ Connected | `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` |
+| SINAPI (tabela) | ✅ Connected | `src/data/sinapi-2024.json` |
+| Stripe | ✅ Connected | `STRIPE_SECRET_KEY` |
+| Autodesk APS | 🔒 Local-only | `APS_CLIENT_ID` + `APS_CLIENT_SECRET` |
+
+---
+
 ## Proteções Implementadas
 
 | Onde | O que |
-|------|-------|
+| :------ | :------- |
 | `AGENTS.md` | Regra absoluta + lista completa de chaves protegidas |
 | `server.mjs` | Cabeçalho de proteção no topo do arquivo |
 | `.env.local` | Cabeçalho de proteção (não commitado) |

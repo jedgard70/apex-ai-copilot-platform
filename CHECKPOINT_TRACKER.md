@@ -4,11 +4,10 @@
 > Nenhum agente, assistente, skill, ferramenta ou processo automatizado pode
 > alterar, modificar, remover ou sobrescrever variáveis no `.env.local` ou
 > nas Environment Variables do Vercel sem autorização EXPLÍCITA e VERBAL
-> do Owner (jedgard70@gmail.com / Dr. Edgard).
+> do Owner (<jedgard70@gmail.com> / Dr. Edgard).
 > 
 > Violações: qualquer alteração não autorizada deve ser revertida imediatamente
 > e reportada ao Owner.
-
 
 ## Source of truth (do not re-ask)
 
@@ -148,6 +147,40 @@ Apenas local (não vai para Vercel): `LOCAL_WORKER_*`, `REVIT_MCP_*`, shell/path
 | Todo | Descrição | Status |
 | --- | --- | --- |
 | `rdo-pdf-export` | RDO PDF profissional via jsPDF — `src/lib/fieldOpsPdfExport.ts` | ✅ |
+
+---
+
+## Sessão 2026-06-23 — Correções de Integração
+
+| # | Mudança | Commits | Status |
+| :--- | :--------- | :--------- | :-------- |
+| 1 | Import segunda onda de 16 skills + frontmatter normalizado | `71b6a1c`, `8761518` | ✅ Done |
+| 2 | Autoupgrade Center — botão na toolbar, fontes externas (GitHub/npm), scheduler visível | `e050b73` | ✅ Done |
+| 3 | Corrigido H5 tool routing — remove APEX_FREE_AGENT + mutation guards que bloqueavam CI | `0af0c83` | ✅ Done |
+| 4 | DirectCut pipeline providerStatus dinâmico (detecta chaves IA) | `a8084a7` | ✅ Done |
+| 5 | Owner Code Executor — 4 rotas REST registradas (plan/validate/status/log) | `7efb721` | ✅ Done |
+| 6 | Digital Twin — gera relatório dinâmico com dados reais do projeto | `7efb721` | ✅ Done |
+| 7 | SINAPI auto-detection — detecta `src/data/sinapi-2024.json` e marca como connected | `8104021` | ✅ Done |
+| 8 | Componentes órfãos identificados (LoginButton, LogoutButton, Profile, ProviderStatusPanel, StudioPanelShell) | `7911124` | ✅ Auditado |
+
+## Status dos Conectores (2026-06-23)
+
+| Conector | Chave/Arquivo | Status | Observação |
+| :---------- | :-------------- | :-------- | :------------ |
+| OpenAI (chat/embeddings/images) | `OPENAI_API_KEY` ✅ | ✅ Connected | Carregado via loadEnvLocal() |
+| OpenRouter (modelos diversos) | `OPENAI_API_KEYROUTER` ✅ | ✅ Connected | Fallback automático |
+| Gemini (chat/visão) | `GEMINI_API_KEY` ✅ | ✅ Connected | Suporte a tools |
+| Gemini Interactions SDK | `GEMINI_API_KEY` ✅ | ✅ Connected | `@google/genai` v2.9.0 |
+| Anthropic (Claude) | `ANTHROPIC_API_KEY` ✅ | ✅ Connected | Modelos via seletor |
+| FAL.ai (imagem/vídeo/FLUX) | `FAL_KEY` ✅ | ✅ Connected | Geração real |
+| ElevenLabs (TTS/avatar) | `ELEVENLABS_API_KEY` ✅ | ✅ Connected | Voz e avatar |
+| OpenCode Go (código premium) | `OPENCODE_GO_API_KEY` ✅ | ✅ Connected | Provider alternativo |
+| AI Gateway (Vercel) | `AI_GATEWAY_API_KEY` ✅ | ✅ Connected | Imagem/vídeo via gateway |
+| Tavily (pesquisa web) | `TAVILY_API_KEY` ✅ | ✅ Connected | Pesquisa com citações |
+| Supabase (auth/db) | `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` ✅ | ✅ Connected | Auth + persistência |
+| SINAPI (tabela de preços) | `src/data/sinapi-2024.json` ✅ | ✅ Connected | Auto-detectado |
+| Stripe (pagamentos) | `STRIPE_SECRET_KEY` ✅ | ✅ Connected | Checkout + webhook |
+| Autodesk APS | `APS_CLIENT_ID` + `APS_CLIENT_SECRET` ✅ | 🔒 Local-only | API Revit/BIM360 |
 
 ---
 
