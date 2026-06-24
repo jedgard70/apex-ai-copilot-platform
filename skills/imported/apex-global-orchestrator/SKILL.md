@@ -1,6 +1,8 @@
 ---
 name: apex-global-orchestrator
+title: apex-global-orchestrator
 description: Complete Apex Global orchestration skill for Jose Edgard and Apex leadership. Use when the user asks to manage, audit, continue, organize, or plan the Apex Global / IA Construction Platform work; coordinate Codex or Claude; review package status; create implementation handoffs; enforce governance; update roadmap/checklists; reason about CRM, revenue, UX, engineering, BIM, Supabase, Vercel, GitHub, documentation, or the Apex AI Copilot. Also use when the user asks general strategic, technical, engineering, business, or operational questions in the context of Apex.
+kind: runtime-skill
 ---
 
 # Apex Global Orchestrator

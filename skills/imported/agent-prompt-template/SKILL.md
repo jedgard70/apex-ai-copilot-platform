@@ -13,6 +13,7 @@ triggers:
   - system prompt
 risk: low
 enabled: true
+kind: runtime-skill
 ---
 
 # Agent Prompt Template

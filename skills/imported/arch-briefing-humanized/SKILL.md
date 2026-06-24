@@ -13,6 +13,7 @@ triggers:
   - presentation plan
 risk: low
 enabled: true
+kind: runtime-skill
 ---
 
 # Architecture Briefing And Humanized Plan

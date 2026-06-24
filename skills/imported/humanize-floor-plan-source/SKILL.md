@@ -1,6 +1,8 @@
 ---
 name: humanize-floor-plan
+title: humanize-floor-plan
 description: Add realistic human figures and scale to architectural floor plans using AI generation, 3D rendering, and design tools. Use when preparing floor plan visualizations, presentations, or renderings that need humanization for context and scale.
+kind: runtime-skill
 ---
 
 # Humanize Floor Plan (Humanização de Planta Baixa)

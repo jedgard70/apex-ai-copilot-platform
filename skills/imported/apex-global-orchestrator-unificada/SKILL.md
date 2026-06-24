@@ -1,6 +1,8 @@
 ---
 name: apex-global-orchestrator-unificada
+title: apex-global-orchestrator-unificada
 description: Skill oficial unificada da Apex Global para governança, orquestração operacional, campanha ebook, plataforma IA Construction e handoff Codex/Claude com política zero-clone.
+kind: runtime-skill
 ---
 
 # Apex Global Orchestrator Unificada

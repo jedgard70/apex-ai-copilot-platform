@@ -13,6 +13,7 @@ triggers:
   - estilos importados
 risk: medium
 enabled: true
+kind: runtime-skill
 ---
 
 # Web UI CSS Reference

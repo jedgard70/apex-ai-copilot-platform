@@ -1,3 +1,11 @@
+---
+name: saas_crm_finance
+title: Saas Crm Finance
+description: Saas Crm Finance skill for the Apex AI Copilot platform.
+kind: runtime-skill
+tags: []
+---
+
 # SaaS CRM & Finance Workspace Skill
 Reintegrado pela Apex AI Copilot.
 

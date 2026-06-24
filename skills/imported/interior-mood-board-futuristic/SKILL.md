@@ -13,6 +13,7 @@ triggers:
   - futuristic interior
 risk: low
 enabled: true
+kind: runtime-skill
 ---
 
 # Futuristic Interior Mood Board

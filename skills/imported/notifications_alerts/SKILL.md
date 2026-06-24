@@ -1,3 +1,11 @@
+---
+name: notifications_alerts
+title: Notifications Alerts
+description: Notifications Alerts skill for the Apex AI Copilot platform.
+kind: runtime-skill
+tags: []
+---
+
 # Notifications & Alerts Config Skill
 Reintegrado pela Apex AI Copilot.
 

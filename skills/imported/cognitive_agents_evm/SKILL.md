@@ -1,3 +1,11 @@
+---
+name: cognitive_agents_evm
+title: Cognitive Agents Evm
+description: Cognitive Agents Evm skill for the Apex AI Copilot platform.
+kind: runtime-skill
+tags: []
+---
+
 # Cognitive Agents (EVM / Scheduler) Skill
 Reintegrado pela Apex AI Copilot.
 

@@ -13,6 +13,7 @@ triggers:
   - lot neon
 risk: medium
 enabled: true
+kind: runtime-skill
 ---
 
 # Premium Triangle Lot Strategy

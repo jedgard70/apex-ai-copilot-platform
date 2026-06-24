@@ -1,6 +1,8 @@
 ---
 name: apex-copilot-construction-intelligence
+title: apex-copilot-construction-intelligence
 description: full-spectrum copilot intelligence for apex global ai. use this skill when handling construction, architecture, engineering, bim/cad/ifc/revit/dwg/dxf/skp/fbx/glb/gltf/obj/stl files, project images, floor plans, renders, pdf reports, contracts, budgets, schedules, field records, permits, marketing assets, directcut video briefs, archvis/humanization workflows, websites, social media, finance, accounting, sales, coding, research, writing, negotiation, tech support, or any request to make apex copilot interpret a file and respond conversationally like a real full-domain ai assistant.
+kind: runtime-skill
 ---
 
 # Apex Copilot Construction Intelligence

@@ -13,6 +13,7 @@ triggers:
   - video imobiliario
 risk: low
 enabled: true
+kind: runtime-skill
 ---
 
 # Cinematic Rendering

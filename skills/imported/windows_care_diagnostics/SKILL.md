@@ -1,3 +1,11 @@
+---
+name: windows_care_diagnostics
+title: Windows Care Diagnostics
+description: Windows Care Diagnostics skill for the Apex AI Copilot platform.
+kind: runtime-skill
+tags: []
+---
+
 # Windows Care & Diagnostics Skill
 Reintegrado pela Apex AI Copilot.
 
