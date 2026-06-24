@@ -3573,13 +3573,18 @@ async function handleBudgetPlan(req, res) {
     const goal = String(body.goal || '')
     const area = parseArea(assumptions.area)
     const currency = budgetCurrencySymbol(assumptions.currency)
-    const pricingSource = String(assumptions.pricingSource || 'Placeholder assumptions')
-    const sinapiStatus = String(assumptions.sinapiStatus || 'not-connected')
+    // Auto-detect SINAPI data file
+    const sinapiDataPath = path.join(root, 'src', 'data', 'sinapi-2024.json')
+    const sinapiFileExists = fs.existsSync(sinapiDataPath)
+    const pricingSource = sinapiFileExists ? 'SINAPI 2024 database' : String(assumptions.pricingSource || 'Placeholder assumptions')
+    const sinapiStatus = sinapiFileExists ? 'connected' : String(assumptions.sinapiStatus || 'not-connected')
     const sourceConfidence = pricingSource === 'User provided prices'
       ? 'USER_PROVIDED'
-      : pricingSource === 'Uploaded SINAPI table'
-        ? 'USER_PROVIDED'
-        : 'PLACEHOLDER'
+      : pricingSource === 'SINAPI 2024 database'
+        ? 'CAIXA_REFERENCE'
+        : pricingSource === 'Uploaded SINAPI table'
+          ? 'USER_PROVIDED'
+          : 'PLACEHOLDER'
     const hasArea = area > 0
     const sourceKind = String(source?.kind || '')
     const confidenceFromSource = sourceKind === 'bim-cad' ? 'UNKNOWN' : hasArea ? 'ESTIMATED' : 'UNKNOWN'
@@ -3665,9 +3670,9 @@ async function handleBudgetPlan(req, res) {
         message: [
           'Budget Studio generated a preliminary estimate draft.',
           ...knownSources,
-          sinapiStatus === 'not-connected'
-            ? 'SINAPI source: not connected. No SINAPI or live pricing database is connected in this checkpoint.'
-            : `SINAPI source: ${sinapiStatus}. Use only cited user-uploaded/connected source values.`,
+          sinapiStatus === 'connected'
+            ? 'SINAPI source: connected — using SINAPI 2024 reference database. Cite connected source values only.'
+            : 'SINAPI source: not connected. No SINAPI or live pricing database is connected in this checkpoint.',
         ].join(' '),
       },
     })
@@ -4425,7 +4430,7 @@ async function handleResearchPlan(req, res) {
           query,
           region,
           freshness,
-          sinapiStatus: 'not-connected',
+          sinapiStatus: fs.existsSync(path.join(root, 'src', 'data', 'sinapi-2024.json')) ? 'connected' : 'not-connected',
           sources,
           findings,
           proposalBuilder,
@@ -4462,7 +4467,7 @@ async function handleResearchPlan(req, res) {
         query,
         region,
         freshness,
-        sinapiStatus: 'not-connected',
+        sinapiStatus: fs.existsSync(path.join(root, 'src', 'data', 'sinapi-2024.json')) ? 'connected' : 'not-connected',
         sources: liveSources,
         findings,
         proposalBuilder,
