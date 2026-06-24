@@ -1841,6 +1841,21 @@ function buildLiveAgentToolDefinitions() {
         },
       },
     },
+    // Auto-Fix tool
+    {
+      type: 'function',
+      function: {
+        name: 'auto_fix',
+        description: 'Detect and auto-fix project problems: merge conflicts, TypeScript errors, build failures, test failures, uncommitted changes. Use when the user reports errors, conflicts, or asks to fix/resolve/repair anything.',
+        parameters: {
+          type: 'object',
+          properties: {
+            action: { type: 'string', enum: ['check', 'fix'], description: "'check' to scan only, 'fix' to scan and auto-fix" },
+          },
+          required: ['action'],
+        },
+      },
+    },
     ...buildCodeToolDefinitions(),
   ]
 }
@@ -1971,6 +1986,36 @@ async function executeLiveAgentToolCall(toolCall) {
   if (['parse_msproject_xml', 'analyze_msproject_schedule', 'generate_msproject_report'].includes(name)) {
     const { executeMsProjectToolCall } = await import('./server/agent/msprojectConnector.mjs')
     return await executeMsProjectToolCall(toolCall)
+  }
+
+  // Auto-Fix tool
+  if (name === 'auto_fix') {
+    const { detectProblems, autoFixProblems, getAutoFixStatus } = await import('./server/service/autoFix.mjs')
+    try {
+      const actionsArgs = JSON.parse(toolCall.function.arguments || '{}')
+      const action = String(actionsArgs.action || 'check')
+
+      if (action === 'fix') {
+        const problems = await detectProblems()
+        if (problems.length === 0) {
+          return { providerStatus: 'connected', message: 'Nenhum problema detectado.', fixed: [], failed: [] }
+        }
+        const result = await autoFixProblems(problems.filter(p => p.autoFixable))
+        return {
+          providerStatus: 'connected',
+          message: `${result.fixed.length} corrigido(s), ${result.failed.length} falha(s).`,
+          problems,
+          fixed: result.fixed,
+          failed: result.failed,
+        }
+      }
+
+      // Default: check
+      const status = await getAutoFixStatus()
+      return { providerStatus: 'connected', ...status }
+    } catch (err) {
+      return { providerStatus: 'error', message: `Auto-fix error: ${err.message}` }
+    }
   }
 
   if (name !== 'run_safe_local_command') {
@@ -6764,6 +6809,14 @@ const server = http.createServer(async (req, res) => {
     json(res, 200, { projects: listProjects() })
     return
   }
+
+  // ── Auto-Fix API ───────────────────────────────────────────────────────────
+  if (req.url?.startsWith('/api/autofix/') && ['GET', 'POST'].includes(req.method)) {
+    const { default: handler } = await import('./api/autofix/index.mjs')
+    handler(req, res)
+    return
+  }
+
   if (req.url === '/api/copilot/embed' && req.method === 'POST') {
     handleEmbed(req, res)
     return
@@ -6987,4 +7040,15 @@ const server = http.createServer(async (req, res) => {
 const port = Number(process.env.PORT || 4177)
 server.listen(port, () => {
   console.log(`Apex AI Copilot platform listening on http://127.0.0.1:${port}`)
+  // Start auto-fix monitor (local only)
+  if (process.env.AUTO_FIX_ENABLED !== '0') {
+    import('./server/service/autoFix.mjs').then(mod => {
+      const stop = mod.startAutoFixMonitor(45000)
+      console.log('[auto-fix] Monitor ativo a cada 45s')
+      process.on('SIGINT', () => { stop(); process.exit() })
+      process.on('SIGTERM', () => { stop(); process.exit() })
+    }).catch(err => {
+      console.error('[auto-fix] Falha ao iniciar monitor:', err.message)
+    })
+  }
 })
