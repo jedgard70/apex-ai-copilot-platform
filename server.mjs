@@ -6978,6 +6978,34 @@ const server = http.createServer(async (req, res) => {
     return
   }
 
+  // ── Campaign / Marketing API ─────────────────────────────────────────────────
+  if (req.url?.startsWith('/api/campaign/') && ['GET', 'POST'].includes(req.method)) {
+    const { default: handler } = await import('./api/campaign/index.mjs')
+    handler(req, res)
+    return
+  }
+
+  // ── NR Compliance API ───────────────────────────────────────────────────────
+  if (req.url?.startsWith('/api/nr/') && ['GET', 'POST'].includes(req.method)) {
+    const { default: handler } = await import('./api/nr/index.mjs')
+    handler(req, res)
+    return
+  }
+
+  // ── Accounting API ──────────────────────────────────────────────────────────
+  if (req.url?.startsWith('/api/accounting/') && ['GET', 'POST'].includes(req.method)) {
+    const { default: handler } = await import('./api/accounting/index.mjs')
+    handler(req, res)
+    return
+  }
+
+  // ── American Permits API ────────────────────────────────────────────────────
+  if (req.url?.startsWith('/api/permits/') && ['GET', 'POST'].includes(req.method)) {
+    const { default: handler } = await import('./api/permits/index.mjs')
+    handler(req, res)
+    return
+  }
+
   serveStatic(req, res)
   } catch (error) {
     const normalized = captureServerException(error, {
