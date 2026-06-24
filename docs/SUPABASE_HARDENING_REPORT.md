@@ -1,3 +1,11 @@
+
+> 🚨 **SUPERSEDED** — Este documento foi substituído pelos 2 canônicos:
+> 1. **CHECKPOINT_TRACKER.md** (execução e mudanças)
+> 2. **docs/APEX_PLATFORM_CURRENT_STATE.md** (status e módulos)
+> Não use este documento como fonte da verdade. Consulte os canônicos.
+
+---
+
 # Supabase Hardening Report
 
 > 🚨 REGRA ABSOLUTA — Proteção de Environment Variables
@@ -165,3 +173,4 @@ One first post-apply lint attempt returned a transient `cli_login_postgres` pass
 ## Result
 
 Status: GREEN - CP14C/CP14D migrations applied, local validation is green, and Supabase security/performance advisors report no warning-level issues.
+

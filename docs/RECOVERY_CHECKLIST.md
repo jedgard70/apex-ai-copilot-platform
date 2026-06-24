@@ -1,3 +1,11 @@
+
+> 🚨 **SUPERSEDED** — Este documento foi substituído pelos 2 canônicos:
+> 1. **CHECKPOINT_TRACKER.md** (execução e mudanças)
+> 2. **docs/APEX_PLATFORM_CURRENT_STATE.md** (status e módulos)
+> Não use este documento como fonte da verdade. Consulte os canônicos.
+
+---
+
 # Recovery Checklist for docsedgard Restoration
 
 > 🚨 REGRA ABSOLUTA — Proteção de Environment Variables
@@ -21,4 +29,5 @@
 Automated actions performed:
 - Reverted enabled:true to enabled:false for imported skills.
 - Restored artifacts placed under skills/imported/recovered_docsedgard and auto_wrapped.
+
 

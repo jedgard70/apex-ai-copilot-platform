@@ -1,3 +1,11 @@
+
+> 🚨 **SUPERSEDED** — Este documento foi substituído pelos 2 canônicos:
+> 1. **CHECKPOINT_TRACKER.md** (execução e mudanças)
+> 2. **docs/APEX_PLATFORM_CURRENT_STATE.md** (status e módulos)
+> Não use este documento como fonte da verdade. Consulte os canônicos.
+
+---
+
 # Auditoria: Código Real vs Documentação
 
 > Gerado em: 2026-06-24
@@ -166,3 +174,4 @@ supabase migration list:
 8. 10 services extraídos do server.mjs inline → dedicados
 9. REGRA ABSOLUTA 6 — "Documentação é desejo, código é realidade"
 10. Relatório de auditoria cruzada código vs docs
+

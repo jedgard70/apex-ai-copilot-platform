@@ -1,3 +1,11 @@
+
+> 🚨 **SUPERSEDED** — Este documento foi substituído pelos 2 canônicos:
+> 1. **CHECKPOINT_TRACKER.md** (execução e mudanças)
+> 2. **docs/APEX_PLATFORM_CURRENT_STATE.md** (status e módulos)
+> Não use este documento como fonte da verdade. Consulte os canônicos.
+
+---
+
 # Apex AI Copilot — Inventory Report (34 capabilities)
 
 > 🚨 REGRA ABSOLUTA — Proteção de Environment Variables
@@ -69,3 +77,4 @@ A causa mais provável de cancelamento recorrente não é o código em si, mas u
 - `CHECKPOINT_TRACKER.md`
 - `docs/APEX_PLATFORM_CURRENT_STATE.md`
 - `skills/SKILLS_APEX/apex-global-orchestrator-unificada/references/platform-status.md`
+

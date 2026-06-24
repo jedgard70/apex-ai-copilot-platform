@@ -1,7 +1,7 @@
 # APEX Platform — Unified Current State
 
-Checkpoint: CP-LIVE-FINAL — 34 capabilities documented
-Last update: 2026-06-23
+Checkpoint: CP-LIVE-FINAL — 42 capabilities documentadas
+Last update: 2026-06-24
 
 ## Canonical rule
 
@@ -19,7 +19,7 @@ The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.m
 - Env vars protection: **GREEN** (regra absoluta no AGENTS.md, .env.local e server.mjs)
 - Deploy hygiene: **GREEN** — CI workflow now validates builds/tests before deployment
 
-## Complete module map (34 capabilities — ALL DONE)
+## Complete module map (42 capabilities — ALL DONE)
 
 | # | Module | Component / API | Status |
 | --- | --- | --- | --- |
@@ -40,14 +40,40 @@ The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.m
 | 15 | DirectCut (video planning + Node Board) | `DirectCutPanel` + `api/copilot/video-plan` + `api/copilot/directcut-refine.mjs` | ✅ LIVE |
 | 16 | Campaign Automation / VSL | `CampaignAutomationPanel` + `api/copilot/campaign-plan.mjs` (real AI) | ✅ LIVE |
 | 17 | Social Content Pipeline | `CampaignAutomationPanel` Social tab + `api/copilot/social-content.mjs` | ✅ LIVE |
-| 18 | Public VSL landing | `PublicVslLandingPage` at `/vsl`, `/oferta`, `/apresentacao` | ✅ LIVE |
-| 19 | Project Package Pipeline | `ProjectPackagePanel` + `api/copilot/project-package` | ✅ LIVE |
-| 20 | Generation Queue / History | `GenerationHistoryPanel` + `api/copilot/generation-history` | ✅ LIVE |
-| 21 | RDO / Field Operations | `RdoPanel` + Supabase hybrid sync (7 field tables) | ✅ LIVE |
-| 22 | Payment gateways (Stripe) | `api/stripe/checkout.mjs` + webhook + `FinancePanel` | ✅ LIVE |
-| 23 | Autodesk Platform Services | `api/aps/token.mjs` + `api/aps/hubs.mjs` + `ApsPanel` | ✅ LIVE |
-| 24 | Avatar / Voice pipeline | ElevenLabs TTS + avatar generation flow | ✅ LIVE |
-| 25 | Multi-tenant / PWA | Tenant isolation + PWA manifest | ✅ LIVE |
+| 18 | Social Media Campaigns API | `api/social/index.mjs` + `server/service/socialMedia.mjs` | ✅ LIVE |
+| 19 | Public VSL landing | `PublicVslLandingPage` at `/vsl`, `/oferta`, `/apresentacao` | ✅ LIVE |
+| 20 | Project Package Pipeline | `ProjectPackagePanel` + `api/copilot/project-package` | ✅ LIVE |
+| 21 | Generation Queue / History | `GenerationHistoryPanel` + `api/copilot/generation-history` | ✅ LIVE |
+| 22 | RDO / Field Operations | `FieldOpsPanel` + Supabase hybrid sync (7 field tables) | ✅ LIVE |
+| 23 | Payment gateways (Stripe) | `api/stripe/checkout.mjs` + webhook + `FinancePanel` | ✅ LIVE |
+| 24 | Autodesk Platform Services | `api/aps/token.mjs` + `api/aps/hubs.mjs` + `ApsPanel` | ✅ LIVE |
+| 25 | Avatar / Voice pipeline | ElevenLabs TTS + avatar generation flow | ✅ LIVE |
+| 26 | Multi-tenant / PWA | Tenant isolation + PWA manifest | ✅ LIVE |
+| 27 | Stock Market | `api/stock/index.mjs` + `StockMarketPanel` + comando de voz | ✅ LIVE |
+| 28 | Trip Planner | `api/trip/index.mjs` + `TripPlannerPanel` + comando de voz | ✅ LIVE |
+| 29 | NR Compliance (CREA/OE) | `api/nr/index.mjs` + `NRCompliancePanel` + comando de voz | ✅ LIVE |
+| 30 | Accounting CRC | `api/accounting/index.mjs` + `AccountingPanel` + comando de voz | ✅ LIVE |
+| 31 | American Permits | `api/permits/index.mjs` + `AmericanPermitsPanel` + comando de voz | ✅ LIVE |
+| 32 | Pipeline Progress | `server/service/pipelineStatus.mjs` + `PipelineProgressPanel` | ✅ LIVE |
+| 33 | MS Project Integration | `api/msproject/parse.mjs` + `server/service/msproject.mjs` | ✅ LIVE |
+| 34 | Financial Control | `api/finance/index.mjs` + `server/service/finance.mjs` + `FinancePanel` | ✅ LIVE |
+| 35 | WhatsApp/SMS Notifications | `api/notification/index.mjs` + `server/service/notification.mjs` | ✅ LIVE |
+| 36 | Auto-Fix Engine | `api/autofix/index.mjs` + `server/service/autoFix.mjs` | ✅ LIVE |
+| 37 | Service Order / Invoice | `server/service/serviceOrder.mjs` + `server/service/invoice.mjs` | ✅ LIVE |
+| 38 | CRM / Client Management | `server/service/crm.mjs` + `CrmPanel` | ✅ LIVE |
+| 39 | Supply Chain | `server/service/supplyChain.mjs` + `SupplyChainPanel` | ✅ LIVE |
+| 40 | AI Cost Dashboard | `server/service/aiCost.mjs` + `AiCostDashboardPanel` | ✅ LIVE |
+| 41 | Knowledge Base | `server/service/knowledgeBase.mjs` + `KnowledgeBasePanel` | ✅ LIVE |
+| 42 | Digital Twin | `server/service/digitalTwin.mjs` + `DigitalTwinPanel` | ✅ LIVE |
+
+## Deployment map
+
+| Environment | URL | Status |
+| --- | --- | --- |
+| Local `.exe` / `server.mjs` | `localhost:3000` | ✅ Running |
+| Vercel Production | `www.apexglobalai.com` | ✅ Live (main branch auto-deploy) |
+| Vercel preview | `apex-ai-copilot-platform.vercel.app` | ✅ Live |
+| GitHub | `jedgard70/apex-ai-copilot-platform` | ✅ main branch |
 
 ## Deployment map
 
@@ -163,8 +189,9 @@ Todos os provedores abaixo estão **configurados e operacionais** (chaves no `.e
 | Stripe | `STRIPE_SECRET_KEY` | ✅ Connected | Checkout + Webhook |
 | Autodesk APS | `APS_CLIENT_ID` + `APS_CLIENT_SECRET` | 🔒 Local-only | API Revit/BIM360 |
 
-*Last updated: 2026-06-23*
-*Status: ALL 25+ MODULES DONE — 10 PROVEDORES ATIVOS — ENV SYNC AUDITADO — Deploy LIVE*
+*Last updated: 2026-06-24*
+*Status: ALL 42 MODULES DONE — 10 PROVEDORES ATIVOS — 14 CONECTORES — ENV SYNC AUDITADO — Deploy LIVE*
+*Active pending work moved to `CHECKPOINT_TRACKER.md`.*
 
 - Active pending work moved to `CHECKPOINT_TRACKER.md`.
 
