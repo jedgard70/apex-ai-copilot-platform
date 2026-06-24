@@ -1119,7 +1119,60 @@ function flattenMessageText(messages = []) {
     .join('\n')
 }
 
+async function callGeminiChat(model, messages, apiKey) {
+  const startTime = Date.now()
+  try {
+    // Convert OpenAI-format messages to Gemini contents format
+    const contents = []
+    let systemInstruction = null
+    for (const msg of messages) {
+      if (msg.role === 'system') {
+        const text = typeof msg.content === 'string' ? msg.content : (Array.isArray(msg.content) ? msg.content.map(p => p.text || '').join('\n') : '')
+        systemInstruction = { parts: [{ text: text.slice(0, 8000) }] }
+        continue
+      }
+      const role = msg.role === 'assistant' ? 'model' : 'user'
+      let text = typeof msg.content === 'string' ? msg.content : (Array.isArray(msg.content) ? msg.content.map(p => p.text || p.type === 'image_url' ? '[image]' : '').join('\n') : '')
+      contents.push({ role, parts: [{ text: text.slice(0, 8000) }] })
+    }
 
+    const payload = { contents, generationConfig: { temperature: 0.72, maxOutputTokens: 900 } }
+    if (systemInstruction) payload.systemInstruction = systemInstruction
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'x-goog-api-key': apiKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    const data = await res.json().catch(() => ({}))
+    const duration = Date.now() - startTime
+    const success = res.ok && !data.error
+
+    const text = data?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || ''
+    const usage = data?.usageMetadata || {}
+
+    recordCallSafe({
+      provider: 'gemini',
+      model,
+      latencyMs: duration,
+      success,
+      tokensIn: usage.promptTokenCount || 0,
+      tokensOut: usage.candidatesTokenCount || usage.totalTokenCount || 0,
+      errorMsg: success ? null : (data?.error?.message || `HTTP ${res.status}`),
+    })
+
+    return {
+      provider: 'gemini',
+      response: { ok: success, status: res.status },
+      data: { choices: [{ message: { content: text } }], model, usage },
+      usedFallback: false,
+    }
+  } catch (err) {
+    recordCallSafe({ provider: 'gemini', model, latencyMs: Date.now() - startTime, success: false, errorMsg: err.message })
+    return { provider: 'gemini', response: { ok: false, status: 0 }, data: {}, usedFallback: false }
+  }
+}
 
 async function callOpenAIChat(requestPayload, overrideConfig) {
   const startTime = Date.now()
@@ -2103,7 +2156,12 @@ export default async function handler(req, res) {
       }
     }
 
-    const chatResult = await callOpenAIChat(requestPayload, { apiBase, apiKey: resolvedOpenAIKey })
+    let chatResult
+    if (isGeminiProvider && resolvedOpenAIKey) {
+      chatResult = await callGeminiChat(finalModel, liveAgentMessages, resolvedOpenAIKey)
+    } else {
+      chatResult = await callOpenAIChat(requestPayload, { apiBase, apiKey: resolvedOpenAIKey })
+    }
 
     const response = chatResult.response
     const data = chatResult.data
