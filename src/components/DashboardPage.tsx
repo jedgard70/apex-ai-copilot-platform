@@ -28,7 +28,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     : ['openrouter', 'gemini', 'openai', 'anthropic', 'fal', 'elevenlabs']
 
   return (
-    <div className="max-w-7xl mx-auto space-y-gutter relative z-10">
+    <div className="max-w-7xl mx-auto space-y-gutter relative z-10 overflow-y-auto h-full">
       {/* Welcome Section */}
       <section className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>

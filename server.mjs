@@ -161,16 +161,6 @@ const FAL_CHAT_MODELS = [
   { id: 'fal-ai/phi-4', name: 'Phi-4 (FAL)' },
 ]
 
-const ANTHROPIC_MODELS = [
-  { id: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6' },
-  { id: 'claude-opus-4-6', name: 'Claude Opus 4.6' },
-  { id: 'claude-3.5-sonnet-v2', name: 'Claude 3.5 Sonnet v2' },
-  { id: 'claude-3.5-haiku', name: 'Claude 3.5 Haiku' },
-  { id: 'claude-3-opus', name: 'Claude 3 Opus' },
-  { id: 'claude-3-sonnet', name: 'Claude 3 Sonnet' },
-  { id: 'claude-3-haiku', name: 'Claude 3 Haiku' },
-]
-
 function composeModelValue(provider, modelId) {
   return `${provider}|${modelId}`
 }
@@ -249,13 +239,6 @@ function buildStaticModelCatalog() {
       ...model,
       provider: 'fal',
       id: composeModelValue('fal', model.id),
-      modelId: model.id,
-      name: model.name,
-    })),
-    ...ANTHROPIC_MODELS.map(model => ({
-      ...model,
-      provider: 'anthropic',
-      id: composeModelValue('anthropic', model.id),
       modelId: model.id,
       name: model.name,
     })),
@@ -2314,9 +2297,6 @@ async function handleModelsList(req, res) {
     if (process.env.GEMINI_API_KEY) {
       await fetchModels(`https://generativelanguage.googleapis.com/v1/models?key=${process.env.GEMINI_API_KEY}`, {}, 'gemini', 'name', 'displayName', 'models')
     }
-    if (process.env.ANTHROPIC_API_KEY) {
-      await fetchModels('https://api.anthropic.com/v1/models', { 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' }, 'anthropic')
-    }
     if (process.env.ELEVENLABS_API_KEY) {
       await fetchModels('https://api.elevenlabs.io/v1/models', { 'xi-api-key': process.env.ELEVENLABS_API_KEY }, 'elevenlabs', 'model_id', 'name', null)
     }
@@ -2331,7 +2311,7 @@ async function handleModelsList(req, res) {
       addModel(model)
     }
 
-    const providerOrder = ['gemini-interactions', 'gemini', 'openrouter', 'openai', 'anthropic', 'gateway']
+    const providerOrder = ['gemini-interactions', 'gemini', 'openrouter', 'fal', 'opencode', 'openai', 'gateway', 'elevenlabs', 'firebase']
     models.sort((left, right) => {
       const leftIdx = providerOrder.indexOf(left.provider)
       const rightIdx = providerOrder.indexOf(right.provider)
@@ -5262,9 +5242,8 @@ async function handleDashboardStatus(req, res) {
     const hasGeminiKey = Boolean(process.env.GEMINI_API_KEY)
     const hasOpenAI = Boolean(process.env.OPENAI_API_KEY)
     const hasOpenRouter = Boolean(process.env.OPENAI_API_KEYROUTER)
-    const hasAnthropic = Boolean(process.env.ANTHROPIC_API_KEY)
     const hasElevenLabs = Boolean(process.env.ELEVENLABS_API_KEY)
-    const providersActive = [hasOpenRouter, hasGeminiKey, hasOpenAI, hasAnthropic, hasFalKey, hasElevenLabs].filter(Boolean).length
+    const providersActive = [hasOpenRouter, hasGeminiKey, hasOpenAI, hasFalKey, hasElevenLabs].filter(Boolean).length
     return json(res, 200, {
       ok: true,
       git: { sha: gitSha, branch: gitBranch },
@@ -5275,7 +5254,6 @@ async function handleDashboardStatus(req, res) {
           openrouter: hasOpenRouter,
           gemini: hasGeminiKey,
           openai: hasOpenAI,
-          anthropic: hasAnthropic,
           fal: hasFalKey,
           elevenlabs: hasElevenLabs,
         }
