@@ -6964,6 +6964,20 @@ const server = http.createServer(async (req, res) => {
     return
   }
 
+  // ── Stock Market API ───────────────────────────────────────────────────────
+  if (req.url?.startsWith('/api/stock/') && ['GET', 'POST'].includes(req.method)) {
+    const { default: handler } = await import('./api/stock/index.mjs')
+    handler(req, res)
+    return
+  }
+
+  // ── Trip Planner API ──────────────────────────────────────────────────────
+  if (req.url?.startsWith('/api/trip/') && ['GET', 'POST'].includes(req.method)) {
+    const { default: handler } = await import('./api/trip/index.mjs')
+    handler(req, res)
+    return
+  }
+
   serveStatic(req, res)
   } catch (error) {
     const normalized = captureServerException(error, {

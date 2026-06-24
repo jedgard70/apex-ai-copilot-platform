@@ -67,6 +67,8 @@ import { MarketingAnalyticsPage } from './components/MarketingAnalyticsPage'
 import { PlatformNavigatorPage } from './components/PlatformNavigatorPage'
 import { ModelTrainingPage } from './components/ModelTrainingPage'
 import { TechnicalDocumentationPage } from './components/TechnicalDocumentationPage'
+import { StockMarketPanel } from './components/StockMarketPanel'
+import { TripPlannerPanel } from './components/TripPlannerPanel'
 import { classifyFile, formatSize, IntakeFile, isVisionReady, readFileAsDataUrl, readImageDimensions } from './lib/fileIntake'
 import { extractPdfText } from './lib/pdfExtractor'
 import {
@@ -1406,6 +1408,8 @@ function App() {
     const stored = initialAppState.platformMapOutput as SimpleStudioOutput | undefined
     return stored || null
   })
+  const [stockOutput, setStockOutput] = useState<boolean>(false)
+  const [tripOutput, setTripOutput] = useState<boolean>(false)
   const [campaignAutomationOutput, setCampaignAutomationOutput] = useState<SimpleStudioOutput | null>(() => {
     const stored = initialAppState.campaignAutomationOutput as SimpleStudioOutput | undefined
     return stored || null
@@ -1866,6 +1870,8 @@ function App() {
     setAutoupgradeOutput(null)
     setPlatformMapOutput(null)
     setCampaignAutomationOutput(null)
+    setStockOutput(false)
+    setTripOutput(false)
     setCopilotExecutionOutput(null)
     setAuthOutput(null)
     setExportCenterOpen(false)
@@ -1899,6 +1905,8 @@ function App() {
     if (except !== 'autoupgrade') setAutoupgradeOutput(null)
     if (except !== 'platformMap') setPlatformMapOutput(null)
     if (except !== 'campaignAutomation') setCampaignAutomationOutput(null)
+    if (except !== 'stock') setStockOutput(false)
+    if (except !== 'trip') setTripOutput(false)
     if (except !== 'copilotExecution') setCopilotExecutionOutput(null)
     if (except !== 'auth') setAuthOutput(null)
     if (except !== 'exportCenter') setExportCenterOpen(false)
@@ -3105,6 +3113,8 @@ function App() {
     setAutoupgradeOutput(null)
     setPlatformMapOutput(null)
     setCampaignAutomationOutput(null)
+    setStockOutput(false)
+    setTripOutput(false)
     setCopilotExecutionOutput(null)
     setAuthOutput(null)
     setExportCenterOpen(false)
@@ -3227,6 +3237,8 @@ function App() {
     setAutoupgradeOutput(null)
     setPlatformMapOutput(null)
     setCampaignAutomationOutput(null)
+    setStockOutput(false)
+    setTripOutput(false)
     setCopilotExecutionOutput(null)
     setAuthOutput(null)
     setArchVisRevisionConstraints([])
@@ -3677,7 +3689,7 @@ function App() {
       )}
     </div>
   )
-  const hasOperationalPanel = archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || evmSchedulerComplianceOutput || supplyChainOutput || notificationsOutput || aiCostOutput || multiTenantOutput || pwaMobileOutput || digitalTwinOutput || knowledgeBaseOutput || projectPackageOutput || generationHistoryOpen || metricsOutput || avatarVoiceOutput || autoupgradeOutput || platformMapOutput || campaignAutomationOutput || exportCenterOpen
+  const hasOperationalPanel = archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || evmSchedulerComplianceOutput || supplyChainOutput || notificationsOutput || aiCostOutput || multiTenantOutput || pwaMobileOutput || digitalTwinOutput || knowledgeBaseOutput || projectPackageOutput || generationHistoryOpen || metricsOutput || avatarVoiceOutput || autoupgradeOutput || platformMapOutput || stockOutput || tripOutput || campaignAutomationOutput || exportCenterOpen
   const workspaceClass = hasOperationalPanel ? 'studio-open' : ''
 
   if (isPublicVslRoute) {
@@ -4721,6 +4733,8 @@ function App() {
               <button type="button" onClick={() => { setPlatformMapOutput({ goal: 'status das keys', conversationContext: [] }); setOwnerConsoleOpen(false) }}>
                 <Activity size={16} /> Status das Keys / Provedores
               </button>
+              <button type="button" onClick={() => { setStockOutput(true); setOwnerConsoleOpen(false) }}>Bolsa de Valores</button>
+              <button type="button" onClick={() => { setTripOutput(true); setOwnerConsoleOpen(false) }}>Trip Planner</button>
               <button type="button" onClick={() => { setPlatformMapOutput({ goal: 'mapa da plataforma', conversationContext: [] }); setOwnerConsoleOpen(false) }}>
                 <Compass size={16} /> Mapa da Plataforma
               </button>
