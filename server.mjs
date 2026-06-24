@@ -35,6 +35,17 @@ import {
   isInteractionModel,
 } from './server/providers/gemini-interactions.mjs'
 import { chatWithFallback, getProviderChain } from './server/providers/providerRouter.mjs'
+import * as supplyChainService from './server/service/supplyChain.mjs'
+import * as aiCostService from './server/service/aiCost.mjs'
+import * as multiTenantService from './server/service/multiTenant.mjs'
+import * as pwaMobileService from './server/service/pwaMobile.mjs'
+import * as digitalTwinService from './server/service/digitalTwin.mjs'
+import * as knowledgeBaseService from './server/service/knowledgeBase.mjs'
+import * as metricsService from './server/service/metrics.mjs'
+import * as generationHistoryService from './server/service/generationHistory.mjs'
+import * as projectPackageService from './server/service/projectPackage.mjs'
+import * as notificationsService from './server/service/notificationsService.mjs'
+import * as crmService from './server/service/crm.mjs'
 
 function normalizeEnvironmentAliases() {
   const aliasPairs = [
@@ -4742,26 +4753,9 @@ async function handleGenerationHistory(req, res) {
   try {
     const body = await readJson(req)
     const project = body.project || {}
-    if (!project || typeof project !== 'object' || !project.name) {
-      return json(res, 400, { error: 'Valid project state is required for generation history.' })
-    }
-    const entries = Array.isArray(project.generationHistory) ? [...project.generationHistory] : []
-    entries.sort((a, b) => String(b?.createdAt || '').localeCompare(String(a?.createdAt || '')))
-    const byKind = entries.reduce((acc, entry) => {
-      const key = String(entry?.kind || 'unknown')
-      acc[key] = (acc[key] || 0) + 1
-      return acc
-    }, {})
-    return json(res, 200, {
-      providerStatus: 'connected',
-      summary: {
-        total: entries.length,
-        completed: entries.filter(entry => entry?.status === 'completed').length,
-        failed: entries.filter(entry => entry?.status === 'failed').length,
-        byKind,
-      },
-      entries,
-    })
+    const result = generationHistoryService.buildGenerationHistory(project)
+    if (result.error) return json(res, 400, { error: result.error })
+    return json(res, 200, result)
   } catch (error) {
     return json(res, error.status || 500, { error: scrubProviderError(error.message || error) })
   }
@@ -5080,24 +5074,10 @@ async function handleEvmSchedulerCompliance(req, res) {
   }
 }
 
-function createSupplyChainPlan(goal = '') {
-  const suppliers = []
-  const procurementItems = []
-  return {
-    providerStatus: 'connected',
-    suppliers,
-    procurementItems,
-    supplierComparison: [],
-    rfqDraft: ['RFQ draft - local planning only', `Project/request: ${goal || 'Apex project procurement package'}`, 'Please provide itemized price, lead time, payment terms, delivery conditions, compliance documents, exclusions and validity date.', 'Apex has not verified supplier availability or pricing yet.'].join('\n'),
-    risks: ['Supplier prices are not verified.', 'Availability is not verified.', 'Compliance documents are pending.', 'Payment terms and lead times require supplier confirmation.'],
-    message: 'Supply Chain Studio generated a local supplier/procurement draft. No ERP, price or availability connector is connected.',
-  }
-}
-
 async function handleSupplyChainPlan(req, res) {
   try {
     const body = await readJson(req)
-    return json(res, 200, { plan: createSupplyChainPlan(String(body.goal || '')) })
+    return json(res, 200, { plan: supplyChainService.createSupplyChainPlan(String(body.goal || '')) })
   } catch (error) {
     return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' })
   }
@@ -5109,216 +5089,57 @@ async function handleNotificationsPlan(req, res) {
     const goal = String(body.goal || '')
     const phone = String(body.phone || body.recipient || '').trim()
     const message = String(body.message || body.text || '').trim()
-    const lower = goal.toLowerCase()
-    const type = /pagamento|fatura|payment|invoice|cobran/.test(lower)
-      ? 'Payment overdue'
-      : /fornecedor|supplier|material|entrega/.test(lower)
-        ? 'Supplier delay'
-        : /seguran|safety|nr-/.test(lower)
-          ? 'Safety risk'
-          : /custo|cost|budget|or[cç]amento/.test(lower)
-            ? 'Cost deviation'
-            : /cliente|follow/.test(lower)
-              ? 'Client follow-up'
-              : 'Deadline'
-    const severity = /cr[ií]tico|critical|urgente|alto risco/.test(lower) ? 'Critical' : 'High'
-    const alert = { id: `alert-${Date.now()}`, type, title: goal || 'Apex alert', description: goal || 'Alert created from chat intent.', severity, dueDate: '', assignedTo: 'Owner/Admin', status: 'Open', sourceModule: 'Apex Copilot', evidence: 'USER_ENTERED' }
-    const followUp = { id: `alert-followup-${Date.now()}`, type: 'Client follow-up', title: 'Follow up with client', description: 'Suggested follow-up from notification plan.', severity: 'Medium', dueDate: '', assignedTo: 'Sales / Owner', status: 'Open', sourceModule: 'CRM', evidence: 'SYSTEM_SUGGESTED' }
-    const deliveryResults = []
-    const authKey = process.env.AUTHKEY_AUTHKEY
-    const smsSender = process.env.AUTHKEY_SMS_SENDER
-    const whatsappSid = process.env.AUTHKEY_WHATSAPP_SID
-    if (phone && message && authKey) {
-      try {
-        const smsPayload = new URLSearchParams({ key: authKey, sender: smsSender || 'APEX', to: phone, message })
-        const smsRes = await fetch('https://api.authkey.io/request', { method: 'POST', body: smsPayload })
-        const smsData = await smsRes.text()
-        deliveryResults.push({ channel: 'sms', to: phone, status: smsRes.ok ? 'sent' : 'failed', response: smsData.slice(0, 200) })
-      } catch (smsErr) {
-        deliveryResults.push({ channel: 'sms', to: phone, status: 'error', response: smsErr.message })
-      }
-      if (whatsappSid) {
-        try {
-          const waPayload = new URLSearchParams({ key: authKey, sid: whatsappSid, to: phone, message })
-          const waRes = await fetch('https://api.authkey.io/whatsapp/send', { method: 'POST', body: waPayload })
-          const waData = await waRes.text()
-          deliveryResults.push({ channel: 'whatsapp', to: phone, status: waRes.ok ? 'sent' : 'failed', response: waData.slice(0, 200) })
-        } catch (waErr) {
-          deliveryResults.push({ channel: 'whatsapp', to: phone, status: 'error', response: waErr.message })
-        }
-      }
-    }
-    return json(res, 200, {
-      plan: {
-        providerStatus: 'connected',
-        alerts: [alert],
-        suggestedAlerts: [alert, followUp],
-        deliveryResults,
-        message: deliveryResults.length
-          ? `Notification sent via ${deliveryResults.map(r => r.channel).join(' and ')}.`
-          : 'Alert created locally. Provide phone + message to send via AuthKey.',
-      },
-    })
+    const plan = await notificationsService.createNotificationsPlan(goal, phone, message)
+    return json(res, 200, { plan })
   } catch (error) {
     return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' })
-  }
-}
-
-function createAiCostPlan(goal = '') {
-  const now = new Date().toISOString()
-  const modules = ['Chat', 'ArchVis', 'DirectCut', 'BIM/3D', 'Budget', 'Contracts', 'FieldOps', 'Research', 'Skill Update', 'Export']
-  const moduleBreakdown = modules.map(module => ({ id: `ai-cost-${module.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`, module, requestCount: module === 'Chat' ? 1 : 0, estimatedTokens: module === 'Chat' ? 1200 : 0, estimatedCost: module === 'Chat' ? 0.01 : 0, model: 'unknown / local estimate', timestamp: now, userProject: goal || 'Apex Project', sourceConfidence: 'ESTIMATED_LOCAL' }))
-  const totalRequests = moduleBreakdown.reduce((sum, item) => sum + item.requestCount, 0)
-  const totalEstimatedTokens = moduleBreakdown.reduce((sum, item) => sum + item.estimatedTokens, 0)
-  const totalEstimatedCost = Number(moduleBreakdown.reduce((sum, item) => sum + item.estimatedCost, 0).toFixed(4))
-  return {
-    providerStatus: 'connected',
-    usageSummary: { totalRequests, totalEstimatedTokens, totalEstimatedCost, sourceConfidence: 'ESTIMATED_LOCAL', warning: 'No provider billing API is connected. These values are local estimates, not invoice-accurate billing.' },
-    moduleBreakdown,
-    costWarnings: ['No fake OpenAI billing: provider billing source is not connected.', 'Use ESTIMATED_LOCAL until real usage/billing API is connected.', 'Set local threshold alerts only; push/email connectors are not connected.'],
-    message: 'AI Cost Dashboard generated an estimated-local observability draft. It is not provider billing.',
   }
 }
 
 async function handleAiCostPlan(req, res) {
   try {
     const body = await readJson(req)
-    return json(res, 200, { plan: createAiCostPlan(String(body.goal || '')) })
+    return json(res, 200, { plan: aiCostService.createAiCostPlan(String(body.goal || '')) })
   } catch (error) {
     return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' })
   }
 }
 
-function createMultiTenantPlan(goal = '') {
-  return { providerStatus: 'connected', tenants: [{ id: 'tenant-owner', name: 'Apex Internal', workspaceType: 'Owner/Admin', status: 'local demo', dataBoundary: 'Internal only' }, { id: 'tenant-client', name: 'Client Workspace', workspaceType: 'Client', status: 'planned', dataBoundary: 'Client project data only' }], rolesPerTenant: ['Owner/Admin', 'Internal Team', 'Client', 'Partner', 'Viewer', 'Contractor', 'Finance', 'Sales'], projectIsolationPlan: ['Tenant id on every user, project, file and export.', 'Server-side role checks before every project/file read.', 'Client users cannot query admin/internal tenant data.'], rlsReadinessChecklist: ['Define tenant tables.', 'Add tenant_id to project-owned rows.', 'Create Supabase RLS policies after approval.', 'Test cross-tenant denial before production.'], tenantRiskChecklist: ['No real tenant isolation yet.', 'No Supabase/auth connector in this checkpoint.', 'Do not onboard real clients until backend isolation is verified.'], exportPlan: `Tenant architecture plan for: ${goal || 'Apex multi-tenant readiness'}` }
-}
-async function handleMultiTenantPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createMultiTenantPlan(String(body.goal || '')) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' }) } }
-
-function createPwaPlan(goal = '') {
-  return { providerStatus: 'connected', mobileFieldWorkflow: ['Open project', 'Capture RDO', 'Upload photos', 'Add punch item', 'Complete safety checklist', 'Queue sync when offline'], offlineFirstPlan: ['Cache shell after PWA implementation.', 'Store drafts locally.', 'Sync when connector/database is available.', 'Show conflict review before overwriting records.'], installabilityChecklist: ['manifest.webmanifest not verified here.', 'Service worker not verified here.', 'Icons/offline route needed.', 'Validate install prompt in browser before claiming PWA installed.'], syncQueuePlan: ['Queue RDO drafts', 'Queue photo metadata', 'Queue punch list updates', 'Retry with visible status and errors'], fieldUserUx: ['Large tap targets', 'Photo-first RDO', 'Offline badge', 'Simple pending sync queue', 'Safety checklist shortcuts'], exportChecklist: `PWA / mobile field mode checklist for: ${goal || 'Apex field users'}` }
-}
-async function handlePwaPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createPwaPlan(String(body.goal || '')) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' }) } }
-
-function createDigitalTwinPlan(goal = '', projectSummary = null) {
-  const project = projectSummary && typeof projectSummary === 'object' ? projectSummary : {}
-  const fileCount = Number(project.files || 0)
-  const exportCount = Number(project.exports || 0)
-  const genCount = Number(project.generationHistory || 0)
-  const activeStudio = String(project.activeStudio || 'none')
-  const name = String(project.name || 'Apex Project')
-
-  const twinHealth = [
-    `Model freshness: ${fileCount > 0 ? 'Active — ' + fileCount + ' file(s) in project' : 'No files loaded yet'}`,
-    `Open issues: 0 (no field issues connector)`,
-    `Schedule risk: Unknown (no EVM data)`,
-    `Cost risk: Unknown (no budget data)`,
-    `Safety risk: Unknown`,
-    `Unknown data count: 0 — all known sources scanned`,
-    `Generations: ${genCount} history item(s)`,
-    `Exports: ${exportCount} export(s) created`,
-    `Active studio: ${activeStudio}`,
-  ]
-  return {
-    providerStatus: 'connected',
-    assetModelState: [
-      `Project: ${name}`,
-      `Files: ${fileCount} tracked`,
-      `Active studio: ${activeStudio}`,
-      `BIM model reference: ${fileCount > 0 ? 'local/project file available' : 'upload a file to link'}`,
-      fileCount > 0 ? 'Model data: ready for viewer' : 'Model data: no file loaded',
-    ],
-    linkedSources: ['BIM / 3D Studio', 'FieldOps / RDO', 'Budget / EVM', 'Export Center', 'Generation History'],
-    statusTimeline: [
-      `Created — ${name}`,
-      `Model linked — ${fileCount > 0 ? fileCount + ' file(s)' : 'awaiting upload'}`,
-      `Field data linked — awaiting field data`,
-      `Issues reviewed — 0 reviewed`,
-      `Report exported — ${exportCount} export(s)`,
-    ],
-    issueOverlayPlan: [
-      'Overlay punch list/risks on model views when real viewer metadata exists.',
-      'Use UNKNOWN for unavailable geometry or coordinates.',
-      `${fileCount > 0 ? 'Model available for overlay.' : 'No model loaded for overlay.'}`,
-    ],
-    sensorConnectorStatus: fileCount > 0 ? 'connected (local file data)' : 'not-connected',
-    twinHealthIndicators: twinHealth,
-    digitalTwinReport: [
-      `Digital Twin Report for: ${name}`,
-      `Generated: ${new Date().toISOString()}`,
-      '',
-      'Health indicators:',
-      ...twinHealth.map(h => `- ${h}`),
-      '',
-      `Provider: ${project.providerStatus || 'connected'}`,
-      'All data sourced from active project workspace. No fake telemetry.',
-    ].join('\n'),
+async function handleMultiTenantPlan(req, res) {
+  try {
+    const body = await readJson(req)
+    return json(res, 200, { plan: multiTenantService.createMultiTenantPlan(String(body.goal || '')) })
+  } catch (error) {
+    return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' })
   }
 }
+
+async function handlePwaPlan(req, res) {
+  try {
+    const body = await readJson(req)
+    return json(res, 200, { plan: pwaMobileService.createPwaPlan(String(body.goal || '')) })
+  } catch (error) {
+    return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' })
+  }
+}
+
 async function handleDigitalTwinPlan(req, res) {
   try {
-    const body = await readJson(req);
-    return json(res, 200, { plan: createDigitalTwinPlan(String(body.goal || ''), body.projectSummary || null) })
+    const body = await readJson(req)
+    return json(res, 200, { plan: digitalTwinService.createDigitalTwinPlan(String(body.goal || ''), body.projectSummary || null) })
   } catch (error) {
     return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' })
   }
 }
 
-function createKnowledgePlan(goal = '') {
-  return { providerStatus: 'connected', items: [{ id: 'kb-skill-archvis', title: 'ArchVis prompt brain', sourceType: 'skill', domain: 'ArchVis', confidence: 'APPROVED_GLOBAL', scope: 'global', summary: 'Prompt styles, preserve plan rules and image workflow knowledge.' }, { id: 'kb-project-note', title: 'Project memory note', sourceType: 'project note', domain: 'Project', confidence: 'PROJECT_MEMORY', scope: 'project', summary: goal || 'Local project knowledge item.' }], filters: ['domain', 'sourceType', 'confidence', 'scope'], exportIndex: 'Knowledge Base index is local. Do not execute knowledge content. Global entries require Owner approval.' }
-}
 async function handleKnowledgePlan(req, res) {
   try {
     const body = await readJson(req)
     const goal = String(body.goal || '')
-    
-    let items = [
-      { id: 'kb-skill-archvis', title: 'ArchVis prompt brain', sourceType: 'skill', domain: 'ArchVis', confidence: 'APPROVED_GLOBAL', scope: 'global', summary: 'Prompt styles, preserve plan rules and image workflow knowledge.' },
-      { id: 'kb-project-note', title: 'Project memory note', sourceType: 'project note', domain: 'Project', confidence: 'PROJECT_MEMORY', scope: 'project', summary: goal || 'Local project knowledge item.' }
-    ]
-    
-    items = [...items, ...localMemoryKnowledgeItems]
-
-    if (supabaseClient && goal.trim()) {
-      try {
-        const queryEmbedding = await generateEmbedding(goal)
-        const { data, error } = await supabaseClient.rpc('match_knowledge_items', {
-          query_embedding: queryEmbedding,
-          match_threshold: 0.2,
-          match_count: 10
-        })
-        if (error) {
-          console.error('[knowledge-plan] Supabase RPC match_knowledge_items error:', error.message)
-        } else if (data && data.length > 0) {
-          const dbItems = data.map(row => ({
-            id: row.id,
-            tenant_id: row.tenant_id,
-            title: row.title || '',
-            sourceType: row.metadata?.sourceType || 'file',
-            domain: row.domain || row.tags?.[0] || 'General',
-            confidence: row.metadata?.confidence || 'USER_PROVIDED',
-            scope: row.metadata?.scope || 'project',
-            summary: row.content || ''
-          }))
-          items = [...dbItems, ...items]
-        }
-      } catch (embError) {
-        console.error('[knowledge-plan] Failed to query semantic matches:', embError.message)
-      }
-    }
-
-    return json(res, 200, {
-      plan: {
-        providerStatus: 'connected',
-        items,
-        filters: ['domain', 'sourceType', 'confidence', 'scope'],
-        exportIndex: supabaseClient ? 'Knowledge Base index retrieved from pgvector.' : 'Knowledge Base index is local. Do not execute knowledge content. Global entries require Owner approval.'
-      }
-    })
+    const plan = await knowledgeBaseService.createKnowledgePlan(goal, generateEmbedding, supabaseClient)
+    return json(res, 200, { plan })
   } catch (error) {
-    return json(res, error.status || 500, {
-      error: scrubProviderError(error.message || error),
-      providerStatus: 'connected'
-    })
+    return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' })
   }
 }
 
@@ -5337,55 +5158,10 @@ async function handleEmbed(req, res) {
 async function handleKnowledgeBaseInsert(req, res) {
   try {
     const body = await readJson(req)
-    const title = String(body.title || 'Untitled Knowledge')
-    const summary = String(body.summary || body.content || '')
-    const sourceType = String(body.sourceType || 'file')
-    const domain = String(body.domain || 'General')
-    const confidence = String(body.confidence || 'USER_PROVIDED')
-    const scope = String(body.scope || 'project')
-    const tenantId = body.tenantId || body.tenant_id || null
-
-    const embedding = await generateEmbedding(summary || title)
-
-    const newItem = {
-      id: body.id || crypto.randomUUID(),
-      title,
-      sourceType,
-      domain,
-      confidence,
-      scope,
-      summary
-    }
-
-    if (supabaseClient) {
-      const { data, error } = await supabaseClient
-        .from('knowledge_items')
-        .insert({
-          id: newItem.id,
-          tenant_id: tenantId,
-          title: newItem.title,
-          content: newItem.summary,
-          tags: [newItem.domain],
-          embedding,
-          metadata: {
-            sourceType: newItem.sourceType,
-            confidence: newItem.confidence,
-            scope: newItem.scope
-          }
-        })
-        .select()
-
-      if (error) {
-        throw error
-      }
-      return json(res, 200, { success: true, item: newItem, db: data })
-    } else {
-      localMemoryKnowledgeItems.push(newItem)
-      return json(res, 200, { success: true, item: newItem, status: 'saved_locally_in_memory' })
-    }
+    const result = await knowledgeBaseService.insertKnowledgeItem(body, generateEmbedding, supabaseClient)
+    return json(res, 200, result)
   } catch (error) {
-    console.error('[knowledge-base-insert] Error inserting knowledge item:', error.message)
-    return json(res, error.status || 500, { error: scrubProviderError(error.message || error) })
+    return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' })
   }
 }
 
@@ -5440,69 +5216,14 @@ async function handleDashboardStatus(req, res) {
   }
 }
 
-function createMetricsPlan(goal = '', projectSummary = null, runtimeSummary = null) {
-  const modules = ['Chat', 'ArchVis', 'DirectCut', 'BIM/3D', 'Budget', 'Contracts', 'FieldOps', 'Research', 'Export']
-  const project = projectSummary && typeof projectSummary === 'object' ? projectSummary : {}
-  const runtime = runtimeSummary && typeof runtimeSummary === 'object' ? runtimeSummary : {}
-  const sentryFrontendConfigured = Boolean(process.env.VITE_SENTRY_DSN)
-  const sentryBackendConfigured = isServerObservabilityEnabled()
-  const providerDiagnostics = getModelProviderDiagnostics()
-  return {
-    providerStatus: 'connected',
-    apiMetrics: ['/api/copilot/chat', '/api/copilot/export-package', '/api/copilot/metrics-plan', '/api/copilot/generation-history', '/api/copilot/project-package'].map(endpoint => ({ endpoint, health: 'reachable in shared runtime', source: 'connected' })),
-    moduleUsage: modules.map((module, index) => ({ module, activity: index === 0 ? 1 : 0, source: 'connected' })),
-    projectActivity: [
-      `Project: ${String(project.name || 'Apex Project')}`,
-      `Files: ${Number(project.files || 0)} · Messages: ${Number(project.messages || 0)} · Exports: ${Number(project.exports || 0)}`,
-      `Active studio: ${String(project.activeStudio || 'none')}`,
-      `Generation history: ${Number(project.generationHistory || 0)} run(s)`,
-    ],
-    connectorStatus: [
-      `Sentry frontend: ${sentryFrontendConfigured ? 'configured' : 'not configured'}`,
-      `Sentry backend: ${sentryBackendConfigured ? 'configured' : 'not configured'}`,
-      vercelObservabilityStatus(),
-      `Gateway models: ${providerDiagnostics.gatewayConfigured ? 'configured' : 'not configured'}`,
-      `Gemini models: ${providerDiagnostics.geminiConfigured ? 'configured through OpenRouter' : 'not configured'}`,
-      `OpenAI: ${!!process.env.OPENAI_API_KEY ? 'connected' : 'not connected'}`,
-      `Gemini: ${!!process.env.GEMINI_API_KEY ? 'connected' : 'not connected'}`,
-      `Anthropic: ${!!process.env.ANTHROPIC_API_KEY ? 'connected' : 'not connected'}`,
-      `OpenRouter: ${!!process.env.OPENAI_API_KEYROUTER ? 'connected' : 'not connected'}`,
-      `FAL: ${!!process.env.FAL_KEY ? 'connected' : 'not connected'}`,
-      `ElevenLabs: ${!!process.env.ELEVENLABS_API_KEY ? 'connected' : 'not connected'}`,
-      `Tavily: ${!!process.env.TAVILY_API_KEY ? 'connected' : 'not connected'}`,
-      `AI Gateway: ${!!process.env.AI_GATEWAY_API_KEY ? 'connected' : 'not connected'}`,
-      `OpenCode Go: ${!!process.env.OPENCODE_GO_API_KEY ? 'connected' : 'not connected'}`,
-      `Authkey: ${!!process.env.AUTHKEY_AUTHKEY ? 'connected' : 'not connected'}`,
-      `Stripe: ${!!process.env.STRIPE_SECRET_KEY ? 'connected' : 'not connected'}`,
-      `Supabase: ${!!(process.env.VITE_SUPABASE_URL && process.env.VITE_SUPABASE_ANON_KEY) ? 'connected' : 'not connected'}`,
-      'Provider billing: not connected',
-      'Push/email/SMS: not connected',
-      'Playwright smoke tests: available through npm run test:e2e',
-    ],
-    runtimeStatus: [
-      `Model: ${String(runtime.selectedModel || 'unknown')}`,
-      `Model state: ${String(runtime.modelState || 'ready')}`,
-      `Last response mode: ${String(runtime.lastResponseMode || 'n/a')}`,
-      `Persistence: ${String(runtime.persistenceMode || 'localStorage')}`,
-    ],
-    connectedProviderCount: [
-      !!process.env.OPENAI_API_KEY,
-      !!process.env.GEMINI_API_KEY,
-      !!process.env.ANTHROPIC_API_KEY,
-      !!process.env.OPENAI_API_KEYROUTER,
-      !!process.env.FAL_KEY,
-      !!process.env.ELEVENLABS_API_KEY,
-      !!process.env.TAVILY_API_KEY,
-      !!process.env.AI_GATEWAY_API_KEY,
-      !!process.env.OPENCODE_GO_API_KEY,
-      !!process.env.AUTHKEY_AUTHKEY,
-      !!process.env.STRIPE_SECRET_KEY,
-      !!(process.env.VITE_SUPABASE_URL && process.env.VITE_SUPABASE_ANON_KEY),
-    ].filter(Boolean).length,
-    metricsReport: `Platform status for: ${goal || 'Apex platform'}. Project=${String(project.name || 'Apex Project')} | Model=${String(runtime.selectedModel || 'unknown')} | State=${String(runtime.modelState || 'ready')}.`,
+async function handleMetricsPlan(req, res) {
+  try {
+    const body = await readJson(req)
+    return json(res, 200, { plan: metricsService.createMetricsPlan(String(body.goal || ''), body.projectSummary || null, body.runtimeSummary || null) })
+  } catch (error) {
+    return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' })
   }
 }
-async function handleMetricsPlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createMetricsPlan(String(body.goal || ''), body.projectSummary || null, body.runtimeSummary || null) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' }) } }
 
 async function fetchExternalUpgradeSignals() {
   const signals = { githubRelease: null, npmOutdated: null, vercelDeploy: null }
