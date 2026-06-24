@@ -4274,6 +4274,7 @@ function App() {
             <DigitalTwinPanel
               goal={digitalTwinOutput.goal}
               conversationContext={digitalTwinOutput.conversationContext}
+              project={buildProjectSnapshot()}
               onSaveToProject={saveDigitalTwinToProject}
               onClear={() => setDigitalTwinOutput(null)}
             />
