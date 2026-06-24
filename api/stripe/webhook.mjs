@@ -143,6 +143,59 @@ export default async function handler(req, res) {
             status: 'past_due',
             updated_at: new Date().toISOString(),
           }).eq('tenant_id', customer.tenant_id).eq('stripe_customer_id', invoice.customer)
+
+          // Notify owner about failed payment
+          try {
+            const { notifyPaymentFailed } = await import('../../server/service/notification.mjs')
+            const ownerPhone = process.env.AUTHKEY_DEFAULT_MOBILE
+            if (ownerPhone) {
+              notifyPaymentFailed({
+                tenantId: customer.tenant_id,
+                invoiceId: invoice.id,
+                amount: (invoice.amount_due || 0) / 100,
+                currency: (invoice.currency || 'usd').toUpperCase(),
+                customerEmail: invoice.customer_email || invoice.customer_name || '',
+              }, ownerPhone).catch(() => {})
+            }
+          } catch { /* notification connector not available */ }
+        }
+        break
+      }
+
+      case 'invoice.paid': {
+        const paidInvoice = event.data.object
+        const { data: invoiceCustomer } = await supabase
+          .from('stripe_customers')
+          .select('tenant_id, user_id')
+          .eq('stripe_customer_id', paidInvoice.customer)
+          .single()
+
+        if (invoiceCustomer) {
+          // Reactivate subscription if it was past_due
+          if (paidInvoice.subscription) {
+            await supabase.from('subscriptions').update({
+              status: 'active',
+              updated_at: new Date().toISOString(),
+            }).eq('tenant_id', invoiceCustomer.tenant_id).eq('stripe_subscription_id', paidInvoice.subscription)
+          }
+
+          // Record invoice in database
+          try {
+            await supabase.from('invoices').upsert({
+              stripe_invoice_id: paidInvoice.id,
+              tenant_id: invoiceCustomer.tenant_id,
+              stripe_customer_id: paidInvoice.customer,
+              subscription_id: paidInvoice.subscription,
+              amount_paid: (paidInvoice.amount_paid || 0) / 100,
+              currency: (paidInvoice.currency || 'usd').toUpperCase(),
+              status: paidInvoice.status,
+              hosted_invoice_url: paidInvoice.hosted_invoice_url || '',
+              invoice_pdf: paidInvoice.invoice_pdf || '',
+              paid_at: new Date().toISOString(),
+              period_start: paidInvoice.period_start ? new Date(paidInvoice.period_start * 1000).toISOString() : null,
+              period_end: paidInvoice.period_end ? new Date(paidInvoice.period_end * 1000).toISOString() : null,
+            }, { onConflict: 'stripe_invoice_id' })
+          } catch { /* non-critical */ }
         }
         break
       }
