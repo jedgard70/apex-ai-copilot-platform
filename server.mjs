@@ -3546,7 +3546,7 @@ function budgetCurrencySymbol(currency) {
   return 'USD'
 }
 
-function budgetItem(id, section, item, unit, quantity, unitPrice, confidence, source, pricingSource = 'Placeholder assumptions', sourceDate = '', sourceConfidence = 'PLACEHOLDER') {
+function budgetItem(id, section, item, unit, quantity, unitPrice, confidence, source, pricingSource = 'Awaiting pricing source', sourceDate = '', sourceConfidence = 'PENDING') {
   const safeQuantity = Number(quantity || 0)
   const safeUnitPrice = Number(unitPrice || 0)
   return {
@@ -3631,9 +3631,10 @@ async function handleBudgetPlan(req, res) {
     const projectType = String(assumptions.projectType || 'construction project')
     const location = assumptions.location ? ` in ${assumptions.location}` : ''
     const areaCopy = hasArea ? `${area} ${areaUnit}` : 'area not confirmed'
+    const propPricing = sinapiFileExists ? `${currency} SINAPI 2024 reference pricing` : `${currency} placeholder pricing (no source connected)`
     const proposalDraft = [
       `Preliminary proposal for ${projectType}${location}.`,
-      `Current basis: ${areaCopy}, ${standard} standard, ${currency} placeholder pricing.`,
+      `Current basis: ${areaCopy}, ${standard} standard, ${propPricing}.`,
       'This draft is suitable for early decision-making only. It is not a final bid because quantities and unit prices require confirmed drawings, scale, local supplier pricing and technical review.',
       '',
       'Payment schedule draft: 20% mobilization, 30% after procurement confirmation, 30% at execution milestone, 20% at delivery and punch-list closeout.',
@@ -3712,19 +3713,16 @@ function createBusinessPlanPayload({ goal = '', focus = 'all', currency = 'USD' 
     sourceConfidence: 'PLACEHOLDER',
   }))
   const accounting = {
-    chartOfAccountsPlaceholder: ['Service revenue', 'SaaS subscription revenue', 'BIM/Revit production revenue', 'ArchVis/render revenue', 'DirectCut/video revenue', 'Contractor/subcontractor expense', 'Software/tools expense', 'Marketing/sales expense', 'Taxes payable placeholder', 'Accounts receivable', 'Accounts payable'],
-    ledger: [
-      { id: 'ledger-revenue-placeholder', type: 'revenue', date: '', description: 'Revenue record placeholder. Enter real invoice/payment data before accounting use.', clientOrSupplier: 'Client company', amount: 0, currency: safeCurrency, taxCategory: 'NEEDS_ACCOUNTANT_REVIEW', costCenter: 'Client project', evidence: 'SYSTEM_GENERATED' },
-      { id: 'ledger-expense-placeholder', type: 'expense', date: '', description: 'Expense record placeholder. Attach receipts or imported documents before accountant export.', clientOrSupplier: 'Supplier not entered', amount: 0, currency: safeCurrency, taxCategory: 'NEEDS_ACCOUNTANT_REVIEW', costCenter: 'Client project', evidence: 'SYSTEM_GENERATED' },
-    ],
+    chartOfAccountsCategories: ['Service revenue', 'SaaS subscription revenue', 'BIM/Revit production revenue', 'ArchVis/render revenue', 'DirectCut/video revenue', 'Contractor/subcontractor expense', 'Software/tools expense', 'Marketing/sales expense', 'Taxes payable', 'Accounts receivable', 'Accounts payable'],
+    ledger: [],
     monthlyAccountingSummary: 'Monthly accounting summary is a preparation draft only. No tax filing, tax compliance or paid invoice is confirmed.',
-    monthlyRevenueReport: 'Revenue report placeholder: no confirmed revenue records have been entered yet.',
-    monthlyExpenseReport: 'Expense report placeholder: no confirmed expense records have been entered yet.',
-    invoicesSummary: 'Invoice summary placeholder: draft invoices are not sent or paid.',
-    paymentsSummary: 'Payment summary placeholder: payment connector is not connected and no payment is confirmed.',
-    accountsReceivableReport: 'Accounts receivable placeholder: amounts require user-entered invoices or imported accounting documents.',
-    accountsPayableReport: 'Accounts payable placeholder: supplier bills/expenses require user-entered or imported documents.',
-    projectProfitLossReport: 'Project profit/loss placeholder: profit cannot be confirmed until revenue and expenses are entered or imported.',
+    monthlyRevenueReport: 'No revenue records entered yet. Add invoices or import accounting data.',
+    monthlyExpenseReport: 'No expense records entered yet. Attach receipts or import supplier data.',
+    invoicesSummary: 'No invoices created yet.',
+    paymentsSummary: 'No payments recorded yet. Payment connector status: not-connected.',
+    accountsReceivableReport: 'No accounts receivable records. Enter invoices or import accounting data.',
+    accountsPayableReport: 'No accounts payable records. Enter supplier bills or import data.',
+    projectProfitLossReport: 'Cannot calculate P&L until revenue and expenses are entered or imported.',
     taxPreparationChecklist: ['Confirm jurisdiction, company type and accountant/tax advisor requirements.', 'Attach invoices, receipts and supplier documents.', 'Review tax categories with accountant before filing.', 'Do not treat Apex-generated tax fields as confirmed calculations.'],
     documentsPendingForAccountant: ['Client/company legal data', 'Supplier data and receipts', 'Issued invoices', 'Payment confirmations from real provider or bank records', 'Expense documents', 'Jurisdiction-specific tax guidance from accountant'],
     accountantHandoffPackage: 'Accountant handoff package includes ledger placeholders, invoices summary, payments summary, accounts receivable/payable, project P/L draft, tax prep checklist and pending documents list. It requires accountant review before filing.',
@@ -3749,11 +3747,11 @@ function createBusinessPlanPayload({ goal = '', focus = 'all', currency = 'USD' 
     },
     crm: {
       pipelineStages,
-      leads: [{ id: 'lead-local-demo', name: 'New client lead', company: 'Client company', source: 'Manual / local demo', status: 'New', notes: goal, assignedOwner: 'Owner/Admin', expectedValue: 0, currency: safeCurrency, probability: 0, nextAction: 'Qualify need, project type, budget range, location and decision timeline.' }],
-      contacts: [{ id: 'contact-local-demo', name: 'Client contact', company: 'Client company', role: 'Decision maker', email: 'not connected', phone: 'not connected', notes: 'Local scaffold only. No real CRM database is connected.' }],
-      companies: ['Client company'],
-      opportunities: [{ id: 'opportunity-local-demo', title: 'Apex service opportunity', company: 'Client company', stage: 'New Lead', expectedValue: 0, currency: safeCurrency, probability: 0, proposalLink: 'Not generated yet', followUpTask: 'Prepare discovery questions and proposal package.', nextAction: 'Build proposal with scope, deliverables, assumptions and next meeting CTA.' }],
-      followUpTasks: ['Confirm client objective and project location.', 'Collect files, scope and deadline.', 'Prepare proposal package and presentation assets.', 'Schedule follow-up after proposal review.'],
+      leads: [],
+      contacts: [],
+      companies: ['Add your first company'],
+      opportunities: [],
+      followUpTasks: ['Add CRM data manually or import from spreadsheet.', 'Connect a real CRM or database before using this data operationally.'],
       recommendations: ['Keep CRM data local until real database/auth is approved.', 'Separate client-visible project data from internal/admin data.', 'Use Research Studio before publishing market-based pricing.'],
     },
     sales: {
@@ -3766,13 +3764,13 @@ function createBusinessPlanPayload({ goal = '', focus = 'all', currency = 'USD' 
       emailDraft: 'Hi [Client], I prepared an Apex workflow for your project with intake, deliverables, timeline assumptions and next steps. I can send the package for review and adjust scope after your feedback.',
       followUpSequence: ['Day 1: send proposal package', 'Day 3: clarify scope/questions', 'Day 7: confirm decision path', 'Day 14: offer revised package or close as on hold'],
       objectionHandling: ['If price is high: separate must-have deliverables from optional add-ons.', 'If timing is uncertain: propose a discovery/preflight package first.', 'If trust is low: show sample outputs and source-confidence labels.'],
-      clientPresentationPackage: ['project problem', 'Apex workflow', 'deliverables', 'timeline assumptions', 'investment placeholder', 'next action'],
+      clientPresentationPackage: ['project problem', 'Apex workflow', 'deliverables', 'timeline assumptions', 'pricing to be confirmed', 'next action'],
       internationalPositioning: 'For US/EU clients, position Apex as an offshore BIM/CAD/Revit and permit documentation production partner first, with AI-powered delivery as leverage.',
     },
     finance: {
-      invoices: [{ id: 'invoice-local-placeholder', client: 'Client company', project: 'Client project', amount: 0, currency: safeCurrency, status: 'Draft', dueDate: '', source: 'local placeholder' }],
-      payments: [{ id: 'payment-local-placeholder', invoiceId: 'invoice-local-placeholder', amount: 0, currency: safeCurrency, status: 'UNKNOWN', evidence: 'UNKNOWN' }],
-      expenses: [{ id: 'expense-local-placeholder', project: 'Client project', category: 'Production cost placeholder', amount: 0, currency: safeCurrency, status: 'Draft', taxCategory: 'NEEDS_ACCOUNTANT_REVIEW', costCenter: 'Client project', evidence: 'SYSTEM_GENERATED' }],
+      invoices: [],
+      payments: [],
+      expenses: [],
       summary: { currency: safeCurrency, revenueSummary: 'No real revenue connected. Enter values manually or connect a finance/payment provider later.', clientBalance: 'Unknown until invoices/payments are user-entered or provider-connected.', accountsReceivable: 'Placeholder only — no payment connector is connected.', accountsPayable: 'Placeholder only — supplier bills/expenses must be user-entered or imported.', projectCostProfit: 'Unknown until project costs and invoices are entered.', paymentConnectorStatus: 'not-connected', warnings: [paymentNotice, 'Do not treat draft invoices as sent or paid.'] },
       accounting,
     },
@@ -4922,56 +4920,13 @@ async function handleEvmSchedulerCompliance(req, res) {
 }
 
 function createSupplyChainPlan(goal = '') {
-  const suppliers = [
-    {
-      id: 'supplier-materials-placeholder',
-      name: 'Material supplier to verify',
-      category: 'Materials',
-      contact: '',
-      region: '',
-      rating: 'Not rated',
-      status: 'Needs verification',
-      paymentTerms: 'To confirm',
-      leadTime: 'To confirm',
-      complianceDocs: 'Pending',
-      contractLink: '',
-      notes: 'Placeholder supplier. No price, availability or verification is confirmed.',
-      sourceConfidence: 'PLACEHOLDER',
-    },
-    {
-      id: 'supplier-subcontractor-placeholder',
-      name: 'Subcontractor to qualify',
-      category: 'Subcontractor',
-      contact: '',
-      region: '',
-      rating: 'Not rated',
-      status: 'Needs verification',
-      paymentTerms: 'To confirm',
-      leadTime: 'To confirm',
-      complianceDocs: 'Pending',
-      contractLink: '',
-      notes: 'Use Contracts Studio before accepting commercial terms.',
-      sourceConfidence: 'PLACEHOLDER',
-    },
-  ]
-  const procurementItems = [
-    { id: 'procurement-material-package', item: 'Material package from project scope', quantity: 1, unit: 'package', requiredDate: '', supplier: suppliers[0].name, quoteStatus: 'Not requested', deliveryStatus: 'Not scheduled', costPlaceholder: 0, sourceConfidence: 'PLACEHOLDER' },
-    { id: 'procurement-labor-package', item: 'Labor/subcontractor package', quantity: 1, unit: 'package', requiredDate: '', supplier: suppliers[1].name, quoteStatus: 'Not requested', deliveryStatus: 'Not scheduled', costPlaceholder: 0, sourceConfidence: 'PLACEHOLDER' },
-  ]
+  const suppliers = []
+  const procurementItems = []
   return {
     providerStatus: 'connected',
     suppliers,
     procurementItems,
-    supplierComparison: suppliers.map(supplier => ({
-      supplier: supplier.name,
-      price: 'NEEDS_VERIFICATION',
-      quality: 'NEEDS_VERIFICATION',
-      deadline: 'NEEDS_VERIFICATION',
-      compliance: 'NEEDS_VERIFICATION',
-      reliability: 'NEEDS_VERIFICATION',
-      risk: 'Medium until verified',
-      sourceConfidence: supplier.sourceConfidence,
-    })),
+    supplierComparison: [],
     rfqDraft: ['RFQ draft - local planning only', `Project/request: ${goal || 'Apex project procurement package'}`, 'Please provide itemized price, lead time, payment terms, delivery conditions, compliance documents, exclusions and validity date.', 'Apex has not verified supplier availability or pricing yet.'].join('\n'),
     risks: ['Supplier prices are not verified.', 'Availability is not verified.', 'Compliance documents are pending.', 'Payment terms and lead times require supplier confirmation.'],
     message: 'Supply Chain Studio generated a local supplier/procurement draft. No ERP, price or availability connector is connected.',
