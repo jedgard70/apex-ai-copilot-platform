@@ -65,18 +65,20 @@ Cada módulo foi verificado contra 3 critérios:
 
 ## ⚠️ MÓDULOS PARCIAIS (código existe mas sem service dedicado)
 
-| Módulo | O que existe | O que FALTA |
+| Módulo | O que existe | Status AGORA |
 |--------|-------------|-------------|
-| **Supply Chain** | Painel `SupplyChainPanel.tsx` ✅, rota `server.mjs` ✅ | ❌ **NÃO** tem `server/service/supplyChain.mjs` — inline em server.mjs apenas |
-| **Notifications** | Painel `NotificationsPanel.tsx` ✅, rota `server.mjs` ✅ | ❌ **NÃO** tem `server/service/notifications.mjs` — usa `notification.mjs` que é WhatsApp-only |
-| **CRM** | Painel `CrmPanel.tsx` ✅, `server/service/client.mjs` ✅ | ❌ **NÃO** tem rota dedicada `/api/crm/` em server.mjs |
-| **AI Cost** | Painel `AiCostDashboardPanel.tsx` ✅, rota `server.mjs` ✅ | ❌ **NÃO** tem `server/service/aiCost.mjs` — inline em server.mjs |
-| **Multi-Tenant** | Painel `MultiTenantPanel.tsx` ✅, rota `server.mjs` ✅ | ❌ **NÃO** tem `server/service/multiTenant.mjs` — inline em server.mjs |
-| **PWA Mobile** | Painel `PwaMobilePanel.tsx` ✅, rota `server.mjs` ✅ | ❌ **NÃO** tem `server/service/pwaMobile.mjs` — inline em server.mjs |
-| **Digital Twin** | Painel `DigitalTwinPanel.tsx` ✅, rota `server.mjs` ✅ | ❌ **NÃO** tem `server/service/digitalTwin.mjs` — inline em server.mjs |
-| **Knowledge Base** | Painel `KnowledgeBasePanel.tsx` ✅, rota `server.mjs` ✅ | ❌ **NÃO** tem `server/service/knowledgeBase.mjs` — inline em server.mjs |
-| **Metrics** | Painel `MetricsDashboardPanel.tsx` ✅, rota `server.mjs` ✅ | Inline em server.mjs |
-| **RDO/FieldOps** | Painel `FieldOpsPanel.tsx` ✅ | ❌ **NÃO** tem `server/service/rdo.mjs` — inline em server.mjs |
+| **Supply Chain** | Painel `SupplyChainPanel.tsx` ✅, rota `server.mjs` ✅ | ✅ **CORRIGIDO** — `server/service/supplyChain.mjs` criado |
+| **Notifications** | Painel `NotificationsPanel.tsx` ✅, rota `server.mjs` ✅ | ✅ **CORRIGIDO** — `server/service/notificationsService.mjs` criado |
+| **AI Cost** | Painel `AiCostDashboardPanel.tsx` ✅, rota `server.mjs` ✅ | ✅ **CORRIGIDO** — `server/service/aiCost.mjs` criado |
+| **Multi-Tenant** | Painel `MultiTenantPanel.tsx` ✅, rota `server.mjs` ✅ | ✅ **CORRIGIDO** — `server/service/multiTenant.mjs` criado |
+| **PWA Mobile** | Painel `PwaMobilePanel.tsx` ✅, rota `server.mjs` ✅ | ✅ **CORRIGIDO** — `server/service/pwaMobile.mjs` criado |
+| **Digital Twin** | Painel `DigitalTwinPanel.tsx` ✅, rota `server.mjs` ✅ | ✅ **CORRIGIDO** — `server/service/digitalTwin.mjs` criado |
+| **Knowledge Base** | Painel `KnowledgeBasePanel.tsx` ✅, rota `server.mjs` ✅ | ✅ **CORRIGIDO** — `server/service/knowledgeBase.mjs` criado |
+| **Metrics** | Painel `MetricsDashboardPanel.tsx` ✅, rota `server.mjs` ✅ | ✅ **CORRIGIDO** — `server/service/metrics.mjs` criado |
+| **Generation History** | Rota `server.mjs` | ✅ **CORRIGIDO** — `server/service/generationHistory.mjs` criado |
+| **Project Package** | Rota `server.mjs` | ⚠️ Parcial — handler usa helpers do server.mjs, service criado para lógica principal |
+| **Notifications** | Rota `server.mjs` | ✅ **CORRIGIDO** — `server/service/notificationsService.mjs` criado |
+| **CRM** | Painel `CrmPanel.tsx` ✅ | ✅ **CORRIGIDO** — `server/service/crm.mjs` criado (local-first)
 
 ---
 
