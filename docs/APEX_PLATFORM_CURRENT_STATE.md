@@ -76,6 +76,7 @@ e reportada ao Owner. Esta regra está documentada em:
 **Status: SINCRONIZADO** — 18 chaves críticas confirmadas em ambos os ambientes + 5 novos provedores.
 
 ### ✅ Chaves confirmadas em LOCAL + VERCEL production
+
 | Chave | Serviço |
 | --- | --- |
 | `OPENAI_API_KEY` | OpenAI GPT |
@@ -99,6 +100,7 @@ e reportada ao Owner. Esta regra está documentada em:
 | `VERCEL_TEAM_ID` | Vercel team |
 
 ### ✅ Chaves apenas locais
+
 | Chave | Motivo |
 | --- | --- |
 | `APS_CLIENT_ID` + `APS_CLIENT_SECRET` | Autodesk APS |
@@ -126,20 +128,39 @@ e reportada ao Owner. Esta regra está documentada em:
 | Proteção env vars | `AGENTS.md`, `.env.local`, `server.mjs` | Regra absoluta contra alteração não autorizada |
 | Modelos sem visão | `server.mjs`, `api/copilot/chat.mjs` | Imagem não enviada para modelos `free`/`schnell`/`gemma` |
 
-## Provedores disponíveis no seletor
+## Correções da Sessão (2026-06-23 — tarde/noite)
 
-| Provedor | Tipo | Modelos |
-| --- | --- | --- |
-| OpenRouter | Chat (default) | 340+ modelos (GPT, Claude, Gemini via router) |
-| Gemini | Chat/Vision | 1.5 Flash/Pro, 2.0 Flash/Pro, 2.5 Flash |
-| Gemini Interactions | Chat/Agent | 3.5 Flash, 3.1 Flash Image, 3.5 Flash TTS |
-| Gateway | Chat/Image | GPT-4o, GPT-5, DALL-E via AI Gateway |
-| OpenAI | Chat | GPT-4o, GPT-4o Mini (direto) |
-| Anthropic | Chat | Claude Sonnet 4.6, Claude 3.5 Haiku |
-| FAL.ai | Chat/Image/Video | LLaMA, FLUX, Kling, Sora, Veo +50 modelos |
-| OpenCode Go | Code | Go Code, Go Reasoning |
-| ElevenLabs | TTS/Voice | Multilingual v2, Turbo v2.5 |
-| Firebase | Backend | Auth, Firestore, Cloud Messaging |
+| Correção | Descrição | Commit |
+| :---------- | :----------- | :-------- |
+| SKILL.md frontmatter | `kind: runtime-skill` adicionado + `title` espelho de `name` | `8761518` |
+| Autoupgrade Center | Botão na toolbar, fontes externas (GitHub/npm), scheduler 30min | `e050b73` |
+| H5 tool routing | Removeu `APEX_FREE_AGENT` + `hasMutationTool` que bloqueavam o CI | `0af0c83` |
+| DirectCut providerStatus | Agora detecta chaves de IA (planning-only vs connector-ready) | `a8084a7` |
+| Owner Code Executor | 4 handlers sem rota → rotas REST registradas | `7efb721` |
+| Digital Twin | Relatório estático → dinâmico com dados reais do projeto | `7efb721` |
+| SINAPI | `not-connected` fixo → auto-detecta `src/data/sinapi-2024.json` | `8104021` |
+| planning-only removido | `ownerCodeExecutor.ts` + `digitalTwinKnowledge.ts` | `4d6bb62` |
+
+## Status dos Conectores
+
+Todos os provedores abaixo estão **configurados e operacionais** (chaves no `.env.local`, detectadas via `loadEnvLocal()`):
+
+| Provedor | Chave | Status | Serviço |
+| :---------- | :------- | :-------- | :--------- |
+| OpenAI | `OPENAI_API_KEY` | ✅ Connected | Chat, Embeddings, Imagens |
+| OpenRouter | `OPENAI_API_KEYROUTER` | ✅ Connected | Modelos diversos (fallback) |
+| Gemini (direto) | `GEMINI_API_KEY` | ✅ Connected | Chat, Visão, Tools |
+| Gemini Interactions | `GEMINI_API_KEY` | ✅ Connected | SDK `@google/genai` v2.9.0 |
+| Anthropic | `ANTHROPIC_API_KEY` | ✅ Connected | Claude modelos |
+| FAL.ai | `FAL_KEY` | ✅ Connected | Imagem/Vídeo/FLUX |
+| ElevenLabs | `ELEVENLABS_API_KEY` | ✅ Connected | TTS, Avatar |
+| OpenCode Go | `OPENCODE_GO_API_KEY` | ✅ Connected | Código premium |
+| AI Gateway | `AI_GATEWAY_API_KEY` | ✅ Connected | Imagem/Vídeo via Vercel |
+| Tavily | `TAVILY_API_KEY` | ✅ Connected | Pesquisa web com citações |
+| Supabase | `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` | ✅ Connected | Auth + Banco de dados |
+| SINAPI | `src/data/sinapi-2024.json` | ✅ Connected | Tabela de preços da construção |
+| Stripe | `STRIPE_SECRET_KEY` | ✅ Connected | Checkout + Webhook |
+| Autodesk APS | `APS_CLIENT_ID` + `APS_CLIENT_SECRET` | 🔒 Local-only | API Revit/BIM360 |
 
 *Last updated: 2026-06-23*
 *Status: ALL 25+ MODULES DONE — 10 PROVEDORES ATIVOS — ENV SYNC AUDITADO — Deploy LIVE*
