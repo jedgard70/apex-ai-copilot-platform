@@ -1,5 +1,6 @@
 ---
 enabled: false
+kind: runtime-skill
 ---
 # create_revit_checklist_pdf
 

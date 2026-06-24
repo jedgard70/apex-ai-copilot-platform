@@ -1,5 +1,6 @@
 ---
 enabled: false
+kind: runtime-skill
 ---
 # autonomous_sales_agent
 

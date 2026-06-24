@@ -1,3 +1,11 @@
+---
+name: website_ai_designer
+title: Website Ai Designer
+description: Website Ai Designer skill for the Apex AI Copilot platform.
+kind: runtime-skill
+tags: []
+---
+
 # Website AI Designer Skill
 Reintegrado pela Apex AI Copilot.
 

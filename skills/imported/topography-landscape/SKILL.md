@@ -13,6 +13,7 @@ triggers:
   - masterplan overlay
 risk: medium
 enabled: true
+kind: runtime-skill
 ---
 
 # Topography And Landscape Visualization

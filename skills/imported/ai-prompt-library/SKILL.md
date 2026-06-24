@@ -13,6 +13,7 @@ triggers:
   - melhores prompts
 risk: medium
 enabled: true
+kind: runtime-skill
 ---
 
 # AI Prompt Library

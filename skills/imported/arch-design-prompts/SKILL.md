@@ -13,6 +13,7 @@ triggers:
   - interior design prompt
 risk: low
 enabled: true
+kind: runtime-skill
 ---
 
 # Architecture And Interior Design Prompts

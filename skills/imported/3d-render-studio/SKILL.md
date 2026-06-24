@@ -13,6 +13,7 @@ triggers:
   - imagem arquitetonica
 risk: low
 enabled: true
+kind: runtime-skill
 ---
 
 # 3D Render Studio

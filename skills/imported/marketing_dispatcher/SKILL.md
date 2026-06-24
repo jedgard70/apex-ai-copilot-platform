@@ -1,5 +1,6 @@
 ---
 enabled: false
+kind: runtime-skill
 ---
 # marketing_dispatcher
 

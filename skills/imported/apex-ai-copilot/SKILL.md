@@ -1,6 +1,8 @@
 ---
 name: apex-ai-copilot
+title: apex-ai-copilot
 description: Use when building, auditing, designing, or operating the Apex AI Copilot platform. Covers live conversational Copilot behavior, construction-specialized workflows, production architecture, file intake, ArchVis/Humanizacao, DirectCut/video, BIM/3D viewer strategy, prompt systems, UI patterns, codebase patterns, and clean rebuild decisions from local Apex knowledge assets.
+kind: runtime-skill
 ---
 
 # Apex AI Copilot

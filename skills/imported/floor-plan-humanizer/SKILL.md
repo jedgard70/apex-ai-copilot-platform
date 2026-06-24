@@ -13,6 +13,7 @@ triggers:
   - top-down plan
 risk: low
 enabled: true
+kind: runtime-skill
 ---
 
 # Floor Plan Humanizer

@@ -5343,7 +5343,7 @@ async function fetchExternalUpgradeSignals() {
   try {
     const pkg = JSON.parse(fs.readFileSync(new URL('./package.json', import.meta.url), 'utf8'))
     const deps = { ...pkg.dependencies, ...pkg.devDependencies }
-    const outdated: Array<{ name: string; declared: string }> = []
+    const outdated = []
     for (const [name, declared] of Object.entries(deps)) {
       if (typeof declared !== 'string' || declared.startsWith('file:') || declared.startsWith('workspace:')) continue
       try {
@@ -5378,8 +5378,8 @@ function createAutoupgradePlan(goal = '', projectSummary = null, runtimeSummary 
       id: 'upgrade-github-release',
       title: `New release available: ${externalSignals.githubRelease.tag}`,
       area: 'Platform version',
-      priority: 'high' as const,
-      status: 'ready-now' as const,
+      priority: 'high',
+      status: 'ready-now',
       why: externalSignals.githubRelease.name || 'A new GitHub release is available for the platform.',
       action: `Review and merge changes from ${externalSignals.githubRelease.tag} published ${externalSignals.githubRelease.publishedAt ? new Date(externalSignals.githubRelease.publishedAt).toLocaleDateString() : 'recently'}.`,
       suggestedCommand: 'abrir platform map',
@@ -5459,7 +5459,7 @@ function createAutoupgradePlan(goal = '', projectSummary = null, runtimeSummary 
       suggestedCommand: 'abrir copilot execution panel',
       commandId: 'check_server',
       requiresApproval: true,
-      evidence: externalSignals.npmOutdated.outdatedDeps.map((d: { name: string; declared: string }) => `${d.name} (declared: ${d.declared})`).slice(0, 8),
+      evidence: externalSignals.npmOutdated.outdatedDeps.map(d => `${d.name} (declared: ${d.declared})`).slice(0, 8),
     }] : []),
   ]
   const platformSignals = [

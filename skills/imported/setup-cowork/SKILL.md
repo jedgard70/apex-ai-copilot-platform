@@ -1,6 +1,8 @@
 ---
 name: setup-cowork
+title: setup-cowork
 description: "Guided Cowork setup — install role-matched plugins, connect your tools, try a skill."
+kind: runtime-skill
 ---
 
 # Setup Cowork

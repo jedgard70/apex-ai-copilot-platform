@@ -1,3 +1,11 @@
+---
+name: supply_chain_suppliers
+title: Supply Chain Suppliers
+description: Supply Chain Suppliers skill for the Apex AI Copilot platform.
+kind: runtime-skill
+tags: []
+---
+
 # Supply Chain & Suppliers Skill
 Reintegrado pela Apex AI Copilot.
 

@@ -1,5 +1,6 @@
 ---
 name: docsedgard_reintegrada
+title: docsedgard_reintegrada
 description: Manifesto unificado de artefatos docsedgard para reintegracao de skills no Apex.
 domains: [platform-management, migration, documentation]
 entrypoint: docsedgard_reintegrada.py:dispatch
@@ -11,6 +12,7 @@ triggers:
   - docsedgard_sync_manifest
 risk: low
 enabled: true
+kind: runtime-skill
 ---
 
 # docsedgard_reintegrada

@@ -1,3 +1,11 @@
+---
+name: ai_cost_observability
+title: Ai Cost Observability
+description: Ai Cost Observability skill for the Apex AI Copilot platform.
+kind: runtime-skill
+tags: []
+---
+
 # AI Cost & Observability Skill
 Reintegrado pela Apex AI Copilot.
 
