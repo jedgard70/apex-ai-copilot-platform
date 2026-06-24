@@ -5243,27 +5243,23 @@ async function handleDashboardStatus(req, res) {
     const hasOpenAI = Boolean(process.env.OPENAI_API_KEY)
     const hasOpenRouter = Boolean(process.env.OPENAI_API_KEYROUTER)
     const hasElevenLabs = Boolean(process.env.ELEVENLABS_API_KEY)
-    const providersActive = [hasOpenRouter, hasGeminiKey, hasOpenAI, hasFalKey, hasElevenLabs].filter(Boolean).length
+    const hasOpenCodeGo = Boolean(process.env.OPENCODE_GO_API_KEY)
+    const hasGateway = Boolean(process.env.AI_GATEWAY_API_KEY)
+    const hasFirebase = Boolean(process.env.VITE_FIREBASE_API_KEY)
+    const providersList = {
+      openrouter: hasOpenRouter, gemini: hasGeminiKey, openai: hasOpenAI,
+      fal: hasFalKey, elevenlabs: hasElevenLabs,
+      opencode: hasOpenCodeGo, gateway: hasGateway, firebase: hasFirebase,
+    }
+    const providersActive = Object.values(providersList).filter(Boolean).length
     return json(res, 200, {
       ok: true,
       git: { sha: gitSha, branch: gitBranch },
-      providers: {
-        total: 7,
-        active: providersActive,
-        list: {
-          openrouter: hasOpenRouter,
-          gemini: hasGeminiKey,
-          openai: hasOpenAI,
-          fal: hasFalKey,
-          elevenlabs: hasElevenLabs,
-        }
-      },
+      providers: { total: 8, active: providersActive, list: providersList },
       modelRuntime: {
-        gatewayConfigured: providerDiagnostics.gatewayConfigured,
-        geminiConfigured: providerDiagnostics.geminiConfigured,
-        interactionsConfigured: providerDiagnostics.interactionsConfigured,
-        openrouterConfigured: providerDiagnostics.openrouterConfigured,
-        openaiConfigured: providerDiagnostics.openaiConfigured,
+        gatewayConfigured: hasGateway, geminiConfigured: hasGeminiKey,
+        interactionsConfigured: hasGeminiKey, openrouterConfigured: hasOpenRouter,
+        openaiConfigured: hasOpenAI, opencodeConfigured: hasOpenCodeGo, firebaseConfigured: hasFirebase,
       },
       timestamp: new Date().toISOString(),
     })

@@ -157,18 +157,18 @@ export default function AppLayout({
           <div className="flex gap-3 text-on-surface-variant">
             <span
               className="material-symbols-outlined hover:text-on-surface cursor-pointer transition-all text-[20px]"
-              onClick={onNotificationsClick}
-              title="Notificações"
+              onClick={onNotificationsClick || (() => onNavChange?.('owner'))}
+              title="Owner Console"
             >notifications</span>
             <span
               className="material-symbols-outlined hover:text-on-surface cursor-pointer transition-all text-[20px]"
-              onClick={onMapClick}
-              title="Mapa da Plataforma"
+              onClick={onMapClick || (() => onNavChange?.('navigator'))}
+              title="Platform Map"
             >map</span>
             <span
               className="material-symbols-outlined hover:text-on-surface cursor-pointer transition-all text-[20px]"
-              onClick={onAccountTreeClick}
-              title="Estrutura de Projetos"
+              onClick={onAccountTreeClick || (() => onNavChange?.('deployment'))}
+              title="Deployment"
             >account_tree</span>
           </div>
 
