@@ -296,6 +296,35 @@ const SECTIONS: ManualSection[] = [
     ],
   },
   {
+    id: 'agentes-cognitivos',
+    title: '🧠 Agentes Cognitivos ACIP',
+    icon: '🤖',
+    summary: '13 agentes especializados em construção civil que trabalham de forma coordenada. Cada agente tem um domínio específico.',
+    items: [
+      {
+        name: 'Os 13 Agentes',
+        description: 'Engenheiro Civil, Arquiteto, Analista Estrutural, Orçamentista, Gestor de Obra, Agente de Mercado, Agente de Vendas, Agente de Investidores, Compliance Officer, Agente de Automação, Conselho Executivo, Simulação e Construction AGI. Cada um executa tarefas específicas e pode ser coordenado em 4 modos diferentes.',
+        howToUse: 'Peça: "abrir agentes cognitivos", "executar análise estrutural", "coordenar todos os agentes para análise de viabilidade".',
+        example: '"executar análise completa com todos os agentes para este projeto"',
+        availableTo: 'todos',
+      },
+      {
+        name: 'Modos de Coordenação',
+        description: '4 modos: Execução Paralela, Coordenação Hierárquica, Orquestração por Eventos, Self-Healing Workflows.',
+        howToUse: 'No painel de Agentes Cognitivos, selecione o modelo e digite a tarefa.',
+        example: '"coordenar análise de viabilidade em modo paralelo"',
+        availableTo: 'todos',
+      },
+      {
+        name: 'Log e Status',
+        description: 'Cada execução é registrada com status, duração e resultados. O painel mostra agentes ativos, taxa de sucesso e distribuição por role.',
+        howToUse: 'Abra o painel e veja as abas Log e Status.',
+        example: '"qual o status dos agentes agora?"',
+        availableTo: 'todos',
+      },
+    ],
+  },
+  {
     id: 'notificacoes',
     title: '🔔 Notificações / Alertas',
     icon: '📨',
