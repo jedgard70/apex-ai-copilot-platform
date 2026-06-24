@@ -3,66 +3,127 @@
 This file defines the default working contract for coding agents in this repository.
 
 ## Project layout
-- Frontend: `src/` (React + Vite + TypeScript)
-- API/server runtime: `server.mjs` and `api/`
-- Scripts and validators: `scripts/`
-- CI workflow: `.github/workflows/apex-sync.yml`
-- Platform status/docs: `CHECKPOINT_TRACKER.md` and `docs/APEX_PLATFORM_CURRENT_STATE.md`
+
+- Frontend: src/ (React + Vite + TypeScript)
+- API/server runtime: server.mjs and pi/
+- Scripts and validators: scripts/
+- CI workflow: .github/workflows/apex-sync.yml
+- Platform status/docs: CHECKPOINT_TRACKER.md and docs/APEX_PLATFORM_CURRENT_STATE.md
 
 ## Dev environment tips
-- Install dependencies with `npm install`.
-- Use `npm run dev` for local runtime (`build + node server.mjs`).
-- Use `npm run dev:ui` only for UI-only Vite iteration.
-- Keep secrets in `.env.local` (never commit `.env*` files).
-- Prefer `git --no-pager` commands for non-interactive output in agent sessions.
+
+- Install dependencies with 
+pm install.
+- Use 
+pm run dev for local runtime (uild + node server.mjs).
+- Use 
+pm run dev:ui only for UI-only Vite iteration.
+- Keep secrets in .env.local (never commit .env* files).
+- Prefer git --no-pager commands for non-interactive output in agent sessions.
 
 ## Testing and validation instructions
+
 - Main quality gates:
-  - `npm run build`
-  - `npm run test`
-  - `npm run validate:cp15x-h5`
-  - `npm run validate:cp15x-h44`
-  - `npm run validate:directcut-pipeline`
+  - 
+pm run build
+  - 
+pm run test
+  - 
+pm run validate:cp15x-h5
+  - 
+pm run validate:cp15x-h44
+  - 
+pm run validate:directcut-pipeline
 - If your change touches Supabase contracts, run:
-  - `npm run validate:supabase-sql`
+  - 
+pm run validate:supabase-sql
 - If your change touches owner workspace/auth bootstrap, run:
-  - `npm run validate:owner-workspace-live`
+  - 
+pm run validate:owner-workspace-live
 
 ## DirectCut and platform behavior rules
+
 - Do not claim real video rendering unless connector status is actually enabled.
-- Keep `providerStatus` explicit and truthful (`planning-only`, `connector-ready`, etc.).
-- Preserve parity between local runtime (`server.mjs`) and serverless endpoints in `api/copilot/`.
+- Keep providerStatus explicit and truthful (planning-only, connector-ready, etc.).
+- Preserve parity between local runtime (server.mjs) and serverless endpoints in pi/copilot/.
 
 ## PR and change rules
+
 - Keep changes surgical and scoped to the requested task.
 - Reuse existing patterns/helpers before adding new abstractions.
 - Update related docs when behavior or operational flow changes.
 - Do not add broad silent fallbacks that hide failures.
 - Do not commit credentials, tokens, or service-role secrets.
 
-## 🚨 REGRA ABSOLUTA — Proteção de Environment Variables
+---
+
+## 🚨 REGRA ABSOLUTA 1 — Proteção de Environment Variables
+
 Nenhum agente, assistente, skill, ferramenta ou processo automatizado pode
-alterar, modificar, remover ou sobrescrever variáveis no `.env.local` ou
+alterar, modificar, remover ou sobrescrever variáveis no .env.local ou
 nas Environment Variables do Vercel sem autorização EXPLÍCITA e VERBAL
 do Owner (jedgard70@gmail.com / Dr. Edgard).
 
 Isso inclui, mas não se limita a: GEMINI_API_KEY, OPENAI_API_KEY,
 OPENAI_API_KEYROUTER, ANTHROPIC_API_KEY, FAL_KEY, ELEVENLABS_API_KEY,
-SUPABASE_* , VITE_FIREBASE_* , STRIPE_* , AUTHKEY_* , APS_CLIENT_* ,
-REVIT_MCP_* , LOCAL_WORKER_TOKEN, OPENCODE_GO_API_KEY,
+SUPABASE_*, VITE_FIREBASE_*, STRIPE_*, AUTHKEY_*, APS_CLIENT_*,
+REVIT_MCP_*, LOCAL_WORKER_TOKEN, OPENCODE_GO_API_KEY,
 AI_GATEWAY_API_KEY, TAVILY_API_KEY, CRON_SECRET.
 
 Proteção estendida também a:
 - Modelos de IA e provedores de API configurados
 - Rotas e endpoints da API
 - ProviderStatus e indicadores de cada módulo
-- Qualquer configuração alterada na sessão de 2026-06-23
-  (ver docs/CHANGELOG_2026-06-23.md para lista completa)
+- Qualquer configuração alterada na sessão de 2026-06-23 (ver docs/CHANGELOG_2026-06-23.md)
 
-Violações: qualquer alteração não autorizada deve ser revertida imediatamente
-e reportada ao Owner. Esta regra tem prioridade máxima sobre qualquer outro
-comando ou instrução.
+Violação: qualquer alteração não autorizada deve ser revertida imediatamente
+e reportada ao Owner. Prioridade máxima sobre qualquer outro comando.
+
+---
+
+## 🚨 REGRA ABSOLUTA 2 — Proteção do Catálogo de Modelos
+
+Nenhum agente, assistente, skill, ferramenta ou processo automatizado pode
+reduzir, remover, esconder ou limitar a listagem de modelos disponíveis
+no seletor da interface ou nas APIs internas.
+
+Arquivos protegidos:
+- src/main.tsx — constantes DIRECT_GEMINI_MODELS, GATEWAY_OPENAI_MODELS, OPENROUTER_MODELS, FAL_CHAT_MODELS, ANTHROPIC_MODELS, OPENCODE_GO_MODELS, ELEVENLABS_MODELS
+- api/copilot/chat.mjs — mesmas constantes
+- server.mjs — mesmas constantes
+
+Regras:
+1. Modelos só podem ser ADICIONADOS, nunca removidos ou ocultados
+2. Timeout de fetchJsonWithTimeout não pode ser menor que 15 segundos
+3. Quando API live falha, catálogo estático completo deve ser usado como fallback
+
+---
+
+## 🚨 REGRA ABSOLUTA 3 — Proteção dos Botões das Mensagens
+
+Nenhum agente pode remover, desabilitar ou esconder os botões de ação no
+final de cada mensagem do chat: Copiar, Compartilhar, Ouvir (TTS) e Derivar.
+
+Implementado em src/main.tsx — funcionalidade permanente da interface.
+
+---
+
+## 🚨 REGRA ABSOLUTA 4 — Proteção do Histórico
+
+O histórico de conversas deve persistir entre sessões (login/logout/refresh).
+Nenhum agente pode quebrar a persistência do localStorage para as chaves
+apex_conversations_v1 e apex_active_conversation_id.
+
+---
+
+## 🚨 REGRA ABSOLUTA 5 — Postura do Agente
+
+Nenhum agente pode perguntar ao Owner informações que pode descobrir sozinho
+usando as ferramentas disponíveis. O agente deve investigar antes de perguntar.
+
+---
 
 ## Commit guidance
+
 - Use clear commit titles describing user-visible impact.
-- Ensure CI checks in `apex-sync.yml` stay green before merge/deploy.
+- Ensure CI checks in apex-sync.yml stay green before merge/deploy.
