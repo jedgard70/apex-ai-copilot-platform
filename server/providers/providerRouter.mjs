@@ -34,14 +34,26 @@ export function getProviderChain(options = {}) {
     }
   }
 
-  // 2. Gemini (direct) — FREE, vários modelos em sequência
+  // 2. Gemini (direct) — FREE, 15+ modelos com folga no free tier
   const geminiKey = (process.env.GEMINI_API_KEY || '').trim()
   if (geminiKey) {
     const base = process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta/openai'
     chain.push({ name: 'gemini', baseUrl: base, apiKey: geminiKey, model: 'gemini-3.1-flash-lite', label: 'Gemini', models: [
-      'gemini-3.1-flash-lite', 'gemini-2.5-flash-lite', 'gemini-2.5-flash',
-      'gemini-3.5-flash', 'gemini-3-flash', 'gemma-4-26b', 'gemma-4-31b',
-      'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-pro',
+      'gemini-3.1-flash-lite',      // 150 RPM, 500 RPD — folga total
+      'gemini-2.5-flash-lite',      // 100 RPM, 20 RPD
+      'gemini-2.5-flash',           // 5 RPM, 5/20 usado
+      'gemini-3-flash',             // 5 RPM — pouco usado
+      'gemini-3.5-flash',           // 7 RPM, 23/20 RPD — quase cheio
+      'gemma-4-26b',                // 150 RPM, 1500 RPD — folga total
+      'gemma-4-31b',                // 150 RPM, 1500 RPD — folga total
+      'gemini-2.0-flash',           // sem uso
+      'gemini-2.0-flash-lite',      // sem uso
+      'gemini-2.5-pro',             // sem uso
+      'gemini-3.1-pro',             // sem uso
+      'gemini-1.5-flash',           // sem uso
+      'gemini-1.5-pro',             // sem uso
+      'gemini-2-flash',             // sem uso
+      'gemini-2-flash-lite',        // sem uso
     ]})
   }
 
