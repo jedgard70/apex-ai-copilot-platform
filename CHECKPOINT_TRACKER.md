@@ -13,7 +13,7 @@
 
 Use this file as the canonical checkpoint snapshot for module/connector status. The platform is now documented as a consolidated inventory of 34 operational capabilities; the primary runtime modules are all done and live.
 
-Last updated: 2026-06-23 — Inventory: 36 capabilities documented; 10 provedores ativos; build/test green; env protection enforced.
+Last updated: 2026-06-24 — Provider Router com fallback automático (90+ modelos em sequência), Auto-Fix Engine, WhatsApp/SMS, Controle Financeiro, MS Project, botões de ação nas mensagens, layout split 35/65, histórico persistente, upload múltiplo (20 arquivos).
 
 ---
 

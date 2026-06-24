@@ -55,12 +55,16 @@ Cliente → Frontend (React) → API (server.mjs) → Stripe/Supabase → Painel
 |-------|--------|--------|------------|
 | Documento de requisitos | ✅ Feito | `f5189bd` | `docs/FLUXO_COMERCIAL.md` |
 | Plano de implementação | ✅ Feito | `f5189bd` | `docs/IMPL_SERVICOS.md` |
-| 1. Service Order | ✅ Feito | `494920a` | `server/service/serviceOrder.mjs` + rotas POST/GET |
-| 2. Chat → Serviço | ✅ Feito | `c6f23a5` | Tool `create_service_order` + Stripe checkout + system prompt |
-| 3. Pós-Pagamento | ✅ Feito | — | — |
-| 4. Invoice | ✅ Feito | — | `server/service/invoice.mjs` + integração com service order + webhook + rota |
-| 5. CRM Automático | ✅ Feito | — | `server/service/client.mjs` + rota POST /api/service/client + integração create_service_order |
-| 6. Dashboard Cliente | ✅ Feito | — | — |
+| 1. Service Order | ✅ Feito | `494920a` | `server/service/serviceOrder.mjs` |
+| 2. Chat → Serviço | ✅ Feito | `c6f23a5` | Tool `create_service_order` |
+| 3. Pós-Pagamento | ✅ Feito | `efe2534` | Stripe webhook + WhatsApp notification |
+| 4. Invoice | ✅ Feito | — | `server/service/invoice.mjs` |
+| 5. CRM Automático | ✅ Feito | — | `server/service/client.mjs` |
+| 6. Dashboard Cliente | ✅ Feito | — | `ClientDashboard.tsx` |
+| 7. Notificações WhatsApp/SMS | ✅ Feito | `efe2534` | `server/service/notification.mjs` + API |
+| 8. Controle Financeiro | ✅ Feito | `efe2534` | `server/service/finance.mjs` + API + painel |
+| 9. Provider Router | ✅ Feito | `73daec6` | `server/providers/providerRouter.mjs` |
+| 10. Auto-Fix Engine | ✅ Feito | `38eca12` | `server/service/autoFix.mjs` |
 
 ---
 
