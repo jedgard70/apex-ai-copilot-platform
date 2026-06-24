@@ -3,13 +3,14 @@
  *
  * Provider Router with automatic failover.
  * Ordem de prioridade (custo para nós):
- *   1. Gemini (direct) — massive free tier (60 req/min, 1M tokens)
- *   2. Gemini Interactions (também free via GEMINI_API_KEY)
- *   3. OpenRouter — planos pagos mensalmente
- *   4. OpenCode Go — plano pago
- *   5. FAL.ai — chat models pagos
- *   6. OpenAI direct — se configurado
- *   7. AI Gateway — último recurso
+ *   1. Gemini (direct) — free (1M tokens/min)
+ *   2. OpenRouter — pago (GPT, DeepSeek, Anthropic, etc.)
+ *   3. OpenCode Go — pago mensal
+ *   4. FAL.ai — pago mensal
+ *   5. DeepSeek via OpenRouter — gratuito, modelo grande
+ *   6. Anthropic (direct) — pago
+ *   7. OpenAI (direct) — pago
+ *   8. AI Gateway — último recurso
  *
  * O usuário final nunca vê erro de provedor.
  */
@@ -19,7 +20,7 @@
 export function getProviderChain(options = {}) {
   const chain = []
 
-  // 1. Gemini (direct) — massive free tier
+  // 1. Gemini (direct) — free, 1M tokens/min
   const geminiKey = (process.env.GEMINI_API_KEY || '').trim()
   if (geminiKey) {
     chain.push({
@@ -31,7 +32,7 @@ export function getProviderChain(options = {}) {
     })
   }
 
-  // 2. OpenRouter — paid monthly
+  // 2. OpenRouter — acesso a todos (DeepSeek, Anthropic, OpenAI, etc.)
   const orBase = (process.env.OPENAI_API_BASEROUTER || '').trim()
   const orKey = (process.env.OPENAI_API_KEYROUTER || '').trim()
   if (orBase && orKey && orBase.includes('openrouter.ai')) {
@@ -43,8 +44,6 @@ export function getProviderChain(options = {}) {
       label: 'OpenRouter',
     })
   }
-
-  // 3. OpenRouter (fallback via API_BASE) — mesmo provedor pago
   if (!chain.some(p => p.name.startsWith('openrouter'))) {
     const apiBase = (process.env.OPENAI_API_BASE || '').trim()
     const apiKey = (process.env.OPENAI_API_KEY || '').trim()
@@ -59,34 +58,65 @@ export function getProviderChain(options = {}) {
     }
   }
 
-  // 4. OpenCode Go — paid
+  // 3. OpenCode Go — pago mensal
   const ocKey = (process.env.OPENCODE_GO_API_KEY || '').trim()
   if (ocKey) {
     chain.push({
       name: 'opencode',
       baseUrl: 'https://opencode.ai/zen/go/v1',
       apiKey: ocKey,
-      model: 'go-code',
+      model: 'go-chat',
       label: 'OpenCode Go',
     })
   }
 
-  // 5. FAL.ai — paid (chat models)
+  // 4. FAL.ai — pago mensal
   const falKey = (process.env.FAL_KEY || process.env.FAL_API_KEY || '').trim()
   if (falKey) {
     chain.push({
       name: 'fal',
       baseUrl: 'https://api.fal.ai/v1',
       apiKey: falKey,
-      model: 'fal-ai/llama-3.3-70b',
+      model: 'fal-ai/mistral-large',
       label: 'FAL.ai',
     })
   }
 
-  // 6. OpenAI (direct) — se configurado exclusivamente
+  // 5. DeepSeek via OpenRouter — gratuito, modelo grande (só se OpenRouter configurado)
+  if (chain.some(p => p.name === 'openrouter')) {
+    const or = chain.find(p => p.name === 'openrouter')
+    chain.push({
+      name: 'deepseek',
+      baseUrl: or.baseUrl,
+      apiKey: or.apiKey,
+      model: 'deepseek/deepseek-chat',
+      label: 'DeepSeek (Free)',
+    })
+    chain.push({
+      name: 'deepseek-r1',
+      baseUrl: or.baseUrl,
+      apiKey: or.apiKey,
+      model: 'deepseek/deepseek-r1',
+      label: 'DeepSeek R1 (Free)',
+    })
+  }
+
+  // 6. Anthropic (direct) — pago
+  const anthKey = (process.env.ANTHROPIC_API_KEY || '').trim()
+  if (anthKey) {
+    chain.push({
+      name: 'anthropic',
+      baseUrl: process.env.ANTHROPIC_API_BASE || 'https://api.anthropic.com/v1',
+      apiKey: anthKey,
+      model: 'claude-sonnet-4-6',
+      label: 'Anthropic',
+    })
+  }
+
+  // 7. OpenAI (direct) — pago
   const openaiKey = (process.env.OPENAI_API_KEY || '').trim()
   const openaiBase = (process.env.OPENAI_API_BASE || 'https://api.openai.com/v1').trim()
-  if (openaiKey && !openaiBase.includes('openrouter.ai') && !openaiBase.includes('generativelanguage')) {
+  if (openaiKey && !openaiBase.includes('openrouter.ai') && !openaiBase.includes('generativelanguage') && !openaiBase.includes('anthropic')) {
     chain.push({
       name: 'openai',
       baseUrl: openaiBase,
@@ -96,7 +126,7 @@ export function getProviderChain(options = {}) {
     })
   }
 
-  // 6. AI Gateway — último recurso
+  // 8. AI Gateway — último recurso
   const gwKey = (process.env.AI_GATEWAY_API_KEY || '').trim()
   if (gwKey) {
     chain.push({
