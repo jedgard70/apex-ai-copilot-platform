@@ -120,6 +120,38 @@ export async function notifyPaymentConfirmation(order, clientPhone) {
   return { ok: false, reason: 'WhatsApp e SMS não disponíveis.' }
 }
 
+// ─── Notificação de falha de pagamento ────────────────────────────────────────
+
+/**
+ * Notify after payment failure.
+ * @param {Object} info - { tenantId, invoiceId, amount, currency, customerEmail }
+ * @param {string} ownerPhone
+ */
+export async function notifyPaymentFailed(info, ownerPhone) {
+  const message = [
+    `⚠️ *Apex AI* — Falha no pagamento!`,
+    ``,
+    `Cliente: ${info.customerEmail || 'N/A'}`,
+    `Invoice: ${info.invoiceId || 'N/A'}`,
+    `Valor: ${info.currency || 'USD'} ${(info.amount || 0).toFixed(2)}`,
+    `Status: NAO PAGO`,
+    ``,
+    `Acesse o Stripe Dashboard para regularizar.`,
+    `https://dashboard.stripe.com/invoices/${info.invoiceId || ''}`,
+  ].join('\n')
+
+  // Only notify the owner/admin about failed payments
+  const phone = ownerPhone || process.env.AUTHKEY_DEFAULT_MOBILE
+  if (!phone) return { ok: false, reason: 'Nenhum telefone de contato do owner.' }
+
+  // Try WhatsApp first
+  const wa = await sendWhatsApp(phone, message)
+  if (wa.ok) return { ...wa, channel: 'whatsapp' }
+
+  const sms = await sendSmsNotification(phone, message)
+  return { ...sms, channel: 'sms' }
+}
+
 // ─── Status ───────────────────────────────────────────────────────────────────
 
 export function getNotificationConnectorStatus() {

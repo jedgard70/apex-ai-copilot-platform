@@ -46,6 +46,8 @@ import * as generationHistoryService from './server/service/generationHistory.mj
 import * as projectPackageService from './server/service/projectPackage.mjs'
 import * as notificationsService from './server/service/notificationsService.mjs'
 import * as crmService from './server/service/crm.mjs'
+import * as ownerCodeExecutorService from './server/service/ownerCodeExecutor.mjs'
+import * as rdoService from './server/service/rdo.mjs'
 
 function normalizeEnvironmentAliases() {
   const aliasPairs = [
