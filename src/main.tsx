@@ -840,12 +840,20 @@ function suggestLayerOpenDecision(text: string, attachment?: IntakeFile): Pendin
 }
 
 function isExplicitPanelOpenRequest(text: string) {
-  const lower = text.toLowerCase()
+  const lower = text.toLowerCase().trim()
   const hasOpenVerb = /\b(abrir|abra|abre|open|ativar|ative|activate|launch|iniciar|start)\b/.test(lower)
-  if (!hasOpenVerb) return false
-  const hasPanelWord = /\b(layer|painel|panel|studio|estudio|workspace|m[oó]dulo|modulo|console)\b/.test(lower)
-  const hasKnownLayer = /\b(archvis|directcut|contracts?|permits?|research|field\s*ops|budget|bim|3d|crm|sales|finance|accounting|generation history|generation queue|agents?|evm|scheduler|supply\s*chain|notifications?|ai\s*cost|multi-tenant|pwa|digital twin|knowledge\s*base|metrics|autoupgrade|copilot execution|owner console|auth)\b/.test(lower)
-  return hasPanelWord || hasKnownLayer
+  const hasProductionVerb = /\b(renderizar|renderize|renderiza|render|gerar|gere|gera|generate|fazer|faça|faca|faz|criar|crie|cria|create|produzir|produza|prepare|monte|montar|humanizar|humanize|editar|edite|edit|refazer|refaça|regenerar|regenerate|melhorar|melhore|improve|transformar|transforme|converter|converta)\b/.test(lower)
+  const hasKnownLayer = /\b(archvis|directcut|render|planta humanizada|v[ií]deo de venda|video|imagem|fachada|interior|shot list|storyboard|humaniza[cç][aã]o|planta baixa|apresenta[cç][aã]o|tour virtual|anima[cç][aã]o|prompt de render|direct.?cut)\b/.test(lower)
+
+  if (hasOpenVerb) {
+    const hasPanelWord = /\b(layer|painel|panel|studio|estudio|workspace|m[oó]dulo|modulo|console)\b/.test(lower)
+    return hasPanelWord || hasKnownLayer
+  }
+
+  // Production verbs (renderizar, fazer, criar, etc.) + keyword = intenção clara de usar o estúdio
+  if (hasProductionVerb && hasKnownLayer) return true
+
+  return false
 }
 
 function isOwnerConsoleIntent(text: string) {
@@ -2257,7 +2265,7 @@ function App() {
     const explicitPanelOpen = Boolean(routingText) && isExplicitPanelOpenRequest(routingText)
     const archVisIntent = isArchVisIntent(routingText, attachment)
     const directCutIntent = isDirectCutIntent(routingText)
-    const openArchVisOrDirect = explicitPanelOpen || archVisIntent || directCutIntent
+    const openArchVisOrDirect = explicitPanelOpen && (archVisIntent || directCutIntent)
     const shouldOpenArchVis = openArchVisOrDirect && archVisIntent
     const shouldOpenDirectCut = openArchVisOrDirect && directCutIntent
     const shouldRenderVideoDirectly = openArchVisOrDirect && directCutIntent && (isDirectVideoNoPanelIntent(routingText) || attachment?.kind === 'image')
