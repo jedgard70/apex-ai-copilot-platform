@@ -1179,13 +1179,34 @@ async function callOpenAIChat(requestPayload, overrideConfig) {
     headers['X-OpenRouter-Title'] = 'Apex AI Copilot'
   }
 
-  const response = await fetch(`${apiBase}/chat/completions`, {
+  const primaryResponse = await fetch(`${apiBase}/chat/completions`, {
     method: 'POST',
     headers,
     body: JSON.stringify(requestPayload),
   })
-  const data = await response.json().catch(() => ({}))
-  return { provider: 'openai', response, data }
+  let data = await primaryResponse.json().catch(() => ({}))
+
+  // If primary provider failed, try provider router fallback
+  if (!primaryResponse.ok) {
+    console.error('[callOpenAIChat] Primary failed:', primaryResponse.status)
+    try {
+      const { chatWithFallback } = await import('../../server/providers/providerRouter.mjs')
+      const fallbackResult = await chatWithFallback({
+        messages: requestPayload.messages,
+        tools: requestPayload.tools,
+        temperature: requestPayload.temperature || 0.72,
+        maxTokens: requestPayload.max_tokens || 900,
+      })
+      if (fallbackResult.ok) {
+        console.log('[callOpenAIChat] Fallback bem-sucedido via', fallbackResult.provider)
+        return { provider: fallbackResult.provider, response: { ok: true, status: 200 }, data: fallbackResult.data, usedFallback: true }
+      }
+    } catch (fbErr) {
+      console.error('[callOpenAIChat] Fallback falhou:', fbErr.message)
+    }
+  }
+
+  return { provider: 'openai', response: primaryResponse, data, usedFallback: false }
 }
 
 function extractAnthropicText(data) {
@@ -2191,38 +2212,42 @@ export default async function handler(req, res) {
             })
           }
 
-          const nextHeaders = {
-            Authorization: 'Bearer ' + openaiKey,
-            'Content-Type': 'application/json',
-          }
-          if (apiBaseUrl.includes('openrouter.ai')) {
-            nextHeaders['HTTP-Referer'] = 'https://apexglobalai.com'
-            nextHeaders['X-OpenRouter-Title'] = 'Apex AI Copilot'
-          }
-
-          const nextResponse = await fetch(`${apiBaseUrl}/chat/completions`, {
-            method: 'POST',
-            headers: nextHeaders,
-            body: JSON.stringify({
-              model,
-              messages: conversationMessages,
-              tools: buildLiveAgentToolDefinitions(),
-              tool_choice: 'auto',
-              temperature: 0.45,
-              frequency_penalty: 0.1,
-              max_tokens: 1500,
-            }),
+          // Tool round with fallback
+          const { chatWithFallback: toolFallback } = await import('../../server/providers/providerRouter.mjs')
+          const fallbackResult = await toolFallback({
+            messages: conversationMessages,
+            tools: buildLiveAgentToolDefinitions(),
+            temperature: 0.45,
+            maxTokens: 1500,
           })
 
-          const nextData = await nextResponse.json().catch(() => ({}))
-          if (!nextResponse.ok) {
-            return sendJson(res, 200, {
-              finalReply: buildChatFallbackReply(userMessage, identityContext, file),
-              reply: buildChatFallbackReply(userMessage, identityContext, file),
-              mode: 'local-fallback-after-tool',
-              confirmation: null,
-              productionStatus,
+          let nextData
+          if (fallbackResult.ok) {
+            nextData = fallbackResult.data
+          } else {
+            // Try primary one more time as last resort
+            const nextHeaders = {
+              Authorization: 'Bearer ' + openaiKey,
+              'Content-Type': 'application/json',
+            }
+            if (apiBaseUrl.includes('openrouter.ai')) {
+              nextHeaders['HTTP-Referer'] = 'https://apexglobalai.com'
+              nextHeaders['X-OpenRouter-Title'] = 'Apex AI Copilot'
+            }
+            const nextRes = await fetch(`${apiBaseUrl}/chat/completions`, {
+              method: 'POST', headers: nextHeaders,
+              body: JSON.stringify({ model, messages: conversationMessages, tools: buildLiveAgentToolDefinitions(), tool_choice: 'auto', temperature: 0.45, frequency_penalty: 0.1, max_tokens: 1500 }),
             })
+            nextData = await nextRes.json().catch(() => ({}))
+            if (!nextRes.ok) {
+              return sendJson(res, 200, {
+                finalReply: buildChatFallbackReply(userMessage, identityContext, file),
+                reply: buildChatFallbackReply(userMessage, identityContext, file),
+                mode: 'local-fallback-after-tool',
+                confirmation: null,
+                productionStatus,
+              })
+            }
           }
 
           currentAssistant = nextData?.choices?.[0]?.message || {}
