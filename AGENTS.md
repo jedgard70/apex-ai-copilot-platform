@@ -70,6 +70,17 @@ SUPABASE_*, VITE_FIREBASE_*, STRIPE_*, AUTHKEY_*, APS_CLIENT_*,
 REVIT_MCP_*, LOCAL_WORKER_TOKEN, OPENCODE_GO_API_KEY,
 AI_GATEWAY_API_KEY, TAVILY_API_KEY, CRON_SECRET.
 
+Proibido EXPRESSAMENTE usar comandos como `vercel env add`, `vercel env rm`,
+`vercel env pull` ou acessar o dashboard da Vercel para modificar variáveis.
+NENHUMA env var da Vercel pode ser alterada sem o Owner dizer "autorizado",
+"pode mexer", "sincroniza" ou "corrige" para aquela ação específica.
+
+⚠️ EXCEÇÃO REGISTRADA: na sessão de 2026-06-24, o Owner autorizou
+explicitamente a sincronização das seguintes variáveis no Vercel:
+- OPENCODE_GO_API_BASE (adição)
+- LOCAL_WORKER_URL (correção de casing)
+- ALLOW_RAW_SHELL_IN_ANY_ENV (adição)
+
 Proteção estendida também a:
 - Modelos de IA e provedores de API configurados
 - Rotas e endpoints da API
