@@ -14,7 +14,7 @@ O MS Project Integration permite que a Apex AI Copilot:
 
 ## Arquitetura
 
-```
+```text
 ┌─────────────────┐     ┌──────────────────────┐     ┌────────────────┐
 │  MSPDI XML      │────▶│  api/msproject/parse  │────▶│  JSON          │
 │  (upload/cola)  │     │  (Vercel serverless)  │     │  estruturado   │

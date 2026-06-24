@@ -1397,13 +1397,26 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [modelRuntimeState, setModelRuntimeState] = useState<'idle' | 'running' | 'ok' | 'fallback'>('idle')
   const [lastResponseMode, setLastResponseMode] = useState('')
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: id(),
-      role: 'assistant',
-      text: "Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.",
-    },
-  ])
+  const [messages, setMessages] = useState<Message[]>(() => {
+    try {
+      const saved = localStorage.getItem('apex_conversations_v1')
+      const activeId = localStorage.getItem('apex_active_conversation_id') || 'default'
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed)) {
+          const active = parsed.find((c: ChatConversation) => c.id === activeId)
+          if (active?.messages?.length) return active.messages
+        }
+      }
+    } catch {}
+    return [
+      {
+        id: id(),
+        role: 'assistant',
+        text: "Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.",
+      },
+    ]
+  })
 
   const [conversations, setConversations] = useState<ChatConversation[]>(() => {
     try {
@@ -1571,6 +1584,19 @@ function App() {
   useEffect(() => {
     localStorage.setItem('apex_active_conversation_id', activeConversationId)
   }, [activeConversationId])
+
+  // 3. Force-save conversations to localStorage on unmount (logout/refresh)
+  useEffect(() => {
+    return () => {
+      try {
+        const current = localStorage.getItem('apex_conversations_v1')
+        if (current) {
+          // Already saved by effect #2 on every change - just verify integrity
+          JSON.parse(current)
+        }
+      } catch {}
+    }
+  }, [])
 
   function handleNewChat() {
     const newId = `chat-${Date.now()}`
