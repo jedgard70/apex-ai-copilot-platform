@@ -69,6 +69,10 @@ The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.m
 | 44 | ACIP: 13 Agentes Cognitivos | `server/service/cognitiveAgents.mjs` + `CognitiveAgentsPanel` | ✅ LIVE (ACIP) |
 | 45 | ACIP: DashboardByRole (7 perfis) | `server/service/dashboardByRole.mjs` + `DashboardByRolePanel` | ✅ LIVE (ACIP) |
 | 46 | ACIP: CRM Pipeline (5 estágios) | `server/service/crmPipeline.mjs` + `CrmPipelinePanel` | ✅ LIVE (ACIP) |
+| 47 | ACIP: BIM Clash Detection | `server/service/bimClash.mjs` + `BimClashPanel` | ✅ LIVE (ACIP) |
+| 48 | ACIP: Qualidade / NCIs | `server/service/qualidadeNCIs.mjs` + `QualidadeNCIsPanel` | ✅ LIVE (ACIP) |
+| 49 | ACIP: Workflow Tasks | `server/service/workflowTasks.mjs` + `WorkflowTasksPanel` | ✅ LIVE (ACIP) |
+| 50 | ACIP: Predictive Analytics | `server/service/predictiveAnalytics.mjs` + `PredictiveAnalyticsPanel` | ✅ LIVE (ACIP) |
 
 ## Deployment map
 
@@ -185,7 +189,7 @@ Todos os provedores abaixo estão **configurados e operacionais** (chaves no `.e
 | Autodesk APS | `APS_CLIENT_ID` + `APS_CLIENT_SECRET` | 🔒 Local-only | API Revit/BIM360 |
 
 *Last updated: 2026-06-24 (23:59)*
-*Status: ALL 46 MODULES DONE (42 Apex + 4 ACIP) — 10 PROVEDORES ATIVOS — 14 CONECTORES — ENV SYNC AUDITADO — Deploy LIVE*
+*Status: ALL 50 MODULES DONE (42 Apex + 8 ACIP) — 10 PROVEDORES ATIVOS — 14 CONECTORES — ENV SYNC AUDITADO — Deploy LIVE*
 *Active pending work moved to `CHECKPOINT_TRACKER.md`.*
 
 - Active pending work moved to `CHECKPOINT_TRACKER.md`.

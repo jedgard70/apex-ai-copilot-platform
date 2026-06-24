@@ -185,7 +185,11 @@ Apenas local (não vai para Vercel): `LOCAL_WORKER_*`, `REVIT_MCP_*`, shell/path
 | 16 | Prompt Library — 12 categorias de skills profissionais | `63aeb09` | ✅ Done |
 | 17 | **ACIP: 13 Agentes Cognitivos** — service + API + painel | `281361e` | ✅ Done |
 | 18 | **ACIP: DashboardByRole** — 7 perfis (Diretor a Compliance) | `caa345d` | ✅ Done |
-| 19 | **ACIP: CRM Pipeline** — 5 estágios, KPIs, VGL, leads | `32ab3b2` | ✅ Done |
+| 20 | **ACIP: Predictive Analytics** — atraso, risco, gargalos | `4b36d70`+ | ✅ Done |
+| 20 | **ACIP: BIM Clash Detection** — 8 conflitos, severidades | `633ff00` | ✅ Done |
+| 21 | **ACIP: Qualidade/NCIs** — 6 NCIs, 6 checklists | `b30fc2e` | ✅ Done |
+| 22 | **ACIP: Workflow Tasks** — 8 tarefas, assignee, prazos | `4b36d70` | ✅ Done |
+| 23 | **ACIP: Predictive Analytics** — atraso, risco, gargalos | pendente | ✅ Done |
 
 ## Status dos Conectores (2026-06-23)
 
