@@ -134,6 +134,7 @@ e reportada ao Owner. Esta regra está documentada em:
 ## Arquivos Modificados
 
 ### Core
+
 - `server.mjs` — ProviderStatus, routing, FAL, Tavily, Embed, BIM, Chat, AuthKey
 - `api/copilot/chat.mjs` — Dynamic import, OpenCode Go routing, reasoning_content
 - `api/copilot/embed.mjs` — Novo endpoint de embeddings
@@ -145,6 +146,7 @@ e reportada ao Owner. Esta regra está documentada em:
 - `server/videoRenderPipeline.mjs` — FAL real integration
 
 ### Frontend
+
 - `src/main.tsx` — File upload, model selector, messages "planning", layout
 - `src/components/AppLayout.tsx` — Sidebar routing real
 - `src/components/DashboardPage.tsx` — Dados reais de provedores
@@ -158,6 +160,7 @@ e reportada ao Owner. Esta regra está documentada em:
 - `src/design-tokens.css` — Tokens Tailwind v4
 
 ### Docs
+
 - `AGENTS.md` — Regra absoluta de proteção
 - `CHECKPOINT_TRACKER.md` — Proteção + status
 - `docs/APEX_PLATFORM_CURRENT_STATE.md` — Estado atualizado
@@ -167,7 +170,7 @@ e reportada ao Owner. Esta regra está documentada em:
 
 ## Commits (30+)
 
-```
+```text
 c2a6442 fix: remove planning-only das mensagens BIM tour
 02b240a fix: corrige todos os providerStatus restantes e mensagens planning
 779deaa fix: corrige todos os providerStatus e mensagens contraditorias
