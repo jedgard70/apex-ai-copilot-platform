@@ -2255,9 +2255,12 @@ function App() {
     }
     // Let natural conversations go to the server, so they are processed by the live AI agent (or fall back to local answers on failure)
     const explicitPanelOpen = Boolean(routingText) && isExplicitPanelOpenRequest(routingText)
-    const shouldOpenArchVis = explicitPanelOpen && ((attachment?.kind === 'image') || explicitPanelOpen) && isArchVisIntent(routingText, attachment)
-    const shouldOpenDirectCut = explicitPanelOpen && isDirectCutIntent(routingText)
-    const shouldRenderVideoDirectly = explicitPanelOpen && isDirectCutIntent(routingText) && (isDirectVideoNoPanelIntent(routingText) || attachment?.kind === 'image')
+    const archVisIntent = isArchVisIntent(routingText, attachment)
+    const directCutIntent = isDirectCutIntent(routingText)
+    const openArchVisOrDirect = explicitPanelOpen || archVisIntent || directCutIntent
+    const shouldOpenArchVis = openArchVisOrDirect && archVisIntent
+    const shouldOpenDirectCut = openArchVisOrDirect && directCutIntent
+    const shouldRenderVideoDirectly = openArchVisOrDirect && directCutIntent && (isDirectVideoNoPanelIntent(routingText) || attachment?.kind === 'image')
     const shouldOpenContracts = explicitPanelOpen && isContractsIntent(routingText)
     const shouldOpenBudget = explicitPanelOpen && isBudgetIntent(routingText)
     const shouldOpenProjectPackage = isProjectPackageIntent(routingText)
@@ -4221,20 +4224,6 @@ function App() {
 
         {hasOperationalPanel && (
         <aside className="right-panel" aria-label="Active Apex tool">
-          {archVisOutput && (
-            <ArchVisPanel
-              source={archVisOutput.source}
-              output={archVisOutput.output}
-              conversationContext={archVisOutput.conversationContext}
-              revisionConstraints={archVisRevisionConstraints}
-              onAddRevisionConstraint={constraint => setArchVisRevisionConstraints(prev => prev.includes(constraint) ? prev : [...prev, constraint])}
-              onRemoveRevisionConstraint={constraint => setArchVisRevisionConstraints(prev => prev.filter(item => item !== constraint))}
-              onClearRevisionConstraints={() => setArchVisRevisionConstraints([])}
-              onRecordGeneration={handleArchVisGeneration}
-              onClear={() => setArchVisOutput(null)}
-            />
-          )}
-
           {avatarVoiceOutput && (
             <AvatarVoicePanel
               goal={avatarVoiceOutput.goal}
@@ -4312,17 +4301,6 @@ function App() {
                 }
               }}
               onClear={() => setAutoupgradeOutput(null)}
-            />
-          )}
-
-          {directCutOutput && (
-            <DirectCutPanel
-              source={directCutOutput.source}
-              goal={directCutOutput.goal}
-              conversationContext={directCutOutput.conversationContext}
-              initialConfig={directCutOutput.initialConfig}
-              onRecordGeneration={handleDirectCutGeneration}
-              onClear={() => setDirectCutOutput(null)}
             />
           )}
 
@@ -4794,6 +4772,31 @@ function App() {
           </div>
         )}
       </div>
+      )}
+
+      {/* Full-screen studios (fora do right-panel para evitar tela branca) */}
+      {archVisOutput && (
+        <ArchVisPanel
+          source={archVisOutput.source}
+          output={archVisOutput.output}
+          conversationContext={archVisOutput.conversationContext}
+          revisionConstraints={archVisRevisionConstraints}
+          onAddRevisionConstraint={constraint => setArchVisRevisionConstraints(prev => prev.includes(constraint) ? prev : [...prev, constraint])}
+          onRemoveRevisionConstraint={constraint => setArchVisRevisionConstraints(prev => prev.filter(item => item !== constraint))}
+          onClearRevisionConstraints={() => setArchVisRevisionConstraints([])}
+          onRecordGeneration={handleArchVisGeneration}
+          onClear={() => setArchVisOutput(null)}
+        />
+      )}
+      {directCutOutput && (
+        <DirectCutPanel
+          source={directCutOutput.source}
+          goal={directCutOutput.goal}
+          conversationContext={directCutOutput.conversationContext}
+          initialConfig={directCutOutput.initialConfig}
+          onRecordGeneration={handleDirectCutGeneration}
+          onClear={() => setDirectCutOutput(null)}
+        />
       )}
     </AppLayout>
   )
