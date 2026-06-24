@@ -2,24 +2,36 @@
  * server/providers/providerRouter.mjs
  *
  * Provider Router with automatic failover.
- * Tenta múltiplos provedores em sequência quando um falha.
- * O usuário final nunca vê erro de provedor — só se TODOS falharem.
+ * Ordem de prioridade (custo para nós):
+ *   1. Gemini (direct) — massive free tier (60 req/min, 1M tokens)
+ *   2. Gemini Interactions (também free via GEMINI_API_KEY)
+ *   3. OpenRouter — planos pagos mensalmente
+ *   4. OpenCode Go — plano pago
+ *   5. FAL.ai — chat models pagos
+ *   6. OpenAI direct — se configurado
+ *   7. AI Gateway — último recurso
+ *
+ * O usuário final nunca vê erro de provedor.
  */
 
-// ─── Provider chain (ordem de fallback) ───────────────────────────────────────
+// ─── Provider chain ───────────────────────────────────────────────────────────
 
-/**
- * Returns ordered list of provider configs that can be tried.
- * Uses env vars at call time so config changes take effect immediately.
- * @param {Object} [options]
- * @param {string} [options.preferredProvider] - If set, tries this first
- * @param {string} [options.preferredModel] - Model ID for the preferred provider
- * @returns {Array<{name: string, baseUrl: string, apiKey: string, model: string, label: string}>}
- */
 export function getProviderChain(options = {}) {
   const chain = []
 
-  // 1. OpenRouter (API Base Router)
+  // 1. Gemini (direct) — massive free tier
+  const geminiKey = (process.env.GEMINI_API_KEY || '').trim()
+  if (geminiKey) {
+    chain.push({
+      name: 'gemini',
+      baseUrl: process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta/openai',
+      apiKey: geminiKey,
+      model: options.preferredModel === 'gemini' ? options.preferredModel : 'gemini-2.0-flash',
+      label: 'Gemini (Free)',
+    })
+  }
+
+  // 2. OpenRouter — paid monthly
   const orBase = (process.env.OPENAI_API_BASEROUTER || '').trim()
   const orKey = (process.env.OPENAI_API_KEYROUTER || '').trim()
   if (orBase && orKey && orBase.includes('openrouter.ai')) {
@@ -27,38 +39,13 @@ export function getProviderChain(options = {}) {
       name: 'openrouter',
       baseUrl: orBase,
       apiKey: orKey,
-      model: options.preferredModel || 'openai/gpt-4o-mini',
+      model: 'openai/gpt-4o-mini',
       label: 'OpenRouter',
     })
   }
 
-  // 2. Gemini (direct)
-  const geminiKey = (process.env.GEMINI_API_KEY || '').trim()
-  if (geminiKey) {
-    chain.push({
-      name: 'gemini',
-      baseUrl: process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta/openai',
-      apiKey: geminiKey,
-      model: 'gemini-2.0-flash',
-      label: 'Gemini',
-    })
-  }
-
-  // 3. OpenAI (direct)
-  const openaiKey = (process.env.OPENAI_API_KEY || '').trim()
-  const openaiBase = (process.env.OPENAI_API_BASE || 'https://api.openai.com/v1').trim()
-  if (openaiKey && !openaiBase.includes('openrouter.ai')) {
-    chain.push({
-      name: 'openai',
-      baseUrl: openaiBase,
-      apiKey: openaiKey,
-      model: 'gpt-4o-mini',
-      label: 'OpenAI',
-    })
-  }
-
-  // 4. OpenRouter (fallback via API_BASE)
-  if (!chain.some(p => p.name === 'openrouter')) {
+  // 3. OpenRouter (fallback via API_BASE) — mesmo provedor pago
+  if (!chain.some(p => p.name.startsWith('openrouter'))) {
     const apiBase = (process.env.OPENAI_API_BASE || '').trim()
     const apiKey = (process.env.OPENAI_API_KEY || '').trim()
     if (apiBase && apiKey && apiBase.includes('openrouter.ai')) {
@@ -72,19 +59,7 @@ export function getProviderChain(options = {}) {
     }
   }
 
-  // 5. AI Gateway (as last resort before giving up)
-  const gwKey = (process.env.AI_GATEWAY_API_KEY || '').trim()
-  if (gwKey) {
-    chain.push({
-      name: 'gateway',
-      baseUrl: process.env.AI_GATEWAY_API_BASE || 'https://gateway.ai.vercel.ai/v1',
-      apiKey: gwKey,
-      model: options.preferredModel || 'openai/gpt-4o-mini',
-      label: 'AI Gateway',
-    })
-  }
-
-  // 6. OpenCode Go
+  // 4. OpenCode Go — paid
   const ocKey = (process.env.OPENCODE_GO_API_KEY || '').trim()
   if (ocKey) {
     chain.push({
@@ -96,10 +71,47 @@ export function getProviderChain(options = {}) {
     })
   }
 
+  // 5. FAL.ai — paid (chat models)
+  const falKey = (process.env.FAL_KEY || process.env.FAL_API_KEY || '').trim()
+  if (falKey) {
+    chain.push({
+      name: 'fal',
+      baseUrl: 'https://api.fal.ai/v1',
+      apiKey: falKey,
+      model: 'fal-ai/llama-3.3-70b',
+      label: 'FAL.ai',
+    })
+  }
+
+  // 6. OpenAI (direct) — se configurado exclusivamente
+  const openaiKey = (process.env.OPENAI_API_KEY || '').trim()
+  const openaiBase = (process.env.OPENAI_API_BASE || 'https://api.openai.com/v1').trim()
+  if (openaiKey && !openaiBase.includes('openrouter.ai') && !openaiBase.includes('generativelanguage')) {
+    chain.push({
+      name: 'openai',
+      baseUrl: openaiBase,
+      apiKey: openaiKey,
+      model: 'gpt-4o-mini',
+      label: 'OpenAI',
+    })
+  }
+
+  // 6. AI Gateway — último recurso
+  const gwKey = (process.env.AI_GATEWAY_API_KEY || '').trim()
+  if (gwKey) {
+    chain.push({
+      name: 'gateway',
+      baseUrl: process.env.AI_GATEWAY_API_BASE || 'https://gateway.ai.vercel.ai/v1',
+      apiKey: gwKey,
+      model: 'openai/gpt-4o-mini',
+      label: 'AI Gateway',
+    })
+  }
+
   return chain
 }
 
-// ─── Check which providers are configured ─────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 export function getConfiguredProviders() {
   return getProviderChain().map(p => p.name)
