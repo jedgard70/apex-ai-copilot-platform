@@ -355,6 +355,35 @@ const SECTIONS: ManualSection[] = [
     ],
   },
   {
+    id: 'bim-clash',
+    title: '🏗️ BIM Clash Detection ACIP',
+    icon: '🔍',
+    summary: 'Detecção de conflitos entre disciplinas BIM (Estrutural, Arquitetura, MEP). Revit, Navisworks, Tekla, ArchiCAD, Solibri.',
+    items: [
+      {
+        name: 'Detecção de Conflitos',
+        description: 'Registre conflitos com severidade, localização, disciplinas envolvidas e origem. Acompanhe status de resolução.',
+        howToUse: 'Peça: "abrir clash detection", "conflitos BIM".',
+        example: '"mostrar conflitos críticos do modelo Park Avenue"',
+        availableTo: 'todos',
+      },
+      {
+        name: 'KPIs e Métricas',
+        description: 'Total de conflitos, críticos abertos, média de dias, distribuição por severidade.',
+        howToUse: 'KPIs aparecem automaticamente no painel.',
+        example: '"quantos conflitos críticos ainda estão abertos?"',
+        availableTo: 'todos',
+      },
+      {
+        name: 'Integrações BIM',
+        description: 'Revit, Navisworks, Tekla, ArchiCAD, Solibri, ACC.',
+        howToUse: 'Conectores via APS e IFC.',
+        example: '"importar clash do Navisworks"',
+        availableTo: 'todos',
+      },
+    ],
+  },
+  {
     id: 'notificacoes',
     title: '🔔 Notificações / Alertas',
     icon: '📨',

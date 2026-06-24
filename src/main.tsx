@@ -64,6 +64,8 @@ import AppLayout from './components/AppLayout'
 import { ClientDashboard } from './components/ClientDashboard'
 import { DashboardPage } from './components/DashboardPage'
 import { DashboardByRolePanel } from './components/DashboardByRolePanel'
+import { CrmPipelinePanel } from './components/CrmPipelinePanel'
+import { BimClashPanel } from './components/BimClashPanel'
 import { OwnerPage } from './components/OwnerPage'
 import { DeploymentFlowPage } from './components/DeploymentFlowPage'
 import { GovernanceHubPage } from './components/GovernanceHubPage'
@@ -1413,6 +1415,7 @@ function App() {
   })
   const [cognitiveAgentsOutput, setCognitiveAgentsOutput] = useState<boolean>(false)
   const [dashboardByRoleOutput, setDashboardByRoleOutput] = useState<boolean>(false)
+  const [bimClashOutput, setBimClashOutput] = useState<boolean>(false)
   const [evmSchedulerComplianceOutput, setEvmSchedulerComplianceOutput] = useState<EvmSchedulerComplianceOutput | null>(() => {
     const stored = initialAppState.evmSchedulerComplianceOutput as EvmSchedulerComplianceOutput | undefined
     return stored || null
@@ -1943,6 +1946,7 @@ function App() {
     setAuthOutput(null)
     setExportCenterOpen(false)
     setDashboardByRoleOutput(false)
+    setBimClashOutput(false)
     setActiveFile(undefined)
     setInput('')
   }
@@ -1959,6 +1963,7 @@ function App() {
     if (except !== 'agents') setAgentsOutput(null)
     if (except !== 'cognitiveAgents') setCognitiveAgentsOutput(false)
     if (except !== 'dashboardByRole') setDashboardByRoleOutput(false)
+    if (except !== 'bimClash') setBimClashOutput(false)
     if (except !== 'evmScheduler') setEvmSchedulerComplianceOutput(null)
     if (except !== 'supplyChain') setSupplyChainOutput(null)
     if (except !== 'notifications') setNotificationsOutput(null)
@@ -2102,7 +2107,7 @@ function App() {
           activeRecord,
         ]
       : activeProject.files
-    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : fieldOpsOutput ? 'fieldops' : businessOutput ? 'business' : projectPackageOutput ? 'project-package' : generationHistoryOpen ? 'generation-history' : apsOpen ? 'aps' : agentsOutput ? 'agents' : cognitiveAgentsOutput ? 'cognitive-agents' : dashboardByRoleOutput ? 'dashboard-by-role' : evmSchedulerComplianceOutput ? 'evm-scheduler-compliance' : supplyChainOutput ? 'supply-chain' : notificationsOutput ? 'notifications' : aiCostOutput ? 'ai-cost' : multiTenantOutput ? 'multi-tenant' : pwaMobileOutput ? 'pwa-mobile' : digitalTwinOutput ? 'digital-twin' : knowledgeBaseOutput ? 'knowledge-base' : metricsOutput ? 'metrics-dashboard' : avatarVoiceOutput ? 'avatar-voice' : autoupgradeOutput ? 'autoupgrade' : platformMapOutput ? 'platform-map' : stockOutput ? 'stock' : tripOutput ? 'trip' : pipelineOutput ? 'pipeline' : campaignAutomationOutput ? 'campaign-automation' : copilotExecutionOutput ? 'copilot-execution' : authOutput ? 'auth' : undefined
+    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : fieldOpsOutput ? 'fieldops' : businessOutput ? 'business' : projectPackageOutput ? 'project-package' : generationHistoryOpen ? 'generation-history' : apsOpen ? 'aps' : agentsOutput ? 'agents' : cognitiveAgentsOutput ? 'cognitive-agents' : dashboardByRoleOutput ? 'dashboard-by-role' : bimClashOutput ? 'bim-clash' : evmSchedulerComplianceOutput ? 'evm-scheduler-compliance' : supplyChainOutput ? 'supply-chain' : notificationsOutput ? 'notifications' : aiCostOutput ? 'ai-cost' : multiTenantOutput ? 'multi-tenant' : pwaMobileOutput ? 'pwa-mobile' : digitalTwinOutput ? 'digital-twin' : knowledgeBaseOutput ? 'knowledge-base' : metricsOutput ? 'metrics-dashboard' : avatarVoiceOutput ? 'avatar-voice' : autoupgradeOutput ? 'autoupgrade' : platformMapOutput ? 'platform-map' : stockOutput ? 'stock' : tripOutput ? 'trip' : pipelineOutput ? 'pipeline' : campaignAutomationOutput ? 'campaign-automation' : copilotExecutionOutput ? 'copilot-execution' : authOutput ? 'auth' : undefined
     return {
       ...activeProject,
       language: navigator.language || activeProject.language,
@@ -3847,7 +3852,7 @@ function App() {
       )}
     </div>
   )
-  const hasOperationalPanel = archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || cognitiveAgentsOutput || dashboardByRoleOutput || evmSchedulerComplianceOutput || supplyChainOutput || notificationsOutput || aiCostOutput || multiTenantOutput || pwaMobileOutput || digitalTwinOutput || knowledgeBaseOutput || projectPackageOutput || generationHistoryOpen || metricsOutput || avatarVoiceOutput || autoupgradeOutput || platformMapOutput || stockOutput || tripOutput || pipelineOutput || nrOutput || accountingOutput || permitsOutput || campaignAutomationOutput || exportCenterOpen
+  const hasOperationalPanel = archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || cognitiveAgentsOutput || dashboardByRoleOutput || bimClashOutput || evmSchedulerComplianceOutput || supplyChainOutput || notificationsOutput || aiCostOutput || multiTenantOutput || pwaMobileOutput || digitalTwinOutput || knowledgeBaseOutput || projectPackageOutput || generationHistoryOpen || metricsOutput || avatarVoiceOutput || autoupgradeOutput || platformMapOutput || stockOutput || tripOutput || pipelineOutput || nrOutput || accountingOutput || permitsOutput || campaignAutomationOutput || exportCenterOpen
   const workspaceClass = hasOperationalPanel ? 'studio-open' : ''
 
   if (isPublicVslRoute) {
@@ -4862,6 +4867,10 @@ function App() {
 
           {dashboardByRoleOutput && (
             <DashboardByRolePanel onClear={() => setDashboardByRoleOutput(false)} />
+          )}
+
+          {bimClashOutput && (
+            <BimClashPanel onClear={() => setBimClashOutput(false)} />
           )}
 
           {exportCenterOpen && (

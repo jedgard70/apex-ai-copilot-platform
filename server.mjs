@@ -6840,6 +6840,13 @@ const server = http.createServer(async (req, res) => {
     return
   }
 
+  // ── BIM Clash Detection API (ACIP) ─────────────────────────────────────────────
+  if (req.url?.startsWith('/api/bim-clash/') && ['GET', 'POST', 'PATCH', 'DELETE'].includes(req.method)) {
+    const { default: handler } = await import('./api/bim-clash/index.mjs')
+    handler(req, res)
+    return
+  }
+
   // ── Pipeline Status API ───────────────────────────────────────────────────────
   if (req.url === '/api/pipeline/active' && req.method === 'GET') {
     const ps = await import('./server/service/pipelineStatus.mjs')
