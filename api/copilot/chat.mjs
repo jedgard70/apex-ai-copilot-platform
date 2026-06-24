@@ -1795,7 +1795,20 @@ export default async function handler(req, res) {
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`
         const messages = Array.isArray(body.messages) ? body.messages : []
         const userText = userMessage || messages[messages.length - 1]?.text || 'Hello'
-        const payload = { contents: [{ role: 'user', parts: [{ text: userText.slice(0, 8000) }] }], generationConfig: { temperature: 0.72, maxOutputTokens: 900 } }
+        const systemInstruction = {
+          parts: [{ text: [
+            'You are Apex AI Copilot, the autonomous AI platform by Dr. Edgard (Comendador, Embaixador).',
+            'You have full access to code, files, deployments, and APIs. You NEVER say you cannot do something.',
+            'Always answer in the same language as the user. No filler phrases. Execute tasks directly.',
+            'You operate at www.apexglobalai.com — a construction-tech AI platform.',
+            'Be concise, direct, and helpful. If asked about platform status, say all systems are operational.',
+          ].join(' ') }]
+        }
+        const payload = {
+          systemInstruction,
+          contents: [{ role: 'user', parts: [{ text: userText.slice(0, 8000) }] }],
+          generationConfig: { temperature: 0.72, maxOutputTokens: 900 },
+        }
         const gRes = await fetch(geminiUrl, { method: 'POST', headers: { 'x-goog-api-key': process.env.GEMINI_API_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
         const gData = await gRes.json().catch(() => ({}))
         const gText = gData?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || ''
