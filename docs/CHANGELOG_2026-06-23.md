@@ -49,7 +49,7 @@ e reportada ao Owner. Esta regra está documentada em:
 ### Provedores de IA Corrigidos
 
 | # | Provedor | Problema | Correção | Commit |
-|---|---------|---------|----------|--------|
+| :--- | :--------- | :--------- | :---------- | :-------- |
 | 7 | OpenRouter | Modelo padrão quebrado (Gemini) | Default alterado p/ `openrouter\|openai/gpt-4o-mini` | `5f273c0` |
 | 8 | Gemini Interactions | Import quebrava Vercel (500) | Dynamic import + `@google/genai` lazy | `a836659` |
 | 9 | OpenCode Go | Modelos não carregavam | API key sync + fetch da API oficial | `4622f8b` |
@@ -62,7 +62,7 @@ e reportada ao Owner. Esta regra está documentada em:
 ### Painéis e Funcionalidades
 
 | # | Painel | Problema | Correção | Commit |
-|---|--------|---------|----------|--------|
+| :--- | :-------- | :--------- | :---------- | :-------- |
 | 15 | DirectCut | Canvas em branco p/ vídeo | `<video>` player + `setCurrentVideo` | `c19dab5` |
 | 16 | DirectCut | Video planning-only | FAL real p/ geração de vídeo | `a1181b3` |
 | 17 | ArchVis | Erro sem feedback | `setError` + `response.ok` check | `9f5bf4c` |
@@ -78,7 +78,7 @@ e reportada ao Owner. Esta regra está documentada em:
 ### ProviderStatus — Limpeza Completa
 
 | # | Status Antes | Novos Status | Quantidade |
-|---|-------------|-------------|-----------|
+| :--- | :------------- | :------------- | :----------- |
 | 26 | `'planning-only'` | `'connected'` | 12 ocorrências |
 | 27 | `'local-planning'` | `'connected'` | 5 ocorrências |
 | 28 | `'planning-checklist'` | `'connected'` | 3 ocorrências |
@@ -109,7 +109,7 @@ e reportada ao Owner. Esta regra está documentada em:
 ### Mensagens "planning-only" Removidas
 
 | # | Arquivo | Mensagem Antiga | Mensagem Nova |
-|---|---------|----------------|--------------|
+| :--- | :--------- | :---------------- | :-------------- |
 | 52 | server.mjs (BIM tour) | `'Planning-only BIM scene.'` | `'BIM scene ready for viewing.'` |
 | 53 | server.mjs (BIM tour) | `'Planning-only overview...'` | `'Load model in BIM / 3D Studio...'` |
 | 54 | server.mjs (BIM tour) | `'...planning-only.'` | `'...load file to view.'` |
@@ -121,7 +121,7 @@ e reportada ao Owner. Esta regra está documentada em:
 ### Infraestrutura
 
 | # | Item | O que foi feito | Commit |
-|---|------|----------------|--------|
+| :--- | :------ | :---------------- | :-------- |
 | 59 | Tailwind v4 tokens | Spacing, cores e tipografia adicionados | `5f273c0` |
 | 60 | Dashboard | Agora mostra dados REAIS (provedores ativos, git) | `261a49f` |
 | 61 | Local worker | Auto-discovery node/npm/git | `5f273c0` |
