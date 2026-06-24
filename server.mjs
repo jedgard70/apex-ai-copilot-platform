@@ -6847,6 +6847,13 @@ const server = http.createServer(async (req, res) => {
     return
   }
 
+  // ── Qualidade / NCIs API (ACIP) ────────────────────────────────────────────────
+  if (req.url?.startsWith('/api/qualidade/') && ['GET', 'POST', 'PATCH'].includes(req.method)) {
+    const { default: handler } = await import('./api/qualidade/index.mjs')
+    handler(req, res)
+    return
+  }
+
   // ── Pipeline Status API ───────────────────────────────────────────────────────
   if (req.url === '/api/pipeline/active' && req.method === 'GET') {
     const ps = await import('./server/service/pipelineStatus.mjs')
