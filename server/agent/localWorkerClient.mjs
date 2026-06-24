@@ -127,7 +127,7 @@ function commandForAction(action, params = {}) {
     case 'system.startup_disable': return params.name ? `powershell -ExecutionPolicy Bypass -Command "Get-CimInstance Win32_StartupCommand | Where-Object { \$_.Name -like '*${params.name}*' } | %% { Remove-ItemProperty -Path 'Registry::\\HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run' -Name \$_.Name -ErrorAction SilentlyContinue; Write-Host 'Removido: ' + \$_.Name }"` : ''
     case 'revit.info': return 'powershell -ExecutionPolicy Bypass -Command "Get-ChildItem \"C:\\Program Files\\Autodesk\\Revit *\\Revit.exe\" -ErrorAction SilentlyContinue | %% { $v=[System.Diagnostics.FileVersionInfo]::GetVersionInfo($_.FullName); Write-Host ($_.FullName + \" v\" + $v.FileVersion) }"'
     case 'revit.addin_list': return 'powershell -ExecutionPolicy Bypass -Command "Get-ChildItem \"$env:APPDATA\\Autodesk\\Revit\\Addins\" -Recurse -Filter *.addin -ErrorAction SilentlyContinue | %% { Write-Host $_.Name }"'
-    case 'revit.run_pyrevit': return ''  # Requires params.script, needs temp file - use worker
+    case 'revit.run_pyrevit': return ''  // Requires params.script, needs temp file - use worker
     case 'project.raw_shell': return String(params.command || '').trim()
     default: return ''
   }
