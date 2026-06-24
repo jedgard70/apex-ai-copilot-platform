@@ -13,7 +13,7 @@
 
 Use this file as the canonical checkpoint snapshot for module/connector status. The platform is now documented as a consolidated inventory of 34 operational capabilities; the primary runtime modules are all done and live.
 
-Last updated: 2026-06-24 — Sessão marathon: 6 módulos profissionais criados (Stock, Trip, NR, Accounting, Permits, Marketing), Pipeline Progress Panel com tracking em tempo real, 10 services extraídos do server.mjs, REGRA ABSOLUTA 6, .env.local duas camadas. Supabase 8/8 migrations já aplicadas (95 tabelas + RLS + storage + pgvector).
+Last updated: 2026-06-24 — Sessão marathon: 6 módulos profissionais (Stock, Trip, NR, Accounting, Permits, Marketing), Pipeline Progress, Prompt Library, 10 services extraídos, REGRA ABSOLUTA 6+7, .env.local duas camadas, Manual do Usuário, Contabilidade PJ+PF, ACIP: 13 Agentes Cognitivos, DashboardByRole (7 perfis), CRM Pipeline (5 estágios). Supabase 8/8 migrations aplicadas.
 
 ---
 
@@ -163,7 +163,7 @@ Apenas local (não vai para Vercel): `LOCAL_WORKER_*`, `REVIT_MCP_*`, shell/path
 | 7 | SINAPI auto-detection — detecta `src/data/sinapi-2024.json` e marca como connected | `8104021` | ✅ Done |
 | 8 | Componentes órfãos identificados (LoginButton, LogoutButton, Profile, ProviderStatusPanel, StudioPanelShell) | `7911124` | ✅ Auditado |
 
-## Sessão 2026-06-24 — 6 Módulos + Pipeline + 10 Services
+## Sessão 2026-06-24 — Apex AI + ACIP
 
 | # | Mudança | Commits | Status |
 | :--- | :--------- | :--------- | :-------- |
@@ -178,15 +178,14 @@ Apenas local (não vai para Vercel): `LOCAL_WORKER_*`, `REVIT_MCP_*`, shell/path
 | 9 | REGRA ABSOLUTA 6 — código real vs documentação | `2c0715e` | ✅ Done |
 | 10 | Detecção por comando de voz para 6 módulos | `c5d8616` | ✅ Done |
 | 11 | .env.local duas camadas (.env.local + .env.local.full) | `2316b76` | ✅ Done |
-
-## Correções da Sessão 2026-06-24
-
-| Correção | Descrição | Commit |
-| :---------- | :----------- | :-------- |
-| Supabase audit | Descoberto que 8/8 migrations JÁ estavam aplicadas (agentes confundiram .sql com não-aplicado) | `6782e61` |
-| Services inline extraídos | SupplyChain, AiCost, MultiTenant, PwaMobile, DigitalTwin, KnowledgeBase, Metrics, GenHistory, NotificationsService, Crm, ProjectPackage | `6abb86f` |
-| .env.local quebrava CLI | FIREBASE_SERVICE_ACCOUNT_JSON multi-linha impedia `supabase` CLI. Criado .env.local.full com backup | `2316b76` |
-| globalThis knowledgeItems | KnowledgeBase agora acessa `localMemoryKnowledgeItems` via globalThis | `2316b76` |
+| 12 | REGRA ABSOLUTA 7 — apenas 2 docs canônicos | `3ca8281` | ✅ Done |
+| 13 | 15 docs SUPERSEDED marcados como obsoletos | `3ca8281` | ✅ Done |
+| 14 | Manual do Usuário — 15 seções no PlatformMap | `84a1ead` | ✅ Done |
+| 15 | Contabilidade PJ+PF expandida (18+14 obrigações) | `aeb992d` | ✅ Done |
+| 16 | Prompt Library — 12 categorias de skills profissionais | `63aeb09` | ✅ Done |
+| 17 | **ACIP: 13 Agentes Cognitivos** — service + API + painel | `281361e` | ✅ Done |
+| 18 | **ACIP: DashboardByRole** — 7 perfis (Diretor a Compliance) | `caa345d` | ✅ Done |
+| 19 | **ACIP: CRM Pipeline** — 5 estágios, KPIs, VGL, leads | `32ab3b2` | ✅ Done |
 
 ## Status dos Conectores (2026-06-23)
 
