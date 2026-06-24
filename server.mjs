@@ -1774,6 +1774,28 @@ function buildLiveAgentToolDefinitions() {
     {
       type: 'function',
       function: {
+        name: 'execute_terminal_command',
+        description: 'EXECUTA UM COMANDO DIRETAMENTE no terminal do servidor. Use quando o usuario pedir para rodar algo como git status, npm build, node script, etc. EXECUTA DIRETO — não abra painel, não peça confirmacao, apenas execute e mostre o resultado.',
+        parameters: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            rawCommand: {
+              type: 'string',
+              description: 'Comando completo para executar no terminal. Ex: "git status", "npm run build", "node script.mjs"'
+            },
+            reason: {
+              type: 'string',
+              description: 'Breve descricao do porque este comando e necessario.'
+            }
+          },
+          required: ['rawCommand', 'reason']
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
         name: 'get_platform_status',
         description: 'Get the REAL-TIME platform status including configured API keys, git branch/commit, and provider health. Use this when the user asks about platform status, provider keys, system health, or what is configured.',
         parameters: {
@@ -2037,6 +2059,50 @@ async function executeLiveAgentToolCall(toolCall) {
       return { providerStatus: 'connected', ...status }
     } catch (err) {
       return { providerStatus: 'error', message: `Auto-fix error: ${err.message}` }
+    }
+  }
+
+  // ── Handler for execute_terminal_command ────────────────────────────────
+  if (name === 'execute_terminal_command') {
+    try {
+      const args = JSON.parse(toolCall.function.arguments || '{}')
+      const rawCommand = String(args.rawCommand || '').trim()
+      const reason = String(args.reason || '').slice(0, 500)
+
+      if (!rawCommand) {
+        return { providerStatus: 'blocked', error: 'Raw command is required.', reason }
+      }
+
+      // Execute via runCopilotExecutionCommand with raw_shell
+      const command = getExecutionCommand('raw_shell')
+      if (!command) {
+        return { providerStatus: 'blocked', error: 'Shell executor not available.', reason }
+      }
+
+      const result = await runCopilotExecutionCommand(command, {
+        cwd: authorizedExecutionCwd,
+        rawCommand,
+        approvedBy: 'Live Agent (auto)',
+      })
+
+      const stdout = String(result.stdout || '')
+      const stderr = String(result.stderr || '')
+      const exitCode = result.exitCode ?? -1
+      const output = [stdout, stderr].filter(Boolean).join('\n').slice(0, 4000)
+
+      return {
+        providerStatus: 'connected',
+        reason,
+        commandText: rawCommand,
+        exitCode,
+        output,
+        stdout: stdout.slice(0, 2000),
+        stderr: stderr.slice(0, 2000),
+        label: result.label,
+        durationMs: result.durationMs,
+      }
+    } catch (error) {
+      return { providerStatus: 'error', error: `Execution failed: ${error.message}` }
     }
   }
 
@@ -2452,7 +2518,7 @@ async function handleChat(req, res) {
       'Relevant local skill knowledge:',
       buildLocalSkillContext(userText, file),
       '',
-      'IMPORTANT — You have tools available: read_file, search_code, list_dir, run_safe_local_command, get_platform_status, write_file, edit_file.',
+      'IMPORTANT — You have tools available: read_file, search_code, list_dir, run_safe_local_command, execute_terminal_command, get_platform_status, write_file, edit_file.',
       'When the user asks about platform status, provider keys, git state, or system health:',
       '  1. Call get_platform_status FIRST to get real-time git info and provider config',
       '  2. Read the actual .env.local file with read_file if you need specific values',
@@ -2567,12 +2633,13 @@ async function handleChat(req, res) {
           'Apex Live Agent Runtime is enabled.',
           'The user can talk naturally, like with ChatGPT or Codex. Do not require exact command phrases.',
           'For simple conversation or connection-check prompts, reply directly like a normal assistant and do not add warnings about missing context unless explicitly asked.',
-          'You are a full coding copilot with REAL access to this platform repository. You have tools to read files (read_file), list directories (list_dir), search code (search_code), write files (write_file), edit files (edit_file) and run commands (run_command).',
-          'CRITICAL: You are an autonomous agentic AI. Never describe file contents, directory layouts, or platform status from memory or using static information in the prompt. You MUST call the appropriate tool (list_dir, read_file, search_code, run_safe_local_command) in your first turn to verify the actual files on disk before responding. If the user asks to review, audit, check, verify, update, or edit anything, immediately invoke the tools to perform the actions.',
+          'You are a full coding copilot with REAL access to this platform repository. You have tools to read files (read_file), list directories (list_dir), search code (search_code), write files (write_file), edit files (edit_file) and run commands (run_command / execute_terminal_command).',
+          'CRITICAL: execute_terminal_command runs commands DIRECTLY in the server terminal. When the user says "roda git status", "executa npm build", "roda node script" or any command — USE execute_terminal_command IMMEDIATELY. Do NOT open a panel. Do NOT ask for confirmation. Just run it and show the output.',
+          'CRITICAL: You are an autonomous agentic AI. Never describe file contents, directory layouts, or platform status from memory or using static information in the prompt. You MUST call the appropriate tool (list_dir, read_file, search_code, run_safe_local_command, execute_terminal_command) in your first turn to verify the actual files on disk before responding. If the user asks to review, audit, check, verify, update, or edit anything, immediately invoke the tools to perform the actions.',
           'When the user asks about the code, the platform, or to change/fix/build something, USE these tools to actually inspect and modify the real repository. Do not guess file contents — read them. Do not claim a file exists without checking.',
           'Investigate thoroughly: when asked to "analyze your code", "review the platform", or about a feature like auto-upgrade, do NOT stop after reading one file. Use list_dir and search_code to find ALL relevant files, read several of them, and base your answer on what you actually found. For auto-upgrade / self-upgrade questions, call self_upgrade_report.',
           'Never answer about the codebase with a vague generic summary. Cite concrete file paths, function names and findings from the tools.',
-          'Work iteratively: explore with read_file/list_dir/search_code, make changes with write_file/edit_file, then verify with run_command (e.g. build or tests).',
+          'Work iteratively: explore with read_file/list_dir/search_code, make changes with write_file/edit_file, then verify with execute_terminal_command (e.g. build or tests).',
           'If the user says a prior response felt mechanical or asks what else Apex can do, answer in a live, context-aware way tied to the current project or file instead of giving a canned platform list.',
           'Never append generic capability menus or autopilot offers such as "Além disso, posso ajudar...", "Também posso..." or "Posso abrir X?" unless the user explicitly asks for options.',
           'To actually apply code changes that persist (especially in the serverless production runtime where write_file/edit_file may fail with a read-only filesystem), call github_commit_changes with the full new content of each file. It creates a branch, commits, and opens a Pull Request that deploys when merged. When the user says "edit the code", "faça você mesmo", "aplique agora" or "code it yourself", actually CALL github_commit_changes — do not just paste code in the chat. If the user mentions a specific project/repo name, automatically set the repository argument to the matching jedgard70/* repo. If the repo is implied but not explicit, use repositoryHint.',
