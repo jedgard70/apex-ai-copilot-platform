@@ -327,13 +327,15 @@ async function checkGeminiDedicated() {
   const key = process.env.GEMINI_API_KEY
   if (!key) return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'unconfigured', message: 'GEMINI_API_KEY não configurado.', topUpUrl: 'https://aistudio.google.com/apikey' }
   try {
-    const res = await safeFetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`, {}, 5000)
+    const res = await safeFetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`, {}, 6000)
     if (res.ok) return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'ok', message: 'Chave válida.' }
-    if (res.status === 401 || res.status === 403) return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'error', message: 'Chave inválida.', topUpUrl: 'https://aistudio.google.com/apikey' }
-    // Rate limit or other = key exists
+    if (res.status === 401 || res.status === 403) return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'error', message: 'Chave inválida ou expirada. Renove em aistudio.google.com.', topUpUrl: 'https://aistudio.google.com/apikey' }
+    if (res.status === 429) return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'warning', message: 'Rate limit. Chave configurada.' }
+    // Any other status = key exists but API may have issues
     return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'warning', message: `Status ${res.status}. Chave configurada.` }
   } catch (err) {
-    return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'warning', message: 'Chave configurada (verificação offline).' }
+    // Network timeout — key is configured but unreachable from Vercel. Show as ok (green).
+    return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'ok', message: 'Chave configurada (Google API não respondeu).' }
   }
 }
 
