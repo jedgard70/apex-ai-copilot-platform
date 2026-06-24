@@ -1111,8 +1111,13 @@ async function callOpenAIChat(requestPayload, overrideConfig) {
   const providerLabel = apiBase.includes('openrouter.ai') ? 'openrouter' : apiBase.includes('generativelanguage') ? 'gemini' : apiBase.includes('fal.ai') ? 'fal' : apiBase.includes('opencode') ? 'opencode' : apiBase.includes('elevenlabs') ? 'elevenlabs' : 'openai'
   const modelName = requestPayload.model || 'unknown'
   const headers = {
-    Authorization: `Bearer ${apiKey}`,
     'Content-Type': 'application/json',
+  }
+  // Gemini/Google uses x-goog-api-key or URL param, NOT Bearer token
+  if (apiBase.includes('generativelanguage')) {
+    headers['x-goog-api-key'] = apiKey
+  } else {
+    headers['Authorization'] = `Bearer ${apiKey}`
   }
   if (apiBase.includes('openrouter.ai')) {
     headers['HTTP-Referer'] = 'https://apexglobalai.com'
@@ -2139,8 +2144,12 @@ export default async function handler(req, res) {
           } else {
             // Try primary one more time as last resort
             const nextHeaders = {
-              Authorization: 'Bearer ' + openaiKey,
               'Content-Type': 'application/json',
+            }
+            if (apiBaseUrl.includes('generativelanguage')) {
+              nextHeaders['x-goog-api-key'] = resolvedOpenAIKey
+            } else {
+              nextHeaders['Authorization'] = 'Bearer ' + resolvedOpenAIKey
             }
             if (apiBaseUrl.includes('openrouter.ai')) {
               nextHeaders['HTTP-Referer'] = 'https://apexglobalai.com'
