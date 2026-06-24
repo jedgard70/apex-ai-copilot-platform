@@ -21,31 +21,46 @@
 export function getProviderChain(options = {}) {
   const chain = []
 
-  // 1. OpenRouter — TODOS os modelos numa API só
+  // 1. OpenRouter — TUDO numa API (GPT, Claude, Gemini, Llama, DeepSeek)
   const orKey = (process.env.OPENAI_API_KEYROUTER || process.env.OPENAI_API_KEY || '').trim()
   if (orKey) {
     const orBase = (process.env.OPENAI_API_BASEROUTER || process.env.OPENAI_API_BASE || 'https://openrouter.ai/api/v1').trim()
     if (orBase.includes('openrouter.ai')) {
-      chain.push({ name: 'openrouter', baseUrl: orBase, apiKey: orKey, model: 'openai/gpt-4o-mini', label: 'OpenRouter' })
+      chain.push({ name: 'openrouter', baseUrl: orBase, apiKey: orKey, model: 'openai/gpt-4o-mini', label: 'OpenRouter', models: [
+        'openai/gpt-4o-mini', 'openai/gpt-4o', 'google/gemini-2.5-flash',
+        'anthropic/claude-3.5-sonnet', 'meta-llama/llama-3.3-70b-instruct',
+        'deepseek/deepseek-chat', 'qwen/qwen-2.5-72b', 'mistralai/mistral-large',
+      ]})
     }
   }
 
-  // 2. Gemini (direct) — free
+  // 2. Gemini (direct) — FREE, vários modelos em sequência
   const geminiKey = (process.env.GEMINI_API_KEY || '').trim()
   if (geminiKey) {
-    chain.push({ name: 'gemini', baseUrl: process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta/openai', apiKey: geminiKey, model: 'gemini-3.1-flash-lite', label: 'Gemini Free' })
+    const base = process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta/openai'
+    chain.push({ name: 'gemini', baseUrl: base, apiKey: geminiKey, model: 'gemini-3.1-flash-lite', label: 'Gemini', models: [
+      'gemini-3.1-flash-lite', 'gemini-2.5-flash-lite', 'gemini-2.5-flash',
+      'gemini-3.5-flash', 'gemini-3-flash', 'gemma-4-26b', 'gemma-4-31b',
+      'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-pro',
+    ]})
   }
 
-  // 3. OpenCode Go — US$10/mês
+  // 3. OpenCode Go — DeepSeek, Qwen, GLM, Kimi, MiMo
   const ocKey = (process.env.OPENCODE_GO_API_KEY || '').trim()
   if (ocKey) {
-    chain.push({ name: 'opencode', baseUrl: 'https://opencode.ai/zen/go/v1', apiKey: ocKey, model: 'deepseek-v4-flash', label: 'OpenCode Go' })
+    chain.push({ name: 'opencode', baseUrl: 'https://opencode.ai/zen/go/v1', apiKey: ocKey, model: 'deepseek-v4-flash', label: 'OpenCode Go', models: [
+      'deepseek-v4-flash', 'deepseek-v4-pro', 'qwen3.7-plus', 'glm-5.2',
+      'kimi-k2.7', 'mimo-v2.5', 'minimax-m3',
+    ]})
   }
 
   // 4. FAL.ai — créditos
   const falKey = (process.env.FAL_KEY || process.env.FAL_API_KEY || '').trim()
   if (falKey) {
-    chain.push({ name: 'fal', baseUrl: 'https://api.fal.ai/v1', apiKey: falKey, model: 'fal-ai/mistral-large', label: 'FAL.ai' })
+    chain.push({ name: 'fal', baseUrl: 'https://api.fal.ai/v1', apiKey: falKey, model: 'fal-ai/mistral-large', label: 'FAL.ai', models: [
+      'fal-ai/mistral-large', 'fal-ai/llama-3.3-70b', 'fal-ai/deepseek-v3',
+      'fal-ai/qwen-2.5-72b',
+    ]})
   }
 
   // 5. OpenAI direct (fallback se OpenRouter não configurado)
@@ -119,63 +134,72 @@ export async function chatWithFallback(params) {
     }
   }
 
+  const triedModelSet = new Set()
+
+  // Try each provider, and within each provider try each model
   for (const provider of chain) {
-    try {
-      const body = {
-        model: provider.model,
-        messages,
-        temperature: toolRound > 0 ? 0.45 : temperature,
-        max_tokens: toolRound > 0 ? 1500 : maxTokens,
-      }
+    const modelsToTry = provider.models || [provider.model]
+    for (const model of modelsToTry) {
+      const modelKey = `${provider.name}|${model}`
+      if (triedModelSet.has(modelKey)) continue
+      triedModelSet.add(modelKey)
 
-      if (tools && toolRound === 0) {
-        body.tools = tools
-        body.tool_choice = 'auto'
-        body.frequency_penalty = 0.2
-      }
-
-      const headers = {
-        Authorization: `Bearer ${provider.apiKey}`,
-        'Content-Type': 'application/json',
-      }
-      if (provider.baseUrl.includes('openrouter.ai')) {
-        headers['HTTP-Referer'] = 'https://apex-ai-copilot-platform.vercel.app'
-        headers['X-Title'] = 'Apex AI Copilot'
-      }
-
-      const response = await fetch(`${provider.baseUrl}/chat/completions`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(body),
-        signal: AbortSignal.timeout(35000),
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        return {
-          ok: true,
-          data,
-          model: data.model || provider.model,
-          provider: provider.name,
-          providerLabel: provider.label,
-          usedFallback: chain.indexOf(provider) > 0,
-          usedProviderIndex: chain.indexOf(provider),
+      try {
+        const body = {
+          model,
+          messages,
+          temperature: toolRound > 0 ? 0.45 : temperature,
+          max_tokens: toolRound > 0 ? 1500 : maxTokens,
         }
-      }
 
-      lastError = `HTTP ${response.status}`
-      const errorBody = await response.text().catch(() => '')
-        .catch(() => '')
-      errors.push(`[${provider.label}] ${lastError}: ${errorBody.slice(0, 100)}`)
-      console.error(`[provider-router] ${provider.label} failed: ${lastError}`)
-    } catch (err) {
-      lastError = err.message || String(err)
-      errors.push(`[${provider.label}] ${lastError}`)
-      console.error(`[provider-router] ${provider.label} error: ${lastError}`)
+        if (tools && toolRound === 0) {
+          body.tools = tools
+          body.tool_choice = 'auto'
+          body.frequency_penalty = 0.2
+        }
+
+        const headers = {
+          Authorization: `Bearer ${provider.apiKey}`,
+          'Content-Type': 'application/json',
+        }
+        if (provider.baseUrl.includes('openrouter.ai')) {
+          headers['HTTP-Referer'] = 'https://apex-ai-copilot-platform.vercel.app'
+          headers['X-Title'] = 'Apex AI Copilot'
+        }
+
+        const response = await fetch(`${provider.baseUrl}/chat/completions`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(body),
+          signal: AbortSignal.timeout(35000),
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          return {
+            ok: true,
+            data,
+            model: data.model || model,
+            provider: provider.name,
+            providerLabel: provider.label,
+            usedFallback: triedModelSet.size > 1,
+          }
+        }
+
+        // Rate limit or server error — try next model
+        lastError = `HTTP ${response.status}`
+        const errorBody = await response.text().catch(() => '').catch(() => '')
+        errors.push(`[${provider.label}:${model}] ${lastError}: ${errorBody.slice(0, 100)}`)
+        console.error(`[provider-router] ${provider.label}:${model} failed: ${lastError}`)
+      } catch (err) {
+        lastError = err.message || String(err)
+        errors.push(`[${provider.label}:${model}] ${lastError}`)
+        console.error(`[provider-router] ${provider.label}:${model} error: ${lastError}`)
+      }
     }
   }
 
-  // All providers failed
+  // All providers and all models failed
   return {
     ok: false,
     error: `Todos os provedores falharam.`,
