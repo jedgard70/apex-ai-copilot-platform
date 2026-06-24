@@ -3746,8 +3746,8 @@ function App() {
           return null
         })()}</section></div>
       ) : (
-        <div className="h-full">
-          <section className="chat-shell" aria-label="Apex AI Copilot chat" style={{ display: 'flex', flexDirection: 'row', minHeight: '100%' }}>
+        <div className="h-full" style={{ display: 'flex', flexDirection: 'row', overflow: 'hidden' }}>
+          <section className="chat-shell" aria-label="Apex AI Copilot chat" style={{ flex: hasOperationalPanel ? '0 0 35%' : '1 1 100%', display: 'flex', flexDirection: 'column', minHeight: '100%', minWidth: 0 }}>
           {/* Conversation Sidebar */}
           <aside className="chat-sidebar" style={{ width: '220px', borderRight: '1px solid rgba(150, 164, 195, 0.15)', display: 'flex', flexDirection: 'column', flexShrink: 0, background: '#121a2f' }}>
             <div className="chat-sidebar-header" style={{ padding: '16px', borderBottom: '1px solid rgba(150, 164, 195, 0.15)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -4231,7 +4231,30 @@ function App() {
         </section>
 
         {hasOperationalPanel && (
-        <aside className="right-panel" aria-label="Active Apex tool">
+        <aside className="right-panel" aria-label="Active Apex tool" style={{ flex: '1 1 65%', minWidth: 0, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+          {archVisOutput && (
+            <ArchVisPanel
+              source={archVisOutput.source}
+              output={archVisOutput.output}
+              conversationContext={archVisOutput.conversationContext}
+              revisionConstraints={archVisRevisionConstraints}
+              onAddRevisionConstraint={constraint => setArchVisRevisionConstraints(prev => prev.includes(constraint) ? prev : [...prev, constraint])}
+              onRemoveRevisionConstraint={constraint => setArchVisRevisionConstraints(prev => prev.filter(item => item !== constraint))}
+              onClearRevisionConstraints={() => setArchVisRevisionConstraints([])}
+              onRecordGeneration={handleArchVisGeneration}
+              onClear={() => setArchVisOutput(null)}
+            />
+          )}
+          {directCutOutput && (
+            <DirectCutPanel
+              source={directCutOutput.source}
+              goal={directCutOutput.goal}
+              conversationContext={directCutOutput.conversationContext}
+              initialConfig={directCutOutput.initialConfig}
+              onRecordGeneration={handleDirectCutGeneration}
+              onClear={() => setDirectCutOutput(null)}
+            />
+          )}
           {avatarVoiceOutput && (
             <AvatarVoicePanel
               goal={avatarVoiceOutput.goal}
@@ -4780,31 +4803,6 @@ function App() {
           </div>
         )}
       </div>
-      )}
-
-      {/* Full-screen studios (fora do right-panel para evitar tela branca) */}
-      {archVisOutput && (
-        <ArchVisPanel
-          source={archVisOutput.source}
-          output={archVisOutput.output}
-          conversationContext={archVisOutput.conversationContext}
-          revisionConstraints={archVisRevisionConstraints}
-          onAddRevisionConstraint={constraint => setArchVisRevisionConstraints(prev => prev.includes(constraint) ? prev : [...prev, constraint])}
-          onRemoveRevisionConstraint={constraint => setArchVisRevisionConstraints(prev => prev.filter(item => item !== constraint))}
-          onClearRevisionConstraints={() => setArchVisRevisionConstraints([])}
-          onRecordGeneration={handleArchVisGeneration}
-          onClear={() => setArchVisOutput(null)}
-        />
-      )}
-      {directCutOutput && (
-        <DirectCutPanel
-          source={directCutOutput.source}
-          goal={directCutOutput.goal}
-          conversationContext={directCutOutput.conversationContext}
-          initialConfig={directCutOutput.initialConfig}
-          onRecordGeneration={handleDirectCutGeneration}
-          onClear={() => setDirectCutOutput(null)}
-        />
       )}
     </AppLayout>
   )
