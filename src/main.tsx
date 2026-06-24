@@ -1635,9 +1635,7 @@ function App() {
           setProviderLedStatuses(prev => {
             const map = new Map((data.providers as any[]).map((p: any) => [p.id, p]))
             return prev.map(led => {
-              // Map frontend provider id to API provider id
-              const apiId = led.id === 'gemini' ? 'openai' : led.id === 'gateway' ? 'ai-gateway' : led.id
-              const live: any = map.get(apiId)
+              const live: any = map.get(led.id)
               if (live) {
                 const hasKey = live.status === 'ok' || live.status === 'warning'
                 return {
