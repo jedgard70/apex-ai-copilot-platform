@@ -6812,6 +6812,13 @@ const server = http.createServer(async (req, res) => {
     return
   }
 
+  // ── Prompts / Biblioteca de Skills API ────────────────────────────────────────
+  if (req.url?.startsWith('/api/prompts/') && ['GET'].includes(req.method)) {
+    const { default: handler } = await import('./api/prompts/index.mjs')
+    handler(req, res)
+    return
+  }
+
   // ── Pipeline Status API ───────────────────────────────────────────────────────
   if (req.url === '/api/pipeline/active' && req.method === 'GET') {
     const ps = await import('./server/service/pipelineStatus.mjs')
