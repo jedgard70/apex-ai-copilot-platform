@@ -399,6 +399,35 @@ const SECTIONS: ManualSection[] = [
     ],
   },
   {
+    id: 'predictive-analytics',
+    title: '🔮 Predictive Analytics ACIP',
+    icon: '📊',
+    summary: 'Inteligência preditiva para antecipar atrasos, riscos financeiros, gargalos e retrabalho.',
+    items: [
+      {
+        name: 'Predição de Atrasos',
+        description: 'Analisa fatores como clima, fornecedores, mão de obra e licenciamento para estimar probabilidade e dias de atraso.',
+        howToUse: 'Peça: "abrir analytics preditivo", "prever atrasos", "riscos do projeto".',
+        example: '"qual a chance de atraso na obra?"',
+        availableTo: 'todos',
+      },
+      {
+        name: 'Risco Financeiro',
+        description: 'Estoura de orçamento, multas contratuais, variação cambial, retrabalho e inadimplência são calculados com impacto estimado.',
+        howToUse: 'No painel, veja o valor em risco e as recomendações automáticas.',
+        example: '"quanto dinheiro está em risco?"',
+        availableTo: 'todos',
+      },
+      {
+        name: 'Detecção de Gargalos',
+        description: 'Identifica recursos sobrecarregados: equipamentos, mão de obra e processos com ocupação crítica.',
+        howToUse: 'O painel mostra gargalos e recomenda ações corretivas.',
+        example: '"quais são os gargalos da obra?"',
+        availableTo: 'todos',
+      },
+    ],
+  },
+  {
     id: 'supabase-dados',
     title: '💾 Dados e Persistência',
     icon: '🗄️',

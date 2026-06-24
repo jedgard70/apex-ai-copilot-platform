@@ -6861,6 +6861,13 @@ const server = http.createServer(async (req, res) => {
     return
   }
 
+  // ── Predictive Analytics API (ACIP) ────────────────────────────────────────────
+  if (req.url?.startsWith('/api/predictive/') && ['GET', 'POST'].includes(req.method)) {
+    const { default: handler } = await import('./api/predictive/index.mjs')
+    handler(req, res)
+    return
+  }
+
   // ── Pipeline Status API ───────────────────────────────────────────────────────
   if (req.url === '/api/pipeline/active' && req.method === 'GET') {
     const ps = await import('./server/service/pipelineStatus.mjs')
