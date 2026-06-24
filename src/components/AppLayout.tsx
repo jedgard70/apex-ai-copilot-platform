@@ -231,11 +231,11 @@ export default function AppLayout({
           </ul>
           <div className="shrink-0 mt-3 p-4 bg-surface-container/70 backdrop-blur-md rounded-xl border border-outline-variant/10">
             <div className="flex justify-between items-center mb-2">
-              <span className="font-jetbrains-mono text-[10px] text-on-surface-variant">System Load</span>
-              <span className="font-jetbrains-mono text-[10px] text-secondary-fixed">14%</span>
+              <span className="font-jetbrains-mono text-[10px] text-on-surface-variant">Providers</span>
+              <span className="font-jetbrains-mono text-[10px] text-secondary-fixed">{healthyProviders}/{totalProviders} OK</span>
             </div>
             <div className="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
-              <div className="bg-secondary-fixed h-full w-[14%]" />
+              <div className="bg-secondary-fixed h-full" style={{ width: totalProviders > 0 ? `${Math.round((healthyProviders / totalProviders) * 100)}%` : '0%', transition: 'width 0.5s ease' }} />
             </div>
           </div>
         </nav>

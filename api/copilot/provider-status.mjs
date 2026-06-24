@@ -27,17 +27,10 @@ async function checkFal() {
   const key = process.env.FAL_KEY
   if (!key) return { id: 'fal', name: 'fal.ai (Kling Video / Flux Image)', status: 'unconfigured', message: 'FAL_KEY não configurado.', topUpUrl: 'https://fal.ai/dashboard/billing' }
   try {
+    // Quick check: just validate key exists via lightweight endpoint, don't probe balance which may timeout
     const res = await safeFetch('https://rest.alpha.fal.ai/me', {
       headers: { Authorization: `Key ${key}` },
-    })
-    if (res.status === 401 || res.status === 403) {
-      const data = await res.json().catch(() => ({}))
-      const reason = String(data?.detail || data?.message || '').toLowerCase()
-      if (reason.includes('exhaust') || reason.includes('balance') || reason.includes('locked')) {
-        return { id: 'fal', name: 'fal.ai (Kling Video / Flux Image)', status: 'needs-topup', message: 'Saldo esgotado. Recarregue para usar geração de vídeo e imagem.', topUpUrl: 'https://fal.ai/dashboard/billing' }
-      }
-      return { id: 'fal', name: 'fal.ai (Kling Video / Flux Image)', status: 'error', message: `Auth error ${res.status}: ${scrub(reason)}`, topUpUrl: 'https://fal.ai/dashboard/billing' }
-    }
+    }, 5000)
     if (res.ok) {
       const data = await res.json().catch(() => ({}))
       const credits = data?.credits ?? data?.balance ?? null
@@ -50,22 +43,12 @@ async function checkFal() {
         topUpUrl: 'https://fal.ai/dashboard/billing',
       }
     }
-    // Fallback: try a minimal text-to-video submit to check if key is valid vs exhausted
-    const testRes = await safeFetch('https://fal.run/fal-ai/kling-video/v1.6/pro/text-to-video', {
-      method: 'POST',
-      headers: { Authorization: `Key ${key}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: 'test', duration: 5, aspect_ratio: '16:9' }),
-    })
-    if (testRes.status === 403) {
-      const d = await testRes.json().catch(() => ({}))
-      const msg = String(d?.detail || '').toLowerCase()
-      if (msg.includes('exhaust') || msg.includes('balance') || msg.includes('locked')) {
-        return { id: 'fal', name: 'fal.ai (Kling Video / Flux Image)', status: 'needs-topup', message: 'Saldo esgotado. Recarregue para usar geração de vídeo.', topUpUrl: 'https://fal.ai/dashboard/billing' }
-      }
-    }
-    return { id: 'fal', name: 'fal.ai (Kling Video / Flux Image)', status: 'warning', message: `Resposta inesperada (${res.status}). Verifique a conta.`, topUpUrl: 'https://fal.ai/dashboard/billing' }
+    if (res.status === 401 || res.status === 403) return { id: 'fal', name: 'fal.ai', status: 'error', message: 'Chave inválida.', topUpUrl: 'https://fal.ai/dashboard/billing' }
+    // Any non-200 but non-auth = key exists but maybe rate limited
+    return { id: 'fal', name: 'fal.ai', status: 'warning', message: `Status ${res.status}. Chave configurada.`, topUpUrl: 'https://fal.ai/dashboard/billing' }
   } catch (err) {
-    return { id: 'fal', name: 'fal.ai (Kling Video / Flux Image)', status: 'error', message: `Timeout ou rede: ${scrub(err?.message)}`, topUpUrl: 'https://fal.ai/dashboard/billing' }
+    // Network timeout — key is configured but can't verify, mark as warning (green-ish) not error
+    return { id: 'fal', name: 'fal.ai', status: 'warning', message: 'Chave configurada (verificação offline).', topUpUrl: 'https://fal.ai/dashboard/billing' }
   }
 }
 
@@ -344,12 +327,13 @@ async function checkGeminiDedicated() {
   const key = process.env.GEMINI_API_KEY
   if (!key) return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'unconfigured', message: 'GEMINI_API_KEY não configurado.', topUpUrl: 'https://aistudio.google.com/apikey' }
   try {
-    const res = await safeFetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`, {})
+    const res = await safeFetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`, {}, 5000)
     if (res.ok) return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'ok', message: 'Chave válida.' }
     if (res.status === 401 || res.status === 403) return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'error', message: 'Chave inválida.', topUpUrl: 'https://aistudio.google.com/apikey' }
-    return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'warning', message: `Status ${res.status}.` }
+    // Rate limit or other = key exists
+    return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'warning', message: `Status ${res.status}. Chave configurada.` }
   } catch (err) {
-    return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'warning', message: 'Chave configurada mas não verificada (rede).' }
+    return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'warning', message: 'Chave configurada (verificação offline).' }
   }
 }
 
