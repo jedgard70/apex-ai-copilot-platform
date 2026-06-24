@@ -6819,6 +6819,13 @@ const server = http.createServer(async (req, res) => {
     return
   }
 
+  // ── Cognitive Agents API ───────────────────────────────────────────────────────
+  if (req.url?.startsWith('/api/agents/') && ['GET', 'POST'].includes(req.method)) {
+    const { default: handler } = await import('./api/agents/index.mjs')
+    handler(req, res)
+    return
+  }
+
   // ── Pipeline Status API ───────────────────────────────────────────────────────
   if (req.url === '/api/pipeline/active' && req.method === 'GET') {
     const ps = await import('./server/service/pipelineStatus.mjs')
