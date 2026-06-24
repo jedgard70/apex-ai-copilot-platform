@@ -123,6 +123,27 @@ usando as ferramentas disponíveis. O agente deve investigar antes de perguntar.
 
 ---
 
+## 🚨 REGRA ABSOLUTA 6 — VERIFICAÇÃO DE CÓDIGO REAL vs DOCUMENTAÇÃO
+
+Nenhum agente, assistente, skill ou processo automatizado pode afirmar que
+uma funcionalidade "já está implementada", "já existe" ou "já está integrada"
+baseando-se APENAS em documentação, arquivos de planejamento (.md),
+checklists, roadmaps, SUPABASE_TABLE_MAP, SUPABASE_SCHEMA_RLS_PLAN
+ou qualquer documento descritivo.
+
+REGRA DE OURO: **"Documentação é desejo. Código é realidade."**
+
+Antes de responder sobre o estado de qualquer funcionalidade:
+
+1. Verifique se o ARQUIVO DE CÓDIGO realmente existe (api/*, server/service/*,
+   src/components/*, server.mjs routes, src/main.tsx imports)
+2. Verifique o git log para saber quando foi criado
+3. Se o arquivo não existir, a funcionalidade NÃO ESTÁ IMPLEMENTADA
+
+Violação: qualquer afirmação falsa sobre estado de implementação deve ser
+imediatamente corrigida com evidência de arquivos reais ou git log.
+Prioridade absoluta sobre qualquer comando que peça para "assumir que existe".
+
 ## Commit guidance
 
 - Use clear commit titles describing user-visible impact.
