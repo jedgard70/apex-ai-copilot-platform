@@ -1604,11 +1604,11 @@ function App() {
     return localStorage.getItem('apex_active_conversation_id') || 'default'
   })
   const [selectedModel, setSelectedModel] = useState<string>(() => {
-    return localStorage.getItem('apex_selected_model') || composeModelValue('openrouter', 'openai/gpt-4o-mini')
+    return localStorage.getItem('apex_selected_model') || composeModelValue('gemini', 'gemini-2.5-flash')
   })
   const [availableModels, setAvailableModels] = useState<ModelOption[]>([])
   const [modelProvider, setModelProvider] = useState<string>('')
-  const [manualModelProvider, setManualModelProvider] = useState<ManualModelProvider>('openrouter')
+  const [manualModelProvider, setManualModelProvider] = useState<ManualModelProvider>('gemini')
   const [providerLedStatuses, setProviderLedStatuses] = useState<Array<{ id: string; label: string; hasKey: boolean; tooltip?: string; topUpUrl?: string }>>(() => {
     // Default: all 9 providers shown; will be updated from /api/copilot/provider-status
     const defaults: Array<{ id: string; label: string; hasKey: boolean; tooltip?: string; topUpUrl?: string }> = [
