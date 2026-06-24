@@ -2159,7 +2159,8 @@ export default async function handler(req, res) {
 
     let chatResult
     if (isGeminiProvider && resolvedOpenAIKey) {
-      chatResult = await callGeminiChat(finalModel, liveAgentMessages, resolvedOpenAIKey)
+      // Use OpenAI-compatible Gemini endpoint (more stable with auth keys)
+      chatResult = await callOpenAIChat(requestPayload, { apiBase, apiKey: resolvedOpenAIKey })
     } else {
       chatResult = await callOpenAIChat(requestPayload, { apiBase, apiKey: resolvedOpenAIKey })
     }

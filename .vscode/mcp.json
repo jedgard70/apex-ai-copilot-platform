@@ -13,6 +13,10 @@
 			],
 			"gallery": "https://api.mcp.github.com",
 			"version": "1.4.0"
+		},
+		"gemini-api-docs-mcp": {
+			"type": "http",
+			"url": "https://gemini-api-docs-mcp.dev"
 		}
 	},
 	"inputs": [
