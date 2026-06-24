@@ -1,3 +1,11 @@
+
+> 🚨 **SUPERSEDED** — Este documento foi substituído pelos 2 canônicos:
+> 1. **CHECKPOINT_TRACKER.md** (execução e mudanças)
+> 2. **docs/APEX_PLATFORM_CURRENT_STATE.md** (status e módulos)
+> Não use este documento como fonte da verdade. Consulte os canônicos.
+
+---
+
 # Supabase Apply Report
 
 > 🚨 REGRA ABSOLUTA — Proteção de Environment Variables
@@ -181,3 +189,4 @@ This was not staged and should not be committed.
 - `.env.local` was not staged.
 - No Vercel config was modified.
 - No old repos were touched.
+

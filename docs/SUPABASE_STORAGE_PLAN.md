@@ -1,3 +1,11 @@
+
+> 🚨 **SUPERSEDED** — Este documento foi substituído pelos 2 canônicos:
+> 1. **CHECKPOINT_TRACKER.md** (execução e mudanças)
+> 2. **docs/APEX_PLATFORM_CURRENT_STATE.md** (status e módulos)
+> Não use este documento como fonte da verdade. Consulte os canônicos.
+
+---
+
 # Supabase Storage Plan
 
 > 🚨 REGRA ABSOLUTA — Proteção de Environment Variables
@@ -91,3 +99,4 @@ Every stored object should also have a matching `project_files` row with:
 4. Test upload, read, update/upsert and delete for every role.
 5. Confirm storage upsert has INSERT + SELECT + UPDATE policies where needed.
 6. Confirm generated signed URLs cannot cross tenant/project boundaries.
+

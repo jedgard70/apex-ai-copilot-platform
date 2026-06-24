@@ -1,3 +1,11 @@
+
+> 🚨 **SUPERSEDED** — Este documento foi substituído pelos 2 canônicos:
+> 1. **CHECKPOINT_TRACKER.md** (execução e mudanças)
+> 2. **docs/APEX_PLATFORM_CURRENT_STATE.md** (status e módulos)
+> Não use este documento como fonte da verdade. Consulte os canônicos.
+
+---
+
 # Supabase Schema + RLS Plan
 
 > 🚨 REGRA ABSOLUTA — Proteção de Environment Variables
@@ -148,3 +156,4 @@ Future integration map:
 - No Vercel configuration was changed.
 - Storage policies depend on strict path conventions.
 - Complex studio payloads remain mostly `jsonb` until usage stabilizes.
+

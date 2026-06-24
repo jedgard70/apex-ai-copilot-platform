@@ -1,3 +1,11 @@
+
+> 🚨 **SUPERSEDED** — Este documento foi substituído pelos 2 canônicos:
+> 1. **CHECKPOINT_TRACKER.md** (execução e mudanças)
+> 2. **docs/APEX_PLATFORM_CURRENT_STATE.md** (status e módulos)
+> Não use este documento como fonte da verdade. Consulte os canônicos.
+
+---
+
 # APEX Master Build Plan
 
 > 🚨 REGRA ABSOLUTA — Proteção de Environment Variables
@@ -111,3 +119,4 @@ Não marcar etapa como concluída quando faltar qualquer um destes itens:
 - status claro do Preview/deploy;
 - documentação atualizada;
 - classificação oficial do módulo/skill.
+

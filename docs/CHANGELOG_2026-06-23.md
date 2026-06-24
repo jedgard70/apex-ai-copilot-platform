@@ -1,3 +1,11 @@
+
+> 🚨 **SUPERSEDED** — Este documento foi substituído pelos 2 canônicos:
+> 1. **CHECKPOINT_TRACKER.md** (execução e mudanças)
+> 2. **docs/APEX_PLATFORM_CURRENT_STATE.md** (status e módulos)
+> Não use este documento como fonte da verdade. Consulte os canônicos.
+
+---
+
 # Changelog — Sessão 2026-06-23
 
 > 📅 Data: 23 de Junho de 2026
@@ -269,3 +277,4 @@ a836659 fix: import dinamico do @google/genai
 ---
 
 *Documento gerado em 2026-06-23. Qualquer agente ou ferramenta que ler este documento deve respeitar as regras de proteção estabelecidas.*
+

@@ -1,3 +1,11 @@
+
+> 🚨 **SUPERSEDED** — Este documento foi substituído pelos 2 canônicos:
+> 1. **CHECKPOINT_TRACKER.md** (execução e mudanças)
+> 2. **docs/APEX_PLATFORM_CURRENT_STATE.md** (status e módulos)
+> Não use este documento como fonte da verdade. Consulte os canônicos.
+
+---
+
 # CP15D Production Auth/Storage QA + Vercel Readiness
 
 > 🚨 REGRA ABSOLUTA — Proteção de Environment Variables
@@ -284,4 +292,5 @@ Scope:
 - confirm insert/select RLS for `projects`, `project_members`, `project_files`, `project_messages`, `project_exports`
 - retest txt/image/pdf metadata with real Supabase session
 - only after that, revisit Vercel backend deployment strategy
+
 

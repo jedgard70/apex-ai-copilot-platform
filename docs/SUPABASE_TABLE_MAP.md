@@ -1,3 +1,11 @@
+
+> 🚨 **SUPERSEDED** — Este documento foi substituído pelos 2 canônicos:
+> 1. **CHECKPOINT_TRACKER.md** (execução e mudanças)
+> 2. **docs/APEX_PLATFORM_CURRENT_STATE.md** (status e módulos)
+> Não use este documento como fonte da verdade. Consulte os canônicos.
+
+---
+
 # Supabase Table Map
 
 > 🚨 REGRA ABSOLUTA — Proteção de Environment Variables
@@ -66,3 +74,4 @@ The schema keeps the platform's core truth rule:
 6. Budget/Contracts/FieldOps source-backed records
 7. CRM/Finance/SaaS
 8. Remaining modules
+

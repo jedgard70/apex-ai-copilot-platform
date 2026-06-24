@@ -13,7 +13,7 @@
 
 Use this file as the canonical checkpoint snapshot for module/connector status. The platform is now documented as a consolidated inventory of 34 operational capabilities; the primary runtime modules are all done and live.
 
-Last updated: 2026-06-24 — Provider Router com fallback automático (90+ modelos em sequência), Auto-Fix Engine, WhatsApp/SMS, Controle Financeiro, MS Project, botões de ação nas mensagens, layout split 35/65, histórico persistente, upload múltiplo (20 arquivos).
+Last updated: 2026-06-24 — Sessão marathon: 6 módulos profissionais criados (Stock, Trip, NR, Accounting, Permits, Marketing), Pipeline Progress Panel com tracking em tempo real, 10 services extraídos do server.mjs, REGRA ABSOLUTA 6, .env.local duas camadas. Supabase 8/8 migrations já aplicadas (95 tabelas + RLS + storage + pgvector).
 
 ---
 
@@ -159,9 +159,34 @@ Apenas local (não vai para Vercel): `LOCAL_WORKER_*`, `REVIT_MCP_*`, shell/path
 | 3 | Corrigido H5 tool routing — remove APEX_FREE_AGENT + mutation guards que bloqueavam CI | `0af0c83` | ✅ Done |
 | 4 | DirectCut pipeline providerStatus dinâmico (detecta chaves IA) | `a8084a7` | ✅ Done |
 | 5 | Owner Code Executor — 4 rotas REST registradas (plan/validate/status/log) | `7efb721` | ✅ Done |
-| 6 | Digital Twin — gera relatório dinâmico com dados reais do projeto | `7efb721` | ✅ Done |
+| 6 | Digital Twin — relatório dinâmico com dados reais do projeto | `7efb721` | ✅ Done |
 | 7 | SINAPI auto-detection — detecta `src/data/sinapi-2024.json` e marca como connected | `8104021` | ✅ Done |
 | 8 | Componentes órfãos identificados (LoginButton, LogoutButton, Profile, ProviderStatusPanel, StudioPanelShell) | `7911124` | ✅ Auditado |
+
+## Sessão 2026-06-24 — 6 Módulos + Pipeline + 10 Services
+
+| # | Mudança | Commits | Status |
+| :--- | :--------- | :--------- | :-------- |
+| 1 | Stock Market — APIs + service + painel + comando de voz | `990ea2f` | ✅ Done |
+| 2 | Trip Planner — APIs + service + painel + comando de voz | `990ea2f` | ✅ Done |
+| 3 | NR Compliance — APIs + service + painel + comando de voz | `d85ab39`, `389f272` | ✅ Done |
+| 4 | Accounting CRC — APIs + service + painel + comando de voz | `d85ab39`, `389f272` | ✅ Done |
+| 5 | American Permits — APIs + service + painel + comando de voz | `d85ab39`, `389f272` | ✅ Done |
+| 6 | Marketing/Social Pipeline — API + service + pipeline conteúdo | `d85ab39`, `8913298` | ✅ Done |
+| 7 | Pipeline Progress Panel — tracking em tempo real + API | `8913298` | ✅ Done |
+| 8 | 10 services extraídos do server.mjs → arquivos dedicados | `6abb86f` | ✅ Done |
+| 9 | REGRA ABSOLUTA 6 — código real vs documentação | `2c0715e` | ✅ Done |
+| 10 | Detecção por comando de voz para 6 módulos | `c5d8616` | ✅ Done |
+| 11 | .env.local duas camadas (.env.local + .env.local.full) | `2316b76` | ✅ Done |
+
+## Correções da Sessão 2026-06-24
+
+| Correção | Descrição | Commit |
+| :---------- | :----------- | :-------- |
+| Supabase audit | Descoberto que 8/8 migrations JÁ estavam aplicadas (agentes confundiram .sql com não-aplicado) | `6782e61` |
+| Services inline extraídos | SupplyChain, AiCost, MultiTenant, PwaMobile, DigitalTwin, KnowledgeBase, Metrics, GenHistory, NotificationsService, Crm, ProjectPackage | `6abb86f` |
+| .env.local quebrava CLI | FIREBASE_SERVICE_ACCOUNT_JSON multi-linha impedia `supabase` CLI. Criado .env.local.full com backup | `2316b76` |
+| globalThis knowledgeItems | KnowledgeBase agora acessa `localMemoryKnowledgeItems` via globalThis | `2316b76` |
 
 ## Status dos Conectores (2026-06-23)
 

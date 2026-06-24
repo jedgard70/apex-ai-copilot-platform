@@ -1,3 +1,11 @@
+
+> 🚨 **SUPERSEDED** — Este documento foi substituído pelos 2 canônicos:
+> 1. **CHECKPOINT_TRACKER.md** (execução e mudanças)
+> 2. **docs/APEX_PLATFORM_CURRENT_STATE.md** (status e módulos)
+> Não use este documento como fonte da verdade. Consulte os canônicos.
+
+---
+
 # CP15F Vercel Production Deployment Report
 
 > 🚨 REGRA ABSOLUTA — Proteção de Environment Variables
@@ -131,3 +139,4 @@ Before a broader production acceptance checkpoint, perform interactive browser v
 3. Confirm private UI is not accessible while logged out.
 4. Confirm the local demo mode banner is not visible when Production Supabase env vars are configured.
 5. Confirm no private keys or service role values are present in browser-accessible configuration.
+

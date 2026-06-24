@@ -1,3 +1,11 @@
+
+> 🚨 **SUPERSEDED** — Este documento foi substituído pelos 2 canônicos:
+> 1. **CHECKPOINT_TRACKER.md** (execução e mudanças)
+> 2. **docs/APEX_PLATFORM_CURRENT_STATE.md** (status e módulos)
+> Não use este documento como fonte da verdade. Consulte os canônicos.
+
+---
+
 # Supabase Local Connection Report
 
 > 🚨 REGRA ABSOLUTA — Proteção de Environment Variables
@@ -117,3 +125,4 @@ Recommended next manual browser check:
 ## Status
 
 GREEN - local Supabase auth bootstrap, project sync and storage upload were verified with browser-safe client env only.
+

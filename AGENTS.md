@@ -144,6 +144,33 @@ Violação: qualquer afirmação falsa sobre estado de implementação deve ser
 imediatamente corrigida com evidência de arquivos reais ou git log.
 Prioridade absoluta sobre qualquer comando que peça para "assumir que existe".
 
+---
+
+## 🚨 REGRA ABSOLUTA 7 — FONTE DA VERDADE: APENAS 2 DOCUMENTOS
+
+O estado da plataforma Apex AI é definido exclusivamente por ESTES 2 documentos:
+
+1. **`CHECKPOINT_TRACKER.md`** → Rastreamento de execução, sessões, mudanças
+2. **`docs/APEX_PLATFORM_CURRENT_STATE.md`** → Status da plataforma, módulos, conectores
+
+TODOS os outros documentos de auditoria, inventário, relatórios de build/deploy,
+planos Supabase, checkpoints antigos (CP15D, CP15F) e changelogs são
+**SECUNDÁRIOS** e podem estar desatualizados.
+
+Regras para qualquer agente/assistente:
+1. Para saber o que está implementado → leia `CHECKPOINT_TRACKER.md` e
+   `docs/APEX_PLATFORM_CURRENT_STATE.md`
+2. Para saber o histórico de mudanças → leia `CHECKPOINT_TRACKER.md`
+3. NÃO leia outros docs .md de auditoria/inventário a menos que o Owner
+   peça explicitamente
+4. Se um doc secundário contradizer os 2 canônicos, os canônicos vencem
+
+Skills específicas (Windows Care, Revit, Platform Engineering, etc.)
+permanecem como dokumentação técnica de domínio, mas o ESTADO da
+plataforma (se está implementado ou não) vem APENAS dos 2 canônicos.
+
+---
+
 ## Commit guidance
 
 - Use clear commit titles describing user-visible impact.
