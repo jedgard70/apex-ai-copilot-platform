@@ -1783,6 +1783,32 @@ export default async function handler(req, res) {
       })
     }
 
+    // ─── GEMINI FAST PATH — skip all complex routing, go directly to Gemini ───
+    const selectedModelRaw = body.model || process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gemini-2.5-flash'
+    const selectedModel = splitModelValue ? splitModelValue(selectedModelRaw) : { provider: null, modelId: selectedModelRaw }
+    const modelProvider = selectedModel.provider || ''
+    const model = selectedModel.modelId || selectedModelRaw
+
+    if ((modelProvider === 'gemini' || modelProvider === 'gemini-interactions') && process.env.GEMINI_API_KEY) {
+      const t0 = Date.now()
+      try {
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`
+        const messages = Array.isArray(body.messages) ? body.messages : []
+        const userText = userMessage || messages[messages.length - 1]?.text || 'Hello'
+        const payload = { contents: [{ role: 'user', parts: [{ text: userText.slice(0, 8000) }] }], generationConfig: { temperature: 0.72, maxOutputTokens: 900 } }
+        const gRes = await fetch(geminiUrl, { method: 'POST', headers: { 'x-goog-api-key': process.env.GEMINI_API_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+        const gData = await gRes.json().catch(() => ({}))
+        const gText = gData?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || ''
+        const gUsage = gData?.usageMetadata || {}
+        recordCallSafe({ provider: 'gemini', model, latencyMs: Date.now() - t0, success: gRes.ok && !gData.error, tokensIn: gUsage.promptTokenCount || 0, tokensOut: gUsage.candidatesTokenCount || 0, errorMsg: gRes.ok ? null : (gData?.error?.message || '') })
+        if (gText) {
+          return sendJson(res, 200, { finalReply: gText, reply: gText, model, mode: 'gemini-fastpath', provider: 'gemini', usage: gUsage, productionStatus, confirmation: null })
+        }
+      } catch (e) {
+        // fall through to old routing
+      }
+    }
+
     const directImageType = classifyImageGenRequest(userMessage)
     if (directImageType) {
       const built = buildImagePrompt(userMessage, directImageType)
@@ -1815,10 +1841,6 @@ export default async function handler(req, res) {
     }
 
     const providerDiagnostics = getModelProviderDiagnostics()
-    const selectedModelRaw = body.model || process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini'
-    const selectedModel = splitModelValue(selectedModelRaw)
-    const model = selectedModel.modelId || 'gpt-4o-mini'
-    const modelProvider = selectedModel.provider
     const isGatewayModel = modelProvider === 'gateway' || model.startsWith('openai/')
     const isGeminiProvider = modelProvider === 'gemini'
     const isInteractionsProvider = modelProvider === 'gemini-interactions'
