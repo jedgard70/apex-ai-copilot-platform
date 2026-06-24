@@ -28,7 +28,25 @@ import { runLocalWorkerAction } from '../../server/agent/localWorkerClient.mjs'
 import { classifyImageGenRequest, buildImagePrompt, generateImage, buildImageResultReply } from '../../server/agent/imageGenerationConnector.mjs'
 import { classifyVideoGenRequest, generateVideo, buildVideoResultReply } from '../../server/agent/videoGenerationConnector.mjs'
 import { sendAuthkeySms, sendAuthkeyOtp, buildAuthkeyResultReply } from '../../server/agent/authkeyConnector.mjs'
-import { recordCall } from '../../server/service/providerAnalytics.mjs'
+
+// Dynamic import — safe fallback if server/ not bundled in Vercel serverless
+let _recordCall = null
+async function _getRecordCall() {
+  if (_recordCall) return _recordCall
+  try {
+    const mod = await import('../../server/service/providerAnalytics.mjs')
+    _recordCall = mod.recordCall
+    return _recordCall
+  } catch {
+    _recordCall = () => {} // silent noop
+    return _recordCall
+  }
+}
+function recordCallSafe(...args) {
+  Promise.resolve().then(async () => {
+    try { const fn = await _getRecordCall(); fn(...args) } catch {}
+  }).catch(() => {})
+}
 
 if (process.env.Local_Worker_URL && !process.env.LOCAL_WORKER_URL) {
   process.env.LOCAL_WORKER_URL = process.env.Local_Worker_URL
@@ -1152,7 +1170,7 @@ async function callOpenAIChat(requestPayload, overrideConfig) {
           success = true
           errorMsg = null
           console.log('[callOpenAIChat] Fallback bem-sucedido via', fallbackResult.provider)
-          recordCall({ provider: fallbackResult.provider || 'fallback', model: modelName, latencyMs: Date.now() - startTime, success: true, tokensIn: fallbackResult.data?.usage?.prompt_tokens || 0, tokensOut: fallbackResult.data?.usage?.completion_tokens || 0 })
+          recordCallSafe({ provider: fallbackResult.provider || 'fallback', model: modelName, latencyMs: Date.now() - startTime, success: true, tokensIn: fallbackResult.data?.usage?.prompt_tokens || 0, tokensOut: fallbackResult.data?.usage?.completion_tokens || 0 })
           return { provider: fallbackResult.provider, response: { ok: true, status: 200 }, data: fallbackResult.data, usedFallback: true }
         }
         errorMsg = `Primary ${primaryResponse.status}, fallback failed`
@@ -1166,7 +1184,7 @@ async function callOpenAIChat(requestPayload, overrideConfig) {
   }
 
   const duration = Date.now() - startTime
-  recordCall({
+  recordCallSafe({
     provider: providerLabel,
     model: modelName,
     latencyMs: duration,
@@ -1767,7 +1785,7 @@ export default async function handler(req, res) {
           temperature: 0.72,
           maxOutputTokens: 900,
         })
-        recordCall({ provider: 'gemini-interactions', model, latencyMs: Date.now() - t0, success: !!interactionsResult.ok, tokensIn: interactionsResult.usage?.promptTokens || 0, tokensOut: interactionsResult.usage?.completionTokens || 0, errorMsg: interactionsResult.ok ? null : 'interactions failed' })
+        recordCallSafe({ provider: 'gemini-interactions', model, latencyMs: Date.now() - t0, success: !!interactionsResult.ok, tokensIn: interactionsResult.usage?.promptTokens || 0, tokensOut: interactionsResult.usage?.completionTokens || 0, errorMsg: interactionsResult.ok ? null : 'interactions failed' })
         if (interactionsResult.ok) {
           let replyText = interactionsResult.text
           if (interactionsResult.citations?.length) {
@@ -1785,7 +1803,7 @@ export default async function handler(req, res) {
           })
         }
       }
-      recordCall({ provider: 'gemini-interactions', model, latencyMs: Date.now() - t0, success: false, errorMsg: 'interactions unavailable' })
+      recordCallSafe({ provider: 'gemini-interactions', model, latencyMs: Date.now() - t0, success: false, errorMsg: 'interactions unavailable' })
       return sendJson(res, 200, {
         finalReply: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente ou selecione outro modelo.',
         reply: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente ou selecione outro modelo.',
@@ -2026,7 +2044,7 @@ export default async function handler(req, res) {
             temperature: 0.72,
             maxOutputTokens: 900,
           })
-          recordCall({ provider: 'gateway', model, latencyMs: Date.now() - tg0, success: true, tokensIn: gatewayResult.usage?.promptTokens || 0, tokensOut: gatewayResult.usage?.completionTokens || 0 })
+          recordCallSafe({ provider: 'gateway', model, latencyMs: Date.now() - tg0, success: true, tokensIn: gatewayResult.usage?.promptTokens || 0, tokensOut: gatewayResult.usage?.completionTokens || 0 })
           return sendJson(res, 200, {
             finalReply: gatewayResult.text || buildChatFallbackReply(userMessage, identityContext, file),
             reply: gatewayResult.text || buildChatFallbackReply(userMessage, identityContext, file),
@@ -2038,7 +2056,7 @@ export default async function handler(req, res) {
             productionStatus,
           })
         } catch (gatewayError) {
-          recordCall({ provider: 'gateway', model, latencyMs: Date.now() - tg0, success: false, errorMsg: gatewayError.message })
+          recordCallSafe({ provider: 'gateway', model, latencyMs: Date.now() - tg0, success: false, errorMsg: gatewayError.message })
           console.error('[Gateway Error]:', gatewayError)
         }
       }
@@ -2060,7 +2078,7 @@ export default async function handler(req, res) {
           temperature: 0.72,
           maxOutputTokens: 900,
         })
-        recordCall({ provider: 'gateway', model, latencyMs: Date.now() - tg1, success: true, tokensIn: gatewayResult.usage?.promptTokens || 0, tokensOut: gatewayResult.usage?.completionTokens || 0 })
+        recordCallSafe({ provider: 'gateway', model, latencyMs: Date.now() - tg1, success: true, tokensIn: gatewayResult.usage?.promptTokens || 0, tokensOut: gatewayResult.usage?.completionTokens || 0 })
         return sendJson(res, 200, {
           finalReply: gatewayResult.text || buildChatFallbackReply(userMessage, identityContext, file),
           reply: gatewayResult.text || buildChatFallbackReply(userMessage, identityContext, file),
@@ -2072,7 +2090,7 @@ export default async function handler(req, res) {
           productionStatus,
         })
       } catch (gatewayError) {
-        recordCall({ provider: 'gateway', model, latencyMs: Date.now() - tg1, success: false, errorMsg: gatewayError.message })
+        recordCallSafe({ provider: 'gateway', model, latencyMs: Date.now() - tg1, success: false, errorMsg: gatewayError.message })
         console.error('[Gateway Error]:', gatewayError)
         return sendJson(res, 200, {
           finalReply: buildChatFallbackReply(userMessage, identityContext, file),
