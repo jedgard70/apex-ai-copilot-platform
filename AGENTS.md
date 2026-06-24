@@ -182,6 +182,31 @@ plataforma (se está implementado ou não) vem APENAS dos 2 canônicos.
 
 ---
 
+## 🚨 REGRA ABSOLUTA 8 — Proteção dos Deploys e Environments da Vercel
+
+Nenhum agente, assistente ou processo automatizado pode:
+1. Alterar configurações de environments no dashboard da Vercel
+2. Desabilitar/abilitar "Auto Deploy on Push"
+3. Modificar branch tracking rules ("All unassigned branches", etc.)
+4. Criar, remover ou modificar custom environments (Pre-Production, etc.)
+5. Alterar Environment Variables específicas de Preview/Production
+6. Desconectar ou reconectar Git Integration
+7. Adicionar/remover custom domains nos environments
+8. Modificar "Deployment Protection" (manual approval, password, etc.)
+
+**Única exceção:** Deploy automático via `git push origin main` disparado
+pelo agente APENAS após autorização verbal do Owner na conversa corrente.
+Builds locais (`npm run build`) são livres e não configuram deploy.
+
+**Configuração atual dos environments (2026-06-24 — NÃO ALTERAR):**
+- Production → branch `main` → domínio `www.apexglobalai.com`
+- Preview → "All unassigned git branches" → sem custom domains
+- Development → CLI only → sem custom domains
+
+Violação: reversão imediata + notificação ao Owner. Crítico de segurança.
+
+---
+
 ## Commit guidance
 
 - Use clear commit titles describing user-visible impact.
