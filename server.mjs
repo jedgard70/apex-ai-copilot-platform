@@ -6755,6 +6755,13 @@ const server = http.createServer(async (req, res) => {
     return
   }
 
+  // ── Notification API ────────────────────────────────────────────────────────
+  if (req.url?.startsWith('/api/notification/') && ['GET', 'POST'].includes(req.method)) {
+    const { default: handler } = await import('./api/notification/index.mjs')
+    handler(req, res)
+    return
+  }
+
   if (req.url === '/api/copilot/embed' && req.method === 'POST') {
     handleEmbed(req, res)
     return

@@ -108,7 +108,10 @@ INTERNO
 
 | Etapa | Status | Observação |
 |-------|--------|------------|
-| Chat com IA | ✅ | OpenRouter + Gemini + OpenCode Go |
+| Chat com IA | ✅ | Provider Router com fallback automático entre 6 provedores |
+| Provider Router | ✅ | Gemini FREE → OpenRouter → OpenCode Go → FAL → OpenAI → AI Gateway |
+| Modelos dinâmicos | ✅ | Busca TODOS os modelos da API de cada provedor (300+ OpenRouter) |
+| Auto-Fix Engine | ✅ | Detecta e corrige erros/ conflitos automaticamente |
 | ArchVis (imagens) | ✅ | FAL.ai + OpenAI |
 | DirectCut (vídeos) | ✅ | FAL.ai (Kling, Sora, Veo) |
 | Budget (orçamento) | ✅ | SINAPI importável |
@@ -116,13 +119,20 @@ INTERNO
 | BIM / 3D | ✅ | web-ifc WebAssembly |
 | Field Ops (RDO) | ✅ | Dados reais do usuário |
 | Research | ✅ | Tavily API |
-| Stripe pagamento | ✅ | Checkout + webhook |
+| Stripe pagamento | ✅ | Checkout + webhook + notificação WhatsApp/SMS |
+| WhatsApp/SMS | ✅ | `server/service/notification.mjs` + API endpoint |
+| Controle Financeiro | ✅ | `server/service/finance.mjs` + `api/finance/` + painel frontend |
 | Supabase Auth | ✅ | Login multi-tenant |
 | CRM / Finance | ✅ | Cadastro + pipeline |
 | Service Order | ✅ | `server/service/serviceOrder.mjs` |
 | Invoice | ✅ | `server/service/invoice.mjs` |
 | CRM Automático | ✅ | `server/service/client.mjs` |
 | Dashboard Cliente | ✅ | Rota `/api/service/my-orders` |
+| MS Project Integration | ✅ | Parser MSPDI XML + análise scheduling + REST API |
+| Deploy Files Script | ✅ | `scripts/deploy-files.mjs` para commits via API |
+| Histórico persistente | ✅ | Conversas salvam entre logout/login |
+| Botões nas mensagens | ✅ | Copiar, Compartilhar, Ouvir (TTS), Derivar |
+| Layout split 35/65 | ✅ | Chat + painéis inline lado a lado |
 
 ---
 
