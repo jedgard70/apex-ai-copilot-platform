@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
-import { X, Shield, FileText, Plus, RefreshCw } from 'lucide-react'
+import { Cpu, Shield, FileText, Plus, RefreshCw, X } from 'lucide-react'
 
 export function NRCompliancePanel({ onClear }: { onClear: () => void }) {
   const [projects, setProjects] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
-  const [selected, setSelected] = useState(null)
-  const [documents, setDocuments] = useState(null)
+  const [selected, setSelected] = useState<any>(null)
+  const [documents, setDocuments] = useState<any[] | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState<any>({ companyName: '', cnpj: '', address: '', responsibleEngineer: 'Dr. Edgard', creaOrOe: '', nrs: [] })
   const nrs = [{ id: 'NR-6' }, { id: 'NR-10' }, { id: 'NR-18' }, { id: 'NR-33' }, { id: 'NR-35' }, { id: 'NR-7' }, { id: 'NR-9' }, { id: 'NR-12' }]
@@ -53,17 +53,17 @@ export function NRCompliancePanel({ onClear }: { onClear: () => void }) {
       {showForm && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', padding: '12px', background: '#fffbeb', borderRadius: '8px', border: '1px solid #fde68a' }}>
           <input value={form.companyName} onChange={e => setForm((p: any) => ({ ...p, companyName: e.target.value }))} placeholder="Empresa *" style={inp} />
-          <input value={form.cnpj} onChange={e => setForm(p => ({ ...p, cnpj: e.target.value }))} placeholder="CNPJ *" style={inp} />
-          <input value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} placeholder="Endereço" style={{...inp, gridColumn: '1 / -1'}} />
-          <input value={form.creaOrOe} onChange={e => setForm(p => ({ ...p, creaOrOe: e.target.value }))} placeholder="CREA / OE" style={inp} />
+          <input value={form.cnpj} onChange={e => setForm((p: any) => ({ ...p, cnpj: e.target.value }))} placeholder="CNPJ *" style={inp} />
+          <input value={form.address} onChange={e => setForm((p: any) => ({ ...p, address: e.target.value }))} placeholder="Endereço" style={{...inp, gridColumn: '1 / -1'}} />
+          <input value={form.creaOrOe} onChange={e => setForm((p: any) => ({ ...p, creaOrOe: e.target.value }))} placeholder="CREA / OE" style={inp} />
           <div style={{ gridColumn: '1 / -1' }}>
             <div style={{ fontSize: '12px', fontWeight: 600, marginBottom: '4px' }}>NRs:</div>
             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
               {nrs.map(n => (
                 <label key={n.id} style={{ fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <input type="checkbox" checked={form.nrs.includes(n.id)} onChange={e => {
-                    if (e.target.checked) setForm(p => ({ ...p, nrs: [...p.nrs, n.id] }))
-                    else setForm(p => ({ ...p, nrs: p.nrs.filter((x: string) => x !== n.id) }))
+                    if (e.target.checked) setForm((p: any) => ({ ...p, nrs: [...p.nrs, n.id] }))
+                    else setForm((p: any) => ({ ...p, nrs: p.nrs.filter((x: string) => x !== n.id) }))
                   }} /> {n.id}
                 </label>
               ))}
@@ -77,7 +77,7 @@ export function NRCompliancePanel({ onClear }: { onClear: () => void }) {
         <div style={{ textAlign: 'center', padding: '32px', color: '#9ca3af' }}><Shield size={32} style={{ opacity: 0.3 }} /><p>Nenhum projeto NR ainda.</p></div>
       )}
 
-      {projects.map(p => (
+      {projects.map((p: any) => (
         <div key={p.id} style={{ padding: '12px', background: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb', cursor: 'pointer' }}
           onClick={() => { setSelected(selected?.id === p.id ? null : p); setDocuments(null) }}>
           <div style={{ fontWeight: 600 }}>{p.companyName}</div>
@@ -87,7 +87,7 @@ export function NRCompliancePanel({ onClear }: { onClear: () => void }) {
               <button onClick={(e) => { e.stopPropagation(); generateDocs(p.id) }} disabled={loading} style={{ marginBottom: '8px' }}>
                 <FileText size={14} /> Gerar Documentos
               </button>
-              {documents && documents.map((doc, i) => (
+              {documents && documents.map((doc: any, i: number) => (
                 <div key={i} style={{ padding: '8px', background: '#f9fafb', borderRadius: '6px', marginTop: '4px', fontSize: '11px', whiteSpace: 'pre-wrap', maxHeight: '200px', overflow: 'auto' }}>{doc.content}</div>
               ))}
             </div>

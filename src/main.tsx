@@ -9,6 +9,7 @@ import {
   Building2,
   Compass,
   Copy,
+  Cpu,
   Download,
   LogOut,
   Mic,
@@ -2094,7 +2095,7 @@ function App() {
           activeRecord,
         ]
       : activeProject.files
-    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : fieldOpsOutput ? 'fieldops' : businessOutput ? 'business' : projectPackageOutput ? 'project-package' : generationHistoryOpen ? 'generation-history' : agentsOutput ? 'agents' : evmSchedulerComplianceOutput ? 'evm-scheduler-compliance' : supplyChainOutput ? 'supply-chain' : notificationsOutput ? 'notifications' : aiCostOutput ? 'ai-cost' : multiTenantOutput ? 'multi-tenant' : pwaMobileOutput ? 'pwa-mobile' : digitalTwinOutput ? 'digital-twin' : knowledgeBaseOutput ? 'knowledge-base' : metricsOutput ? 'metrics-dashboard' : avatarVoiceOutput ? 'avatar-voice' : autoupgradeOutput ? 'autoupgrade' : platformMapOutput ? 'platform-map' : stockOutput ? 'stock' : tripOutput ? 'trip' : pipelineOutput ? 'pipeline' : campaignAutomationOutput ? 'campaign-automation' : copilotExecutionOutput ? 'copilot-execution' : authOutput ? 'auth' : null
+    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : fieldOpsOutput ? 'fieldops' : businessOutput ? 'business' : projectPackageOutput ? 'project-package' : generationHistoryOpen ? 'generation-history' : apsOpen ? 'aps' : agentsOutput ? 'agents' : evmSchedulerComplianceOutput ? 'evm-scheduler-compliance' : supplyChainOutput ? 'supply-chain' : notificationsOutput ? 'notifications' : aiCostOutput ? 'ai-cost' : multiTenantOutput ? 'multi-tenant' : pwaMobileOutput ? 'pwa-mobile' : digitalTwinOutput ? 'digital-twin' : knowledgeBaseOutput ? 'knowledge-base' : metricsOutput ? 'metrics-dashboard' : avatarVoiceOutput ? 'avatar-voice' : autoupgradeOutput ? 'autoupgrade' : platformMapOutput ? 'platform-map' : stockOutput ? 'stock' : tripOutput ? 'trip' : pipelineOutput ? 'pipeline' : campaignAutomationOutput ? 'campaign-automation' : copilotExecutionOutput ? 'copilot-execution' : authOutput ? 'auth' : undefined
     return {
       ...activeProject,
       language: navigator.language || activeProject.language,
