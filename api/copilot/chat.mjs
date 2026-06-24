@@ -28,6 +28,7 @@ import { runLocalWorkerAction } from '../../server/agent/localWorkerClient.mjs'
 import { classifyImageGenRequest, buildImagePrompt, generateImage, buildImageResultReply } from '../../server/agent/imageGenerationConnector.mjs'
 import { classifyVideoGenRequest, generateVideo, buildVideoResultReply } from '../../server/agent/videoGenerationConnector.mjs'
 import { sendAuthkeySms, sendAuthkeyOtp, buildAuthkeyResultReply } from '../../server/agent/authkeyConnector.mjs'
+import { recordCall } from '../../server/service/providerAnalytics.mjs'
 
 if (process.env.Local_Worker_URL && !process.env.LOCAL_WORKER_URL) {
   process.env.LOCAL_WORKER_URL = process.env.Local_Worker_URL
@@ -205,16 +206,6 @@ const FAL_CHAT_MODELS = [
   { id: 'fal-ai/phi-4', name: 'Phi-4 (FAL)' },
 ]
 
-const ANTHROPIC_MODELS = [
-  { id: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6' },
-  { id: 'claude-opus-4-6', name: 'Claude Opus 4.6' },
-  { id: 'claude-3.5-sonnet-v2', name: 'Claude 3.5 Sonnet v2' },
-  { id: 'claude-3.5-haiku', name: 'Claude 3.5 Haiku' },
-  { id: 'claude-3-opus', name: 'Claude 3 Opus' },
-  { id: 'claude-3-sonnet', name: 'Claude 3 Sonnet' },
-  { id: 'claude-3-haiku', name: 'Claude 3 Haiku' },
-]
-
 const OPENCODE_GO_MODELS = [
   { id: 'deepseek-v4-flash', name: 'DeepSeek V4 Flash (Go)' },
   { id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro (Go)' },
@@ -294,12 +285,6 @@ function buildStaticModelCatalog() {
       provider: 'fal',
       name: model.name,
     })),
-    ...ANTHROPIC_MODELS.map(model => ({
-      id: composeModelValue('anthropic', model.id),
-      modelId: model.id,
-      provider: 'anthropic',
-      name: model.name,
-    })),
     ...OPENCODE_GO_MODELS.map(model => ({
       id: composeModelValue('opencode', model.id),
       modelId: model.id,
@@ -376,9 +361,6 @@ async function handleModelsList(res) {
     if (process.env.GEMINI_API_KEY) {
       await fetchModels(`https://generativelanguage.googleapis.com/v1/models?key=${process.env.GEMINI_API_KEY}`, {}, 'gemini', 'name', 'displayName', 'models')
     }
-    if (process.env.ANTHROPIC_API_KEY) {
-      await fetchModels('https://api.anthropic.com/v1/models', { 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' }, 'anthropic')
-    }
     if (process.env.ELEVENLABS_API_KEY) {
       await fetchModels('https://api.elevenlabs.io/v1/models', { 'xi-api-key': process.env.ELEVENLABS_API_KEY }, 'elevenlabs', 'model_id', 'name', null)
     }
@@ -396,7 +378,7 @@ async function handleModelsList(res) {
       addModel(model)
     }
 
-    const providerOrder = ['gemini-interactions', 'gemini', 'openrouter', 'openai', 'anthropic', 'gateway', 'fal', 'opencode', 'elevenlabs', 'firebase']
+    const providerOrder = ['gemini-interactions', 'gemini', 'openrouter', 'fal', 'opencode', 'openai', 'gateway', 'elevenlabs', 'firebase']
     models.sort((left, right) => {
       const leftIdx = providerOrder.indexOf(left.provider)
       const rightIdx = providerOrder.indexOf(right.provider)
@@ -972,7 +954,6 @@ function buildFileContext(file) {
 function buildProviderStatusContext() {
   const checks = [
     { name: 'OpenAI/Gemini', key: process.env.OPENAI_API_KEY },
-    { name: 'Anthropic', key: process.env.ANTHROPIC_API_KEY },
     { name: 'fal.ai', key: process.env.FAL_KEY },
     { name: 'AI Gateway/Veo', key: process.env.AI_GATEWAY_API_KEY },
     { name: 'ElevenLabs', key: process.env.ELEVENLABS_API_KEY },
@@ -1109,7 +1090,6 @@ function buildLiveAgentToolDefinitions() {
 
 function getChatProvider() {
   if (process.env.OPENAI_API_KEY) return 'openai'
-  if (process.env.ANTHROPIC_API_KEY) return 'anthropic'
   return null
 }
 
@@ -1133,48 +1113,15 @@ function flattenMessageText(messages = []) {
     .join('\n')
 }
 
-function normalizeAnthropicContent(content) {
-  if (typeof content === 'string') return [{ type: 'text', text: content }]
-  if (!Array.isArray(content)) return [{ type: 'text', text: String(content || '') }]
-  return content
-    .map(block => {
-      if (!block) return null
-      if (block.type === 'text') return { type: 'text', text: String(block.text || '') }
-      if (block.type === 'image_url') return null
-      if (typeof block.text === 'string') return { type: 'text', text: block.text }
-      return null
-    })
-    .filter(Boolean)
-}
 
-function buildAnthropicMessages(messages) {
-  const systemParts = []
-  const anthropicMessages = []
-
-  for (const msg of Array.isArray(messages) ? messages : []) {
-    if (!msg) continue
-    if (msg.role === 'system') {
-      const systemText = flattenMessageText([msg]).trim()
-      if (systemText) systemParts.push(systemText)
-      continue
-    }
-
-    anthropicMessages.push({
-      role: msg.role === 'assistant' ? 'assistant' : 'user',
-      content: normalizeAnthropicContent(msg.content),
-    })
-  }
-
-  return {
-    system: systemParts.join('\n\n'),
-    messages: anthropicMessages,
-  }
-}
 
 async function callOpenAIChat(requestPayload, overrideConfig) {
+  const startTime = Date.now()
   const resolved = getOpenAIConfig(requestPayload.model)
   const apiBase = overrideConfig?.apiBase || resolved.apiBase
   const apiKey = overrideConfig?.apiKey || resolved.apiKey
+  const providerLabel = apiBase.includes('openrouter.ai') ? 'openrouter' : apiBase.includes('generativelanguage') ? 'gemini' : apiBase.includes('fal.ai') ? 'fal' : apiBase.includes('opencode') ? 'opencode' : apiBase.includes('elevenlabs') ? 'elevenlabs' : 'openai'
+  const modelName = requestPayload.model || 'unknown'
   const headers = {
     Authorization: `Bearer ${apiKey}`,
     'Content-Type': 'application/json',
@@ -1184,124 +1131,59 @@ async function callOpenAIChat(requestPayload, overrideConfig) {
     headers['X-OpenRouter-Title'] = 'Apex AI Copilot'
   }
 
-  const primaryResponse = await fetch(`${apiBase}/chat/completions`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(requestPayload),
-  })
-  let data = await primaryResponse.json().catch(() => ({}))
+  let success = false
+  let data = null
+  let errorMsg = null
 
-  // If primary provider failed, try provider router fallback
-  if (!primaryResponse.ok) {
-    console.error('[callOpenAIChat] Primary failed:', primaryResponse.status)
-    try {
-      const { chatWithFallback } = await import('../../server/providers/providerRouter.mjs')
-      const fallbackResult = await chatWithFallback({
-        messages: requestPayload.messages,
-        tools: requestPayload.tools,
-        temperature: requestPayload.temperature || 0.72,
-        maxTokens: requestPayload.max_tokens || 900,
-      })
-      if (fallbackResult.ok) {
-        console.log('[callOpenAIChat] Fallback bem-sucedido via', fallbackResult.provider)
-        return { provider: fallbackResult.provider, response: { ok: true, status: 200 }, data: fallbackResult.data, usedFallback: true }
-      }
-    } catch (fbErr) {
-      console.error('[callOpenAIChat] Fallback falhou:', fbErr.message)
-    }
-  }
-
-  return { provider: 'openai', response: primaryResponse, data, usedFallback: false }
-}
-
-function extractAnthropicText(data) {
-  if (typeof data?.completion === 'string') return data.completion.trim()
-  const blocks = Array.isArray(data?.content) ? data.content : []
-  return blocks
-    .filter(block => block?.type === 'text' && typeof block.text === 'string')
-    .map(block => block.text)
-    .join('')
-    .trim()
-}
-
-function extractAnthropicToolUses(data) {
-  const blocks = Array.isArray(data?.content) ? data.content : []
-  return blocks.filter(block => block?.type === 'tool_use' && block.id && block.name)
-}
-
-async function callAnthropicChat(liveAgentMessages, userMessage = '') {
-  const apiBase = process.env.ANTHROPIC_API_BASE || 'https://api.anthropic.com/v1'
-  const { system, messages } = buildAnthropicMessages(liveAgentMessages)
-  const tools = buildLiveAgentToolDefinitions()
-  const toolChoice = { type: 'auto' }
-  const MAX_TOOL_ROUNDS = 12
-
-  let currentMessages = messages
-  let lastResponse = null
-  let lastData = null
-
-  for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-    const payload = {
-      model: process.env.ANTHROPIC_CHAT_MODEL || 'claude-sonnet-4-6',
-      system,
-      messages: currentMessages,
-      max_tokens: 900,
-      temperature: 0.72,
-      top_p: 1,
-      tools,
-      tool_choice: toolChoice,
-    }
-
-    const response = await fetch(`${apiBase}/messages`, {
+  try {
+    const primaryResponse = await fetch(`${apiBase}/chat/completions`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify(payload),
+      headers,
+      body: JSON.stringify(requestPayload),
     })
+    data = await primaryResponse.json().catch(() => ({}))
+    success = primaryResponse.ok
 
-    const data = await response.json().catch(() => ({}))
-    lastResponse = response
-    lastData = data
-    if (!response.ok) break
-
-    const toolUses = extractAnthropicToolUses(data)
-    if (!toolUses.length) break
-
-    currentMessages = [
-      ...currentMessages,
-      { role: 'assistant', content: Array.isArray(data.content) ? data.content : [] },
-    ]
-
-    const resolvedToolResults = []
-    for (const toolUse of toolUses) {
-      const toolCall = {
-        function: {
-          name: toolUse.name,
-          arguments: JSON.stringify(toolUse.input || {}),
-        },
+    if (!primaryResponse.ok) {
+      errorMsg = `HTTP ${primaryResponse.status}`
+      console.error('[callOpenAIChat] Primary failed:', primaryResponse.status)
+      try {
+        const { chatWithFallback } = await import('../../server/providers/providerRouter.mjs')
+        const fallbackResult = await chatWithFallback({
+          messages: requestPayload.messages,
+          tools: requestPayload.tools,
+          temperature: requestPayload.temperature || 0.72,
+          maxTokens: requestPayload.max_tokens || 900,
+        })
+        if (fallbackResult.ok) {
+          success = true
+          errorMsg = null
+          console.log('[callOpenAIChat] Fallback bem-sucedido via', fallbackResult.provider)
+          recordCall({ provider: fallbackResult.provider || 'fallback', model: modelName, latencyMs: Date.now() - startTime, success: true, tokensIn: fallbackResult.data?.usage?.prompt_tokens || 0, tokensOut: fallbackResult.data?.usage?.completion_tokens || 0 })
+          return { provider: fallbackResult.provider, response: { ok: true, status: 200 }, data: fallbackResult.data, usedFallback: true }
+        }
+        errorMsg = `Primary ${primaryResponse.status}, fallback failed`
+      } catch (fbErr) {
+        errorMsg = `Primary ${primaryResponse.status}, fallback: ${fbErr.message}`
+        console.error('[callOpenAIChat] Fallback falhou:', fbErr.message)
       }
-      const toolResult = await executeLiveAgentToolCall(toolCall)
-      resolvedToolResults.push({
-        type: 'tool_result',
-        tool_use_id: toolUse.id,
-        content: JSON.stringify(toolResult),
-      })
     }
-
-    currentMessages.push({
-      role: 'user',
-      content: resolvedToolResults,
-    })
+  } catch (err) {
+    errorMsg = err.message
   }
 
-  return { provider: 'anthropic', response: lastResponse || { ok: false }, data: lastData || {} }
-}
+  const duration = Date.now() - startTime
+  recordCall({
+    provider: providerLabel,
+    model: modelName,
+    latencyMs: duration,
+    success,
+    tokensIn: data?.usage?.prompt_tokens || 0,
+    tokensOut: data?.usage?.completion_tokens || 0,
+    errorMsg,
+  })
 
-function pickAnthropicReply(data) {
-  return extractAnthropicText(data)
+  return { provider: providerLabel, response: success ? { ok: true, status: 200 } : { ok: false, status: data ? 500 : 0 }, data: data || {}, usedFallback: false }
 }
 
 const MAX_DIRECT_COMMAND_OUTPUT_BYTES = 80_000
@@ -1880,6 +1762,7 @@ export default async function handler(req, res) {
     const isFirebase = modelProvider === 'firebase'
 
     if (isInteractionsProvider) {
+      const t0 = Date.now()
       const interactionsFn = await getInteractionsProvider()
       if (interactionsFn) {
         const interactionsResult = await interactionsFn({
@@ -1891,6 +1774,7 @@ export default async function handler(req, res) {
           temperature: 0.72,
           maxOutputTokens: 900,
         })
+        recordCall({ provider: 'gemini-interactions', model, latencyMs: Date.now() - t0, success: !!interactionsResult.ok, tokensIn: interactionsResult.usage?.promptTokens || 0, tokensOut: interactionsResult.usage?.completionTokens || 0, errorMsg: interactionsResult.ok ? null : 'interactions failed' })
         if (interactionsResult.ok) {
           let replyText = interactionsResult.text
           if (interactionsResult.citations?.length) {
@@ -1908,6 +1792,7 @@ export default async function handler(req, res) {
           })
         }
       }
+      recordCall({ provider: 'gemini-interactions', model, latencyMs: Date.now() - t0, success: false, errorMsg: 'interactions unavailable' })
       return sendJson(res, 200, {
         finalReply: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente ou selecione outro modelo.',
         reply: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente ou selecione outro modelo.',
@@ -1934,9 +1819,7 @@ export default async function handler(req, res) {
       resolvedOpenAIKey = process.env.GEMINI_API_KEY
     }
 
-    const anthropicKey = process.env.ANTHROPIC_API_KEY
-    const openaiKey = resolvedOpenAIKey
-    const apiKey = anthropicKey || openaiKey
+    const apiKey = resolvedOpenAIKey
     if (!apiKey && !isGatewayModel && !isFalProvider && !isElevenLabs && !isFirebase) {
       return sendJson(res, 200, {
         finalReply: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente ou selecione outro modelo.',
@@ -1946,7 +1829,6 @@ export default async function handler(req, res) {
       })
     }
 
-    const useAnthropic = Boolean(anthropicKey)
     const runtime = loadRuntimeKnowledge()
     const runtimePromptLines = stripGovernanceRestrictions(runtime.systemPrompt || [])
     const file = body.file || null
@@ -2092,7 +1974,7 @@ export default async function handler(req, res) {
     ]
 
     const provider = getChatProvider()
-    const chatSource = provider === 'anthropic' ? 'anthropic' : 'openai'
+    const chatSource = 'openai'
     let finalModel = model
     const isDirectGeminiModelInPayload = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.0-pro', 'gemini-2.5-flash'].includes(model)
     if ((isDirectGeminiModelInPayload || isGeminiProvider) && apiBase?.includes('openrouter.ai') && !model.includes('/')) {
@@ -2110,6 +1992,7 @@ export default async function handler(req, res) {
 
     if (!provider) {
       if (isGatewayModel && process.env.AI_GATEWAY_API_KEY) {
+        const tg0 = Date.now()
         try {
           const gatewayResult = await generateText({
             model,
@@ -2117,6 +2000,7 @@ export default async function handler(req, res) {
             temperature: 0.72,
             maxOutputTokens: 900,
           })
+          recordCall({ provider: 'gateway', model, latencyMs: Date.now() - tg0, success: true, tokensIn: gatewayResult.usage?.promptTokens || 0, tokensOut: gatewayResult.usage?.completionTokens || 0 })
           return sendJson(res, 200, {
             finalReply: gatewayResult.text || buildChatFallbackReply(userMessage, identityContext, file),
             reply: gatewayResult.text || buildChatFallbackReply(userMessage, identityContext, file),
@@ -2128,6 +2012,7 @@ export default async function handler(req, res) {
             productionStatus,
           })
         } catch (gatewayError) {
+          recordCall({ provider: 'gateway', model, latencyMs: Date.now() - tg0, success: false, errorMsg: gatewayError.message })
           console.error('[Gateway Error]:', gatewayError)
         }
       }
@@ -2141,6 +2026,7 @@ export default async function handler(req, res) {
     }
 
     if (isGatewayModel && process.env.AI_GATEWAY_API_KEY) {
+      const tg1 = Date.now()
       try {
         const gatewayResult = await generateText({
           model,
@@ -2148,6 +2034,7 @@ export default async function handler(req, res) {
           temperature: 0.72,
           maxOutputTokens: 900,
         })
+        recordCall({ provider: 'gateway', model, latencyMs: Date.now() - tg1, success: true, tokensIn: gatewayResult.usage?.promptTokens || 0, tokensOut: gatewayResult.usage?.completionTokens || 0 })
         return sendJson(res, 200, {
           finalReply: gatewayResult.text || buildChatFallbackReply(userMessage, identityContext, file),
           reply: gatewayResult.text || buildChatFallbackReply(userMessage, identityContext, file),
@@ -2159,6 +2046,7 @@ export default async function handler(req, res) {
           productionStatus,
         })
       } catch (gatewayError) {
+        recordCall({ provider: 'gateway', model, latencyMs: Date.now() - tg1, success: false, errorMsg: gatewayError.message })
         console.error('[Gateway Error]:', gatewayError)
         return sendJson(res, 200, {
           finalReply: buildChatFallbackReply(userMessage, identityContext, file),
@@ -2171,9 +2059,7 @@ export default async function handler(req, res) {
       }
     }
 
-    const chatResult = provider === 'anthropic'
-      ? await callAnthropicChat(liveAgentMessages, userMessage)
-      : await callOpenAIChat(requestPayload, { apiBase, apiKey: resolvedOpenAIKey })
+    const chatResult = await callOpenAIChat(requestPayload, { apiBase, apiKey: resolvedOpenAIKey })
 
     const response = chatResult.response
     const data = chatResult.data
@@ -2294,17 +2180,6 @@ export default async function handler(req, res) {
         productionStatus,
       })
     }
-
-    const anthropicReply = pickAnthropicReply(data)
-    return sendJson(res, 200, {
-      finalReply: anthropicReply || buildChatFallbackReply(userMessage, identityContext, file),
-      reply: anthropicReply || buildChatFallbackReply(userMessage, identityContext, file),
-      model: data?.model || process.env.ANTHROPIC_CHAT_MODEL || 'claude-sonnet-4-6',
-      usage: data?.usage,
-      mode: 'live-agent-chat-anthropic',
-      confirmation: null,
-      productionStatus,
-    })
 
   } catch (error) {
     console.error('Apex production chat route failed safely:', error?.message || error)

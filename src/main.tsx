@@ -271,7 +271,7 @@ type ModelOption = {
   modelId: string
 }
 
-type ManualModelProvider = 'gateway' | 'openrouter' | 'gemini' | 'gemini-interactions' | 'anthropic' | 'opencode' | 'fal' | 'elevenlabs' | 'firebase'
+type ManualModelProvider = 'all' | 'gateway' | 'openrouter' | 'gemini' | 'gemini-interactions' | 'opencode' | 'fal' | 'elevenlabs' | 'firebase'
 
 const DIRECT_GEMINI_MODELS = [
   { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' },
@@ -333,11 +333,11 @@ function splitModelValue(value: string) {
 }
 
 function getProviderLabel(provider: string) {
+  if (provider === 'all') return 'Todos'
   if (provider === 'openrouter') return 'OpenRouter'
   if (provider === 'gemini') return 'Google AI Studio'
   if (provider === 'gemini-interactions') return 'Gemini Interactions'
   if (provider === 'gateway') return 'Gateway'
-  if (provider === 'anthropic') return 'Anthropic'
   if (provider === 'opencode') return 'OpenCode Go'
   if (provider === 'fal') return 'FAL.ai'
   if (provider === 'elevenlabs') return 'Eleven Labs'
@@ -356,16 +356,6 @@ const FAL_CHAT_MODELS = [
   { id: 'fal-ai/qwen-2.5-72b', name: 'Qwen 2.5 72B (FAL)' },
   { id: 'fal-ai/mixtral-8x22b', name: 'Mixtral 8x22B (FAL)' },
   { id: 'fal-ai/phi-4', name: 'Phi-4 (FAL)' },
-]
-
-const ANTHROPIC_MODELS = [
-  { id: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6' },
-  { id: 'claude-opus-4-6', name: 'Claude Opus 4.6' },
-  { id: 'claude-3.5-sonnet-v2', name: 'Claude 3.5 Sonnet v2' },
-  { id: 'claude-3.5-haiku', name: 'Claude 3.5 Haiku' },
-  { id: 'claude-3-opus', name: 'Claude 3 Opus' },
-  { id: 'claude-3-sonnet', name: 'Claude 3 Sonnet' },
-  { id: 'claude-3-haiku', name: 'Claude 3 Haiku' },
 ]
 
 const OPENCODE_GO_MODELS = [
@@ -463,12 +453,6 @@ function buildStaticModelCatalog(): ModelOption[] {
       provider: 'openrouter',
       modelId: model.id,
     })),
-    ...ANTHROPIC_MODELS.map(model => ({
-      id: composeModelValue('anthropic', model.id),
-      name: model.name,
-      provider: 'anthropic',
-      modelId: model.id,
-    })),
     ...OPENCODE_GO_MODELS.map(model => ({
       id: composeModelValue('opencode', model.id),
       name: model.name,
@@ -512,7 +496,7 @@ function resolveModelSelection(selectedValue: string, models: ModelOption[]) {
     return current.raw
   }
 
-  const providerPriority = ['gemini', 'openrouter', 'openai', 'gateway']
+  const providerPriority = ['gemini', 'openrouter', 'fal', 'opencode', 'openai', 'gateway']
   const bestMatch = [...rawMatches].sort((left, right) => {
     return providerPriority.indexOf(left.provider) - providerPriority.indexOf(right.provider)
   })[0]
@@ -1625,6 +1609,56 @@ function App() {
   const [availableModels, setAvailableModels] = useState<ModelOption[]>([])
   const [modelProvider, setModelProvider] = useState<string>('')
   const [manualModelProvider, setManualModelProvider] = useState<ManualModelProvider>('openrouter')
+  const [providerLedStatuses, setProviderLedStatuses] = useState<Array<{ id: string; label: string; hasKey: boolean; tooltip?: string; topUpUrl?: string }>>(() => {
+    // Default: all 9 providers shown; will be updated from /api/copilot/provider-status
+    const defaults: Array<{ id: string; label: string; hasKey: boolean; tooltip?: string; topUpUrl?: string }> = [
+      { id: 'openai', label: 'OpenAI', hasKey: false },
+      { id: 'gemini', label: 'Gemini', hasKey: false },
+      { id: 'openrouter', label: 'OpenRouter', hasKey: false },
+      { id: 'fal', label: 'FAL.ai', hasKey: false },
+      { id: 'elevenlabs', label: 'ElevenLabs', hasKey: false },
+      { id: 'gateway', label: 'Gateway', hasKey: false },
+      { id: 'opencode', label: 'Code Go', hasKey: false },
+      { id: 'firebase', label: 'Firebase', hasKey: false },
+    ]
+    return defaults
+  })
+
+  // Fetch live provider status for LED indicators
+  useEffect(() => {
+    const fetchProviderStatus = async () => {
+      try {
+        const res = await fetch('/api/copilot/provider-status')
+        if (!res.ok) return
+        const data = await res.json()
+        if (data?.providers && Array.isArray(data.providers)) {
+          setProviderLedStatuses(prev => {
+            const map = new Map((data.providers as any[]).map((p: any) => [p.id, p]))
+            return prev.map(led => {
+              // Map frontend provider id to API provider id
+              const apiId = led.id === 'gemini' ? 'openai' : led.id === 'gateway' ? 'ai-gateway' : led.id
+              const live: any = map.get(apiId)
+              if (live) {
+                const hasKey = live.status === 'ok' || live.status === 'warning'
+                return {
+                  ...led,
+                  hasKey,
+                  tooltip: String(live.message || (hasKey ? 'OK' : live.status)),
+                  topUpUrl: live.topUpUrl as string | undefined,
+                }
+              }
+              return led
+            })
+          })
+        }
+      } catch {
+        // silent — keep defaults
+      }
+    }
+    fetchProviderStatus()
+    const timer = window.setInterval(fetchProviderStatus, 120_000)
+    return () => window.clearInterval(timer)
+  }, [])
 
   useEffect(() => {
     const loadModels = async () => {
@@ -1706,12 +1740,15 @@ function App() {
 
   const filteredModelOptions = useMemo(() => {
     const allModels = availableModels.length > 0 ? availableModels : buildStaticModelCatalog()
-    if (manualModelProvider === 'openrouter') return allModels
+    if (manualModelProvider === 'all') return allModels
     return allModels.filter(m => m.provider === manualModelProvider)
   }, [availableModels, manualModelProvider])
 
   const modelOptions = useMemo(() => {
-    const base = filteredModelOptions.length ? filteredModelOptions : buildStaticModelCatalog().filter(m => m.provider === manualModelProvider)
+    const fallback = manualModelProvider === 'all'
+      ? buildStaticModelCatalog()
+      : buildStaticModelCatalog().filter(m => m.provider === manualModelProvider)
+    const base = filteredModelOptions.length ? filteredModelOptions : fallback
     return base.some(model => model.id === selectedModelInfo.id)
       ? base
       : [...base, selectedModelInfo]
@@ -1720,7 +1757,7 @@ function App() {
   useEffect(() => {
     if (!selectedModelInfo?.modelId) return
     const provider = (selectedModelInfo.provider || 'openrouter') as ManualModelProvider
-    if (provider === 'gateway' || provider === 'openrouter' || provider === 'gemini' || provider === 'gemini-interactions' || provider === 'anthropic' || provider === 'opencode' || provider === 'fal' || provider === 'elevenlabs' || provider === 'firebase') {
+    if (provider === 'gateway' || provider === 'openrouter' || provider === 'gemini' || provider === 'gemini-interactions' || provider === 'opencode' || provider === 'fal' || provider === 'elevenlabs' || provider === 'firebase') {
       setManualModelProvider(provider)
     }
   }, [selectedModelInfo.id, selectedModelInfo.modelId, selectedModelInfo.provider])
@@ -3906,11 +3943,14 @@ function App() {
     <AppLayout
       activeNav={activeView}
       onNavChange={setActiveView}
-      connectors={[
-        { label: 'OpenAI', active: true },
-        { label: 'fal.ai', active: true },
-        { label: 'ElevenLabs', active: true },
-      ]}
+      projectName="Apex Platform"
+      projectStatus={accountState?.providerStatus === 'supabase-connected' ? 'Live' : 'Ready'}
+      providerLeds={providerLedStatuses}
+      onMapClick={() => { handleCommand('abrir platform map') }}
+      onAccountTreeClick={() => { handleCommand('abrir evm scheduler panel') }}
+      onNotificationsClick={() => { handleCommand('abrir notification center') }}
+      onProfileClick={() => { setActiveView('owner') }}
+      avatarUrl={(accountState as any)?.user?.user_metadata?.avatar_url}
     >
       {activeView === 'dashboard' ? (
         <DashboardPage onNavigate={setActiveView} />
@@ -3933,10 +3973,10 @@ function App() {
           return null
         })()}</section></div>
       ) : (
-        <div className="h-full" style={{ display: 'flex', flexDirection: 'row', overflow: 'hidden' }}>
-          <section className="chat-shell" aria-label="Apex AI Copilot chat" style={{ flex: hasOperationalPanel ? '0 0 35%' : '1 1 100%', display: 'flex', flexDirection: 'column', minHeight: '100%', minWidth: 0 }}>
+        <div className="h-full" style={{ display: 'flex', flexDirection: 'row', overflow: 'hidden', height: '100%' }}>
+          <section className="chat-shell" aria-label="Apex AI Copilot chat" style={{ flex: hasOperationalPanel ? '0 0 35%' : '1 1 100%', display: 'flex', flexDirection: 'row', height: '100%', minHeight: 0, minWidth: 0 }}>
           {/* Conversation Sidebar */}
-          <aside className="chat-sidebar" style={{ width: '220px', borderRight: '1px solid rgba(150, 164, 195, 0.15)', display: 'flex', flexDirection: 'column', flexShrink: 0, background: '#121a2f' }}>
+          <aside className="chat-sidebar" style={{ width: '220px', borderRight: '1px solid rgba(150, 164, 195, 0.15)', display: 'flex', flexDirection: 'column', flexShrink: 0, background: '#121a2f', height: '100%', overflow: 'hidden' }}>
             <div className="chat-sidebar-header" style={{ padding: '16px', borderBottom: '1px solid rgba(150, 164, 195, 0.15)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ color: '#fff', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Conversas</span>
               <button
@@ -4004,11 +4044,11 @@ function App() {
                     outline: 'none',
                   }}
                 >
+                  <option value="all">🔥 TODOS (Owner Test)</option>
                   <option value="openrouter">OpenRouter</option>
                   <option value="gemini">Gemini</option>
                   <option value="gemini-interactions">Gemini Interact</option>
                   <option value="gateway">Gateway</option>
-                  <option value="anthropic">Anthropic</option>
                   <option value="opencode">OpenCode Go</option>
                   <option value="fal">FAL.ai</option>
                   <option value="elevenlabs">Eleven Labs</option>
@@ -4093,8 +4133,8 @@ function App() {
           </aside>
 
           {/* Main Chat Area */}
-          <div className="chat-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative' }}>
-            <div className="messages">
+          <div className="chat-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, position: 'relative', height: '100%', overflow: 'hidden' }}>
+            <div className="messages" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto' }}>
               {messages.map(message => (
                 <article key={message.id} className={`message ${message.role}`}>
                   <div className="avatar">{message.role === 'assistant' ? <Bot size={18} /> : <Building2 size={18} />}</div>

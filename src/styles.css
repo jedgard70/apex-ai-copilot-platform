@@ -11,6 +11,38 @@
   box-sizing: border-box;
 }
 
+/* ── Scrollbar styling ── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(150, 164, 195, 0.35);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(150, 164, 195, 0.55);
+}
+
+/* Dark sidebar scrollbar */
+.chat-sidebar ::-webkit-scrollbar-thumb,
+.chat-sidebar-list::-webkit-scrollbar-thumb {
+  background: rgba(150, 164, 195, 0.25);
+}
+.chat-sidebar ::-webkit-scrollbar-thumb:hover,
+.chat-sidebar-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(150, 164, 195, 0.45);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(150, 164, 195, 0.35) transparent;
+}
+
 body {
   margin: 0;
   min-width: 320px;
@@ -578,8 +610,10 @@ textarea {
 }
 
 .messages {
-  flex: 1;
-  overflow: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 26px 30px;
   display: flex;
   flex-direction: column;
