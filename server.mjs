@@ -1669,6 +1669,50 @@ function buildLiveAgentToolDefinitions() {
         },
       },
     },
+    // MS Project connector tools
+    {
+      type: 'function',
+      function: {
+        name: 'parse_msproject_xml',
+        description: 'Parse MS Project XML (MSPDI format) and return structured task/resource data with scheduling analysis. Use when the user provides an MS Project file or asks about project schedules.',
+        parameters: {
+          type: 'object',
+          properties: {
+            content: { type: 'string', description: 'The full MSPDI XML content to parse.' },
+            includeResources: { type: 'boolean', description: 'Include resource data. Default: true.' },
+          },
+          required: ['content'],
+        },
+      },
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'analyze_msproject_schedule',
+        description: 'Analyze a parsed MS Project schedule for delays, critical path, baseline variance and milestones.',
+        parameters: {
+          type: 'object',
+          properties: {
+            projectXml: { type: 'string', description: 'The MSPDI XML to analyze.' },
+          },
+          required: ['projectXml'],
+        },
+      },
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'generate_msproject_report',
+        description: 'Generate a complete Markdown scheduling report from MS Project XML, including task breakdown, baseline analysis, critical path, and alerts.',
+        parameters: {
+          type: 'object',
+          properties: {
+            projectXml: { type: 'string', description: 'The MSPDI XML to generate a report from.' },
+          },
+          required: ['projectXml'],
+        },
+      },
+    },
     ...buildCodeToolDefinitions(),
   ]
 }
@@ -1793,6 +1837,12 @@ async function executeLiveAgentToolCall(toolCall) {
     } catch (err) {
       return { providerStatus: 'error', finalReply: 'Erro ao aprovar pedido: ' + err.message }
     }
+  }
+
+  // MS Project connector tools
+  if (['parse_msproject_xml', 'analyze_msproject_schedule', 'generate_msproject_report'].includes(name)) {
+    const { executeMsProjectToolCall } = await import('./server/agent/msprojectConnector.mjs')
+    return await executeMsProjectToolCall(toolCall)
   }
 
   if (name !== 'run_safe_local_command') {
@@ -6554,6 +6604,36 @@ const server = http.createServer(async (req, res) => {
   }
   if (req.url === '/api/copilot/knowledge-base' && req.method === 'POST') {
     handleKnowledgeBaseInsert(req, res)
+    return
+  }
+  if (req.url === '/api/msproject/parse' && req.method === 'POST') {
+    const { default: handler } = await import('./api/msproject/parse.mjs')
+    handler(req, res)
+    return
+  }
+  // MS Project REST API (server-side service)
+  if (req.url === '/api/msproject/analyze' && req.method === 'POST') {
+    const { parseMsProjectXml, analyzeProject, projectToSimplifiedJson } = await import('./server/service/msproject.mjs')
+    const body = await readJson(req)
+    const options = body.options || {}
+    if (!body.xml && !body.content) {
+      json(res, 400, { error: 'xml or content field required' })
+      return
+    }
+    try {
+      const xml = body.xml || body.content
+      const project = parseMsProjectXml(xml, { includeCalendars: false, includeResources: body.includeResources !== false })
+      const analysis = analyzeProject(project)
+      const simplified = projectToSimplifiedJson(project)
+      json(res, 200, { project: simplified, analysis })
+    } catch (err) {
+      json(res, 400, { error: 'Failed to parse MS Project XML', detail: err.message })
+    }
+    return
+  }
+  if (req.url === '/api/msproject/projects' && req.method === 'GET') {
+    const { listProjects } = await import('./server/service/msproject.mjs')
+    json(res, 200, { projects: listProjects() })
     return
   }
   if (req.url === '/api/copilot/embed' && req.method === 'POST') {

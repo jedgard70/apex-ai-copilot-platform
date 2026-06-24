@@ -154,6 +154,17 @@ export const TOOL_REGISTRY = [
     missing: () => [],
     mutates: true,
   },
+  {
+    id: 'msproject.parse',
+    label: 'MS Project XML parser',
+    provider: 'local',
+    executionClass: EXECUTION_CLASSES.READ_ONLY,
+    capability: 'ms_project_xml_parsing_and_scheduling_analysis',
+    env: [],
+    isConfigured: () => true,
+    missing: () => [],
+    mutates: false,
+  },
 ]
 
 export function getToolRegistry() {
