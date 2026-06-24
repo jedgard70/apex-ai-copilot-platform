@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { X, Search, BookOpen, Download, Sparkles, Palette, Camera, Home, FileText, Building2, Compass, Image, Layers } from 'lucide-react'
 
-const MODULE_ICONS = {
+const MODULE_ICONS: Record<string, any> = {
   archvis: Palette,
   directcut: Camera,
   chat: Sparkles,
@@ -10,7 +10,7 @@ const MODULE_ICONS = {
   export: Download,
 }
 
-const MODULE_COLORS = {
+const MODULE_COLORS: Record<string, string> = {
   archvis: '#8b5cf6',
   directcut: '#00f0ff',
   chat: '#3b82f6',

@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import { ArchVisPanel } from './components/ArchVisPanel'
 import { AgentsPanel } from './components/AgentsPanel'
+import { CognitiveAgentsPanel } from './components/CognitiveAgentsPanel'
 import { AiCostDashboardPanel } from './components/AiCostDashboardPanel'
 import { AutoupgradePanel } from './components/AutoupgradePanel'
 import { AvatarVoicePanel } from './components/AvatarVoicePanel'
@@ -1409,6 +1410,7 @@ function App() {
     const stored = initialAppState.agentsOutput as AgentsOutput | undefined
     return stored || null
   })
+  const [cognitiveAgentsOutput, setCognitiveAgentsOutput] = useState<boolean>(false)
   const [evmSchedulerComplianceOutput, setEvmSchedulerComplianceOutput] = useState<EvmSchedulerComplianceOutput | null>(() => {
     const stored = initialAppState.evmSchedulerComplianceOutput as EvmSchedulerComplianceOutput | undefined
     return stored || null
