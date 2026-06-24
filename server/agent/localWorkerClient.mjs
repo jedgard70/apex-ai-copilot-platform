@@ -18,6 +18,11 @@ const READ_ACTIONS = new Set([
   'project.git_status', 'project.git_log', 'project.git_log10',
   'project.git_diff', 'project.git_diff_stat', 'project.git_branch', 'project.git_remote',
   'npm.list', 'npm.outdated', 'npm.audit',
+  // System diagnostics (read-only)
+  'system.diag_full', 'system.diag_cpu_ram', 'system.diag_disk',
+  'system.diag_services', 'system.diag_startup', 'system.temp_audit',
+  // Revit info (read-only)
+  'revit.info', 'revit.addin_list',
 ])
 
 // VALIDATE — execute directly (may be slow)
@@ -32,6 +37,10 @@ const WRITE_ACTIONS = new Set([
   'project.git_add', 'project.git_commit', 'project.git_push', 'project.git_push_u',
   'project.git_fetch', 'project.git_stash', 'project.git_stash_pop',
   'npm.install', 'project.raw_shell', 'mcp.run_stdio',
+  // System maintenance (write, needs confirmation)
+  'system.temp_clean', 'system.startup_disable',
+  // Revit execution (write, needs confirmation)
+  'revit.run_pyrevit',
 ])
 
 // DANGEROUS — require confirmed:true + rollbackAcknowledged:true
@@ -108,6 +117,17 @@ function commandForAction(action, params = {}) {
     case 'project.validate_h44': return 'npm run validate:cp15x-h44'
     case 'project.validate_h5': return 'npm run validate:cp15x-h5'
     case 'project.validate_h6': return 'node --check server.mjs'
+    case 'system.diag_full': return 'powershell -ExecutionPolicy Bypass -Command "Write-Host === SISTEMA ===; $os = Get-CimInstance Win32_OperatingSystem; $uptime = (Get-Date) - $os.LastBootUpTime; Write-Host OS: $($os.Caption); Write-Host Uptime: $($uptime.Days)d $($uptime.Hours)h; Get-CimInstance Win32_Processor | Select-Object -First 1 | %% { Write-Host CPU: $($_.Name) }; $totalGB = [math]::Round($os.TotalVisibleMemorySize/1MB,1); $freeGB = [math]::Round($os.FreePhysicalMemory/1MB,1); Write-Host RAM: $totalGB GB total, $([math]::Round($totalGB-$freeGB,1)) GB em uso"' 
+    case 'system.diag_cpu_ram': return 'powershell -ExecutionPolicy Bypass -Command "$cpu = Get-CimInstance Win32_Processor | Select-Object -First 1; $cpuLoad = (Get-CimInstance Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average; Write-Host CPU: $($cpu.Name) - $($cpu.NumberOfCores) nucleos - $cpuLoad% uso; $os = Get-CimInstance Win32_OperatingSystem; $totalGB = [math]::Round($os.TotalVisibleMemorySize/1MB,1); $freeGB = [math]::Round($os.FreePhysicalMemory/1MB,1); Write-Host RAM: $totalGB GB total, $([math]::Round($totalGB-$freeGB,1)) GB em uso ($([math]::Round(($totalGB-$freeGB)/$totalGB*100,1))%); Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 10 | %% { $mb=[math]::Round($_.WorkingSet64/1MB,1); Write-Host ($_.ProcessName + \": \" + $mb + \" MB\") }"'
+    case 'system.diag_disk': return 'powershell -ExecutionPolicy Bypass -Command "Get-CimInstance Win32_LogicalDisk -Filter DriveType=3 | %% { $t=[math]::Round($_.Size/1GB,1); $f=[math]::Round($_.FreeSpace/1GB,1); Write-Host ($_.DeviceID + \" \" + $t + \" GB total, \" + $([math]::Round($t-$f,1)) + \" GB usados, \" + $f + \" GB livres\") }"'
+    case 'system.diag_services': return 'powershell -ExecutionPolicy Bypass -Command "@(\"WSearch\",\"wuauserv\",\"Spooler\",\"MpsSvc\",\"Dnscache\",\"DHCP\",\"Winmgmt\") | % { $s = Get-Service $_ -ErrorAction SilentlyContinue; if ($s) { Write-Host ($_.PadRight(20) + $s.Status) } }"'
+    case 'system.diag_startup': return 'powershell -ExecutionPolicy Bypass -Command "Get-CimInstance Win32_StartupCommand | Sort Name | %% { Write-Host ($_.Name + \" - \" + $_.Command) }"'
+    case 'system.temp_audit': return 'powershell -ExecutionPolicy Bypass -Command "Write-Host TEMP:; @(\"$env:TEMP\",\"$env:WINDIR\\Temp\") | % { if (Test-Path $_) { $s=[math]::Round((Get-ChildItem $_ -Recurse -File -ErrorAction SilentlyContinue | Measure-Object Length -Sum).Sum/1MB,1); $c=(Get-ChildItem $_ -Recurse -File -ErrorAction SilentlyContinue).Count; Write-Host ($_ + \": \" + $c + \" arquivos, \" + $s + \" MB\") } }"'
+    case 'system.temp_clean': return 'powershell -ExecutionPolicy Bypass -Command "Remove-Item \"$env:TEMP\\*\" -Recurse -Force -ErrorAction SilentlyContinue; Remove-Item \"$env:WINDIR\\Temp\\*\" -Recurse -Force -ErrorAction SilentlyContinue; Write-Host Temporarios limpos."'
+    case 'system.startup_disable': return params.name ? `powershell -ExecutionPolicy Bypass -Command "Get-CimInstance Win32_StartupCommand | Where-Object { \$_.Name -like '*${params.name}*' } | %% { Remove-ItemProperty -Path 'Registry::\\HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run' -Name \$_.Name -ErrorAction SilentlyContinue; Write-Host 'Removido: ' + \$_.Name }"` : ''
+    case 'revit.info': return 'powershell -ExecutionPolicy Bypass -Command "Get-ChildItem \"C:\\Program Files\\Autodesk\\Revit *\\Revit.exe\" -ErrorAction SilentlyContinue | %% { $v=[System.Diagnostics.FileVersionInfo]::GetVersionInfo($_.FullName); Write-Host ($_.FullName + \" v\" + $v.FileVersion) }"'
+    case 'revit.addin_list': return 'powershell -ExecutionPolicy Bypass -Command "Get-ChildItem \"$env:APPDATA\\Autodesk\\Revit\\Addins\" -Recurse -Filter *.addin -ErrorAction SilentlyContinue | %% { Write-Host $_.Name }"'
+    case 'revit.run_pyrevit': return ''  # Requires params.script, needs temp file - use worker
     case 'project.raw_shell': return String(params.command || '').trim()
     default: return ''
   }

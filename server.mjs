@@ -421,6 +421,17 @@ const copilotExecutionCommands = [
     timeoutMs: 60000,
     source: 'allowlist',
   },
+  {
+    id: 'apex_diag',
+    label: 'Windows Diagnostics',
+    description: 'Run a full Windows hardware/software diagnostics — CPU, RAM, disk, top processes, services, startup. Read-only, no system modifications.',
+    executable: process.platform === 'win32' ? 'powershell' : 'pwsh',
+    args: ['-ExecutionPolicy', 'Bypass', '-File', 'scripts/apex-diag.ps1'],
+    risk: 'low',
+    requiresApproval: false,
+    timeoutMs: 60000,
+    source: 'allowlist',
+  },
 ]
 
 // Trusted domains can relax approval for allowlisted commands, never for raw shell.
@@ -1584,6 +1595,7 @@ const LIVE_AGENT_SAFE_COMMAND_IDS = new Set([
   'mcp_generate',
   'code_analyze',
   'docsedgard_skill',
+  'apex_diag',
 ])
 
 function buildLiveAgentToolDefinitions() {
@@ -1604,7 +1616,8 @@ function buildLiveAgentToolDefinitions() {
                 'raw_shell', 'git_log_recent', 'git_diff_name_only', 'validate_vercel_live',
                 'validate_supabase_live', 'deploy_vercel_live', 'skill_audit',
                 'revit_generate', 'marketing_generate', 'legacy_import', 'mcp_generate', 'code_analyze',
-                'docsedgard_skill'
+                'docsedgard_skill',
+                'apex_diag'
               ],
               description: 'Command to execute in the authorized Apex repo.'
             },

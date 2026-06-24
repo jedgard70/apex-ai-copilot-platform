@@ -5,7 +5,7 @@
 > alterar, modificar, remover ou sobrescrever variáveis no `.env.local` ou
 > nas Environment Variables do Vercel sem autorização EXPLÍCITA e VERBAL
 > do Owner (<jedgard70@gmail.com> / Dr. Edgard).
-> 
+>
 > Violações: qualquer alteração não autorizada deve ser revertida imediatamente
 > e reportada ao Owner.
 
