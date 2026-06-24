@@ -2,17 +2,18 @@
  * server/providers/providerRouter.mjs
  *
  * Provider Router with automatic failover.
- * Ordem de prioridade (custo para nós):
+ * Ordem de prioridade:
  *   1. Gemini (direct) — free (1M tokens/min)
- *   2. OpenRouter — pago (GPT, DeepSeek, Anthropic, etc.)
- *   3. OpenCode Go — pago mensal
+ *   2. OpenRouter — acesso pago a 300+ modelos
+ *   3. OpenCode Go — assinatura US$10/mês (DeepSeek V4, Qwen, GLM, etc.)
  *   4. FAL.ai — pago mensal
- *   5. DeepSeek via OpenRouter — gratuito, modelo grande
+ *   5. DeepSeek via OpenRouter — barato
  *   6. Anthropic (direct) — pago
  *   7. OpenAI (direct) — pago
  *   8. AI Gateway — último recurso
  *
- * O usuário final nunca vê erro de provedor.
+ * O usuário final nunca vê erro de provedor. Todos os provedores
+ * configurados são tentados automaticamente em ordem.
  */
 
 // ─── Provider chain ───────────────────────────────────────────────────────────
@@ -27,46 +28,64 @@ export function getProviderChain(options = {}) {
       name: 'gemini',
       baseUrl: process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta/openai',
       apiKey: geminiKey,
-      model: options.preferredModel === 'gemini' ? options.preferredModel : 'gemini-2.0-flash',
+      model: 'gemini-2.0-flash',
       label: 'Gemini (Free)',
     })
   }
 
-  // 2. OpenRouter — acesso a todos (DeepSeek, Anthropic, OpenAI, etc.)
+  // 2. OpenRouter FREE — Llama 3.3 70B, Qwen3, Nemotron (grátis)
+  const orKey = (process.env.OPENAI_API_KEYROUTER || process.env.OPENAI_API_KEY || '').trim()
+  if (orKey) {
+    const orFreeBase = (process.env.OPENAI_API_BASEROUTER || process.env.OPENAI_API_BASE || 'https://openrouter.ai/api/v1').trim()
+    chain.push({
+      name: 'openrouter-free',
+      baseUrl: orFreeBase,
+      apiKey: orKey,
+      model: 'meta-llama/llama-3.3-70b-instruct:free',
+      label: 'OpenRouter Free (Llama 3.3)',
+    })
+    chain.push({
+      name: 'openrouter-free',
+      baseUrl: orFreeBase,
+      apiKey: orKey,
+      model: 'qwen/qwen3-next-80b-a3b:free',
+      label: 'OpenRouter Free (Qwen3)',
+    })
+  }
+
+  // 3. OpenRouter PAID — seus créditos pagos
   const orBase = (process.env.OPENAI_API_BASEROUTER || '').trim()
-  const orKey = (process.env.OPENAI_API_KEYROUTER || '').trim()
-  if (orBase && orKey && orBase.includes('openrouter.ai')) {
+  if (orBase && orBase.includes('openrouter.ai') && orKey) {
     chain.push({
       name: 'openrouter',
       baseUrl: orBase,
       apiKey: orKey,
       model: 'openai/gpt-4o-mini',
-      label: 'OpenRouter',
+      label: 'OpenRouter (Pago)',
     })
   }
-  if (!chain.some(p => p.name.startsWith('openrouter'))) {
+  if (!chain.some(p => p.name === 'openrouter')) {
     const apiBase = (process.env.OPENAI_API_BASE || '').trim()
-    const apiKey = (process.env.OPENAI_API_KEY || '').trim()
-    if (apiBase && apiKey && apiBase.includes('openrouter.ai')) {
+    if (apiBase && apiBase.includes('openrouter.ai') && orKey) {
       chain.push({
         name: 'openrouter',
         baseUrl: apiBase,
-        apiKey,
+        apiKey: orKey,
         model: 'openai/gpt-4o-mini',
-        label: 'OpenRouter',
+        label: 'OpenRouter (Pago)',
       })
     }
   }
 
-  // 3. OpenCode Go — pago mensal
+  // 4. OpenCode Go — assinatura US$10/mês
   const ocKey = (process.env.OPENCODE_GO_API_KEY || '').trim()
   if (ocKey) {
     chain.push({
       name: 'opencode',
       baseUrl: 'https://opencode.ai/zen/go/v1',
       apiKey: ocKey,
-      model: 'go-chat',
-      label: 'OpenCode Go',
+      model: 'deepseek-v4-flash',
+      label: 'OpenCode Go (DeepSeek V4)',
     })
   }
 
@@ -82,7 +101,7 @@ export function getProviderChain(options = {}) {
     })
   }
 
-  // 5. DeepSeek via OpenRouter — gratuito, modelo grande (só se OpenRouter configurado)
+  // 5. DeepSeek via OpenRouter — barato/gratuito
   if (chain.some(p => p.name === 'openrouter')) {
     const or = chain.find(p => p.name === 'openrouter')
     chain.push({
@@ -90,14 +109,7 @@ export function getProviderChain(options = {}) {
       baseUrl: or.baseUrl,
       apiKey: or.apiKey,
       model: 'deepseek/deepseek-chat',
-      label: 'DeepSeek (Free)',
-    })
-    chain.push({
-      name: 'deepseek-r1',
-      baseUrl: or.baseUrl,
-      apiKey: or.apiKey,
-      model: 'deepseek/deepseek-r1',
-      label: 'DeepSeek R1 (Free)',
+      label: 'DeepSeek',
     })
   }
 

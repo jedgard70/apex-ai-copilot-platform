@@ -356,10 +356,14 @@ const ANTHROPIC_MODELS = [
 ]
 
 const OPENCODE_GO_MODELS = [
-  { id: 'go-code', name: 'Go Code' },
-  { id: 'go-reasoning', name: 'Go Reasoning' },
-  { id: 'go-chat', name: 'Go Chat' },
-  { id: 'go-instruct', name: 'Go Instruct' },
+  { id: 'deepseek-v4-flash', name: 'DeepSeek V4 Flash (OpenCode Go)' },
+  { id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro (OpenCode Go)' },
+  { id: 'qwen3.7-max', name: 'Qwen3.7 Max (OpenCode Go)' },
+  { id: 'qwen3.7-plus', name: 'Qwen3.7 Plus (OpenCode Go)' },
+  { id: 'glm-5.2', name: 'GLM-5.2 (OpenCode Go)' },
+  { id: 'kimi-k2.7', name: 'Kimi K2.7 (OpenCode Go)' },
+  { id: 'mimo-v2.5', name: 'MiMo-V2.5 (OpenCode Go)' },
+  { id: 'minimax-m3', name: 'MiniMax M3 (OpenCode Go)' },
 ]
 
 const ELEVENLABS_MODELS = [
