@@ -7,6 +7,7 @@
  */
 
 import { randomUUID } from 'node:crypto'
+import * as pipeline from './pipelineStatus.mjs'
 
 const CAMPAIGNS = new Map()
 
@@ -80,13 +81,20 @@ export function generateMarketingPlan(product, theme, description, targetAudienc
 
 // ─── Gerar Conteudo (imagens via FAL) ─────────────────────────────────────────
 
-export async function generateCampaignContent(campaignId, falApiKey) {
+export async function generateCampaignContent(campaignId, falApiKey, taskId) {
   const campaign = CAMPAIGNS.get(campaignId)
   if (!campaign) return null
   if (!falApiKey) return { error: 'FAL_KEY nao configurada' }
 
   const product = campaign.product
   const results = { images: [], videos: [], carousels: [], posts: [], ads: [] }
+
+  // ── Se tiver taskId, criar steps de progresso ──
+  if (taskId) {
+    pipeline.updateStep(taskId, 'Gerando plano de marketing...', 'running')
+    // Simula geracao de plano
+    campaign.plan = campaign.plan || generateMarketingPlan(product, campaign.theme, campaign.description, campaign.targetAudience)
+  }
 
   // ── Gerar imagens para carrossel (3-5 imagens) ──
   const carouselThemes = [
@@ -97,7 +105,10 @@ export async function generateCampaignContent(campaignId, falApiKey) {
     `Call to action image for "${product}" with "Saiba Mais" text overlay area, gradient background, modern, professional`,
   ]
 
-  for (let i = 0; i < Math.min(carouselThemes.length, 5); i++) {
+  const totalImages = Math.min(carouselThemes.length, 5)
+  for (let i = 0; i < totalImages; i++) {
+    if (taskId) pipeline.updateStep(taskId, `Gerando imagem ${i + 1}/${totalImages} via FAL.ai...`, 'running')
+
     try {
       const prompt = carouselThemes[i]
       const res = await fetch('https://fal.run/fal-ai/flux/dev', {
@@ -116,10 +127,14 @@ export async function generateCampaignContent(campaignId, falApiKey) {
     } catch (err) {
       console.error(`[socialMedia] Erro gerando imagem ${i + 1}:`, err.message)
     }
+
+    if (taskId) pipeline.setProgress(taskId, Math.round(((i + 1) / (totalImages + 4)) * 100))
   }
 
   // ── Se tiver imagens, montar carrossel ──
   if (results.images.length >= 2) {
+    if (taskId) pipeline.updateStep(taskId, 'Montando carrossel de imagens...', 'running')
+
     results.carousels.push({
       id: randomUUID(),
       platform: 'instagram-feed',
@@ -140,9 +155,11 @@ export async function generateCampaignContent(campaignId, falApiKey) {
         `${campaign.plan?.hashtags?.join(' ') || '#apexglobal'}`,
       ].join('\n'),
     })
+    if (taskId) pipeline.setProgress(taskId, 70)
   }
 
   // ── Gerar posts para LinkedIn ──
+  if (taskId) pipeline.updateStep(taskId, 'Gerando posts para LinkedIn...', 'running')
   results.posts.push({
     platform: 'linkedin',
     title: `${product} - Inovacao para sua empresa`,
@@ -165,6 +182,7 @@ export async function generateCampaignContent(campaignId, falApiKey) {
   })
 
   // ── Gerar Google Ads ──
+  if (taskId) pipeline.updateStep(taskId, 'Gerando Google Ads...', 'running')
   results.ads.push({
     platform: 'google-ads',
     campaignName: `Campanha - ${product}`,
@@ -189,6 +207,11 @@ export async function generateCampaignContent(campaignId, falApiKey) {
   campaign.generated = true
   campaign.updatedAt = new Date().toISOString()
   CAMPAIGNS.set(campaignId, campaign)
+
+  if (taskId) {
+    const summary = `${results.images.length} imagens, ${results.carousels.length} carrosseis, ${results.posts.length} posts, ${results.ads.length} ads`
+    pipeline.completeTask(taskId, summary)
+  }
 
   return results
 }

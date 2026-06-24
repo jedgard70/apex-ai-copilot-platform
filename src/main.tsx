@@ -31,6 +31,7 @@ import { AuthPanel } from './components/AuthPanel'
 import { Bim3DPanel, BimArchVisOutput, BimTourOutput } from './components/Bim3DPanel'
 import { BudgetPanel } from './components/BudgetPanel'
 import { CampaignAutomationPanel } from './components/CampaignAutomationPanel'
+import { PipelineProgressPanel } from './components/PipelineProgressPanel'
 import { ContractsPanel } from './components/ContractsPanel'
 import { CopilotExecutionPanel } from './components/CopilotExecutionPanel'
 import { CrmPanel } from './components/CrmPanel'
@@ -1413,6 +1414,8 @@ function App() {
   })
   const [stockOutput, setStockOutput] = useState<boolean>(false)
   const [tripOutput, setTripOutput] = useState<boolean>(false)
+  const [pipelineOutput, setPipelineOutput] = useState<boolean>(false)
+  const [pipelineActiveCount, setPipelineActiveCount] = useState<number>(0)
   const [nrOutput, setNrOutput] = useState<boolean>(false)
   const [accountingOutput, setAccountingOutput] = useState<boolean>(false)
   const [permitsOutput, setPermitsOutput] = useState<boolean>(false)
@@ -1916,6 +1919,7 @@ function App() {
     if (except !== 'campaignAutomation') setCampaignAutomationOutput(null)
     if (except !== 'stock') setStockOutput(false)
     if (except !== 'trip') setTripOutput(false)
+    if (except !== 'pipeline') setPipelineOutput(false)
     if (except !== 'copilotExecution') setCopilotExecutionOutput(null)
     if (except !== 'auth') setAuthOutput(null)
     if (except !== 'exportCenter') setExportCenterOpen(false)
@@ -2040,7 +2044,7 @@ function App() {
           activeRecord,
         ]
       : activeProject.files
-    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : fieldOpsOutput ? 'fieldops' : businessOutput ? 'business' : projectPackageOutput ? 'project-package' : generationHistoryOpen ? 'generation-history' : agentsOutput ? 'agents' : evmSchedulerComplianceOutput ? 'evm-scheduler-compliance' : supplyChainOutput ? 'supply-chain' : notificationsOutput ? 'notifications' : aiCostOutput ? 'ai-cost' : multiTenantOutput ? 'multi-tenant' : pwaMobileOutput ? 'pwa-mobile' : digitalTwinOutput ? 'digital-twin' : knowledgeBaseOutput ? 'knowledge-base' : metricsOutput ? 'metrics-dashboard' : avatarVoiceOutput ? 'avatar-voice' : autoupgradeOutput ? 'autoupgrade' : platformMapOutput ? 'platform-map' : campaignAutomationOutput ? 'campaign-automation' : copilotExecutionOutput ? 'copilot-execution' : authOutput ? 'auth' : null
+    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : fieldOpsOutput ? 'fieldops' : businessOutput ? 'business' : projectPackageOutput ? 'project-package' : generationHistoryOpen ? 'generation-history' : agentsOutput ? 'agents' : evmSchedulerComplianceOutput ? 'evm-scheduler-compliance' : supplyChainOutput ? 'supply-chain' : notificationsOutput ? 'notifications' : aiCostOutput ? 'ai-cost' : multiTenantOutput ? 'multi-tenant' : pwaMobileOutput ? 'pwa-mobile' : digitalTwinOutput ? 'digital-twin' : knowledgeBaseOutput ? 'knowledge-base' : metricsOutput ? 'metrics-dashboard' : avatarVoiceOutput ? 'avatar-voice' : autoupgradeOutput ? 'autoupgrade' : platformMapOutput ? 'platform-map' : stockOutput ? 'stock' : tripOutput ? 'trip' : pipelineOutput ? 'pipeline' : campaignAutomationOutput ? 'campaign-automation' : copilotExecutionOutput ? 'copilot-execution' : authOutput ? 'auth' : null
     return {
       ...activeProject,
       language: navigator.language || activeProject.language,
@@ -2165,7 +2169,21 @@ function App() {
     }, 650)
     return () => window.clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, budgetOutput, contractsOutput, researchOutput, fieldOpsOutput, businessOutput, agentsOutput, evmSchedulerComplianceOutput, supplyChainOutput, notificationsOutput, aiCostOutput, multiTenantOutput, pwaMobileOutput, digitalTwinOutput, knowledgeBaseOutput, projectPackageOutput, generationHistoryOpen, metricsOutput, avatarVoiceOutput, autoupgradeOutput, platformMapOutput, campaignAutomationOutput, copilotExecutionOutput, authOutput, archVisRevisionConstraints, activeTool.id, executionRuns, lastExecutionSummary])
+  }, [activeFile, messages, archVisOutput, directCutOutput, bim3DOutput, budgetOutput, contractsOutput, researchOutput, fieldOpsOutput, businessOutput, agentsOutput, evmSchedulerComplianceOutput, supplyChainOutput, notificationsOutput, aiCostOutput, multiTenantOutput, pwaMobileOutput, digitalTwinOutput, knowledgeBaseOutput, projectPackageOutput, generationHistoryOpen, metricsOutput, avatarVoiceOutput, autoupgradeOutput, platformMapOutput, pipelineOutput, campaignAutomationOutput, copilotExecutionOutput, authOutput, archVisRevisionConstraints, activeTool.id, executionRuns, lastExecutionSummary])
+
+  // ── Poll pipeline active count ──
+  useEffect(() => {
+    async function poll() {
+      try {
+        const res = await fetch('/api/pipeline/brief')
+        const d = await res.json()
+        if (d.brief) setPipelineActiveCount(d.brief.active + d.brief.queued)
+      } catch { /* */ }
+    }
+    poll()
+    const iv = setInterval(poll, 5000)
+    return () => clearInterval(iv)
+  }, [])
 
   useEffect(() => {
     const textarea = composerTextarea.current
@@ -3697,6 +3715,25 @@ function App() {
           <RefreshCw size={15} /> {uiLanguage === 'EN' ? 'Autoupgrade' : 'Autoupgrade'}
         </button>
       )}
+      {isSignedIn && (
+        <button className="secondary-action owner-console-button" type="button" onClick={() => {
+          closeOtherPanels('pipeline')
+          setPipelineOutput(true)
+        }} style={{ position: 'relative' }}>
+          <Cpu size={15} /> Pipeline
+          {pipelineActiveCount > 0 && (
+            <span style={{
+              position: 'absolute', top: -4, right: -4,
+              background: '#ef4444', color: '#fff',
+              fontSize: '9px', fontWeight: 700,
+              width: 16, height: 16,
+              borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              lineHeight: 1,
+            }}>{pipelineActiveCount}</span>
+          )}
+        </button>
+      )}
       {accountState?.sessionStatus === 'signed-in' && (
         <button className="secondary-action auth-signout" type="button" onClick={signOutFromShell}>
           <LogOut size={15} /> {uiLanguage === 'EN' ? 'Sign out' : 'Sair'}
@@ -3704,7 +3741,7 @@ function App() {
       )}
     </div>
   )
-  const hasOperationalPanel = archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || evmSchedulerComplianceOutput || supplyChainOutput || notificationsOutput || aiCostOutput || multiTenantOutput || pwaMobileOutput || digitalTwinOutput || knowledgeBaseOutput || projectPackageOutput || generationHistoryOpen || metricsOutput || avatarVoiceOutput || autoupgradeOutput || platformMapOutput || stockOutput || tripOutput || nrOutput || accountingOutput || permitsOutput || campaignAutomationOutput || exportCenterOpen
+  const hasOperationalPanel = archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || evmSchedulerComplianceOutput || supplyChainOutput || notificationsOutput || aiCostOutput || multiTenantOutput || pwaMobileOutput || digitalTwinOutput || knowledgeBaseOutput || projectPackageOutput || generationHistoryOpen || metricsOutput || avatarVoiceOutput || autoupgradeOutput || platformMapOutput || stockOutput || tripOutput || pipelineOutput || nrOutput || accountingOutput || permitsOutput || campaignAutomationOutput || exportCenterOpen
   const workspaceClass = hasOperationalPanel ? 'studio-open' : ''
 
   if (isPublicVslRoute) {
@@ -4719,6 +4756,10 @@ function App() {
               onRecordExport={handleExportCenterGeneration}
               onClear={() => setExportCenterOpen(false)}
             />
+          )}
+
+          {pipelineOutput && (
+            <PipelineProgressPanel onClear={() => setPipelineOutput(false)} />
           )}
 
         </aside>
