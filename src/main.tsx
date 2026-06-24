@@ -3944,9 +3944,6 @@ function App() {
       projectName="Apex Platform"
       projectStatus={accountState?.providerStatus === 'supabase-connected' ? 'Live' : 'Ready'}
       providerLeds={providerLedStatuses}
-      onMapClick={() => { handleCommand('abrir platform map') }}
-      onAccountTreeClick={() => { handleCommand('abrir evm scheduler panel') }}
-      onNotificationsClick={() => { handleCommand('abrir notification center') }}
       onProfileClick={() => { setActiveView('owner') }}
       avatarUrl={(accountState as any)?.user?.user_metadata?.avatar_url}
     >
