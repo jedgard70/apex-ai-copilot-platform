@@ -6833,6 +6833,13 @@ const server = http.createServer(async (req, res) => {
     return
   }
 
+  // ── CRM Pipeline API ───────────────────────────────────────────────────────────
+  if (req.url?.startsWith('/api/crm-pipeline/') && ['GET', 'POST', 'PATCH', 'DELETE'].includes(req.method)) {
+    const { default: handler } = await import('./api/crm-pipeline/index.mjs')
+    handler(req, res)
+    return
+  }
+
   // ── Pipeline Status API ───────────────────────────────────────────────────────
   if (req.url === '/api/pipeline/active' && req.method === 'GET') {
     const ps = await import('./server/service/pipelineStatus.mjs')
