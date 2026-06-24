@@ -65,15 +65,10 @@ The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.m
 | 40 | AI Cost Dashboard | `server/service/aiCost.mjs` + `AiCostDashboardPanel` | ✅ LIVE |
 | 41 | Knowledge Base | `server/service/knowledgeBase.mjs` + `KnowledgeBasePanel` | ✅ LIVE |
 | 42 | Digital Twin | `server/service/digitalTwin.mjs` + `DigitalTwinPanel` | ✅ LIVE |
-
-## Deployment map
-
-| Environment | URL | Status |
-| --- | --- | --- |
-| Local `.exe` / `server.mjs` | `localhost:3000` | ✅ Running |
-| Vercel Production | `www.apexglobalai.com` | ✅ Live (main branch auto-deploy) |
-| Vercel preview | `apex-ai-copilot-platform.vercel.app` | ✅ Live |
-| GitHub | `jedgard70/apex-ai-copilot-platform` | ✅ main branch |
+| 43 | Prompt Library (12 categorias skills) | `server/service/promptLibrary.mjs` + `api/prompts/` | ✅ LIVE |
+| 44 | ACIP: 13 Agentes Cognitivos | `server/service/cognitiveAgents.mjs` + `CognitiveAgentsPanel` | ✅ LIVE (ACIP) |
+| 45 | ACIP: DashboardByRole (7 perfis) | `server/service/dashboardByRole.mjs` + `DashboardByRolePanel` | ✅ LIVE (ACIP) |
+| 46 | ACIP: CRM Pipeline (5 estágios) | `server/service/crmPipeline.mjs` + `CrmPipelinePanel` | ✅ LIVE (ACIP) |
 
 ## Deployment map
 
@@ -189,8 +184,8 @@ Todos os provedores abaixo estão **configurados e operacionais** (chaves no `.e
 | Stripe | `STRIPE_SECRET_KEY` | ✅ Connected | Checkout + Webhook |
 | Autodesk APS | `APS_CLIENT_ID` + `APS_CLIENT_SECRET` | 🔒 Local-only | API Revit/BIM360 |
 
-*Last updated: 2026-06-24*
-*Status: ALL 42 MODULES DONE — 10 PROVEDORES ATIVOS — 14 CONECTORES — ENV SYNC AUDITADO — Deploy LIVE*
+*Last updated: 2026-06-24 (23:59)*
+*Status: ALL 46 MODULES DONE (42 Apex + 4 ACIP) — 10 PROVEDORES ATIVOS — 14 CONECTORES — ENV SYNC AUDITADO — Deploy LIVE*
 *Active pending work moved to `CHECKPOINT_TRACKER.md`.*
 
 - Active pending work moved to `CHECKPOINT_TRACKER.md`.

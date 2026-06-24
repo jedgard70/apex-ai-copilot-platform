@@ -325,6 +325,36 @@ const SECTIONS: ManualSection[] = [
     ],
   },
   {
+    id: 'dashboard-by-role',
+    title: '📊 Dashboard Executivo ACIP',
+    icon: '📈',
+    summary: 'Dashboard personalizado para cada perfil: Diretor, Engenheiro, Arquiteto, Investidor, Gestor de Obra, Vendas e Compliance.',
+    items: [
+      {
+        name: 'Dashboard por Perfil',
+        description: '7 dashboards diferentes: Diretor Executivo (VGV, margem, pipeline), Engenheiro (NCIs, projetos), Arquiteto (plantas, renders), Investidor (ROI, payback), Gestor de Obra (cronograma, equipe), Vendas (pipeline, leads), Compliance (conformidade, licenças, NRs). Cada um com KPIs, alertas e tabelas específicas.',
+        howToUse: 'Peça: "abrir dashboard", "dashboard diretor", "dashboard vendas". Selecione o perfil no painel.',
+        example: '"mostrar dashboard do diretor executivo"',
+        availableTo: 'todos',
+      },
+    ],
+  },
+  {
+    id: 'crm-pipeline',
+    title: '🤝 CRM Pipeline ACIP',
+    icon: '📊',
+    summary: 'Pipeline de vendas completo com 5 estágios, leads, KPIs e VGL ponderado.',
+    items: [
+      {
+        name: 'Pipeline de Vendas',
+        description: '5 estágios: Prospecção, Qualificação, Proposta, Negociação e Fechamento. Cada lead tem valor, probabilidade, responsável, origem e tags. KPIs em tempo real: VGL total, ticket médio, taxa de conversão, VGL ponderado.',
+        howToUse: 'Peça: "abrir pipeline crm", "pipeline de vendas", "mostrar leads". Crie leads, avance entre estágios e acompanhe o funil.',
+        example: '"quais leads estão em negociação?"',
+        availableTo: 'todos',
+      },
+    ],
+  },
+  {
     id: 'notificacoes',
     title: '🔔 Notificações / Alertas',
     icon: '📨',
