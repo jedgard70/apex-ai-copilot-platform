@@ -2090,6 +2090,7 @@ export default async function handler(req, res) {
           '',
           'NOW EXECUTE. The user is waiting.'
         ].join('\n')
+      },
       messagesPayload[messagesPayload.length - 1],
     ]
 
