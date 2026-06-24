@@ -34,6 +34,7 @@ import {
   INTERACTION_MODELS,
   isInteractionModel,
 } from './server/providers/gemini-interactions.mjs'
+import { chatWithFallback, getProviderChain } from './server/providers/providerRouter.mjs'
 
 function normalizeEnvironmentAliases() {
   const aliasPairs = [
@@ -2564,84 +2565,31 @@ async function handleChat(req, res) {
       messages[messages.length - 1],
     ]
 
-    let requestModel = model
-    const requestProvider = isGatewayModel ? 'gateway' : modelProvider
+    // ── Provider Router with automatic fallback ─────────────────────────
+    const preferredProvider = isGatewayModel ? 'gateway' : modelProvider
+    const preferredModel = model
 
-    if (requestProvider === 'gateway') {
-      const gatewayApiKey = process.env.AI_GATEWAY_API_KEY
-      if (!gatewayApiKey) {
-        console.error('[Gateway] AI_GATEWAY_API_KEY not configured')
-      } else {
-        const gatewayBase = process.env.AI_GATEWAY_API_BASE || 'https://gateway.ai.vercel.ai/v1'
-        try {
-          const gatewayRes = await fetch(`${gatewayBase}/chat/completions`, {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${gatewayApiKey}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              model: requestModel,
-              messages: liveAgentMessages,
-              temperature: 0.72,
-              max_tokens: 900,
-            }),
-            signal: AbortSignal.timeout(30000),
-          })
-          if (gatewayRes.ok) {
-            const gatewayData = await gatewayRes.json()
-            const gatewayText = gatewayData?.choices?.[0]?.message?.content || ''
-            if (gatewayText) {
-              return chatJson(res, 200, {
-                finalReply: sanitizeAssistantReply(gatewayText),
-                model: requestModel,
-                mode: 'live-agent-chat-gateway',
-              })
-            }
-          }
-          console.error('[Gateway] HTTP error:', gatewayRes.status)
-        } catch (gatewayError) {
-          console.error('[Gateway Error]:', gatewayError.message || gatewayError)
-        }
-      }
-    }
-
-    let finalModel = requestModel
-    if (requestProvider === 'gemini' && apiBase?.includes('openrouter.ai') && !requestModel.includes('/')) {
-      finalModel = `google/${requestModel}`
-    }
-
-    const requestPayload = {
-      model: finalModel,
+    // First call with tools for tool-calling
+    const fallbackResult = await chatWithFallback({
       messages: liveAgentMessages,
       tools: buildLiveAgentToolDefinitions(),
-      tool_choice: 'auto',
+      preferredProvider,
+      preferredModel,
       temperature: 0.72,
-      frequency_penalty: 0.2,
-      max_tokens: 900,
-    }
-
-    const headers = {
-      Authorization: 'Bearer ' + apiKey,
-      'Content-Type': 'application/json',
-    }
-    if (apiBase.includes('openrouter.ai')) {
-      headers['HTTP-Referer'] = 'https://apex-ai-copilot-platform.vercel.app'
-      headers['X-Title'] = 'Apex AI Copilot'
-    }
-
-    const response = await fetch(`${apiBase}/chat/completions`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(requestPayload),
+      maxTokens: 900,
     })
 
-    const data = await response.json().catch(() => ({}))
-    if (!response.ok) {
-      console.error('[AI Provider Error response]:', response.status, data)
+    if (!fallbackResult.ok) {
+      console.error('[Provider Router] Todos provedores falharam:', fallbackResult.errors?.join(' | '))
       return chatJson(res, 200, {
-        finalReply: `Desculpe, o provedor de IA retornou erro (${response.status}). Tente selecionar outro modelo no seletor ao lado.`,
-        mode: 'provider-error',
+        finalReply: 'Desculpe, todos os provedores de IA estão temporariamente indisponíveis. Tente novamente em alguns instantes.',
+        mode: 'provider-error-all-down',
+        providerErrors: fallbackResult.errors,
       })
     }
 
+    const data = fallbackResult.data
+    const usedProvider = fallbackResult.provider
     const assistantMessage = data && data.choices && data.choices[0] ? data.choices[0].message || {} : {}
     const toolCalls = Array.isArray(assistantMessage.tool_calls) ? assistantMessage.tool_calls : []
 
@@ -2670,37 +2618,24 @@ async function handleChat(req, res) {
           })
         }
 
-        const nextHeaders = {
-          Authorization: 'Bearer ' + apiKey,
-          'Content-Type': 'application/json',
-        }
-        if (apiBase.includes('openrouter.ai')) {
-          nextHeaders['HTTP-Referer'] = 'https://apex-ai-copilot-platform.vercel.app'
-          nextHeaders['X-Title'] = 'Apex AI Copilot'
-        }
-
-        const nextResponse = await fetch(`${apiBase}/chat/completions`, {
-          method: 'POST',
-          headers: nextHeaders,
-          body: JSON.stringify({
-            model: requestModel,
-            messages: conversationMessages,
-            tools: buildLiveAgentToolDefinitions(),
-            tool_choice: 'auto',
-            temperature: 0.45,
-            frequency_penalty: 0.1,
-            max_tokens: 1500,
-          }),
+        const nextFallback = await chatWithFallback({
+          messages: conversationMessages,
+          tools: buildLiveAgentToolDefinitions(),
+          preferredProvider,
+          preferredModel,
+          temperature: 0.45,
+          maxTokens: 1500,
         })
 
-        const nextData = await nextResponse.json().catch(() => ({}))
-        if (!nextResponse.ok) {
-          console.error('[OpenAI Error nextResponse]:', nextResponse.status, nextData)
+        if (!nextFallback.ok) {
+          console.error('[Provider Router] Tool round falhou em todos provedores')
           return chatJson(res, 200, {
             finalReply: buildChatFallbackReply(userText, identityContext),
             mode: 'local-fallback-after-tool',
           })
         }
+
+        const nextData = nextFallback.data
 
         currentAssistant = nextData?.choices?.[0]?.message || {}
         currentToolCalls = Array.isArray(currentAssistant.tool_calls) ? currentAssistant.tool_calls : []
@@ -2711,6 +2646,7 @@ async function handleChat(req, res) {
             model: nextData.model,
             usage: nextData.usage,
             mode: 'live-agent-tool-calling',
+            provider: usedProvider,
             toolCalls: usedToolNames,
           })
         }
@@ -2730,7 +2666,9 @@ async function handleChat(req, res) {
       finalReply: reply || buildChatFallbackReply(userText, identityContext),
       model: data.model,
       usage: data.usage,
-      mode: 'live-agent-chat',
+      mode: fallbackResult.usedFallback ? `live-agent-chat-fallback-${usedProvider}` : 'live-agent-chat',
+      provider: usedProvider,
+      providerLabel: fallbackResult.providerLabel,
     })
 
   } catch (error) {
