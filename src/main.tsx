@@ -846,6 +846,12 @@ function suggestLayerOpenDecision(text: string, attachment?: IntakeFile): Pendin
   if (isArchVisIntent(text, attachment)) return { label: 'ArchVis Studio', openCommand: 'abrir archvis studio', goal: text }
   if (isAuthIntent(text)) return { label: 'Auth Panel', openCommand: 'abrir auth panel', goal: text }
   if (isAutoupgradeIntent(text)) return { label: 'Autoupgrade Center', openCommand: 'abrir autoupgrade center', goal: text }
+  if (isStockIntent(text)) return { label: 'Bolsa de Valores', openCommand: 'abrir bolsa de valores', goal: text }
+  if (isTripIntent(text)) return { label: 'Trip Planner', openCommand: 'abrir trip planner', goal: text }
+  if (isPipelineIntent(text)) return { label: 'Pipeline Status', openCommand: 'abrir pipeline status', goal: text }
+  if (isNRIntent(text)) return { label: 'NR Compliance CREA/OE', openCommand: 'abrir nr compliance', goal: text }
+  if (isAccountingIntent(text)) return { label: 'Contabilidade CRC', openCommand: 'abrir contabilidade', goal: text }
+  if (isPermitsIntent(text)) return { label: 'American Permits', openCommand: 'abrir american permits', goal: text }
   return null
 }
 
@@ -853,7 +859,7 @@ function isExplicitPanelOpenRequest(text: string) {
   const lower = text.toLowerCase().trim()
   const hasOpenVerb = /\b(abrir|abra|abre|open|ativar|ative|activate|launch|iniciar|start)\b/.test(lower)
   const hasProductionVerb = /\b(renderizar|renderize|renderiza|render|gerar|gere|gera|generate|fazer|faça|faca|faz|criar|crie|cria|create|produzir|produza|prepare|monte|montar|humanizar|humanize|editar|edite|edit|refazer|refaça|regenerar|regenerate|melhorar|melhore|improve|transformar|transforme|converter|converta)\b/.test(lower)
-  const hasKnownLayer = /\b(archvis|directcut|render|planta humanizada|v[ií]deo de venda|video|imagem|fachada|interior|shot list|storyboard|humaniza[cç][aã]o|planta baixa|apresenta[cç][aã]o|tour virtual|anima[cç][aã]o|prompt de render|direct.?cut)\b/.test(lower)
+  const hasKnownLayer = /\b(archvis|directcut|render|planta humanizada|v[ií]deo de venda|video|imagem|fachada|interior|shot list|storyboard|humaniza[cç][aã]o|planta baixa|apresenta[cç][aã]o|tour virtual|anima[cç][aã]o|prompt de render|direct.?cut|bolsa|stock market|a[cç][oõ]es|b3|trip|viagem|pipeline|nr crea|nr compliance|segurança do trabalho|contabilidade|accounting|crc|american permits|building permit)\b/.test(lower)
 
   if (hasOpenVerb) {
     const hasPanelWord = /\b(layer|painel|panel|studio|estudio|workspace|m[oó]dulo|modulo|console)\b/.test(lower)
@@ -868,6 +874,50 @@ function isExplicitPanelOpenRequest(text: string) {
 
 function isOwnerConsoleIntent(text: string) {
   return /\b(mission control|owner command|owner console|console owner|abrir console owner|abrir owner console)\b/i.test(text)
+}
+
+// ── Novos módulos profissionais ────────────────────────────────────────────────
+
+function isStockIntent(text: string) {
+  const lower = text.toLowerCase()
+  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|verificar|checar|check)\b/i.test(lower)
+  const hasKeyword = /\b(bolsa|bolsa de valores|a[cç][oõ]es|stock market|stock|ações|acoes|b3|ibovespa|nasdaq|bitcoin|crypto|fii|fiis|fundo imobili[aá]rio|fii|financeiro|mercado financeiro|cota[cç][aã]o|cotações|cotacoes)\b/i.test(lower)
+  return hasVerb && hasKeyword
+}
+
+function isTripIntent(text: string) {
+  const lower = text.toLowerCase()
+  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|planejar|plan|criar|create)\b/i.test(lower)
+  const hasKeyword = /\b(trip|viagem|travel|planejamento de viagem|planejar viagem|destino|destinos|roteiro|itiner[aá]rio|budget de viagem|travel budget|hospedagem|passagem|passagens)\b/i.test(lower)
+  return hasVerb && hasKeyword
+}
+
+function isPipelineIntent(text: string) {
+  const lower = text.toLowerCase()
+  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|verificar|check)\b/i.test(lower)
+  const hasKeyword = /\b(pipeline|progresso|progress|tarefas? em execu[cç][aã]o|tasks? running|status de gera[cç][aã]o|generation status|o que est[aá] rodando|oque esta rodando|andamento|em execu[cç][aã]o|tarefas? ativas?|tasks? active|filas? de gera[cç][aã]o)\b/i.test(lower)
+  return hasVerb && hasKeyword
+}
+
+function isNRIntent(text: string) {
+  const lower = text.toLowerCase()
+  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|gerar|generate|criar|create)\b/i.test(lower)
+  const hasKeyword = /\b(nr compliance|nr crea|norma regulamentadora|normas regulamentadoras|segurança do trabalho|seguranca do trabalho|nr \d+|crea|oe|ordem dos engenheiros|engenharia de seguran[cç]a|documento nr|nr\b|compliance nr)\b/i.test(lower)
+  return hasVerb && hasKeyword
+}
+
+function isAccountingIntent(text: string) {
+  const lower = text.toLowerCase()
+  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|gerar|generate|criar|create)\b/i.test(lower)
+  const hasKeyword = /\b(contabilidade|accounting|crc|contador|cont[aá]bil|dre|balanço|balanco|irpj|imposto de renda|fiscal|obriga[cç][aõ]es fiscais|demonstrativo|demonstra[cç][aã]o cont[aá]bil|escritura[cç][aã]o|lançamento contabil|lancamento contabil|livro caixa|contas a pagar|contas a receber)\b/i.test(lower)
+  return hasVerb && hasKeyword
+}
+
+function isPermitsIntent(text: string) {
+  const lower = text.toLowerCase()
+  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|gerar|generate|criar|create)\b/i.test(lower)
+  const hasKeyword = /\b(american permits?|permits? americanos?|building permits?|us permits?|construction permits?|permits? eua|permits? usa|alvar[aá] americano|licença americana|licenca americana|permit americano|international permits?|exporta[cç][aã]o de serviço|exportacao de servico)\b/i.test(lower)
+  return hasVerb && hasKeyword
 }
 
 function isCheckpointContinuationIntent(text: string) {
@@ -2329,6 +2379,12 @@ function App() {
     const shouldOpenPlatformMap = explicitPanelOpen && isPlatformMapIntent(routingText)
     const shouldOpenAutoupgrade = explicitPanelOpen && isAutoupgradeIntent(routingText)
     const shouldOpenAvatarVoice = explicitPanelOpen && isAvatarVoiceIntent(routingText)
+    const shouldOpenStock = explicitPanelOpen && isStockIntent(routingText)
+    const shouldOpenTrip = explicitPanelOpen && isTripIntent(routingText)
+    const shouldOpenPipeline = explicitPanelOpen && isPipelineIntent(routingText)
+    const shouldOpenNR = explicitPanelOpen && isNRIntent(routingText)
+    const shouldOpenAccounting = explicitPanelOpen && isAccountingIntent(routingText)
+    const shouldOpenPermits = explicitPanelOpen && isPermitsIntent(routingText)
     const shouldOpenCampaignAutomation = explicitPanelOpen && isCampaignAutomationIntent(routingText)
     const shouldOpenCopilotExecution = explicitPanelOpen && isCopilotExecutionIntent(routingText)
     const shouldOpenAgents = explicitPanelOpen && isAgentIntent(routingText)
@@ -2533,6 +2589,48 @@ function App() {
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri a Knowledge Base ao lado. Vou indexar conhecimento local/projeto sem executar conteúdo e sem marcar global sem aprovação do Owner.' }])
       setKnowledgeBaseOutput({ goal: layerGoalText, conversationContext: context })
+      setInput('')
+      return
+    }
+    if (shouldOpenStock) {
+      closeOtherPanels('stock')
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o painel da Bolsa de Valores ao lado. Mostrando cotações ao vivo, watchlist e tendências do mercado.' }])
+      setStockOutput(true)
+      setInput('')
+      return
+    }
+    if (shouldOpenTrip) {
+      closeOtherPanels('trip')
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Trip Planner ao lado. Vou ajudar a planejar sua viagem com destino, orçamento e roteiro.' }])
+      setTripOutput(true)
+      setInput('')
+      return
+    }
+    if (shouldOpenPipeline) {
+      closeOtherPanels('pipeline')
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Pipeline Status ao lado. Mostrando tarefas em execução, progresso e histórico de geração.' }])
+      setPipelineOutput(true)
+      setInput('')
+      return
+    }
+    if (shouldOpenNR) {
+      closeOtherPanels('nr')
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o NR Compliance CREA/OE ao lado. Disponivel: NR-6 EPI, NR-8 Edificacoes, NR-10 Eletrica, NR-12 Maquinas, NR-18 Construcao Civil, NR-20 Inflamaveis, NR-33 Espaco Confinado, NR-35 Altura. Preencha os dados e gere o documento.' }])
+      setNrOutput(true)
+      setInput('')
+      return
+    }
+    if (shouldOpenAccounting) {
+      closeOtherPanels('accounting')
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri a Contabilidade CRC ao lado. Disponivel: DRE, IRPJ, obrigacoes fiscais e livro diario com assinatura CRC.' }])
+      setAccountingOutput(true)
+      setInput('')
+      return
+    }
+    if (shouldOpenPermits) {
+      closeOtherPanels('permits')
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o American Permits ao lado. Disponivel: 8 tipos de permit americano com checklist, fee estimado e formulario padrao.' }])
+      setPermitsOutput(true)
       setInput('')
       return
     }
