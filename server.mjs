@@ -6868,6 +6868,20 @@ const server = http.createServer(async (req, res) => {
     return
   }
 
+  // ── Digital Twin IoT API (ACIP) ────────────────────────────────────────────────
+  if (req.url?.startsWith('/api/digital-twin/') && ['GET'].includes(req.method)) {
+    const { default: handler } = await import('./api/digital-twin/index.mjs')
+    handler(req, res)
+    return
+  }
+
+  // ── Enterprise Integrations API (ACIP) ──────────────────────────────────────────
+  if (req.url?.startsWith('/api/enterprise/') && ['GET'].includes(req.method)) {
+    const { default: handler } = await import('./api/enterprise/index.mjs')
+    handler(req, res)
+    return
+  }
+
   // ── Pipeline Status API ───────────────────────────────────────────────────────
   if (req.url === '/api/pipeline/active' && req.method === 'GET') {
     const ps = await import('./server/service/pipelineStatus.mjs')

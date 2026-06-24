@@ -73,6 +73,8 @@ The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.m
 | 48 | ACIP: Qualidade / NCIs | `server/service/qualidadeNCIs.mjs` + `QualidadeNCIsPanel` | ✅ LIVE (ACIP) |
 | 49 | ACIP: Workflow Tasks | `server/service/workflowTasks.mjs` + `WorkflowTasksPanel` | ✅ LIVE (ACIP) |
 | 50 | ACIP: Predictive Analytics | `server/service/predictiveAnalytics.mjs` + `PredictiveAnalyticsPanel` | ✅ LIVE (ACIP) |
+| 51 | ACIP: Digital Twin IoT | `server/service/digitalTwinIoT.mjs` + 6 sensores | ✅ LIVE (ACIP) |
+| 52 | ACIP: Enterprise Integrations | 15 conectores (Revit, SAP, n8n, LangGraph...) | ✅ LIVE (ACIP) |
 
 ## Deployment map
 
@@ -189,7 +191,7 @@ Todos os provedores abaixo estão **configurados e operacionais** (chaves no `.e
 | Autodesk APS | `APS_CLIENT_ID` + `APS_CLIENT_SECRET` | 🔒 Local-only | API Revit/BIM360 |
 
 *Last updated: 2026-06-24 (23:59)*
-*Status: ALL 50 MODULES DONE (42 Apex + 8 ACIP) — 10 PROVEDORES ATIVOS — 14 CONECTORES — ENV SYNC AUDITADO — Deploy LIVE*
+*Status: ALL 52 MODULES DONE (42 Apex + 10 ACIP) — 10 PROVEDORES ATIVOS — 14 CONECTORES — ENV SYNC AUDITADO — Deploy LIVE*
 *Active pending work moved to `CHECKPOINT_TRACKER.md`.*
 
 - Active pending work moved to `CHECKPOINT_TRACKER.md`.

@@ -189,7 +189,9 @@ Apenas local (não vai para Vercel): `LOCAL_WORKER_*`, `REVIT_MCP_*`, shell/path
 | 20 | **ACIP: BIM Clash Detection** — 8 conflitos, severidades | `633ff00` | ✅ Done |
 | 21 | **ACIP: Qualidade/NCIs** — 6 NCIs, 6 checklists | `b30fc2e` | ✅ Done |
 | 22 | **ACIP: Workflow Tasks** — 8 tarefas, assignee, prazos | `4b36d70` | ✅ Done |
-| 23 | **ACIP: Predictive Analytics** — atraso, risco, gargalos | pendente | ✅ Done |
+| 23 | **ACIP: Predictive Analytics** — atraso, risco, gargalos | `ced7fdd` | ✅ Done |
+| 24 | **ACIP: Digital Twin IoT** — 6 sensores, alerts, bateria | pendente | ✅ Done |
+| 25 | **ACIP: Enterprise Integrations** — 15 conectores | pendente | ✅ Done |
 
 ## Status dos Conectores (2026-06-23)
 

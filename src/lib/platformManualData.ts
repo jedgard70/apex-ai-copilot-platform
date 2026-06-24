@@ -428,6 +428,50 @@ const SECTIONS: ManualSection[] = [
     ],
   },
   {
+    id: 'digital-twin-iot',
+    title: '🏭 Digital Twin IoT ACIP',
+    icon: '📡',
+    summary: 'Gêmeo digital da obra com sensores IoT em tempo real: temperatura, umidade, inclinação, vibração, energia e pressão.',
+    items: [
+      {
+        name: 'Sensores em Tempo Real',
+        description: '6 tipos de sensores: temperatura (concretagem), umidade (cura), inclinômetro (escavação), vibração (demolição), energia (guindaste) e pressão (bombas). Status online/offline, bateria e alertas automáticos.',
+        howToUse: 'Peça: "abrir digital twin IoT", "sensores da obra", "alertas dos sensores".',
+        example: '"quais sensores estão com bateria crítica?"',
+        availableTo: 'todos',
+      },
+      {
+        name: 'Alertas Inteligentes',
+        description: 'Sensores emitem alertas automáticos quando valores ultrapassam limites seguros. Inclinômetro com alerta de movimentação, pressão baixa nas bombas.',
+        howToUse: 'O painel mostra alertas em destaque. Sensores offline também são sinalizados.',
+        example: '"mostrar alertas ativos dos sensores"',
+        availableTo: 'todos',
+      },
+    ],
+  },
+  {
+    id: 'enterprise-integrations',
+    title: '🔗 Enterprise Integrations ACIP',
+    icon: '🌐',
+    summary: '15 conectores enterprise: BIM (Revit, Navisworks, Solibri), ERP (SAP, Oracle), CRM (HubSpot), Automação (n8n, Make, Zapier), Multi-Agent (LangGraph, CrewAI, AutoGen).',
+    items: [
+      {
+        name: 'Conectores BIM',
+        description: 'Revit, Navisworks, Tekla, ArchiCAD, Solibri e ACC (Autodesk). Importação de modelos, clashes e documentação técnica.',
+        howToUse: 'Peça: "abrir integrações enterprise", "conectores BIM".',
+        example: '"quais ferramentas BIM estão integradas?"',
+        availableTo: 'todos',
+      },
+      {
+        name: 'Conectores ERP/CRM/Automação',
+        description: 'SAP, Oracle (ERP), HubSpot (CRM), n8n, Make, Zapier (automação), LangGraph, CrewAI, AutoGen (multi-agente). Status: conectado, disponível ou planejado.',
+        howToUse: 'No painel, veja o status de cada conector e documentação de referência.',
+        example: '"qual o status da integração com SAP?"',
+        availableTo: 'todos',
+      },
+    ],
+  },
+  {
     id: 'supabase-dados',
     title: '💾 Dados e Persistência',
     icon: '🗄️',
