@@ -1,7 +1,7 @@
 # Changelog — Sessão 2026-06-23
 
 > 📅 Data: 23 de Junho de 2026
-> 👤 Owner: Dr. Edgard (jedgard70@gmail.com)
+> 👤 Owner: Dr. Edgard (<jedgard70@gmail.com>)
 > 📦 Commits: 30+ commits enviados para `main`
 
 ---
@@ -11,9 +11,10 @@
 **Nenhum agente, assistente, skill, ferramenta ou processo automatizado pode**
 **alterar, modificar, remover ou sobrescrever variáveis no `.env.local` ou**
 **nas Environment Variables do Vercel sem autorização EXPLÍCITA e VERBAL**
-**do Owner (jedgard70@gmail.com / Dr. Edgard).**
+**do Owner (<jedgard70@gmail.com> / Dr. Edgard).**
 
 Isso inclui:
+
 - `GEMINI_API_KEY`, `OPENAI_API_KEY`, `OPENAI_API_KEYROUTER`, `ANTHROPIC_API_KEY`
 - `FAL_KEY`, `ELEVENLABS_API_KEY`, `OPENCODE_GO_API_KEY`
 - `AI_GATEWAY_API_KEY`, `TAVILY_API_KEY`, `STRIPE_*`
@@ -23,6 +24,7 @@ Isso inclui:
 
 **Violações:** qualquer alteração não autorizada deve ser revertida imediatamente
 e reportada ao Owner. Esta regra está documentada em:
+
 - `AGENTS.md` — regra absoluta como seção dedicada
 - `server.mjs` — cabeçalho de proteção no topo
 - `.env.local` — aviso no topo (não commitado)
@@ -36,7 +38,7 @@ e reportada ao Owner. Esta regra está documentada em:
 ### Problemas Críticos Resolvidos
 
 | # | Problema | Causa | Correção | Commit |
-|---|---------|-------|----------|--------|
+| :--- | :--------- | :------- | :---------- | :-------- |
 | 1 | Erro 500 no Vercel | `streamWithInteractions` import quebrado | Dynamic import + remoção do export inexistente | `a836659` |
 | 2 | Gemini API key bloqueada | API_KEY_SERVICE_BLOCKED | Nova chave Gemini + enable manual | `-` |
 | 3 | Safe mode bloqueando comandos | `runApexOperatorProductionSafe` | Removido completamente | `0f1c2a4` |
