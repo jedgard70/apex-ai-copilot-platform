@@ -29,18 +29,36 @@ async function checkFal() {
   const key = process.env.FAL_KEY
   if (!key) return { id: 'fal', name: 'fal.ai (Kling Video / Flux Image)', status: 'unconfigured', message: 'FAL_KEY não configurado.', topUpUrl: 'https://fal.ai/dashboard/billing' }
   try {
-    // Quick check: validate key exists via lightweight endpoint
-    // Note: fal.ai API changed — /me and /account endpoints now return 404 with valid keys
-    // If we get auth error the key is bad; otherwise (including 404) the key is valid
     const res = await safeFetch('https://rest.fal.ai/v1/models', {
       headers: { Authorization: `Key ${key}` },
-    }, 5000)
+    }, 8000)
     if (res.ok) {
-      return { id: 'fal', name: 'fal.ai (Kling Video / Flux Image)', status: 'ok', message: 'Chave válida e API ativa.', topUpUrl: 'https://fal.ai/dashboard/billing' }
+      const data = await res.json().catch(() => ({ models: [] }))
+      const models = data.models || []
+      // Try to get wallet balance
+      let balance = null
+      try {
+        const walRes = await safeFetch('https://rest.fal.ai/v1/billing/wallet', {
+          headers: { Authorization: `Key ${key}` },
+        }, 5000)
+        if (walRes.ok) {
+          const wal = await walRes.json().catch(() => ({}))
+          balance = wal.balance || wal.credits || null
+        }
+      } catch { /* silent */ }
+      return {
+        id: 'fal', name: 'fal.ai (Kling Video / Flux Image)', status: 'ok',
+        message: `${models.length} modelos disponíveis.${balance ? ` Saldo: ${balance}.` : ''}`,
+        balance: balance ? String(balance) : null,
+        models: models.slice(0, 8).map(m => m.id || m.name || ''),
+        topUpUrl: 'https://fal.ai/dashboard/billing',
+      }
     }
     if (res.status === 401 || res.status === 403) return { id: 'fal', name: 'fal.ai', status: 'error', message: 'Chave inválida.', topUpUrl: 'https://fal.ai/dashboard/billing' }
-    // 404 = endpoint moved but key is valid (not auth error) → mark as ok
-    if (res.status === 404) return { id: 'fal', name: 'fal.ai (Kling Video / Flux Image)', status: 'ok', message: 'Chave válida (endpoint de billing atualizado).', topUpUrl: 'https://fal.ai/dashboard/billing' }
+    if (res.status === 404) {
+      // 404 = endpoint moved but key is valid
+      return { id: 'fal', name: 'fal.ai (Kling Video / Flux Image)', status: 'ok', message: 'Chave válida (endpoint atualizado).', topUpUrl: 'https://fal.ai/dashboard/billing' }
+    }
     return { id: 'fal', name: 'fal.ai', status: 'error', message: `Falha na verificação (status ${res.status}).`, topUpUrl: 'https://fal.ai/dashboard/billing' }
   } catch (err) {
     return { id: 'fal', name: 'fal.ai', status: 'error', message: `Erro de rede: ${scrub(err?.message)}`, topUpUrl: 'https://fal.ai/dashboard/billing' }
@@ -160,15 +178,23 @@ async function checkGitHub() {
   const token = process.env.GITHUB_TOKEN
   if (!token) return { id: 'github', name: 'GitHub (Repositório)', status: 'unconfigured', message: 'GITHUB_TOKEN não configurado.' }
   try {
-    const res = await safeFetch('https://api.github.com/user', {
-      headers: { Authorization: `Bearer ${token}`, 'User-Agent': 'apex-platform' },
-    })
-    if (res.ok) {
-      const data = await res.json().catch(() => ({}))
-      return { id: 'github', name: 'GitHub (Repositório)', status: 'ok', message: `Autenticado como ${data?.login || 'usuário'}.` }
+    const [userRes, rateRes] = await Promise.allSettled([
+      safeFetch('https://api.github.com/user', { headers: { Authorization: `Bearer ${token}`, 'User-Agent': 'apex-platform' } }),
+      safeFetch('https://api.github.com/rate_limit', { headers: { Authorization: `Bearer ${token}`, 'User-Agent': 'apex-platform' } }),
+    ])
+    let login = '', rateLimit = ''
+    if (userRes.status === 'fulfilled' && userRes.value.ok) {
+      const data = await userRes.value.json().catch(() => ({}))
+      login = data?.login || ''
     }
-    if (res.status === 401) return { id: 'github', name: 'GitHub (Repositório)', status: 'error', message: 'Token inválido ou expirado.' }
-    return { id: 'github', name: 'GitHub (Repositório)', status: 'warning', message: `Status ${res.status}.` }
+    if (rateRes.status === 'fulfilled' && rateRes.value.ok) {
+      const data = await rateRes.value.json().catch(() => ({}))
+      const core = data?.rate || data?.resources?.core || {}
+      const remaining = core.remaining ?? '?'
+      const limit = core.limit ?? '?'
+      rateLimit = `${remaining}/${limit} req/h`
+    }
+    return { id: 'github', name: 'GitHub (Repositório)', status: 'ok', message: `${login ? `@${login} · ` : ''}API ${rateLimit || 'ativa'}.` }
   } catch (err) {
     return { id: 'github', name: 'GitHub (Repositório)', status: 'error', message: `Erro: ${scrub(err?.message)}` }
   }
@@ -179,17 +205,24 @@ async function checkAuthKey() {
   const key = process.env.AUTHKEY_AUTHKEY
   if (!key) return { id: 'authkey', name: 'AuthKey (WhatsApp / SMS)', status: 'unconfigured', message: 'AUTHKEY_AUTHKEY não configurado.', topUpUrl: 'https://authkey.io/dashboard' }
   try {
-    const res = await safeFetch(`https://api.authkey.io/request?authkey=${key}&mobile=test&country_code=55&sid=test&name=test`, {
-      method: 'GET',
-    })
-    const data = await res.json().catch(() => ({}))
-    if (data?.status === '1' || data?.status === 1) {
-      return { id: 'authkey', name: 'AuthKey (WhatsApp / SMS)', status: 'ok', message: 'Chave válida e ativa.' }
+    // Use checkbalance endpoint instead of send request to avoid consuming credits
+    const res = await safeFetch(`https://api.authkey.io/checkbalance?authkey=${key}`, { method: 'GET' }, 8000)
+    const text = await res.text().catch(() => '')
+    // AuthKey returns plain text like "Your balance is 125 credits" or error code
+    if (text.toLowerCase().includes('balance') || text.toLowerCase().includes('credit')) {
+      const match = text.match(/(\d+(\.\d+)?)/)
+      const balance = match ? match[0] : null
+      return {
+        id: 'authkey', name: 'AuthKey (WhatsApp / SMS)', status: 'ok',
+        message: `Saldo: ${balance ? balance + ' créditos' : 'disponível'}.`,
+        balance: balance ? `${balance} créditos` : null,
+        topUpUrl: 'https://authkey.io/dashboard',
+      }
     }
-    if (String(data?.message || '').toLowerCase().includes('balance') || String(data?.message || '').toLowerCase().includes('credit')) {
-      return { id: 'authkey', name: 'AuthKey (WhatsApp / SMS)', status: 'needs-topup', message: `Saldo insuficiente: ${scrub(data?.message)}`, topUpUrl: 'https://authkey.io/dashboard' }
+    if (text.includes('203') || text.includes('expired') || text.includes('invalid')) {
+      return { id: 'authkey', name: 'AuthKey (WhatsApp / SMS)', status: 'error', message: 'Chave expirada ou inválida no servidor AuthKey.', topUpUrl: 'https://authkey.io/dashboard' }
     }
-    return { id: 'authkey', name: 'AuthKey (WhatsApp / SMS)', status: 'error', message: `Resposta inesperada: ${scrub(data?.message || res?.status)}`, topUpUrl: 'https://authkey.io/dashboard' }
+    return { id: 'authkey', name: 'AuthKey (WhatsApp / SMS)', status: 'warning', message: `Resposta: ${text.substring(0, 60)}.`, topUpUrl: 'https://authkey.io/dashboard' }
   } catch (err) {
     return { id: 'authkey', name: 'AuthKey (WhatsApp / SMS)', status: 'error', message: `Erro de rede: ${scrub(err?.message)}`, topUpUrl: 'https://authkey.io/dashboard' }
   }
@@ -208,18 +241,57 @@ async function checkFfmpeg() {
   }
 }
 
+// ─── Autodesk APS ──────────────────────────────────────────────────────────
+async function checkAps() {
+  const clientId = process.env.APS_CLIENT_ID
+  const clientSecret = process.env.APS_CLIENT_SECRET
+  if (!clientId || !clientSecret) return { id: 'aps', name: 'Autodesk Platform Services', status: 'unconfigured', message: 'APS_CLIENT_ID ou SECRET não configurado.' }
+  try {
+    const res = await safeFetch('https://developer.api.autodesk.com/authentication/v2/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `client_id=${clientId}&client_secret=${clientSecret}&grant_type=client_credentials&scope=data:read data:write bucket:create bucket:read`,
+    }, 10000)
+    if (!res.ok) return { id: 'aps', name: 'Autodesk Platform Services', status: 'error', message: `Falha na autenticação (status ${res.status}).` }
+    const data = await res.json().catch(() => ({}))
+    const expiresIn = data.expires_in || 0
+    const tokenType = data.token_type || ''
+    return {
+      id: 'aps', name: 'Autodesk Platform Services', status: 'ok',
+      message: `Autenticado (${tokenType}). Token expira em ${Math.round(expiresIn / 60)} min.`,
+      topUpUrl: 'https://aps.autodesk.com',
+    }
+  } catch (err) {
+    return { id: 'aps', name: 'Autodesk Platform Services', status: 'error', message: `Erro de rede: ${scrub(err?.message)}` }
+  }
+}
+
 // ─── Gemini (dedicated) ──────────────────────────────────────────────────────
 async function checkGemini() {
   const key = process.env.GEMINI_API_KEY
   if (!key) return { id: 'gemini', name: 'Gemini (Chat, multimodal, TTS, image)', status: 'unconfigured', message: 'GEMINI_API_KEY não configurado.', topUpUrl: 'https://aistudio.google.com/apikey' }
   try {
-    const res = await safeFetch('https://generativelanguage.googleapis.com/v1beta/models', {
+    const res = await safeFetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=100', {
       headers: { 'x-goog-api-key': key },
-    }, 6000)
-    if (res.ok) return { id: 'gemini', name: 'Gemini (Chat, multimodal, TTS, image)', status: 'ok', message: 'Chave válida.' }
-    if (res.status === 401 || res.status === 403) return { id: 'gemini', name: 'Gemini (Chat, multimodal, TTS, image)', status: 'error', message: 'Chave inválida ou expirada.', topUpUrl: 'https://aistudio.google.com/apikey' }
-    if (res.status === 429) { recordRateLimit({ provider: 'gemini', endpoint: 'models', statusCode: 429 }); return { id: 'gemini', name: 'Gemini (Chat, multimodal, TTS, image)', status: 'warning', message: 'Rate limit. Chave válida mas quota temporariamente excedida.' } }
-    return { id: 'gemini', name: 'Gemini (Chat, multimodal, TTS, image)', status: 'error', message: `Falha na verificação (status ${res.status}).`, topUpUrl: 'https://aistudio.google.com/apikey' }
+    }, 8000)
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) return { id: 'gemini', name: 'Gemini (Chat, multimodal, TTS, image)', status: 'error', message: 'Chave inválida ou expirada.', topUpUrl: 'https://aistudio.google.com/apikey' }
+      if (res.status === 429) { recordRateLimit({ provider: 'gemini', endpoint: 'models', statusCode: 429 }); return { id: 'gemini', name: 'Gemini (Chat, multimodal, TTS, image)', status: 'warning', message: 'Rate limit excedido temporariamente.' } }
+      return { id: 'gemini', name: 'Gemini', status: 'error', message: `Falha na verificação (status ${res.status}).` }
+    }
+    const data = await res.json().catch(() => ({ models: [] }))
+    const models = data.models || []
+    // Filter only Gemini models (exclude tuning/tunedModels)
+    const geminiModels = models.filter(m => (m.name || '').startsWith('models/gemini-'))
+    const modelNames = geminiModels.map(m => (m.name || '').replace('models/', '')).sort()
+    return {
+      id: 'gemini',
+      name: 'Gemini (Chat, multimodal, TTS, image)',
+      status: 'ok',
+      message: `${geminiModels.length} modelos disponíveis.`, 
+      models: modelNames.slice(0, 10), // top 10 models
+      topUpUrl: 'https://aistudio.google.com/apikey',
+    }
   } catch (err) {
     return { id: 'gemini', name: 'Gemini (Chat, multimodal, TTS, image)', status: 'error', message: `Erro de rede: ${scrub(err?.message)}`, topUpUrl: 'https://aistudio.google.com/apikey' }
   }
@@ -256,6 +328,7 @@ export default async function handler(req, res) {
     checkGitHub(),
     checkAuthKey(),
     checkFfmpeg(),
+    checkAps(),
   ])
 
   const providers = checks.map(r =>
