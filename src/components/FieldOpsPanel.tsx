@@ -238,14 +238,17 @@ export function FieldOpsPanel({
   const snapshot = currentPlan()
 
   return (
-    <section className="contracts-studio fieldops-studio" aria-label="Field Operations RDO Studio">
-      <div className="contracts-heading">
+    <section className="contracts-studio fieldops-studio" aria-label="Field Operations RDO Studio" style={{ background: '#0B1221' }}>
+      <div className="contracts-heading" style={{ background: 'rgba(22,33,62,0.7)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: '12px 16px', marginBottom: 12 }}>
         <div>
-          <span>Field Operations / RDO Studio</span>
-          <h2>Daily reports, progress, quality, safety and punch list</h2>
-          <p>No field condition is treated as verified unless supported by photo or user-provided field data. Weather is manual unless a connector supplies it.</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <span className="material-symbols-outlined" style={{ color: '#6C47FF', fontSize: 18 }}>engineering</span>
+            <span style={{ color: '#6C47FF', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Field Operations / RDO Studio</span>
+          </div>
+          <h2 style={{ margin: '2px 0', fontSize: 16, fontWeight: 600, color: '#e2e2e2' }}>Daily reports, progress, quality, safety and punch list</h2>
+          <p style={{ fontSize: 11, color: '#c6c6ce', margin: 0 }}>No field condition is treated as verified unless supported by photo or user-provided field data. Weather is manual unless a connector supplies it.</p>
         </div>
-        <button className="ghost-action" type="button" onClick={onClear} aria-label="Close Field Operations Studio">
+        <button className="ghost-action" type="button" onClick={onClear} aria-label="Close Field Operations Studio" style={{ color: '#c6c6ce' }}>
           <X size={16} />
         </button>
       </div>
