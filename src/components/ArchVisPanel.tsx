@@ -124,7 +124,8 @@ function RenderingEditor({ source, output, conversationContext, revisionConstrai
     setLoading(true)
     setSamples(0)
     if (samplesRef.current) clearInterval(samplesRef.current)
-    samplesRef.current = setInterval(() => setSamples(s => Math.min(s + Math.round(Math.random() * 15), 500)), 400)
+    // Loading animation — actual API progress unknown, increments as elapsed time indicator
+    samplesRef.current = setInterval(() => setSamples(s => Math.min(s + 1, 499)), 2000)
 
     try {
       const res = await fetch('/api/copilot/generate-image', {
@@ -563,9 +564,7 @@ export function ArchVisPanel({ source, output, conversationContext, revisionCons
 
           {/* Nav */}
           <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <NavItem icon={<LayoutDashboard size={16} />} label="Dashboard" active={tab === 'dashboard'} onClick={() => setTab('dashboard')} />
             <NavItem icon={<Settings size={16} />} label="Rendering Editor" active={tab === 'editor'} onClick={() => setTab('editor')} />
-            <NavItem icon={<Layers size={16} />} label="Material Library" active={tab === 'materials'} onClick={() => setTab('materials')} />
             <NavItem icon={<ImageIcon size={16} />} label="Results Gallery" active={tab === 'gallery'} onClick={() => setTab('gallery')} />
           </nav>
 
@@ -592,13 +591,6 @@ export function ArchVisPanel({ source, output, conversationContext, revisionCons
             />
           )}
           {tab === 'gallery' && <ResultsGallery />}
-          {(tab === 'dashboard' || tab === 'materials') && (
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 10, color: T.onSurfaceVariant }}>
-              {tab === 'dashboard' ? <LayoutDashboard size={36} style={{ opacity: 0.3 }} /> : <Layers size={36} style={{ opacity: 0.3 }} />}
-              <p style={{ fontSize: 13 }}>{tab === 'dashboard' ? 'Dashboard' : 'Material Library'} — em breve</p>
-              <button onClick={() => setTab('editor')} style={{ fontSize: 12, color: T.primary, background: 'none', border: 'none', cursor: 'pointer' }}>Ir para Rendering Editor →</button>
-            </div>
-          )}
         </div>
       </div>
 
