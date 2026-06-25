@@ -1566,16 +1566,18 @@ function App() {
   const [modelProvider, setModelProvider] = useState<string>('')
   const [manualModelProvider, setManualModelProvider] = useState<ManualModelProvider>('gemini')
   const [providerLedStatuses, setProviderLedStatuses] = useState<Array<{ id: string; label: string; hasKey: boolean; tooltip?: string; topUpUrl?: string }>>(() => {
-    // Default: all 9 providers shown; will be updated from /api/copilot/provider-status
+    // Default: 10 live providers; will be updated from /api/copilot/provider-status
     const defaults: Array<{ id: string; label: string; hasKey: boolean; tooltip?: string; topUpUrl?: string }> = [
       { id: 'gemini', label: 'Gemini', hasKey: false },
-      { id: 'gemini', label: 'Gemini', hasKey: false },
-      { id: 'openrouter', label: 'OpenRouter', hasKey: false },
       { id: 'fal', label: 'FAL.ai', hasKey: false },
       { id: 'elevenlabs', label: 'ElevenLabs', hasKey: false },
-      { id: 'gateway', label: 'Gateway', hasKey: false },
-      { id: 'opencode', label: 'Code Go', hasKey: false },
       { id: 'firebase', label: 'Firebase', hasKey: false },
+      { id: 'authkey', label: 'AuthKey', hasKey: false },
+      { id: 'github', label: 'GitHub', hasKey: false },
+      { id: 'stripe', label: 'Stripe', hasKey: false },
+      { id: 'supabase', label: 'Supabase', hasKey: false },
+      { id: 'tavily', label: 'Tavily', hasKey: false },
+      { id: 'ffmpeg', label: 'FFmpeg', hasKey: false },
     ]
     return defaults
   })

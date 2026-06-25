@@ -13,12 +13,12 @@ type StatusData = {
 }
 
 const PROVIDER_LABELS: Record<string, string> = {
-  openrouter: 'OpenRouter', gemini: 'Gemini', openai: 'OpenAI', fal: 'FAL.ai',
-  elevenlabs: 'ElevenLabs', opencode: 'OpenCode Go', gateway: 'Gateway', firebase: 'Firebase',
+  gemini: 'Gemini', fal: 'FAL.ai',
+  elevenlabs: 'ElevenLabs', firebase: 'Firebase',
   authkey: 'AuthKey', github: 'GitHub', stripe: 'Stripe',
   supabase: 'Supabase', tavily: 'Tavily', ffmpeg: 'FFmpeg',
 }
-const ALL_KEYS = ['openrouter','gemini','openai','fal','elevenlabs','opencode','gateway','firebase','authkey','github','stripe','supabase','tavily','ffmpeg']
+const ALL_KEYS = ['gemini','fal','elevenlabs','firebase','authkey','github','stripe','supabase','tavily','ffmpeg']
 
 // 62 modules do Ecossistema Apex — mapeamento do Platform Map
 const MODULES = [
@@ -121,18 +121,16 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                 {MODULES.length} Modules Total →
               </button>
             </div>
-            <div className="grid grid-cols-7 gap-2 mb-6">
-              {MODULES.slice(0, 28).map((m, i) => {
-                // Simulate module readiness: first 19 ready, next 5 partial, last 4 planned
-                const state = i < 19 ? 'ready' : i < 24 ? 'partial' : 'planned'
+            <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 mb-6">
+              {MODULES.slice(0, 20).map((m, i) => {
+                const state = i < 13 ? 'ready' : i < 17 ? 'partial' : 'planned'
+                const stateColor = state === 'ready' ? 'bg-secondary-fixed text-[#00363a]' : state === 'partial' ? 'bg-secondary-fixed/40 border border-secondary-fixed/30 text-secondary-fixed' : 'bg-outline-variant/20 text-on-surface-variant'
                 return (
                   <div key={i} title={`${m}: ${state}`}
                     onClick={() => onNavigate?.('navigator')}
-                    className={`h-8 rounded cursor-pointer transition-all hover:scale-110 ${
-                      state === 'ready' ? 'bg-secondary-fixed' :
-                      state === 'partial' ? 'bg-secondary-fixed/40 border border-secondary-fixed/30' :
-                      'bg-outline-variant/20'
-                    }`} />
+                    className={`px-2 py-1.5 rounded text-[9px] font-medium cursor-pointer transition-all hover:scale-105 truncate text-center ${stateColor}`}>
+                    {m}
+                  </div>
                 )
               })}
             </div>
@@ -140,11 +138,11 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           <div className="flex gap-4 text-label-sm font-label-sm">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-secondary-fixed" />
-              <span className="text-on-surface-variant">{Math.floor(MODULES.length * 0.68)} Ready</span>
+              <span className="text-on-surface-variant">13 Ready</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-secondary-fixed/40 border border-secondary-fixed/30" />
-              <span className="text-on-surface-variant">{Math.ceil(MODULES.length * 0.18)} Partial</span>
+              <span className="text-on-surface-variant">4 Partial</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-outline-variant/20" />

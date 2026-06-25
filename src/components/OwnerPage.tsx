@@ -11,9 +11,10 @@ type AnalyticsData = { providers: AnalyticsProvider[]; summary: { totalCalls: nu
 type KeyLifecycleEntry = { id: string; provider: string; name: string; configured: boolean; status: string; ageDays: number | null; maxAgeDays: number; critical: boolean; recommendation: string }
 
 const PROVIDER_LABELS: Record<string, string> = {
-  openai: 'OpenAI', gemini: 'Gemini', anthropic: 'Anthropic', openrouter: 'OpenRouter',
-  fal: 'FAL.ai', elevenlabs: 'ElevenLabs', gateway: 'Gateway', opencode: 'OpenCode Go',
+  gemini: 'Gemini',
+  fal: 'FAL.ai', elevenlabs: 'ElevenLabs',
   firebase: 'Firebase', tavily: 'Tavily', stripe: 'Stripe', supabase: 'Supabase',
+  authkey: 'AuthKey', github: 'GitHub', ffmpeg: 'FFmpeg',
 }
 
 const STATUS_COLORS: Record<string, string> = {
