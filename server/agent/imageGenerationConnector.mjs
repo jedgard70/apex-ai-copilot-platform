@@ -163,9 +163,22 @@ export async function generateImage({ prompt, size = '1024x1024', quality = 'sta
     const imageUrl = data?.data?.[0]?.url
     const revisedPrompt = data?.data?.[0]?.revised_prompt
 
+    // Convert OpenAI temporary URL to permanent base64 data URL
+    let permanentUrl = imageUrl
+    if (imageUrl && !imageUrl.startsWith('data:')) {
+      try {
+        const imgRes = await fetch(imageUrl)
+        if (imgRes.ok) {
+          const buffer = Buffer.from(await imgRes.arrayBuffer())
+          const b64 = buffer.toString('base64')
+          permanentUrl = `data:image/png;base64,${b64}`
+        }
+      } catch { /* keep original URL if download fails */ }
+    }
+
     return {
       ok: true,
-      imageUrl,
+      imageUrl: permanentUrl,
       revisedPrompt: revisedPrompt || prompt,
       model,
       size,
@@ -224,7 +237,7 @@ export function buildImageResultReply(result, prompt) {
     result.revisedPrompt !== prompt ? `_Prompt revisado pelo modelo: ${result.revisedPrompt}_` : '',
     '',
     `Modelo: ${result.model} | Tamanho: ${result.size}`,
-    'Nenhum segredo foi exposto. A URL da imagem expira em 60 minutos.',
+    'A imagem é armazenada permanentemente no projeto.',
   ].filter(Boolean).join('\n')
 }
 
