@@ -21,7 +21,7 @@ const S = {
   border: 'rgba(255,255,255,0.1)',
 }
 
-export function CrmPipelinePanel({ onClear }: { onClear: () => void }) {
+export function CrmPipelinePanel({ onClear, onSendToMarketing }: { onClear: () => void; onSendToMarketing?: (count: number) => void }) {
   const [leads, setLeads] = useState<any[]>([])
   const [stages, setStages] = useState<any[]>([])
   const [kpis, setKpis] = useState<any>(null)
@@ -111,6 +111,12 @@ export function CrmPipelinePanel({ onClear }: { onClear: () => void }) {
           <button onClick={onClear} style={{ width: 30, height: 30, borderRadius: 6, background: 'rgba(255,255,255,0.05)', border: `1px solid ${S.border}`, color: S.textDim, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <X size={13} />
           </button>
+          {onSendToMarketing && leads.length > 0 && (
+            <button onClick={() => onSendToMarketing(leads.length)}
+              style={{ padding: '6px 14px', borderRadius: 8, background: '#f59e0b', color: '#fff', border: 'none', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+              🎯 Leads p/ Marketing ({leads.length})
+            </button>
+          )}
         </div>
       </div>
 
