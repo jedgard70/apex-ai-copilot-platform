@@ -83,10 +83,8 @@ export default function AppLayout({
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
 
-  // Debug: log isMobile status
-  if (typeof window !== 'undefined') {
-    console.log('[AppLayout] isMobile:', isMobile, 'isTablet:', isTablet, 'width:', window.innerWidth)
-  }
+  // Debug: mostrar status na tela (temporário)
+  const debugInfo = `Mobile: ${isMobile} | Tablet: ${isTablet} | Width: ${typeof window !== 'undefined' ? window.innerWidth : 'N/A'}`
 
   const handleNav = (id: string) => {
     setNavActive(id)
@@ -107,6 +105,10 @@ export default function AppLayout({
 
   return (
     <div className="min-h-screen bg-background text-on-surface font-inter selection:bg-primary/30">
+      {/* Debug info - temporário */}
+      <div style={{ position: 'fixed', top: '100px', right: '10px', background: 'red', color: 'white', padding: '10px', borderRadius: '8px', zIndex: 9999, fontSize: '12px', fontWeight: 'bold' }}>
+        {debugInfo}
+      </div>
       {/* ── HEADER ── */}
       <header className={`fixed top-0 w-full z-40 bg-surface/90 border-b border-outline-variant/10 backdrop-blur-md flex justify-between items-center px-container-margin ${isMobile ? 'h-14 px-3' : 'h-toolbar-width'}`}>
         {/* LEFT SIDE */}
