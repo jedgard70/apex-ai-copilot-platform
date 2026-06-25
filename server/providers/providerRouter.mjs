@@ -2,8 +2,7 @@
  * server/providers/providerRouter.mjs
  *
  * Provider Router with automatic failover.
- * Busca TODOS os modelos disponiveis dinamicamente da API de cada provedor.
- * ORDEM: Gemini FREE → OpenRouter → OpenCode Go → FAL.ai → OpenAI → AI Gateway
+ * Apenas provedores autorizados: Gemini e FAL.ai
  * NUNCA mostra erro para o usuario final.
  */
 
@@ -28,7 +27,8 @@ async function fetchModels(url, headers, extractor) {
 }
 
 async function getGeminiModels(apiKey) {
-  const base = process.env.GEMINI_API_BASE || "https://generativelanguage.googleapis.com/v1beta"
+  // /v1beta sem /openai para listar modelos
+  const base = "https://generativelanguage.googleapis.com/v1beta"
   return fetchModels(`${base}/models?key=${apiKey}`, {}, (data) => {
     return (data.models || [])
       .filter(m => m.supportedGenerationMethods?.includes("generateContent"))
@@ -39,29 +39,7 @@ async function getGeminiModels(apiKey) {
   })
 }
 
-async function getOpenRouterModels(apiKey, baseUrl) {
-  return fetchModels(`${baseUrl}/models`, {
-    Authorization: `Bearer ${apiKey}`,
-  }, (data) => {
-    return (data.data || []).map(m => ({
-      id: m.id,
-      name: m.name || m.id,
-    }))
-  })
-}
-
-async function getOpenCodeModels(apiKey) {
-  return fetchModels("https://opencode.ai/zen/go/v1/models", {
-    Authorization: `Bearer ${apiKey}`,
-  }, (data) => {
-    return (data.data || []).map(m => ({
-      id: m.id,
-      name: m.id,
-    }))
-  })
-}
-
-async function getFalModels(apiKey) {
+async function getFalModels() {
   // FAL nao tem endpoint de modelos de chat publico via API
   // Usamos lista estatica dos mais conhecidos
   return [
@@ -77,73 +55,29 @@ async function getFalModels(apiKey) {
 
 const providerOrder = [
   { name: "gemini", label: "Gemini FREE" },
-  { name: "openrouter", label: "OpenRouter" },
-  { name: "opencode", label: "OpenCode Go" },
   { name: "fal", label: "FAL.ai" },
-  { name: "openai", label: "OpenAI" },
-  { name: "gateway", label: "AI Gateway" },
 ]
 
 export async function getProviderChain(options = {}) {
   const chain = []
   const geminiKey = (process.env.GEMINI_API_KEY || "").trim()
-  const orKey = (process.env.OPENAI_API_KEYROUTER || process.env.OPENAI_API_KEY || "").trim()
-  const ocKey = (process.env.OPENCODE_GO_API_KEY || "").trim()
   const falKey = (process.env.FAL_KEY || process.env.FAL_API_KEY || "").trim()
-  const openaiKey = (process.env.OPENAI_API_KEY || "").trim()
-  const gwKey = (process.env.AI_GATEWAY_API_KEY || "").trim()
 
-  // 1. GEMINI FREE — busca TODOS os modelos da API
+  // Gemini — usa /openai para compatibilidade com chat/completions
   if (geminiKey) {
-    const base = process.env.GEMINI_API_BASE || "https://generativelanguage.googleapis.com/v1beta/openai"
+    const chatBase = process.env.GEMINI_API_BASE || "https://generativelanguage.googleapis.com/v1beta/openai"
     const models = await getGeminiModels(geminiKey)
     if (models.length > 0) {
-      chain.push({ name: "gemini", baseUrl: base, apiKey: geminiKey, model: models[0].id, label: "Gemini FREE", models: models.map(m => m.id) })
+      chain.push({ name: "gemini", baseUrl: chatBase, apiKey: geminiKey, model: models[0].id, label: "Gemini FREE", models: models.map(m => m.id) })
     } else {
-      // Fallback estatico se API falhar
-      chain.push({ name: "gemini", baseUrl: base, apiKey: geminiKey, model: "gemini-3.1-flash-lite", label: "Gemini FREE" })
+      chain.push({ name: "gemini", baseUrl: chatBase, apiKey: geminiKey, model: "gemini-3.1-flash-lite", label: "Gemini FREE" })
     }
   }
 
-  // 2. OPENROUTER — busca TODOS os modelos da API (300+)
-  if (orKey) {
-    const orBase = (process.env.OPENAI_API_BASEROUTER || process.env.OPENAI_API_BASE || "https://openrouter.ai/api/v1").trim()
-    if (orBase.includes("openrouter.ai")) {
-      const models = await getOpenRouterModels(orKey, orBase)
-      if (models.length > 0) {
-        chain.push({ name: "openrouter", baseUrl: orBase, apiKey: orKey, model: models[0].id, label: "OpenRouter", models: models.map(m => m.id) })
-      } else {
-        chain.push({ name: "openrouter", baseUrl: orBase, apiKey: orKey, model: "openai/gpt-4o-mini", label: "OpenRouter" })
-      }
-    }
-  }
-
-  // 3. OPENCODE GO — busca TODOS os modelos da API
-  if (ocKey) {
-    const models = await getOpenCodeModels(ocKey)
-    if (models.length > 0) {
-      chain.push({ name: "opencode", baseUrl: "https://opencode.ai/zen/go/v1", apiKey: ocKey, model: models[0].id, label: "OpenCode Go", models: models.map(m => m.id) })
-    } else {
-      chain.push({ name: "opencode", baseUrl: "https://opencode.ai/zen/go/v1", apiKey: ocKey, model: "deepseek-v4-flash", label: "OpenCode Go" })
-    }
-  }
-
-  // 4. FAL.AI
+  // FAL.ai
   if (falKey) {
-    chain.push({ name: "fal", baseUrl: "https://api.fal.ai/v1", apiKey: falKey, model: "fal-ai/mistral-large", label: "FAL.ai", models: (await getFalModels(falKey)).map(m => m.id) })
-  }
-
-  // 5. OPENAI DIRECT
-  if (!chain.some(p => p.name === "openrouter")) {
-    const openaiBase = (process.env.OPENAI_API_BASE || "https://api.openai.com/v1").trim()
-    if (openaiKey && !openaiBase.includes("openrouter.ai")) {
-      chain.push({ name: "openai", baseUrl: openaiBase, apiKey: openaiKey, model: "gpt-4o-mini", label: "OpenAI" })
-    }
-  }
-
-  // 6. AI GATEWAY
-  if (gwKey) {
-    chain.push({ name: "gateway", baseUrl: process.env.AI_GATEWAY_API_BASE || "https://gateway.ai.vercel.ai/v1", apiKey: gwKey, model: "openai/gpt-4o-mini", label: "AI Gateway" })
+    const models = await getFalModels()
+    chain.push({ name: "fal", baseUrl: "https://api.fal.ai/v1", apiKey: falKey, model: "fal-ai/mistral-large", label: "FAL.ai", models: models.map(m => m.id) })
   }
 
   return chain
@@ -173,7 +107,6 @@ export async function chatWithFallback(params) {
         const body = { model, messages, temperature: toolRound > 0 ? 0.45 : temperature, max_tokens: toolRound > 0 ? 1500 : maxTokens }
         if (tools && toolRound === 0) { body.tools = tools; body.tool_choice = "auto"; body.frequency_penalty = 0.2 }
         const headers = { Authorization: `Bearer ${provider.apiKey}`, "Content-Type": "application/json" }
-        if (provider.baseUrl.includes("openrouter.ai")) { headers["HTTP-Referer"] = "https://apex-ai-copilot-platform.vercel.app"; headers["X-Title"] = "Apex AI Copilot" }
         const response = await fetch(`${provider.baseUrl}/chat/completions`, { method: "POST", headers, body: JSON.stringify(body), signal: AbortSignal.timeout(35000) })
         if (response.ok) {
           const data = await response.json()
