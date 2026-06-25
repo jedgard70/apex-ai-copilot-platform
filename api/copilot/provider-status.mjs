@@ -1,6 +1,8 @@
 // Provider Status API — checks balance/health of all paid API keys
 // Returns: { providers: ProviderStatus[], checkedAt: string }
 
+import { recordRateLimit } from '../../server/service/rateLimitMonitor.mjs'
+
 function sendJson(res, status, body) {
   res.status(status).json(body)
 }
@@ -61,6 +63,7 @@ async function checkAiGateway() {
     }
     if (res.status === 401 || res.status === 403) return { id: 'gateway', name: 'AI Gateway / Google Veo (Vídeo)', status: 'error', message: 'Chave inválida.', topUpUrl: 'https://vercel.com/dashboard/ai' }
     if (res.status === 429) {
+      recordRateLimit({ provider: 'ai-gateway', endpoint: 'gateway', statusCode: 429 })
       const d = await res.json().catch(() => ({}))
       const msg = String(d?.error?.message || d?.message || '').toLowerCase()
       if (msg.includes('quota') || msg.includes('credit') || msg.includes('balance')) {
@@ -90,7 +93,7 @@ async function checkOpenAI() {
       return { id: 'openai', name: 'OpenAI / Gemini (Chat principal)', status: 'ok', message: `Chave válida. Modelo ativo: ${model}.` }
     }
     if (res.status === 401) return { id: 'openai', name: 'OpenAI / Gemini (Chat principal)', status: 'error', message: 'Chave inválida ou expirada.' }
-    if (res.status === 429) return { id: 'openai', name: 'OpenAI / Gemini (Chat principal)', status: 'needs-topup', message: 'Rate limit / quota atingida. Verifique o saldo.', topUpUrl: 'https://platform.openai.com/settings/billing' }
+    if (res.status === 429) { recordRateLimit({ provider: 'openai', endpoint: 'models', statusCode: 429 }); return { id: 'openai', name: 'OpenAI / Gemini (Chat principal)', status: 'needs-topup', message: 'Rate limit / quota atingida. Verifique o saldo.', topUpUrl: 'https://platform.openai.com/settings/billing' } }
     return { id: 'openai', name: 'OpenAI / Gemini (Chat principal)', status: 'warning', message: `Resposta ${res.status}.` }
   } catch (err) {
     return { id: 'openai', name: 'OpenAI / Gemini (Chat principal)', status: 'error', message: `Erro: ${scrub(err?.message)}` }
@@ -107,7 +110,7 @@ async function checkAnthropic() {
     })
     if (res.ok) return { id: 'anthropic', name: 'Anthropic Claude (Chat alternativo)', status: 'ok', message: 'Chave válida.' }
     if (res.status === 401) return { id: 'anthropic', name: 'Anthropic Claude (Chat alternativo)', status: 'error', message: 'Chave inválida.' }
-    if (res.status === 429) return { id: 'anthropic', name: 'Anthropic Claude (Chat alternativo)', status: 'needs-topup', message: 'Rate limit atingido. Verifique créditos.', topUpUrl: 'https://console.anthropic.com/settings/billing' }
+    if (res.status === 429) { recordRateLimit({ provider: 'anthropic', endpoint: 'models', statusCode: 429 }); return { id: 'anthropic', name: 'Anthropic Claude (Chat alternativo)', status: 'needs-topup', message: 'Rate limit atingido. Verifique créditos.', topUpUrl: 'https://console.anthropic.com/settings/billing' } }
     return { id: 'anthropic', name: 'Anthropic Claude (Chat alternativo)', status: 'warning', message: `Status ${res.status}.` }
   } catch (err) {
     return { id: 'anthropic', name: 'Anthropic Claude (Chat alternativo)', status: 'error', message: `Erro: ${scrub(err?.message)}` }
@@ -162,7 +165,7 @@ async function checkTavily() {
     })
     if (res.ok) return { id: 'tavily', name: 'Tavily (Pesquisa Web)', status: 'ok', message: 'Chave válida.' }
     if (res.status === 401 || res.status === 403) return { id: 'tavily', name: 'Tavily (Pesquisa Web)', status: 'error', message: 'Chave inválida ou expirada.', topUpUrl: 'https://app.tavily.com' }
-    if (res.status === 429) return { id: 'tavily', name: 'Tavily (Pesquisa Web)', status: 'needs-topup', message: 'Quota mensal atingida.', topUpUrl: 'https://app.tavily.com' }
+    if (res.status === 429) { recordRateLimit({ provider: 'tavily', endpoint: 'search', statusCode: 429 }); return { id: 'tavily', name: 'Tavily (Pesquisa Web)', status: 'needs-topup', message: 'Quota mensal atingida.', topUpUrl: 'https://app.tavily.com' } }
     return { id: 'tavily', name: 'Tavily (Pesquisa Web)', status: 'warning', message: `Status ${res.status}.`, topUpUrl: 'https://app.tavily.com' }
   } catch (err) {
     return { id: 'tavily', name: 'Tavily (Pesquisa Web)', status: 'error', message: `Erro: ${scrub(err?.message)}`, topUpUrl: 'https://app.tavily.com' }
@@ -337,7 +340,7 @@ async function checkGeminiDedicated() {
     }, 6000)
     if (res.ok) return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'ok', message: 'Chave válida.' }
     if (res.status === 401 || res.status === 403) return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'error', message: 'Chave inválida ou expirada.', topUpUrl: 'https://aistudio.google.com/apikey' }
-    if (res.status === 429) return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'warning', message: 'Rate limit. Chave configurada.' }
+    if (res.status === 429) { recordRateLimit({ provider: 'gemini', endpoint: 'models', statusCode: 429 }); return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'warning', message: 'Rate limit. Chave configurada.' } }
     return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'warning', message: `Status ${res.status}. Chave configurada.` }
   } catch (err) {
     return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'ok', message: 'Chave configurada (Google API não respondeu).' }
