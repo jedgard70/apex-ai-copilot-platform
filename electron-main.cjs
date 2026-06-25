@@ -26,6 +26,65 @@ function getUnpackedPath(relativeFile) {
   return path.join(root, relativeFile);
 }
 
+// ─ Auto-update with electron-updater ──
+let autoUpdater = null;
+try {
+  autoUpdater = require('electron-updater').autoUpdater;
+  autoUpdater.logger = {
+    info: (msg) => log(`[auto-update] ${msg}`),
+    warn: (msg) => log(`[auto-update] ${msg}`),
+    error: (msg) => log(`[auto-update] ${msg}`),
+    debug: (msg) => log(`[auto-update] ${msg}`),
+  };
+
+  autoUpdater.on('checking-for-update', () => {
+    log('[auto-update] Checking for update...');
+  });
+
+  autoUpdater.on('update-available', (info) => {
+    log(`[auto-update] Update available: ${info.version}`);
+    if (mainWindow) {
+      mainWindow.webContents.send('update-available', info.version);
+    }
+  });
+
+  autoUpdater.on('update-not-available', () => {
+    log('[auto-update] No update available');
+  });
+
+  autoUpdater.on('error', (err) => {
+    log(`[auto-update] Error: ${err.message}`);
+  });
+
+  autoUpdater.on('download-progress', (progressObj) => {
+    const percent = Math.round(progressObj.percent);
+    log(`[auto-update] Download: ${percent}%`);
+    if (mainWindow) {
+      mainWindow.webContents.send('update-progress', percent);
+    }
+  });
+
+  autoUpdater.on('update-downloaded', (info) => {
+    log(`[auto-update] Update downloaded: ${info.version}`);
+    if (mainWindow) {
+      mainWindow.webContents.send('update-downloaded', info.version);
+    }
+    // Auto-install after 5 seconds
+    setTimeout(() => {
+      autoUpdater.quitAndInstall();
+    }, 5000);
+  });
+} catch (err) {
+  log(`[auto-update] Failed to load electron-updater: ${err.message}`);
+}
+
+function checkForUpdates() {
+  if (autoUpdater && app.isPackaged) {
+    log('[auto-update] Starting update check...');
+    autoUpdater.checkForUpdatesAndNotify();
+  }
+}
+
 function startServers() {
   log('[electron-main] Starting servers using utilityProcess...');
 
@@ -243,6 +302,11 @@ app.on('ready', () => {
     }
     createWindow();
   });
+
+  // Check for updates after 10 seconds (give server time to start)
+  setTimeout(() => {
+    checkForUpdates();
+  }, 10000);
 });
 
 app.on('window-all-closed', () => {

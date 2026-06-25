@@ -3976,14 +3976,14 @@ function App() {
         <ProviderDetailPanel onClear={() => setActiveView('dashboard')} />
       ) : (
         // ── Split 70/30 — Painel + Chat lado a lado ──
-        <div className="h-full" style={{ display: 'flex', flexDirection: 'row', overflow: 'hidden', height: '100%' }}>
-          {/* Panel — only shown when there's an active panel view */}
-          {activeView !== 'chat' && activeView !== 'client-dashboard' && (
+        <div className="h-full" style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow: 'hidden', height: '100%' }}>
+          {/* Panel — hidden on mobile, 70% on desktop */}
+          {activeView !== 'chat' && activeView !== 'client-dashboard' && !isMobile && (
           <section style={{ flex: '1 1 70%', display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, minWidth: 0, overflow: 'hidden' }}>
             {renderPanelContent(activeView)}
           </section>
           )}
-          {/* Chat — 30% when panel open, 100% when chat-only mode */}
+          {/* Chat — 30% when panel open, 100% when chat-only mode, hidden on mobile */}
           {!isMobile && (
           <section className="chat-shell" aria-label="Apex AI Copilot chat" style={{ flex: activeView === 'chat' ? '1 1 100%' : '0 0 30%', display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, minWidth: 0, borderLeft: activeView === 'chat' ? 'none' : '1px solid rgba(150, 164, 195, 0.15)' }}>
             {/* ── Top Bar: Model + Actions ── */}
