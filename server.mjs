@@ -54,7 +54,7 @@ function normalizeEnvironmentAliases() {
   const aliasPairs = [
     ['Local_Worker_URL', 'LOCAL_WORKER_URL'],
     ['Local_Worker_TOKEN', 'LOCAL_WORKER_TOKEN'],
-    ['OPENAI_MODELROUTER', 'OPENAI_MODEL'],
+    ['GEMINI_MODELROUTER', 'GEMINI_MODEL'],
   ]
   for (const [fromKey, toKey] of aliasPairs) {
     if (process.env[fromKey] && !process.env[toKey]) {
@@ -73,7 +73,7 @@ const DIRECT_GEMINI_MODELS = [
   { id: 'gemma-4-26b-a4b-it', name: 'Gemma 4 26B A4B IT' },
 ]
 
-const GATEWAY_OPENAI_MODELS = []
+const GATEWAY_MODELS = []
 
 const OPENROUTER_MODELS = []
 
@@ -106,23 +106,7 @@ function splitModelValue(value) {
 
 function normalizeLegacyChatModel(modelId) {
   const raw = String(modelId || '').trim()
-  if (!raw) return 'gpt-4o-mini'
-  const lower = raw.toLowerCase()
-  const alias = {
-    'gpt-4o mini': 'openai/gpt-4o-mini',
-    'gpt-4o-mini': 'openai/gpt-4o-mini',
-    'gpt-4o': 'openai/gpt-4o',
-    'gpt-4': 'openai/gpt-4o',
-    'o1-mini': 'openai/o1',
-    'o1-preview': 'openai/o1',
-    'o1': 'openai/o1',
-    'o3-mini': 'openai/o3-mini',
-    'o3': 'openai/o3',
-    'o3-pro': 'openai/o3-pro',
-    'o4-mini': 'openai/o4-mini',
-  }
-  if (alias[lower]) return alias[lower]
-  if (!raw.includes('/') && /^(gpt-|o[0-9])/i.test(raw)) return 'openai/' + raw
+  if (!raw) return 'gemini-3.5-flash'
   return raw
 }
 
@@ -149,7 +133,7 @@ function buildStaticModelCatalog() {
       modelId: model.id,
       name: model.name,
     })),
-    ...GATEWAY_OPENAI_MODELS.map(model => ({
+    ...GATEWAY_MODELS.map(model => ({
       ...model,
       provider: 'gateway',
       id: composeModelValue('gateway', model.id),
@@ -174,51 +158,12 @@ function buildStaticModelCatalog() {
 }
 
 function getModelProviderDiagnostics() {
-  const apiBase = String(process.env.OPENAI_API_BASE || '').trim()
-  const routerBase = String(process.env.OPENAI_API_BASEROUTER || '').trim()
-  const routerKey = String(process.env.OPENAI_API_KEYROUTER || '').trim()
-  const openAiKey = String(process.env.OPENAI_API_KEY || '').trim()
-  const aiGatewayKey = String(process.env.AI_GATEWAY_API_KEY || '').trim()
-  const apiBaseIsOpenRouter = apiBase.includes('openrouter.ai')
-  const openrouterConfigured = Boolean((routerBase.includes('openrouter.ai') && routerKey) || (apiBaseIsOpenRouter && openAiKey))
-  const openaiConfigured = Boolean(openAiKey) && !apiBaseIsOpenRouter
-  const gatewayConfigured = Boolean(aiGatewayKey)
   const geminiConfigured = Boolean(process.env.GEMINI_API_KEY)
   const interactionsConfigured = Boolean(process.env.GEMINI_API_KEY)
   return {
-    openrouterConfigured,
-    openaiConfigured,
-    aiGatewayConfigured: Boolean(aiGatewayKey),
-    gatewayConfigured,
     geminiConfigured,
     interactionsConfigured,
   }
-}
-
-// Auto-detect and fix swapped router variables
-if (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_KEYROUTER) {
-  const baseVal = String(process.env.OPENAI_API_BASEROUTER).trim()
-  const keyVal = String(process.env.OPENAI_API_KEYROUTER).trim()
-  if (!baseVal.startsWith('http') && keyVal.startsWith('http')) {
-    process.env.OPENAI_API_BASEROUTER = keyVal
-    process.env.OPENAI_API_KEYROUTER = baseVal
-  }
-}
-if (process.env.OPENAI_API_BASE && process.env.OPENAI_API_KEY) {
-  const baseVal = String(process.env.OPENAI_API_BASE).trim()
-  const keyVal = String(process.env.OPENAI_API_KEY).trim()
-  if (!baseVal.startsWith('http') && keyVal.startsWith('http')) {
-    process.env.OPENAI_API_BASE = keyVal
-    process.env.OPENAI_API_KEY = baseVal
-  }
-}
-
-// Normalize custom router variable casing/names
-if (process.env.OPENAI_API_BASEROUTER && !process.env.OPENAI_API_BASE) {
-  process.env.OPENAI_API_BASE = process.env.OPENAI_API_BASEROUTER
-}
-if (process.env.OPENAI_API_KEYROUTER && !process.env.OPENAI_API_KEY) {
-  process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEYROUTER
 }
 
 // APEX_FREE_AGENT (default ON): when enabled, conversational messages bypass the
@@ -609,7 +554,7 @@ function safeId(prefix = 'update') {
 
 function redactSensitiveText(value) {
   return String(value || '')
-    .replace(/sk-[A-Za-z0-9_-]{20,}/g, '[redacted-openai-key]')
+    .replace(/sk-[A-Za-z0-9_-]{20,}/g, '[redacted-api-key]')
     .replace(/\bghp_[A-Za-z0-9_]{20,}\b/g, '[redacted-github-token]')
     .replace(/\bgithub_pat_[A-Za-z0-9_]{20,}\b/g, '[redacted-github-pat]')
     .replace(/\b[A-Za-z0-9_-]*service[_-]?role[A-Za-z0-9_:\-."= ]{8,}/gi, '[redacted-service-role-reference]')
@@ -801,7 +746,7 @@ function buildSkillExportPack(request, runtime) {
   if (targetPlatform === 'chatgpt') {
     files = [
       { path: 'SKILL.md', type: 'markdown', content: mainPrompt },
-      { path: 'agents/openai.yaml', type: 'yaml', content: `name: ${skillName}\ndescription: ${description}\nmodel_behavior: chat-first command-following copilot\n` },
+      { path: 'agents/chatgpt.yaml', type: 'yaml', content: `name: ${skillName}\ndescription: ${description}\nmodel_behavior: chat-first command-following copilot\n` },
       { path: 'README_IMPORT.md', type: 'markdown', content: `# Import ${skillName}\n\nUpload this folder as a ChatGPT-compatible skill package. Keep references attached as knowledge files.\n` },
       ...referenceFiles,
     ]
@@ -1209,7 +1154,7 @@ function buildLocalSkillContext(userText, file) {
   if (/(alerta|notificação|notificacao|prazo|lembrete|pendência|pendencia|vencimento|atraso crítico|atraso critico|deadline|notification)/.test(text)) {
     contexts.push('CP11E Notifications: local alerts only. No push, email, SMS or calendar connector is connected unless explicitly verified. Label Local alert only - notification connector not connected yet.')
   }
-  if (/(custo de ia|gasto com ia|tokens|observabilidade|custo openai|ai cost|billing|usage dashboard)/.test(text)) {
+  if (/(custo de ia|gasto com ia|tokens|observabilidade|ai cost|billing|usage dashboard)/.test(text)) {
     contexts.push('CP11E AI Cost / Observability: local estimated usage and cost only. Do not claim provider billing accuracy. Use ESTIMATED_LOCAL until real billing/usage API is connected.')
   }
 
@@ -1512,8 +1457,6 @@ function buildWorkspaceContextSummary(workspaceContext) {
 
 function buildProviderStatusContext() {
   const keys = [
-    'OPENAI_API_KEY',
-    'OPENAI_API_KEYROUTER',
     'GEMINI_API_KEY',
     'ANTHROPIC_API_KEY',
     'FAL_KEY',
@@ -2166,7 +2109,6 @@ function shouldForceLiveAgentToolUse(text = '') {
 
 async function handleModelsList(req, res) {
   try {
-    const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
     const models = []
     const seen = new Set()
     const diagnostics = getModelProviderDiagnostics()
@@ -2174,38 +2116,6 @@ async function handleModelsList(req, res) {
       if (!model?.id || seen.has(model.id)) return
       seen.add(model.id)
       models.push(model)
-    }
-
-    const isOpenRouterConfigured =
-      diagnostics.openrouterConfigured ||
-      apiBase.includes('openrouter.ai') ||
-      (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_BASEROUTER.includes('openrouter.ai'))
-
-    if (isOpenRouterConfigured) {
-      const openRouterBase = apiBase.includes('openrouter.ai') ? apiBase : process.env.OPENAI_API_BASEROUTER
-      const openRouterKey = apiBase.includes('openrouter.ai') ? process.env.OPENAI_API_KEY : process.env.OPENAI_API_KEYROUTER
-
-      try {
-        const response = await fetch(`${openRouterBase}/models`, {
-          headers: {
-            Authorization: `Bearer ${openRouterKey}`,
-          },
-        })
-        if (response.ok) {
-          const data = await response.json()
-          for (const model of data.data || []) {
-            if (!model?.id) continue
-            addModel({
-              id: composeModelValue('openrouter', model.id),
-              modelId: model.id,
-              provider: 'openrouter',
-              name: model.name || model.id,
-            })
-          }
-        }
-      } catch (err) {
-        console.error('Fetch OpenRouter models failed:', err)
-      }
     }
 
     const fetchModels = async (url, headers, provider, keyField = 'id', nameField = 'name', dataField = 'data') => {
@@ -2231,15 +2141,12 @@ async function handleModelsList(req, res) {
     if (process.env.FAL_KEY) {
       await fetchModels('https://fal.ai/api/models?limit=200', { Authorization: `Key ${process.env.FAL_KEY}` }, 'fal', 'id', 'title', 'items')
     }
-    if (process.env.OPENCODE_GO_API_KEY) {
-      await fetchModels('https://opencode.ai/zen/go/v1/models', { Authorization: 'Bearer ' + process.env.OPENCODE_GO_API_KEY }, 'opencode')
-    }
 
     for (const model of buildStaticModelCatalog()) {
       addModel(model)
     }
 
-    const providerOrder = ['gemini', 'gemini-interactions', 'fal', 'openrouter', 'opencode', 'openai', 'gateway', 'elevenlabs', 'firebase']
+    const providerOrder = ['gemini', 'gemini-interactions', 'fal', 'elevenlabs']
     models.sort((left, right) => {
       const leftIdx = providerOrder.indexOf(left.provider)
       const rightIdx = providerOrder.indexOf(right.provider)
@@ -2328,14 +2235,12 @@ async function handleChat(req, res) {
     }
 
     const providerDiagnostics = getModelProviderDiagnostics()
-    let apiKey = process.env.OPENAI_API_KEY
-    let apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
+    let apiKey = process.env.GEMINI_API_KEY
+    let apiBase = process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta'
 
-    const selectedModel = splitModelValue(body.model || process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini')
-    const model = normalizeLegacyChatModel(selectedModel.modelId || 'gpt-4o-mini')
+    const selectedModel = splitModelValue(body.model || process.env.GEMINI_MODEL || 'gemini-3.5-flash')
+    const model = normalizeLegacyChatModel(selectedModel.modelId || 'gemini-3.5-flash')
     const modelProvider = selectedModel.provider
-    const inferredGatewayModel = !modelProvider && model.startsWith('openai/')
-    const isGatewayModel = modelProvider === 'gateway' || inferredGatewayModel
     const isGeminiProvider = modelProvider === 'gemini'
     const isInteractionsProvider = modelProvider === 'gemini-interactions'
     const isFalProvider = modelProvider === 'fal'
@@ -2381,26 +2286,15 @@ async function handleChat(req, res) {
     } else if (isElevenLabs && process.env.ELEVENLABS_API_KEY) {
       apiBase = 'https://api.elevenlabs.io/v1'
       apiKey = process.env.ELEVENLABS_API_KEY
-    } else if (modelProvider === 'opencode' && process.env.OPENCODE_GO_API_KEY) {
-      apiBase = 'https://opencode.ai/zen/go/v1'
-      apiKey = process.env.OPENCODE_GO_API_KEY
     } else if (isFirebase) {
       apiBase = 'https://firebasedynamiclinks.googleapis.com/v1'
       apiKey = process.env.VITE_FIREBASE_API_KEY || ''
     } else if (isGeminiProvider && process.env.GEMINI_API_KEY) {
-      apiBase = process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta/openai'
+      apiBase = process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta'
       apiKey = process.env.GEMINI_API_KEY
-    } else if (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_KEYROUTER) {
-      if ((model.includes('/') || !isDirectGeminiModel) && !isGatewayModel) {
-        apiBase = process.env.OPENAI_API_BASEROUTER
-        apiKey = process.env.OPENAI_API_KEYROUTER
-      } else if (!apiKey && !isGatewayModel) {
-        apiBase = process.env.OPENAI_API_BASEROUTER
-        apiKey = process.env.OPENAI_API_KEYROUTER
-      }
     }
 
-    if (!apiKey && !isGatewayModel && !isFalProvider && !isElevenLabs && !isFirebase) {
+    if (!apiKey && !isFalProvider && !isElevenLabs && !isFirebase) {
       return chatJson(res, 200, {
         finalReply: 'Nenhuma chave de API configurada para o provedor selecionado. Selecione outro modelo ou configure a chave no .env.local.',
         mode: 'provider-error',
@@ -2792,7 +2686,7 @@ async function handleImageEditPlan(req, res) {
       recommendedPrompt,
       providerStatus: 'connected',
       connectorReadiness: [
-        { provider: 'OpenAI Images', status: 'connected' },
+        { provider: 'Gemini Imagen', status: 'connected' },
         { provider: 'Gemini image', status: 'connected' },
         { provider: 'Other image providers', status: 'connected' },
       ],
@@ -2808,12 +2702,12 @@ async function handleImageEditPlan(req, res) {
 
 async function handleGenerateImage(req, res) {
   try {
-    const apiKey = process.env.OPENAI_API_KEY
     const falKey = process.env.FAL_KEY || process.env.FAL_API_KEY
-    if (!apiKey && !falKey) {
+    const geminiKey = process.env.GEMINI_API_KEY
+    if (!geminiKey && !falKey) {
       return json(res, 200, {
         providerStatus: 'not-connected',
-        message: 'Nenhum provedor configurado. Configure OPENAI_API_KEY ou FAL_KEY.',
+        message: 'Nenhum provedor configurado. Configure GEMINI_API_KEY ou FAL_KEY.',
       })
     }
 
@@ -2827,7 +2721,7 @@ async function handleGenerateImage(req, res) {
     const preserveLabels = body.preserveLabels !== false
     const noInventedAreas = body.noInventedAreas !== false
 
-    if (!apiKey && falKey) {
+    if (!geminiKey && falKey) {
       const isImageToImage = mode === 'preserve-layout' || mode === 'image-to-image'
       const endpoint = isImageToImage ? 'fal-ai/flux/dev/image-to-image' : 'fal-ai/flux/schnell'
       const falPayload = { prompt, num_inference_steps: isImageToImage ? 28 : 4 }
@@ -2865,8 +2759,7 @@ async function handleGenerateImage(req, res) {
         return json(res, 200, { providerStatus: 'error', message: `FAL: ${falErr.message || falErr}` })
       }
     }
-    const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
-
+    // FAL or Gemini Image generation
     const sourceImage = parseDataUrl(body.sourceImageDataUrl)
     const referenceMode = String(body.referenceMode || 'original')
     const revisionConstraints = Array.isArray(body.revisionConstraints)
@@ -2877,10 +2770,10 @@ async function handleGenerateImage(req, res) {
     const cameraPreset = String(body.cameraPreset || 'auto')
     const strength = Math.max(30, Math.min(100, Number(body.strength || 85)))
     const outputCount = Math.max(1, Math.min(4, Number(body.outputCount || 1)))
-    const maxSourceBytes = Number(process.env.OPENAI_IMAGE_SOURCE_MAX_BYTES || 8 * 1024 * 1024)
-    const model = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1'
-    const size = process.env.OPENAI_IMAGE_SIZE || '1024x1024'
-    const quality = process.env.OPENAI_IMAGE_QUALITY || 'medium'
+    const maxSourceBytes = Number(process.env.IMAGE_SOURCE_MAX_BYTES || 8 * 1024 * 1024)
+    const model = process.env.IMAGE_MODEL || 'imagen-4.0'
+    const size = process.env.IMAGE_SIZE || '1024x1024'
+    const quality = process.env.IMAGE_QUALITY || 'medium'
     const requiresSourceImage = mode === 'preserve-layout' || mode === 'image-edit-plan' || mode === 'image-variation-plan'
 
     if (!prompt) {

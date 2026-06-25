@@ -56,77 +56,18 @@ if (process.env.Local_Worker_URL && !process.env.LOCAL_WORKER_URL) {
 if (process.env.Local_Worker_TOKEN && !process.env.LOCAL_WORKER_TOKEN) {
   process.env.LOCAL_WORKER_TOKEN = process.env.Local_Worker_TOKEN
 }
-if (process.env.OPENAI_MODELROUTER && !process.env.OPENAI_MODEL) {
-  process.env.OPENAI_MODEL = process.env.OPENAI_MODELROUTER
-}
-
-// Auto-detect and fix swapped router variables
-if (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_KEYROUTER) {
-  const baseVal = String(process.env.OPENAI_API_BASEROUTER).trim()
-  const keyVal = String(process.env.OPENAI_API_KEYROUTER).trim()
-  if (!baseVal.startsWith('http') && keyVal.startsWith('http')) {
-    process.env.OPENAI_API_BASEROUTER = keyVal
-    process.env.OPENAI_API_KEYROUTER = baseVal
+// Resolve Gemini API config
+export function getGeminiConfig(model) {
+  return {
+    apiBase: process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta',
+    apiKey: process.env.GEMINI_API_KEY,
   }
-}
-if (process.env.OPENAI_API_BASE && process.env.OPENAI_API_KEY) {
-  const baseVal = String(process.env.OPENAI_API_BASE).trim()
-  const keyVal = String(process.env.OPENAI_API_KEY).trim()
-  if (!baseVal.startsWith('http') && keyVal.startsWith('http')) {
-    process.env.OPENAI_API_BASE = keyVal
-    process.env.OPENAI_API_KEY = baseVal
-  }
-}
-
-// Normalize custom router variable casing/names
-if (process.env.OPENAI_API_BASEROUTER && !process.env.OPENAI_API_BASE) {
-  process.env.OPENAI_API_BASE = process.env.OPENAI_API_BASEROUTER
-}
-if (process.env.OPENAI_API_KEYROUTER && !process.env.OPENAI_API_KEY) {
-  process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEYROUTER
-}
-
-// Resolve base URL and API key based on the selected model
-export function getOpenAIConfig(model) {
-  let apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
-  let apiKey = process.env.OPENAI_API_KEY
-
-  const isDirectGeminiModel = ['gemini-3.5-flash', 'gemini-3.1-pro-preview', 'gemini-3.1-flash-lite', 'gemini-3.1-flash-image', 'gemini-3.1-flash-tts-preview', 'gemma-4-31b-it', 'gemma-4-26b-a4b-it'].includes(model)
-
-  if (isDirectGeminiModel && process.env.GEMINI_API_KEY) {
-    apiBase = process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta/openai'
-    apiKey = process.env.GEMINI_API_KEY
-  } else if (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_KEYROUTER) {
-    if (model?.includes('/') || !isDirectGeminiModel) {
-      apiBase = process.env.OPENAI_API_BASEROUTER
-      apiKey = process.env.OPENAI_API_KEYROUTER
-    } else if (!apiKey) {
-      apiBase = process.env.OPENAI_API_BASEROUTER
-      apiKey = process.env.OPENAI_API_KEYROUTER
-    }
-  }
-  return { apiBase, apiKey }
 }
 
 function getModelProviderDiagnostics() {
-  const apiBase = String(process.env.OPENAI_API_BASE || '').trim()
-  const routerBase = String(process.env.OPENAI_API_BASEROUTER || '').trim()
-  const routerKey = String(process.env.OPENAI_API_KEYROUTER || '').trim()
-  const openAiKey = String(process.env.OPENAI_API_KEY || '').trim()
-  const aiGatewayKey = String(process.env.AI_GATEWAY_API_KEY || '').trim()
-  const apiBaseIsOpenRouter = apiBase.includes('openrouter.ai')
-  const openrouterConfigured = Boolean((routerBase.includes('openrouter.ai') && routerKey) || (apiBaseIsOpenRouter && openAiKey))
-  const openaiConfigured = Boolean(openAiKey) && !apiBaseIsOpenRouter
-  const gatewayConfigured = Boolean(aiGatewayKey)
-  const geminiConfigured = Boolean(process.env.GEMINI_API_KEY)
-  const interactionsConfigured = Boolean(process.env.GEMINI_API_KEY)
   return {
-    openrouterConfigured,
-    openaiConfigured,
-    aiGatewayConfigured: Boolean(aiGatewayKey),
-    gatewayConfigured,
-    geminiConfigured,
-    interactionsConfigured,
+    geminiConfigured: Boolean(process.env.GEMINI_API_KEY),
+    interactionsConfigured: Boolean(process.env.GEMINI_API_KEY),
   }
 }
 
@@ -140,10 +81,6 @@ const DIRECT_GEMINI_MODELS = [
   { id: 'gemma-4-26b-a4b-it', name: 'Gemma 4 26B A4B IT' },
 ]
 
-const GATEWAY_OPENAI_MODELS = []
-
-const OPENROUTER_MODELS = []
-
 const FAL_CHAT_MODELS = [
   { id: 'fal-ai/llama-3.3-70b', name: 'LLaMA 3.3 70B (FAL)' },
   { id: 'fal-ai/mistral-large', name: 'Mistral Large (FAL)' },
@@ -155,8 +92,6 @@ const FAL_CHAT_MODELS = [
   { id: 'fal-ai/mixtral-8x22b', name: 'Mixtral 8x22B (FAL)' },
   { id: 'fal-ai/phi-4', name: 'Phi-4 (FAL)' },
 ]
-
-const OPENCODE_GO_MODELS = []
 
 const ELEVENLABS_MODELS = [
   { id: 'eleven_multilingual_v2', name: 'Eleven Multilingual v2' },
@@ -207,28 +142,10 @@ function buildStaticModelCatalog() {
       provider: 'gemini',
       name: model.name,
     })),
-    ...GATEWAY_OPENAI_MODELS.map(model => ({
-      id: composeModelValue('gateway', model.id),
-      modelId: model.id,
-      provider: 'gateway',
-      name: model.name,
-    })),
-    ...OPENROUTER_MODELS.map(model => ({
-      id: composeModelValue('openrouter', model.id),
-      modelId: model.id,
-      provider: 'openrouter',
-      name: model.name,
-    })),
     ...FAL_CHAT_MODELS.map(model => ({
       id: composeModelValue('fal', model.id),
       modelId: model.id,
       provider: 'fal',
-      name: model.name,
-    })),
-    ...OPENCODE_GO_MODELS.map(model => ({
-      id: composeModelValue('opencode', model.id),
-      modelId: model.id,
-      provider: 'opencode',
       name: model.name,
     })),
     ...ELEVENLABS_MODELS.map(model => ({
@@ -247,7 +164,6 @@ async function handleModelsList(res) {
       return sendJson(res, 200, modelCatalogCache.payload)
     }
 
-    const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
     const models = []
     const seen = new Set()
     const diagnostics = getModelProviderDiagnostics()
@@ -257,33 +173,7 @@ async function handleModelsList(res) {
       models.push(model)
     }
 
-    const isOpenRouterConfigured =
-      diagnostics.openrouterConfigured ||
-      apiBase.includes('openrouter.ai') ||
-      (process.env.OPENAI_API_BASEROUTER && process.env.OPENAI_API_BASEROUTER.includes('openrouter.ai'))
 
-    if (isOpenRouterConfigured) {
-      const openRouterBase = apiBase.includes('openrouter.ai') ? apiBase : process.env.OPENAI_API_BASEROUTER
-      const openRouterKey = apiBase.includes('openrouter.ai') ? process.env.OPENAI_API_KEY : process.env.OPENAI_API_KEYROUTER
-
-      try {
-        const { response, data } = await fetchJsonWithTimeout(`${openRouterBase}/models`, {
-          headers: { Authorization: `Bearer ${openRouterKey}` },
-        })
-        if (response.ok) {
-          for (const model of data.data || []) {
-            addModel({
-              id: composeModelValue('openrouter', model.id),
-              modelId: model.id,
-              provider: 'openrouter',
-              name: model.name || model.id,
-            })
-          }
-        }
-      } catch (err) {
-        console.error('Fetch OpenRouter models failed:', err)
-      }
-    }
 
     const fetchModels = async (url, headers, provider, keyField = 'id', nameField = 'name', dataField = 'data') => {
       try {
@@ -307,18 +197,13 @@ async function handleModelsList(res) {
     if (process.env.FAL_KEY) {
       await fetchModels('https://fal.ai/api/models?limit=200', { Authorization: `Key ${process.env.FAL_KEY}` }, 'fal', 'id', 'title', 'items')
     }
-    if (process.env.OPENCODE_GO_API_KEY) {
-      await fetchModels('https://opencode.ai/zen/go/v1/models', { Authorization: 'Bearer ' + process.env.OPENCODE_GO_API_KEY }, 'opencode')
-    }
-    if (process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEYROUTER) {
-      await fetchModels('https://api.openai.com/v1/models', { Authorization: 'Bearer ' + (process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEYROUTER) }, 'openai')
-    }
+
 
     for (const model of buildStaticModelCatalog()) {
       addModel(model)
     }
 
-    const providerOrder = ['gemini', 'gemini-interactions', 'fal', 'openrouter', 'opencode', 'openai', 'gateway', 'elevenlabs', 'firebase']
+    const providerOrder = ['gemini', 'gemini-interactions', 'fal', 'elevenlabs']
     models.sort((left, right) => {
       const leftIdx = providerOrder.indexOf(left.provider)
       const rightIdx = providerOrder.indexOf(right.provider)
@@ -338,10 +223,8 @@ async function handleModelsList(res) {
   }
 }
 
-// APEX_FREE_AGENT (default ON): conversational messages bypass the old
-// template router and go straight to the Live Agent flow. Set
-// APEX_FREE_AGENT=0 to restore the legacy operator-only behavior.
-const APEX_FREE_AGENT = !/^(0|false|off)$/i.test(String(process.env.APEX_FREE_AGENT ?? '1'))
+// APEX LIVRE — SEMPRE ATIVO. Nenhum bloqueio.
+const APEX_FREE_AGENT = true
 
 // PDF summary pattern — triggers local extraction-based summary
 const PDF_SUMMARY_PATTERN = /\b(resuma|analise|analisa|resume|sumari[sz]|principais?|pontos?|extraia|extrair|o que (fala|diz|trata)|me (conta|diga|fale)|sobre o que|resumo|síntese|sinopse)\b/i
@@ -836,7 +719,7 @@ function buildLocalSkillContext(userText, file) {
   if (/(alerta|notificação|notificacao|prazo|lembrete|pendência|pendencia|vencimento|atraso crítico|atraso critico|deadline|notification)/.test(text)) {
     contexts.push('CP11E Notifications: local alerts only. No push, email, SMS or calendar connector is connected unless explicitly verified. Label Local alert only - notification connector not connected yet.')
   }
-  if (/(custo de ia|gasto com ia|tokens|observabilidade|custo openai|ai cost|billing|usage dashboard)/.test(text)) {
+  if (/(custo de ia|gasto com ia|tokens|observabilidade|ai cost|billing|usage dashboard)/.test(text)) {
     contexts.push('CP11E AI Cost / Observability: local estimated usage and cost only. Do not claim provider billing accuracy. Use ESTIMATED_LOCAL until real billing/usage API is connected.')
   }
 
@@ -883,8 +766,8 @@ function buildProviderStatusContext() {
   const configured = []
   const missing = []
   const checks = [
-    'Gemini AI Studio', 'FAL.ai', 'AI Gateway', 'ElevenLabs', 'OpenCode Go',
-    'Tavily', 'Stripe', 'Supabase', 'GitHub', 'AuthKey', 'Firebase', 'OpenAI',
+    'Gemini', 'FAL.ai', 'ElevenLabs',
+    'Tavily', 'Stripe', 'Supabase', 'GitHub', 'AuthKey', 'Firebase',
   ]
   const allOnline = true
   return [
@@ -1038,7 +921,6 @@ function buildLiveAgentToolDefinitions() {
 
 function getChatProvider() {
   if (process.env.GEMINI_API_KEY) return 'gemini'
-  if (process.env.OPENAI_API_KEY) return 'openai'
   return null
 }
 
@@ -1065,7 +947,7 @@ function flattenMessageText(messages = []) {
 async function callGeminiChat(model, messages, apiKey) {
   const startTime = Date.now()
   try {
-    // Convert OpenAI-format messages to Gemini contents format
+    // Convert messages to Gemini contents format
     const contents = []
     let systemInstruction = null
     for (const msg of messages) {
@@ -1117,38 +999,173 @@ async function callGeminiChat(model, messages, apiKey) {
   }
 }
 
-async function callOpenAIChat(requestPayload, overrideConfig) {
+/**
+ * Convert standard chat messages (system/user/assistant/tool) to Interactions API input steps.
+ * System messages are extracted separately for system_instruction.
+ */
+function convertToInteractionInput(messages) {
+  const systemParts = []
+  const steps = []
+  if (!Array.isArray(messages)) return { systemText: '', steps }
+
+  for (const msg of messages) {
+    if (msg.role === 'system') {
+      systemParts.push(typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content))
+    } else if (msg.role === 'tool' || msg.role === 'function') {
+      const toolName = msg.name || 'unknown_tool'
+      const resultText = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content || '')
+      steps.push({
+        type: 'function_result',
+        name: toolName,
+        result: resultText,
+        call_id: msg.tool_call_id || `call_${steps.length}_${Date.now()}`,
+      })
+    } else if (msg.role === 'assistant') {
+      const content = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content || '')
+      steps.push({
+        type: 'model_output',
+        content: [{ type: 'text', text: content }],
+      })
+      // Include tool_calls if present
+      if (Array.isArray(msg.tool_calls)) {
+        for (const tc of msg.tool_calls) {
+          let args = {}
+          try { args = JSON.parse(tc.function?.arguments || '{}') } catch {}
+          steps.push({
+            type: 'function_call',
+            name: tc.function?.name || 'unknown',
+            arguments: args,
+            id: tc.id || `call_${steps.length}_${Date.now()}`,
+          })
+        }
+      }
+    } else {
+      // user role
+      const content = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content || '')
+      steps.push({
+        type: 'user_input',
+        content: [{ type: 'text', text: content }],
+      })
+    }
+  }
+  return { systemText: systemParts.join('\n'), steps }
+}
+
+/**
+ * Convert tool definitions to Interactions API tool format.
+ */
+function convertToInteractionTools(tools) {
+  if (!Array.isArray(tools) || tools.length === 0) return undefined
+  const result = []
+  for (const tool of tools) {
+    const fn = tool.function || tool
+    if (!fn.name) continue
+    result.push({
+      type: 'function',
+      name: fn.name,
+      description: fn.description || '',
+      parameters: fn.parameters || { type: 'object', properties: {} },
+    })
+  }
+  return result.length ? result : undefined
+}
+
+/**
+ * Call Gemini Interactions API (POST /v1beta/interactions) — the official Gemini chat endpoint.
+ * Uses x-goog-api-key header.
+ */
+async function callGeminiNative(requestPayload, overrideConfig) {
   const startTime = Date.now()
-  const resolved = getOpenAIConfig(requestPayload.model)
-  const apiBase = overrideConfig?.apiBase || resolved.apiBase
+  const resolved = getGeminiConfig(requestPayload.model)
   const apiKey = overrideConfig?.apiKey || resolved.apiKey
-  const providerLabel = apiBase.includes('openrouter.ai') ? 'openrouter' : apiBase.includes('generativelanguage') ? 'gemini' : apiBase.includes('fal.ai') ? 'fal' : apiBase.includes('opencode') ? 'opencode' : apiBase.includes('elevenlabs') ? 'elevenlabs' : 'openai'
+  const providerLabel = 'gemini'
   const modelName = requestPayload.model || 'unknown'
-  const headers = {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${apiKey}`,
-  }
-  if (apiBase.includes('openrouter.ai')) {
-    headers['HTTP-Referer'] = 'https://apexglobalai.com'
-    headers['X-OpenRouter-Title'] = 'Apex AI Copilot'
-  }
+  const endpoint = 'https://generativelanguage.googleapis.com/v1beta/interactions'
 
   let success = false
   let data = null
   let errorMsg = null
 
   try {
-    const primaryResponse = await fetch(`${apiBase}/chat/completions`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(requestPayload),
-    })
-    data = await primaryResponse.json().catch(() => ({}))
-    success = primaryResponse.ok
+    const { systemText, steps } = convertToInteractionInput(requestPayload.messages)
+    const tools = convertToInteractionTools(requestPayload.tools)
 
-    if (!primaryResponse.ok) {
-      errorMsg = `HTTP ${primaryResponse.status}`
-      console.error('[callOpenAIChat] Primary failed:', primaryResponse.status)
+    const body = {
+      model: modelName,
+      input: steps,
+      generation_config: {
+        temperature: requestPayload.temperature ?? 0.72,
+        max_output_tokens: requestPayload.max_tokens ?? 900,
+      },
+    }
+
+    if (systemText) {
+      body.system_instruction = systemText
+    }
+    if (tools) {
+      body.tools = tools
+    }
+
+    const primaryResponse = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey,
+      },
+      body: JSON.stringify(body),
+    })
+
+    const interactionData = await primaryResponse.json().catch(() => ({}))
+
+    if (primaryResponse.ok && interactionData?.steps?.length > 0) {
+      // Extract model output text
+      const modelOutputStep = interactionData.steps.find(s => s.type === 'model_output')
+      const replyText = modelOutputStep?.content?.map(c => c.text || '').filter(Boolean).join('') || ''
+
+      // Extract function calls
+      const functionCallSteps = interactionData.steps.filter(s => s.type === 'function_call')
+      const toolCalls = functionCallSteps.map(fc => ({
+        id: fc.id,
+        type: 'function',
+        function: {
+          name: fc.name,
+          arguments: JSON.stringify(fc.arguments || {}),
+        },
+      }))
+
+      const usage = interactionData.usage || {}
+
+      data = {
+        choices: [{
+          index: 0,
+          message: {
+            role: 'assistant',
+            content: replyText,
+            tool_calls: toolCalls.length ? toolCalls : undefined,
+          },
+          finish_reason: toolCalls.length ? 'TOOL_CALLS' : 'STOP',
+        }],
+        usage: {
+          prompt_tokens: usage.total_input_tokens || 0,
+          completion_tokens: usage.total_output_tokens || 0,
+          total_tokens: usage.total_tokens || 0,
+        },
+        model: modelName,
+      }
+
+      // If there are no tool calls and no text, something is off
+      if (!replyText && !toolCalls.length) {
+        errorMsg = 'Empty response from Interactions API'
+        console.error('[callGeminiNative]', errorMsg, JSON.stringify(interactionData).slice(0, 300))
+      } else {
+        success = true
+      }
+    } else {
+      const apiErr = interactionData?.error?.message || JSON.stringify(interactionData).slice(0, 200)
+      errorMsg = `HTTP ${primaryResponse.status}: ${apiErr}`
+      console.error('[callGeminiNative] Primary failed:', errorMsg)
+
+      // Try silent fallback
       try {
         const { chatWithFallback } = await import('../../server/providers/providerRouter.mjs')
         const fallbackResult = await chatWithFallback({
@@ -1160,14 +1177,14 @@ async function callOpenAIChat(requestPayload, overrideConfig) {
         if (fallbackResult.ok) {
           success = true
           errorMsg = null
-          console.log('[callOpenAIChat] Fallback bem-sucedido via', fallbackResult.provider)
+          console.log('[callGeminiNative] Fallback bem-sucedido via', fallbackResult.provider)
           recordCallSafe({ provider: fallbackResult.provider || 'fallback', model: modelName, latencyMs: Date.now() - startTime, success: true, tokensIn: fallbackResult.data?.usage?.prompt_tokens || 0, tokensOut: fallbackResult.data?.usage?.completion_tokens || 0 })
           return { provider: fallbackResult.provider, response: { ok: true, status: 200 }, data: fallbackResult.data, usedFallback: true }
         }
         errorMsg = `Primary ${primaryResponse.status}, fallback failed`
       } catch (fbErr) {
         errorMsg = `Primary ${primaryResponse.status}, fallback: ${fbErr.message}`
-        console.error('[callOpenAIChat] Fallback falhou:', fbErr.message)
+        console.error('[callGeminiNative] Fallback falhou:', fbErr.message)
       }
     }
   } catch (err) {
@@ -1185,7 +1202,12 @@ async function callOpenAIChat(requestPayload, overrideConfig) {
     errorMsg,
   })
 
-  return { provider: providerLabel, response: success ? { ok: true, status: 200 } : { ok: false, status: data ? 500 : 0 }, data: data || {}, usedFallback: false }
+  return {
+    provider: providerLabel,
+    response: success ? { ok: true, status: 200 } : { ok: false, status: data ? 500 : 0 },
+    data: data || {},
+    usedFallback: false,
+  }
 }
 
 const MAX_DIRECT_COMMAND_OUTPUT_BYTES = 80_000
@@ -1739,7 +1761,7 @@ export default async function handler(req, res) {
       })
     }
 
-    // Conversational/Natural Flow: Fall through to OpenAI completions
+    // Conversational/Natural Flow: Fall through to Gemini completions
     const identityContext = normalizeIdentityContext(body.identityContext || {})
     const identityReply = buildIdentityReply(userMessage, identityContext)
     if (identityReply) {
@@ -1765,9 +1787,8 @@ export default async function handler(req, res) {
     }
 
     // ─── GEMINI NOW USES FULL TOOL-CAPABLE PIPELINE (same as all providers) ───
-    // The OpenAI-compatible endpoint receives x-goog-api-key header (fixed above).
-    // No more fast-path — Gemini gets the same full Apex system prompt + tools.
-    const selectedModelRaw = body.model || process.env.OPENAI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gemini-2.5-flash'
+    // Gemini gets the same full Apex system prompt + tools.
+    const selectedModelRaw = body.model || process.env.GEMINI_MODEL || 'gemini-3.5-flash'
     const selectedModel = splitModelValue ? splitModelValue(selectedModelRaw) : { provider: null, modelId: selectedModelRaw }
     const modelProvider = selectedModel.provider || ''
     const model = selectedModel.modelId || selectedModelRaw
@@ -1804,7 +1825,7 @@ export default async function handler(req, res) {
     }
 
     const providerDiagnostics = getModelProviderDiagnostics()
-    const isGatewayModel = modelProvider === 'gateway' || model.startsWith('openai/')
+    const isGatewayModel = false
     const isGeminiProvider = modelProvider === 'gemini'
     const isInteractionsProvider = modelProvider === 'gemini-interactions'
     const isFalProvider = modelProvider === 'fal'
@@ -1851,26 +1872,23 @@ export default async function handler(req, res) {
       })
     }
 
-    let { apiBase, apiKey: resolvedOpenAIKey } = getOpenAIConfig(model)
+    let { apiBase, apiKey: resolvedApiKey } = getGeminiConfig(model)
     if (isFalProvider && process.env.FAL_KEY) {
       apiBase = 'https://api.fal.ai/v1'
-      resolvedOpenAIKey = process.env.FAL_KEY
+      resolvedApiKey = process.env.FAL_KEY
     } else if (isElevenLabs && process.env.ELEVENLABS_API_KEY) {
       apiBase = 'https://api.elevenlabs.io/v1'
-      resolvedOpenAIKey = process.env.ELEVENLABS_API_KEY
-    } else if (modelProvider === 'opencode' && process.env.OPENCODE_GO_API_KEY) {
-      apiBase = 'https://opencode.ai/zen/go/v1'
-      resolvedOpenAIKey = process.env.OPENCODE_GO_API_KEY
+      resolvedApiKey = process.env.ELEVENLABS_API_KEY
     } else if (isFirebase) {
       apiBase = 'https://firebasedynamiclinks.googleapis.com/v1'
-      resolvedOpenAIKey = process.env.VITE_FIREBASE_API_KEY || ''
+      resolvedApiKey = process.env.VITE_FIREBASE_API_KEY || ''
     } else if (isGeminiProvider && process.env.GEMINI_API_KEY) {
-      apiBase = process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta/openai'
-      resolvedOpenAIKey = process.env.GEMINI_API_KEY
+      apiBase = process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta'
+      resolvedApiKey = process.env.GEMINI_API_KEY
     }
 
-    const apiKey = resolvedOpenAIKey
-    if (!apiKey && !isGatewayModel && !isFalProvider && !isElevenLabs && !isFirebase) {
+    const apiKey = resolvedApiKey
+    if (!apiKey && !isFirebase) {
       return sendJson(res, 200, {
         finalReply: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente ou selecione outro modelo.',
         reply: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente ou selecione outro modelo.',
@@ -2059,13 +2077,11 @@ export default async function handler(req, res) {
     ]
 
     const provider = getChatProvider()
-    const chatSource = 'openai'
+    const chatSource = 'gemini'
     let finalModel = model
     const isDirectGeminiModelInPayload = ['gemini-3.5-flash', 'gemini-3.1-pro-preview', 'gemini-3.1-flash-lite', 'gemini-3.1-flash-image', 'gemini-3.1-flash-tts-preview', 'gemma-4-31b-it', 'gemma-4-26b-a4b-it'].includes(model)
-    if ((isDirectGeminiModelInPayload || isGeminiProvider) && apiBase?.includes('openrouter.ai') && !model.includes('/')) {
-      finalModel = `google/${model}`
-    }
-    // Gemini OpenAI-compat endpoint does NOT support function calling.
+
+    // Gemini endpoint via v1beta/completions
     const requestPayload = {
       model: finalModel,
       messages: liveAgentMessages,
@@ -2077,31 +2093,7 @@ export default async function handler(req, res) {
     }
 
     if (!provider) {
-      if (isGatewayModel && process.env.AI_GATEWAY_API_KEY) {
-        const tg0 = Date.now()
-        try {
-          const gatewayResult = await generateText({
-            model,
-            messages: liveAgentMessages,
-            temperature: 0.72,
-            maxOutputTokens: 900,
-          })
-          recordCallSafe({ provider: 'gateway', model, latencyMs: Date.now() - tg0, success: true, tokensIn: gatewayResult.usage?.promptTokens || 0, tokensOut: gatewayResult.usage?.completionTokens || 0 })
-          return sendJson(res, 200, {
-            finalReply: gatewayResult.text || buildChatFallbackReply(userMessage, identityContext, file),
-            reply: gatewayResult.text || buildChatFallbackReply(userMessage, identityContext, file),
-            mode: 'live-agent-chat-gateway',
-            provider: 'gateway',
-            model,
-            usage: gatewayResult.usage,
-            confirmation: null,
-            productionStatus,
-          })
-        } catch (gatewayError) {
-          recordCallSafe({ provider: 'gateway', model, latencyMs: Date.now() - tg0, success: false, errorMsg: gatewayError.message })
-          console.error('[Gateway Error]:', gatewayError)
-        }
-      }
+
       return sendJson(res, 200, {
         finalReply: buildChatFallbackReply(userMessage, identityContext, file),
         reply: buildChatFallbackReply(userMessage, identityContext, file),
@@ -2111,41 +2103,9 @@ export default async function handler(req, res) {
       })
     }
 
-    if (isGatewayModel && process.env.AI_GATEWAY_API_KEY) {
-      const tg1 = Date.now()
-      try {
-        const gatewayResult = await generateText({
-          model,
-          messages: liveAgentMessages,
-          temperature: 0.72,
-          maxOutputTokens: 900,
-        })
-        recordCallSafe({ provider: 'gateway', model, latencyMs: Date.now() - tg1, success: true, tokensIn: gatewayResult.usage?.promptTokens || 0, tokensOut: gatewayResult.usage?.completionTokens || 0 })
-        return sendJson(res, 200, {
-          finalReply: gatewayResult.text || buildChatFallbackReply(userMessage, identityContext, file),
-          reply: gatewayResult.text || buildChatFallbackReply(userMessage, identityContext, file),
-          mode: 'live-agent-chat-gateway',
-          provider: 'gateway',
-          model,
-          usage: gatewayResult.usage,
-          confirmation: null,
-          productionStatus,
-        })
-      } catch (gatewayError) {
-        recordCallSafe({ provider: 'gateway', model, latencyMs: Date.now() - tg1, success: false, errorMsg: gatewayError.message })
-        console.error('[Gateway Error]:', gatewayError)
-        return sendJson(res, 200, {
-          finalReply: buildChatFallbackReply(userMessage, identityContext, file),
-          reply: buildChatFallbackReply(userMessage, identityContext, file),
-          mode: 'local-fallback-gateway',
-          provider: 'gateway',
-          confirmation: null,
-          productionStatus,
-        })
-      }
-    }
 
-    const chatResult = await callOpenAIChat(requestPayload, { apiBase, apiKey: resolvedOpenAIKey })
+
+    const chatResult = await callGeminiNative(requestPayload, { apiBase, apiKey: resolvedApiKey })
 
     const response = chatResult.response
     const data = chatResult.data
@@ -2188,36 +2148,53 @@ export default async function handler(req, res) {
       })
     }
 
-    if (chatSource === 'openai') {
-      const assistantMessage = data && data.choices && data.choices[0] ? data.choices[0].message || {} : {}
-      const toolCalls = Array.isArray(assistantMessage.tool_calls) ? assistantMessage.tool_calls : []
+    // ─── Tool-calling loop (Gemini native API) ───
+    const assistantMessage = data && data.choices && data.choices[0] ? data.choices[0].message || {} : {}
+    const toolCalls = Array.isArray(assistantMessage.tool_calls) ? assistantMessage.tool_calls : []
 
-      if (toolCalls.length) {
-        const conversationMessages = [...liveAgentMessages]
-        let currentAssistant = assistantMessage
-        let currentToolCalls = toolCalls
-        const usedToolNames = []
-        const apiBaseUrl = apiBase
-        const MAX_TOOL_ROUNDS = 25
+    if (toolCalls.length) {
+      const conversationMessages = [...liveAgentMessages]
+      let currentAssistant = assistantMessage
+      let currentToolCalls = toolCalls
+      const usedToolNames = []
+      const MAX_TOOL_ROUNDS = 25
 
-        for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+      for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+        conversationMessages.push({
+          role: 'assistant',
+          content: currentAssistant.content || '',
+          tool_calls: currentToolCalls,
+        })
+
+        for (const toolCall of currentToolCalls) {
+          const toolName = toolCall?.function?.name || 'unknown'
+          usedToolNames.push(toolName)
+          const toolResult = await executeLiveAgentToolCall(toolCall)
           conversationMessages.push({
-            role: 'assistant',
-            content: currentAssistant.content || '',
-            tool_calls: currentToolCalls,
+            role: 'tool',
+            tool_call_id: toolCall.id,
+            name: toolName,
+            content: JSON.stringify(toolResult),
           })
+        }
 
-          for (const toolCall of currentToolCalls) {
-            usedToolNames.push(toolCall?.function?.name || 'unknown')
-            const toolResult = await executeLiveAgentToolCall(toolCall)
-            conversationMessages.push({
-              role: 'tool',
-              tool_call_id: toolCall.id,
-              content: JSON.stringify(toolResult),
-            })
-          }
+        // Next round via Gemini native API
+        const nextRequest = {
+          model,
+          messages: conversationMessages,
+          tools: buildLiveAgentToolDefinitions(),
+          tool_choice: 'auto',
+          temperature: 0.45,
+          max_tokens: 1500,
+        }
 
-          // Tool round with fallback
+        const nativeResult = await callGeminiNative(nextRequest, { apiBase, apiKey: resolvedApiKey })
+        let nextData
+
+        if (nativeResult.response.ok) {
+          nextData = nativeResult.data
+        } else {
+          // Fallback via providerRouter
           const { chatWithFallback: toolFallback } = await import('../../server/providers/providerRouter.mjs')
           const fallbackResult = await toolFallback({
             messages: conversationMessages,
@@ -2225,75 +2202,57 @@ export default async function handler(req, res) {
             temperature: 0.45,
             maxTokens: 1500,
           })
-
-          let nextData
           if (fallbackResult.ok) {
             nextData = fallbackResult.data
           } else {
-            // Try primary one more time as last resort
-            const nextHeaders = {
-              'Content-Type': 'application/json',
-              Authorization: 'Bearer ' + resolvedOpenAIKey,
-            }
-            if (apiBaseUrl.includes('openrouter.ai')) {
-              nextHeaders['HTTP-Referer'] = 'https://apexglobalai.com'
-              nextHeaders['X-OpenRouter-Title'] = 'Apex AI Copilot'
-            }
-            const nextRes = await fetch(`${apiBaseUrl}/chat/completions`, {
-              method: 'POST', headers: nextHeaders,
-              body: JSON.stringify({ model, messages: conversationMessages, tools: buildLiveAgentToolDefinitions(), tool_choice: 'auto', temperature: 0.45, frequency_penalty: 0.1, max_tokens: 1500 }),
-            })
-            nextData = await nextRes.json().catch(() => ({}))
-            if (!nextRes.ok) {
-              return sendJson(res, 200, {
-                finalReply: buildChatFallbackReply(userMessage, identityContext, file),
-                reply: buildChatFallbackReply(userMessage, identityContext, file),
-                mode: 'local-fallback-after-tool',
-                confirmation: null,
-                productionStatus,
-              })
-            }
-          }
-
-          currentAssistant = nextData?.choices?.[0]?.message || {}
-          currentToolCalls = Array.isArray(currentAssistant.tool_calls) ? currentAssistant.tool_calls : []
-
-          if (!currentToolCalls.length) {
-            const finalReply = currentAssistant.content || currentAssistant.reasoning_content || ''
             return sendJson(res, 200, {
-              finalReply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
-              reply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
-              model: nextData.model,
-              usage: nextData.usage,
-              mode: 'live-agent-tool-calling',
-              toolCalls: usedToolNames,
+              finalReply: buildChatFallbackReply(userMessage, identityContext, file),
+              reply: buildChatFallbackReply(userMessage, identityContext, file),
+              mode: 'local-fallback-after-tool',
               confirmation: null,
               productionStatus,
             })
           }
         }
 
-        return sendJson(res, 200, {
-          finalReply: currentAssistant.content || currentAssistant.reasoning_content || 'Atingi o limite de etapas de ferramentas nesta resposta. Posso continuar se você confirmar.',
-          reply: currentAssistant.content || currentAssistant.reasoning_content || 'Atingi o limite de etapas de ferramentas nesta resposta. Posso continuar se você confirmar.',
-          mode: 'live-agent-tool-calling-maxed',
-          toolCalls: usedToolNames,
-          confirmation: null,
-          productionStatus,
-        })
+        currentAssistant = nextData?.choices?.[0]?.message || {}
+        currentToolCalls = Array.isArray(currentAssistant.tool_calls) ? currentAssistant.tool_calls : []
+
+        if (!currentToolCalls.length) {
+          const finalReply = currentAssistant.content || currentAssistant.reasoning_content || ''
+          return sendJson(res, 200, {
+            finalReply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
+            reply: finalReply || buildChatFallbackReply(userMessage, identityContext, file),
+            model: nextData.model,
+            usage: nextData.usage,
+            mode: 'live-agent-tool-calling',
+            toolCalls: usedToolNames,
+            confirmation: null,
+            productionStatus,
+          })
+        }
       }
 
-      const reply = assistantMessage.content || assistantMessage.reasoning_content || ''
       return sendJson(res, 200, {
-        finalReply: reply || buildChatFallbackReply(userMessage, identityContext, file),
-        reply: reply || buildChatFallbackReply(userMessage, identityContext, file),
-        model: data.model,
-        usage: data.usage,
-        mode: 'live-agent-chat',
+        finalReply: currentAssistant.content || currentAssistant.reasoning_content || 'Atingi o limite de etapas de ferramentas nesta resposta. Posso continuar se você confirmar.',
+        reply: currentAssistant.content || currentAssistant.reasoning_content || 'Atingi o limite de etapas de ferramentas nesta resposta. Posso continuar se você confirmar.',
+        mode: 'live-agent-tool-calling-maxed',
+        toolCalls: usedToolNames,
         confirmation: null,
         productionStatus,
       })
     }
+
+    const reply = assistantMessage.content || assistantMessage.reasoning_content || ''
+    return sendJson(res, 200, {
+      finalReply: reply || buildChatFallbackReply(userMessage, identityContext, file),
+      reply: reply || buildChatFallbackReply(userMessage, identityContext, file),
+      model: data.model,
+      usage: data.usage,
+      mode: 'live-agent-chat',
+      confirmation: null,
+      productionStatus,
+    })
 
   } catch (error) {
     console.error('Apex production chat route failed safely:', error?.message || error)

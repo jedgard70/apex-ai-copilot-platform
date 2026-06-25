@@ -293,7 +293,7 @@ const INTERACTION_MODELS = [
   { id: 'gemini-3-pro-image', name: 'Gemini 3 Pro Image (Interactions)' },
 ]
 
-const GATEWAY_OPENAI_MODELS: ModelOption[] = []
+const GATEWAY_MODELS: ModelOption[] = []
 
 function composeModelValue(provider: string, modelId: string) {
   return `${provider}|${modelId}`
@@ -320,8 +320,8 @@ function getProviderLabel(provider: string) {
   if (provider === 'fal') return 'FAL.ai'
   if (provider === 'elevenlabs') return 'Eleven Labs'
   if (provider === 'firebase') return 'Firebase'
-  if (provider === 'openai') return 'OpenAI'
-  return provider || 'OpenAI'
+  if (provider === 'firebase') return 'Firebase'
+  return provider || 'Gemini'
 }
 
 const FAL_CHAT_MODELS = [
@@ -359,7 +359,7 @@ function buildStaticModelCatalog(): ModelOption[] {
       provider: 'gemini',
       modelId: model.id,
     })),
-    ...GATEWAY_OPENAI_MODELS.map(model => ({
+    ...GATEWAY_MODELS.map(model => ({
       id: composeModelValue('gateway', model.id),
       name: model.name,
       provider: 'gateway',
@@ -401,26 +401,15 @@ function resolveModelSelection(selectedValue: string, models: ModelOption[]) {
   const rawMatches = models.filter(model => model.modelId === current.raw)
   if (!rawMatches.length) {
     const normalized = String(current.raw || '').trim().toLowerCase()
-    const legacyMap: Record<string, string> = {
-      'gpt-4o mini': 'openai/gpt-4o-mini',
-      'gpt-4o-mini': 'openai/gpt-4o-mini',
-      'gpt-4o': 'openai/gpt-4o',
-      'gpt-4': 'openai/gpt-4o',
-      'o1-mini': 'openai/o1',
-      'o1-preview': 'openai/o1',
-      'o1': 'openai/o1',
-      'o3-mini': 'openai/o3-mini',
-      'o3': 'openai/o3',
-      'o3-pro': 'openai/o3-pro',
-      'o4-mini': 'openai/o4-mini',
-    }
+    const legacyMap: Record<string, string> = {}
+    // All models now route through Gemini
     const mapped = legacyMap[normalized]
     if (mapped) return 'gateway|' + mapped
-    if (normalized.startsWith('openai/')) return 'gateway|' + normalized
+    if (normalized.startsWith('gateway/')) return 'gateway|' + normalized
     return current.raw
   }
 
-  const providerPriority = ['gemini', 'openrouter', 'fal', 'opencode', 'openai', 'gateway']
+  const providerPriority = ['gemini', 'fal', 'elevenlabs']
   const bestMatch = [...rawMatches].sort((left, right) => {
     return providerPriority.indexOf(left.provider) - providerPriority.indexOf(right.provider)
   })[0]
@@ -1544,7 +1533,7 @@ function App() {
   const [providerLedStatuses, setProviderLedStatuses] = useState<Array<{ id: string; label: string; hasKey: boolean; tooltip?: string; topUpUrl?: string }>>(() => {
     // Default: all 9 providers shown; will be updated from /api/copilot/provider-status
     const defaults: Array<{ id: string; label: string; hasKey: boolean; tooltip?: string; topUpUrl?: string }> = [
-      { id: 'openai', label: 'OpenAI', hasKey: false },
+      { id: 'gemini', label: 'Gemini', hasKey: false },
       { id: 'gemini', label: 'Gemini', hasKey: false },
       { id: 'openrouter', label: 'OpenRouter', hasKey: false },
       { id: 'fal', label: 'FAL.ai', hasKey: false },
@@ -1615,7 +1604,7 @@ function App() {
             return {
               id: String(model.id),
               name: String(model.name || model.id),
-              provider: String(model.provider || split.provider || 'openai'),
+              provider: String(model.provider || split.provider || 'gemini'),
               modelId: String(model.modelId || split.modelId || model.id),
             }
           })
@@ -2543,7 +2532,7 @@ function App() {
     if (shouldOpenAiCost) {
       closeOtherPanels('aiCost')
       const context = [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`)
-      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o AI Cost Dashboard ao lado. Vou mostrar estimativas locais de uso/custo, sem fingir billing real da OpenAI ou de outro provedor.' }])
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o AI Cost Dashboard ao lado. Vou mostrar estimativas locais de uso/custo, sem fingir billing real de provedor.' }])
       setAiCostOutput({ goal: layerGoalText, conversationContext: context })
       setInput('')
       return
