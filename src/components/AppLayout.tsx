@@ -118,113 +118,49 @@ export default function AppLayout({
           <img src="/apex-global-logo.png" alt="Apex Global" style={{ width: isMobile ? '28px' : '32px', height: isMobile ? '28px' : '32px', borderRadius: '6px', objectFit: 'cover', flexShrink: 0 }} />
           {!isMobile && (
             <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
-              <span className="font-sora text-[15px] font-bold text-primary tracking-tight">Apex Global</span>
-              <span style={{ fontSize: 9, color: 'rgba(180,197,255,0.5)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>AI Platform</span>
+              <span className="font-sora text-[14px] font-bold text-primary tracking-tight">Apex Global</span>
+              <span style={{ fontSize: 8, color: 'rgba(180,197,255,0.4)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>AI Platform</span>
             </div>
           )}
-          <div className="hidden lg:flex items-center gap-3 ml-2">
-            <span className="text-primary font-bold font-jetbrains-mono text-label-md">{projectName}</span>
-            <span className="text-on-surface-variant font-jetbrains-mono text-label-md">Status: {projectStatus}</span>
-          </div>
         </div>
 
         {/* RIGHT SIDE */}
-        <div className="flex items-center gap-3">
-          {/* Provider LEDs — full on desktop only */}
-          {leds.length > 0 && !isMobile && !isTablet && (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-surface-container rounded-full border border-outline-variant/20">
-              <span
-                title={`${healthyProviders}/${totalProviders} provedores com chave`}
-                className="font-jetbrains-mono text-[10px] text-on-surface-variant mr-1"
-                style={{ cursor: 'help' }}
-              >
-                {healthyProviders}/{totalProviders}
-              </span>
-              {leds.map((led, idx) => {
-                const ledColor = led.hasKey ? LED_GREEN : LED_RED
-                const showBorder = idx > 0
+        <div className="flex items-center gap-2.5">
+          {/* Provider LEDs — only 3 main */}
+          {!isMobile && (
+            <div className="flex items-center gap-2 px-3 py-1 bg-surface-container rounded-full border border-outline-variant/20">
+              {['gemini', 'fal', 'elevenlabs'].map(id => {
+                const led = leds.find(l => l.id === id)
+                const hasKey = led?.hasKey || false
+                const color = hasKey ? LED_GREEN : LED_RED
                 return (
-                  <div
-                    key={led.id}
-                    className="flex items-center gap-1.5"
-                    style={{
-                      ...(showBorder ? { borderLeft: '1px solid var(--color-outline-variant)', paddingLeft: '8px' } : {}),
-                      cursor: led.tooltip ? 'help' : 'default',
-                    }}
-                    title={led.tooltip || (led.hasKey ? `${led.label}: Chave OK` : `${led.label}: Sem chave`)}
-                    onMouseEnter={() => led.tooltip && setLedTooltip(led.tooltip)}
-                    onMouseLeave={() => setLedTooltip(null)}
-                  >
-                    <span
-                      className="inline-block rounded-full flex-shrink-0"
-                      style={{
-                        width: '8px',
-                        height: '8px',
-                        backgroundColor: ledColor,
-                        boxShadow: `0 0 6px ${ledColor}88`,
-                      }}
-                    />
-                    <span className="font-jetbrains-mono text-[10px] text-on-surface-variant whitespace-nowrap">
-                      {led.label}
-                    </span>
+                  <div key={id} className="flex items-center gap-1.5" title={led?.tooltip || (hasKey ? `${id}: OK` : `${id}: Off`)}>
+                    <span className="inline-block rounded-full flex-shrink-0" style={{ width: '7px', height: '7px', backgroundColor: color, boxShadow: `0 0 4px ${color}88` }} />
+                    <span className="font-jetbrains-mono text-[9px] text-on-surface-variant whitespace-nowrap">{id === 'gemini' ? 'Gemini' : id === 'fal' ? 'FAL' : 'Eleven'}</span>
                   </div>
                 )
               })}
+              <span className="font-jetbrains-mono text-[8px] text-on-surface-variant ml-1 opacity-50">+{totalProviders - 3}</span>
             </div>
           )}
 
-          {/* Mobile/Tablet: compact LED indicator */}
-          {(isMobile || isTablet) && leds.length > 0 && (
-            <div
-              className="flex items-center gap-1 px-2 py-1 bg-surface-container rounded-full border border-outline-variant/20"
-              title={`${healthyProviders}/${totalProviders} provedores OK`}
-            >
-              <span
-                className="inline-block rounded-full"
-                style={{
-                  width: '6px',
-                  height: '6px',
-                  backgroundColor: healthyProviders === totalProviders ? LED_GREEN : LED_AMBER,
-                  boxShadow: `0 0 4px ${healthyProviders === totalProviders ? LED_GREEN : LED_AMBER}88`,
-                }}
-              />
-              <span className="font-jetbrains-mono text-[9px] text-on-surface-variant">
-                {healthyProviders}/{totalProviders}
-              </span>
-            </div>
-          )}
-
-          {/* Action icons — hide on mobile */}
+          {/* Action icons */}
           {!isMobile && (
-            <div className="flex gap-3 text-on-surface-variant">
-              <span
-                className="material-symbols-outlined hover:text-on-surface cursor-pointer transition-all text-[20px]"
-                onClick={onNotificationsClick || (() => onNavChange?.('owner'))}
-                title="Owner Console"
-              >notifications</span>
-              <span
-                className="material-symbols-outlined hover:text-on-surface cursor-pointer transition-all text-[20px]"
-                onClick={onMapClick || (() => onNavChange?.('navigator'))}
-                title="Platform Map"
-              >map</span>
-              <span
-                className="material-symbols-outlined hover:text-on-surface cursor-pointer transition-all text-[20px]"
-                onClick={onAccountTreeClick || (() => onNavChange?.('deployment'))}
-                title="Deployment"
-              >account_tree</span>
+            <div className="flex gap-2.5 text-on-surface-variant items-center">
+              <span className="material-symbols-outlined hover:text-on-surface cursor-pointer transition-all text-[18px]" onClick={() => onNavChange?.('navigator')} title="Platform Map">map</span>
+              <span className="material-symbols-outlined hover:text-on-surface cursor-pointer transition-all text-[18px]" onClick={() => onNavChange?.('owner')} title="Owner Console">admin_panel_settings</span>
+              <span className="material-symbols-outlined hover:text-on-surface cursor-pointer transition-all text-[18px]" onClick={() => onNavChange?.('owner')} title="Operacional">monitoring</span>
+              <span className="material-symbols-outlined hover:text-on-surface cursor-pointer transition-all text-[18px]" onClick={() => onNavChange?.('chat')} title="Mensagens">forum</span>
             </div>
           )}
 
-          {/* Profile avatar */}
-          <div
-            className={`rounded-full bg-surface-container-highest border border-outline-variant/30 flex items-center justify-center overflow-hidden cursor-pointer hover:border-outline-variant/60 transition-colors ${isMobile ? 'w-7 h-7' : 'w-8 h-8'}`}
-            onClick={onProfileClick}
-            title="Perfil"
-          >
+          {/* Profile avatar — real user photo */}
+          <div className={`rounded-full bg-surface-container-highest border border-outline-variant/30 flex items-center justify-center overflow-hidden cursor-pointer hover:border-primary/50 transition-colors ${isMobile ? 'w-7 h-7' : 'w-8 h-8'}`}
+            onClick={onProfileClick} title={avatarUrl ? 'Perfil' : 'Owner Console'}>
             {avatarUrl ? (
               <img className="w-full h-full object-cover" src={avatarUrl} alt="avatar" />
             ) : (
-              <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: isMobile ? '16px' : '18px' }}>person</span>
+              <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: isMobile ? '16px' : '18px' }}>admin_panel_settings</span>
             )}
           </div>
         </div>

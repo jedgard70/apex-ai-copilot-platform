@@ -1256,28 +1256,7 @@ async function callGeminiNative(requestPayload, overrideConfig) {
       const apiErr = interactionData?.error?.message || JSON.stringify(interactionData).slice(0, 200)
       errorMsg = `HTTP ${primaryResponse.status}: ${apiErr}`
       console.error('[callGeminiNative] Primary failed:', errorMsg)
-
-      // Try silent fallback
-      try {
-        const { chatWithFallback } = await import('../../server/providers/providerRouter.mjs')
-        const fallbackResult = await chatWithFallback({
-          messages: requestPayload.messages,
-          tools: requestPayload.tools,
-          temperature: requestPayload.temperature || 0.72,
-          maxTokens: requestPayload.max_tokens || 900,
-        })
-        if (fallbackResult.ok) {
-          success = true
-          errorMsg = null
-          console.log('[callGeminiNative] Fallback bem-sucedido via', fallbackResult.provider)
-          recordCallSafe({ provider: fallbackResult.provider || 'fallback', model: modelName, latencyMs: Date.now() - startTime, success: true, tokensIn: fallbackResult.data?.usage?.prompt_tokens || 0, tokensOut: fallbackResult.data?.usage?.completion_tokens || 0 })
-          return { provider: fallbackResult.provider, response: { ok: true, status: 200 }, data: fallbackResult.data, usedFallback: true }
-        }
-        errorMsg = `Primary ${primaryResponse.status}, fallback failed`
-      } catch (fbErr) {
-        errorMsg = `Primary ${primaryResponse.status}, fallback: ${fbErr.message}`
-        console.error('[callGeminiNative] Fallback falhou:', fbErr.message)
-      }
+      // SEM FALLBACK — erro honesto. O usuário vê o erro e troca de provedor se quiser.
     }
   } catch (err) {
     errorMsg = err.message
