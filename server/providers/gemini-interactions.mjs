@@ -21,8 +21,10 @@ const INTERACTION_MODELS = [
   { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview (Interactions)' },
   { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash Lite (Interactions)' },
   { id: 'gemini-3.1-flash-image', name: 'Gemini 3.1 Flash Image (Interactions)' },
-  { id: 'gemini-3.5-flash-tts', name: 'Gemini 3.5 Flash TTS (Interactions)' },
+  { id: 'gemini-3.1-flash-tts-preview', name: 'Gemini 3.1 Flash TTS (Interactions)' },
   { id: 'gemini-3-pro-image', name: 'Gemini 3 Pro Image (Interactions)' },
+  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (Interactions)' },
+  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro (Interactions)' },
 ]
 
 function isInteractionModel(model) {

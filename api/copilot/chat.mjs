@@ -82,22 +82,34 @@ function getModelProviderDiagnostics() {
 }
 
 const DIRECT_GEMINI_MODELS = [
-  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash' },
-  { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview' },
-  { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash Lite' },
-  { id: 'gemini-3.1-flash-image', name: 'Gemini 3.1 Flash Image' },
-  { id: 'gemini-3.1-flash-tts-preview', name: 'Gemini 3.1 Flash TTS' },
-  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
-  { id: 'gemini-2.5-flash-image', name: 'Gemini 2.5 Flash Image' },
-  { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite' },
-  { id: 'gemini-2.5-flash-lite-preview-09-2025', name: 'Gemini 2.5 Flash Lite Preview' },
-  { id: 'gemini-2.5-flash-native-audio-preview-12-2025', name: 'Gemini 2.5 Flash Native Audio' },
-  { id: 'gemini-2.5-flash-preview-09-2025', name: 'Gemini 2.5 Flash Preview' },
-  { id: 'gemini-2.5-flash-preview-tts', name: 'Gemini 2.5 Flash TTS' },
-  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro' },
-  { id: 'gemini-2.5-pro-preview-tts', name: 'Gemini 2.5 Pro TTS' },
-  { id: 'gemini-2.5-computer-use-preview-10-2025', name: 'Gemini 2.5 Computer Use' },
-  { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview' },
+  // Flash models (free, 60 RPM) — use for 90% of chat
+  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (gratuito)' },
+  { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite (gratuito)' },
+  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash (gratuito)' },
+  { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview (gratuito)' },
+  { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash Lite (gratuito)' },
+  
+  // Pro models (10 RPM) — use for complex reasoning
+  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro (gratuito)' },
+  { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview (gratuito)' },
+  { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro Preview (gratuito)' },
+
+  // Music generation models (Lyria 3 — gratuito)
+  { id: 'lyria-3-clip-preview', name: 'Lyria 3 Clip (música, gratuito)' },
+  { id: 'lyria-3-pro-preview', name: 'Lyria 3 Pro (música, gratuito)' },
+  
+  // Image models (gratuito)
+  { id: 'gemini-3.1-flash-image', name: 'Gemini 3.1 Flash Image (gratuito)' },
+  { id: 'gemini-2.5-flash-image', name: 'Gemini 2.5 Flash Image (gratuito)' },
+  { id: 'gemini-3-pro-image', name: 'Gemini 3 Pro Image (gratuito)' },
+  
+  // TTS models (gratuito)
+  { id: 'gemini-3.1-flash-tts-preview', name: 'Gemini 3.1 Flash TTS (gratuito)' },
+  { id: 'gemini-2.5-flash-preview-tts', name: 'Gemini 2.5 Flash TTS (gratuito)' },
+  { id: 'gemini-2.5-pro-preview-tts', name: 'Gemini 2.5 Pro TTS (gratuito)' },
+  { id: 'gemini-2.5-flash-native-audio-preview-12-2025', name: 'Gemini 2.5 Native Audio (gratuito)' },
+]
+
   { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro Preview' },
   { id: 'gemini-3-pro-image-preview', name: 'Gemini 3 Pro Image' },
   { id: 'gemini-3.1-flash-image-preview', name: 'Gemini 3.1 Flash Image Preview' },
