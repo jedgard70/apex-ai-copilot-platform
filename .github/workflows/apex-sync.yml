@@ -60,16 +60,9 @@ jobs:
         run: npm run validate:directcut-pipeline
         env:
           DIRECTCUT_ENABLE_FULL: "true"
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_API_KEYROUTER: ${{ secrets.OPENAI_API_KEYROUTER }}
-          OPENAI_API_BASE: ${{ secrets.OPENAI_API_BASE }}
-          OPENAI_API_BASEROUTER: ${{ secrets.OPENAI_API_BASEROUTER }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           FAL_KEY: ${{ secrets.FAL_KEY }}
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
-          OPENCODE_GO_API_KEY: ${{ secrets.OPENCODE_GO_API_KEY }}
-          AI_GATEWAY_API_KEY: ${{ secrets.AI_GATEWAY_API_KEY }}
 
   vercel-preview:
     name: Deploy Vercel Preview from exact GitHub commit
