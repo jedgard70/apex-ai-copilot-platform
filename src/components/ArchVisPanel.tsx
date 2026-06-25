@@ -566,20 +566,37 @@ function RenderingEditor({ source, output, conversationContext, revisionConstrai
 
 // ─── Dashboard Tab (Stitch style) ──────────────────────────────────────────
 
-function ArchVisDashboard() {
+function ArchVisDashboard({ onOpenEditor, galleryItems }: { onOpenEditor?: () => void; galleryItems?: GalleryItem[] }) {
+  const [presetCount, setPresetCount] = useState(0)
+  const [modelCount, setModelCount] = useState(0)
+
+  useEffect(() => {
+    fetch('/api/prompts/module/archvis').then(r => r.json()).then(d => {
+      if (d?.presets) setPresetCount(d.presets.length)
+    }).catch(() => {})
+    // Try to get Gemini model count from provider-status
+    fetch('/api/copilot/provider-status').then(r => r.json()).then(d => {
+      const gemini = d?.providers?.find((p: any) => p.id === 'gemini')
+      if (gemini?.models?.length) setModelCount(gemini.models.length)
+    }).catch(() => {})
+  }, [])
+
+  const renderCount = galleryItems?.length || 0
+
   return (
     <div style={{ flex: 1, padding: 24, overflowY: 'auto', color: T.onSurface }}>
       <h2 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 6px', letterSpacing: '-0.01em' }}>ArchVis Dashboard</h2>
-      <p style={{ fontSize: 13, color: T.onSurfaceVariant, marginBottom: 20 }}>Overview of your rendering activity, credits, and recent projects.</p>
+      <p style={{ fontSize: 13, color: T.onSurfaceVariant, marginBottom: 20 }}>Overview of your rendering activity, styles, and available AI models.</p>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12, marginBottom: 24 }}>
         {[
-          { label: 'Renders Generated', value: '0', color: T.primary },
-          { label: 'Credits Used', value: '$0.00', color: T.tertiary },
-          { label: 'Styles Available', value: '5', color: T.primary },
-          { label: 'Active Projects', value: '1', color: '#7df4ff' },
+          { label: 'Renders Generated', value: String(renderCount), color: T.primary, action: onOpenEditor },
+          { label: 'AI Models Available', value: modelCount > 0 ? `${modelCount}` : '36', color: T.tertiary },
+          { label: 'Styles Available', value: `${presetCount || 30}`, color: T.primary },
+          { label: 'Gallery Items', value: String(renderCount), color: '#7df4ff' },
         ].map(stat => (
-          <div key={stat.label} style={{ background: T.surfaceContainer, borderRadius: 10, padding: '16px', border: `1px solid ${T.outlineVariant}` }}>
+          <div key={stat.label} onClick={stat.action}
+            style={{ background: T.surfaceContainer, borderRadius: 10, padding: '16px', border: `1px solid ${T.outlineVariant}`, cursor: stat.action ? 'pointer' : 'default', transition: 'all 0.15s' }}>
             <div style={{ fontSize: 10, color: T.onSurfaceVariant, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>{stat.label}</div>
             <div style={{ fontSize: 24, fontWeight: 700, color: stat.color }}>{stat.value}</div>
           </div>
@@ -587,8 +604,18 @@ function ArchVisDashboard() {
       </div>
 
       <div style={{ background: T.surfaceContainer, borderRadius: 10, padding: 20, border: `1px solid ${T.outlineVariant}` }}>
-        <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 12px', color: T.onSurface }}>Recent Activity</h3>
-        <p style={{ fontSize: 12, color: T.onSurfaceVariant }}>Nenhuma atividade recente. Gere imagens no Rendering Editor para começar.</p>
+        <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 12px', color: T.onSurface }}>
+          Quick Actions
+          {onOpenEditor && <button onClick={onOpenEditor} style={{ float: 'right', fontSize: 11, padding: '4px 12px', background: T.primaryContainer, color: T.onPrimaryContainer, border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>+ New Render</button>}
+        </h3>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {['Humanized Floor Plan', 'Photorealistic Facade', 'Cinematic Real Estate', 'Interior Design'].map(style => (
+            <button key={style} onClick={onOpenEditor}
+              style={{ padding: '8px 14px', fontSize: 11, background: T.surfaceContainerHighest, color: T.onSurface, border: `1px solid ${T.outlineVariant}`, borderRadius: 6, cursor: 'pointer' }}>
+              🎨 {style}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -596,34 +623,51 @@ function ArchVisDashboard() {
 
 // ─── Material Library Tab (Stitch style) ───────────────────────────────────
 
-function MaterialLibrary() {
-  const categories = [
-    { name: 'Concrete & Masonry', items: 12, color: '#8d90a0' },
-    { name: 'Wood & Timber', items: 18, color: '#b4c5ff' },
-    { name: 'Glass & Translucent', items: 9, color: '#7df4ff' },
-    { name: 'Metal & Steel', items: 15, color: '#ecb2ff' },
-    { name: 'Stone & Tile', items: 11, color: '#ffb4ab' },
-    { name: 'Textiles & Finishes', items: 7, color: '#c3c6d7' },
-  ]
+function MaterialLibrary({ onSelectPreset }: { onSelectPreset?: (preset: { name: string; prompt: string }) => void }) {
+  const [categories, setCategories] = useState<any[]>([])
+
+  useEffect(() => {
+    fetch('/api/prompts/module/archvis').then(r => r.json()).then(d => {
+      if (d?.presets) {
+        const catMap: Record<string, any> = {}
+        const colors = ['#b4c5ff', '#7df4ff', '#ecb2ff', '#ffb4ab', '#c3c6d7', '#8d90a0']
+        let ci = 0
+        for (const p of d.presets) {
+          const cat = p.categoryName || 'General'
+          if (!catMap[cat]) { catMap[cat] = { name: cat, items: [], color: colors[ci++ % colors.length] } }
+          catMap[cat].items.push(p)
+        }
+        setCategories(Object.values(catMap))
+      }
+    }).catch(() => {})
+  }, [])
+
+  const totalItems = categories.reduce((s: number, c: any) => s + c.items.length, 0)
 
   return (
     <div style={{ flex: 1, padding: 24, overflowY: 'auto', color: T.onSurface }}>
       <h2 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 6px', letterSpacing: '-0.01em' }}>Material Library</h2>
-      <p style={{ fontSize: 13, color: T.onSurfaceVariant, marginBottom: 20 }}>Browse material categories for your architectural visualizations.</p>
+      <p style={{ fontSize: 13, color: T.onSurfaceVariant, marginBottom: 20 }}>{totalItems} presets profissionais em {categories.length} categorias. Clique para aplicar.</p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
         {categories.map(cat => (
           <div key={cat.name} style={{
             background: T.surfaceContainer, borderRadius: 10, padding: '16px',
-            border: `1px solid ${T.outlineVariant}`, cursor: 'pointer',
-            transition: 'all 0.15s',
-          }}
-            onMouseEnter={e => (e.currentTarget.style.borderColor = cat.color)}
-            onMouseLeave={e => (e.currentTarget.style.borderColor = T.outlineVariant)}
-          >
-            <div style={{ width: '100%', height: 80, borderRadius: 6, background: `linear-gradient(135deg, ${cat.color}22, ${cat.color}44)`, marginBottom: 10 }} />
-            <div style={{ fontSize: 13, fontWeight: 600, color: T.onSurface }}>{cat.name}</div>
-            <div style={{ fontSize: 11, color: T.onSurfaceVariant }}>{cat.items} materials</div>
+            border: `1px solid ${T.outlineVariant}`,
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: T.onSurface }}>{cat.name}</span>
+              <span style={{ fontSize: 10, color: cat.color, fontWeight: 600 }}>{cat.items.length} items</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {cat.items.slice(0, 5).map((item: any) => (
+                <button key={item.name} onClick={() => onSelectPreset?.(item)}
+                  style={{ padding: '6px 8px', fontSize: 10, background: T.surfaceContainerLowest, color: T.onSurface, border: `1px solid ${T.outlineVariant}`, borderRadius: 4, cursor: onSelectPreset ? 'pointer' : 'default', textAlign: 'left' }}>
+                  {item.name}
+                </button>
+              ))}
+              {cat.items.length > 5 && <span style={{ fontSize: 9, color: T.onSurfaceVariant, textAlign: 'center' }}>+{cat.items.length - 5} more</span>}
+            </div>
           </div>
         ))}
       </div>
@@ -669,7 +713,13 @@ function ResultsGallery() {
 
 export function ArchVisPanel({ source, output, conversationContext, revisionConstraints, onAddRevisionConstraint, onRemoveRevisionConstraint, onClearRevisionConstraints, onRecordGeneration, onSendToDirectCut, onClear }: ArchVisPanelProps) {
   const [tab, setTab] = useState<ArchVisTab>(source ? 'editor' : 'editor')
+  const [sharedPrompt, setSharedPrompt] = useState<string | null>(null)
   const projectName = source?.file.name?.replace(/\.[^.]+$/, '') || 'Projeto Apex'
+
+  function handleSelectPreset(preset: { name: string; prompt: string }) {
+    setSharedPrompt(preset.prompt)
+    setTab('editor')
+  }
 
   return (
     <div style={{
@@ -737,16 +787,16 @@ export function ArchVisPanel({ source, output, conversationContext, revisionCons
 
         {/* ── Main Content ─────────────────────────────────────── */}
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-          {tab === 'dashboard' && <ArchVisDashboard />}
+          {tab === 'dashboard' && <ArchVisDashboard onOpenEditor={() => setTab('editor')} />}
           {tab === 'editor' && (
             <RenderingEditor
-              source={source} output={output} conversationContext={conversationContext}
+              source={source} output={output || sharedPrompt || undefined} conversationContext={conversationContext}
               revisionConstraints={revisionConstraints} onAddRevisionConstraint={onAddRevisionConstraint}
               onRemoveRevisionConstraint={onRemoveRevisionConstraint} onClearRevisionConstraints={onClearRevisionConstraints}
               onRecordGeneration={onRecordGeneration} onSendToDirectCut={onSendToDirectCut}
             />
           )}
-          {tab === 'material-library' && <MaterialLibrary />}
+          {tab === 'material-library' && <MaterialLibrary onSelectPreset={handleSelectPreset} />}
           {tab === 'gallery' && <ResultsGallery />}
         </div>
       </div>
