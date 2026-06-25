@@ -26,7 +26,7 @@ function check(label, fn) {
 
 // H18 — Self-Upgrade Planner
 console.log('\n[H18] Self-Upgrade Planner')
-const { classifySelfUpgradeIntent, buildSelfUpgradePlannerReply, TECH_RADAR } = await import('../server/agent/selfUpgradePlanner.mjs')
+const { classifySelfUpgradeIntent, buildSelfUpgradePlannerReply, TECH_RADAR } = await import('../server/agent/selfUpgrade.mjs')
 
 check('classifySelfUpgradeIntent detects "novidade em ia"', () => {
   assert.ok(classifySelfUpgradeIntent('o que ha de novidade em ia?'))

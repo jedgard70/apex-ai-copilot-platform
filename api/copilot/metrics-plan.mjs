@@ -8,21 +8,13 @@ function resolveConnectorStatus() {
   const vercelEnv = process.env.VERCEL_ENV || process.env.NODE_ENV || 'development'
   const isVercel = Boolean(process.env.VERCEL)
 
-  const hasGateway = Boolean(process.env.AI_GATEWAY_TOKEN || process.env.CLOUDFLARE_AI_GATEWAY_ID)
-  const hasGemini = Boolean(process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY)
-  const hasOpenAI = Boolean(process.env.OPENAI_API_KEY)
-  const hasAnthropic = Boolean(process.env.ANTHROPIC_API_KEY)
-  const hasOpenRouter = Boolean(process.env.OPENROUTER_API_KEY)
+  const hasGemini = Boolean(process.env.GEMINI_API_KEY)
 
   return [
     `Sentry frontend: ${sentryFrontend ? 'configured' : 'not configured'}`,
     `Sentry backend: ${sentryBackend ? 'configured' : 'not configured'}`,
     `Vercel: ${isVercel ? `${vercelEnv}` : 'local dev'}`,
-    `AI Gateway: ${hasGateway ? 'configured' : 'not configured'}`,
     `Gemini models: ${hasGemini ? 'configured' : 'not configured'}`,
-    `OpenAI: ${hasOpenAI ? 'configured' : 'not configured'}`,
-    `Anthropic: ${hasAnthropic ? 'configured' : 'not configured'}`,
-    `OpenRouter: ${hasOpenRouter ? 'configured' : 'not configured'}`,
     'Provider billing: not connected',
     'Push/email/SMS: not connected',
     'Playwright smoke tests: available through npm run test:e2e',

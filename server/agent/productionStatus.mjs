@@ -83,7 +83,7 @@ export function collectProductionOperatorStatus() {
       domainKnowledge: 'supported — orçamento/SINAPI, proposta/contrato, obra/campo, cronograma, marketing/vendas',
       domainSubclassification: 'supported — SINAPI/BDI/EVM/CPM/RFI/NCR/look-ahead/funil e mais 40+ tópicos específicos',
       // H18 — Self-Upgrade Planner
-      selfUpgradePlanner: 'supported — tech radar curado; análise ao vivo com ANTHROPIC_API_KEY',
+      selfUpgradePlanner: 'supported — tech radar curado; auto-upgrade autônomo por search + código'
       // H19 — Codex/Claude Delegation Generator
       delegationGenerator: 'supported — gera prompt estruturado para Claude Code/Codex com contexto do repo e constraints de segurança',
       // H20 — Safe Code Change Executor

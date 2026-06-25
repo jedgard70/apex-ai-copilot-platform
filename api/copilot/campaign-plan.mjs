@@ -140,24 +140,7 @@ function scrubError(value) {
     .slice(0, 800)
 }
 
-async function callOpenAI(apiKey, apiBase, model, systemPrompt, userPrompt) {
-  const resp = await fetch(`${apiBase}/chat/completions`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model,
-      messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }],
-      max_tokens: 1800,
-      temperature: 0.75,
-      response_format: { type: 'json_object' },
-    }),
-  })
-  const data = await resp.json().catch(() => ({}))
-  if (!resp.ok) throw new Error(scrubError(data?.error?.message || `OpenAI HTTP ${resp.status}`))
-  return data?.choices?.[0]?.message?.content || ''
-}
-
-async function callGemini(apiKey, model, prompt) {
+async function callGemini(apiKey, model, prompt) { if (!model) model = 'gemini-2.5-flash'
   const resp = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
     {
@@ -239,9 +222,6 @@ export default async function handler(req, res) {
     const audience = String(body.audience || '')
     const offer = String(body.offer || '')
 
-    const openaiKey = process.env.OPENAI_API_KEY
-    const openaiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
-    const openaiModel = process.env.OPENAI_MODEL || 'gpt-4o-mini'
     const geminiKey = process.env.GEMINI_API_KEY
 
     const localPlan = createCampaignAutomationPlan(goal, campaignGoal, channel, format, audience, offer)
@@ -249,11 +229,8 @@ export default async function handler(req, res) {
     let rawText = ''
     let providerStatus = 'LOCAL_CAMPAIGN_PACK'
 
-    if (openaiKey) {
-      rawText = await callOpenAI(openaiKey, openaiBase, openaiModel, buildSystemPrompt(), buildUserPrompt(goal, campaignGoal, channel, format, audience, offer))
-      providerStatus = 'openai'
-    } else if (geminiKey) {
-      rawText = await callGemini(geminiKey, 'gemini-1.5-flash-latest', `${buildSystemPrompt()}\n\n${buildUserPrompt(goal, campaignGoal, channel, format, audience, offer)}`)
+    if (geminiKey) {
+      rawText = await callGemini(geminiKey, 'gemini-2.5-flash', `${buildSystemPrompt()}\n\n${buildUserPrompt(goal, campaignGoal, channel, format, audience, offer)}`)
       providerStatus = 'gemini'
     }
 

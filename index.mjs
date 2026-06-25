@@ -1,8 +1,8 @@
 import { streamText } from 'ai'
 
-// Simple AI Gateway streaming example
+// Simple Gemini streaming example
 const result = streamText({
-  model: 'openai/gpt-5.2',
+  model: 'google/gemini-2.5-flash',
   prompt: 'Explain quantum computing in simple terms.',
 })
 

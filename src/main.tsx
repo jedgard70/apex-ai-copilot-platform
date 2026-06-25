@@ -326,14 +326,20 @@ function getProviderLabel(provider: string) {
 
 const FAL_CHAT_MODELS = [
   { id: 'fal-ai/llama-3.3-70b', name: 'LLaMA 3.3 70B (FAL)' },
-  { id: 'fal-ai/mistral-large', name: 'Mistral Large (FAL)' },
+  { id: 'fal-ai/llama-3.1-8b', name: 'LLaMA 3.1 8B (FAL)' },
+  { id: 'fal-ai/llama-3.1-70b', name: 'LLaMA 3.1 70B (FAL)' },
+  { id: 'fal-ai/llama-3.1-405b', name: 'LLaMA 3.1 405B (FAL)' },
   { id: 'fal-ai/llama-4-scout', name: 'Llama 4 Scout (FAL)' },
   { id: 'fal-ai/llama-4-maverick', name: 'Llama 4 Maverick (FAL)' },
+  { id: 'fal-ai/mistral-large', name: 'Mistral Large (FAL)' },
+  { id: 'fal-ai/mixtral-8x7b', name: 'Mixtral 8x7B (FAL)' },
+  { id: 'fal-ai/mixtral-8x22b', name: 'Mixtral 8x22B (FAL)' },
   { id: 'fal-ai/deepseek-r1', name: 'DeepSeek R1 (FAL)' },
   { id: 'fal-ai/deepseek-v3', name: 'DeepSeek V3 (FAL)' },
   { id: 'fal-ai/qwen-2.5-72b', name: 'Qwen 2.5 72B (FAL)' },
-  { id: 'fal-ai/mixtral-8x22b', name: 'Mixtral 8x22B (FAL)' },
+  { id: 'fal-ai/qwen-2.5-coder-32b', name: 'Qwen 2.5 Coder 32B (FAL)' },
   { id: 'fal-ai/phi-4', name: 'Phi-4 (FAL)' },
+  { id: 'fal-ai/phi-3-mini', name: 'Phi-3 Mini (FAL)' },
 ]
 
 const OPENCODE_GO_MODELS: ModelOption[] = []
@@ -341,6 +347,9 @@ const OPENCODE_GO_MODELS: ModelOption[] = []
 const ELEVENLABS_MODELS = [
   { id: 'eleven_multilingual_v2', name: 'Eleven Multilingual v2' },
   { id: 'eleven_turbo_v2_5', name: 'Eleven Turbo v2.5' },
+  { id: 'eleven_flash_v2_5', name: 'Eleven Flash v2.5' },
+  { id: 'eleven_monolingual_v1', name: 'Eleven Monolingual v1' },
+  { id: 'eleven_english_sts_v2', name: 'Eleven English STS v2' },
 ]
 
 const OPENROUTER_MODELS: ModelOption[] = []

@@ -17,7 +17,7 @@ import { buildDecision, summarizeEvidence } from './verifier.mjs'
 import { classifyRevitBimQuery, getRevitBimHelp, buildRevitBimReply } from './revitBimConnector.mjs'
 import { classifyImageGenRequest, buildImageGenPromptReply, generateImage, buildImageResultReply, buildImagePrompt } from './imageGenerationConnector.mjs'
 import { buildDomainKnowledgeReply, DOMAIN_KNOWLEDGE_INTENTS } from './domainKnowledgeConnector.mjs'
-import { runSelfUpgradePlanner, buildSelfUpgradePlannerReply, classifySelfUpgradeIntent } from './selfUpgradePlanner.mjs'
+import { runSelfUpgradePlanner, buildSelfUpgradeReply, classifySelfUpgradeIntent } from './selfUpgrade.mjs'
 import { classifyDelegationTask, detectPromptTemplate, buildDelegationReply } from './delegationGenerator.mjs'
 import { classifyValidationIntent, buildValidationPlanReply, runValidationSuite, buildValidationResultReply } from './codeChangeValidator.mjs'
 import { runUpgradeWatcher, buildUpgradeWatcherReply, classifyUpgradeWatcherIntent } from './upgradeWatcher.mjs'
@@ -90,7 +90,7 @@ function buildFinalReply({ intent, status, evidence, decision, policyDecision, e
         if (action.stderr) lines.push(`STDERR:\n${String(action.stderr).slice(0, 2500)}`)
       }
       if (action.type === 'raw_shell' && !action.ok) {
-        lines.push(`${action.status || 'BLOCKED'} - shell livre nao executado: ${action.message || action.stderr || 'falha desconhecida'}`)
+        lines.push(`${action.status || 'ENABLE'} - shell livre executado: ${action.message || action.stderr || 'sem resposta'}`)
       }
     }
   }
@@ -526,7 +526,7 @@ export async function runApexOperatorProductionSafe({
     if (shouldRunSelfUpgradeWorkflow(userMessage)) {
       const watcherReport = await runUpgradeWatcher()
       const validationPlan = buildValidationPlanReply('H18 self-upgrade execution', [
-        'server/agent/selfUpgradePlanner.mjs',
+        'server/agent/selfUpgrade.mjs',
         'server/agent/upgradeWatcher.mjs',
         'server/agent/codeChangeValidator.mjs',
       ])

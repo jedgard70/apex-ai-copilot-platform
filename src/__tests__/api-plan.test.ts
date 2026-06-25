@@ -23,7 +23,7 @@ function handleResearchFallback(payload: Record<string, unknown>) {
     query: query || '',
     topic,
     results: [],
-    message: 'Configure TAVILY_API_KEY e ANTHROPIC_API_KEY para pesquisa web e análise.',
+    message: 'Configure TAVILY_API_KEY para pesquisa web e análise.',
   }
 }
 
@@ -52,7 +52,7 @@ function handleBimTourFallback(payload: Record<string, unknown>) {
     audience: 'Equipe de obra',
     orderedSteps: tourSteps.length ? tourSteps : [{ name: 'Vista geral', description: 'Visão completa do modelo' }],
     cameraPath: [],
-    narration: 'Configure ANTHROPIC_API_KEY para geração inteligente de tour BIM.',
+    narration: 'Tour BIM disponível com GEMINI_API_KEY para geração inteligente.',
     storyboard: '',
     durationEstimate: '5-10 min',
     exportNotes: `Destino: ${target}`,
@@ -99,7 +99,7 @@ describe('plan API — research fallback', () => {
   it('message mentions required env vars', () => {
     const r = handleResearchFallback({})
     expect(r.message).toContain('TAVILY_API_KEY')
-    expect(r.message).toContain('ANTHROPIC_API_KEY')
+    expect(r.message).toContain('TAVILY_API_KEY')
   })
 })
 

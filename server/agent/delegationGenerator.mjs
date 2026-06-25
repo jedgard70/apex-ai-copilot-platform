@@ -4,7 +4,7 @@
  * architecture constraints, acceptance criteria, and security boundaries.
  */
 
-import { snapshotCurrentArchitecture } from './selfUpgradePlanner.mjs'
+import { snapshotCurrentArchitecture } from './selfUpgrade.mjs'
 
 // ─── Repo context builder ─────────────────────────────────────────────────────
 
