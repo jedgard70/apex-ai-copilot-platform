@@ -41,10 +41,9 @@ async function checkFal() {
     if (res.status === 401 || res.status === 403) return { id: 'fal', name: 'fal.ai', status: 'error', message: 'Chave inválida.', topUpUrl: 'https://fal.ai/dashboard/billing' }
     // 404 = endpoint moved but key is valid (not auth error) → mark as ok
     if (res.status === 404) return { id: 'fal', name: 'fal.ai (Kling Video / Flux Image)', status: 'ok', message: 'Chave válida (endpoint de billing atualizado).', topUpUrl: 'https://fal.ai/dashboard/billing' }
-    return { id: 'fal', name: 'fal.ai', status: 'ok', message: `Chave configurada (status ${res.status}).`, topUpUrl: 'https://fal.ai/dashboard/billing' }
+    return { id: 'fal', name: 'fal.ai', status: 'error', message: `Falha na verificação (status ${res.status}).`, topUpUrl: 'https://fal.ai/dashboard/billing' }
   } catch (err) {
-    // Network timeout — key is configured but can't verify, mark as warning (green-ish) not error
-    return { id: 'fal', name: 'fal.ai', status: 'warning', message: 'Chave configurada (verificação offline).', topUpUrl: 'https://fal.ai/dashboard/billing' }
+    return { id: 'fal', name: 'fal.ai', status: 'error', message: `Erro de rede: ${scrub(err?.message)}`, topUpUrl: 'https://fal.ai/dashboard/billing' }
   }
 }
 
@@ -190,24 +189,22 @@ async function checkAuthKey() {
     if (String(data?.message || '').toLowerCase().includes('balance') || String(data?.message || '').toLowerCase().includes('credit')) {
       return { id: 'authkey', name: 'AuthKey (WhatsApp / SMS)', status: 'needs-topup', message: `Saldo insuficiente: ${scrub(data?.message)}`, topUpUrl: 'https://authkey.io/dashboard' }
     }
-    // Any response means key exists
-    return { id: 'authkey', name: 'AuthKey (WhatsApp / SMS)', status: 'ok', message: 'Chave configurada.' }
+    return { id: 'authkey', name: 'AuthKey (WhatsApp / SMS)', status: 'error', message: `Resposta inesperada: ${scrub(data?.message || res?.status)}`, topUpUrl: 'https://authkey.io/dashboard' }
   } catch (err) {
-    return { id: 'authkey', name: 'AuthKey (WhatsApp / SMS)', status: 'warning', message: 'Chave configurada mas não verificada (rede).', topUpUrl: 'https://authkey.io/dashboard' }
+    return { id: 'authkey', name: 'AuthKey (WhatsApp / SMS)', status: 'error', message: `Erro de rede: ${scrub(err?.message)}`, topUpUrl: 'https://authkey.io/dashboard' }
   }
 }
 
 // ─── FFmpeg local ─────────────────────────────────────────────────────────────
 async function checkFfmpeg() {
-  // ffmpeg-static is bundled in the build — always available when installed via npm
   try {
     const { createRequire } = await import('node:module')
     const require = createRequire(import.meta.url)
     const ffmpegPath = require('ffmpeg-static')
-    if (ffmpegPath) return { id: 'ffmpeg', name: 'FFmpeg local (Fallback vídeo)', status: 'ok', message: 'ffmpeg-static disponível. Fallback de vídeo ativo.' }
-    return { id: 'ffmpeg', name: 'FFmpeg local (Fallback vídeo)', status: 'ok', message: 'Fallback de vídeo local (verificação offline).' }
+    if (ffmpegPath) return { id: 'ffmpeg', name: 'FFmpeg local', status: 'ok', message: 'ffmpeg-static disponível.' }
+    return { id: 'ffmpeg', name: 'FFmpeg local', status: 'error', message: 'ffmpeg-static não encontrado.' }
   } catch {
-    return { id: 'ffmpeg', name: 'FFmpeg local (Fallback vídeo)', status: 'ok', message: 'Fallback de vídeo local integrado.' }
+    return { id: 'ffmpeg', name: 'FFmpeg local', status: 'error', message: 'ffmpeg-static não pôde ser carregado.' }
   }
 }
 
@@ -221,11 +218,24 @@ async function checkGemini() {
     }, 6000)
     if (res.ok) return { id: 'gemini', name: 'Gemini (Chat, multimodal, TTS, image)', status: 'ok', message: 'Chave válida.' }
     if (res.status === 401 || res.status === 403) return { id: 'gemini', name: 'Gemini (Chat, multimodal, TTS, image)', status: 'error', message: 'Chave inválida ou expirada.', topUpUrl: 'https://aistudio.google.com/apikey' }
-    if (res.status === 429) { recordRateLimit({ provider: 'gemini', endpoint: 'models', statusCode: 429 }); return { id: 'gemini', name: 'Gemini (Chat, multimodal, TTS, image)', status: 'warning', message: 'Rate limit. Chave configurada.' } }
-    return { id: 'gemini', name: 'Gemini (Chat, multimodal, TTS, image)', status: 'warning', message: `Status ${res.status}. Chave configurada.` }
+    if (res.status === 429) { recordRateLimit({ provider: 'gemini', endpoint: 'models', statusCode: 429 }); return { id: 'gemini', name: 'Gemini (Chat, multimodal, TTS, image)', status: 'warning', message: 'Rate limit. Chave válida mas quota temporariamente excedida.' } }
+    return { id: 'gemini', name: 'Gemini (Chat, multimodal, TTS, image)', status: 'error', message: `Falha na verificação (status ${res.status}).`, topUpUrl: 'https://aistudio.google.com/apikey' }
   } catch (err) {
-    return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'ok', message: 'Chave configurada (Google API não respondeu).' }
+    return { id: 'gemini', name: 'Gemini (Chat, multimodal, TTS, image)', status: 'error', message: `Erro de rede: ${scrub(err?.message)}`, topUpUrl: 'https://aistudio.google.com/apikey' }
   }
+}
+
+// ─── Firebase ────────────────────────────────────────────────────────────────
+async function checkFirebase() {
+  const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID
+  const apiKey = process.env.VITE_FIREBASE_API_KEY
+  if (!projectId || !apiKey) return { id: 'firebase', name: 'Firebase (Auth, DB, Storage)', status: 'unconfigured', message: 'Firebase project ID ou API key não configurado.' }
+  try {
+    const res = await safeFetch(`https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents?pageSize=1&key=${apiKey}`, {}, 6000)
+    if (res.ok || res.status === 403 || res.status === 400) return { id: 'firebase', name: 'Firebase (Auth, DB, Storage)', status: 'ok', message: `Projeto ${projectId} configurado e chave válida.` }
+    if (res.status === 401) return { id: 'firebase', name: 'Firebase (Auth, DB, Storage)', status: 'error', message: 'API key inválida.', topUpUrl: 'https://console.firebase.google.com' }
+    return { id: 'firebase', name: 'Firebase (Auth, DB, Storage)', status: 'ok', message: `Firebase configurado (projeto: ${projectId}).` }
+  } catch { return { id: 'firebase', name: 'Firebase (Auth, DB, Storage)', status: 'warning', message: 'Firebase configurado (verificação offline).' } }
 }
 
 // ─── Handler ──────────────────────────────────────────────────────────────────
