@@ -16,9 +16,9 @@ const PROVIDER_LABELS: Record<string, string> = {
   gemini: 'Gemini', fal: 'FAL.ai',
   elevenlabs: 'ElevenLabs', firebase: 'Firebase',
   authkey: 'AuthKey', github: 'GitHub', stripe: 'Stripe',
-  supabase: 'Supabase', tavily: 'Tavily', ffmpeg: 'FFmpeg',
+  supabase: 'Supabase', tavily: 'Tavily', ffmpeg: 'FFmpeg', aps: 'Autodesk APS',
 }
-const ALL_KEYS = ['gemini','fal','elevenlabs','firebase','authkey','github','stripe','supabase','tavily','ffmpeg']
+const ALL_KEYS = ['gemini','fal','elevenlabs','firebase','authkey','github','stripe','supabase','tavily','ffmpeg','aps']
 
 // 62 modules do Ecossistema Apex — mapeamento do Platform Map
 const MODULES = [

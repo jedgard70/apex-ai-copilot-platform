@@ -5,7 +5,7 @@ type OwnerPageProps = {
   onOpenChat?: (cmd: string) => void
 }
 
-type ProviderEntry = { id: string; name: string; status: string; message: string; balance?: string | null; topUpUrl?: string }
+type ProviderEntry = { id: string; name: string; status: string; message: string; balance?: string | null; topUpUrl?: string; models?: string[] }
 type AnalyticsProvider = { provider: string; calls: number; successRate: number; avgLatencyMs: number; totalTokensIn: number; totalTokensOut: number }
 type AnalyticsData = { providers: AnalyticsProvider[]; summary: { totalCalls: number; successRate: number; avgLatencyMs: number; windowMinutes: number } }
 type KeyLifecycleEntry = { id: string; provider: string; name: string; configured: boolean; status: string; ageDays: number | null; maxAgeDays: number; critical: boolean; recommendation: string }
@@ -14,7 +14,7 @@ const PROVIDER_LABELS: Record<string, string> = {
   gemini: 'Gemini',
   fal: 'FAL.ai', elevenlabs: 'ElevenLabs',
   firebase: 'Firebase', tavily: 'Tavily', stripe: 'Stripe', supabase: 'Supabase',
-  authkey: 'AuthKey', github: 'GitHub', ffmpeg: 'FFmpeg',
+  authkey: 'AuthKey', github: 'GitHub', ffmpeg: 'FFmpeg', aps: 'Autodesk APS',
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -149,6 +149,11 @@ export function OwnerPage({ onNavigate, onOpenChat }: OwnerPageProps) {
                       <div className="min-w-0">
                         <span className="text-sm font-bold text-[#e2e2e2]">{PROVIDER_LABELS[p.id] || p.name || p.id}</span>
                         <p className="text-[11px] text-[#c6c6ce] truncate">{p.message?.slice(0, 80)}</p>
+                        {p.models && Array.isArray(p.models) && (
+                          <div className="text-[9px] text-[#6C47FF] mt-1 truncate max-w-[200px]" title={p.models.join(', ')}>
+                            modelos: {p.models.slice(0,4).join(', ')}{p.models.length > 4 ? `...` : ''}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0 ml-3">
