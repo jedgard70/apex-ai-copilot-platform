@@ -1243,6 +1243,31 @@ function buildStyleInstruction(userText, file) {
     ].filter(Boolean).join('\n')
   }
   const asksForStructuredOutput = /\b(report|relatorio|relat[oó]rio|checklist|lista|liste|bullet|tabela|table|format|formato|plano detalhado)\b/i.test(userText)
+
+  // ── Detecção de Relatórios da Plataforma Apex ─────────────────
+  const asksPlatformReport = /\b(relat[oó]rio de (status|provedores?|custos?|modelos?|estrat[eé]gico|completo|r[aá]pido|executivo)|an[aá]lise de (custos?|provedores?|benef[ií]cio)|status da plataforma|diagn[oó]stico|resumo executivo|me mostre um relat[oó]rio|catalogo de modelos|cat[aá]logo de modelos|recomenda[cç][oõ]es estrat[eé]gicas?|report|platform status|provider analysis|quick summary|executive summary)\b/i.test(userText)
+  if (asksPlatformReport) {
+    const reportTypes = [
+      { pattern: /(provedores?|custos?|benef[ií]cio)/, endpoint: 'providers', label: 'Análise de Custo-Benefício' },
+      { pattern: /(modelos?|cat[aá]logo)/, endpoint: 'models', label: 'Catálogo de Modelos' },
+      { pattern: /(estrat[eé]gia|recomenda)/, endpoint: 'strategy', label: 'Recomendações Estratégicas' },
+      { pattern: /(r[aá]pido|executivo|resumo)/, endpoint: 'quick', label: 'Resumo Executivo' },
+      { pattern: /(completo|diagn[oó]stico)/, endpoint: 'status', label: 'Relatório Completo' },
+    ]
+    const matched = reportTypes.find(r => r.pattern.test(userText))
+    const endpoint = matched?.endpoint || 'status'
+    const label = matched?.label || 'Relatório de Status'
+    return [
+      `O usuário pediu um relatório da plataforma (${label}).`,
+      `Use fetch('/api/reports/${endpoint}?format=markdown') para obter o relatório.`,
+      `Retorne o conteúdo EXATAMENTE como veio da API, SEM resumir ou modificar.`,
+      `Comece sua resposta com o relatório diretamente.`,
+      `Se quiser adicionar contexto adicional, faça APÓS o relatório.`,
+      `NÃO pergunte nada — o relatório já contém tudo.`,
+      `Mantenha a formatação de bordas (╔╗╚╝) e ícones (✅⚠️❌) da resposta para ficar visual no chat.`,
+    ].join('\n')
+  }
+
   if (intent.asksForList || asksForStructuredOutput) {
     return [
       'Style for this reply: the user asked for a list or structured answer, so provide a clear concise list.',
@@ -1733,6 +1758,25 @@ function buildLiveAgentToolDefinitions() {
         },
       },
     },
+    // Apex Platform Report tool
+    {
+      type: 'function',
+      function: {
+        name: 'generate_platform_report',
+        description: 'Generate a structured markdown report about the Apex platform status, providers, models, costs, or strategic recommendations. Use when the user asks for "relatório", "status", "diagnóstico", "análise", "catálogo", "estratégia", "resumo executivo" or similar.',
+        parameters: {
+          type: 'object',
+          properties: {
+            type: {
+              type: 'string',
+              enum: ['status', 'providers', 'models', 'strategy', 'quick'],
+              description: 'Report type: status (complete), providers (cost-benefit), models (catalog), strategy (recommendations), quick (executive summary)',
+            },
+          },
+          required: ['type'],
+        },
+      },
+    },
     // Auto-Fix tool
     {
       type: 'function',
@@ -1878,6 +1922,37 @@ async function executeLiveAgentToolCall(toolCall) {
   if (['parse_msproject_xml', 'analyze_msproject_schedule', 'generate_msproject_report'].includes(name)) {
     const { executeMsProjectToolCall } = await import('./server/agent/msprojectConnector.mjs')
     return await executeMsProjectToolCall(toolCall)
+  }
+
+  // Apex Platform Report tool
+  if (name === 'generate_platform_report') {
+    try {
+      const args = JSON.parse(toolCall.function.arguments || '{}')
+      const reportType = args.type || 'status'
+      const { default: reportHandler } = await import('./api/reports/index.mjs')
+      let reportResult = null
+      const mockRes = { 
+        status() { return this },
+        json(d) { reportResult = d },
+        send(d) { reportResult = d },
+        setHeader() {},
+        end() {},
+      }
+      const mockReq = {
+        method: 'GET',
+        url: `/api/reports/${reportType}?format=markdown`,
+        headers: {},
+      }
+      await reportHandler(mockReq, mockRes)
+      return {
+        providerStatus: 'connected',
+        finalReply: reportResult?.markdown || reportResult?.text || JSON.stringify(reportResult),
+        reportType,
+        reportData: reportResult,
+      }
+    } catch (err) {
+      return { providerStatus: 'error', finalReply: `Erro ao gerar relatório: ${err.message}` }
+    }
   }
 
   // Auto-Fix tool
@@ -6630,6 +6705,13 @@ const server = http.createServer(async (req, res) => {
   // ── Prompts / Biblioteca de Skills API ────────────────────────────────────────
   if (req.url?.startsWith('/api/prompts/') && ['GET'].includes(req.method)) {
     const { default: handler } = await import('./api/prompts/index.mjs')
+    handler(req, res)
+    return
+  }
+
+  // ── Reports / Relatórios Inteligentes Apex ────────────────────────────────────
+  if (req.url?.startsWith('/api/reports/') && ['GET'].includes(req.method)) {
+    const { default: handler } = await import('./api/reports/index.mjs')
     handler(req, res)
     return
   }
