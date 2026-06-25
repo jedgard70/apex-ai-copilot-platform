@@ -129,10 +129,10 @@ const OPENROUTER_MODELS = [
   { id: 'openai/o3-pro', name: 'OpenRouter · o3 Pro' },
   { id: 'openai/o4-mini', name: 'OpenRouter · o4 Mini' },
   { id: 'openai/o4-mini-high', name: 'OpenRouter · o4 Mini High' },
-  { id: 'google/gemini-2.5-flash', name: 'OpenRouter · Gemini 2.5 Flash' },
-  { id: 'google/gemini-2.5-pro', name: 'OpenRouter · Gemini 2.5 Pro' },
-  { id: 'google/gemini-2.0-flash', name: 'OpenRouter · Gemini 2.0 Flash' },
-  { id: 'google/gemini-2.0-pro', name: 'OpenRouter · Gemini 2.0 Pro' },
+  { id: 'google/gemini-3.5-flash', name: 'OpenRouter · Gemini 3.5 Flash' },
+  { id: 'google/gemini-3.1-pro', name: 'OpenRouter · Gemini 3.1 Pro' },
+  { id: 'google/gemini-3.1-flash-lite', name: 'OpenRouter · Gemini 3.1 Flash Lite' },
+  { id: 'google/gemini-3.1-tech-preview', name: 'OpenRouter · Gemini 3.1 Tech Preview' },
   { id: 'anthropic/claude-3.5-sonnet', name: 'OpenRouter · Claude 3.5 Sonnet' },
   { id: 'anthropic/claude-3.5-haiku', name: 'OpenRouter · Claude 3.5 Haiku' },
   { id: 'anthropic/claude-sonnet-4-6', name: 'OpenRouter · Claude Sonnet 4.6' },
@@ -6400,6 +6400,11 @@ const server = http.createServer(async (req, res) => {
   }
   if (req.url === '/api/copilot/tool-execute' && req.method === 'POST') {
     handleToolExecute(req, res)
+    return
+  }
+  if ((req.url === '/api/copilot/learn-url' || req.url.startsWith('/api/copilot/learn-url?')) && (req.method === 'GET' || req.method === 'POST')) {
+    const learnUrlHandler = await import('./api/copilot/learn-url.mjs').then(m => m.default)
+    learnUrlHandler(req, res)
     return
   }
   const requestUrl = new URL(req.url, 'http://127.0.0.1')

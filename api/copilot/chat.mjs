@@ -193,10 +193,10 @@ const OPENROUTER_MODELS = [
   { id: 'openai/o3-pro', name: 'OpenRouter · o3 Pro' },
   { id: 'openai/o4-mini', name: 'OpenRouter · o4 Mini' },
   { id: 'openai/o4-mini-high', name: 'OpenRouter · o4 Mini High' },
-  { id: 'google/gemini-2.5-flash', name: 'OpenRouter · Gemini 2.5 Flash' },
-  { id: 'google/gemini-2.5-pro', name: 'OpenRouter · Gemini 2.5 Pro' },
-  { id: 'google/gemini-2.0-flash', name: 'OpenRouter · Gemini 2.0 Flash' },
-  { id: 'google/gemini-2.0-pro', name: 'OpenRouter · Gemini 2.0 Pro' },
+  { id: 'google/gemini-3.5-flash', name: 'OpenRouter · Gemini 3.5 Flash' },
+  { id: 'google/gemini-3.1-pro', name: 'OpenRouter · Gemini 3.1 Pro' },
+  { id: 'google/gemini-3.1-flash-lite', name: 'OpenRouter · Gemini 3.1 Flash Lite' },
+  { id: 'google/gemini-3.1-tech-preview', name: 'OpenRouter · Gemini 3.1 Tech Preview' },
   { id: 'anthropic/claude-3.5-sonnet', name: 'OpenRouter · Claude 3.5 Sonnet' },
   { id: 'anthropic/claude-3.5-haiku', name: 'OpenRouter · Claude 3.5 Haiku' },
   { id: 'anthropic/claude-sonnet-4-6', name: 'OpenRouter · Claude Sonnet 4.6' },
@@ -1091,6 +1091,28 @@ function buildLiveAgentToolDefinitions() {
         }
       }
     },
+    {
+      type: 'function',
+      function: {
+        name: 'learn_url',
+        description: 'Learn from a website URL — fetch and analyze any site to understand its libraries, APIs, SDKs, services, or documentation. Use when the user asks you to learn about a technology from its website.',
+        parameters: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            url: {
+              type: 'string',
+              description: 'The full URL to analyze (must start with http:// or https://).'
+            },
+            question: {
+              type: 'string',
+              description: 'Optional specific question about the website content.'
+            }
+          },
+          required: ['url']
+        }
+      }
+    },
     ...buildCodeToolDefinitions(),
   ]
 }
@@ -1426,6 +1448,27 @@ async function executeLiveAgentToolCall(toolCall) {
       }
     } catch (err) {
       return { error: 'Failed to execute web search: ' + err.message }
+    }
+  }
+
+  if (name === 'learn_url') {
+    let args = {}
+    try {
+      args = JSON.parse(toolCall.function.arguments || '{}')
+    } catch {
+      return { error: 'Invalid tool arguments.' }
+    }
+    const url = String(args.url || '').trim()
+    const question = String(args.question || '').trim()
+    if (!url) return { error: 'URL is required.' }
+    try {
+      const { analyzeUrl } = await import('../../server/service/urlContext.mjs')
+      const result = await analyzeUrl(url, question)
+      return result.ok
+        ? { ...result, providerStatus: 'url-learned' }
+        : { error: result.error, providerStatus: 'url-failed' }
+    } catch (err) {
+      return { error: 'Failed to analyze URL: ' + err.message, providerStatus: 'url-error' }
     }
   }
 
@@ -2188,12 +2231,40 @@ export default async function handler(req, res) {
     const response = chatResult.response
     const data = chatResult.data
 
-    if (!response.ok) {
-      const errorMsg = `Desculpe, o provedor de IA retornou erro (${response.status}). Tente selecionar outro modelo no seletor ao lado.`
+    if (!response.ok || response.usedFallback) {
+      // Primary provider failed — try full fallback chain silently
+      try {
+        const { chatWithFallback: autoFallback } = await import('../../server/providers/providerRouter.mjs')
+        const fbResult = await autoFallback({
+          messages: liveAgentMessages,
+          tools: buildLiveAgentToolDefinitions(),
+          temperature: 0.72,
+          maxTokens: 900,
+        })
+        if (fbResult.ok) {
+          const fbData = fbResult.data
+          const fbAssistant = fbData?.choices?.[0]?.message || {}
+          const fbReply = fbAssistant.content || fbAssistant.reasoning_content || ''
+          if (fbReply) {
+            return sendJson(res, 200, {
+              finalReply: fbReply,
+              reply: fbReply,
+              model: fbData.model || 'fallback',
+              usage: fbData.usage,
+              mode: 'live-agent-chat-fallback',
+              provider: fbResult.provider || 'fallback',
+              confirmation: null,
+              productionStatus,
+            })
+          }
+        }
+      } catch (_) { /* all fallbacks exhausted, continue to local fallback */ }
+      const fallbackText = buildChatFallbackReply(userMessage, identityContext, file)
       return sendJson(res, 200, {
-        finalReply: errorMsg,
-        reply: errorMsg,
-        mode: 'provider-error',
+        finalReply: fallbackText,
+        reply: fallbackText,
+        mode: 'local-fallback',
+        confirmation: null,
         productionStatus,
       })
     }
