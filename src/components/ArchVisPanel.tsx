@@ -15,7 +15,7 @@ import { IntakeFile } from '../lib/fileIntake'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type ArchVisTab = 'editor' | 'gallery'
+type ArchVisTab = 'dashboard' | 'editor' | 'material-library' | 'gallery'
 type GenerationMode = 'preserve-layout' | 'creative-redesign'
 type OutputType = 'humanized-floor-plan' | '3d-perspective' | 'facade-render' | 'interior-render' | 'creative-concept'
 type PromptStyle = 'humanized-floor-plan' | 'photorealistic-facade' | 'cinematic-real-estate' | 'top-down-2d' | 'technical-drawing'
@@ -564,6 +564,73 @@ function RenderingEditor({ source, output, conversationContext, revisionConstrai
   )
 }
 
+// ─── Dashboard Tab (Stitch style) ──────────────────────────────────────────
+
+function ArchVisDashboard() {
+  return (
+    <div style={{ flex: 1, padding: 24, overflowY: 'auto', color: T.onSurface }}>
+      <h2 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 6px', letterSpacing: '-0.01em' }}>ArchVis Dashboard</h2>
+      <p style={{ fontSize: 13, color: T.onSurfaceVariant, marginBottom: 20 }}>Overview of your rendering activity, credits, and recent projects.</p>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12, marginBottom: 24 }}>
+        {[
+          { label: 'Renders Generated', value: '0', color: T.primary },
+          { label: 'Credits Used', value: '$0.00', color: T.tertiary },
+          { label: 'Styles Available', value: '5', color: T.primary },
+          { label: 'Active Projects', value: '1', color: '#7df4ff' },
+        ].map(stat => (
+          <div key={stat.label} style={{ background: T.surfaceContainer, borderRadius: 10, padding: '16px', border: `1px solid ${T.outlineVariant}` }}>
+            <div style={{ fontSize: 10, color: T.onSurfaceVariant, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>{stat.label}</div>
+            <div style={{ fontSize: 24, fontWeight: 700, color: stat.color }}>{stat.value}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ background: T.surfaceContainer, borderRadius: 10, padding: 20, border: `1px solid ${T.outlineVariant}` }}>
+        <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 12px', color: T.onSurface }}>Recent Activity</h3>
+        <p style={{ fontSize: 12, color: T.onSurfaceVariant }}>Nenhuma atividade recente. Gere imagens no Rendering Editor para começar.</p>
+      </div>
+    </div>
+  )
+}
+
+// ─── Material Library Tab (Stitch style) ───────────────────────────────────
+
+function MaterialLibrary() {
+  const categories = [
+    { name: 'Concrete & Masonry', items: 12, color: '#8d90a0' },
+    { name: 'Wood & Timber', items: 18, color: '#b4c5ff' },
+    { name: 'Glass & Translucent', items: 9, color: '#7df4ff' },
+    { name: 'Metal & Steel', items: 15, color: '#ecb2ff' },
+    { name: 'Stone & Tile', items: 11, color: '#ffb4ab' },
+    { name: 'Textiles & Finishes', items: 7, color: '#c3c6d7' },
+  ]
+
+  return (
+    <div style={{ flex: 1, padding: 24, overflowY: 'auto', color: T.onSurface }}>
+      <h2 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 6px', letterSpacing: '-0.01em' }}>Material Library</h2>
+      <p style={{ fontSize: 13, color: T.onSurfaceVariant, marginBottom: 20 }}>Browse material categories for your architectural visualizations.</p>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
+        {categories.map(cat => (
+          <div key={cat.name} style={{
+            background: T.surfaceContainer, borderRadius: 10, padding: '16px',
+            border: `1px solid ${T.outlineVariant}`, cursor: 'pointer',
+            transition: 'all 0.15s',
+          }}
+            onMouseEnter={e => (e.currentTarget.style.borderColor = cat.color)}
+            onMouseLeave={e => (e.currentTarget.style.borderColor = T.outlineVariant)}
+          >
+            <div style={{ width: '100%', height: 80, borderRadius: 6, background: `linear-gradient(135deg, ${cat.color}22, ${cat.color}44)`, marginBottom: 10 }} />
+            <div style={{ fontSize: 13, fontWeight: 600, color: T.onSurface }}>{cat.name}</div>
+            <div style={{ fontSize: 11, color: T.onSurfaceVariant }}>{cat.items} materials</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ─── Gallery Tab ──────────────────────────────────────────────────────────────
 
 function ResultsGallery() {
@@ -650,7 +717,9 @@ export function ArchVisPanel({ source, output, conversationContext, revisionCons
 
           {/* Nav */}
           <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <NavItem icon={<Grid2x2 size={16} />} label="Dashboard" active={tab === 'dashboard'} onClick={() => setTab('dashboard')} />
             <NavItem icon={<Settings size={16} />} label="Rendering Editor" active={tab === 'editor'} onClick={() => setTab('editor')} />
+            <NavItem icon={<Sun size={16} />} label="Material Library" active={tab === 'material-library'} onClick={() => setTab('material-library')} />
             <NavItem icon={<ImageIcon size={16} />} label="Results Gallery" active={tab === 'gallery'} onClick={() => setTab('gallery')} />
           </nav>
 
@@ -668,6 +737,7 @@ export function ArchVisPanel({ source, output, conversationContext, revisionCons
 
         {/* ── Main Content ─────────────────────────────────────── */}
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+          {tab === 'dashboard' && <ArchVisDashboard />}
           {tab === 'editor' && (
             <RenderingEditor
               source={source} output={output} conversationContext={conversationContext}
@@ -676,6 +746,7 @@ export function ArchVisPanel({ source, output, conversationContext, revisionCons
               onRecordGeneration={onRecordGeneration} onSendToDirectCut={onSendToDirectCut}
             />
           )}
+          {tab === 'material-library' && <MaterialLibrary />}
           {tab === 'gallery' && <ResultsGallery />}
         </div>
       </div>
