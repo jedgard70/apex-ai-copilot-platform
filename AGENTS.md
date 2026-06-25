@@ -64,11 +64,9 @@ alterar, modificar, remover ou sobrescrever variáveis no .env.local ou
 nas Environment Variables do Vercel sem autorização EXPLÍCITA e VERBAL
 do Owner (jedgard70@gmail.com / Dr. Edgard).
 
-Isso inclui, mas não se limita a: GEMINI_API_KEY, OPENAI_API_KEY,
-OPENAI_API_KEYROUTER, ANTHROPIC_API_KEY, FAL_KEY, ELEVENLABS_API_KEY,
+Isso inclui, mas não se limita a: GEMINI_API_KEY, FAL_KEY, ELEVENLABS_API_KEY,
 SUPABASE_*, VITE_FIREBASE_*, STRIPE_*, AUTHKEY_*, APS_CLIENT_*,
-REVIT_MCP_*, LOCAL_WORKER_TOKEN, OPENCODE_GO_API_KEY,
-AI_GATEWAY_API_KEY, TAVILY_API_KEY, CRON_SECRET.
+REVIT_MCP_*, LOCAL_WORKER_TOKEN, TAVILY_API_KEY, CRON_SECRET.
 
 Proibido EXPRESSAMENTE usar comandos como `vercel env add`, `vercel env rm`,
 `vercel env pull` ou acessar o dashboard da Vercel para modificar variáveis.
@@ -77,7 +75,6 @@ NENHUMA env var da Vercel pode ser alterada sem o Owner dizer "autorizado",
 
 ⚠️ EXCEÇÃO REGISTRADA: na sessão de 2026-06-24, o Owner autorizou
 explicitamente a sincronização das seguintes variáveis no Vercel:
-- OPENCODE_GO_API_BASE (adição)
 - LOCAL_WORKER_URL (correção de casing)
 - ALLOW_RAW_SHELL_IN_ANY_ENV (adição)
 
@@ -99,7 +96,7 @@ reduzir, remover, esconder ou limitar a listagem de modelos disponíveis
 no seletor da interface ou nas APIs internas.
 
 Arquivos protegidos:
-- src/main.tsx — constantes DIRECT_GEMINI_MODELS, GATEWAY_OPENAI_MODELS, OPENROUTER_MODELS, FAL_CHAT_MODELS, ANTHROPIC_MODELS, OPENCODE_GO_MODELS, ELEVENLABS_MODELS
+- src/main.tsx — constantes DIRECT_GEMINI_MODELS, FAL_CHAT_MODELS, ELEVENLABS_MODELS
 - api/copilot/chat.mjs — mesmas constantes
 - server.mjs — mesmas constantes
 
