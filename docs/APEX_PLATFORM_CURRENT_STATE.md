@@ -1,7 +1,7 @@
 # APEX Platform — Unified Current State
 
-Checkpoint: CP-LIVE-FINAL — 42 capabilities documentadas
-Last update: 2026-06-24
+Checkpoint: CP-LIVE-FINAL — 62 capabilities documentadas
+Last update: 2026-06-24 (23:59)
 
 ## Canonical rule
 
@@ -9,12 +9,12 @@ The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.m
 
 ## Executive status
 
-- Platform core: **GREEN** — 34 capabilities live/operational
+- Platform core: **GREEN** — 62 capabilities live/operational
 - Build/typecheck: **GREEN**
-- Tests: **GREEN** (84/84 passed)
+- Tests: **GREEN** (99/99 passed)
 - Local app: **GREEN** (`server.mjs` + Electron `.exe`)
 - Production: **GREEN** (`www.apexglobalai.com` Vercel main branch)
-- AI providers: **GREEN** (OpenRouter → Gemini → OpenAI → Anthropic → FAL → ElevenLabs → OpenCode Go, todos via seletor de modelos)
+- AI providers: **GREEN** (14/14 online — Gemini FREE, OpenRouter, FAL.ai, AI Gateway, OpenCode Go, OpenAI, ElevenLabs, Firebase, Tavily, Stripe, Supabase, GitHub, AuthKey, FFmpeg)
 - Gemini Interactions SDK: **GREEN** (`@google/genai` v2.9.0 integrado)
 - Env vars protection: **GREEN** (regra absoluta no AGENTS.md, .env.local e server.mjs)
 - Deploy hygiene: **GREEN** — CI workflow now validates builds/tests before deployment
@@ -75,6 +75,16 @@ The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.m
 | 50 | ACIP: Predictive Analytics | `server/service/predictiveAnalytics.mjs` + `PredictiveAnalyticsPanel` | ✅ LIVE (ACIP) |
 | 51 | ACIP: Digital Twin IoT | `server/service/digitalTwinIoT.mjs` + 6 sensores | ✅ LIVE (ACIP) |
 | 52 | ACIP: Enterprise Integrations | 15 conectores (Revit, SAP, n8n, LangGraph...) | ✅ LIVE (ACIP) |
+| 53 | 🔒 API Key Restriction (IP/Origin) | `server/middleware/keyRestriction.mjs` + `api/copilot/key-restriction` | ✅ LIVE |
+| 54 | 🔒 Rate Limit Monitor + Alerts | `server/service/rateLimitMonitor.mjs` + `api/copilot/rate-limit` | ✅ LIVE |
+| 55 | 🔒 Security Audit Logging | `server/service/securityAudit.mjs` + `api/copilot/security-audit` | ✅ LIVE |
+| 56 | 🔒 Key Lifecycle / Rotation | `server/service/keyLifecycle.mjs` + `api/copilot/key-lifecycle` | ✅ LIVE |
+| 57 | 🌐 URL Context (aprender sites) | `server/service/urlContext.mjs` + `api/copilot/learn-url` | ✅ LIVE |
+| 58 | 🎤 Gemini TTS nativo | `server/agent/geminiTtsConnector.mjs` + `api/copilot/tts` | ✅ LIVE |
+| 59 | 🖼️ Imagen 4 (geração imagem Gemini) | `server/agent/geminiImageConnector.mjs` | ✅ LIVE |
+| 60 | 🔬 Deep Research Agent | `api/copilot/deep-research` + `server/agent/geminiAgentsConnector.mjs` | ✅ LIVE |
+| 61 | 🤖 Antigravity Agent (sandbox) | `server/agent/geminiAgentsConnector.mjs` | ✅ LIVE |
+| 62 | 🔄 Fallback invisível (6 providers) | `server/providers/providerRouter.mjs` + chat.mjs | ✅ LIVE |
 
 ## Deployment map
 

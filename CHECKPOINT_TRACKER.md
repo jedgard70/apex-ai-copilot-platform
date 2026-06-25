@@ -13,7 +13,23 @@
 
 Use this file as the canonical checkpoint snapshot for module/connector status. The platform is now documented as a consolidated inventory of 34 operational capabilities; the primary runtime modules are all done and live.
 
-Last updated: 2026-06-24 — Sessão marathon: 6 módulos profissionais (Stock, Trip, NR, Accounting, Permits, Marketing), Pipeline Progress, Prompt Library, 10 services extraídos, REGRA ABSOLUTA 6+7, .env.local duas camadas, Manual do Usuário, Contabilidade PJ+PF, ACIP: 13 Agentes Cognitivos, DashboardByRole (7 perfis), CRM Pipeline (5 estágios). Supabase 8/8 migrations aplicadas.
+Last updated: 2026-06-24 (23:59) — 🏆 SESSÃO FINAL DE 2026-06-24: 8 commits, 30+ arquivos, ~1.200 linhas.
+
+🔥 HOJE (segunda rodada, tarde/noite):
+• ✅ 14/14 provedores online (corrigido fal.ai 404, Gateway endpoint, FFmpeg, Supabase anon key)
+• ✅ Ordem: Gemini FREE primeiro no seletor
+• ✅ MAX_TOOL_ROUNDS 12→25
+• ✅ Fallback invisível — zero erros visíveis ao cliente (cadeia de 6 provedores)
+• ✅ 4 Serviços de Segurança: Key Restriction (IP/Origin), Rate Limit Alerts, Audit Logging, Key Lifecycle
+• ✅ Modelos Gemini atualizados (3.5 Flash, 3.1 Pro, Gemma 4, 3.1 Flash Image/Lite/TTS) via API real
+• ✅ URL Context — aprender de sites (tool learn_url + API + service)
+• ✅ Gemini TTS nativo (fallback ElevenLabs)
+• ✅ Imagen 4 — geração de imagem via Gemini Interactions
+• ✅ Deep Research Agent + Antigravity Agent (sandbox remoto) via Gemini Agents
+• ✅ 5 novos endpoints server.mjs: learn-url, tts, deep-research, key-restriction, rate-limit, security-audit, key-lifecycle
+• ✅ REGRA ABSOLUTA 8 — Proteção dos Deploys e Environments da Vercel
+
+Supabase 8/8 migrations aplicadas. 52 módulos Apex + 10 ACIP = 62 módulos.
 
 ---
 
