@@ -4471,6 +4471,14 @@ function App() {
               onRemoveRevisionConstraint={constraint => setArchVisRevisionConstraints(prev => prev.filter(item => item !== constraint))}
               onClearRevisionConstraints={() => setArchVisRevisionConstraints([])}
               onRecordGeneration={handleArchVisGeneration}
+              onSendToDirectCut={imageUrl => {
+                closeOtherPanels('directCut')
+                setDirectCutOutput({
+                  goal: 'Imagem gerada no ArchVis enviada para o DirectCut',
+                  conversationContext: [`assistant: Imagem do ArchVis enviada para o DirectCut: ${imageUrl?.substring(0, 80)}...`],
+                  source: archVisOutput.source || undefined,
+                })
+              }}
               onClear={() => setArchVisOutput(null)}
             />
           )}
