@@ -117,6 +117,8 @@ function RenderingEditor({ source, output, conversationContext, revisionConstrai
   const [error, setError] = useState<string | null>(null)
   const [showPresets, setShowPresets] = useState(false)
   const [presets, setPresets] = useState<{ name: string; prompt: string; categoryName?: string }[]>([])
+  const [showHumanizer, setShowHumanizer] = useState(false)
+  const [humanizerPresets, setHumanizerPresets] = useState<{ name: string; prompt: string; categoryName?: string }[]>([])
   const samplesRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const selected = gallery.find(g => g.id === selectedId)
@@ -212,6 +214,23 @@ function RenderingEditor({ source, output, conversationContext, revisionConstrai
       .then(d => { if (d?.presets) setPresets(d.presets) })
       .catch(() => {})
   }, [])
+
+  // Fetch humanizer-specific presets
+  useEffect(() => {
+    fetch('/api/prompts/category/floor-plan-humanizer')
+      .then(r => r.json())
+      .then(d => { if (d?.category?.presets) setHumanizerPresets(d.category.presets) })
+      .catch(() => {})
+  }, [])
+
+  function applyHumanizerPreset(preset: { name: string; prompt: string }) {
+    setPrompt(preset.prompt)
+    setPromptStyle('humanized-floor-plan')
+    setMode('preserve-layout')
+    setLockBoundaries(true)
+    setPreserveLabels(true)
+    setNoInventedAreas(true)
+  }
 
   const progressPct = Math.round((samples / 500) * 100)
 
@@ -472,6 +491,33 @@ function RenderingEditor({ source, output, conversationContext, revisionConstrai
                       <span style={{ fontSize: 10, color: T.onSurfaceVariant, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.prompt.slice(0, 80)}...</span>
                     </button>
                   ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 🏠 Humanizar Planta */}
+          {humanizerPresets.length > 0 && (
+            <div style={{ marginBottom: 16 }}>
+              <button onClick={() => setShowHumanizer(!showHumanizer)}
+                style={{ width: '100%', padding: '8px 10px', background: showHumanizer ? '#1a3a2a' : T.surfaceContainerHighest, color: showHumanizer ? '#6fcf97' : T.onSurface, border: `1px solid ${showHumanizer ? '#6fcf9744' : T.outlineVariant}`, borderRadius: 6, cursor: 'pointer', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>🏠 Humanizar Planta ({humanizerPresets.length})</span>
+                <span>{showHumanizer ? '▲' : '▼'}</span>
+              </button>
+              {showHumanizer && (
+                <div style={{ marginTop: 8 }}>
+                  <p style={{ fontSize: 10, color: T.onSurfaceVariant, marginBottom: 8, lineHeight: 1.4 }}>
+                    Transforma plantas técnicas em apresentações humanizadas para vendas. Configura automaticamente o modo e estilo ideais.
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {humanizerPresets.map((p, i) => (
+                      <button key={i} onClick={() => applyHumanizerPreset(p)}
+                        style={{ padding: '8px 10px', fontSize: 11, background: '#1a3a2a', color: '#6fcf97', border: '1px solid #6fcf9744', borderRadius: 6, cursor: 'pointer', textAlign: 'left', lineHeight: 1.4, fontWeight: 600 }}>
+                        <span>🏠 {p.name}</span>
+                        <span style={{ fontSize: 10, color: '#6fcf97aa', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 2 }}>{p.prompt.slice(0, 90)}...</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
