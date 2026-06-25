@@ -621,6 +621,8 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
   const [renderJobs, setRenderJobs] = useState<RenderJob[]>([])
   const [models, setModels] = useState<{ all: { id: string; label: string; category: string }[] } | null>(null)
   const [selectedModelId, setSelectedModelId] = useState('kling-video/v1.6/standard/text-to-video')
+  const [cinematicPresets, setCinematicPresets] = useState<{ name: string; prompt: string; categoryName?: string }[]>([])
+  const [showDCPresets, setShowDCPresets] = useState(false)
   const pollTimers = useRef<Record<string, ReturnType<typeof setInterval>>>({})
 
   const [layers, setLayers] = useState<SceneLayer[]>(() => [
@@ -630,6 +632,7 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
   ])
 
   useEffect(() => { fetch('/api/fal/models').then(r => r.json()).then(setModels).catch(() => null) }, [])
+  useEffect(() => { fetch('/api/prompts/module/directcut').then(r => r.json()).then(d => { if (d?.presets) setCinematicPresets(d.presets) }).catch(() => {}) }, [])
   useEffect(() => { return () => { Object.values(pollTimers.current).forEach(clearInterval) } }, [])
   useEffect(() => {
     if (source?.dataUrl) {
@@ -769,6 +772,28 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
 
         {/* Right */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {/* 🎬 Cinematic Presets */}
+          {cinematicPresets.length > 0 && (
+            <div style={{ position: 'relative' }}>
+              <button onClick={() => setShowDCPresets(!showDCPresets)}
+                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', background: showDCPresets ? D.primaryContainer : D.surfaceContainerHigh, color: showDCPresets ? D.onPrimaryContainer : D.onSurfaceVariant, border: `1px solid ${D.outlineVariant}`, borderRadius: 4, cursor: 'pointer', fontSize: 10, fontWeight: 600 }}>
+                🎬 Presets {showDCPresets ? '▲' : '▼'}
+              </button>
+              {showDCPresets && (
+                <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 4, width: 280, maxHeight: 300, overflowY: 'auto', background: D.surfaceContainerHigh, border: `1px solid ${D.outlineVariant}`, borderRadius: 8, padding: 8, zIndex: 100, boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: D.onSurfaceVariant, marginBottom: 8, letterSpacing: '0.05em' }}>🎬 PRESETS CINEMATOGRÁFICOS</div>
+                  {cinematicPresets.map((p, i) => (
+                    <button key={i} onClick={() => handleGenerate(p.prompt, 'cinematic', { intensity: 75, temperature: 33 })}
+                      style={{ width: '100%', padding: '6px 8px', fontSize: 11, background: D.surfaceContainerLowest, color: D.onSurface, border: `1px solid ${D.outlineVariant}`, borderRadius: 4, cursor: 'pointer', textAlign: 'left', marginBottom: 4, lineHeight: 1.4 }}>
+                      <span style={{ fontWeight: 600, color: D.primaryContainer }}>{p.name}</span>
+                      {p.categoryName && <span style={{ fontSize: 9, color: D.onSurfaceVariant, marginLeft: 6 }}>{p.categoryName}</span>}
+                      <span style={{ fontSize: 10, color: D.onSurfaceVariant, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.prompt.slice(0, 60)}...</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           {/* Generate button (primary action) */}
           <button onClick={() => handleGenerate('', 'hyper-real', { intensity: 75, temperature: 33 })} disabled={loading}
             style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', background: D.primaryContainer, color: D.onPrimaryContainer, border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
