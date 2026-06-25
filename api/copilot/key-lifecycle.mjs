@@ -1,6 +1,6 @@
 // Key Lifecycle & Rotation API
 // GET  /api/copilot/key-lifecycle — view key ages and rotation status
-// POST /api/copilot/key-lifecycle?action=record-rotation&key=OPENAI_API_KEY — record a key rotation
+// POST /api/copilot/key-lifecycle?action=record-rotation&key=GEMINI_API_KEY — record a key rotation
 
 import { getKeyLifecycleStatus, recordRotation } from '../../server/service/keyLifecycle.mjs'
 

@@ -207,6 +207,7 @@ async function queueMediaConvertJob({ duration, aspectRatio, sourceS3Uri }) {
 }
 
 async function renderWithAIGateway({ prompt, duration, aspectRatio, model }) {
+  // Gemini-based video pipeline (requires AI_GATEWAY_API_KEY for Vercel AI Gateway)
   if (!process.env.AI_GATEWAY_API_KEY) return null
 
   const seconds = parseDurationSeconds(duration)

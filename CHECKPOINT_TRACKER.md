@@ -213,15 +213,11 @@ Apenas local (não vai para Vercel): `LOCAL_WORKER_*`, `REVIT_MCP_*`, shell/path
 
 | Conector | Chave/Arquivo | Status | Observação |
 | :---------- | :-------------- | :-------- | :------------ |
-| OpenAI (chat/embeddings/images) | `OPENAI_API_KEY` ✅ | ✅ Connected | Carregado via loadEnvLocal() |
-| OpenRouter (modelos diversos) | `OPENAI_API_KEYROUTER` ✅ | ✅ Connected | Fallback automático |
+| Gemini (chat, multimodal, TTS, image) | `GEMINI_API_KEY` ✅ | ✅ Connected | Provider primário |
 | Gemini (chat/visão) | `GEMINI_API_KEY` ✅ | ✅ Connected | Suporte a tools |
 | Gemini Interactions SDK | `GEMINI_API_KEY` ✅ | ✅ Connected | `@google/genai` v2.9.0 |
-| Anthropic (Claude) | `ANTHROPIC_API_KEY` ✅ | ✅ Connected | Modelos via seletor |
 | FAL.ai (imagem/vídeo/FLUX) | `FAL_KEY` ✅ | ✅ Connected | Geração real |
 | ElevenLabs (TTS/avatar) | `ELEVENLABS_API_KEY` ✅ | ✅ Connected | Voz e avatar |
-| OpenCode Go (código premium) | `OPENCODE_GO_API_KEY` ✅ | ✅ Connected | Provider alternativo |
-| AI Gateway (Vercel) | `AI_GATEWAY_API_KEY` ✅ | ✅ Connected | Imagem/vídeo via gateway |
 | Tavily (pesquisa web) | `TAVILY_API_KEY` ✅ | ✅ Connected | Pesquisa com citações |
 | Supabase (auth/db) | `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` ✅ | ✅ Connected | Auth + persistência |
 | SINAPI (tabela de preços) | `src/data/sinapi-2024.json` ✅ | ✅ Connected | Auto-detectado |

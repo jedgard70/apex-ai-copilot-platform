@@ -123,7 +123,7 @@ export default async function handler(req, res) {
         refinedScene: scene,
         suggestedCamera: camera,
         suggestedStyle: style,
-        aiNote: 'No AI provider configured. Add OPENAI_API_KEY or GEMINI_API_KEY to enable node refinement.',
+        aiNote: 'No AI provider configured. Add GEMINI_API_KEY to enable node refinement.',
       })
     }
 
