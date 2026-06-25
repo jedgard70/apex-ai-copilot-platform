@@ -6407,6 +6407,11 @@ const server = http.createServer(async (req, res) => {
     learnUrlHandler(req, res)
     return
   }
+  if ((req.url === '/api/copilot/deep-research' || req.url.startsWith('/api/copilot/deep-research?')) && (req.method === 'GET' || req.method === 'POST')) {
+    const researchHandler = await import('./api/copilot/deep-research.mjs').then(m => m.default)
+    researchHandler(req, res)
+    return
+  }
   const requestUrl = new URL(req.url, 'http://127.0.0.1')
   if (
     req.method === 'GET' &&
