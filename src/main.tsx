@@ -108,6 +108,7 @@ import { isSkillExportIntent } from './lib/skillExportFactory'
 import { BudgetPlan } from './lib/budgetKnowledge'
 import type { CopilotExecutionResult } from './lib/copilotExecutionModel'
 import { ContractsPlan } from './lib/contractsKnowledge'
+import { useIsMobile } from './lib/useIsMobile'
 import { BusinessPlan } from './lib/crmFinanceKnowledge'
 import { isExportIntent } from './lib/exportCenter'
 import { FieldOpsPlan, FieldRdoContext } from './lib/fieldOpsKnowledge'
@@ -1265,6 +1266,7 @@ type ChatConversation = {
 function App() {
   const pathname = useMemo(() => window.location.pathname, [])
   const isPublicVslRoute = useMemo(() => /^(\/(vsl|oferta|apresentacao|landing\/vsl|campaign\/vsl))\/?$/i.test(pathname), [pathname])
+  const isMobile = useIsMobile()
   const fileInput = useRef<HTMLInputElement | null>(null)
   const composerTextarea = useRef<HTMLTextAreaElement | null>(null)
   const messagesEnd = useRef<HTMLDivElement | null>(null)
@@ -3918,11 +3920,63 @@ function App() {
         <OwnerPage onNavigate={setActiveView} onOpenChat={handleCommand} />
       ) : activeView === 'provider-detail' ? (
         <ProviderDetailPanel onClear={() => setActiveView('dashboard')} />
+      ) : isMobile && activeView === 'chat' ? (
+        // ── Mobile: Full-screen Chat ──────────────────────
+        <div className="h-full flex flex-col" style={{ background: '#0b1326' }}>
+          <div className="flex items-center justify-between px-4 py-3 border-b border-outline-variant/10">
+            <span className="font-sora text-[16px] font-bold text-on-surface">Apex Chat</span>
+            <button
+              onClick={() => setActiveView('dashboard')}
+              className="material-symbols-outlined text-[20px] text-on-surface-variant hover:text-on-surface"
+            >close</button>
+          </div>
+          <div className="flex-1 overflow-hidden">
+            {/* Chat messages and composer will be rendered here */}
+            <div className="h-full flex flex-col">
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {messages.map(message => (
+                  <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[80%] px-4 py-2 rounded-2xl ${
+                      message.role === 'user'
+                        ? 'bg-primary text-on-primary'
+                        : 'bg-surface-container text-on-surface'
+                    }`}>
+                      {message.text}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="p-3 border-t border-outline-variant/10">
+                <div className="flex items-center gap-2">
+                  <textarea
+                    className="flex-1 px-4 py-2 bg-surface-container border border-outline-variant/20 rounded-full resize-none focus:outline-none focus:border-primary"
+                    rows={1}
+                    placeholder="Digite uma mensagem..."
+                    value={input}
+                    onChange={e => setInput(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault()
+                        askCopilot()
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={() => askCopilot()}
+                    className="w-10 h-10 flex items-center justify-center bg-primary text-on-primary rounded-full hover:bg-primary/90"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">send</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       ) : (
-        // ── Split View: 80% panel + 20% chat ──────────────────────
-        <div className="h-full" style={{ display: 'flex', flexDirection: 'row', overflow: 'hidden', height: '100%' }}>
-          {/* Panel Area — 80% */}
-          <section style={{ flex: '1 1 80%', display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, minWidth: 0, overflow: 'hidden' }}>
+        // ── Split View: 70% panel + 30% chat (Desktop) / Full panel (Mobile) ──────────────────────
+        <div className="h-full" style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow: 'hidden', height: '100%' }}>
+          {/* Panel Area — 100% on mobile, 70% on desktop */}
+          <section style={{ flex: isMobile ? '1 1 100%' : '1 1 70%', display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, minWidth: 0, overflow: 'hidden' }}>
             {(() => {
               const ctx = `[Projeto: ${activeProject.name}] [Painel: ${activeView}] ${messages.slice(-4).map(m => `${m.role}: ${m.text}`).join(' | ')}`;
               // Inject project context into chat so AI knows everything
@@ -3952,8 +4006,9 @@ function App() {
             })()}
           </section>
 
-          {/* Chat Area — 20% (sidebar + conversation) */}
-          <section className="chat-shell" aria-label="Apex AI Copilot chat" style={{ flex: '0 0 20%', display: 'flex', flexDirection: 'row', height: '100%', minHeight: 0, minWidth: 0, borderLeft: '1px solid rgba(150, 164, 195, 0.15)' }}>
+          {/* Chat Area — Hidden on mobile, 20% on desktop */}
+          {!isMobile && (
+          <section className="chat-shell" aria-label="Apex AI Copilot chat" style={{ flex: '0 0 30%', display: 'flex', flexDirection: 'row', height: '100%', minHeight: 0, minWidth: 0, borderLeft: '1px solid rgba(150, 164, 195, 0.15)' }}>
           {/* Conversation Sidebar */}
           <aside className="chat-sidebar" style={{ width: '220px', borderRight: '1px solid rgba(150, 164, 195, 0.15)', display: 'flex', flexDirection: 'column', flexShrink: 0, background: '#121a2f', height: '100%', overflow: 'hidden' }}>
             <div className="chat-sidebar-header" style={{ padding: '16px', borderBottom: '1px solid rgba(150, 164, 195, 0.15)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -4466,6 +4521,7 @@ function App() {
             )}
           </div>
         </section>
+        )}
 
         {hasOperationalPanel && (
         <aside className="right-panel" aria-label="Active Apex tool" style={{ flex: '1 1 65%', minWidth: 0, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
