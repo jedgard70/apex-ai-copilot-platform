@@ -5,6 +5,7 @@ import { SpeedInsights } from '@vercel/speed-insights/react'
 import {
   Activity,
   ArrowUp,
+  BookOpen,
   Bot,
   Building2,
   Compass,
