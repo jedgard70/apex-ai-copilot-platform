@@ -759,6 +759,10 @@ function suggestLayerOpenDecision(text: string, attachment?: IntakeFile): Pendin
   if (isAgentIntent(text)) return { label: 'Cognitive Agents', openCommand: 'abrir agents panel', goal: text }
   if (isBim3DIntent(text, attachment)) return { label: 'BIM / 3D Studio', openCommand: 'abrir bim 3d studio', goal: text }
   if (isArchVisIntent(text, attachment)) return { label: 'ArchVis Studio', openCommand: 'abrir archvis studio', goal: text }
+  if (isPromptLibraryIntent(text)) {
+    const module = getPromptLibraryModule(text)
+    return { label: module ? `Prompt Library (${module})` : 'Professional Prompt Library', openCommand: `abrir biblioteca de prompts${module ? ` ${module}` : ''}`, goal: text }
+  }
   if (isAuthIntent(text)) return { label: 'Auth Panel', openCommand: 'abrir auth panel', goal: text }
   if (isAutoupgradeIntent(text)) return { label: 'Autoupgrade Center', openCommand: 'abrir autoupgrade center', goal: text }
   if (isStockIntent(text)) return { label: 'Bolsa de Valores', openCommand: 'abrir bolsa de valores', goal: text }
@@ -826,6 +830,24 @@ function isAccountingIntent(text: string) {
   const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|gerar|generate|criar|create)\b/i.test(lower)
   const hasKeyword = /\b(contabilidade|accounting|crc|contador|cont[aá]bil|dre|balanço|balanco|irpj|imposto de renda|fiscal|obriga[cç][aõ]es fiscais|demonstrativo|demonstra[cç][aã]o cont[aá]bil|escritura[cç][aã]o|lançamento contabil|lancamento contabil|livro caixa|contas a pagar|contas a receber)\b/i.test(lower)
   return hasVerb && hasKeyword
+}
+
+function isPromptLibraryIntent(text: string) {
+  const lower = text.toLowerCase()
+  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|buscar|search)\b/i.test(lower)
+  const hasLibrary = /\b(biblioteca de prompts|prompt library|biblioteca de skills|skill library|prompts profission|professional prompt|presets?|categoria de prompt|mostrar prompts|ver prompts|buscar prompts)\b/i.test(lower)
+  const hasDirect = /\b(prompt library|professional prompt|biblioteca de prompt)\b/i.test(lower)
+  return hasDirect || (hasVerb && hasLibrary)
+}
+
+function getPromptLibraryModule(text: string): string | undefined {
+  const lower = text.toLowerCase()
+  if (/\b(arquitetura|archvis|architect|render|humaniza|planta)\b/i.test(lower)) return 'archvis'
+  if (/\b(directcut|direct.?cut|cinematogr[aá]fico|cinematic|v[ií]deo|video|film|movie)\b/i.test(lower)) return 'directcut'
+  if (/\b(marketing|campanha|campaign|social media|disparo)\b/i.test(lower)) return 'marketing'
+  if (/\b(contrato|contract|jur[ií]dico|legal)\b/i.test(lower)) return 'contracts'
+  if (/\b(export|canvas|template|design)\b/i.test(lower)) return 'export'
+  return undefined
 }
 
 function isPermitsIntent(text: string) {
@@ -1536,6 +1558,7 @@ function App() {
     return localStorage.getItem('apex_active_conversation_id') || 'default'
   })
   const [showPromptLibrary, setShowPromptLibrary] = useState(false)
+  const [activePromptLibraryModule, setActivePromptLibraryModule] = useState<string | undefined>(undefined)
   const [selectedModel, setSelectedModel] = useState<string>(() => {
     return localStorage.getItem('apex_selected_model') || composeModelValue('gemini', 'gemini-3.5-flash')
   })
@@ -2324,6 +2347,15 @@ function App() {
       }
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Owner Console / Mission Control. Use as superfícies existentes: Project Workspace, Skill Update, Skill Export, Account e Platform Maintenance.' }])
       openOwnerConsole()
+      setInput('')
+      return
+    }
+    if (clean && isPromptLibraryIntent(clean)) {
+      const module = getPromptLibraryModule(clean)
+      const moduleLabel = module ? ` filtrada para ${module}` : ''
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: `Abri a Biblioteca de Prompts Profissionais${moduleLabel}. Explore as categorias, busque por palavras-chave ou clique em um preset para ver o prompt completo.` }])
+      setActivePromptLibraryModule(module || undefined)
+      setShowPromptLibrary(true)
       setInput('')
       return
     }
@@ -3916,7 +3948,7 @@ function App() {
               <div style={{ display: 'flex', gap: '4px' }}>
                 <button
                   type="button"
-                  onClick={() => setShowPromptLibrary(p => !p)}
+                  onClick={() => { setShowPromptLibrary(p => !p); if (showPromptLibrary) setActivePromptLibraryModule(undefined) }}
                   title={showPromptLibrary ? 'Voltar às conversas' : 'Abrir biblioteca de prompts'}
                   style={{
                     background: showPromptLibrary ? '#8b5cf6' : '#1f2937',
@@ -3960,7 +3992,7 @@ function App() {
             </div>
 {showPromptLibrary ? (
             <div style={{ flex: 1, overflow: 'auto', background: '#0f172a' }}>
-              <ProfessionalPromptPanel onClear={() => setShowPromptLibrary(false)} initialModule={undefined} />
+              <ProfessionalPromptPanel onClear={() => { setShowPromptLibrary(false); setActivePromptLibraryModule(undefined) }} initialModule={activePromptLibraryModule} />
             </div>
           ) : (
             <>
