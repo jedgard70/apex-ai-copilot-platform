@@ -1,63 +1,105 @@
-export function PlatformNavigatorPage() {
+export function PlatformNavigatorPage({ onNavigate }: { onNavigate?: (view: string) => void }) {
   const sections = [
     {
       icon: 'psychology', label: 'Intelligence Core', color: 'text-[#b4c5ff]', screens: '5 SCREENS',
       items: [
-        { icon: 'auto_awesome', label: 'AI Copilot', color: 'text-[#b4c5ff]' },
-        { icon: 'chat', label: 'Intelligence Chat', color: 'text-[#b4c5ff]' },
-        { icon: 'settings_input_component', label: 'Model Settings', color: 'text-[#b4c5ff]' },
-        { icon: 'model_training', label: 'Training Hub', color: 'text-[#b4c5ff]' },
-        { icon: 'policy', label: 'AI Governance', color: 'text-[#b4c5ff]' },
+        { icon: 'auto_awesome', label: 'AI Copilot', action: 'chat' },
+        { icon: 'chat', label: 'Intelligence Chat', action: 'chat' },
+        { icon: 'settings_input_component', label: 'Model Settings', action: 'training' },
+        { icon: 'model_training', label: 'Training Hub', action: 'training' },
+        { icon: 'policy', label: 'AI Governance', action: 'governance' },
       ]
     },
     {
       icon: 'architecture', label: 'Vertical Engineering Studios', color: 'text-[#ecb2ff]', screens: '7 SCREENS',
       items: [
-        { icon: 'layers', label: 'BIM Studio', color: 'text-[#ecb2ff]' },
-        { icon: 'foundation', label: 'ArchVis Studio', color: 'text-[#ecb2ff]' },
-        { icon: 'movie_filter', label: "Director's Cut", color: 'text-[#ecb2ff]' },
-        { icon: 'inventory_2', label: 'Supply Chain', color: 'text-[#ecb2ff]' },
-        { icon: 'engineering', label: 'Field Ops', color: 'text-[#ecb2ff]' },
-        { icon: 'science', label: 'R&D Research', color: 'text-[#ecb2ff]' },
-        { icon: 'precision_manufacturing', label: 'Structural AI', color: 'text-[#ecb2ff]' },
+        { icon: 'layers', label: 'BIM Studio', action: 'bim' },
+        { icon: 'foundation', label: 'ArchVis Studio', action: 'archvis' },
+        { icon: 'movie_filter', label: "Director's Cut", action: 'directcut' },
+        { icon: 'inventory_2', label: 'Supply Chain', action: 'budget' },
+        { icon: 'engineering', label: 'Field Ops', action: 'fieldops' },
+        { icon: 'science', label: 'R&D Research', action: 'research' },
+        { icon: 'precision_manufacturing', label: 'Structural AI', action: 'bim' },
       ]
     },
     {
       icon: 'admin_panel_settings', label: 'Owner Panel', color: 'text-[#7df4ff]', screens: '5 SCREENS',
       items: [
-        { icon: 'monitoring', label: 'Executive Overview', color: 'text-[#7df4ff]' },
-        { icon: 'payments', label: 'Finance Desk', color: 'text-[#7df4ff]' },
-        { icon: 'handshake', label: 'Market CRM', color: 'text-[#7df4ff]' },
-        { icon: 'insights', label: 'Marketing Analytics', color: 'text-[#7df4ff]' },
-        { icon: 'deployed_code', label: 'Digital Twin', color: 'text-[#7df4ff]' },
+        { icon: 'monitoring', label: 'Executive Overview', action: 'owner' },
+        { icon: 'payments', label: 'Finance Desk', action: 'finance' },
+        { icon: 'handshake', label: 'Market CRM', action: 'crm' },
+        { icon: 'insights', label: 'Marketing Analytics', action: 'marketing' },
+        { icon: 'deployed_code', label: 'Digital Twin', action: 'digital-twin' },
       ]
     },
     {
       icon: 'dns', label: 'SaaS Infrastructure', color: 'text-[#c3c6d7]', screens: '5 SCREENS',
       items: [
-        { icon: 'shopping_cart', label: 'Marketplace', color: 'text-[#c3c6d7]' },
-        { icon: 'receipt_long', label: 'Billing Portal', color: 'text-[#c3c6d7]' },
-        { icon: 'api', label: 'API Portal', color: 'text-[#c3c6d7]' },
-        { icon: 'person_add', label: 'Client Onboarding', color: 'text-[#c3c6d7]' },
-        { icon: 'security', label: 'Admin Console', color: 'text-[#c3c6d7]' },
+        { icon: 'shopping_cart', label: 'Marketplace', action: 'navigator' },
+        { icon: 'receipt_long', label: 'Billing Portal', action: 'finance' },
+        { icon: 'api', label: 'API Portal', action: 'docs' },
+        { icon: 'person_add', label: 'Client Onboarding', action: 'crm' },
+        { icon: 'security', label: 'Admin Console', action: 'owner' },
       ]
     },
     {
       icon: 'menu_book', label: 'Authentication & Docs', color: 'text-[#8d90a0]', screens: '2 SCREENS',
       items: [
-        { icon: 'login', label: 'Login Screen', color: 'text-[#8d90a0]' },
-        { icon: 'description', label: 'Technical Docs', color: 'text-[#8d90a0]' },
+        { icon: 'login', label: 'Login Screen', action: 'chat' },
+        { icon: 'description', label: 'Technical Docs', action: 'docs' },
       ]
     },
   ]
 
   return (
     <div className="h-full bg-[#060d20] flex overflow-hidden">
-      <div className="flex-1 flex flex-col h-full">
-        <header className="bg-surface/90 backdrop-blur-xl border-b border-white/10 flex justify-between items-center px-4 h-12 shrink-0">
+      {/* SideNavBar — Stitch style */}
+      <aside className="w-[280px] bg-[#060d20]/95 backdrop-blur-md flex flex-col p-4 gap-unit border-r border-white/10 shadow-xl flex-shrink-0">
+        <div className="flex items-center gap-3 mb-6 px-2">
+          <div className="w-10 h-10 rounded-xl bg-[#2563eb] flex items-center justify-center shadow-[0_0_15px_rgba(37,99,235,0.3)]">
+            <span className="material-symbols-outlined text-[#eeefff]" style={{ fontVariationSettings: "'FILL' 1" }}>explore</span>
+          </div>
+          <div>
+            <h2 className="text-[20px] font-medium tracking-tight text-[#dbe2fd]">Apex AI</h2>
+            <p className="text-[12px] tracking-widest text-[#c3c6d7]">Platform Map</p>
+          </div>
+        </div>
+        <button onClick={() => onNavigate?.('chat')}
+          className="w-full bg-[#2563eb] text-[#eeefff] py-3 rounded-xl text-[12px] tracking-widest font-medium mb-6 hover:brightness-110 active:translate-x-1 transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)]">
+          New Simulation
+        </button>
+        <nav className="flex-1 space-y-2">
+          <div className="bg-[#2563eb] text-[#eeefff] rounded-xl shadow-[0_0_15px_rgba(37,99,235,0.3)] flex items-center gap-3 p-3 transition-all duration-200 cursor-default">
+            <span className="material-symbols-outlined">map</span>
+            <span className="text-[12px] tracking-widest font-medium">Platform Map</span>
+          </div>
+          {[
+            { icon: 'dashboard', label: 'Dashboard', view: 'dashboard' },
+            { icon: 'smart_toy', label: 'AI Chat', view: 'chat' },
+            { icon: 'admin_panel_settings', label: 'Owner Console', view: 'owner' },
+          ].map(item => (
+            <div key={item.label} onClick={() => onNavigate?.(item.view)}
+              className="text-[#c3c6d7] hover:bg-[#222a3e] rounded-xl flex items-center gap-3 p-3 transition-all duration-200 cursor-pointer group">
+              <span className="material-symbols-outlined group-hover:text-[#b4c5ff]">{item.icon}</span>
+              <span className="text-[12px] tracking-widest">{item.label}</span>
+            </div>
+          ))}
+        </nav>
+        <div className="mt-auto pt-4 border-t border-white/5 space-y-2">
+          <div className="text-[#c3c6d7] hover:bg-[#222a3e] rounded-xl flex items-center gap-3 p-3 transition-all duration-200 cursor-pointer">
+            <span className="material-symbols-outlined">help</span>
+            <span className="text-[12px] tracking-widest">Help</span>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
+        {/* TopAppBar — Stitch style */}
+        <header className="bg-[#0b1326]/90 backdrop-blur-xl border-b border-white/10 flex justify-between items-center px-4 h-12 shrink-0 shadow-sm">
           <div className="flex items-center gap-3">
-            <h1 className="text-xl font-medium tracking-tight text-[#dbe2fd]">Project Navigator</h1>
-            <span className="px-2 py-0.5 rounded bg-[#b4c5ff]/10 text-[#b4c5ff] text-[10px] font-medium uppercase tracking-widest border border-[#b4c5ff]/20">Master Index</span>
+            <h1 className="text-[20px] font-medium tracking-tight text-[#dbe2fd]">Project Navigator</h1>
+            <span className="px-2 py-0.5 rounded bg-[#b4c5ff]/10 text-[#b4c5ff] text-[10px] uppercase tracking-widest border border-[#b4c5ff]/20">Master Index</span>
           </div>
           <div className="flex items-center gap-4">
             <div className="relative group">
@@ -71,20 +113,22 @@ export function PlatformNavigatorPage() {
           </div>
         </header>
 
+        {/* Navigator Scroll Area — Stitch style */}
         <div className="flex-1 overflow-y-auto p-4 bg-gradient-to-br from-[#0b1326] to-[#060d20]">
           <div className="max-w-7xl mx-auto space-y-10 py-4">
             {sections.map((section) => (
               <section key={section.label}>
                 <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-2">
                   <span className={`material-symbols-outlined ${section.color}`}>{section.icon}</span>
-                  <h2 className="text-[10px] font-medium text-[#dbe2fd] uppercase tracking-widest">{section.label}</h2>
-                  <span className="ml-auto text-xs text-[#c3c6d7] text-[10px] font-medium">{section.screens}</span>
+                  <h2 className="text-[12px] tracking-widest uppercase text-[#dbe2fd]">{section.label}</h2>
+                  <span className="ml-auto text-[10px] text-[#c3c6d7]">{section.screens}</span>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                  {section.items.map((item: { icon: string; label: string; color?: string }) => (
+                  {section.items.map((item) => (
                     <div
                       key={item.label}
-                      className="group rounded-xl p-4 flex flex-col gap-3 cursor-pointer transition-all duration-200 hover:-translate-y-0.5"
+                      onClick={() => item.action && onNavigate?.(item.action)}
+                      className="nav-grid-item rounded-xl p-4 flex flex-col gap-3 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#2563eb]/10 hover:border-[#2563eb]/30"
                       style={{
                         background: 'rgba(23,31,51,0.85)',
                         backdropFilter: 'blur(12px)',
@@ -92,17 +136,18 @@ export function PlatformNavigatorPage() {
                         borderTopColor: 'rgba(255,255,255,0.2)',
                       }}
                     >
-                      <span className={`material-symbols-outlined ${item.color || 'text-[#c3c6d7]'} group-hover:scale-110 transition-transform`}>{item.icon}</span>
-                      <span className="text-[10px] font-medium uppercase tracking-widest text-[#dbe2fd]">{item.label}</span>
+                      <span className={`material-symbols-outlined ${section.color} group-hover:scale-110 transition-transform`}>{item.icon}</span>
+                      <span className="text-[12px] tracking-widest uppercase text-[#dbe2fd]">{item.label}</span>
                     </div>
                   ))}
                 </div>
               </section>
             ))}
 
+            {/* Quick Navigation Shortcut — Stitch style */}
             <div className="max-w-7xl mx-auto mt-12 mb-8">
-              <div className="relative overflow-hidden rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6" style={{ background: 'rgba(23,31,51,0.85)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)', borderTopColor: 'rgba(255,255,255,0.2)' }}>
-                <div className="absolute inset-0 pointer-events-none opacity-10" style={{ background: 'linear-gradient(90deg, rgba(37,99,235,0) 0%, rgba(37,99,235,0.2) 50%, rgba(37,99,235,0) 100%)', backgroundSize: '200% 100%' }}></div>
+              <div className="relative overflow-hidden rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 glass-panel" style={{ background: 'rgba(23,31,51,0.85)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)', borderTopColor: 'rgba(255,255,255,0.2)' }}>
+                <div className="ai-shimmer absolute inset-0 pointer-events-none opacity-10" style={{ background: 'linear-gradient(90deg, rgba(37,99,235,0) 0%, rgba(37,99,235,0.2) 50%, rgba(37,99,235,0) 100%)', backgroundSize: '200% 100%' }}></div>
                 <div className="flex items-center gap-6 relative z-10">
                   <div className="w-16 h-16 rounded-2xl bg-[#b4c5ff]/20 flex items-center justify-center text-[#b4c5ff]">
                     <span className="material-symbols-outlined text-4xl">rocket_launch</span>
@@ -112,7 +157,8 @@ export function PlatformNavigatorPage() {
                     <p className="text-[#c3c6d7] text-sm">Project Alpha: Structural Load Simulation #412</p>
                   </div>
                 </div>
-                <button className="bg-[#b4c5ff] text-[#002a78] px-8 py-3 rounded-xl text-[10px] font-medium uppercase tracking-widest shadow-lg shadow-[#b4c5ff]/20 hover:scale-105 active:scale-95 transition-all cursor-pointer relative z-10">
+                <button onClick={() => onNavigate?.('chat')}
+                  className="bg-[#b4c5ff] text-[#002a78] px-8 py-3 rounded-xl text-[12px] tracking-widest uppercase font-medium shadow-lg shadow-[#b4c5ff]/20 hover:scale-105 active:scale-95 transition-all cursor-pointer relative z-10">
                   Launch Current Environment
                 </button>
               </div>
