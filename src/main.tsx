@@ -3985,196 +3985,39 @@ function App() {
           )}
           {/* Chat — 30% when panel open, 100% when chat-only mode */}
           {!isMobile && (
-          <section className="chat-shell" aria-label="Apex AI Copilot chat" style={{ flex: activeView === 'chat' ? '1 1 100%' : '0 0 30%', display: 'flex', flexDirection: 'row', height: '100%', minHeight: 0, minWidth: 0, borderLeft: activeView === 'chat' ? 'none' : '1px solid rgba(150, 164, 195, 0.15)' }}>
-          {/* Conversation Sidebar */}
-          <aside className="chat-sidebar" style={{ width: '220px', borderRight: '1px solid rgba(150, 164, 195, 0.15)', display: 'flex', flexDirection: 'column', flexShrink: 0, background: '#121a2f', height: '100%', overflow: 'hidden' }}>
-            <div className="chat-sidebar-header" style={{ padding: '16px', borderBottom: '1px solid rgba(150, 164, 195, 0.15)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ color: '#fff', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                {showPromptLibrary ? 'Biblioteca de Prompts' : 'Conversas'}
-              </span>
-              <div style={{ display: 'flex', gap: '4px' }}>
-                <button
-                  type="button"
-                  onClick={() => { setShowPromptLibrary(p => !p); if (showPromptLibrary) setActivePromptLibraryModule(undefined) }}
-                  title={showPromptLibrary ? 'Voltar às conversas' : 'Abrir biblioteca de prompts'}
-                  style={{
-                    background: showPromptLibrary ? '#8b5cf6' : '#1f2937',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    padding: '4px 8px',
-                    fontSize: '10px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    opacity: 0.9,
-                  }}
-                >
-                  <BookOpen size={11} /> {showPromptLibrary ? 'Chat' : 'Prompts'}
-                </button>
-                {!showPromptLibrary && (
-                <button
-                  type="button"
-                  onClick={handleNewChat}
-                  style={{
-                    background: '#2563eb',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    padding: '4px 8px',
-                    fontSize: '11px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}
-                >
-                  <Plus size={11} /> Novo
-                </button>
-                )}
-              </div>
-            </div>
-{showPromptLibrary ? (
-            <div style={{ flex: 1, overflow: 'auto', background: '#0f172a' }}>
-              <ProfessionalPromptPanel onClear={() => { setShowPromptLibrary(false); setActivePromptLibraryModule(undefined) }} initialModule={activePromptLibraryModule} />
-            </div>
-          ) : (
-            <>
-            <div className="chat-sidebar-model" style={{ padding: '12px 16px', borderBottom: '1px solid rgba(150, 164, 195, 0.15)' }}>
-              <label style={{ color: 'rgba(150, 164, 195, 0.7)', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '6px' }}>
-                Modelos ({getProviderLabel(manualModelProvider)})
-              </label>
-
-              <select
-                value={selectedModel}
-                onChange={e => {
-                  setSelectedModel(e.target.value)
-                  try { localStorage.setItem('apex_selected_model', e.target.value) } catch {}
-                }}
-                style={{
-                  width: '100%',
-                  background: '#1a233d',
-                  color: '#fff',
-                  border: '1px solid rgba(150, 164, 195, 0.25)',
-                  borderRadius: '6px',
-                  padding: '6px 10px',
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                  outline: 'none',
-                }}
-              >
-               {modelOptions.map((m: ModelOption) => (
+          <section className="chat-shell" aria-label="Apex AI Copilot chat" style={{ flex: activeView === 'chat' ? '1 1 100%' : '0 0 30%', display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, minWidth: 0, borderLeft: activeView === 'chat' ? 'none' : '1px solid rgba(150, 164, 195, 0.15)' }}>
+            {/* ── Top Bar: Model + Actions ── */}
+            <div style={{ padding: '6px 10px', borderBottom: '1px solid rgba(150, 164, 195, 0.15)', display: 'flex', alignItems: 'center', gap: 6, background: '#121a2f', flexShrink: 0, minHeight: 40 }}>
+              <select value={selectedModel} onChange={e => { setSelectedModel(e.target.value); try { localStorage.setItem('apex_selected_model', e.target.value) } catch {} }}
+                style={{ flex: 1, minWidth: 0, background: '#1a233d', color: '#fff', border: '1px solid rgba(150, 164, 195, 0.25)', borderRadius: 5, padding: '3px 6px', fontSize: 10, cursor: 'pointer', outline: 'none' }}>
+                {modelOptions.map((m: ModelOption) => (
                   <option key={m.id} value={m.id}>{`${m.provider ? `${getProviderLabel(m.provider)} · ` : ''}${m.name || m.id}`}</option>
                 ))}
               </select>
-
-              <label style={{ color: 'rgba(150, 164, 195, 0.7)', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginTop: '10px', marginBottom: '6px' }}>
-                Filtrar por provedor
-              </label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '6px' }}>
-                <select
-                  value={manualModelProvider}
-                  onChange={e => setManualModelProvider(e.target.value as ManualModelProvider)}
-                  style={{
-                    background: '#1a233d',
-                    color: '#fff',
-                    border: '1px solid rgba(150, 164, 195, 0.25)',
-                    borderRadius: '6px',
-                    padding: '6px 8px',
-                    fontSize: '11px',
-                    outline: 'none',
-                  }}
-                >
-                  <option value="all">🔥 TODOS (Owner Test)</option>
-                  <option value="gemini">Gemini (gratuito)</option>
-                  <option value="gemini-interactions">Gemini Interact</option>
-                  <option value="fal">FAL.ai</option>
-                  <option value="elevenlabs">Eleven Labs</option>
-                </select>
-              </div>
-              <div className={`model-runtime-pill ${modelRuntimeState}`} style={{ marginTop: '8px' }}>
-                <span className="runtime-dot" />
-                  {loading
-                  ? (uiLanguage === 'EN' ? 'Working...' : 'Trabalhando...')
-                  : modelRuntimeState === 'ok'
-                    ? (uiLanguage === 'EN' ? `Active · ${lastResponseMode || 'ok'}` : `Active · ${lastResponseMode || 'ok'}`)
-                    : modelRuntimeState === 'fallback'
-                      ? (uiLanguage === 'EN' ? 'Fallback (select other model)' : 'Fallback (selecione outro modelo)')
-                      : (uiLanguage === 'EN' ? 'Ready' : 'Pronto')}
-              </div>
+              <select value={manualModelProvider} onChange={e => setManualModelProvider(e.target.value as ManualModelProvider)}
+                style={{ width: 80, background: '#1a233d', color: '#fff', border: '1px solid rgba(150, 164, 195, 0.25)', borderRadius: 5, padding: '3px 6px', fontSize: 9, cursor: 'pointer', outline: 'none' }}>
+                <option value="all">🔥 Todos</option>
+                <option value="gemini">Gemini</option>
+                <option value="gemini-interactions">Interact</option>
+                <option value="fal">FAL</option>
+                <option value="elevenlabs">Eleven</option>
+              </select>
+              <button type="button" onClick={handleNewChat} title="Nova conversa"
+                style={{ background: '#2563eb', color: '#fff', border: 'none', borderRadius: 5, padding: '3px 7px', fontSize: 10, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
+                <Plus size={10} /> Novo
+              </button>
+              <button type="button" onClick={() => setShowPromptLibrary(p => !p)} title={showPromptLibrary ? 'Conversas' : 'Prompts'}
+                style={{ background: showPromptLibrary ? '#8b5cf6' : '#1f2937', color: '#fff', border: 'none', borderRadius: 5, padding: '3px 7px', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
+                <BookOpen size={10} /> {showPromptLibrary ? 'Chat' : 'Prompts'}
+              </button>
             </div>
-            <div className="chat-sidebar-list" style={{ flex: 1, overflowY: 'auto', padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {conversations.map(conv => {
-                const isActive = conv.id === activeConversationId
-                return (
-                  <div
-                    key={conv.id}
-                    onClick={() => setActiveConversationId(conv.id)}
-                    className={`conversation-list-item ${isActive ? 'active' : ''}`}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '8px 10px',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      fontSize: '12px',
-                      fontWeight: isActive ? 'bold' : 'normal',
-                      color: isActive ? '#fff' : '#b8c2d8',
-                      background: isActive ? 'rgba(37, 99, 235, 0.25)' : 'transparent',
-                      transition: 'background 0.2s, color 0.2s',
-                    }}
-                  >
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '8px', flex: 1 }}>{conv.title}</span>
-                    <button
-                      type="button"
-                      onClick={(e) => handleDeleteChat(conv.id, e)}
-                      style={{
-                        background: 'transparent',
-                        border: 'none',
-                        color: 'rgba(239, 68, 68, 0.7)',
-                        cursor: 'pointer',
-                        padding: '2px',
-                        display: 'flex',
-                        alignItems: 'center',
-                      }}
-                      title="Excluir conversa"
-                    >
-                      <X size={12} />
-                    </button>
-                  </div>
-                )
-              })}
-            </div>
-            {conversations.length > 1 && (
-              <div style={{ padding: '10px 16px', borderTop: '1px solid rgba(150, 164, 195, 0.15)' }}>
-                <button
-                  type="button"
-                  onClick={handleClearAllChats}
-                  style={{
-                    width: '100%',
-                    background: 'transparent',
-                    border: '1px solid rgba(239, 68, 68, 0.3)',
-                    color: '#ef4444',
-                    borderRadius: '6px',
-                    padding: '6px 0',
-                    fontSize: '11px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Limpar Histórico
-                </button>
-              </div>
-            )}
-            </>
-          )}
-          </aside>
 
-          {/* Main Chat Area */}
+            {/* ── Prompt Library or Messages ── */}
+            {showPromptLibrary ? (
+              <div style={{ flex: 1, overflow: 'auto', background: '#0f172a' }}>
+                <ProfessionalPromptPanel onClear={() => { setShowPromptLibrary(false); setActivePromptLibraryModule(undefined) }} initialModule={activePromptLibraryModule} />
+              </div>
+            ) : (
           <div className="chat-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, position: 'relative', height: '100%', overflow: 'hidden' }}>
             <div className="messages" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto' }}>
               {messages.map(message => (
@@ -4497,6 +4340,7 @@ function App() {
               </div>
             )}
           </div>
+          )}
         </section>
         )}
 
