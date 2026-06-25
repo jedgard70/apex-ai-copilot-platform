@@ -1293,7 +1293,7 @@ function App() {
   const [activeView, setActiveView] = useState('dashboard')
   /* A11.0 — Dashboard studio card + sidebar routing: directly opens panels instead of sending chat commands */
   useEffect(() => {
-    if (!activeView || ['dashboard','client-dashboard','owner','chat','provider-detail','deployment','navigator','training','docs'].includes(activeView)) return
+    if (!activeView || ['dashboard','client-dashboard','owner','chat','provider-detail','deployment','navigator','training','docs','platform-map'].includes(activeView)) return
     if (activeView === 'archvis') { closeOtherPanels('archVis'); setArchVisOutput({ source: null as any, output: '', conversationContext: [] }); setActiveView('chat') }
     else if (activeView === 'directcut') { closeOtherPanels('directCut'); setDirectCutOutput({ goal: 'Novo projeto DirectCut', conversationContext: ['assistant: Ativei o DirectCut Studio.'], initialConfig: { duration: '10', aspectRatio: '16:9', style: 'hyper-real' as any, cameraMovement: 'dolly-in' } }); setActiveView('chat') }
     else if (activeView === 'bim') { closeOtherPanels('bim3D'); setBim3DOutput({ source: null as any }); setActiveView('chat') }
@@ -3924,14 +3924,16 @@ function App() {
         <OwnerPage onNavigate={setActiveView} onOpenChat={handleCommand} />
       ) : activeView === 'provider-detail' ? (
         <ProviderDetailPanel onClear={() => setActiveView('dashboard')} />
-      ) : activeView === 'bim' || activeView === 'fieldops' || activeView === 'budget' || activeView === 'contracts' || activeView === 'research' || activeView === 'crm' || activeView === 'finance' || activeView === 'archvis' || activeView === 'directcut' || activeView === 'deployment' || activeView === 'governance' || activeView === 'marketing' || activeView === 'navigator' || activeView === 'training' || activeView === 'docs' ? (
+      ) : activeView === 'navigator' ? (
+        <PlatformNavigatorPage onNavigate={setActiveView} />
+      ) : activeView === 'bim' || activeView === 'fieldops' || activeView === 'budget' || activeView === 'contracts' || activeView === 'research' || activeView === 'crm' || activeView === 'finance' || activeView === 'archvis' || activeView === 'directcut' || activeView === 'deployment' || activeView === 'governance' || activeView === 'marketing' || activeView === 'training' || activeView === 'docs' ? (
         <div className="h-full"><section className="chat-shell" aria-label="Apex AI Copilot chat" style={{ display: 'flex', flexDirection: 'row', minHeight: '100%' }}>{(() => {
           const cmds: Record<string, string> = {
             bim: 'abrir bim 3d studio', fieldops: 'abrir field ops studio', budget: 'abrir budget studio',
             contracts: 'abrir contracts studio', research: 'abrir research studio', crm: 'abrir crm layer',
             finance: 'abrir financeiro', archvis: 'abrir archvis studio', directcut: 'abrir directcut studio',
             deployment: 'abrir deployment', governance: 'abrir evm scheduler panel', marketing: 'abrir marketing',
-            navigator: 'abrir platform map', training: 'abrir model training', docs: 'abrir documentation',
+            training: 'abrir model training', docs: 'abrir documentation',
           }
           setTimeout(() => { handleCommand(cmds[activeView] || ''); setActiveView('chat') }, 100)
           return null
