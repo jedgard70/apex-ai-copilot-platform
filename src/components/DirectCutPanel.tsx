@@ -8,7 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   AlertTriangle, CheckCircle, ChevronDown, ChevronRight,
   Download, ExternalLink, Film, Folder, GripVertical,
-  Layers, LayoutDashboard, Lock, Maximize2, Mic, Monitor,
+  Layers, Lock, Maximize2, Mic, Monitor,
   Move, Pause, Play, Plus, RefreshCw, Search, Send,
   Settings, Share2, Sparkles, Trash2, Unlock, Upload,
   Video, Volume2, X, ZoomIn, ZoomOut,
@@ -117,12 +117,6 @@ function IconSidebar({ tab, onTab, onClose }: { tab: DCTab; onTab: (t: DCTab) =>
       <div style={{ width: 40, height: 40, borderRadius: 6, background: `${D.primaryContainer}18`, border: `1px solid ${D.primaryContainer}30`, marginBottom: 12, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Film size={18} color={D.primaryContainer} />
       </div>
-
-      {/* Dashboard */}
-      <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, width: '100%', padding: '8px 0', background: 'none', border: 'none', cursor: 'pointer', color: D.onSurfaceVariant, fontSize: 9 }}>
-        <LayoutDashboard size={18} />
-        <span>Dashboard</span>
-      </button>
 
       {/* Nav items */}
       {items.map(item => (
@@ -775,14 +769,7 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
 
         {/* Right */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {/* Play controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 3, background: D.surfaceContainerHigh, padding: '3px 8px', borderRadius: 4 }}>
-            <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: D.onSurface, display: 'flex' }}><Play size={15} /></button>
-            <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: D.onSurface, display: 'flex' }}><Pause size={15} /></button>
-          </div>
-          <button style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', background: D.surfaceContainerHighest, border: `1px solid ${D.outlineVariant}`, borderRadius: 4, cursor: 'pointer', color: D.onSurface, fontSize: 11 }}>
-            <Plus size={12} /> Add Frame
-          </button>
+          {/* Generate button (primary action) */}
           <button onClick={() => handleGenerate('', 'hyper-real', { intensity: 75, temperature: 33 })} disabled={loading}
             style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', background: D.primaryContainer, color: D.onPrimaryContainer, border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
             <Sparkles size={12} /> AI Generate

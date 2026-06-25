@@ -7,7 +7,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ArrowLeft, ChevronDown, ChevronRight, Download, Grid2x2, Image,
-  ImageIcon, Layers, LayoutDashboard, Maximize2, Plus, RefreshCw,
+  ImageIcon, Layers, Maximize2, Plus, RefreshCw,
   Save, Search, Settings, Share2, Sliders, Sparkles, Sun, Trash2,
   X, ZoomIn, ZoomOut,
 } from 'lucide-react'
@@ -15,7 +15,7 @@ import { IntakeFile } from '../lib/fileIntake'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type ArchVisTab = 'dashboard' | 'editor' | 'materials' | 'gallery'
+type ArchVisTab = 'editor' | 'gallery'
 type GenerationMode = 'preserve-layout' | 'creative-redesign'
 type OutputType = 'humanized-floor-plan' | '3d-perspective' | 'facade-render' | 'interior-render' | 'creative-concept'
 type PromptStyle = 'humanized-floor-plan' | 'photorealistic-facade' | 'cinematic-real-estate' | 'top-down-2d' | 'technical-drawing'
