@@ -2079,14 +2079,11 @@ export default async function handler(req, res) {
       finalModel = `google/${model}`
     }
     // Gemini OpenAI-compat endpoint does NOT support function calling.
-    // Gemini OpenAI-compat: Bearer auth OK, but function calling support varies by model.
-    // Safer to strip tools to prevent hallucination. All other providers get full tools.
-    const stripTools = modelProvider === 'gemini' || modelProvider === 'gemini-interactions'
     const requestPayload = {
       model: finalModel,
       messages: liveAgentMessages,
-      tools: stripTools ? [] : buildLiveAgentToolDefinitions(),
-      tool_choice: stripTools ? undefined : 'auto',
+      tools: buildLiveAgentToolDefinitions(),
+      tool_choice: 'auto',
       temperature: 0.72,
       frequency_penalty: 0.2,
       max_tokens: 900,
