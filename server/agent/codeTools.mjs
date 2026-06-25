@@ -14,7 +14,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
-import { runSelfUpgradePlanner, buildSelfUpgradePlannerReply } from './selfUpgradePlanner.mjs'
+import { runSelfUpgradePlanner, buildSelfUpgradePlannerReply } from './selfUpgrade.mjs'
 import { buildGithubToolDefinitions, executeGithubToolCall, GITHUB_TOOL_NAMES, isGithubConfigured } from './githubTools.mjs'
 
 const MAX_READ_BYTES = 200_000
@@ -43,7 +43,7 @@ function runEnabled() {
 
 function redactSecrets(text) {
   return String(text || '')
-    .replace(/(OPENAI_API_KEY|ANTHROPIC_API_KEY|SUPABASE_[A-Z_]*KEY|SERVICE_ROLE_KEY)\s*=\s*[^\s]+/gi, '$1=[redacted]')
+    .replace(/(GEMINI_API_KEY|SUPABASE_[A-Z_]*KEY|SERVICE_ROLE_KEY)\s*=\s*[^\s]+/gi, '$1=[redacted]')
     .replace(/Bearer\s+[A-Za-z0-9._-]{16,}/gi, 'Bearer [redacted-token]')
     .replace(/sk-[A-Za-z0-9._-]{16,}/g, 'sk-[redacted]')
     .replace(/eyJ[A-Za-z0-9._-]{20,}/g, '[redacted-jwt]')
@@ -180,12 +180,12 @@ export function buildCodeToolDefinitions() {
     type: 'function',
     function: {
       name: 'self_upgrade_report',
-      description: 'Get Apex self-upgrade execution context: current architecture snapshot, completed checkpoints, configured/blocking connectors, executed-now capabilities, and live research if ANTHROPIC_API_KEY is set. This is not the final action when the user asks to execute now; after using it, inspect files, edit code, and validate with available tools.',
+      description: 'Get Apex self-upgrade execution context: current architecture snapshot, completed checkpoints, configured/blocking connectors, executed-now capabilities, and live research if GEMINI_API_KEY is set. This is not the final action when the user asks to execute now; after using it, inspect files, edit code, and validate with available tools.',
       parameters: {
         type: 'object',
-        additionalProperties: false,
+        additionalProperties: true,
         properties: {
-          topic: { type: 'string', description: 'Optional focus topic for the live research, e.g. "novidades em IA para construção".' },
+          topic: { type: 'string', description: 'Optional focus topic for the live research, e.g. "novidades em IA para construção, engenharia, arquitetura, urbanismo, sustentabilidade, inovação, tecnologia, provedores de api, avanços tecnologicos".' },
         },
       },
     },
@@ -439,8 +439,8 @@ export async function executeCodeToolCall(toolCall, rootDir) {
       case 'edit_file': return toolEditFile(rootDir, args)
       case 'run_command': return await toolRunCommand(rootDir, args)
       case 'self_upgrade_report': {
-        const result = await runSelfUpgradePlanner(args.topic || undefined)
-        return { ok: true, report: buildSelfUpgradePlannerReply(result), connectorConfigured: result.connectorConfigured }
+        const result = await runSelfUpgrade(args.topic || undefined)
+        return { ok: true, report: buildSelfUpgradeReply(result), connectorConfigured: result.connectorConfigured }
       }
       default: return { ok: false, error: `Unknown code tool: ${name}` }
     }

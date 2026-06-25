@@ -40,10 +40,10 @@ function buildUserMessage(action: string, payload: Record<string, unknown>): str
 
 function fallback(action: string, payload: Record<string, unknown>) {
   if (action === 'contracts-review') {
-    return { mode: 'planning-only', risks: [], suggestions: ['Configure ANTHROPIC_API_KEY para ativar revisão jurídica por IA.'], missingClauses: [], summary: 'Revisão jurídica por IA não disponível.' }
+    return { mode: 'planning-only', risks: [], suggestions: ['Configure GEMINI_API_KEY para ativar revisão jurídica por IA.'], missingClauses: [], summary: 'Revisão jurídica por IA não disponível.' }
   }
   if (action === 'supply-chain') {
-    return { mode: 'planning-only', riskItems: [], savingsOpportunities: [{ description: 'Configure ANTHROPIC_API_KEY', estimatedSaving: 'N/A', action: 'Configurar variável' }], supplierRecommendations: [], summary: 'Análise de supply chain por IA não disponível.' }
+    return { mode: 'planning-only', riskItems: [], savingsOpportunities: [{ description: 'Configure GEMINI_API_KEY', estimatedSaving: 'N/A', action: 'Configurar variável' }], supplierRecommendations: [], summary: 'Análise de supply chain por IA não disponível.' }
   }
   if (action === 'field-ops') {
     const { date, weather, activities, occurrences } = payload as any
@@ -55,7 +55,7 @@ function fallback(action: string, payload: Record<string, unknown>) {
       activitiesPerformed: (activities || []).map((a: string) => ({ activity: a, progress: 'Não informado', team: 'Não informado', observations: '' })),
       occurrences: occurrences || [],
       nextDayPlan: [],
-      alerts: [{ severity: 'Baixa', message: 'Configure ANTHROPIC_API_KEY para geração inteligente de RDO.' }],
+      alerts: [{ severity: 'Baixa', message: 'Configure GEMINI_API_KEY para geração inteligente de RDO.' }],
       summary: 'Geração de RDO por IA não disponível.',
     }
   }

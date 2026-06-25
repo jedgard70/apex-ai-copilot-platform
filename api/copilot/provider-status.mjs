@@ -48,75 +48,6 @@ async function checkFal() {
   }
 }
 
-// ─── AI Gateway (Vercel) ─────────────────────────────────────────────────────
-async function checkAiGateway() {
-  const key = process.env.AI_GATEWAY_API_KEY
-  if (!key) return { id: 'gateway', name: 'AI Gateway / Google Veo (Vídeo)', status: 'unconfigured', message: 'AI_GATEWAY_API_KEY não configurado.', topUpUrl: 'https://vercel.com/dashboard/ai' }
-  // Test with Vercel AI Gateway public API endpoint
-  // The AI Gateway uses OpenAI-compatible endpoints at gateway.vercel.ai
-  try {
-    const res = await safeFetch('https://gateway.vercel.ai/v1/models', {
-      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-    }, 6000)
-    if (res.ok) {
-      return { id: 'gateway', name: 'AI Gateway / Google Veo (Vídeo)', status: 'ok', message: 'Gateway acessível.', topUpUrl: 'https://vercel.com/dashboard/ai' }
-    }
-    if (res.status === 401 || res.status === 403) return { id: 'gateway', name: 'AI Gateway / Google Veo (Vídeo)', status: 'error', message: 'Chave inválida.', topUpUrl: 'https://vercel.com/dashboard/ai' }
-    if (res.status === 429) {
-      recordRateLimit({ provider: 'ai-gateway', endpoint: 'gateway', statusCode: 429 })
-      const d = await res.json().catch(() => ({}))
-      const msg = String(d?.error?.message || d?.message || '').toLowerCase()
-      if (msg.includes('quota') || msg.includes('credit') || msg.includes('balance')) {
-        return { id: 'gateway', name: 'AI Gateway / Google Veo (Vídeo)', status: 'needs-topup', message: 'Quota atingida. Adicione créditos no Vercel AI Dashboard.', topUpUrl: 'https://vercel.com/dashboard/ai' }
-      }
-      return { id: 'gateway', name: 'AI Gateway / Google Veo (Vídeo)', status: 'warning', message: 'Rate limit ativo.', topUpUrl: 'https://vercel.com/dashboard/ai' }
-    }
-    // Non-auth error means key exists → mark as ok since the gateway may not expose models endpoint
-    return { id: 'gateway', name: 'AI Gateway / Google Veo (Vídeo)', status: 'ok', message: 'Chave configurada.', topUpUrl: 'https://vercel.com/dashboard/ai' }
-  } catch (err) {
-    // Network timeout — key exists but can't reach gateway → ok
-    return { id: 'gateway', name: 'AI Gateway / Google Veo (Vídeo)', status: 'ok', message: 'Chave configurada (API Gateway).', topUpUrl: 'https://vercel.com/dashboard/ai' }
-  }
-}
-
-// ─── OpenAI / Gemini ─────────────────────────────────────────────────────────
-async function checkOpenAI() {
-  const key = process.env.OPENAI_API_KEY
-  const base = String(process.env.OPENAI_API_BASE || 'https://api.openai.com/v1').replace(/\/$/, '')
-  const model = process.env.OPENAI_MODEL || 'gpt-4o-mini'
-  if (!key) return { id: 'openai', name: 'OpenAI / Gemini (Chat principal)', status: 'unconfigured', message: 'OPENAI_API_KEY não configurado.' }
-  try {
-    const res = await safeFetch(`${base}/models`, {
-      headers: { Authorization: `Bearer ${key}` },
-    })
-    if (res.ok) {
-      return { id: 'openai', name: 'OpenAI / Gemini (Chat principal)', status: 'ok', message: `Chave válida. Modelo ativo: ${model}.` }
-    }
-    if (res.status === 401) return { id: 'openai', name: 'OpenAI / Gemini (Chat principal)', status: 'error', message: 'Chave inválida ou expirada.' }
-    if (res.status === 429) { recordRateLimit({ provider: 'openai', endpoint: 'models', statusCode: 429 }); return { id: 'openai', name: 'OpenAI / Gemini (Chat principal)', status: 'needs-topup', message: 'Rate limit / quota atingida. Verifique o saldo.', topUpUrl: 'https://platform.openai.com/settings/billing' } }
-    return { id: 'openai', name: 'OpenAI / Gemini (Chat principal)', status: 'warning', message: `Resposta ${res.status}.` }
-  } catch (err) {
-    return { id: 'openai', name: 'OpenAI / Gemini (Chat principal)', status: 'error', message: `Erro: ${scrub(err?.message)}` }
-  }
-}
-
-// ─── Anthropic ───────────────────────────────────────────────────────────────
-async function checkAnthropic() {
-  const key = process.env.ANTHROPIC_API_KEY
-  if (!key) return { id: 'anthropic', name: 'Anthropic Claude (Chat alternativo)', status: 'unconfigured', message: 'ANTHROPIC_API_KEY não configurado.' }
-  try {
-    const res = await safeFetch('https://api.anthropic.com/v1/models', {
-      headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01' },
-    })
-    if (res.ok) return { id: 'anthropic', name: 'Anthropic Claude (Chat alternativo)', status: 'ok', message: 'Chave válida.' }
-    if (res.status === 401) return { id: 'anthropic', name: 'Anthropic Claude (Chat alternativo)', status: 'error', message: 'Chave inválida.' }
-    if (res.status === 429) { recordRateLimit({ provider: 'anthropic', endpoint: 'models', statusCode: 429 }); return { id: 'anthropic', name: 'Anthropic Claude (Chat alternativo)', status: 'needs-topup', message: 'Rate limit atingido. Verifique créditos.', topUpUrl: 'https://console.anthropic.com/settings/billing' } }
-    return { id: 'anthropic', name: 'Anthropic Claude (Chat alternativo)', status: 'warning', message: `Status ${res.status}.` }
-  } catch (err) {
-    return { id: 'anthropic', name: 'Anthropic Claude (Chat alternativo)', status: 'error', message: `Erro: ${scrub(err?.message)}` }
-  }
-}
-
 // ─── ElevenLabs ──────────────────────────────────────────────────────────────
 async function checkElevenLabs() {
   const key = process.env.ELEVENLABS_API_KEY
@@ -280,68 +211,18 @@ async function checkFfmpeg() {
   }
 }
 
-// ─── OpenRouter ──────────────────────────────────────────────────────────────
-async function checkOpenRouter() {
-  const key = process.env.OPENAI_API_KEYROUTER
-  if (!key) return { id: 'openrouter', name: 'OpenRouter (Multi-Model Gateway)', status: 'unconfigured', message: 'OPENAI_API_KEYROUTER não configurado.', topUpUrl: 'https://openrouter.ai/credits' }
-  try {
-    const res = await safeFetch('https://openrouter.ai/api/v1/auth/key', {
-      headers: { Authorization: `Bearer ${key}` },
-    })
-    if (res.ok) {
-      const data = await res.json().catch(() => ({}))
-      const credits = data?.data?.credits ?? data?.credits ?? null
-      return {
-        id: 'openrouter',
-        name: 'OpenRouter (Multi-Model Gateway)',
-        status: 'ok',
-        message: credits !== null ? `Créditos: $${Number(credits).toFixed(2)}` : 'Chave válida.',
-        balance: credits !== null ? `$${Number(credits).toFixed(2)}` : null,
-        topUpUrl: 'https://openrouter.ai/credits',
-      }
-    }
-    return { id: 'openrouter', name: 'OpenRouter (Multi-Model Gateway)', status: 'error', message: `Status ${res.status}.`, topUpUrl: 'https://openrouter.ai/credits' }
-  } catch (err) {
-    return { id: 'openrouter', name: 'OpenRouter (Multi-Model Gateway)', status: 'warning', message: 'Chave configurada mas não verificada (rede).', topUpUrl: 'https://openrouter.ai/credits' }
-  }
-}
-
-// ─── OpenCode Go ─────────────────────────────────────────────────────────────
-async function checkOpenCodeGo() {
-  const key = process.env.OPENCODE_GO_API_KEY
-  if (!key) return { id: 'opencode', name: 'OpenCode Go (AI Code Engine)', status: 'unconfigured', message: 'OPENCODE_GO_API_KEY não configurado.', topUpUrl: 'https://opencode.ai/dashboard' }
-  try {
-    const res = await safeFetch('https://opencode.ai/zen/go/v1/models', {
-      headers: { Authorization: `Bearer ${key}` },
-    })
-    if (res.ok) return { id: 'opencode', name: 'OpenCode Go (AI Code Engine)', status: 'ok', message: 'Chave válida.' }
-    if (res.status === 401 || res.status === 403) return { id: 'opencode', name: 'OpenCode Go (AI Code Engine)', status: 'error', message: 'Chave inválida.', topUpUrl: 'https://opencode.ai/dashboard' }
-    return { id: 'opencode', name: 'OpenCode Go (AI Code Engine)', status: 'warning', message: `Status ${res.status}.` }
-  } catch (err) {
-    return { id: 'opencode', name: 'OpenCode Go (AI Code Engine)', status: 'warning', message: 'Chave configurada mas não verificada (rede).', topUpUrl: 'https://opencode.ai/dashboard' }
-  }
-}
-
-// ─── Firebase ─────────────────────────────────────────────────────────────────
-async function checkFirebase() {
-  const key = process.env.VITE_FIREBASE_API_KEY
-  if (!key) return { id: 'firebase', name: 'Firebase (Auth + Genkit)', status: 'unconfigured', message: 'VITE_FIREBASE_API_KEY não configurado.' }
-  // Just env check — Firebase SDK validates at runtime
-  return { id: 'firebase', name: 'Firebase (Auth + Genkit)', status: 'ok', message: 'Chave configurada.' }
-}
-
 // ─── Gemini (dedicated) ──────────────────────────────────────────────────────
-async function checkGeminiDedicated() {
+async function checkGemini() {
   const key = process.env.GEMINI_API_KEY
-  if (!key) return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'unconfigured', message: 'GEMINI_API_KEY não configurado.', topUpUrl: 'https://aistudio.google.com/apikey' }
+  if (!key) return { id: 'gemini', name: 'Gemini (Chat, multimodal, TTS, image)', status: 'unconfigured', message: 'GEMINI_API_KEY não configurado.', topUpUrl: 'https://aistudio.google.com/apikey' }
   try {
     const res = await safeFetch('https://generativelanguage.googleapis.com/v1beta/models', {
       headers: { 'x-goog-api-key': key },
     }, 6000)
-    if (res.ok) return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'ok', message: 'Chave válida.' }
-    if (res.status === 401 || res.status === 403) return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'error', message: 'Chave inválida ou expirada.', topUpUrl: 'https://aistudio.google.com/apikey' }
-    if (res.status === 429) { recordRateLimit({ provider: 'gemini', endpoint: 'models', statusCode: 429 }); return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'warning', message: 'Rate limit. Chave configurada.' } }
-    return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'warning', message: `Status ${res.status}. Chave configurada.` }
+    if (res.ok) return { id: 'gemini', name: 'Gemini (Chat, multimodal, TTS, image)', status: 'ok', message: 'Chave válida.' }
+    if (res.status === 401 || res.status === 403) return { id: 'gemini', name: 'Gemini (Chat, multimodal, TTS, image)', status: 'error', message: 'Chave inválida ou expirada.', topUpUrl: 'https://aistudio.google.com/apikey' }
+    if (res.status === 429) { recordRateLimit({ provider: 'gemini', endpoint: 'models', statusCode: 429 }); return { id: 'gemini', name: 'Gemini (Chat, multimodal, TTS, image)', status: 'warning', message: 'Rate limit. Chave configurada.' } }
+    return { id: 'gemini', name: 'Gemini (Chat, multimodal, TTS, image)', status: 'warning', message: `Status ${res.status}. Chave configurada.` }
   } catch (err) {
     return { id: 'gemini', name: 'Gemini AI Studio (Direto)', status: 'ok', message: 'Chave configurada (Google API não respondeu).' }
   }
@@ -355,12 +236,8 @@ export default async function handler(req, res) {
   }
 
   const checks = await Promise.allSettled([
-    checkOpenAI(),
-    checkGeminiDedicated(),
-    checkOpenRouter(),
+    checkGemini(),
     checkFal(),
-    checkAiGateway(),
-    checkOpenCodeGo(),
     checkElevenLabs(),
     checkFirebase(),
     checkTavily(),

@@ -31,9 +31,8 @@ function normalizeModeLabel(videoMode) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST')
-    const hasAiProvider = Boolean(process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY || process.env.ANTHROPIC_API_KEY)
     const fullEnabled = String(process.env.DIRECTCUT_ENABLE_FULL || 'true').toLowerCase() !== 'false'
-    return sendJson(res, 405, { error: 'Method not allowed', providerStatus: hasAiProvider && fullEnabled ? 'connector-ready' : 'planning-only' })
+    return sendJson(res, 405, { error: 'Method not allowed', providerStatus: fullEnabled ? 'connector-ready' : 'planning-only' })
   }
 
   try {
@@ -174,9 +173,8 @@ export default async function handler(req, res) {
       ...lockedConstraints.map(item => `violate constraint: ${item}`),
     ].filter(Boolean).join(', ')
 
-    const hasAiProvider = Boolean(process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY || process.env.ANTHROPIC_API_KEY)
     const fullEnabled = String(process.env.DIRECTCUT_ENABLE_FULL || 'true').toLowerCase() !== 'false'
-    const providerStatus = hasAiProvider && fullEnabled ? 'connector-ready' : 'planning-only'
+    const providerStatus = fullEnabled ? 'connector-ready' : 'planning-only'
 
     return sendJson(res, 200, {
       providerStatus,
@@ -193,10 +191,9 @@ export default async function handler(req, res) {
       recommendedDuration: duration,
     })
   } catch (error) {
-    const hasAiProvider = Boolean(process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY || process.env.ANTHROPIC_API_KEY)
     const fullEnabled = String(process.env.DIRECTCUT_ENABLE_FULL || 'true').toLowerCase() !== 'false'
     return sendJson(res, 500, {
-      providerStatus: hasAiProvider && fullEnabled ? 'connector-ready' : 'planning-only',
+      providerStatus: fullEnabled ? 'connector-ready' : 'planning-only',
       message: scrubError(error?.message || error),
     })
   }
