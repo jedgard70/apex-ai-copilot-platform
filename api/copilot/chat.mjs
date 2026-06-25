@@ -2062,6 +2062,7 @@ export default async function handler(req, res) {
           '- Use evidence labels: CONFIRMED, ASSUMPTION, UNKNOWN.',
           '- Do not use vague language like "I think" or "probably" for BIM findings.',
           '',
+          'TOOL EFFICIENCY: If a task requires multiple verifications or service checks, batch them into a SINGLE tool call where possible (e.g., verify all 6 services at once instead of one-by-one). This avoids hitting the tool round limit.',
           'NOW EXECUTE. The user is waiting.'
         ].join('\n')
       },
@@ -2180,7 +2181,7 @@ export default async function handler(req, res) {
         let currentToolCalls = toolCalls
         const usedToolNames = []
         const apiBaseUrl = apiBase
-        const MAX_TOOL_ROUNDS = 12
+        const MAX_TOOL_ROUNDS = 25
 
         for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
           conversationMessages.push({
