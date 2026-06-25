@@ -1172,7 +1172,9 @@ async function callGeminiNative(requestPayload, overrideConfig) {
   const apiKey = overrideConfig?.apiKey || resolved.apiKey
   const providerLabel = 'gemini'
   const modelName = requestPayload.model || 'unknown'
-  const endpoint = `${apiBase}/interactions`
+  // Use standard Gemini API base, not OpenAI-compatible, for native generateContent
+  const geminiBase = apiBase.includes('/openai') ? 'https://generativelanguage.googleapis.com/v1beta' : apiBase
+  const endpoint = `${geminiBase}/interactions`
 
   let success = true
   let data = true
@@ -1860,7 +1862,7 @@ export default async function handler(req, res) {
 
     // ─── GEMINI NOW USES FULL TOOL-CAPABLE PIPELINE (same as all providers) ───
     // Gemini gets the same full Apex system prompt + tools.
-    const selectedModelRaw = body.model || process.env.GEMINI_MODEL || 'gemini-3.5-flash'
+    const selectedModelRaw = body.model || process.env.GEMINI_MODEL || 'gemini|gemini-2.5-flash'
     const selectedModel = splitModelValue ? splitModelValue(selectedModelRaw) : { provider: null, modelId: selectedModelRaw }
     const modelProvider = selectedModel.provider || ''
     const model = selectedModel.modelId || selectedModelRaw

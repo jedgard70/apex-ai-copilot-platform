@@ -83,11 +83,6 @@ export default function AppLayout({
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
 
-  // Debug: log isMobile status
-  if (typeof window !== 'undefined') {
-    console.log('[AppLayout] isMobile:', isMobile, 'isTablet:', isTablet, 'width:', window.innerWidth)
-  }
-
   const handleNav = (id: string) => {
     setNavActive(id)
     onNavChange?.(id)
