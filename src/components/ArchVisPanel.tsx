@@ -115,6 +115,8 @@ function RenderingEditor({ source, output, conversationContext, revisionConstrai
   const [manualCorrection, setManualCorrection] = useState('')
   const [samples, setSamples] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const [showPresets, setShowPresets] = useState(false)
+  const [presets, setPresets] = useState<{ name: string; prompt: string; categoryName?: string }[]>([])
   const samplesRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const selected = gallery.find(g => g.id === selectedId)
@@ -202,6 +204,14 @@ function RenderingEditor({ source, output, conversationContext, revisionConstrai
       setManualCorrection('')
     }
   }
+
+  // Fetch presets from prompt library
+  useEffect(() => {
+    fetch('/api/prompts/module/archvis')
+      .then(r => r.json())
+      .then(d => { if (d?.presets) setPresets(d.presets) })
+      .catch(() => {})
+  }, [])
 
   const progressPct = Math.round((samples / 500) * 100)
 
@@ -443,6 +453,29 @@ function RenderingEditor({ source, output, conversationContext, revisionConstrai
               </button>
             </div>
           </div>
+
+          {/* 🎨 Presets de estilo */}
+          {presets.length > 0 && (
+            <div style={{ marginBottom: 16 }}>
+              <button onClick={() => setShowPresets(!showPresets)}
+                style={{ width: '100%', padding: '8px 10px', background: showPresets ? T.secondaryContainer : T.surfaceContainerHighest, color: showPresets ? T.onSecondaryContainer : T.onSurface, border: `1px solid ${T.outlineVariant}`, borderRadius: 6, cursor: 'pointer', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>🎨 Presets Profissionais ({presets.length})</span>
+                <span>{showPresets ? '▲' : '▼'}</span>
+              </button>
+              {showPresets && (
+                <div style={{ marginTop: 8, maxHeight: 200, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {presets.map((p, i) => (
+                    <button key={i} onClick={() => setPrompt(p.prompt)}
+                      style={{ padding: '6px 8px', fontSize: 11, background: T.surfaceContainerLowest, color: T.onSurface, border: `1px solid ${T.outlineVariant}`, borderRadius: 4, cursor: 'pointer', textAlign: 'left', lineHeight: 1.4 }}>
+                      <span style={{ fontWeight: 600 }}>{p.name}</span>
+                      {p.categoryName && <span style={{ fontSize: 9, color: T.primary, marginLeft: 6 }}>{p.categoryName}</span>}
+                      <span style={{ fontSize: 10, color: T.onSurfaceVariant, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.prompt.slice(0, 80)}...</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Regenerate button */}
           <button onClick={generate} disabled={loading}
