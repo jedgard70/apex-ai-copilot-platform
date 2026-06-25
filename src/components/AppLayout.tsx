@@ -149,7 +149,7 @@ export default function AppLayout({
             <div className="flex gap-2.5 text-on-surface-variant items-center">
               <span className="material-symbols-outlined hover:text-on-surface cursor-pointer transition-all text-[18px]" onClick={() => onNavChange?.('navigator')} title="Platform Map">map</span>
               <span className="material-symbols-outlined hover:text-on-surface cursor-pointer transition-all text-[18px]" onClick={() => onNavChange?.('owner')} title="Owner Console">admin_panel_settings</span>
-              <span className="material-symbols-outlined hover:text-on-surface cursor-pointer transition-all text-[18px]" onClick={() => onNavChange?.('owner')} title="Operacional">monitoring</span>
+              <span className="material-symbols-outlined hover:text-on-surface cursor-pointer transition-all text-[18px]" onClick={() => onNavChange?.('provider-detail')} title="Provedores">monitoring</span>
               <span className="material-symbols-outlined hover:text-on-surface cursor-pointer transition-all text-[18px]" onClick={() => onNavChange?.('chat')} title="Mensagens">forum</span>
             </div>
           )}
