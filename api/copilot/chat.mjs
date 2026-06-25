@@ -110,16 +110,6 @@ const DIRECT_GEMINI_MODELS = [
   { id: 'gemini-2.5-flash-native-audio-preview-12-2025', name: 'Gemini 2.5 Native Audio (gratuito)' },
 ]
 
-  { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro Preview' },
-  { id: 'gemini-3-pro-image-preview', name: 'Gemini 3 Pro Image' },
-  { id: 'gemini-3.1-flash-image-preview', name: 'Gemini 3.1 Flash Image Preview' },
-  { id: 'gemini-3.1-flash-lite-preview', name: 'Gemini 3.1 Flash Lite Preview' },
-  { id: 'lyria-3-clip-preview', name: 'Lyria 3 Clip' },
-  { id: 'lyria-3-pro-preview', name: 'Lyria 3 Pro' },
-  { id: 'gemma-4-31b-it', name: 'Gemma 4 31B IT' },
-  { id: 'gemma-4-26b-a4b-it', name: 'Gemma 4 26B A4B IT' },
-]
-
 const FAL_CHAT_MODELS = [
   { id: 'fal-ai/llama-3.3-70b', name: 'LLaMA 3.3 70B (FAL)' },
   { id: 'fal-ai/llama-3.1-8b', name: 'LLaMA 3.1 8B (FAL)' },

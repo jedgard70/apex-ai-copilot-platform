@@ -274,16 +274,28 @@ type ModelOption = {
   modelId: string
 }
 
-type ManualModelProvider = 'all' | 'gateway' | 'openrouter' | 'gemini' | 'gemini-interactions' | 'opencode' | 'fal' | 'elevenlabs' | 'firebase'
+type ManualModelProvider = 'all' | 'gemini' | 'gemini-interactions' | 'fal' | 'elevenlabs'
 
 const DIRECT_GEMINI_MODELS = [
+  // Flash (gratuito, 60 RPM) — padrão
+  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
+  { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite' },
   { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash' },
-  { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview' },
+  { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview' },
   { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash Lite' },
+  // Pro (10 RPM)
+  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro' },
+  { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview' },
+  { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro Preview' },
+  // Imagem (gratuito)
   { id: 'gemini-3.1-flash-image', name: 'Gemini 3.1 Flash Image' },
+  { id: 'gemini-2.5-flash-image', name: 'Gemini 2.5 Flash Image' },
+  { id: 'gemini-3-pro-image', name: 'Gemini 3 Pro Image' },
+  // TTS / Áudio (gratuito)
   { id: 'gemini-3.1-flash-tts-preview', name: 'Gemini 3.1 Flash TTS' },
-  { id: 'gemma-4-31b-it', name: 'Gemma 4 31B IT' },
-  { id: 'gemma-4-26b-a4b-it', name: 'Gemma 4 26B A4B IT' },
+  { id: 'gemini-2.5-flash-preview-tts', name: 'Gemini 2.5 Flash TTS' },
+  { id: 'gemini-2.5-pro-preview-tts', name: 'Gemini 2.5 Pro TTS' },
+  { id: 'gemini-2.5-flash-native-audio-preview-12-2025', name: 'Gemini 2.5 Native Audio' },
 ]
 
 const INTERACTION_MODELS = [
@@ -291,11 +303,13 @@ const INTERACTION_MODELS = [
   { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview (Interactions)' },
   { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash Lite (Interactions)' },
   { id: 'gemini-3.1-flash-image', name: 'Gemini 3.1 Flash Image (Interactions)' },
-  { id: 'gemini-3.5-flash-tts', name: 'Gemini 3.5 Flash TTS (Interactions)' },
+  { id: 'gemini-3.1-flash-tts-preview', name: 'Gemini 3.1 Flash TTS (Interactions)' },
   { id: 'gemini-3-pro-image', name: 'Gemini 3 Pro Image (Interactions)' },
+  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (Interactions)' },
+  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro (Interactions)' },
+  { id: 'lyria-3-clip-preview', name: 'Lyria 3 Clip (Interactions)' },
+  { id: 'lyria-3-pro-preview', name: 'Lyria 3 Pro (Interactions)' },
 ]
-
-const GATEWAY_MODELS: ModelOption[] = []
 
 function composeModelValue(provider: string, modelId: string) {
   return `${provider}|${modelId}`
@@ -314,15 +328,10 @@ function splitModelValue(value: string) {
 
 function getProviderLabel(provider: string) {
   if (provider === 'all') return 'Todos'
-  if (provider === 'openrouter') return 'OpenRouter'
   if (provider === 'gemini') return 'Google AI Studio'
   if (provider === 'gemini-interactions') return 'Gemini Interactions'
-  if (provider === 'gateway') return 'Gateway'
-  if (provider === 'opencode') return 'OpenCode Go'
   if (provider === 'fal') return 'FAL.ai'
   if (provider === 'elevenlabs') return 'Eleven Labs'
-  if (provider === 'firebase') return 'Firebase'
-  if (provider === 'firebase') return 'Firebase'
   return provider || 'Gemini'
 }
 
@@ -344,8 +353,6 @@ const FAL_CHAT_MODELS = [
   { id: 'fal-ai/phi-3-mini', name: 'Phi-3 Mini (FAL)' },
 ]
 
-const OPENCODE_GO_MODELS: ModelOption[] = []
-
 const ELEVENLABS_MODELS = [
   { id: 'eleven_multilingual_v2', name: 'Eleven Multilingual v2' },
   { id: 'eleven_turbo_v2_5', name: 'Eleven Turbo v2.5' },
@@ -353,8 +360,6 @@ const ELEVENLABS_MODELS = [
   { id: 'eleven_monolingual_v1', name: 'Eleven Monolingual v1' },
   { id: 'eleven_english_sts_v2', name: 'Eleven English STS v2' },
 ]
-
-const OPENROUTER_MODELS: ModelOption[] = []
 
 function buildStaticModelCatalog(): ModelOption[] {
   return [
@@ -370,28 +375,10 @@ function buildStaticModelCatalog(): ModelOption[] {
       provider: 'gemini',
       modelId: model.id,
     })),
-    ...GATEWAY_MODELS.map(model => ({
-      id: composeModelValue('gateway', model.id),
-      name: model.name,
-      provider: 'gateway',
-      modelId: model.id,
-    })),
     ...FAL_CHAT_MODELS.map(model => ({
       id: composeModelValue('fal', model.id),
       name: model.name,
       provider: 'fal',
-      modelId: model.id,
-    })),
-    ...OPENROUTER_MODELS.map(model => ({
-      id: composeModelValue('openrouter', model.id),
-      name: model.name,
-      provider: 'openrouter',
-      modelId: model.id,
-    })),
-    ...OPENCODE_GO_MODELS.map(model => ({
-      id: composeModelValue('opencode', model.id),
-      name: model.name,
-      provider: 'opencode',
       modelId: model.id,
     })),
     ...ELEVENLABS_MODELS.map(model => ({
@@ -1293,11 +1280,22 @@ function App() {
   const [activeView, setActiveView] = useState('dashboard')
   /* A11.0 — Dashboard studio card + sidebar routing: directly opens panels instead of sending chat commands */
   useEffect(() => {
-    if (!activeView || ['dashboard','client-dashboard','owner','chat','provider-detail','deployment','navigator','training','docs','platform-map','governance'].includes(activeView)) return
-    if (activeView === 'archvis') { closeOtherPanels('archVis'); setArchVisOutput({ source: null as any, output: '', conversationContext: [] }); setActiveView('chat') }
-    else if (activeView === 'directcut') { closeOtherPanels('directCut'); setDirectCutOutput({ goal: 'Novo projeto DirectCut', conversationContext: ['assistant: Ativei o DirectCut Studio.'], initialConfig: { duration: '10', aspectRatio: '16:9', style: 'hyper-real' as any, cameraMovement: 'dolly-in' } }); setActiveView('chat') }
-    else if (activeView === 'bim') { closeOtherPanels('bim3D'); setBim3DOutput({ source: null as any }); setActiveView('chat') }
-    else { setActiveView('chat') }
+    // Full-page views: dashboard, owner, chat. Everything else goes to split layout.
+    if (!activeView || activeView === 'dashboard' || activeView === 'owner' || activeView === 'chat' || activeView === 'client-dashboard' || activeView === 'provider-detail') return
+    if (activeView === 'archvis') { closeOtherPanels('archVis'); setArchVisOutput({ source: null as any, output: '', conversationContext: [] }) }
+    else if (activeView === 'directcut') { closeOtherPanels('directCut'); setDirectCutOutput({ goal: 'Novo projeto DirectCut', conversationContext: ['assistant: Ativei o DirectCut Studio.'], initialConfig: { duration: '10', aspectRatio: '16:9', style: 'hyper-real' as any, cameraMovement: 'dolly-in' } }) }
+    else if (activeView === 'bim') { closeOtherPanels('bim3D'); setBim3DOutput({ source: null as any }) }
+    // Inject panel context into chat so AI knows what's happening
+    const panelLabels: Record<string, string> = {
+      navigator: 'Platform Navigator', governance: 'Governance Hub', training: 'Model Training',
+      deployment: 'Deployment Flow', docs: 'Technical Documentation',
+      marketing: 'Marketing Analytics', crm: 'CRM Pipeline', finance: 'Financeiro',
+      fieldops: 'Field Operations', budget: 'Budget Studio', contracts: 'Contracts Studio',
+      research: 'Research Studio',
+    }
+    if (panelLabels[activeView]) {
+      handleCommand(`usuário abriu o painel ${panelLabels[activeView]} — esteja pronto para ajudar com contexto`)
+    }
   }, [activeView])
   const [clientMemory, setClientMemory] = useState<ClientMemory>(() => loadClientMemory())
   const [toolConfirmState, setToolConfirmState] = useState<Record<string, 'idle' | 'confirmed' | 'cancelled'>>({})
@@ -1560,13 +1558,13 @@ function App() {
   const [showPromptLibrary, setShowPromptLibrary] = useState(false)
   const [activePromptLibraryModule, setActivePromptLibraryModule] = useState<string | undefined>(undefined)
   const [selectedModel, setSelectedModel] = useState<string>(() => {
-    return localStorage.getItem('apex_selected_model') || composeModelValue('gemini', 'gemini-3.5-flash')
+    return localStorage.getItem('apex_selected_model') || composeModelValue('gemini', 'gemini-2.5-flash')
   })
   const [availableModels, setAvailableModels] = useState<ModelOption[]>([])
   const [modelProvider, setModelProvider] = useState<string>('')
   const [manualModelProvider, setManualModelProvider] = useState<ManualModelProvider>('gemini')
   const [providerLedStatuses, setProviderLedStatuses] = useState<Array<{ id: string; label: string; hasKey: boolean; tooltip?: string; topUpUrl?: string }>>(() => {
-    // Default: 10 live providers; will be updated from /api/copilot/provider-status
+    // Default: 11 live providers; will be updated from /api/copilot/provider-status
     const defaults: Array<{ id: string; label: string; hasKey: boolean; tooltip?: string; topUpUrl?: string }> = [
       { id: 'gemini', label: 'Gemini', hasKey: false },
       { id: 'fal', label: 'FAL.ai', hasKey: false },
@@ -1578,6 +1576,7 @@ function App() {
       { id: 'supabase', label: 'Supabase', hasKey: false },
       { id: 'tavily', label: 'Tavily', hasKey: false },
       { id: 'ffmpeg', label: 'FFmpeg', hasKey: false },
+      { id: 'aps', label: 'Autodesk APS', hasKey: false },
     ]
     return defaults
   })
@@ -1590,22 +1589,14 @@ function App() {
         if (!res.ok) return
         const data = await res.json()
         if (data?.providers && Array.isArray(data.providers)) {
-          setProviderLedStatuses(prev => {
-            const map = new Map((data.providers as any[]).map((p: any) => [p.id, p]))
-            return prev.map(led => {
-              const live: any = map.get(led.id)
-              if (live) {
-                const hasKey = live.status === 'ok' || live.status === 'warning'
-                return {
-                  ...led,
-                  hasKey,
-                  tooltip: String(live.message || (hasKey ? 'OK' : live.status)),
-                  topUpUrl: live.topUpUrl as string | undefined,
-                }
-              }
-              return led
-            })
-          })
+          // Rebuild LED list from live data, preserving order but syncing with API
+          setProviderLedStatuses(data.providers.map((p: any) => ({
+            id: p.id,
+            label: p.name || p.id,
+            hasKey: p.status === 'ok' || p.status === 'warning',
+            tooltip: p.message?.substring(0, 60) || p.status,
+            topUpUrl: p.topUpUrl,
+          })))
         }
       } catch {
         // silent — keep defaults
@@ -1712,8 +1703,8 @@ function App() {
 
   useEffect(() => {
     if (!selectedModelInfo?.modelId) return
-    const provider = (selectedModelInfo.provider || 'openrouter') as ManualModelProvider
-    if (provider === 'gateway' || provider === 'openrouter' || provider === 'gemini' || provider === 'gemini-interactions' || provider === 'opencode' || provider === 'fal' || provider === 'elevenlabs' || provider === 'firebase') {
+    const provider = (selectedModelInfo.provider || 'gemini') as ManualModelProvider
+    if (provider === 'gemini' || provider === 'gemini-interactions' || provider === 'fal' || provider === 'elevenlabs') {
       setManualModelProvider(provider)
     }
   }, [selectedModelInfo.id, selectedModelInfo.modelId, selectedModelInfo.provider])
@@ -3926,29 +3917,34 @@ function App() {
         <OwnerPage onNavigate={setActiveView} onOpenChat={handleCommand} />
       ) : activeView === 'provider-detail' ? (
         <ProviderDetailPanel onClear={() => setActiveView('dashboard')} />
-      ) : activeView === 'navigator' ? (
-        <PlatformNavigatorPage onNavigate={setActiveView} />
-      ) : activeView === 'governance' ? (
-        <GovernanceHubPage />
-      ) : activeView === 'training' ? (
-        <ModelTrainingPage />
-      ) : activeView === 'deployment' ? (
-        <DeploymentFlowPage />
-      ) : activeView === 'bim' || activeView === 'fieldops' || activeView === 'budget' || activeView === 'contracts' || activeView === 'research' || activeView === 'crm' || activeView === 'finance' || activeView === 'archvis' || activeView === 'directcut' || activeView === 'marketing' || activeView === 'docs' ? (
-        <div className="h-full"><section className="chat-shell" aria-label="Apex AI Copilot chat" style={{ display: 'flex', flexDirection: 'row', minHeight: '100%' }}>{(() => {
-          const cmds: Record<string, string> = {
-            bim: 'abrir bim 3d studio', fieldops: 'abrir field ops studio', budget: 'abrir budget studio',
-            contracts: 'abrir contracts studio', research: 'abrir research studio', crm: 'abrir crm layer',
-            finance: 'abrir financeiro', archvis: 'abrir archvis studio', directcut: 'abrir directcut studio',
-            deployment: 'abrir deployment', marketing: 'abrir marketing',
-            docs: 'abrir documentation',
-          }
-          setTimeout(() => { handleCommand(cmds[activeView] || ''); setActiveView('chat') }, 100)
-          return null
-        })()}</section></div>
       ) : (
+        // ── Split View: 80% panel + 20% chat ──────────────────────
         <div className="h-full" style={{ display: 'flex', flexDirection: 'row', overflow: 'hidden', height: '100%' }}>
-          <section className="chat-shell" aria-label="Apex AI Copilot chat" style={{ flex: hasOperationalPanel ? '0 0 35%' : '1 1 100%', display: 'flex', flexDirection: 'row', height: '100%', minHeight: 0, minWidth: 0 }}>
+          {/* Panel Area — 80% */}
+          <section style={{ flex: '1 1 80%', display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, minWidth: 0, overflow: 'hidden' }}>
+            {(() => {
+              const panelCtx = { conversationContext: [...messages.slice(-6).map(m => `${m.role}: ${m.text}`)] };
+              // Add panel context to messages so AI knows what user is doing
+              const ctx = `[Painel ativo: ${activeView}] ${panelCtx.conversationContext.join(' | ')}`;
+
+              switch (activeView) {
+                case 'navigator': return <PlatformNavigatorPage onNavigate={setActiveView} />;
+                case 'governance': return <GovernanceHubPage />;
+                case 'training': return <ModelTrainingPage />;
+                case 'deployment': return <DeploymentFlowPage />;
+                case 'docs': return <TechnicalDocumentationPage />;
+                default: return <div className="h-full flex items-center justify-center" style={{ color: '#c3c6d7', fontSize: 13, background: '#0b1326' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 48, opacity: 0.3, marginBottom: 12 }}>dashboard</span>
+                    <p>Selecione um painel na barra lateral</p>
+                  </div>
+                </div>;
+              }
+            })()}
+          </section>
+
+          {/* Chat Area — 20% (sidebar + conversation) */}
+          <section className="chat-shell" aria-label="Apex AI Copilot chat" style={{ flex: '0 0 20%', display: 'flex', flexDirection: 'row', height: '100%', minHeight: 0, minWidth: 0, borderLeft: '1px solid rgba(150, 164, 195, 0.15)' }}>
           {/* Conversation Sidebar */}
           <aside className="chat-sidebar" style={{ width: '220px', borderRight: '1px solid rgba(150, 164, 195, 0.15)', display: 'flex', flexDirection: 'column', flexShrink: 0, background: '#121a2f', height: '100%', overflow: 'hidden' }}>
             <div className="chat-sidebar-header" style={{ padding: '16px', borderBottom: '1px solid rgba(150, 164, 195, 0.15)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -4052,14 +4048,10 @@ function App() {
                   }}
                 >
                   <option value="all">🔥 TODOS (Owner Test)</option>
-                  <option value="openrouter">OpenRouter</option>
-                  <option value="gemini">Gemini</option>
+                  <option value="gemini">Gemini (gratuito)</option>
                   <option value="gemini-interactions">Gemini Interact</option>
-                  <option value="gateway">Gateway</option>
-                  <option value="opencode">OpenCode Go</option>
                   <option value="fal">FAL.ai</option>
                   <option value="elevenlabs">Eleven Labs</option>
-                  <option value="firebase">Firebase</option>
                 </select>
               </div>
               <div className={`model-runtime-pill ${modelRuntimeState}`} style={{ marginTop: '8px' }}>
