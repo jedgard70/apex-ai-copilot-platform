@@ -13,23 +13,27 @@
 
 Use this file as the canonical checkpoint snapshot for module/connector status. The platform is now documented as a consolidated inventory of 34 operational capabilities; the primary runtime modules are all done and live.
 
-Last updated: 2026-06-24 (23:59) — 🏆 SESSÃO FINAL DE 2026-06-24: 8 commits, 30+ arquivos, ~1.200 linhas.
+Last updated: 2026-06-25 (19:30) — 📱 SESSÃO MOBILE/PWA: App instalável no celular + layout responsivo completo.
 
-🔥 HOJE (segunda rodada, tarde/noite):
-• ✅ 14/14 provedores online (corrigido fal.ai 404, Gateway endpoint, FFmpeg, Supabase anon key)
-• ✅ Ordem: Gemini FREE primeiro no seletor
-• ✅ MAX_TOOL_ROUNDS 12→25
-• ✅ Fallback invisível — zero erros visíveis ao cliente (cadeia de 6 provedores)
-• ✅ 4 Serviços de Segurança: Key Restriction (IP/Origin), Rate Limit Alerts, Audit Logging, Key Lifecycle
-• ✅ Modelos Gemini atualizados (3.5 Flash, 3.1 Pro, Gemma 4, 3.1 Flash Image/Lite/TTS) via API real
-• ✅ URL Context — aprender de sites (tool learn_url + API + service)
-• ✅ Gemini TTS nativo (fallback ElevenLabs)
-• ✅ Imagen 4 — geração de imagem via Gemini Interactions
-• ✅ Deep Research Agent + Antigravity Agent (sandbox remoto) via Gemini Agents
-• ✅ 5 novos endpoints server.mjs: learn-url, tts, deep-research, key-restriction, rate-limit, security-audit, key-lifecycle
-• ✅ REGRA ABSOLUTA 8 — Proteção dos Deploys e Environments da Vercel
+🔥 HOJE (2026-06-25 — sessão mobile/PWA):
+• ✅ **PWA instalável** — manifest.json com display:standalone, shortcuts, ícones maskable
+• ✅ **Service Worker v2** — cache offline robusto (network-first para nav, cache-first para assets)
+• ✅ **Banner de instalação** — Android (beforeinstallprompt) + iOS (instruções manuais Safari)
+• ✅ **Layout responsivo completo** — mobile (<768px), tablet (768-1024px), desktop (>1024px)
+• ✅ **AppLayout mobile** — bottom nav (5 atalhos), drawer lateral, header compacto, menu hamburger
+• ✅ **Chat mobile** — full-screen quando selecionado, split 70/30 apenas no desktop
+• ✅ **Hook useIsMobile/useIsTablet** — detecção automática via matchMedia
+• ✅ **Media queries globais** — grids, padding, touch targets 44px, iOS zoom prevention
+• ✅ **Viewport PWA-ready** — viewport-fit=cover, apple-mobile-web-app-capable, theme-color
+• ✅ **App Windows (Electron)** — revisado, server.mjs + local-worker via utilityProcess
 
-Supabase 8/8 migrations aplicadas. 52 módulos Apex + 10 ACIP = 62 módulos.
+📱 **Como instalar no celular:**
+- Android: Acesse www.apexglobalai.com → banner "Instalar" → confirma
+- iPhone: Safari → Compartilhar (⬆) → "Adicionar à Tela de Início" → Adicionar
+
+🔄 **Auto-update:** PWA atualiza automaticamente quando há novo deploy na Vercel. Service Worker v2 com cache versionado (apex-ai-v2) garante que usuários sempre tenham a versão mais recente.
+
+Supabase 8/8 migrations aplicadas. 62 módulos (52 Apex + 10 ACIP). 14 provedores online.
 
 ---
 

@@ -1,7 +1,7 @@
 # APEX Platform — Unified Current State
 
-Checkpoint: CP-LIVE-FINAL — 62 capabilities documentadas
-Last update: 2026-06-24 (23:59)
+Checkpoint: CP-LIVE-FINAL — 62 capabilities documentadas + PWA/Mobile
+Last update: 2026-06-25 (19:30)
 
 ## Canonical rule
 
@@ -18,6 +18,7 @@ The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.m
 - Gemini Interactions SDK: **GREEN** (`@google/genai` v2.9.0 integrado)
 - Env vars protection: **GREEN** (regra absoluta no AGENTS.md, .env.local e server.mjs)
 - Deploy hygiene: **GREEN** — CI workflow now validates builds/tests before deployment
+- PWA/Mobile: **GREEN** — App instalável no celular (Android/iOS), layout responsivo completo, Service Worker v2 offline
 
 ## Complete module map (42 capabilities — ALL DONE)
 
@@ -94,6 +95,53 @@ The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.m
 | Vercel Production | `www.apexglobalai.com` | ✅ Live (main branch auto-deploy) |
 | Vercel preview | `apex-ai-copilot-platform.vercel.app` | ✅ Live |
 | GitHub | `jedgard70/apex-ai-copilot-platform` | ✅ main branch |
+
+## PWA / Mobile App
+
+| Feature | Status | Details |
+| --- | --- | --- |
+| PWA Manifest | ✅ LIVE | `public/manifest.json` — display:standalone, shortcuts, ícones maskable |
+| Service Worker v2 | ✅ LIVE | `public/sw.js` — cache offline (network-first nav, cache-first assets) |
+| Install Banner (Android) | ✅ LIVE | `src/components/PwaInstallBanner.tsx` — beforeinstallprompt |
+| Install Banner (iOS) | ✅ LIVE | `src/components/PwaInstallBanner.tsx` — instruções manuais Safari |
+| Layout Responsivo | ✅ LIVE | `src/components/AppLayout.tsx` — mobile/tablet/desktop |
+| Bottom Nav Mobile | ✅ LIVE | 5 atalhos: Home, Chat, Map, Finance, More |
+| Drawer Lateral | ✅ LIVE | Menu hamburger com todos os 18 módulos |
+| Chat Mobile | ✅ LIVE | Full-screen no mobile, split 70/30 no desktop |
+| Hook useIsMobile | ✅ LIVE | `src/lib/useIsMobile.ts` — detecção via matchMedia |
+| Media Queries Globais | ✅ LIVE | `src/styles.css` — mobile (<768px), tablet, small mobile, landscape |
+| Viewport PWA | ✅ LIVE | `index.html` — viewport-fit=cover, apple-mobile-web-app-capable |
+| Auto-update | ✅ LIVE | Service Worker atualiza automaticamente a cada deploy |
+
+### Instalação no celular
+
+**Android (Chrome/Edge/Samsung):**
+1. Acesse `www.apexglobalai.com` no celular
+2. Banner "Instalar no celular" aparece automaticamente
+3. Toque em "Instalar" → confirma
+4. App abre em tela cheia com ícone na home
+
+**iPhone (Safari):**
+1. Acesse `www.apexglobalai.com` no Safari
+2. Toque no botão Compartilhar (⬆)
+3. Role para baixo → "Adicionar à Tela de Início"
+4. Toque "Adicionar"
+
+### App Windows (Electron)
+
+| Feature | Status | Details |
+| --- | --- | --- |
+| Electron Main | ✅ LIVE | `electron-main.cjs` — BrowserWindow + utilityProcess |
+| Backend Server | ✅ LIVE | `server.mjs` via utilityProcess (port 4177) |
+| Local Worker | ✅ LIVE | `local-worker/server.mjs` via utilityProcess (port 8787) |
+| Auth0 PKCE | ✅ LIVE | OAuth 2.0 com code challenge |
+| Auto-update | ✅ LIVE | PWA atualiza automaticamente; Electron requer rebuild |
+| Build | ✅ LIVE | `npm run electron:build` → `dist_electron/` (NSIS installer) |
+
+### Atualização automática
+
+- **PWA (celular):** Service Worker v2 com cache versionado (`apex-ai-v2`). A cada deploy na Vercel, o SW detecta nova versão e atualiza automaticamente.
+- **Electron (Windows):** Requer rebuild (`npm run electron:build`) e redistribuição do installer. Futuro: implementar `electron-updater` para auto-update.
 
 ## 🚨 REGRA ABSOLUTA — Proteção de Environment Variables
 
