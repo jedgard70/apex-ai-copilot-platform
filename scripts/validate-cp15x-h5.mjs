@@ -205,6 +205,7 @@ const multiInputHttp = [
 let httpResponseBody = null
 const mockReq = {
   method: 'POST',
+  headers: { origin: 'http://localhost:3001', referer: 'http://localhost:3001/' },
   body: { message: multiInputHttp, identityContext: { email: 'test@apex.com', role: 'owner_admin', isOwnerAdmin: true } },
   [Symbol.asyncIterator]: async function* () {},
 }

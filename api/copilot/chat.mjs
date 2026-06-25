@@ -9,17 +9,27 @@ import { classifyToolExecutionRequest, routeToolExecution, routeH6ActionRequest 
 import { isConfirmationSignal, isCancelSignal, hasPendingAction } from '../../server/agent/confirmationStateMachine.mjs'
 let _interactionsModels = null
 let _isInteractionModel = null
-async function getInteractionsProvider() {
-  if (!_interactionsModels) {
+let _interactionsPromise = null
+async function ensureInteractionsLoaded() {
+  if (_interactionsModels) return true
+  if (_interactionsPromise) return _interactionsPromise
+  _interactionsPromise = (async () => {
     try {
       const mod = await import('../../server/providers/gemini-interactions.mjs')
       _interactionsModels = mod.INTERACTION_MODELS
       _isInteractionModel = mod.isInteractionModel
-      return mod.generateWithInteractions
-    } catch {
-      return null
+      return true
+    } catch (e) {
+      console.error('[interactions] Failed to load:', e?.message)
+      _interactionsModels = []
+      _isInteractionModel = () => false
+      return false
     }
-  }
+  })()
+  return _interactionsPromise
+}
+async function getInteractionsProvider() {
+  await ensureInteractionsLoaded()
   const mod = await import('../../server/providers/gemini-interactions.mjs')
   return mod.generateWithInteractions
 }
@@ -224,6 +234,8 @@ async function handleModelsList(res) {
       await fetchModels('https://fal.ai/api/models?limit=5000', { Authorization: `Key ${process.env.FAL_KEY}` }, 'fal', 'id', 'title', 'items')
     }
 
+    // Ensure interactions models are loaded before building static catalog
+    await ensureInteractionsLoaded()
 
     for (const model of buildStaticModelCatalog()) {
       addModel(model)
@@ -244,6 +256,7 @@ async function handleModelsList(res) {
     }
     return sendJson(res, 200, payload)
   } catch (err) {
+    await ensureInteractionsLoaded()
     const fallback = buildStaticModelCatalog()
     return sendJson(res, 200, { ok: true, provider: 'mixed', models: fallback, providerDiagnostics: {}, note: 'live_fetch_failed_fallback' })
   }
@@ -1686,7 +1699,8 @@ export default async function handler(req, res) {
   }
 
   // API Key Restriction: validate origin for provider key usage
-  const originCheck = validateOrigin(req.headers['origin'] || req.headers['referer'] || '')
+  const origin = req?.headers?.['origin'] || req?.headers?.['referer'] || ''
+  const originCheck = validateOrigin(origin)
   if (!originCheck.allowed) {
     return sendJson(res, 403, {
       error: 'origin_denied',
@@ -1705,8 +1719,8 @@ export default async function handler(req, res) {
       provider: 'chat-api',
       action: 'chat_request',
       success: true,
-      origin: req.headers['origin'] || req.headers['referer'] || '',
-      ip: req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || '',
+      origin: req?.headers?.['origin'] || req?.headers?.['referer'] || '',
+      ip: req?.headers?.['x-forwarded-for']?.split(',')[0]?.trim() || req?.socket?.remoteAddress || '',
       identity: body.identity?.email || body.identity?.userId || 'anonymous',
       model: body.model || '',
     })
