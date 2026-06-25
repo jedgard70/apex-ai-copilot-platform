@@ -1184,12 +1184,7 @@ async function callOpenAIChat(requestPayload, overrideConfig) {
   const modelName = requestPayload.model || 'unknown'
   const headers = {
     'Content-Type': 'application/json',
-  }
-  // Gemini/Google uses x-goog-api-key or URL param, NOT Bearer token
-  if (apiBase.includes('generativelanguage')) {
-    headers['x-goog-api-key'] = apiKey
-  } else {
-    headers['Authorization'] = `Bearer ${apiKey}`
+    Authorization: `Bearer ${apiKey}`,
   }
   if (apiBase.includes('openrouter.ai')) {
     headers['HTTP-Referer'] = 'https://apexglobalai.com'
@@ -2084,12 +2079,14 @@ export default async function handler(req, res) {
       finalModel = `google/${model}`
     }
     // Gemini OpenAI-compat endpoint does NOT support function calling.
-    // Sending tools causes hallucination. Strip tools, keep full system prompt.
+    // Gemini OpenAI-compat: Bearer auth OK, but function calling support varies by model.
+    // Safer to strip tools to prevent hallucination. All other providers get full tools.
+    const stripTools = modelProvider === 'gemini' || modelProvider === 'gemini-interactions'
     const requestPayload = {
       model: finalModel,
       messages: liveAgentMessages,
-      tools: (modelProvider === 'gemini' || modelProvider === 'gemini-interactions') ? [] : buildLiveAgentToolDefinitions(),
-      tool_choice: (modelProvider === 'gemini' || modelProvider === 'gemini-interactions') ? undefined : 'auto',
+      tools: stripTools ? [] : buildLiveAgentToolDefinitions(),
+      tool_choice: stripTools ? undefined : 'auto',
       temperature: 0.72,
       frequency_penalty: 0.2,
       max_tokens: 900,
@@ -2224,11 +2221,7 @@ export default async function handler(req, res) {
             // Try primary one more time as last resort
             const nextHeaders = {
               'Content-Type': 'application/json',
-            }
-            if (apiBaseUrl.includes('generativelanguage')) {
-              nextHeaders['x-goog-api-key'] = resolvedOpenAIKey
-            } else {
-              nextHeaders['Authorization'] = 'Bearer ' + resolvedOpenAIKey
+              Authorization: 'Bearer ' + resolvedOpenAIKey,
             }
             if (apiBaseUrl.includes('openrouter.ai')) {
               nextHeaders['HTTP-Referer'] = 'https://apexglobalai.com'
