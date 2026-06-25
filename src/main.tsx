@@ -1115,7 +1115,7 @@ function buildGreetingReply(text: string) {
   const pt = prefersPortuguese(text)
   return pt
     ? 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.'
-    : 'I am Apex. Give me the task to execute now. If a connector is missing, I will tell you exactly what is missing and proceed with a useful fallback.'
+    : 'I am Apex AI — live assistant for architecture, engineering and construction. Ask me anything: analyze plans, generate images/videos, review contracts, research, field reports, BIM, budgeting, marketing and sales.'
 }
 
 function buildProductFallbackAnswer(userText: string, identity: ChatIdentityContext) {

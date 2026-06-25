@@ -1282,13 +1282,13 @@ function buildStyleInstruction(userText, file) {
     ? 'There is active uploaded-file context. If the user asks what you can do, answer from this file/project, not from generic capabilities.'
     : 'There is no uploaded-file context. You may explain capabilities briefly, but keep it conversational.'
   return [
-    'Style for this reply: answer like a live chat consultant.',
-    'Use one or two natural paragraphs by default.',
-    'Do not use markdown headings.',
-    'Do not use bullet or numbered lists.',
-    'Do not write "Here are a few observations", "Aqui estao algumas observacoes", "Observations", "Capabilities", or similar report framing.',
-    'If an image is supplied, mention 2 to 4 concrete visible details in natural prose.',
-    'Do not end with a question if a practical first action can be stated.',
+    'Style for this reply: answer like a live, knowledgeable consultant — natural, direct, and professional.',
+    'Use natural language and adapt your style to the question: one paragraph for simple answers, organized sections with bold headers for complex topics, bullet points for lists of features or steps.',
+    'When listing capabilities, features or options, use bullet points with bold lead-ins. When explaining a concept, use natural paragraphs.',
+    'Be warm but professional. The user is a professional in architecture, engineering or construction — match their level.',
+    'If an image is supplied, mention 2 to 4 concrete visible details in natural prose before diving into analysis.',
+    'Do not end with "How can I help?" or similar if a clear action can be taken.',
+    'Do not say "Here are a few observations" or "Aqui estao algumas observacoes". Just answer directly.',
     fileContext,
   ].join('\n')
 }
@@ -1307,7 +1307,7 @@ function buildIntentInstruction(userText, file, conversation, preferredLanguage)
   }
   if (intent.asksCapabilities && !file) {
     instructions.push(
-      'Capability rule: the user is asking for your abilities. List the full Apex AI Copilot capability set clearly, with no construction-only framing.',
+      'Capability rule: the user is asking for your abilities. Respond naturally with organized categories using bold headers and emojis (like 📐 🎨 📊 🔧) to make capabilities scannable.',
       'Make clear that Apex AI Copilot is a full general AI copilot across topics and domains, while using Apex/project/file context when useful.',
       'Include general reasoning, planning, research, construction/architecture/engineering, BIM/CAD/3D/viewer, ArchVis/interior/room design, image/render/visual design, video/DirectCut, website/landing/portfolio, SQL/data analysis, coding/code copilot, academic research, negotiation, tech support, writing/humanizer, business strategy/sales/CRM/proposals, legal/contracts/permits support, field/RDO/quality/safety and exploration.',
       'Do not imply that topics outside construction are secondary or unsupported.',
@@ -1564,25 +1564,25 @@ function buildChatFallbackReply(userText, identity) {
   const pt = prefersPortugueseText(userText)
   if (isGreetingText(userText)) {
     return pt
-      ? 'Olá! Estou online e pronta para ajudar. Você pode me pedir criação, revisão, orçamento, contratos, marketing, automação ou análise de projeto.'
-      : 'Hello! I am online and ready to help. You can ask for creation, review, budgeting, contracts, marketing, automation or project analysis.'
+      ? 'Olá! 😊 Como posso ajudar no seu projeto hoje? Posso analisar plantas e documentos, gerar imagens e vídeos, revisar contratos, preparar orçamentos, criar campanhas de marketing, ou fazer pesquisas de mercado. É só me dizer o que precisa!'
+      : 'Hello! 😊 How can I help with your project today? I can analyze plans and documents, generate images and videos, review contracts, prepare budgets, create marketing campaigns, or do market research. Just let me know what you need!'
   }
   if (isCapabilitiesQuestionText(userText)) {
     return pt
-      ? 'Sim. Eu consigo responder normalmente e também executar fluxos da plataforma, como fachada, planta, orçamento, contratos, cronograma, relatórios, campanhas e automações.'
-      : 'I can read, explain, summarize, edit, validate and execute safe workflows inside Apex. If you ask for an action, I try to do it directly and report back with evidence. I also cover BIM, 3D, ArchViz, code, data, sales, marketing, contracts, finance and field operations.'
+      ? 'Que ótima pergunta! Tenho várias áreas onde posso ajudar:\n\n**📐 Análise e Leitura** — Plantas, documentos técnicos, contratos, relatórios. Faço análise visual direta, extraio quantitativos, confiro especificações.\n\n**🎨 Geração Visual** — Imagens de fachada, renders de arquitetura, vídeos de tour virtual, pranchas comerciais. É só enviar uma base que eu preparo o briefing.\n\n**📊 Gestão e Negócios** — Orçamentos, cronogramas, contratos, propostas, campanhas de marketing e relatórios de campo.\n\n**🔧 Automações** — Conecto com BIM, DirectCut, CRM e ERP para executar fluxos completos sem você sair daqui.\n\nO que vamos fazer hoje?'
+      : 'Great question! I can help across several areas:\n\n**📐 Analysis & Reading** — Plans, technical documents, contracts, reports. Direct visual analysis, quantity takeoffs, spec checking.\n\n**🎨 Visual Generation** — Facade images, architectural renders, virtual tour videos, commercial boards. Send me a base and I\'ll prepare the brief.\n\n**📊 Business & Management** — Budgets, schedules, contracts, proposals, marketing campaigns, field reports.\n\n**🔧 Automations** — Connected to BIM, DirectCut, CRM and ERP to run complete workflows without leaving here.\n\nWhat shall we work on today?'
   }
   if (isContactQuestionText(userText)) {
     return pt
-      ? 'Posso ajudar a preparar a consulta. Envie nome, email, telefone, cidade, tipo de projeto e o que precisa: BIM, 3D, contrato, alvará, proposta, financeiro, marketing ou operação de campo.'
-      : 'I can help prepare the consultation. Send name, email, phone, city, project type and what you need: BIM, 3D, contract, permit, proposal, finance, marketing or field operations.'
+      ? 'Claro! Posso ajudar a preparar um pré-cadastro. Para isso, preciso de algumas informações: nome completo, email, telefone, cidade, tipo de projeto (BIM, 3D, contrato, alvará, proposta) e uma breve descrição do que precisa. Quer começar?'
+      : 'Sure! I can help prepare a pre-registration. I\'ll need some info: full name, email, phone, city, project type (BIM, 3D, contract, permit, proposal), and a brief description of what you need. Shall we start?'
   }
   if (isUploadQuestionText(userText)) {
-    return 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar. Eu uso o arquivo como contexto da conversa e sigo com uma resposta direta.'
+    return 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar (ícone de clipe). Eu uso o arquivo como contexto e sigo com uma análise direta — sem rodeios!'
   }
   return pt
-    ? 'Entendido! Estou pronta para trabalhar com os arquivos e o contexto disponíveis. Me diga o que precisamos analisar ou criar no projeto.'
-    : 'Understood! I\'m ready to work with the available files and context. Tell me what we need to analyze or create in the project.'
+    ? 'Entendido! Estou aqui com tudo pronto — análise de documentos, geração visual, gestão de contratos, automações. Me diga o que precisamos fazer e vamos nessa! 🚀'
+    : 'Got it! I\'m all set — document analysis, visual generation, contract management, automations. Just tell me what we need to do and let\'s go! 🚀'
 }
 
 
@@ -2427,7 +2427,6 @@ async function handleChat(req, res) {
       'Always answer in the same language as the user latest message.',
       'If the user has not typed a natural-language message yet, use the browser/session language when supplied.',
       'Execution priority: if the user asks to create, generate, write, build, prepare, montar, criar, gerar, fazer, escreva or produza, do the work now. Do not explain the process unless asked.',
-      'Runtime response rule: Do not format the response as a report. Do not use markdown headings unless requested. Prefer natural paragraphs.',
       'For simple conversation, greetings, connection checks or "are you online" style prompts, answer directly and naturally. Do not mention missing session, auth, files or context unless the user specifically asks about them.',
       'BIM / 3D hard rule: Apex must never tell the user to leave the platform as the main solution.',
       'BIM / 3D truthful-analysis rule: do not say "I think", "probably", "parece", "talvez", "pode conter", "might", or "may contain" when presenting findings.',
@@ -2438,7 +2437,6 @@ async function handleChat(req, res) {
       'Do not mention external software such as Revit, ArchiCAD, Solibri, Twinmotion or Blender unless Apex has already opened the internal studio/import flow, identified a specific issue or limitation, generated a report, and produced correction instructions, or unless the user explicitly asks how to do it outside Apex.',
       'Allowed external-software phrasing only after Apex report: "Correção no modelo-fonte recomendada: ajustar no Revit e reexportar IFC/GLB. Relatório Apex anexado."',
       'If a BIM/parser/viewer fails, do not fake a viewer. Show the real limitation and offer internal next steps: retry viewer, convert to GLB/IFC, prepare import package, extract metadata if possible, or create technical review plan.',
-      'Highest priority style rule: unless the user explicitly asks for a report/checklist/table, do not answer with headings, bullets, numbered lists, or "observations" sections.',
       'If the current or recent conversation includes an uploaded file, treat follow-up questions such as "o que vc sabe fazer" as referring to that file and project context.',
       'When image content is supplied, mention 2 to 4 concrete visible project details before suggesting paths.',
       'Do not ask unnecessary next-step questions. Assume the most likely next step and proceed unless the task is genuinely blocked.',
