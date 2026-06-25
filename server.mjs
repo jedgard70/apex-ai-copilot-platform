@@ -2311,7 +2311,7 @@ async function handleModelsList(req, res) {
       addModel(model)
     }
 
-    const providerOrder = ['gemini-interactions', 'gemini', 'openrouter', 'fal', 'opencode', 'openai', 'gateway', 'elevenlabs', 'firebase']
+    const providerOrder = ['gemini', 'gemini-interactions', 'fal', 'openrouter', 'opencode', 'openai', 'gateway', 'elevenlabs', 'firebase']
     models.sort((left, right) => {
       const leftIdx = providerOrder.indexOf(left.provider)
       const rightIdx = providerOrder.indexOf(right.provider)
