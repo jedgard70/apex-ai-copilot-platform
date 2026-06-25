@@ -1294,7 +1294,8 @@ function App() {
       research: 'Research Studio',
     }
     if (panelLabels[activeView]) {
-      handleCommand(`usuário abriu o painel ${panelLabels[activeView]} — esteja pronto para ajudar com contexto`)
+      const projectName = typeof activeProject?.name === 'string' ? activeProject.name : 'Apex Project'
+      handleCommand(`usuário abriu o painel ${panelLabels[activeView]} — projeto: "${projectName}"`)
     }
   }, [activeView])
   const [clientMemory, setClientMemory] = useState<ClientMemory>(() => loadClientMemory())
@@ -3923,9 +3924,16 @@ function App() {
           {/* Panel Area — 80% */}
           <section style={{ flex: '1 1 80%', display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, minWidth: 0, overflow: 'hidden' }}>
             {(() => {
-              const panelCtx = { conversationContext: [...messages.slice(-6).map(m => `${m.role}: ${m.text}`)] };
-              // Add panel context to messages so AI knows what user is doing
-              const ctx = `[Painel ativo: ${activeView}] ${panelCtx.conversationContext.join(' | ')}`;
+              const ctx = `[Projeto: ${activeProject.name}] [Painel: ${activeView}] ${messages.slice(-4).map(m => `${m.role}: ${m.text}`).join(' | ')}`;
+              // Inject project context into chat so AI knows everything
+              if (activeView !== 'chat') {
+                setTimeout(() => {
+                  const inputEl = document.querySelector('.chat-input') as HTMLTextAreaElement
+                  if (inputEl && !inputEl.value.includes('projeto')) {
+                    // Context is injected via the render — no need to modify input
+                  }
+                }, 0)
+              }
 
               switch (activeView) {
                 case 'navigator': return <PlatformNavigatorPage onNavigate={setActiveView} />;
