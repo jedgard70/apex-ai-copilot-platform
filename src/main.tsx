@@ -1351,9 +1351,9 @@ function App() {
   const [authLoading, setAuthLoading] = useState(isSupabaseConfigured || !localDemoAuthAllowed)
   const [authMessage, setAuthMessage] = useState(supabaseProvider.message)
   const [activeView, setActiveView] = useState('dashboard')
-  /* A11.0 — Dashboard studio card routing: directly opens panels instead of sending chat commands */
+  /* A11.0 — Dashboard studio card + sidebar routing: directly opens panels instead of sending chat commands */
   useEffect(() => {
-    if (!activeView || ['dashboard','client-dashboard','owner','chat'].includes(activeView)) return
+    if (!activeView || ['dashboard','client-dashboard','owner','chat','provider-detail','deployment','navigator','training','docs'].includes(activeView)) return
     if (activeView === 'archvis') { closeOtherPanels('archVis'); setArchVisOutput({ source: null as any, output: '', conversationContext: [] }); setActiveView('chat') }
     else if (activeView === 'directcut') { closeOtherPanels('directCut'); setDirectCutOutput({ goal: 'Novo projeto DirectCut', conversationContext: ['assistant: Ativei o DirectCut Studio.'], initialConfig: { duration: '10', aspectRatio: '16:9', style: 'hyper-real' as any, cameraMovement: 'dolly-in' } }); setActiveView('chat') }
     else if (activeView === 'bim') { closeOtherPanels('bim3D'); setBim3DOutput({ source: null as any }); setActiveView('chat') }
