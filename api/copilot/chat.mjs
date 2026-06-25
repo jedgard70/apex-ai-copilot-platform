@@ -131,11 +131,13 @@ function getModelProviderDiagnostics() {
 }
 
 const DIRECT_GEMINI_MODELS = [
-  { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' },
-  { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' },
-  { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
-  { id: 'gemini-2.0-pro', name: 'Gemini 2.0 Pro' },
-  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
+  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash' },
+  { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview' },
+  { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash Lite' },
+  { id: 'gemini-3.1-flash-image', name: 'Gemini 3.1 Flash Image' },
+  { id: 'gemini-3.1-flash-tts-preview', name: 'Gemini 3.1 Flash TTS' },
+  { id: 'gemma-4-31b-it', name: 'Gemma 4 31B IT' },
+  { id: 'gemma-4-26b-a4b-it', name: 'Gemma 4 26B A4B IT' },
 ]
 
 const GATEWAY_OPENAI_MODELS = [
@@ -2097,7 +2099,7 @@ export default async function handler(req, res) {
     const provider = getChatProvider()
     const chatSource = 'openai'
     let finalModel = model
-    const isDirectGeminiModelInPayload = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.0-pro', 'gemini-2.5-flash'].includes(model)
+    const isDirectGeminiModelInPayload = ['gemini-3.5-flash', 'gemini-3.1-pro-preview', 'gemini-3.1-flash-lite', 'gemini-3.1-flash-image', 'gemini-3.1-flash-tts-preview', 'gemma-4-31b-it', 'gemma-4-26b-a4b-it'].includes(model)
     if ((isDirectGeminiModelInPayload || isGeminiProvider) && apiBase?.includes('openrouter.ai') && !model.includes('/')) {
       finalModel = `google/${model}`
     }

@@ -274,17 +274,22 @@ type ModelOption = {
 type ManualModelProvider = 'all' | 'gateway' | 'openrouter' | 'gemini' | 'gemini-interactions' | 'opencode' | 'fal' | 'elevenlabs' | 'firebase'
 
 const DIRECT_GEMINI_MODELS = [
-  { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' },
-  { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' },
-  { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
-  { id: 'gemini-2.0-pro', name: 'Gemini 2.0 Pro' },
-  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
+  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash' },
+  { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview' },
+  { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash Lite' },
+  { id: 'gemini-3.1-flash-image', name: 'Gemini 3.1 Flash Image' },
+  { id: 'gemini-3.1-flash-tts-preview', name: 'Gemini 3.1 Flash TTS' },
+  { id: 'gemma-4-31b-it', name: 'Gemma 4 31B IT' },
+  { id: 'gemma-4-26b-a4b-it', name: 'Gemma 4 26B A4B IT' },
 ]
 
 const INTERACTION_MODELS = [
   { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash (Interactions)' },
+  { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview (Interactions)' },
+  { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash Lite (Interactions)' },
   { id: 'gemini-3.1-flash-image', name: 'Gemini 3.1 Flash Image (Interactions)' },
   { id: 'gemini-3.5-flash-tts', name: 'Gemini 3.5 Flash TTS (Interactions)' },
+  { id: 'gemini-3-pro-image', name: 'Gemini 3 Pro Image (Interactions)' },
 ]
 
 const GATEWAY_OPENAI_MODELS = [
@@ -1604,7 +1609,7 @@ function App() {
     return localStorage.getItem('apex_active_conversation_id') || 'default'
   })
   const [selectedModel, setSelectedModel] = useState<string>(() => {
-    return localStorage.getItem('apex_selected_model') || composeModelValue('gemini', 'gemini-2.5-flash')
+    return localStorage.getItem('apex_selected_model') || composeModelValue('gemini', 'gemini-3.5-flash')
   })
   const [availableModels, setAvailableModels] = useState<ModelOption[]>([])
   const [modelProvider, setModelProvider] = useState<string>('')
