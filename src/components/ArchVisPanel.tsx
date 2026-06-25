@@ -39,6 +39,7 @@ type ArchVisPanelProps = {
   onRemoveRevisionConstraint?: (c: string) => void
   onClearRevisionConstraints?: () => void
   onRecordGeneration?: (payload: { sourceName?: string; outputType: string; items: GalleryItem[] }) => void
+  onSendToDirectCut?: (imageUrl: string) => void
   onClear: () => void
 }
 
@@ -96,7 +97,7 @@ function NavItem({ icon, label, active, onClick }: {
 
 // ─── Rendering Editor Tab ─────────────────────────────────────────────────────
 
-function RenderingEditor({ source, output, conversationContext, revisionConstraints = [], onAddRevisionConstraint, onRemoveRevisionConstraint, onClearRevisionConstraints, onRecordGeneration }: Omit<ArchVisPanelProps, 'onClear'>) {
+function RenderingEditor({ source, output, conversationContext, revisionConstraints = [], onAddRevisionConstraint, onRemoveRevisionConstraint, onClearRevisionConstraints, onRecordGeneration, onSendToDirectCut }: Omit<ArchVisPanelProps, 'onClear'>) {
   const [mode, setMode] = useState<GenerationMode>('preserve-layout')
   const [outputType, setOutputType] = useState<OutputType>('humanized-floor-plan')
   const [promptStyle, setPromptStyle] = useState<PromptStyle>('humanized-floor-plan')
@@ -380,6 +381,12 @@ function RenderingEditor({ source, output, conversationContext, revisionConstrai
             <button onClick={() => gallery.forEach(g => { const a = document.createElement('a'); a.href = g.image || g.imageUrl || ''; a.download = `archvis-${g.id}.png`; a.click() })}
               style={{ fontSize: 11, padding: '5px 8px', background: 'none', border: `1px solid ${T.outlineVariant}`, borderRadius: 4, color: T.onSurface, cursor: 'pointer', textAlign: 'left' }}>Download todas</button>
             <button onClick={() => { setGallery([]); setSelectedId('') }} style={{ fontSize: 11, padding: '5px 8px', background: `${T.error}22`, border: `1px solid ${T.error}44`, borderRadius: 4, color: T.error, cursor: 'pointer', textAlign: 'left' }}>Limpar galeria</button>
+            {selected && (selected.image || selected.imageUrl) && onSendToDirectCut && (
+              <button onClick={() => onSendToDirectCut(selected.image || selected.imageUrl!)}
+                style={{ fontSize: 11, padding: '5px 8px', background: '#6C47FF22', border: '1px solid #6C47FF44', borderRadius: 4, color: '#6C47FF', cursor: 'pointer', textAlign: 'left', fontWeight: 600 }}>
+                🎬 Enviar para DirectCut
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -593,7 +600,7 @@ function ResultsGallery() {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export function ArchVisPanel({ source, output, conversationContext, revisionConstraints, onAddRevisionConstraint, onRemoveRevisionConstraint, onClearRevisionConstraints, onRecordGeneration, onClear }: ArchVisPanelProps) {
+export function ArchVisPanel({ source, output, conversationContext, revisionConstraints, onAddRevisionConstraint, onRemoveRevisionConstraint, onClearRevisionConstraints, onRecordGeneration, onSendToDirectCut, onClear }: ArchVisPanelProps) {
   const [tab, setTab] = useState<ArchVisTab>(source ? 'editor' : 'editor')
   const projectName = source?.file.name?.replace(/\.[^.]+$/, '') || 'Projeto Apex'
 
@@ -666,7 +673,7 @@ export function ArchVisPanel({ source, output, conversationContext, revisionCons
               source={source} output={output} conversationContext={conversationContext}
               revisionConstraints={revisionConstraints} onAddRevisionConstraint={onAddRevisionConstraint}
               onRemoveRevisionConstraint={onRemoveRevisionConstraint} onClearRevisionConstraints={onClearRevisionConstraints}
-              onRecordGeneration={onRecordGeneration}
+              onRecordGeneration={onRecordGeneration} onSendToDirectCut={onSendToDirectCut}
             />
           )}
           {tab === 'gallery' && <ResultsGallery />}
