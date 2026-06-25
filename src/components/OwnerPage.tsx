@@ -8,6 +8,7 @@ type OwnerPageProps = {
 type ProviderEntry = { id: string; name: string; status: string; message: string; balance?: string | null; topUpUrl?: string }
 type AnalyticsProvider = { provider: string; calls: number; successRate: number; avgLatencyMs: number; totalTokensIn: number; totalTokensOut: number }
 type AnalyticsData = { providers: AnalyticsProvider[]; summary: { totalCalls: number; successRate: number; avgLatencyMs: number; windowMinutes: number } }
+type KeyLifecycleEntry = { id: string; provider: string; name: string; configured: boolean; status: string; ageDays: number | null; maxAgeDays: number; critical: boolean; recommendation: string }
 
 const PROVIDER_LABELS: Record<string, string> = {
   openai: 'OpenAI', gemini: 'Gemini', anthropic: 'Anthropic', openrouter: 'OpenRouter',
@@ -22,13 +23,15 @@ const STATUS_COLORS: Record<string, string> = {
 export function OwnerPage({ onNavigate, onOpenChat }: OwnerPageProps) {
   const [providers, setProviders] = useState<ProviderEntry[]>([])
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
+  const [keyLifecycle, setKeyLifecycle] = useState<KeyLifecycleEntry[]>([])
   const [loading, setLoading] = useState(true)
 
   const refresh = useCallback(async () => {
     try {
-      const [psRes, anRes] = await Promise.all([
+      const [psRes, anRes, klRes] = await Promise.all([
         fetch('/api/copilot/provider-status'),
         fetch('/api/copilot/provider-analytics?window=1440'),
+        fetch('/api/copilot/key-lifecycle'),
       ])
       if (psRes.ok) {
         const d = await psRes.json()
@@ -36,6 +39,10 @@ export function OwnerPage({ onNavigate, onOpenChat }: OwnerPageProps) {
       }
       if (anRes.ok) {
         setAnalytics(await anRes.json())
+      }
+      if (klRes.ok) {
+        const d = await klRes.json()
+        setKeyLifecycle(d.keys || [])
       }
     } catch { /* silent */ }
     setLoading(false)
@@ -46,6 +53,10 @@ export function OwnerPage({ onNavigate, onOpenChat }: OwnerPageProps) {
   const healthy = providers.filter(p => p.status === 'ok' || p.status === 'warning').length
   const failing = providers.filter(p => p.status === 'error' || p.status === 'needs-topup')
   const unconfigured = providers.filter(p => p.status === 'unconfigured')
+  const sortedProviders = [...providers].sort((a, b) => {
+    const order = ['error', 'needs-topup', 'unconfigured', 'warning', 'ok']
+    return order.indexOf(a.status) - order.indexOf(b.status)
+  })
 
   if (loading) return <div className="h-full bg-[#0B1221] flex items-center justify-center text-[#c6c6ce]">Loading owner data...</div>
 
@@ -83,7 +94,7 @@ export function OwnerPage({ onNavigate, onOpenChat }: OwnerPageProps) {
           <div className="p-6 rounded-xl" style={{ background: 'rgba(22, 33, 62, 0.7)', backdropFilter: 'blur(12px)', borderTop: '1px solid rgba(255,255,255,0.1)', borderLeft: '1px solid rgba(255,255,255,0.05)' }}>
             <h3 className="text-lg font-bold text-[#e2e2e2] mb-4 flex items-center gap-2"><span className="material-symbols-outlined text-[#6C47FF]">dns</span>API Providers</h3>
             <div className="space-y-2 max-h-80 overflow-y-auto">
-              {providers.map(p => (
+              {sortedProviders.map(p => (
                 <div key={p.id} className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
                   <div className="flex items-center gap-3 min-w-0">
                     <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: STATUS_COLORS[p.status] || '#6b7280' }} />
@@ -133,6 +144,24 @@ export function OwnerPage({ onNavigate, onOpenChat }: OwnerPageProps) {
             )}
           </div>
         </div>
+
+        {/* Key Lifecycle Status */}
+        {keyLifecycle.length > 0 && (
+          <div className="p-6 rounded-xl" style={{ background: 'rgba(22, 33, 62, 0.7)', backdropFilter: 'blur(12px)', borderTop: '1px solid rgba(255,255,255,0.1)', borderLeft: '1px solid rgba(255,255,255,0.05)' }}>
+            <h3 className="text-lg font-bold text-[#e2e2e2] mb-4 flex items-center gap-2"><span className="material-symbols-outlined text-[#6C47FF]">key</span>Key Lifecycle — {keyLifecycle.filter(k => k.configured).length}/{keyLifecycle.length} configured</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+              {keyLifecycle.filter(k => k.configured).map(k => (
+                <div key={k.id} className="p-2 rounded-lg bg-white/5 text-center">
+                  <div className="text-[10px] font-mono text-[#c6c6ce] truncate">{k.name.split(' ')[0]}</div>
+                  <div className="text-xs font-bold" style={{ color: k.status === 'healthy' ? '#22c55e' : k.status === 'approaching' ? '#f59e0b' : '#ef4444' }}>
+                    {k.ageDays !== null ? `${k.ageDays}d` : '-'}
+                  </div>
+                  <div className="text-[9px] text-[#c6c6ce]/70">/{k.maxAgeDays}d</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Quick Launch */}
         <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
