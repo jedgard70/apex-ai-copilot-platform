@@ -298,7 +298,7 @@ function isUploadQuestionText(text = '') {
 }
 
 function isGreetingText(text = '') {
-  return /^\s*(oi|ola|ol[aá]|bom dia|boa tarde|boa noite|hello|hi|hey|test|teste)\s*[.!?]?\s*$/i.test(text.trim())
+  return /^\s*(oi|ola|ol[aá]|bom dia|boa tarde|boa noite|hello|hi|hey|test|teste)([\s,;!?]+.*)?$/i.test(text.trim())
 }
 
 function shouldForceLiveAgentToolUse(text = '') {
@@ -354,8 +354,8 @@ function buildChatFallbackReply(userText, identity, file = null) {
       return 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar. Eu uso o arquivo como contexto e continuo com a ação em vez de parar para explicar o processo.'
     }
     return pt
-        ? 'Entendido! Estou pronta para trabalhar com os arquivos e o contexto disponíveis. Me diga o que precisamos analisar ou criar no projeto.'
-        : 'Understood! I\'m ready to work with the available files and context. Tell me what we need to analyze or create in the project.'
+        ? 'To aqui! Fala o que voce precisa que eu vejo o que da pra fazer. Pode ser projeto, documento, codigo, orcamento, campanha — e se faltar algo, te aviso na hora.'
+        : 'Ready when you are. Tell me what you need — project, document, code, budget, campaign. If something is missing, I will let you know right away.'
   }
 
   function buildLocalDocSummary(fileName, pageCount, extractedText, fileKind) {
@@ -1725,12 +1725,11 @@ export default async function handler(req, res) {
     )
     const looksLikeDocSummary = hasReadyText && PDF_SUMMARY_PATTERN.test(routingMessage || '')
 
-    // Fast-path: greeting in Portuguese — no file context needed
-    if (!APEX_FREE_AGENT && /^\s*(ol[aá]|oi|ola)\s*$/i.test(userMessage)) {
-      const greeting = 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.'
+    // Fast-path: greeting — unconditional, any language
+    if (/^\s*(ol[aá]|oi|ola|hi|hello|hey)\b/i.test(userMessage.trim())) {
       return sendJson(res, 200, {
-        finalReply: greeting,
-        reply: greeting,
+        finalReply: 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.',
+        reply: 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.',
         memoryPatch: null,
         mode: 'apex-greeting-pt',
         operator: { intent: 'production_affirmation' },
@@ -1815,10 +1814,11 @@ export default async function handler(req, res) {
     // to the operator runtime so it can prepare a confirmation and set pendingH6Action.
     const h6Route = APEX_FREE_AGENT ? null : routeH6ActionRequest({ userMessage: routingMessage })
     if (h6Route) {
+      const fallbackText = buildChatFallbackReply(userMessage, {}, body.file || null)
       return sendJson(res, 200, {
-        finalReply: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente ou selecione outro modelo.',
-        reply: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente ou selecione outro modelo.',
-        mode: 'provider-error',
+        finalReply: fallbackText,
+        reply: fallbackText,
+        mode: 'local-fallback',
         productionStatus,
       })
     }
@@ -1830,10 +1830,11 @@ export default async function handler(req, res) {
     const fileCandidate2 = body.file || null
     const looksLikeDocSummary2 = Boolean(fileCandidate2 && fileCandidate2.extractionStatus === 'ready' && String(fileCandidate2.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize|analise o arquivo|resuma o arquivo|analise este arquivo|resuma este arquivo|explique o arquivo|explique este arquivo)\b/i.test(userMessage || ''))
     if (!APEX_FREE_AGENT && !looksLikeDocSummary2 && !body.file) {
+      const fallbackText = buildChatFallbackReply(userMessage, {}, null)
       return sendJson(res, 200, {
-        finalReply: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente ou selecione outro modelo.',
-        reply: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente ou selecione outro modelo.',
-        mode: 'provider-error',
+        finalReply: fallbackText,
+        reply: fallbackText,
+        mode: 'local-fallback',
         productionStatus,
       })
     }
@@ -1851,12 +1852,11 @@ export default async function handler(req, res) {
       })
     }
 
-    // Portuguese-only greeting short-circuit for 'ola'/'oi' single-word greetings.
-    if (!APEX_FREE_AGENT && /^\s*(ola|oi|ol[aá])\s*[.!?]?\s*$/i.test(userMessage || '')) {
-      const greeting = 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.'
+    // Portuguese greeting short-circuit — unconditional
+    if (/^\s*(ol[aá]|oi|ola|hi|hello|hey)\b/i.test((userMessage || '').trim())) {
       return sendJson(res, 200, {
-        finalReply: greeting,
-        reply: greeting,
+        finalReply: 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.',
+        reply: 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.',
         mode: 'greeting-short-circuit',
         confirmation: null,
         productionStatus,
@@ -1942,9 +1942,9 @@ export default async function handler(req, res) {
       }
       recordCallSafe({ provider: 'gemini-interactions', model, latencyMs: Date.now() - t0, success: false, errorMsg: 'interactions unavailable' })
       return sendJson(res, 200, {
-        finalReply: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente ou selecione outro modelo.',
-        reply: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente ou selecione outro modelo.',
-        mode: 'provider-error',
+        finalReply: buildChatFallbackReply(userMessage, identityContext, body.file || null),
+        reply: buildChatFallbackReply(userMessage, identityContext, body.file || null),
+        mode: 'local-fallback',
         productionStatus,
       })
     }
@@ -1967,9 +1967,9 @@ export default async function handler(req, res) {
     const apiKey = resolvedApiKey
     if (!apiKey && !isFirebase) {
       return sendJson(res, 200, {
-        finalReply: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente ou selecione outro modelo.',
-        reply: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente ou selecione outro modelo.',
-        mode: 'provider-error',
+        finalReply: buildChatFallbackReply(userMessage, identityContext, body.file || null),
+        reply: buildChatFallbackReply(userMessage, identityContext, body.file || null),
+        mode: 'local-fallback',
         productionStatus,
       })
     }

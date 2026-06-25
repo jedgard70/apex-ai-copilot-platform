@@ -70,6 +70,7 @@ import { QualidadeNCIsPanel } from './components/QualidadeNCIsPanel'
 import { WorkflowTasksPanel } from './components/WorkflowTasksPanel'
 import { OwnerPage } from './components/OwnerPage'
 import { ProviderDetailPanel } from './components/ProviderDetailPanel'
+import { ProfessionalPromptPanel } from './components/ProfessionalPromptPanel'
 import { DeploymentFlowPage } from './components/DeploymentFlowPage'
 import { GovernanceHubPage } from './components/GovernanceHubPage'
 import { MarketingAnalyticsPage } from './components/MarketingAnalyticsPage'
@@ -1003,10 +1004,10 @@ function prefersPortuguese(text: string) {
 }
 
 function buildCopilotFailureMessage(userText: string) {
-  const pt = prefersPortuguese(userText) || true // default to Portuguese
+  const pt = prefersPortuguese(userText) || true
   return pt
-    ? 'Desculpe, não consegui processar sua mensagem agora. Tente novamente ou reformule o pedido.'
-    : 'Sorry, I could not process your message right now. Please try again or rephrase your request.'
+    ? 'Estou com dificuldade de conectar agora. Pode repetir ou tentar de outro jeito? Se quiser, posso tentar com outro modelo de IA disponível no seletor.'
+    : 'I am having trouble connecting right now. Could you try again or phrase it differently? You can also try a different AI model from the selector.'
 }
 
 function isIdentityQuestion(text: string) {
@@ -1093,7 +1094,7 @@ function isUploadQuestion(text: string) {
 }
 
 function isGreeting(text: string) {
-  return /^(ol[aá]|oi|hey|hello|hi|bom dia|boa tarde|boa noite|e a[ií]|eai|e a\?|salve|tudo bem|tudo bom|como vai|como est[aá]|boa|tamo junto|valeu|obrigad[oa]|ok|certo|entendi|sim|n[aã]o|pode|tá|ta|blz|bl[ée]z|👋|🙏)[\s!?]*$/i.test(text.trim())
+  return /^(ol[aá]|oi|hey|hello|hi|bom dia|boa tarde|boa noite|e a[ií]|eai|e a\?|salve|tudo bem|tudo bom|como vai|como est[aá]|boa|tamo junto|valeu|obrigad[oa]|ok|certo|entendi|sim|n[aã]o|pode|tá|ta|blz|bl[ée]z|👋|🙏)([\s!?,]+.*)?$/i.test(text.trim())
 }
 
 function buildGreetingReply(text: string) {
@@ -1101,8 +1102,8 @@ function buildGreetingReply(text: string) {
   if (/obrigad|valeu|tamo junto/.test(lower)) return 'Por nada! Se precisar de mais alguma coisa, é só falar.'
   const pt = prefersPortuguese(text)
   return pt
-    ? 'Olá! Estou online e posso te ajudar com projeto, fachada, planta, orçamento, contratos, marketing e automações. Me diga o que você quer criar ou corrigir.'
-    : 'Hello! I am online and can help with design, plans, budgets, contracts, marketing and automations. Tell me what you want to create or fix.'
+    ? 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.'
+    : 'I am Apex. Give me the task to execute now. If a connector is missing, I will tell you exactly what is missing and proceed with a useful fallback.'
 }
 
 function buildProductFallbackAnswer(userText: string, identity: ChatIdentityContext) {
@@ -1533,6 +1534,7 @@ function App() {
   const [activeConversationId, setActiveConversationId] = useState<string>(() => {
     return localStorage.getItem('apex_active_conversation_id') || 'default'
   })
+  const [showPromptLibrary, setShowPromptLibrary] = useState(false)
   const [selectedModel, setSelectedModel] = useState<string>(() => {
     return localStorage.getItem('apex_selected_model') || composeModelValue('gemini', 'gemini-3.5-flash')
   })
@@ -3044,14 +3046,16 @@ function App() {
       }
     } catch (error) {
       setModelRuntimeState('fallback')
-      setMessages(prev => [
-        ...prev,
-        {
-          id: id(),
-          role: 'assistant',
-          text: buildProductFallbackAnswer(userText, identityContext) || buildCopilotFailureMessage(userText),
-        },
-      ])
+      const fallbackText = buildProductFallbackAnswer(userText, identityContext)
+      if (fallbackText) {
+        setMessages(prev => [...prev, { id: id(), role: 'assistant', text: fallbackText }])
+      } else {
+        // Tenta novamente com o que tem — não mostra erro genérico
+        const retryText = prefersPortuguese(userText)
+          ? 'Pode repetir? Nao peguei totalmente. Quer tentar de outro jeito ou so falar o que precisa?'
+          : 'Could you repeat that? I did not fully catch it. Want to try a different way or just tell me what you need?'
+        setMessages(prev => [...prev, { id: id(), role: 'assistant', text: retryText }])
+      }
     } finally {
       setLoading(false)
     }
@@ -3905,27 +3909,60 @@ function App() {
           {/* Conversation Sidebar */}
           <aside className="chat-sidebar" style={{ width: '220px', borderRight: '1px solid rgba(150, 164, 195, 0.15)', display: 'flex', flexDirection: 'column', flexShrink: 0, background: '#121a2f', height: '100%', overflow: 'hidden' }}>
             <div className="chat-sidebar-header" style={{ padding: '16px', borderBottom: '1px solid rgba(150, 164, 195, 0.15)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ color: '#fff', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Conversas</span>
-              <button
-                type="button"
-                onClick={handleNewChat}
-                style={{
-                  background: '#2563eb',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '6px',
-                  padding: '4px 8px',
-                  fontSize: '11px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px'
-                }}
-              >
-                <Plus size={11} /> Novo
-              </button>
+              <span style={{ color: '#fff', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                {showPromptLibrary ? 'Biblioteca de Prompts' : 'Conversas'}
+              </span>
+              <div style={{ display: 'flex', gap: '4px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowPromptLibrary(p => !p)}
+                  title={showPromptLibrary ? 'Voltar às conversas' : 'Abrir biblioteca de prompts'}
+                  style={{
+                    background: showPromptLibrary ? '#8b5cf6' : '#1f2937',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    padding: '4px 8px',
+                    fontSize: '10px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    opacity: 0.9,
+                  }}
+                >
+                  <BookOpen size={11} /> {showPromptLibrary ? 'Chat' : 'Prompts'}
+                </button>
+                {!showPromptLibrary && (
+                <button
+                  type="button"
+                  onClick={handleNewChat}
+                  style={{
+                    background: '#2563eb',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    padding: '4px 8px',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  <Plus size={11} /> Novo
+                </button>
+                )}
+              </div>
             </div>
+{showPromptLibrary ? (
+            <div style={{ flex: 1, overflow: 'auto', background: '#0f172a' }}>
+              <ProfessionalPromptPanel onClear={() => setShowPromptLibrary(false)} initialModule={undefined} />
+            </div>
+          ) : (
+            <>
             <div className="chat-sidebar-model" style={{ padding: '12px 16px', borderBottom: '1px solid rgba(150, 164, 195, 0.15)' }}>
               <label style={{ color: 'rgba(150, 164, 195, 0.7)', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '6px' }}>
                 Modelos ({getProviderLabel(manualModelProvider)})
@@ -4057,6 +4094,8 @@ function App() {
                 </button>
               </div>
             )}
+            </>
+          )}
           </aside>
 
           {/* Main Chat Area */}
