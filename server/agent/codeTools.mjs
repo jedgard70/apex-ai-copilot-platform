@@ -439,8 +439,8 @@ export async function executeCodeToolCall(toolCall, rootDir) {
       case 'edit_file': return toolEditFile(rootDir, args)
       case 'run_command': return await toolRunCommand(rootDir, args)
       case 'self_upgrade_report': {
-        const result = await runSelfUpgrade(args.topic || undefined)
-        return { ok: true, report: buildSelfUpgradeReply(result), connectorConfigured: result.connectorConfigured }
+        const result = await runSelfUpgradePlanner(args.topic || undefined)
+        return { ok: true, report: buildSelfUpgradePlannerReply(result), connectorConfigured: result.connectorConfigured }
       }
       default: return { ok: false, error: `Unknown code tool: ${name}` }
     }
