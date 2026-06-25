@@ -28,6 +28,8 @@ import { runLocalWorkerAction } from '../../server/agent/localWorkerClient.mjs'
 import { classifyImageGenRequest, buildImagePrompt, generateImage, buildImageResultReply } from '../../server/agent/imageGenerationConnector.mjs'
 import { classifyVideoGenRequest, generateVideo, buildVideoResultReply } from '../../server/agent/videoGenerationConnector.mjs'
 import { sendAuthkeySms, sendAuthkeyOtp, buildAuthkeyResultReply } from '../../server/agent/authkeyConnector.mjs'
+import { keyRestrictionMiddleware, validateOrigin } from '../../server/middleware/keyRestriction.mjs'
+import { recordAuditEvent } from '../../server/service/securityAudit.mjs'
 
 // Dynamic import — safe fallback if server/ not bundled in Vercel serverless
 let _recordCall = null
@@ -1620,9 +1622,32 @@ export default async function handler(req, res) {
     })
   }
 
+  // API Key Restriction: validate origin for provider key usage
+  const originCheck = validateOrigin(req.headers['origin'] || req.headers['referer'] || '')
+  if (!originCheck.allowed) {
+    return sendJson(res, 403, {
+      error: 'origin_denied',
+      message: originCheck.reason,
+      finalReply: `ACESSO BLOQUEADO: ${originCheck.reason}`,
+      reply: `ACESSO BLOQUEADO: ${originCheck.reason}`,
+    })
+  }
+
   try {
     const body = await readJsonBody(req)
     const userMessage = String(body.message || '').slice(0, 12000)
+
+    // Security audit: record incoming chat request
+    recordAuditEvent({
+      provider: 'chat-api',
+      action: 'chat_request',
+      success: true,
+      origin: req.headers['origin'] || req.headers['referer'] || '',
+      ip: req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || '',
+      identity: body.identity?.email || body.identity?.userId || 'anonymous',
+      model: body.model || '',
+    })
+
     // When PDF context is injected into body.message, extract only the actual user query
     // for intent routing — prevents PDF keywords from triggering unrelated production routes
     const pdfUserQueryMatch = userMessage.match(/Pedido do usu[aá]rio:\s*(.+?)(?:\n|$)/i)

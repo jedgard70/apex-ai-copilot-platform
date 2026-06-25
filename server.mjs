@@ -28,6 +28,7 @@ import { collectProductionOperatorStatus } from './server/agent/productionStatus
 import { classifyToolExecutionRequest, routeToolExecution } from './server/agent/toolExecutionRouter.mjs'
 import { defaultTasks } from './server/agent/backgroundTasksConnector.mjs'
 import { buildCodeToolDefinitions, executeCodeToolCall, CODE_TOOL_NAMES } from './server/agent/codeTools.mjs'
+import { validateOrigin, getKeyRestrictionConfig } from './server/middleware/keyRestriction.mjs'
 import { renderVideoPayload } from './server/videoRenderPipeline.mjs'
 import {
   generateWithInteractions,
@@ -6373,6 +6374,26 @@ const server = http.createServer(async (req, res) => {
   }
   if (req.url === '/api/copilot/operator-preview' && req.method === 'POST') {
     handleOperatorPreview(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/key-restriction' && req.method === 'GET') {
+    const keyRestrictionHandler = await import('./api/copilot/key-restriction.mjs').then(m => m.default)
+    keyRestrictionHandler(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/rate-limit' && req.method === 'GET') {
+    const rateLimitHandler = await import('./api/copilot/rate-limit.mjs').then(m => m.default)
+    rateLimitHandler(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/security-audit' && req.method === 'GET') {
+    const auditHandler = await import('./api/copilot/security-audit.mjs').then(m => m.default)
+    auditHandler(req, res)
+    return
+  }
+  if (req.url === '/api/copilot/key-lifecycle' && (req.method === 'GET' || req.method === 'POST')) {
+    const lifecycleHandler = await import('./api/copilot/key-lifecycle.mjs').then(m => m.default)
+    lifecycleHandler(req, res)
     return
   }
   if (req.url === '/api/copilot/tool-execute' && req.method === 'POST') {
