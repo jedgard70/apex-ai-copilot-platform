@@ -293,35 +293,7 @@ const INTERACTION_MODELS = [
   { id: 'gemini-3-pro-image', name: 'Gemini 3 Pro Image (Interactions)' },
 ]
 
-const GATEWAY_OPENAI_MODELS = [
-  { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini' },
-  { id: 'openai/gpt-4o', name: 'GPT-4o' },
-  { id: 'openai/gpt-4o-audio-preview', name: 'GPT-4o Audio' },
-  { id: 'openai/gpt-4.5-preview', name: 'GPT-4.5 Preview' },
-  { id: 'openai/gpt-4.1', name: 'GPT-4.1' },
-  { id: 'openai/gpt-4.1-mini', name: 'GPT-4.1 Mini' },
-  { id: 'openai/gpt-4.1-nano', name: 'GPT-4.1 Nano' },
-  { id: 'openai/gpt-5', name: 'GPT-5' },
-  { id: 'openai/gpt-5-chat', name: 'GPT-5 Chat' },
-  { id: 'openai/gpt-5-mini', name: 'GPT-5 Mini' },
-  { id: 'openai/gpt-5-nano', name: 'GPT-5 Nano' },
-  { id: 'openai/gpt-5-pro', name: 'GPT-5 Pro' },
-  { id: 'openai/gpt-5.1-codex', name: 'GPT-5.1 Codex' },
-  { id: 'openai/gpt-5.1-codex-max', name: 'GPT-5.1 Codex Max' },
-  { id: 'openai/gpt-5.1-codex-mini', name: 'GPT-5.1 Codex Mini' },
-  { id: 'openai/gpt-5.1-instant', name: 'GPT-5.1 Instant' },
-  { id: 'openai/gpt-5.1-thinking', name: 'GPT-5.1 Thinking' },
-  { id: 'openai/gpt-5.2', name: 'GPT-5.2' },
-  { id: 'openai/gpt-5.2-chat', name: 'GPT-5.2 Chat' },
-  { id: 'openai/gpt-5.2-codex', name: 'GPT-5.2 Codex' },
-  { id: 'openai/gpt-5.2-pro', name: 'GPT-5.2 Pro' },
-  { id: 'openai/o1', name: 'o1' },
-  { id: 'openai/o3', name: 'o3' },
-  { id: 'openai/o3-mini', name: 'o3 Mini' },
-  { id: 'openai/o3-pro', name: 'o3 Pro' },
-  { id: 'openai/o4-mini', name: 'o4 Mini' },
-  { id: 'openai/o4-mini-high', name: 'o4 Mini High' },
-]
+const GATEWAY_OPENAI_MODELS: ModelOption[] = []
 
 function composeModelValue(provider: string, modelId: string) {
   return `${provider}|${modelId}`
@@ -364,68 +336,14 @@ const FAL_CHAT_MODELS = [
   { id: 'fal-ai/phi-4', name: 'Phi-4 (FAL)' },
 ]
 
-const OPENCODE_GO_MODELS = [
-  { id: 'deepseek-v4-flash', name: 'DeepSeek V4 Flash (OpenCode Go)' },
-  { id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro (OpenCode Go)' },
-  { id: 'qwen3.7-max', name: 'Qwen3.7 Max (OpenCode Go)' },
-  { id: 'qwen3.7-plus', name: 'Qwen3.7 Plus (OpenCode Go)' },
-  { id: 'glm-5.2', name: 'GLM-5.2 (OpenCode Go)' },
-  { id: 'kimi-k2.7', name: 'Kimi K2.7 (OpenCode Go)' },
-  { id: 'mimo-v2.5', name: 'MiMo-V2.5 (OpenCode Go)' },
-  { id: 'minimax-m3', name: 'MiniMax M3 (OpenCode Go)' },
-]
+const OPENCODE_GO_MODELS: ModelOption[] = []
 
 const ELEVENLABS_MODELS = [
   { id: 'eleven_multilingual_v2', name: 'Eleven Multilingual v2' },
   { id: 'eleven_turbo_v2_5', name: 'Eleven Turbo v2.5' },
 ]
 
-const OPENROUTER_MODELS = [
-  { id: 'openai/gpt-4o-mini', name: 'OpenRouter · GPT-4o Mini' },
-  { id: 'openai/gpt-4o', name: 'OpenRouter · GPT-4o' },
-  { id: 'openai/gpt-4o-audio-preview', name: 'OpenRouter · GPT-4o Audio' },
-  { id: 'openai/gpt-4.5-preview', name: 'OpenRouter · GPT-4.5 Preview' },
-  { id: 'openai/gpt-4.1', name: 'OpenRouter · GPT-4.1' },
-  { id: 'openai/gpt-4.1-mini', name: 'OpenRouter · GPT-4.1 Mini' },
-  { id: 'openai/gpt-4.1-nano', name: 'OpenRouter · GPT-4.1 Nano' },
-  { id: 'openai/gpt-5', name: 'OpenRouter · GPT-5' },
-  { id: 'openai/gpt-5-mini', name: 'OpenRouter · GPT-5 Mini' },
-  { id: 'openai/gpt-5-nano', name: 'OpenRouter · GPT-5 Nano' },
-  { id: 'openai/gpt-5-pro', name: 'OpenRouter · GPT-5 Pro' },
-  { id: 'openai/gpt-5.1-codex', name: 'OpenRouter · GPT-5.1 Codex' },
-  { id: 'openai/gpt-5.1-codex-max', name: 'OpenRouter · GPT-5.1 Codex Max' },
-  { id: 'openai/gpt-5.1-instant', name: 'OpenRouter · GPT-5.1 Instant' },
-  { id: 'openai/gpt-5.1-thinking', name: 'OpenRouter · GPT-5.1 Thinking' },
-  { id: 'openai/gpt-5.2', name: 'OpenRouter · GPT-5.2' },
-  { id: 'openai/gpt-5.2-chat', name: 'OpenRouter · GPT-5.2 Chat' },
-  { id: 'openai/gpt-5.2-codex', name: 'OpenRouter · GPT-5.2 Codex' },
-  { id: 'openai/gpt-5.2-pro', name: 'OpenRouter · GPT-5.2 Pro' },
-  { id: 'openai/o1', name: 'OpenRouter · o1' },
-  { id: 'openai/o3', name: 'OpenRouter · o3' },
-  { id: 'openai/o3-mini', name: 'OpenRouter · o3 Mini' },
-  { id: 'openai/o3-pro', name: 'OpenRouter · o3 Pro' },
-  { id: 'openai/o4-mini', name: 'OpenRouter · o4 Mini' },
-  { id: 'openai/o4-mini-high', name: 'OpenRouter · o4 Mini High' },
-  { id: 'google/gemini-3.5-flash', name: 'OpenRouter · Gemini 3.5 Flash' },
-  { id: 'google/gemini-3.1-pro', name: 'OpenRouter · Gemini 3.1 Pro' },
-  { id: 'google/gemini-3.1-flash-lite', name: 'OpenRouter · Gemini 3.1 Flash Lite' },
-  { id: 'google/gemini-3.1-tech-preview', name: 'OpenRouter · Gemini 3.1 Tech Preview' },
-  { id: 'anthropic/claude-3.5-sonnet', name: 'OpenRouter · Claude 3.5 Sonnet' },
-  { id: 'anthropic/claude-3.5-haiku', name: 'OpenRouter · Claude 3.5 Haiku' },
-  { id: 'anthropic/claude-sonnet-4-6', name: 'OpenRouter · Claude Sonnet 4.6' },
-  { id: 'anthropic/claude-opus-4-6', name: 'OpenRouter · Claude Opus 4.6' },
-  { id: 'meta-llama/llama-4-scout', name: 'OpenRouter · Llama 4 Scout' },
-  { id: 'meta-llama/llama-4-maverick', name: 'OpenRouter · Llama 4 Maverick' },
-  { id: 'mistralai/mistral-large', name: 'OpenRouter · Mistral Large' },
-  { id: 'mistralai/mistral-small', name: 'OpenRouter · Mistral Small' },
-  { id: 'deepseek/deepseek-chat', name: 'OpenRouter · DeepSeek Chat' },
-  { id: 'deepseek/deepseek-r1', name: 'OpenRouter · DeepSeek R1' },
-  { id: 'deepseek/deepseek-v3', name: 'OpenRouter · DeepSeek V3' },
-  { id: 'cohere/command-r-plus', name: 'OpenRouter · Command R+' },
-  { id: 'cohere/command-r', name: 'OpenRouter · Command R' },
-  { id: 'qwen/qwen-2.5-72b', name: 'OpenRouter · Qwen 2.5 72B' },
-  { id: 'qwen/qwq-32b', name: 'OpenRouter · QwQ 32B' },
-]
+const OPENROUTER_MODELS: ModelOption[] = []
 
 function buildStaticModelCatalog(): ModelOption[] {
   return [
@@ -5091,4 +5009,5 @@ createRoot(document.getElementById('root')!).render(
     </>
   </Auth0Provider>
 )
+
 
