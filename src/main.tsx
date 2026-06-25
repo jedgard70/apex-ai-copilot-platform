@@ -53,6 +53,7 @@ import { NotificationsPanel } from './components/NotificationsPanel'
 import { ProjectPackagePanel } from './components/ProjectPackagePanel'
 import { ProjectWorkspacePanel } from './components/ProjectWorkspacePanel'
 import { PwaMobilePanel } from './components/PwaMobilePanel'
+import { PwaInstallBanner, IosInstallBanner } from './components/PwaInstallBanner'
 import { ResearchPanel } from './components/ResearchPanel'
 import { SaasAdminPanel } from './components/SaasAdminPanel'
 import { SkillExportPanel } from './components/SkillExportPanel'
@@ -3900,6 +3901,59 @@ function App() {
     if (cmd) { setInput(cmd); setTimeout(() => askCopilot(cmd), 50) }
   }
 
+  // Render painel ativo no split 80/20
+  function renderPanelContent(panelView: string) {
+    switch (panelView) {
+      case 'navigator': return <PlatformNavigatorPage onNavigate={setActiveView} />;
+      case 'governance': return <GovernanceHubPage />;
+      case 'training': return <ModelTrainingPage />;
+      case 'deployment': return <DeploymentFlowPage />;
+      case 'docs': return <TechnicalDocumentationPage />;
+      case 'marketing': return <MarketingAnalyticsPage />;
+      case 'archvis': return archVisOutput ? (
+        <ArchVisPanel source={archVisOutput.source} output={archVisOutput.output}
+          conversationContext={archVisOutput.conversationContext}
+          revisionConstraints={archVisRevisionConstraints}
+          onAddRevisionConstraint={c => setArchVisRevisionConstraints(p => p.includes(c) ? p : [...p, c])}
+          onRemoveRevisionConstraint={c => setArchVisRevisionConstraints(p => p.filter(i => i !== c))}
+          onClearRevisionConstraints={() => setArchVisRevisionConstraints([])}
+          onRecordGeneration={handleArchVisGeneration}
+          onSendToDirectCut={img => { closeOtherPanels('directCut'); setDirectCutOutput({ goal: 'Imagem ArchVis p/ DirectCut', conversationContext: [`assistant: Imagem enviada: ${img?.substring(0, 80)}...`], source: archVisOutput.source || undefined }) }}
+          onClear={() => setArchVisOutput(null)}
+        />
+      ) : <EmptyPanel />;
+      case 'directcut': return directCutOutput ? (
+        <DirectCutPanel source={directCutOutput.source} goal={directCutOutput.goal}
+          conversationContext={directCutOutput.conversationContext}
+          initialConfig={directCutOutput.initialConfig}
+          onRecordGeneration={handleDirectCutGeneration}
+          onClear={() => setDirectCutOutput(null)}
+        />
+      ) : <EmptyPanel />;
+      case 'bim': return bim3DOutput ? (
+        <Bim3DPanel source={bim3DOutput.source} onClear={() => setBim3DOutput(null)} />
+      ) : <EmptyPanel />;
+      case 'fieldops': return <FieldOpsPanel goal="" conversationContext={[]} onClear={() => {}} />;
+      case 'budget': return <BudgetPanel goal="" conversationContext={[]} onClear={() => {}} />;
+      case 'contracts': return <ContractsPanel goal="" conversationContext={[]} onClear={() => {}} />;
+      case 'research': return <ResearchPanel goal="" conversationContext={[]} onClear={() => {}} />;
+      case 'crm': return <CrmPipelinePanel onClear={() => {}} />;
+      case 'finance': return <FinancePanel goal="" conversationContext={[]} onClear={() => {}} />;
+      default: return <EmptyPanel />;
+    }
+  }
+
+  function EmptyPanel() {
+    return (
+      <div className="h-full flex items-center justify-center" style={{ color: '#c3c6d7', fontSize: 13, background: '#0b1326' }}>
+        <div style={{ textAlign: 'center' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 48, opacity: 0.3, marginBottom: 12 }}>dashboard</span>
+          <p>Selecione um painel na barra lateral</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <AppLayout
       activeNav={activeView}
@@ -3920,95 +3974,18 @@ function App() {
         <OwnerPage onNavigate={setActiveView} onOpenChat={handleCommand} />
       ) : activeView === 'provider-detail' ? (
         <ProviderDetailPanel onClear={() => setActiveView('dashboard')} />
-      ) : isMobile && activeView === 'chat' ? (
-        // ── Mobile: Full-screen Chat ──────────────────────
-        <div className="h-full flex flex-col" style={{ background: '#0b1326' }}>
-          <div className="flex items-center justify-between px-4 py-3 border-b border-outline-variant/10">
-            <span className="font-sora text-[16px] font-bold text-on-surface">Apex Chat</span>
-            <button
-              onClick={() => setActiveView('dashboard')}
-              className="material-symbols-outlined text-[20px] text-on-surface-variant hover:text-on-surface"
-            >close</button>
-          </div>
-          <div className="flex-1 overflow-hidden">
-            {/* Chat messages and composer will be rendered here */}
-            <div className="h-full flex flex-col">
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {messages.map(message => (
-                  <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[80%] px-4 py-2 rounded-2xl ${
-                      message.role === 'user'
-                        ? 'bg-primary text-on-primary'
-                        : 'bg-surface-container text-on-surface'
-                    }`}>
-                      {message.text}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="p-3 border-t border-outline-variant/10">
-                <div className="flex items-center gap-2">
-                  <textarea
-                    className="flex-1 px-4 py-2 bg-surface-container border border-outline-variant/20 rounded-full resize-none focus:outline-none focus:border-primary"
-                    rows={1}
-                    placeholder="Digite uma mensagem..."
-                    value={input}
-                    onChange={e => setInput(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault()
-                        askCopilot()
-                      }
-                    }}
-                  />
-                  <button
-                    onClick={() => askCopilot()}
-                    className="w-10 h-10 flex items-center justify-center bg-primary text-on-primary rounded-full hover:bg-primary/90"
-                  >
-                    <span className="material-symbols-outlined text-[20px]">send</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       ) : (
-        // ── Split View: 70% panel + 30% chat (Desktop) / Full panel (Mobile) ──────────────────────
-        <div className="h-full" style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow: 'hidden', height: '100%' }}>
-          {/* Panel Area — 100% on mobile, 70% on desktop */}
-          <section style={{ flex: isMobile ? '1 1 100%' : '1 1 70%', display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, minWidth: 0, overflow: 'hidden' }}>
-            {(() => {
-              const ctx = `[Projeto: ${activeProject.name}] [Painel: ${activeView}] ${messages.slice(-4).map(m => `${m.role}: ${m.text}`).join(' | ')}`;
-              // Inject project context into chat so AI knows everything
-              if (activeView !== 'chat') {
-                setTimeout(() => {
-                  const inputEl = document.querySelector('.chat-input') as HTMLTextAreaElement
-                  if (inputEl && !inputEl.value.includes('projeto')) {
-                    // Context is injected via the render — no need to modify input
-                  }
-                }, 0)
-              }
-
-              switch (activeView) {
-                case 'navigator': return <PlatformNavigatorPage onNavigate={setActiveView} />;
-                case 'governance': return <GovernanceHubPage />;
-                case 'training': return <ModelTrainingPage />;
-                case 'deployment': return <DeploymentFlowPage />;
-                case 'docs': return <TechnicalDocumentationPage />;
-                case 'marketing': return <MarketingAnalyticsPage />;
-                default: return <div className="h-full flex items-center justify-center" style={{ color: '#c3c6d7', fontSize: 13, background: '#0b1326' }}>
-                  <div style={{ textAlign: 'center' }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: 48, opacity: 0.3, marginBottom: 12 }}>dashboard</span>
-                    <p>Selecione um painel na barra lateral</p>
-                  </div>
-                </div>;
-              }
-            })()}
+        // ── Split 70/30 — Painel + Chat lado a lado ──
+        <div className="h-full" style={{ display: 'flex', flexDirection: 'row', overflow: 'hidden', height: '100%' }}>
+          {/* Panel — only shown when there's an active panel view */}
+          {activeView !== 'chat' && activeView !== 'client-dashboard' && (
+          <section style={{ flex: '1 1 70%', display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, minWidth: 0, overflow: 'hidden' }}>
+            {renderPanelContent(activeView)}
           </section>
-
-          {/* Chat Area — Hidden on mobile, 20% on desktop */}
+          )}
+          {/* Chat — 30% when panel open, 100% when chat-only mode */}
           {!isMobile && (
-          <section className="chat-shell" aria-label="Apex AI Copilot chat" style={{ flex: '0 0 30%', display: 'flex', flexDirection: 'row', height: '100%', minHeight: 0, minWidth: 0, borderLeft: '1px solid rgba(150, 164, 195, 0.15)' }}>
+          <section className="chat-shell" aria-label="Apex AI Copilot chat" style={{ flex: activeView === 'chat' ? '1 1 100%' : '0 0 30%', display: 'flex', flexDirection: 'row', height: '100%', minHeight: 0, minWidth: 0, borderLeft: activeView === 'chat' ? 'none' : '1px solid rgba(150, 164, 195, 0.15)' }}>
           {/* Conversation Sidebar */}
           <aside className="chat-sidebar" style={{ width: '220px', borderRight: '1px solid rgba(150, 164, 195, 0.15)', display: 'flex', flexDirection: 'column', flexShrink: 0, background: '#121a2f', height: '100%', overflow: 'hidden' }}>
             <div className="chat-sidebar-header" style={{ padding: '16px', borderBottom: '1px solid rgba(150, 164, 195, 0.15)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

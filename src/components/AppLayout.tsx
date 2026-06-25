@@ -1,5 +1,6 @@
 import { ReactNode, useState } from 'react'
 import { useIsMobile, useIsTablet } from '../lib/useIsMobile'
+import { PwaInstallBanner, IosInstallBanner } from './PwaInstallBanner'
 
 const sidebarItems = [
   { icon: 'dashboard', label: 'Dashboard', id: 'dashboard' },
@@ -370,6 +371,14 @@ export default function AppLayout({
             </button>
           ))}
         </nav>
+      )}
+
+      {/* ── PWA INSTALL BANNERS (Mobile only) ── */}
+      {isMobile && (
+        <>
+          <PwaInstallBanner />
+          <IosInstallBanner />
+        </>
       )}
     </div>
   )
