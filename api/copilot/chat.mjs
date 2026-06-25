@@ -2083,11 +2083,13 @@ export default async function handler(req, res) {
     if ((isDirectGeminiModelInPayload || isGeminiProvider) && apiBase?.includes('openrouter.ai') && !model.includes('/')) {
       finalModel = `google/${model}`
     }
+    // Gemini OpenAI-compat endpoint does NOT support function calling.
+    // Sending tools causes hallucination. Strip tools, keep full system prompt.
     const requestPayload = {
       model: finalModel,
       messages: liveAgentMessages,
-      tools: buildLiveAgentToolDefinitions(),
-      tool_choice: 'auto',
+      tools: (modelProvider === 'gemini' || modelProvider === 'gemini-interactions') ? [] : buildLiveAgentToolDefinitions(),
+      tool_choice: (modelProvider === 'gemini' || modelProvider === 'gemini-interactions') ? undefined : 'auto',
       temperature: 0.72,
       frequency_penalty: 0.2,
       max_tokens: 900,
