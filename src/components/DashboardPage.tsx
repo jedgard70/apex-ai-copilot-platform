@@ -15,8 +15,10 @@ type StatusData = {
 const PROVIDER_LABELS: Record<string, string> = {
   openrouter: 'OpenRouter', gemini: 'Gemini', openai: 'OpenAI', fal: 'FAL.ai',
   elevenlabs: 'ElevenLabs', opencode: 'OpenCode Go', gateway: 'Gateway', firebase: 'Firebase',
+  authkey: 'AuthKey', github: 'GitHub', stripe: 'Stripe',
+  supabase: 'Supabase', tavily: 'Tavily', ffmpeg: 'FFmpeg',
 }
-const ALL_KEYS = ['openrouter','gemini','openai','fal','elevenlabs','opencode','gateway','firebase']
+const ALL_KEYS = ['openrouter','gemini','openai','fal','elevenlabs','opencode','gateway','firebase','authkey','github','stripe','supabase','tavily','ffmpeg']
 
 export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const [status, setStatus] = useState<StatusData | null>(null)
@@ -38,7 +40,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           setStatus({
             ok: true,
             git: { sha: 'live', branch: 'main' },
-            providers: { total: 8, active, list },
+            providers: { total: 14, active, list },
             modelRuntime: {},
             timestamp: d.checkedAt || new Date().toISOString(),
           })
@@ -80,25 +82,29 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
       </section>
 
       {/* Status & Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-gutter">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
         {/* Provider Status */}
         <div className="md:col-span-2 bg-surface-container/70 backdrop-blur-md p-6 rounded-xl border border-outline-variant/10 flex flex-col justify-between">
           <div>
             <div className="flex justify-between items-start mb-6">
               <h3 className="font-sora text-[20px] text-on-surface font-medium leading-[1.4]">Provider Status</h3>
-              <span className="bg-secondary-fixed/20 text-secondary-fixed px-3 py-1 rounded-full font-jetbrains-mono text-[10px]">{status?.providers.active || '?'} Active</span>
+              <button onClick={() => onNavigate?.('provider-detail')} title="Ver detalhes dos provedores"
+                className="bg-secondary-fixed/20 text-secondary-fixed px-3 py-1 rounded-full font-jetbrains-mono text-[10px] hover:bg-secondary-fixed/30 transition-all cursor-pointer border-none">
+                {status?.providers.active || '?'}/{status?.providers.total || '?'} Active →
+              </button>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
               {ALL_KEYS.map(key => {
                 const on = status?.providers.list[key] ?? false
                 return (
-                  <div key={key} className={`p-3 rounded-lg border transition-colors ${on ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/5 border-red-500/20'}`}>
+                  <button key={key} onClick={() => onNavigate?.('provider-detail')}
+                    className={`p-3 rounded-lg border transition-all cursor-pointer text-left ${on ? 'bg-green-500/10 border-green-500/30 hover:bg-green-500/20' : 'bg-red-500/5 border-red-500/20 hover:bg-red-500/10'}`}>
                     <div className="flex items-center gap-2 mb-1">
                       <span className={`w-2 h-2 rounded-full ${on ? 'bg-green-500' : 'bg-red-500'}`} />
                       <span className="font-jetbrains-mono text-[10px] text-on-surface-variant">{PROVIDER_LABELS[key] || key}</span>
                     </div>
                     <span className="font-sora text-[14px] text-on-surface font-medium">{on ? 'Online' : 'Off'}</span>
-                  </div>
+                  </button>
                 )
               })}
             </div>
@@ -110,19 +116,13 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           </div>
         </div>
 
-        {/* Active Inferences */}
-        <div className="bg-surface-container/70 backdrop-blur-md p-6 rounded-xl border border-outline-variant/10 flex flex-col justify-center gap-2 text-center group cursor-default hover:bg-surface-bright transition-all">
-          <span className="material-symbols-outlined text-green-500 text-4xl mb-2 group-hover:scale-110 transition-transform">bolt</span>
-          <div className="text-3xl font-sora text-on-surface font-medium">{loading ? '...' : status ? status.providers.active : '?'}</div>
-          <div className="font-jetbrains-mono text-[12px] text-on-surface-variant uppercase tracking-widest">Active Providers</div>
-        </div>
-
-        {/* Git Info */}
-        <div className="bg-surface-container/70 backdrop-blur-md p-6 rounded-xl border border-outline-variant/10 flex flex-col justify-center gap-2 text-center group cursor-default hover:bg-surface-bright transition-all">
+        {/* Build Info — clickable */}
+        <button onClick={() => onNavigate?.('owner')}
+          className="bg-surface-container/70 backdrop-blur-md p-6 rounded-xl border border-outline-variant/10 flex flex-col justify-center gap-2 text-center group cursor-pointer hover:bg-surface-bright transition-all">
           <span className="material-symbols-outlined text-blue-400 text-4xl mb-2 group-hover:scale-110 transition-transform">database</span>
           <div className="text-xl font-sora text-on-surface font-medium overflow-hidden text-ellipsis">{status?.git?.sha || 'loading...'}</div>
-          <div className="font-jetbrains-mono text-[12px] text-on-surface-variant uppercase tracking-widest">Current Build</div>
-        </div>
+          <div className="font-jetbrains-mono text-[12px] text-on-surface-variant uppercase tracking-widest">Current Build — clique para detalhes</div>
+        </button>
       </div>
 
       {/* Studio Access */}
@@ -152,31 +152,21 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         </div>
       </section>
 
-      {/* Activity & System Health */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
-        <div className="lg:col-span-2 bg-surface-container/70 backdrop-blur-md rounded-xl border border-outline-variant/10 p-6">
-          <h3 className="font-sora text-[18px] text-on-surface font-medium mb-4">System</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {ALL_KEYS.filter(k => status?.providers.list[k]).map(key => (
-              <div key={key} className="flex items-center gap-2 p-2 rounded-lg bg-green-500/5">
-                <span className="w-2 h-2 rounded-full bg-green-500" />
-                <span className="font-jetbrains-mono text-[11px] text-on-surface-variant">{PROVIDER_LABELS[key]} API</span>
-              </div>
-            ))}
-            {ALL_KEYS.filter(k => !status?.providers.list[k]).map(key => (
-              <div key={key} className="flex items-center gap-2 p-2 rounded-lg bg-red-500/5">
-                <span className="w-2 h-2 rounded-full bg-red-500" />
-                <span className="font-jetbrains-mono text-[11px] text-on-surface-variant">{PROVIDER_LABELS[key]} API</span>
-              </div>
-            ))}
-          </div>
-          <p className="font-inter text-[14px] text-on-surface-variant mt-4">Use the chat to interact. Select models from the sidebar or test all models in Owner mode.</p>
-        </div>
-        <div className="bg-surface-container/70 backdrop-blur-md rounded-xl border border-outline-variant/10 p-6 flex flex-col items-center justify-center gap-2 text-center">
-          <span className="material-symbols-outlined text-purple-400 text-4xl">auto_awesome</span>
-          <p className="font-inter text-[14px] text-on-surface-variant">{status ? `${status.providers.active}/${status.providers.total} providers configured.` : 'Loading...'}</p>
-          <button onClick={() => onNavigate?.('owner')} className="mt-3 px-4 py-2 bg-purple-500/20 text-purple-300 rounded-lg font-jetbrains-mono text-[11px] hover:bg-purple-500/30 transition-all">Owner Console</button>
-        </div>
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-gutter">
+        {[
+          { label: 'Owner Console', icon: 'admin_panel_settings', action: 'owner', color: 'text-purple-400', desc: 'Gerenciar provedores, saldos e modelos' },
+          { label: 'Platform Map', icon: 'explore', action: 'navigator', color: 'text-blue-400', desc: 'Ver mapa completo da plataforma e módulos' },
+          { label: 'Documentação', icon: 'menu_book', action: 'docs', color: 'text-green-400', desc: 'Manual do usuário e documentação técnica' },
+          { label: 'Chat', icon: 'forum', action: 'chat', color: 'text-secondary-fixed', desc: 'Voltar ao chat com a Apex' },
+        ].map(item => (
+          <button key={item.action} onClick={() => onNavigate?.(item.action)}
+            className="bg-surface-container/70 backdrop-blur-md rounded-xl border border-outline-variant/10 p-5 flex flex-col items-center gap-2 text-center cursor-pointer hover:bg-surface-bright transition-all group">
+            <span className={`material-symbols-outlined ${item.color} text-3xl group-hover:scale-110 transition-transform`}>{item.icon}</span>
+            <span className="font-sora text-[14px] text-on-surface font-medium">{item.label}</span>
+            <span className="font-inter text-[11px] text-on-surface-variant leading-[1.4]">{item.desc}</span>
+          </button>
+        ))}
       </div>
 
       <footer className="pt-8 pb-12 border-t border-outline-variant/10 text-center text-on-surface-variant max-w-7xl mx-auto z-10 relative">
