@@ -67,18 +67,36 @@ export function getAnalytics(windowMinutes = 60) {
     if (r.timestamp > b.lastCall) b.lastCall = r.timestamp
   }
 
-  const providers = Object.values(byProvider).map(b => ({
+  const providers = Object.values(byProvider).map(b => {
+    // Estimate cost based on provider and usage
+    let estimatedCost = 0
+    const providerKey = b.provider.toLowerCase()
+    if (providerKey.includes('fal')) {
+      // FAL: ~$0.10/compute-second average, assume ~2s per call for video, ~0.3s for image
+      estimatedCost = b.calls * 0.03 // rough avg $0.03/call
+    } else if (providerKey.includes('elevenlabs')) {
+      // ElevenLabs: ~$0.0003 per character, assume ~100 chars per TTS call
+      estimatedCost = b.calls * 0.03
+    } else if (providerKey.includes('gemini')) {
+      // Gemini: free tier
+      estimatedCost = 0
+    } else {
+      estimatedCost = b.totalTokensIn * 0.000001 + b.totalTokensOut * 0.000003
+    }
+
+    return {
     provider: b.provider,
     calls: b.calls,
     successRate: b.calls > 0 ? Math.round((b.successCalls / b.calls) * 100) : 0,
     avgLatencyMs: b.calls > 0 ? Math.round(b.totalLatencyMs / b.calls) : 0,
     totalTokensIn: b.totalTokensIn,
     totalTokensOut: b.totalTokensOut,
+    estimatedCost: Math.round(estimatedCost * 100) / 100,
     modelCount: b.models.size,
     models: [...b.models].slice(0, 10),
     lastCall: b.lastCall,
     recentErrors: b.errors.slice(-5),
-  })).sort((a, b) => b.calls - a.calls)
+  }}).sort((a, b) => b.calls - a.calls)
 
   const totalCalls = recent.length
   const totalSuccess = recent.filter(r => r.success).length

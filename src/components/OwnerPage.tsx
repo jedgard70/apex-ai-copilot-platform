@@ -6,7 +6,7 @@ type OwnerPageProps = {
 }
 
 type ProviderEntry = { id: string; name: string; status: string; message: string; balance?: string | null; topUpUrl?: string; models?: string[] }
-type AnalyticsProvider = { provider: string; calls: number; successRate: number; avgLatencyMs: number; totalTokensIn: number; totalTokensOut: number }
+type AnalyticsProvider = { provider: string; calls: number; successRate: number; avgLatencyMs: number; totalTokensIn: number; totalTokensOut: number; estimatedCost?: number; modelCount?: number; models?: string[] }
 type AnalyticsData = { providers: AnalyticsProvider[]; summary: { totalCalls: number; successRate: number; avgLatencyMs: number; windowMinutes: number } }
 type KeyLifecycleEntry = { id: string; provider: string; name: string; configured: boolean; status: string; ageDays: number | null; maxAgeDays: number; critical: boolean; recommendation: string }
 
@@ -175,13 +175,23 @@ export function OwnerPage({ onNavigate, onOpenChat }: OwnerPageProps) {
                     <div key={a.provider} className="p-3 rounded-lg bg-white/5">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-sm font-bold text-[#e2e2e2]">{PROVIDER_LABELS[a.provider] || a.provider}</span>
-                        <span className="text-xs font-mono" style={{ color: a.successRate >= 90 ? '#22c55e' : a.successRate >= 70 ? '#f59e0b' : '#ef4444' }}>{a.successRate}%</span>
+                        <div className="flex items-center gap-2">
+                          {a.estimatedCost != null && (a.estimatedCost || 0) > 0 && <span className="text-[10px] font-mono text-[#f59e0b]">${(a.estimatedCost || 0).toFixed(2)}</span>}
+                          <span className="text-xs font-mono" style={{ color: a.successRate >= 90 ? '#22c55e' : a.successRate >= 70 ? '#f59e0b' : '#ef4444' }}>{a.successRate}%</span>
+                        </div>
                       </div>
                       <div className="flex items-center gap-3 text-[11px] text-[#c6c6ce] font-mono">
                         <span>{a.calls} calls</span>
                         <span>{a.avgLatencyMs}ms avg</span>
-                        <span>{a.totalTokensIn + a.totalTokensOut} tokens</span>
+                        <span title={`${(a.totalTokensIn || 0).toLocaleString()} in / ${(a.totalTokensOut || 0).toLocaleString()} out`}>
+                          {(a.totalTokensIn + a.totalTokensOut || 0).toLocaleString()} tokens
+                        </span>
                       </div>
+                      {a.models && a.models.length > 0 && (
+                        <div className="text-[9px] text-[#6C47FF] mt-1 truncate max-w-[300px]" title={a.models.join(', ')}>
+                          modelos: {a.models.slice(0, 3).join(', ')}{a.models.length > 3 ? ` (+${a.models.length - 3})` : ''}
+                        </div>
+                      )}
                       <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden mt-2">
                         <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(a.successRate, 100)}%`, backgroundColor: a.successRate >= 90 ? '#22c55e' : a.successRate >= 70 ? '#f59e0b' : '#ef4444' }} />
                       </div>
