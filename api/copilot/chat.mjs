@@ -344,8 +344,8 @@ function buildChatFallbackReply(userText, identity, file = null) {
   const pt = prefersPortugueseText(userText)
   if (isGreetingText(userText)) {
     return pt
-      ? 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.'
-      : 'I am Apex. Give me the task to execute now. If a connector is missing, I will tell you exactly what is missing and proceed with a useful fallback.'
+      ? 'Olá! 😊 Como posso ajudar no seu projeto hoje? Posso analisar plantas e documentos, gerar imagens e vídeos, revisar contratos, preparar orçamentos, criar campanhas de marketing, ou fazer pesquisas. É só me dizer o que precisa!'
+      : 'I am Apex AI — live assistant for architecture, engineering and construction. Ask me anything: analyze plans, generate images/videos, review contracts, research, field reports, BIM, budgeting, marketing and sales. I respond in natural language with your project context in mind.'
   }
   if (file && file.extractedText && isCapabilitiesQuestionText(userText)) {
     return pt
@@ -354,7 +354,7 @@ function buildChatFallbackReply(userText, identity, file = null) {
   }
   if (isCapabilitiesQuestionText(userText)) {
     return pt
-      ? 'Consigo resolver tarefas reais em código, documentos, BIM/3D, dados e operação. Quando algo depender de conector/credencial, eu respondo direto: "ok, para executar isso agora precisamos de X e Y; você já está providenciando; enquanto isso eu sigo com fallback útil".'
+      ? 'Que ótima pergunta! Tenho várias áreas onde posso ajudar:\n\n**📐 Análise e Leitura** — Plantas, documentos técnicos, contratos, relatórios. Análise visual direta, quantitativos, especificações.\n\n**🎨 Geração Visual** — Imagens de fachada, renders de arquitetura, vídeos de tour virtual, pranchas comerciais.\n\n**📊 Gestão e Negócios** — Orçamentos, cronogramas, contratos, propostas, campanhas de marketing, relatórios de campo.\n\n**🔧 Automações** — Conectado com BIM, DirectCut, CRM e ERP para executar fluxos completos.\n\nO que vamos fazer hoje?'
       : 'I can solve real tasks across code, documents, BIM/3D, data, and operations. If something depends on a missing connector/credential, I state it clearly and continue with what can be done now without faking capability.'
   }
   if (isContactQuestionText(userText)) {
