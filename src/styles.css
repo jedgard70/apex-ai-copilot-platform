@@ -3093,7 +3093,7 @@ body {
 }
 
 .topbar {
-  flex: 0 0 76px;
+  flex: 0 0 auto;
   z-index: 20;
 }
 
@@ -5652,6 +5652,7 @@ body {
   color: #9fb0d0;
   font-size: 11px;
   font-style: normal;
+  font-weight: 900;
 }
 
 .panel-section {
