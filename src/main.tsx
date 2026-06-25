@@ -69,6 +69,7 @@ import { BimClashPanel } from './components/BimClashPanel'
 import { QualidadeNCIsPanel } from './components/QualidadeNCIsPanel'
 import { WorkflowTasksPanel } from './components/WorkflowTasksPanel'
 import { OwnerPage } from './components/OwnerPage'
+import { ProviderDetailPanel } from './components/ProviderDetailPanel'
 import { DeploymentFlowPage } from './components/DeploymentFlowPage'
 import { GovernanceHubPage } from './components/GovernanceHubPage'
 import { MarketingAnalyticsPage } from './components/MarketingAnalyticsPage'
@@ -3968,6 +3969,8 @@ function App() {
         </div>
       ) : activeView === 'owner' ? (
         <OwnerPage onNavigate={setActiveView} onOpenChat={handleCommand} />
+      ) : activeView === 'provider-detail' ? (
+        <ProviderDetailPanel onClear={() => setActiveView('dashboard')} />
       ) : activeView === 'bim' || activeView === 'fieldops' || activeView === 'budget' || activeView === 'contracts' || activeView === 'research' || activeView === 'crm' || activeView === 'finance' || activeView === 'archvis' || activeView === 'directcut' || activeView === 'deployment' || activeView === 'governance' || activeView === 'marketing' || activeView === 'navigator' || activeView === 'training' || activeView === 'docs' ? (
         <div className="h-full"><section className="chat-shell" aria-label="Apex AI Copilot chat" style={{ display: 'flex', flexDirection: 'row', minHeight: '100%' }}>{(() => {
           const cmds: Record<string, string> = {
