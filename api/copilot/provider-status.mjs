@@ -29,39 +29,28 @@ async function checkFal() {
   const key = process.env.FAL_KEY
   if (!key) return { id: 'fal', name: 'fal.ai (Kling Video / Flux Image)', status: 'unconfigured', message: 'FAL_KEY não configurado.', topUpUrl: 'https://fal.ai/dashboard/billing' }
   try {
-    const res = await safeFetch('https://rest.fal.ai/v1/models', {
+    const modRes = await safeFetch('https://api.fal.ai/v1/models', {
       headers: { Authorization: `Key ${key}` },
     }, 8000)
-    if (res.ok) {
-      const data = await res.json().catch(() => ({ models: [] }))
-      const models = data.models || []
-      // Try to get wallet balance
-      let balance = null
-      try {
-        const walRes = await safeFetch('https://rest.fal.ai/v1/billing/wallet', {
-          headers: { Authorization: `Key ${key}` },
-        }, 5000)
-        if (walRes.ok) {
-          const wal = await walRes.json().catch(() => ({}))
-          balance = wal.balance || wal.credits || null
-        }
-      } catch { /* silent */ }
-      return {
-        id: 'fal', name: 'fal.ai (Kling Video / Flux Image)', status: 'ok',
-        message: `${models.length} modelos disponíveis.${balance ? ` Saldo: ${balance}.` : ''}`,
-        balance: balance ? String(balance) : null,
-        models: models.slice(0, 8).map(m => m.id || m.name || ''),
-        topUpUrl: 'https://fal.ai/dashboard/billing',
-      }
+    if (!modRes.ok) {
+      if (modRes.status === 401 || modRes.status === 403) return { id: 'fal', name: 'fal.ai', status: 'error', message: 'Chave inválida.', topUpUrl: 'https://fal.ai/dashboard/billing' }
+      return { id: 'fal', name: 'fal.ai', status: 'error', message: `Falha na API (status ${modRes.status}).`, topUpUrl: 'https://fal.ai/dashboard/billing' }
     }
-    if (res.status === 401 || res.status === 403) return { id: 'fal', name: 'fal.ai', status: 'error', message: 'Chave inválida.', topUpUrl: 'https://fal.ai/dashboard/billing' }
-    if (res.status === 404) {
-      // 404 = endpoint moved but key is valid
-      return { id: 'fal', name: 'fal.ai (Kling Video / Flux Image)', status: 'ok', message: 'Chave válida (endpoint atualizado).', topUpUrl: 'https://fal.ai/dashboard/billing' }
+    const data = await modRes.json().catch(() => ({ models: [] }))
+    const rawModels = data.models || []
+    // Categorize by type
+    const imageModels = rawModels.filter(m => (m.endpoint_id || '').includes('text-to-image') || (m.endpoint_id || '').includes('image-to-image')).length
+    const videoModels = rawModels.filter(m => (m.endpoint_id || '').includes('text-to-video') || (m.endpoint_id || '').includes('image-to-video')).length
+    const audioModels = rawModels.filter(m => (m.endpoint_id || '').includes('text-to-speech') || (m.endpoint_id || '').includes('text-to-audio')).length
+    const modelNames = rawModels.slice(0, 8).map(m => m.endpoint_id || m.display_name || m.id || '').filter(Boolean)
+    return {
+      id: 'fal', name: 'fal.ai (Kling Video / Flux Image)', status: 'ok',
+      message: `${rawModels.length} modelos: ${imageModels} img, ${videoModels} video, ${audioModels} audio. Billing: https://fal.ai/dashboard`,
+      models: modelNames,
+      topUpUrl: 'https://fal.ai/dashboard/billing',
     }
-    return { id: 'fal', name: 'fal.ai', status: 'error', message: `Falha na verificação (status ${res.status}).`, topUpUrl: 'https://fal.ai/dashboard/billing' }
   } catch (err) {
-    return { id: 'fal', name: 'fal.ai', status: 'error', message: `Erro de rede: ${scrub(err?.message)}`, topUpUrl: 'https://fal.ai/dashboard/billing' }
+    return { id: 'fal', name: 'fal.ai', status: 'error', message: `Erro: ${scrub(err?.message)}`, topUpUrl: 'https://fal.ai/dashboard/billing' }
   }
 }
 
