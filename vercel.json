@@ -13,7 +13,8 @@
     { "source": "/api/copilot/research-plan", "destination": "/api/copilot/plan" },
     { "source": "/api/copilot/knowledge-plan", "destination": "/api/copilot/plan" },
     { "source": "/api/copilot/bim-tour-plan", "destination": "/api/copilot/plan" },
-    { "source": "/api/prompts/:path*", "destination": "/api/prompts/index.mjs" }
+    { "source": "/api/prompts/:path*", "destination": "/api/prompts/index.mjs" },
+    { "source": "/api/reports/:path*", "destination": "/api/reports/index.mjs" }
   ],
   "crons": [
     {
