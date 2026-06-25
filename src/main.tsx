@@ -3933,6 +3933,7 @@ function App() {
                 case 'training': return <ModelTrainingPage />;
                 case 'deployment': return <DeploymentFlowPage />;
                 case 'docs': return <TechnicalDocumentationPage />;
+                case 'marketing': return <MarketingAnalyticsPage />;
                 default: return <div className="h-full flex items-center justify-center" style={{ color: '#c3c6d7', fontSize: 13, background: '#0b1326' }}>
                   <div style={{ textAlign: 'center' }}>
                     <span className="material-symbols-outlined" style={{ fontSize: 48, opacity: 0.3, marginBottom: 12 }}>dashboard</span>
