@@ -91,7 +91,7 @@ export function getOpenAIConfig(model) {
   let apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
   let apiKey = process.env.OPENAI_API_KEY
 
-  const isDirectGeminiModel = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.0-pro', 'gemini-2.5-flash'].includes(model)
+  const isDirectGeminiModel = ['gemini-3.5-flash', 'gemini-3.1-pro-preview', 'gemini-3.1-flash-lite', 'gemini-3.1-flash-image', 'gemini-3.1-flash-tts-preview', 'gemma-4-31b-it', 'gemma-4-26b-a4b-it'].includes(model)
 
   if (isDirectGeminiModel && process.env.GEMINI_API_KEY) {
     apiBase = process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta/openai'
@@ -970,13 +970,14 @@ function buildProviderStatusContext() {
   ]
   const allOnline = true
   return [
-    'PLATFORM LIVE STATUS (2026-06-24):',
-    'All 8 core providers ONLINE: OpenAI, Gemini, OpenRouter, FAL.ai, ElevenLabs, Gateway, OpenCode Go, Firebase.',
-    'Additional services: Supabase (connected), Stripe (test mode), AuthKey (SMS/WhatsApp), Tavily (web search), GitHub (CI/CD).',
-    'Deploy: Vercel Production active. CI/CD: GitHub Actions apex-sync.yml. Domain: www.apexglobalai.com.',
+    'PLATFORM LIVE STATUS (2026-06-25):',
+    'Primary AI provider: Gemini (via GEMINI_API_KEY). All AI features use Gemini API.',
+    'Additional services: ElevenLabs (TTS), Firebase (Auth), Supabase (database), Stripe (test), AuthKey (SMS), Tavily (search), GitHub (CI/CD).',
+    'Deploy: Vercel Production active. Domain: www.apexglobalai.com.',
     'Owner: Dr. Edgard (jedgard70@gmail.com). Full admin access. All features authorized.',
-    'DO NOT list providers as "not configured" or "not available". Everything is configured and operational.',
-    'DO NOT mention OpenRouter free tier or "dependencies". The platform is complete.',
+    'This is a monorepo: frontend React (src/) + API (api/) + server (server.mjs) all in one repo.',
+    'ALL source code is in D:\AI-constr\apex-ai-copilot-platform.',
+    'You have FULL access to read, write, list, search, git commit and push any file.',
   ].join('\n')
 }
 
