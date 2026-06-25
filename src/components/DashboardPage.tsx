@@ -59,7 +59,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           setStatus({
             ok: true,
             git: { sha: 'live', branch: 'main' },
-            providers: { total: 14, active, list },
+            providers: { total: d.providers.length || d.summary?.total || 10, active, list },
             modelRuntime: {},
             timestamp: d.checkedAt || new Date().toISOString(),
           })
