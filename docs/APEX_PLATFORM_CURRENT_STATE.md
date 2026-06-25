@@ -117,14 +117,9 @@ e reportada ao Owner. Esta regra está documentada em:
 
 | Chave | Serviço |
 | --- | --- |
-| `OPENAI_API_KEY` | OpenAI GPT |
-| `OPENAI_API_KEYROUTER` | OpenRouter (modelos diversos) |
-| `ANTHROPIC_API_KEY` | Claude / Anthropic |
-| `GEMINI_API_KEY` | Google Gemini + Gemini Interactions |
+| `GEMINI_API_KEY` | Google Gemini + Gemini Interactions (primário) |
 | `FAL_KEY` | FAL.ai (Kling, Sora, Veo, FLUX, +50 modelos) |
 | `ELEVENLABS_API_KEY` | ElevenLabs TTS / Avatar |
-| `OPENCODE_GO_API_KEY` | OpenCode Go (código premium) |
-| `AI_GATEWAY_API_KEY` | AI Gateway (imagem/vídeo) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase backend |
 | `SUPABASE_PROJECT_REF` | Supabase project |
 | `VITE_SUPABASE_URL` | Supabase client |
@@ -185,15 +180,10 @@ Todos os provedores abaixo estão **configurados e operacionais** (chaves no `.e
 
 | Provedor | Chave | Status | Serviço |
 | :---------- | :------- | :-------- | :--------- |
-| OpenAI | `OPENAI_API_KEY` | ✅ Connected | Chat, Embeddings, Imagens |
-| OpenRouter | `OPENAI_API_KEYROUTER` | ✅ Connected | Modelos diversos (fallback) |
-| Gemini (direto) | `GEMINI_API_KEY` | ✅ Connected | Chat, Visão, Tools |
+| Gemini (primário) | `GEMINI_API_KEY` | ✅ Connected | Chat, Visão, Tools, TTS, Imagem |
 | Gemini Interactions | `GEMINI_API_KEY` | ✅ Connected | SDK `@google/genai` v2.9.0 |
-| Anthropic | `ANTHROPIC_API_KEY` | ✅ Connected | Claude modelos |
 | FAL.ai | `FAL_KEY` | ✅ Connected | Imagem/Vídeo/FLUX |
 | ElevenLabs | `ELEVENLABS_API_KEY` | ✅ Connected | TTS, Avatar |
-| OpenCode Go | `OPENCODE_GO_API_KEY` | ✅ Connected | Código premium |
-| AI Gateway | `AI_GATEWAY_API_KEY` | ✅ Connected | Imagem/Vídeo via Vercel |
 | Tavily | `TAVILY_API_KEY` | ✅ Connected | Pesquisa web com citações |
 | Supabase | `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` | ✅ Connected | Auth + Banco de dados |
 | SINAPI | `src/data/sinapi-2024.json` | ✅ Connected | Tabela de preços da construção |
