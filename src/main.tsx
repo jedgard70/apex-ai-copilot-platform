@@ -1567,7 +1567,7 @@ function App() {
       {
         id: id(),
         role: 'assistant',
-        text: "Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.",
+        text: "Sou a Apex AI. Como posso te ajudar?",
       },
     ]
   })
@@ -1589,7 +1589,7 @@ function App() {
           {
             id: id(),
             role: 'assistant' as const,
-            text: "Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.",
+            text: "Sou a Apex AI. Como posso te ajudar?",
           },
         ],
       },
@@ -1824,7 +1824,7 @@ function App() {
         {
           id: id(),
           role: 'assistant' as const,
-          text: "Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.",
+          text: "Sou a Apex AI. Como posso te ajudar?",
         },
       ],
     }
@@ -1848,7 +1848,7 @@ function App() {
           {
             id: id(),
             role: 'assistant' as const,
-            text: "Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.",
+            text: "Sou a Apex AI. Como posso te ajudar?",
           },
         ],
       }
