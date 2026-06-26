@@ -206,16 +206,22 @@ export default function AppLayout({
           {/* Action icons */}
           {!isMobile && (
             <div className="flex gap-2.5 text-on-surface-variant items-center">
-              <span className="material-symbols-outlined hover:text-on-surface cursor-pointer transition-all text-[18px]" onClick={() => onNavChange?.('navigator')} title="Platform Map">map</span>
-              <span className="material-symbols-outlined hover:text-on-surface cursor-pointer transition-all text-[18px]" onClick={() => onNavChange?.('owner')} title="Owner Console">admin_panel_settings</span>
-              <span className="material-symbols-outlined hover:text-on-surface cursor-pointer transition-all text-[18px]" onClick={() => onNavChange?.('provider-detail')} title="Provedores">monitoring</span>
+              {allowedItems.includes('navigator') && (
+                <span className="material-symbols-outlined hover:text-on-surface cursor-pointer transition-all text-[18px]" onClick={() => onNavChange?.('navigator')} title="Platform Map">map</span>
+              )}
+              {allowedItems.includes('owner') && (
+                <span className="material-symbols-outlined hover:text-on-surface cursor-pointer transition-all text-[18px]" onClick={() => onNavChange?.('owner')} title="Owner Console">admin_panel_settings</span>
+              )}
+              {normalizedRole === 'owner_admin' && (
+                <span className="material-symbols-outlined hover:text-on-surface cursor-pointer transition-all text-[18px]" onClick={() => onNavChange?.('provider-detail')} title="Provedores">monitoring</span>
+              )}
               <span className="material-symbols-outlined hover:text-on-surface cursor-pointer transition-all text-[18px]" onClick={() => onNavChange?.('chat')} title="Mensagens">forum</span>
             </div>
           )}
 
           {/* Profile avatar — real user photo */}
           <div className={`rounded-full bg-surface-container-highest border border-outline-variant/30 flex items-center justify-center overflow-hidden cursor-pointer hover:border-primary/50 transition-colors ${isMobile ? 'w-7 h-7' : 'w-8 h-8'}`}
-            onClick={onProfileClick} title={avatarUrl ? 'Perfil' : 'Owner Console'}>
+            onClick={onProfileClick} title={normalizedRole === 'owner_admin' ? (avatarUrl ? 'Perfil' : 'Owner Console') : 'Perfil / Configurações'}>
             {avatarUrl ? (
               <img className="w-full h-full object-cover" src={avatarUrl} alt="avatar" />
             ) : (
@@ -269,7 +275,7 @@ export default function AppLayout({
               {subtitle && <p className="font-inter text-[12px] text-on-surface-variant opacity-70 mt-1">{subtitle}</p>}
             </div>
             <ul className="flex flex-col gap-0.5 flex-1 min-h-0 overflow-y-auto p-2">
-              {sidebarItems.map((item) => (
+              {filteredSidebarItems.map((item) => (
                 <li
                   key={item.id}
                   onClick={() => handleNav(item.id)}
@@ -302,7 +308,7 @@ export default function AppLayout({
               {!isTablet && <p className="font-inter text-[14px] text-on-surface-variant opacity-70">{subtitle}</p>}
             </div>
             <ul className="flex flex-col gap-1 flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
-              {sidebarItems.map((item) => (
+              {filteredSidebarItems.map((item) => (
                 <li
                   key={item.id}
                   onClick={() => handleNav(item.id)}
@@ -347,7 +353,8 @@ export default function AppLayout({
             { icon: 'explore', label: 'Map', id: 'navigator' },
             { icon: 'account_balance', label: 'Finance', id: 'finance' },
             { icon: 'menu', label: 'More', id: '__menu__' },
-          ].map((item) => (
+          ].filter(item => item.id === '__menu__' || allowedItems.includes(item.id))
+          .map((item) => (
             <button
               key={item.id}
               onClick={() => {
