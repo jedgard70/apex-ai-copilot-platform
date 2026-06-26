@@ -6269,6 +6269,30 @@ const server = http.createServer(async (req, res) => {
     handleOwnerCodeExecutorPlan(req, res)
     return
   }
+  if (req.url.startsWith('/api/copilot/reminders') && req.method === 'GET') {
+    const emailMatch = req.url.match(/email=([^&]+)/)
+    const email = emailMatch ? decodeURIComponent(emailMatch[1]) : ''
+    if (!email) {
+      res.writeHead(400, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: 'email parameter required' }))
+      return
+    }
+    try {
+      // Import dynamicly to avoid circular/init issues
+      import('./server/tools/personalAssistantLogic.mjs').then(({ checkDueReminders }) => {
+        const result = checkDueReminders(email)
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
+        res.end(JSON.stringify(result))
+      }).catch(err => {
+        res.writeHead(500, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: err.message }))
+      })
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: err.message }))
+    }
+    return
+  }
   if (req.url === '/api/copilot/code-executor/validate-command' && req.method === 'POST') {
     handleOwnerCodeExecutorValidateCommand(req, res)
     return
