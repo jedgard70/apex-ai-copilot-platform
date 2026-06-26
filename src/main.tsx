@@ -4391,39 +4391,383 @@ function App() {
                   </button>
                 </div>
               )}
-              <div className="input-row">
-                <button className="composer-language-button" type="button" onClick={() => setUiLanguage(current => current === 'EN' ? 'PT' : 'EN')}>
-                  {uiLanguage}
-                </button>
-                <textarea
-                  ref={composerTextarea}
-                  value={input}
-                  onChange={event => setInput(event.target.value)}
-                  onKeyDown={event => {
-                    if (event.key === 'Enter' && !event.shiftKey) {
-                      event.preventDefault()
-                      askCopilot()
+              <div className="composer-card" style={{
+                display: 'flex',
+                flexDirection: 'column',
+                maxWidth: '920px',
+                margin: '0 auto',
+                border: isComposerFocused ? '1px solid #2563eb' : '1px solid #dfe5ee',
+                borderRadius: '16px',
+                padding: '8px 12px 12px 12px',
+                background: '#ffffff',
+                boxShadow: isComposerFocused ? '0 4px 12px rgba(37, 99, 235, 0.08), 0 0 0 2px rgba(37, 99, 235, 0.15)' : '0 4px 12px rgba(0, 0, 0, 0.05)',
+                transition: 'all 0.2s ease-in-out'
+              }}>
+                {/* Textarea Row */}
+                <div style={{ display: 'flex', width: '100%' }}>
+                  <textarea
+                    ref={composerTextarea}
+                    value={input}
+                    onChange={event => setInput(event.target.value)}
+                    onKeyDown={event => {
+                      if (event.key === 'Enter' && !event.shiftKey) {
+                        event.preventDefault()
+                        askCopilot()
+                      }
+                    }}
+                    onFocus={() => setIsComposerFocused(true)}
+                    onBlur={() => setIsComposerFocused(false)}
+                    onPaste={handlePaste}
+                    placeholder={
+                      activeFile
+                        ? `Ask about ${activeFile.file.name}...`
+                        : uiLanguage === 'EN'
+                          ? 'Type a message, run a command, or drag and drop files...'
+                          : 'Escreva uma mensagem, execute um comando ou arraste arquivos...'
                     }
-                  }}
-                  onPaste={handlePaste}
-                  placeholder={
-                    activeFile
-                      ? `Ask about ${activeFile.file.name}...`
-                      : uiLanguage === 'EN'
-                        ? 'Type a message, run a command, or drag and drop files...'
-                        : 'Escreva uma mensagem, execute um comando ou arraste arquivos...'
-                  }
-                  rows={1}
-                />
-                <button className={`icon-button ${isRecording ? 'recording' : ''}`} type="button" onClick={toggleSpeechRecognition} aria-label={uiLanguage === 'EN' ? 'Voice input' : 'Entrada por voz'} title={uiLanguage === 'EN' ? 'Voice input' : 'Entrada por voz'}>
-                  <Mic size={19} />
-                </button>
-                <button className="icon-button" type="button" onClick={() => fileInput.current?.click()} aria-label={uiLanguage === 'EN' ? 'Attach file' : 'Anexar arquivo'} title={uiLanguage === 'EN' ? 'Attach file' : 'Anexar arquivo'}>
-                  <Paperclip size={19} />
-                </button>
-                <button className="send-button" onClick={() => askCopilot()} aria-label={loading ? 'Stop' : 'Send message'} disabled={!loading && !input.trim() && !activeFile}>
-                  {loading ? <Square size={17} /> : <ArrowUp size={20} />}
-                </button>
+                    rows={1}
+                    style={{
+                      width: '100%',
+                      minHeight: '40px',
+                      maxHeight: '220px',
+                      border: '0',
+                      resize: 'none',
+                      padding: '8px 0px',
+                      background: 'transparent',
+                      color: '#0f172a',
+                      fontSize: '14px',
+                      fontFamily: 'inherit',
+                      outline: 'none',
+                      boxShadow: 'none'
+                    }}
+                  />
+                </div>
+
+                {/* Bottom Actions Row */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginTop: '8px',
+                  paddingTop: '8px',
+                  borderTop: '1px solid rgba(15, 23, 42, 0.05)'
+                }}>
+                  {/* Left side actions: Attachment & Language */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button 
+                      type="button" 
+                      onClick={() => fileInput.current?.click()} 
+                      title={uiLanguage === 'EN' ? 'Attach file' : 'Anexar arquivo'}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        background: '#f1f5f9',
+                        border: 'none',
+                        color: '#475569',
+                        cursor: 'pointer',
+                        transition: 'background 0.2s'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#e2e8f0'}
+                      onMouseLeave={e => e.currentTarget.style.background = '#f1f5f9'}
+                    >
+                      <Paperclip size={16} />
+                    </button>
+
+                    <button 
+                      type="button" 
+                      onClick={() => setUiLanguage(current => current === 'EN' ? 'PT' : 'EN')}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        height: '32px',
+                        padding: '0 10px',
+                        borderRadius: '16px',
+                        background: '#f1f5f9',
+                        border: 'none',
+                        color: '#475569',
+                        fontSize: '11px',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        transition: 'background 0.2s'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#e2e8f0'}
+                      onMouseLeave={e => e.currentTarget.style.background = '#f1f5f9'}
+                    >
+                      {uiLanguage}
+                    </button>
+                  </div>
+
+                  {/* Right side actions: Model dropdown, Mic/Voice, Send */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {/* Model dropdown button integrated */}
+                    {currentRole !== 'client' && (
+                      <div style={{ position: 'relative' }}>
+                        <button
+                          type="button"
+                          onClick={() => setModelDropdownOpen(!modelDropdownOpen)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            height: '32px',
+                            padding: '0 12px',
+                            background: '#f1f5f9',
+                            color: '#334155',
+                            border: '1px solid #cbd5e1',
+                            borderRadius: '16px',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            outline: 'none',
+                            maxWidth: '220px'
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = '#e2e8f0'}
+                          onMouseLeave={e => e.currentTarget.style.background = '#f1f5f9'}
+                        >
+                          {selectedModelInfo.provider === 'gemini' || selectedModelInfo.provider === 'gemini-interactions' ? (
+                            <Sparkles size={12} style={{ color: '#2563eb' }} />
+                          ) : selectedModelInfo.provider === 'fal' ? (
+                            <Cpu size={12} style={{ color: '#d97706' }} />
+                          ) : selectedModelInfo.provider === 'elevenlabs' ? (
+                            <Volume2 size={12} style={{ color: '#059669' }} />
+                          ) : (
+                            <Bot size={12} style={{ color: '#7c3aed' }} />
+                          )}
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {selectedModelInfo.name || selectedModelInfo.modelId}
+                          </span>
+                          <ChevronDown size={12} style={{ opacity: 0.7, flexShrink: 0 }} />
+                        </button>
+
+                        {modelDropdownOpen && (
+                          <>
+                            <div 
+                              onClick={() => setModelDropdownOpen(false)} 
+                              style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999 }}
+                            />
+                            <div
+                              style={{
+                                position: 'absolute',
+                                bottom: '100%',
+                                right: 0,
+                                width: 320,
+                                marginBottom: 8,
+                                background: 'rgba(15, 23, 42, 0.95)',
+                                backdropFilter: 'blur(12px)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                borderRadius: 8,
+                                boxShadow: '0 -10px 25px -5px rgba(0, 0, 0, 0.5), 0 -8px 10px -6px rgba(0, 0, 0, 0.5)',
+                                zIndex: 1000,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                maxHeight: 300,
+                                overflow: 'hidden'
+                              }}
+                            >
+                              {/* Search box inside model dropdown */}
+                              <div style={{ padding: 8, borderBottom: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <Search size={11} style={{ opacity: 0.5, marginLeft: 4 }} />
+                                <input
+                                  type="text"
+                                  placeholder="Buscar modelo..."
+                                  value={modelSearchQuery}
+                                  onChange={e => setModelSearchQuery(e.target.value)}
+                                  style={{
+                                    flex: 1,
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: '#fff',
+                                    fontSize: 10,
+                                    outline: 'none',
+                                    padding: '4px 0'
+                                  }}
+                                />
+                                {modelSearchQuery && (
+                                  <button 
+                                    onClick={() => setModelSearchQuery('')}
+                                    style={{ background: 'none', border: 'none', color: '#fff', opacity: 0.5, cursor: 'pointer', display: 'flex', padding: 2 }}
+                                  >
+                                    <X size={9} />
+                                  </button>
+                                )}
+                              </div>
+
+                              {/* Provider Tabs inside model dropdown */}
+                              <div style={{ display: 'flex', padding: '4px 8px', gap: 4, borderBottom: '1px solid rgba(255, 255, 255, 0.08)', background: 'rgba(0, 0, 0, 0.2)' }}>
+                                {[
+                                  { id: 'all', label: 'Todos' },
+                                  { id: 'gemini', label: 'Gemini' },
+                                  { id: 'gemini-interactions', label: 'Interact' },
+                                  { id: 'fal', label: 'FAL' },
+                                  { id: 'elevenlabs', label: 'Eleven' }
+                                ].map(prov => (
+                                  <button
+                                    key={prov.id}
+                                    type="button"
+                                    onClick={() => setManualModelProvider(prov.id as ManualModelProvider)}
+                                    style={{
+                                      background: manualModelProvider === prov.id ? 'rgba(96, 165, 250, 0.2)' : 'transparent',
+                                      color: manualModelProvider === prov.id ? '#60a5fa' : '#94a3b8',
+                                      border: 'none',
+                                      borderRadius: 4,
+                                      padding: '3px 6px',
+                                      fontSize: 8,
+                                      fontWeight: 600,
+                                      cursor: 'pointer',
+                                      transition: 'all 0.15s ease'
+                                    }}
+                                  >
+                                    {prov.label}
+                                  </button>
+                                ))}
+                              </div>
+
+                              {/* Model lists with scrolling */}
+                              <div style={{ flex: 1, overflowY: 'auto', padding: '6px 0' }}>
+                                {(() => {
+                                  const query = modelSearchQuery.toLowerCase();
+                                  const filtered = modelOptions.filter(m => 
+                                    m.name.toLowerCase().includes(query) || m.id.toLowerCase().includes(query)
+                                  );
+                                  
+                                  if (filtered.length === 0) {
+                                    return (
+                                      <div style={{ padding: '20px 10px', textAlign: 'center', fontSize: 10, color: '#94a3b8' }}>
+                                        Nenhum modelo encontrado.
+                                      </div>
+                                    );
+                                  }
+
+                                  const groups: Record<string, ModelOption[]> = {};
+                                  filtered.forEach(m => {
+                                    const p = m.provider || 'other';
+                                    if (!groups[p]) groups[p] = [];
+                                    groups[p].push(m);
+                                  });
+
+                                  return Object.entries(groups).map(([prov, models]) => (
+                                    <div key={prov} style={{ marginBottom: 8 }}>
+                                      <div style={{ 
+                                        padding: '4px 12px', 
+                                        fontSize: 8, 
+                                        fontWeight: 700, 
+                                        color: '#64748b', 
+                                        textTransform: 'uppercase', 
+                                        letterSpacing: '0.05em' 
+                                      }}>
+                                        {getProviderLabel(prov)}
+                                      </div>
+                                      {models.map(m => {
+                                        const isSelected = selectedModel === m.id;
+                                        return (
+                                          <button
+                                            key={m.id}
+                                            type="button"
+                                            onClick={() => {
+                                              setSelectedModel(m.id);
+                                              try { localStorage.setItem('apex_selected_model', m.id) } catch {}
+                                              setModelDropdownOpen(false);
+                                            }}
+                                            style={{
+                                              display: 'flex',
+                                              flexDirection: 'column',
+                                              width: '100%',
+                                              padding: '6px 12px',
+                                              background: isSelected ? 'rgba(96, 165, 250, 0.08)' : 'transparent',
+                                              border: 'none',
+                                              color: isSelected ? '#60a5fa' : '#f1f5f9',
+                                              textAlign: 'left',
+                                              cursor: 'pointer',
+                                              transition: 'all 0.15s ease'
+                                            }}
+                                            onMouseEnter={e => {
+                                              if (!isSelected) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                                            }}
+                                            onMouseLeave={e => {
+                                              if (!isSelected) e.currentTarget.style.background = 'transparent';
+                                            }}
+                                          >
+                                            <span style={{ fontSize: 10, fontWeight: isSelected ? 700 : 500 }}>
+                                              {m.name || m.modelId}
+                                            </span>
+                                            <span style={{ fontSize: 8, color: '#64748b', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                              {m.modelId}
+                                            </span>
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  ));
+                                })()}
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Microphone / Speech recognition button */}
+                    <button 
+                      type="button" 
+                      onClick={toggleSpeechRecognition} 
+                      aria-label={uiLanguage === 'EN' ? 'Voice input' : 'Entrada por voz'} 
+                      title={uiLanguage === 'EN' ? 'Voice input' : 'Entrada por voz'}
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        background: isRecording ? '#ef4444' : '#f1f5f9',
+                        border: 'none',
+                        color: isRecording ? '#ffffff' : '#475569',
+                        cursor: 'pointer',
+                        transition: 'background 0.2s'
+                      onMouseEnter={e => e.currentTarget.style.background = isRecording ? '#dc2626' : '#e2e8f0'}
+                      onMouseLeave={e => e.currentTarget.style.background = isRecording ? '#ef4444' : '#f1f5f9'}
+                    >
+                      <Mic size={16} />
+                    </button>
+
+                    {/* Send Button */}
+                    <button 
+                      onClick={() => askCopilot()} 
+                      aria-label={loading ? 'Stop' : 'Send message'} 
+                      disabled={!loading && !input.trim() && !activeFile}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        background: (!loading && !input.trim() && !activeFile) ? '#cbd5e1' : '#2563eb',
+                        border: 'none',
+                        color: '#ffffff',
+                        cursor: (!loading && !input.trim() && !activeFile) ? 'not-allowed' : 'pointer',
+                        transition: 'background 0.2s'
+                      }}
+                      onMouseEnter={e => {
+                        if (!(!loading && !input.trim() && !activeFile)) {
+                          e.currentTarget.style.background = '#1d4ed8';
+                        }
+                      }}
+                      onMouseLeave={e => {
+                        if (!(!loading && !input.trim() && !activeFile)) {
+                          e.currentTarget.style.background = '#2563eb';
+                        }
+                      }}
+                    >
+                      {loading ? <Square size={14} /> : <ArrowUp size={16} />}
+                    </button>
+                  </div>
+                </div>
               </div>
               {loading && (
                 <div className="model-working-inline">
