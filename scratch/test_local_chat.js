@@ -35,8 +35,6 @@ const res = {
 }
 
 // Set process.env to mimic Vercel production
-process.env.OPENAI_API_BASEROUTER = 'https://openrouter.ai/api/v1'
-process.env.OPENAI_API_KEYROUTER = 'sk-or-mock-router-key'
 process.env.OPENAI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/openai'
 process.env.OPENAI_API_KEY = 'AIzaSy-mock-gemini-key'
 

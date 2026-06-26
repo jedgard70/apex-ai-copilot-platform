@@ -52,7 +52,7 @@ npm start
 - **Server runtime** now loads local env configuration before boot, so model/provider keys in `.env.local` are available to `server.mjs`.
 - **Platform Status** now reports whether Sentry frontend/backend are configured and whether the runtime is running on Vercel.
 - **Platform Status** also reports whether Gateway and Gemini model paths are actually configured.
-- **Model picker** supports manual advanced provider/model entry for Gateway, OpenRouter and Gemini paths.
+- **Model picker** supports manual advanced provider/model entry for Gateway and Gemini paths.
 - **Field Operations / RDO** now saves to the local Project Workspace and, when Supabase session + tenant bootstrap are ready, syncs the report into `rdos`, `rdo_activities`, `field_issues`, `punch_items`, `field_photos`, `safety_checklists`, `quality_checklists` and `corrective_actions`.
 - **Campaign Automation** now includes a VSL / video-sales landing blueprint with CTA destination, urgency bar, player behavior and tracking checklist.
 - **Public VSL route** is available at `/vsl` (also `/oferta` and `/apresentacao`) with configurable `headline`, `subheadline`, `video`, `cta`, `ctaLabel`, `terms`, `privacy`, `brand` and `support` query parameters.
