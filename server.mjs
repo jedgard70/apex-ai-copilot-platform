@@ -2279,11 +2279,36 @@ async function handleChat(req, res) {
         })
       }
     }
+    const locale = body.language || body.locale || req.headers['accept-language'] || ''
+    if (identityContext) {
+      identityContext.locale = locale
+    }
+
+    const aiIdentityReply = buildAIIdentityReply(userText, locale)
+    if (aiIdentityReply) {
+      return chatJson(res, 200, {
+        finalReply: aiIdentityReply,
+        mode: 'apex-identity-local',
+      })
+    }
+
     const identityReply = buildIdentityReply(userText, identityContext)
     if (identityReply) {
       return chatJson(res, 200, {
         finalReply: identityReply,
         mode: 'identity-context',
+      })
+    }
+
+    // Fast-path: greeting
+    if (isGreetingText(userText)) {
+      const pt = prefersPortugueseText(userText, locale)
+      const reply = pt
+        ? 'Olá! 😊 Como posso ajudar no seu projeto hoje? Posso analisar plantas e documentos, gerar imagens e vídeos, revisar contratos, preparar orçamentos, criar campanhas de marketing, ou fazer pesquisas de mercado. É só me dizer o que precisa!'
+        : 'Hello! 😊 How can I help with your project today? I can analyze plans and documents, generate images and videos, review contracts, prepare budgets, create marketing campaigns, or do market research. Just let know what you need!'
+      return chatJson(res, 200, {
+        finalReply: reply,
+        mode: 'greeting-short-circuit',
       })
     }
 
@@ -2452,6 +2477,11 @@ async function handleChat(req, res) {
       'Always answer in the same language as the user latest message.',
       'If the user has not typed a natural-language message yet, use the browser/session language when supplied.',
       'Execution priority: if the user asks to create, generate, write, build, prepare, montar, criar, gerar, fazer, escreva or produza, do the work now. Do not explain the process unless asked.',
+      'IDENTITY QUERY DIRECTIVE:',
+      'If the user asks who you are (e.g. "quem é você", "who are you", "what is apex") or what you do, you must reply exactly with:',
+      '- In Portuguese: "Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil."',
+      '- In English: "I am Apex. Give me the task to run now. If a connector is missing, I will tell you exactly what is missing and follow up with a useful alternative."',
+      '',
       'For simple conversation, greetings, connection checks or "are you online" style prompts, answer directly and naturally. Do not mention missing session, auth, files or context unless the user specifically asks about them.',
       'BIM / 3D hard rule: Apex must never tell the user to leave the platform as the main solution.',
       'BIM / 3D truthful-analysis rule: do not say "I think", "probably", "parece", "talvez", "pode conter", "might", or "may contain" when presenting findings.',
@@ -2661,7 +2691,7 @@ async function handleChat(req, res) {
       mode: 'local-fallback',
     })
     return chatJson(res, 200, {
-      finalReply: buildChatFallbackReply('', {}),
+      finalReply: buildChatFallbackReply(userText, { locale }, locale),
       mode: 'local-fallback',
     })
   }
