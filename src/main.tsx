@@ -1601,7 +1601,7 @@ function App() {
   const [showPromptLibrary, setShowPromptLibrary] = useState(false)
   const [activePromptLibraryModule, setActivePromptLibraryModule] = useState<string | undefined>(undefined)
   const [selectedModel, setSelectedModel] = useState<string>(() => {
-    return localStorage.getItem('apex_selected_model') || composeModelValue('gemini', 'gemini-2.5-flash')
+    return localStorage.getItem('apex_selected_model') || composeModelValue('gemini', 'gemini-3.1-flash-lite')
   })
   const [availableModels, setAvailableModels] = useState<ModelOption[]>([])
   const [modelProvider, setModelProvider] = useState<string>('')

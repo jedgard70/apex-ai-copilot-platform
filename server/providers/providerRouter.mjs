@@ -79,6 +79,12 @@ const providerOrder = [
   { name: "fal", label: "FAL.ai" },
 ]
 
+function prioritizeGeminiModels(modelsList) {
+  const priority = ["gemini-3.1-flash-lite", "gemini-1.5-flash"]
+  const uniqueList = Array.from(new Set([...priority, ...modelsList]))
+  return uniqueList
+}
+
 export async function getProviderChain(options = {}) {
   const { preferredModel } = options
   const chain = []
@@ -86,13 +92,13 @@ export async function getProviderChain(options = {}) {
   const falKey = (process.env.FAL_KEY || process.env.FAL_API_KEY || "").trim()
 
   const GEMINI_STATIC_FALLBACKS = [
+    "gemini-3.1-flash-lite",
+    "gemini-1.5-flash",
     "gemini-2.5-flash",
     "gemini-2.5-flash-lite",
     "gemini-3.5-flash",
-    "gemini-3.1-flash-lite",
     "gemini-2.5-pro",
     "gemini-3.1-pro-preview",
-    "gemini-1.5-flash",
     "gemini-1.5-pro"
   ]
 
@@ -110,8 +116,9 @@ export async function getProviderChain(options = {}) {
   if (geminiKey) {
     const chatBase = process.env.GEMINI_API_BASE || "https://generativelanguage.googleapis.com/v1beta/openai"
     const models = await getGeminiModels(geminiKey)
-    const geminiModelsList = models.length > 0 ? models.map(m => m.id) : GEMINI_STATIC_FALLBACKS
-    const defaultModel = preferredModel && preferredModel.startsWith("gemini") ? preferredModel : (geminiModelsList[0] || "gemini-2.5-flash")
+    const rawList = models.length > 0 ? models.map(m => m.id) : GEMINI_STATIC_FALLBACKS
+    const geminiModelsList = prioritizeGeminiModels(rawList)
+    const defaultModel = preferredModel && preferredModel.startsWith("gemini") ? preferredModel : (geminiModelsList[0] || "gemini-3.1-flash-lite")
     chain.push({
       name: "gemini",
       baseUrl: chatBase,
