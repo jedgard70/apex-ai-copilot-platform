@@ -1117,11 +1117,37 @@ function buildGreetingReply(text: string) {
   if (/obrigad|valeu|tamo junto/.test(lower)) return 'Por nada! Se precisar de mais alguma coisa, é só falar.'
   const pt = prefersPortuguese(text)
   return pt
-    ? 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.'
-    : 'I am Apex AI — live assistant for architecture, engineering and construction. Ask me anything: analyze plans, generate images/videos, review contracts, research, field reports, BIM, budgeting, marketing and sales.'
+    ? 'Olá! 😊 Como posso ajudar no seu projeto hoje? Posso analisar plantas e documentos, gerar imagens e vídeos, revisar contratos, preparar orçamentos, criar campanhas de marketing, ou fazer pesquisas. É só me dizer o que precisa!'
+    : 'Hello! 😊 How can I help with your project today? I can analyze plans and documents, generate images and videos, review contracts, prepare budgets, create marketing campaigns, or do research. Just tell me what you need!'
+}
+
+function isPanelContextMessage(text: string): string | null {
+  const m = text.match(/usuário abriu o painel (.+?) — projeto:/i)
+  return m ? m[1].trim() : null
+}
+
+function buildPanelContextReply(panelName: string): string {
+  const panels: Record<string, string> = {
+    'Field Operations': 'Painel Field Operations ativo! 🏗️ Aqui você registra vistorias de campo, cria relatórios diários, acompanha não-conformidades, controla RDOs e gerencia a equipe no canteiro. O que quer fazer?',
+    'Budget Studio': 'Painel de Orçamento ativo! 📊 Posso criar orçamentos detalhados, estimar custos por metro quadrado, gerar memorial de compras, calcular BDI e emitir quantitativos. Envie uma planta ou me diga o tipo de projeto.',
+    'Contracts Studio': 'Painel de Contratos ativo! 📄 Posso gerar minutas de contrato, revisar cláusulas, criar aditivos, elaborar distrato e preparar proposta comercial completa. O que precisa?',
+    'Research Studio': 'Painel de Pesquisa ativo! 🔍 Posso pesquisar normas técnicas (ABNT, NBR), regulamentações, melhores práticas, fornecedores, preços de mercado e referências técnicas. Qual assunto quer explorar?',
+    'CRM Pipeline': 'Painel CRM ativo! 🤝 Aqui você gerencia leads, pipeline de vendas, follow-ups, propostas enviadas e histórico de clientes. O que quer atualizar ou consultar?',
+    'Financeiro': 'Painel Financeiro ativo! 💰 Posso analisar fluxo de caixa, conciliação, contas a pagar/receber, relatórios financeiros e indicadores de obra. O que precisa?',
+    'Governance Hub': 'Painel de Governança ativo! 🔒 Aqui você controla conformidade, permissões, auditorias, relatórios de segurança e governança da plataforma. O que quer verificar?',
+    'Marketing Analytics': 'Painel de Marketing ativo! 📣 Posso analisar métricas de campanhas, criar conteúdo para redes sociais, gerar copies, planejar lançamentos e preparar estratégia de vendas. O que quer fazer?',
+    'Deployment Flow': 'Painel de Deploy ativo! 🚀 Aqui você gerencia deploys, ambientes, pipelines CI/CD e status dos serviços. O que quer verificar ou executar?',
+    'Platform Navigator': 'Mapa da Plataforma ativo! 🗺️ Explore todos os módulos, ferramentas e conexões disponíveis. Use o mapa para navegar entre os estúdios ou acesse o manual interativo.',
+    'Model Training': 'Painel de Treinamento ativo! 🧠 Aqui você gerencia skills, memórias, prompts e configurações do modelo de IA. O que quer ajustar?',
+    'Technical Documentation': 'Documentação Técnica ativa! 📚 Acesse quickstart, arquitetura, referências de API, segurança e compliance da plataforma. O que quer consultar?',
+  }
+  return panels[panelName] || `Painel "${panelName}" ativo! Como posso ajudar com este módulo?`
 }
 
 function buildProductFallbackAnswer(userText: string, identity: ChatIdentityContext) {
+  const panelName = isPanelContextMessage(userText)
+  if (panelName) return buildPanelContextReply(panelName)
+
   // H5.1F: multi-line messages are handled by the backend conversational router.
   // Only apply local fallbacks for single-line messages to prevent interception.
   const nonEmptyLines = userText.trim().split(/\n/).filter(l => l.trim()).length
@@ -2272,6 +2298,13 @@ function App() {
     setActiveFile(undefined)
     setInput('')
     const userText = clean || (attachment ? `Uploaded ${attachment.file.name}` : '')
+    const panelName = isPanelContextMessage(clean)
+    if (panelName) {
+      const userMessage: Message = { id: id(), role: 'user', text: userText, attachment }
+      const reply = buildPanelContextReply(panelName)
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: reply }])
+      return
+    }
     const modelText = clean || (attachment
       ? attachment.extractedText
         ? `O usuário enviou o arquivo "${attachment.file.name}" (tipo: ${attachment.kind}, extensão: ${attachment.file.name.toLowerCase().split('.').pop() || 'unknown'}). Conteúdo extraído:\n\n${attachment.extractedText}\n\nResponda de forma direta e conversacional com base no conteúdo acima. Não faça relatório nem lista de tópicos.`

@@ -346,7 +346,7 @@ function buildChatFallbackReply(userText, identity, file = null) {
   if (isGreetingText(userText)) {
     return pt
       ? 'Olá! 😊 Como posso ajudar no seu projeto hoje? Posso analisar plantas e documentos, gerar imagens e vídeos, revisar contratos, preparar orçamentos, criar campanhas de marketing, ou fazer pesquisas. É só me dizer o que precisa!'
-      : 'I am Apex AI — live assistant for architecture, engineering and construction. Ask me anything: analyze plans, generate images/videos, review contracts, research, field reports, BIM, budgeting, marketing and sales. I respond in natural language with your project context in mind.'
+      : 'Hello! 😊 How can I help with your project today? I can analyze plans and documents, generate images and videos, review contracts, prepare budgets, create marketing campaigns, or do research. Just tell me what you need!'
   }
   if (file && file.extractedText && isCapabilitiesQuestionText(userText)) {
     return pt
@@ -1726,8 +1726,8 @@ export default async function handler(req, res) {
     // Fast-path: greeting — unconditional, any language
     if (/^\s*(ol[aá]|oi|ola|hi|hello|hey)\b/i.test(userMessage.trim())) {
       return sendJson(res, 200, {
-        finalReply: 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.',
-        reply: 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.',
+        finalReply: 'Olá! 😊 Como posso ajudar no seu projeto hoje? Posso analisar plantas e documentos, gerar imagens e vídeos, revisar contratos, preparar orçamentos, criar campanhas de marketing, ou fazer pesquisas. É só me dizer o que precisa!',
+        reply: 'Olá! 😊 Como posso ajudar no seu projeto hoje? Posso analisar plantas e documentos, gerar imagens e vídeos, revisar contratos, preparar orçamentos, criar campanhas de marketing, ou fazer pesquisas. É só me dizer o que precisa!',
         memoryPatch: null,
         mode: 'apex-greeting-pt',
         operator: { intent: 'production_affirmation' },
@@ -1877,8 +1877,8 @@ export default async function handler(req, res) {
     // Portuguese greeting short-circuit — unconditional
     if (/^\s*(ol[aá]|oi|ola|hi|hello|hey)\b/i.test((userMessage || '').trim())) {
       return sendJson(res, 200, {
-        finalReply: 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.',
-        reply: 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.',
+        finalReply: 'Olá! 😊 Como posso ajudar no seu projeto hoje? Posso analisar plantas e documentos, gerar imagens e vídeos, revisar contratos, preparar orçamentos, criar campanhas de marketing, ou fazer pesquisas. É só me dizer o que precisa!',
+        reply: 'Olá! 😊 Como posso ajudar no seu projeto hoje? Posso analisar plantas e documentos, gerar imagens e vídeos, revisar contratos, preparar orçamentos, criar campanhas de marketing, ou fazer pesquisas. É só me dizer o que precisa!',
         mode: 'greeting-short-circuit',
         confirmation: null,
         productionStatus,
