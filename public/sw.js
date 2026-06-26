@@ -1,4 +1,4 @@
-const CACHE = 'apex-ai-v2'
+const CACHE = 'apex-ai-v3'
 const STATIC = [
   '/',
   '/index.html',
