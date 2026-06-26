@@ -1,4 +1,51 @@
-export function PlatformNavigatorPage({ onNavigate }: { onNavigate?: (view: string) => void }) {
+const roleSidebarMap: Record<string, string[]> = {
+  owner_admin: [
+    'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
+    'research', 'crm', 'finance', 'governance', 'marketing', 'archvis',
+    'directcut', 'owner', 'deployment', 'navigator', 'training', 'docs'
+  ],
+  internal_team: [
+    'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
+    'crm', 'archvis', 'directcut', 'training', 'docs'
+  ],
+  client: [
+    'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
+    'archvis', 'directcut'
+  ],
+  partner: [
+    'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
+    'archvis', 'directcut'
+  ],
+  viewer: [
+    'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
+    'archvis', 'directcut'
+  ],
+  contractor: [
+    'dashboard', 'chat', 'fieldops', 'contracts'
+  ],
+  finance: [
+    'dashboard', 'chat', 'budget', 'finance', 'contracts'
+  ],
+  sales: [
+    'dashboard', 'chat', 'crm', 'contracts', 'budget'
+  ],
+  field: [
+    'dashboard', 'chat', 'fieldops'
+  ],
+  bim_manager: [
+    'dashboard', 'chat', 'bim', 'archvis', 'directcut', 'budget'
+  ],
+  project_manager: [
+    'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
+    'crm', 'finance', 'governance', 'marketing', 'archvis', 'directcut'
+  ]
+}
+
+export function PlatformNavigatorPage({ onNavigate, userRole }: { onNavigate?: (view: string) => void; userRole?: string }) {
+  const normalizedRole = userRole ? userRole.toLowerCase().replace(/\s+/g, '_') : 'owner_admin'
+  const isClient = normalizedRole === 'client'
+  const allowedViews = roleSidebarMap[normalizedRole] || roleSidebarMap.owner_admin
+
   const sections = [
     {
       icon: 'psychology', label: 'Intelligence Core', color: 'text-[#b4c5ff]', screens: '5 SCREENS',
@@ -51,17 +98,26 @@ export function PlatformNavigatorPage({ onNavigate }: { onNavigate?: (view: stri
     },
   ]
 
+  const filteredSections = sections.map(sec => {
+    const filteredItems = sec.items.filter(item => {
+      if (isClient) {
+        const clientAllowedMap = ['chat', 'bim', 'archvis', 'directcut', 'fieldops', 'budget', 'contracts', 'docs']
+        return clientAllowedMap.includes(item.action)
+      }
+      return allowedViews.includes(item.action) || item.action === 'chat'
+    })
+    return { ...sec, items: filteredItems }
+  }).filter(sec => sec.items.length > 0)
+
   return (
     <div className="h-full bg-[#060d20] flex overflow-hidden">
       {/* SideNavBar — Stitch style */}
       <aside className="w-[280px] bg-[#060d20]/95 backdrop-blur-md flex flex-col p-4 gap-unit border-r border-white/10 shadow-xl flex-shrink-0">
         <div className="flex items-center gap-3 mb-6 px-2">
-          <div className="w-10 h-10 rounded-xl bg-[#2563eb] flex items-center justify-center shadow-[0_0_15px_rgba(37,99,235,0.3)]">
-            <span className="material-symbols-outlined text-[#eeefff]" style={{ fontVariationSettings: "'FILL' 1" }}>explore</span>
-          </div>
+          <img src="/apex-global-logo.png" alt="Apex Global" className="w-10 h-10 rounded-xl object-cover shadow-[0_0_15px_rgba(37,99,235,0.3)]" />
           <div>
-            <h2 className="text-[20px] font-medium tracking-tight text-[#dbe2fd]">Apex AI</h2>
-            <p className="text-[12px] tracking-widest text-[#c3c6d7]">Platform Map</p>
+            <h2 className="text-[20px] font-medium tracking-tight text-[#dbe2fd]">Apex Global</h2>
+            <p className="text-[12px] tracking-widest text-[#c3c6d7]">AI Platform Map</p>
           </div>
         </div>
         <button onClick={() => onNavigate?.('chat')}
@@ -77,7 +133,8 @@ export function PlatformNavigatorPage({ onNavigate }: { onNavigate?: (view: stri
             { icon: 'dashboard', label: 'Dashboard', view: 'dashboard' },
             { icon: 'smart_toy', label: 'AI Chat', view: 'chat' },
             { icon: 'admin_panel_settings', label: 'Owner Console', view: 'owner' },
-          ].map(item => (
+          ].filter(item => item.view !== 'owner' || allowedViews.includes('owner'))
+          .map(item => (
             <div key={item.label} onClick={() => onNavigate?.(item.view)}
               className="text-[#c3c6d7] hover:bg-[#222a3e] rounded-xl flex items-center gap-3 p-3 transition-all duration-200 cursor-pointer group">
               <span className="material-symbols-outlined group-hover:text-[#b4c5ff]">{item.icon}</span>
@@ -116,7 +173,7 @@ export function PlatformNavigatorPage({ onNavigate }: { onNavigate?: (view: stri
         {/* Navigator Scroll Area — Stitch style */}
         <div className="flex-1 overflow-y-auto p-4 bg-gradient-to-br from-[#0b1326] to-[#060d20]">
           <div className="max-w-7xl mx-auto space-y-10 py-4">
-            {sections.map((section) => (
+            {filteredSections.map((section) => (
               <section key={section.label}>
                 <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-2">
                   <span className={`material-symbols-outlined ${section.color}`}>{section.icon}</span>
