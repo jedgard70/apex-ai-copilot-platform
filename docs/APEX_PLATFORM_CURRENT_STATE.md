@@ -1,7 +1,7 @@
 # APEX Platform — Unified Current State
 
 Checkpoint: CP-LIVE-FINAL — 62 capabilities documentadas + PWA/Mobile
-Last update: 2026-06-25 (19:30)
+Last update: 2026-06-26 (06:20)
 
 ## Canonical rule
 
@@ -230,6 +230,7 @@ e reportada ao Owner. Esta regra está documentada em:
 | Ações de Biblioteca de Prompts | Botões "Copiar" e "Usar no Chat" inseridos nos presets de prompts da biblioteca | `ea1e3ea` |
 | Redesenho de painéis vazios | Estágios iniciais funcionais de ArchVis/DirectCut e upload direto no BIM Studio | `c19b0f6` |
 | Limpeza de logs debug mobile | Remoção do overlay temporário de depuração mobile em `AppLayout.tsx` | `c19b0f6` |
+| Correções de Fallbacks e Saudações | Correção de detecção de "ola/oi" em português, saudações calorosas no front/backend, interceptador local de painéis e remoção de falhas mecânicas de conexão | `antigravity` |
 
 ## Status dos Conectores
 
