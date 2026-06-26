@@ -246,8 +246,9 @@ Apenas local (não vai para Vercel): `LOCAL_WORKER_*`, `REVIT_MCP_*`, shell/path
 | 10 | Corrigida detecção de saudações em português e naturalidade de greetings no front/backend | `antigravity` | ✅ Done |
 | 11 | Adicionado interceptador local e fallbacks de painéis ao abrir painéis no chat | `antigravity` | ✅ Done |
 | 12 | Removidas mensagens mecânicas de falha de conexão por respostas alternativas úteis | `antigravity` | ✅ Done |
+| 13 | Refinada detecção de saudação (não-ambiciosa) + fallback de navigator.language + resposta identidade Apex | `antigravity` | ✅ Done |
 
 ---
 
 *Last updated: 2026-06-26*
-*All 62 capabilities: DONE. Build: GREEN (100% ok). Tests: GREEN (99/99 passed). DirectCut Pipeline: GREEN. H5/H44/H51a: GREEN. Deploy: apexglobalai.com LIVE.*
+*All 62 capabilities: DONE. Build: GREEN (100% ok). Tests: GREEN (114 passed). DirectCut Pipeline: GREEN. H5/H44/H51a: GREEN. Deploy: apexglobalai.com LIVE.*

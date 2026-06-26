@@ -1,7 +1,7 @@
 # APEX Platform — Unified Current State
 
 Checkpoint: CP-LIVE-FINAL — 62 capabilities documentadas + PWA/Mobile
-Last update: 2026-06-26 (06:20)
+Last update: 2026-06-26 (11:25)
 
 ## Canonical rule
 
@@ -11,7 +11,7 @@ The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.m
 
 - Platform core: **GREEN** — 62 capabilities live/operational
 - Build/typecheck: **GREEN**
-- Tests: **GREEN** (99/99 passed)
+- Tests: **GREEN** (114 passed)
 - Local app: **GREEN** (`server.mjs` + Electron `.exe`)
 - Production: **GREEN** (`www.apexglobalai.com` Vercel main branch)
 - AI providers: **GREEN** (14/14 online — Gemini FREE, OpenRouter, FAL.ai, AI Gateway, OpenCode Go, OpenAI, ElevenLabs, Firebase, Tavily, Stripe, Supabase, GitHub, AuthKey, FFmpeg)
