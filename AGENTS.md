@@ -216,6 +216,7 @@ Nenhum agente, assistente ou processo automatizado está autorizado a:
 - Reintroduzir o **OpenRouter** ou quaisquer outros agregadores de API.
 - Reintroduzir provedores como OpenAI (exceto se para mocks locais ou endpoints internos compatíveis de uso estrito do Gemini), Anthropic, DeepSeek (fora do FAL.ai) ou outros.
 - Modificar o Provider Router (`server/providers/providerRouter.mjs`) ou o `src/main.tsx` para listar ou expor outros provedores na interface.
+- Alterar, refatorar ou modificar a lógica de roteamento de provedores/modelos, listagem dinâmica de modelos e fallbacks ininterruptos (em `server/providers/providerRouter.mjs` ou endpoints de chat) se estiverem funcionando corretamente, garantindo a estabilidade operacional contínua da plataforma.
 
 Esta regra foi estabelecida verbalmente pelo Owner Dr. Edgard em 2026-06-26 e tem caráter de proteção permanente.
 
