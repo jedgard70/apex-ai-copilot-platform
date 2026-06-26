@@ -3915,29 +3915,60 @@ function App() {
       case 'deployment': return <DeploymentFlowPage />;
       case 'docs': return <TechnicalDocumentationPage />;
       case 'marketing': return <MarketingAnalyticsPage />;
-      case 'archvis': return archVisOutput ? (
-        <ArchVisPanel source={archVisOutput.source} output={archVisOutput.output}
-          conversationContext={archVisOutput.conversationContext}
+      case 'archvis': return (
+        <ArchVisPanel
+          source={archVisOutput?.source || undefined}
+          output={archVisOutput?.output || undefined}
+          conversationContext={archVisOutput?.conversationContext || undefined}
           revisionConstraints={archVisRevisionConstraints}
           onAddRevisionConstraint={c => setArchVisRevisionConstraints(p => p.includes(c) ? p : [...p, c])}
           onRemoveRevisionConstraint={c => setArchVisRevisionConstraints(p => p.filter(i => i !== c))}
           onClearRevisionConstraints={() => setArchVisRevisionConstraints([])}
           onRecordGeneration={handleArchVisGeneration}
-          onSendToDirectCut={img => { closeOtherPanels('directCut'); setDirectCutOutput({ goal: 'Imagem ArchVis p/ DirectCut', conversationContext: [`assistant: Imagem enviada: ${img?.substring(0, 80)}...`], source: archVisOutput.source || undefined }) }}
+          onSendToDirectCut={img => { closeOtherPanels('directCut'); setDirectCutOutput({ goal: 'Imagem ArchVis p/ DirectCut', conversationContext: [`assistant: Imagem enviada: ${img?.substring(0, 80)}...`], source: archVisOutput?.source || undefined }) }}
           onClear={() => setArchVisOutput(null)}
         />
-      ) : <EmptyPanel />;
-      case 'directcut': return directCutOutput ? (
-        <DirectCutPanel source={directCutOutput.source} goal={directCutOutput.goal}
-          conversationContext={directCutOutput.conversationContext}
-          initialConfig={directCutOutput.initialConfig}
+      );
+      case 'directcut': return (
+        <DirectCutPanel
+          source={directCutOutput?.source || undefined}
+          goal={directCutOutput?.goal || 'Planejamento de Vídeo'}
+          conversationContext={directCutOutput?.conversationContext || []}
+          initialConfig={directCutOutput?.initialConfig}
           onRecordGeneration={handleDirectCutGeneration}
           onClear={() => setDirectCutOutput(null)}
         />
-      ) : <EmptyPanel />;
+      );
       case 'bim': return bim3DOutput ? (
         <Bim3DPanel source={bim3DOutput.source} onClear={() => setBim3DOutput(null)} />
-      ) : <EmptyPanel />;
+      ) : (
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, background: '#0b1326', color: '#fff', fontFamily: "'Inter', sans-serif" }}>
+          <div style={{ textAlign: 'center', maxWidth: 450, background: '#171f33', padding: 32, borderRadius: 12, border: '1px solid rgba(255, 255, 255, 0.08)', boxShadow: '0 8px 30px rgba(0,0,0,0.5)' }}>
+            <div style={{ background: 'rgba(59, 130, 246, 0.1)', width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContext: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 32, color: '#3b82f6' }}>architecture</span>
+            </div>
+            <h3 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 8px', color: '#fff' }}>BIM / 3D Studio</h3>
+            <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.5, margin: '0 0 24px' }}>
+              Carregue modelos 3D diretamente no visualizador Apex. Suporta arquivos nos formatos <strong>.ifc</strong>, <strong>.glb</strong>, <strong>.gltf</strong>, <strong>.obj</strong> ou <strong>.stl</strong>.
+            </p>
+            <label style={{
+              display: 'inline-block', background: '#2563eb', color: '#fff', padding: '10px 24px', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'background 0.15s'
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = '#1d4ed8'}
+            onMouseLeave={e => e.currentTarget.style.background = '#2563eb'}
+            >
+              Selecionar Modelo 3D
+              <input type="file" accept=".ifc,.glb,.gltf,.obj,.stl" style={{ display: 'none' }} onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const mockIntakeFile = { file, name: file.name, size: file.size, type: file.type, kind: 'document' as const };
+                  setBim3DOutput({ source: mockIntakeFile });
+                }
+              }} />
+            </label>
+          </div>
+        </div>
+      );
       case 'fieldops': return <FieldOpsPanel goal="" conversationContext={[]} onClear={() => {}} />;
       case 'budget': return <BudgetPanel goal="" conversationContext={[]} onClear={() => {}} />;
       case 'contracts': return <ContractsPanel goal="" conversationContext={[]} onClear={() => {}} />;
