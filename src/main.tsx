@@ -1880,6 +1880,12 @@ function App() {
   )
   const isInternalUser = isOwnerUser || accountState?.role === 'Internal Team' || accountState?.role === 'Finance' || accountState?.role === 'Sales' || accountState?.user?.email?.includes('apexglobal')
 
+  const currentRole = (() => {
+    if (!accountState?.user) return 'owner_admin';
+    if (accountState?.user?.email === 'jedgard70@gmail.com') return 'owner_admin';
+    return accountState?.role || 'client';
+  })();
+
   async function refreshAuthState() {
     if (!isSupabaseConfigured) {
       const defaultState = localDemoAuthAllowed ? buildLocalDemoOwnerState() : null
