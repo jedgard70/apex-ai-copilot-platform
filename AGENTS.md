@@ -204,6 +204,23 @@ Violação: reversão imediata + notificação ao Owner. Crítico de segurança.
 
 ---
 
+## 🚨 REGRA ABSOLUTA 9 — Provedores de IA Permitidos e Restrição de Provedores Externos
+
+Fica terminantemente proibido o uso, integração, inclusão, referência ou fallback para qualquer provedor de IA externo que não seja:
+1. **Gemini (Genuíno/Nativo)** via API oficial da Google (`https://generativelanguage.googleapis.com`) ou SDK `@google/genai`.
+2. **FAL.ai** para geração de imagem e vídeo.
+3. **ElevenLabs** para conversão de texto em fala (TTS).
+4. **Provedores/Serviços Internos** da plataforma Apex AI (como o local-worker local, Revit MCP, e Supabase).
+
+Nenhum agente, assistente ou processo automatizado está autorizado a:
+- Reintroduzir o **OpenRouter** ou quaisquer outros agregadores de API.
+- Reintroduzir provedores como OpenAI (exceto se para mocks locais ou endpoints internos compatíveis de uso estrito do Gemini), Anthropic, DeepSeek (fora do FAL.ai) ou outros.
+- Modificar o Provider Router (`server/providers/providerRouter.mjs`) ou o `src/main.tsx` para listar ou expor outros provedores na interface.
+
+Esta regra foi estabelecida verbalmente pelo Owner Dr. Edgard em 2026-06-26 e tem caráter de proteção permanente.
+
+---
+
 ## Commit guidance
 
 - Use clear commit titles describing user-visible impact.
