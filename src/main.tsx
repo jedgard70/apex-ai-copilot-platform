@@ -4718,6 +4718,7 @@ function App() {
                       onClick={toggleSpeechRecognition} 
                       aria-label={uiLanguage === 'EN' ? 'Voice input' : 'Entrada por voz'} 
                       title={uiLanguage === 'EN' ? 'Voice input' : 'Entrada por voz'}
+                      style={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -4729,6 +4730,7 @@ function App() {
                         color: isRecording ? '#ffffff' : '#475569',
                         cursor: 'pointer',
                         transition: 'background 0.2s'
+                      }}
                       onMouseEnter={e => e.currentTarget.style.background = isRecording ? '#dc2626' : '#e2e8f0'}
                       onMouseLeave={e => e.currentTarget.style.background = isRecording ? '#ef4444' : '#f1f5f9'}
                     >
