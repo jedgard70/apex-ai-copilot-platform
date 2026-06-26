@@ -44,7 +44,7 @@ export function ClientDashboard({ email, onBack }: { email?: string; onBack?: ()
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', padding: '16px', background: '#1e293b', borderRadius: '12px', border: '1px solid #334155' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 'bold', fontSize: '18px' }}>A</div>
+          <img src="/apex-global-logo.png" alt="Apex Global" style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover' }} />
           <div>
             <div style={{ fontWeight: 'bold', fontSize: '16px', color: '#f1f5f9' }}>Apex Global</div>
             <div style={{ fontSize: '11px', color: '#64748b' }}>Apex AI Copilot</div>
