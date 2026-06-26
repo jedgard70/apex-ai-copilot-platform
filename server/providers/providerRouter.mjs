@@ -39,10 +39,8 @@ async function getGeminiModels(apiKey) {
   })
 }
 
-async function getFalModels() {
-  // FAL nao tem endpoint de modelos de chat publico via API
-  // Usamos lista estatica dos mais conhecidos
-  return [
+async function getFalModels(apiKey) {
+  const baseList = [
     { id: "fal-ai/mistral-large", name: "Mistral Large" },
     { id: "fal-ai/llama-3.3-70b", name: "Llama 3.3 70B" },
     { id: "fal-ai/llama-4-scout", name: "Llama 4 Scout" },
@@ -51,6 +49,29 @@ async function getFalModels() {
     { id: "fal-ai/deepseek-v3", name: "DeepSeek V3" },
     { id: "fal-ai/qwen-2.5-72b", name: "Qwen 2.5 72B" },
   ]
+  if (!apiKey) return baseList
+
+  try {
+    const fetched = await fetchModels("https://fal.ai/api/models?limit=1000", { Authorization: `Key ${apiKey}` }, (data) => {
+      return (data.items || [])
+        .filter(m => {
+          const id = (m.id || "").toLowerCase()
+          return id.includes("llm") || id.includes("llama") || id.includes("mistral") || id.includes("qwen") || id.includes("deepseek") || id.includes("chat") || id.includes("gemma") || id.includes("phi")
+        })
+        .map(m => ({
+          id: m.id,
+          name: m.title || m.id,
+        }))
+    })
+
+    if (fetched && fetched.length > 0) {
+      const seen = new Set(fetched.map(m => m.id))
+      return [...fetched, ...baseList.filter(m => !seen.has(m.id))]
+    }
+  } catch (err) {
+    console.error("[getFalModels] failed, using static fallback:", err?.message)
+  }
+  return baseList
 }
 
 const providerOrder = [
@@ -59,25 +80,61 @@ const providerOrder = [
 ]
 
 export async function getProviderChain(options = {}) {
+  const { preferredModel } = options
   const chain = []
   const geminiKey = (process.env.GEMINI_API_KEY || "").trim()
   const falKey = (process.env.FAL_KEY || process.env.FAL_API_KEY || "").trim()
+
+  const GEMINI_STATIC_FALLBACKS = [
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+    "gemini-3.5-flash",
+    "gemini-3.1-flash-lite",
+    "gemini-2.5-pro",
+    "gemini-3.1-pro-preview",
+    "gemini-1.5-flash",
+    "gemini-1.5-pro"
+  ]
+
+  const FAL_STATIC_FALLBACKS = [
+    "fal-ai/mistral-large",
+    "fal-ai/llama-3.3-70b",
+    "fal-ai/llama-4-scout",
+    "fal-ai/llama-4-maverick",
+    "fal-ai/deepseek-r1",
+    "fal-ai/deepseek-v3",
+    "fal-ai/qwen-2.5-72b"
+  ]
 
   // Gemini — usa /openai para compatibilidade com chat/completions
   if (geminiKey) {
     const chatBase = process.env.GEMINI_API_BASE || "https://generativelanguage.googleapis.com/v1beta/openai"
     const models = await getGeminiModels(geminiKey)
-    if (models.length > 0) {
-      chain.push({ name: "gemini", baseUrl: chatBase, apiKey: geminiKey, model: models[0].id, label: "Gemini FREE", models: models.map(m => m.id) })
-    } else {
-      chain.push({ name: "gemini", baseUrl: chatBase, apiKey: geminiKey, model: "gemini-3.1-flash-lite", label: "Gemini FREE" })
-    }
+    const geminiModelsList = models.length > 0 ? models.map(m => m.id) : GEMINI_STATIC_FALLBACKS
+    const defaultModel = preferredModel && preferredModel.startsWith("gemini") ? preferredModel : (geminiModelsList[0] || "gemini-2.5-flash")
+    chain.push({
+      name: "gemini",
+      baseUrl: chatBase,
+      apiKey: geminiKey,
+      model: defaultModel,
+      label: "Gemini FREE",
+      models: geminiModelsList
+    })
   }
 
   // FAL.ai
   if (falKey) {
-    const models = await getFalModels()
-    chain.push({ name: "fal", baseUrl: "https://api.fal.ai/v1", apiKey: falKey, model: "fal-ai/mistral-large", label: "FAL.ai", models: models.map(m => m.id) })
+    const models = await getFalModels(falKey)
+    const falModelsList = models.length > 0 ? models.map(m => m.id) : FAL_STATIC_FALLBACKS
+    const defaultModel = preferredModel && preferredModel.startsWith("fal") ? preferredModel : (falModelsList[0] || "fal-ai/mistral-large")
+    chain.push({
+      name: "fal",
+      baseUrl: "https://api.fal.ai/v1",
+      apiKey: falKey,
+      model: defaultModel,
+      label: "FAL.ai",
+      models: falModelsList
+    })
   }
 
   return chain
@@ -98,7 +155,11 @@ export async function chatWithFallback(params) {
 
   const triedModelSet = new Set()
   for (const provider of chain) {
-    const modelsToTry = provider.models || [provider.model]
+    let modelsToTry = provider.models || [provider.model]
+    if (preferredModel && (provider.name === preferredProvider || preferredModel.startsWith(provider.name))) {
+      // Force selected preferredModel to be tried first
+      modelsToTry = [preferredModel, ...modelsToTry.filter(m => m !== preferredModel)]
+    }
     for (const model of modelsToTry) {
       const modelKey = `${provider.name}|${model}`
       if (triedModelSet.has(modelKey)) continue
