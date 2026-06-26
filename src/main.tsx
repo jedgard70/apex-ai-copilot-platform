@@ -1015,7 +1015,12 @@ function isOperationalGovernancePrompt(text: string) {
 }
 
 function prefersPortuguese(text: string) {
-  return /\b(vc|voce|você|ola|oi|eai|salve|bom dia|boa tarde|boa noite|quem sou|o que|serviços|servicos|preciso|ajuda|ajudar|me ajuda|orçamento|orcamento|consultoria|arquivo|anexar|upload|cronograma|marketing|vendas|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra)\b|[ãõçáéíóú]/i.test(text)
+  const hasPtSignal = /\b(vc|voce|você|ola|oi|eai|salve|bom dia|boa tarde|boa noite|quem sou|o que|serviços|servicos|preciso|ajuda|ajudar|me ajuda|orçamento|orcamento|consultoria|arquivo|anexar|upload|cronograma|marketing|vendas|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra|quem é você|quem e voce|quem e vc|quem e apex|quem é a apex)\b|[ãõçáéíóú]/i.test(text)
+  if (hasPtSignal) return true
+  if (typeof navigator !== 'undefined' && navigator.language && navigator.language.toLowerCase().startsWith('pt')) {
+    return true
+  }
+  return false
 }
 
 function buildCopilotFailureMessage(userText: string) {
@@ -1027,6 +1032,19 @@ function buildCopilotFailureMessage(userText: string) {
 
 function isIdentityQuestion(text: string) {
   return /\b(vc sabe quem sou eu|você sabe quem sou eu|voce sabe quem sou eu|quem sou eu|do you know who i am|who am i)\b/i.test(text.trim())
+}
+
+function isAIIdentityQuestion(text: string) {
+  const trimmed = text.trim()
+  return /\b(quem [eé] (voc[eê]|vc|a apex)|o que (voc[eê]|vc) [eé]|quem [eé] apex|who are you|what is apex|quem e voce|quem e vc|o que e a apex)\b/i.test(trimmed)
+}
+
+function buildAIIdentityAnswer(text: string) {
+  if (!isAIIdentityQuestion(text)) return ''
+  const pt = prefersPortuguese(text)
+  return pt
+    ? 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.'
+    : 'I am Apex. Give me the task to run now. If a connector is missing, I will tell you exactly what is missing and follow up with a useful alternative.'
 }
 
 function isTechnicalIdentityQuestion(text: string) {
