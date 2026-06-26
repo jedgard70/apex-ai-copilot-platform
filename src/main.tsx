@@ -3931,7 +3931,22 @@ function App() {
       )}
     </div>
   )
-  const hasOperationalPanel = archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || cognitiveAgentsOutput || dashboardByRoleOutput || bimClashOutput || qualidadeOutput || workflowOutput || evmSchedulerComplianceOutput || supplyChainOutput || notificationsOutput || aiCostOutput || multiTenantOutput || pwaMobileOutput || digitalTwinOutput || knowledgeBaseOutput || projectPackageOutput || generationHistoryOpen || metricsOutput || avatarVoiceOutput || autoupgradeOutput || platformMapOutput || stockOutput || tripOutput || pipelineOutput || nrOutput || accountingOutput || permitsOutput || campaignAutomationOutput || exportCenterOpen
+  const isRightPanelSameAsLeft = Boolean(
+    (activeView === 'archvis' && archVisOutput) ||
+    (activeView === 'directcut' && directCutOutput) ||
+    (activeView === 'bim' && bim3DOutput) ||
+    (activeView === 'fieldops' && fieldOpsOutput) ||
+    (activeView === 'budget' && budgetOutput) ||
+    (activeView === 'contracts' && contractsOutput) ||
+    (activeView === 'research' && researchOutput) ||
+    (activeView === 'finance' && (accountingOutput || aiCostOutput)) ||
+    (activeView === 'marketing' && campaignAutomationOutput) ||
+    (activeView === 'crm' && pipelineOutput)
+  )
+
+  const hasOperationalPanel = Boolean(
+    archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || cognitiveAgentsOutput || dashboardByRoleOutput || bimClashOutput || qualidadeOutput || workflowOutput || evmSchedulerComplianceOutput || supplyChainOutput || notificationsOutput || aiCostOutput || multiTenantOutput || pwaMobileOutput || digitalTwinOutput || knowledgeBaseOutput || projectPackageOutput || generationHistoryOpen || metricsOutput || avatarVoiceOutput || autoupgradeOutput || platformMapOutput || stockOutput || tripOutput || pipelineOutput || nrOutput || accountingOutput || permitsOutput || campaignAutomationOutput || exportCenterOpen
+  ) && !isRightPanelSameAsLeft
   const workspaceClass = hasOperationalPanel ? 'studio-open' : ''
 
   if (isPublicVslRoute) {
@@ -4100,14 +4115,14 @@ function App() {
         // ── Split 70/30 — Painel + Chat lado a lado ──
         <div className="h-full" style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow: 'hidden', height: '100%' }}>
           {/* Panel — hidden on mobile, 70% on desktop */}
-          {activeView !== 'chat' && activeView !== 'client-dashboard' && (
+          {activeView !== 'chat' && activeView !== 'client-dashboard' && !hasOperationalPanel && (
           <section style={{ flex: '1 1 70%', display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, minWidth: 0, overflow: 'hidden' }}>
             {renderPanelContent(activeView)}
           </section>
           )}
           {/* Chat — 30% when panel open, 100% when chat-only mode, support mobile */}
-          {(activeView === 'chat' || !isMobile) && (
-          <section className="chat-shell" aria-label="Apex AI Copilot chat" style={{ flex: activeView === 'chat' ? '1 1 100%' : '0 0 30%', display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, minWidth: 0, borderLeft: activeView === 'chat' ? 'none' : '1px solid rgba(150, 164, 195, 0.15)' }}>
+          {(activeView === 'chat' || !isMobile || hasOperationalPanel) && (
+          <section className="chat-shell" aria-label="Apex AI Copilot chat" style={{ flex: (activeView === 'chat' && !hasOperationalPanel) ? '1 1 100%' : '0 0 30%', display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, minWidth: 0, borderLeft: (activeView === 'chat' && !hasOperationalPanel) ? 'none' : '1px solid rgba(150, 164, 195, 0.15)' }}>
             {/* ── Top Bar: Actions ── */}
             <div style={{ padding: '8px 12px', borderBottom: '1px solid rgba(150, 164, 195, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#121a2f', flexShrink: 0, minHeight: 40 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
