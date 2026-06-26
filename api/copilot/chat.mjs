@@ -295,8 +295,11 @@ function stripGovernanceRestrictions(lines = []) {
   })
 }
 
-function prefersPortugueseText(text = '') {
-  return /\b(oi|ola|ol[aá]|bom dia|boa tarde|boa noite|vc|voce|você|quem sou|o que|serviços|servicos|preciso|ajuda|ajudar|me ajuda|orçamento|orcamento|consultoria|arquivo|anexar|upload|cronograma|marketing|vendas|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra|teste)\b|[ãõçáéíóú]/i.test(text)
+function prefersPortugueseText(text = '', locale = '') {
+  const hasPtSignal = /\b(oi|ola|ol[aá]|bom dia|boa tarde|boa noite|vc|voce|você|quem sou|o que|serviços|servicos|preciso|ajuda|ajudar|me ajuda|orçamento|orcamento|consultoria|arquivo|anexar|upload|cronograma|marketing|vendas|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra|teste|quem é você|quem e voce|quem e vc|quem e apex|quem é a apex)\b|[ãõçáéíóú]/i.test(text)
+  if (hasPtSignal) return true
+  if (locale && String(locale).toLowerCase().startsWith('pt')) return true
+  return false
 }
 
 function isCapabilitiesQuestionText(text = '') {
@@ -314,7 +317,13 @@ function isUploadQuestionText(text = '') {
 }
 
 function isGreetingText(text = '') {
-  return /^\s*(oi|ola|ol[aá]|bom dia|boa tarde|boa noite|hello|hi|hey|test|teste)([\s,;!?]+.*)?$/i.test(text.trim())
+  const trimmed = text.trim()
+  if (/^(ol[aá]|oi|hey|hello|hi|bom dia|boa tarde|boa noite|e a[ií]|eai|e a\?|salve|tudo bem|tudo bom|como vai|como est[aá]|👋|🙏)(\s+apex)?[\s!?,.]*(tudo bem|tudo bom|como vai|como est[aá])?[\s!?,.]*$/i.test(trimmed)) {
+    return true
+  }
+  const shortResponseRegex = /^(boa|tamo junto|valeu|obrigad[oa]|ok|certo|entendi|sim|n[aã]o|pode|t[aá]|ta|blz|bl[ée]z|teste|test)$/i
+  const cleaned = trimmed.replace(/[\s!?,.]+$/, '')
+  return shortResponseRegex.test(cleaned)
 }
 
 function shouldForceLiveAgentToolUse(text = '') {
@@ -334,15 +343,31 @@ function isIdentityQuestionText(text) {
   return /\b(vc sabe quem sou eu|você sabe quem sou eu|voce sabe quem sou eu|quem sou eu|do you know who i am|who am i)\b/i.test(String(text || '').trim())
 }
 
+function isAIIdentityQuestionText(text = '') {
+  const trimmed = text.trim()
+  return /\b(quem [eé] (voc[eê]|vc|a apex)|o que (voc[eê]|vc) [eé]|quem [eé] apex|who are you|what is apex|quem e voce|quem e vc|o que e a apex)\b/i.test(trimmed)
+}
+
+function buildAIIdentityReply(userText, locale = '') {
+  if (!isAIIdentityQuestionText(userText)) return ''
+  const pt = prefersPortugueseText(userText, locale)
+  return pt
+    ? 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.'
+    : 'I am Apex. Give me the task to run now. If a connector is missing, I will tell you exactly what is missing and follow up with a useful alternative.'
+}
+
 function buildIdentityReply(userText, identity) {
   if (!isIdentityQuestionText(userText)) return ''
   return `Você está logado como ${identity.email || 'owner_admin (jedgard70@gmail.com)'}, role ${identity.role || 'owner_admin'}, workspace ${identity.workspaceName || 'Apex Platform'} — acesso total autorizado por Dr. Edgard.`
 }
 
-function buildChatFallbackReply(userText, identity, file = null) {
+function buildChatFallbackReply(userText, identity, file = null, locale = '') {
+  const aiIdentityReply = buildAIIdentityReply(userText, locale)
+  if (aiIdentityReply) return aiIdentityReply
+
   const identityReply = buildIdentityReply(userText, identity)
   if (identityReply) return identityReply
-  const pt = prefersPortugueseText(userText)
+  const pt = prefersPortugueseText(userText, locale)
   if (isGreetingText(userText)) {
     return pt
       ? 'Olá! 😊 Como posso ajudar no seu projeto hoje? Posso analisar plantas e documentos, gerar imagens e vídeos, revisar contratos, preparar orçamentos, criar campanhas de marketing, ou fazer pesquisas. É só me dizer o que precisa!'

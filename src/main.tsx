@@ -1127,7 +1127,13 @@ function isUploadQuestion(text: string) {
 }
 
 function isGreeting(text: string) {
-  return /^(ol[aá]|oi|hey|hello|hi|bom dia|boa tarde|boa noite|e a[ií]|eai|e a\?|salve|tudo bem|tudo bom|como vai|como est[aá]|boa|tamo junto|valeu|obrigad[oa]|ok|certo|entendi|sim|n[aã]o|pode|tá|ta|blz|bl[ée]z|👋|🙏)([\s!?,]+.*)?$/i.test(text.trim())
+  const trimmed = text.trim()
+  if (/^(ol[aá]|oi|hey|hello|hi|bom dia|boa tarde|boa noite|e a[ií]|eai|e a\?|salve|tudo bem|tudo bom|como vai|como est[aá]|👋|🙏)(\s+apex)?[\s!?,.]*(tudo bem|tudo bom|como vai|como est[aá])?[\s!?,.]*$/i.test(trimmed)) {
+    return true
+  }
+  const shortResponseRegex = /^(boa|tamo junto|valeu|obrigad[oa]|ok|certo|entendi|sim|n[aã]o|pode|t[aá]|ta|blz|bl[ée]z)$/i
+  const cleaned = trimmed.replace(/[\s!?,.]+$/, '')
+  return shortResponseRegex.test(cleaned)
 }
 
 function buildGreetingReply(text: string) {
@@ -1146,7 +1152,7 @@ function isPanelContextMessage(text: string): string | null {
 
 function buildPanelContextReply(panelName: string): string {
   const panels: Record<string, string> = {
-    'Field Operations': 'Painel Field Operations ativo! 🏗️ Aqui você registra vistorias de campo, cria relatórios diários, acompanha não-conformidades, controla RDOs e gerencia a equipe no canteiro. O que quer fazer?',
+    'Field Operations': 'Painel Field Operations active! 🏗️ Aqui você registra vistorias de campo, cria relatórios diários, acompanha não-conformidades, controla RDOs e gerencia a equipe no canteiro. O que quer fazer?',
     'Budget Studio': 'Painel de Orçamento ativo! 📊 Posso criar orçamentos detalhados, estimar custos por metro quadrado, gerar memorial de compras, calcular BDI e emitir quantitativos. Envie uma planta ou me diga o tipo de projeto.',
     'Contracts Studio': 'Painel de Contratos ativo! 📄 Posso gerar minutas de contrato, revisar cláusulas, criar aditivos, elaborar distrato e preparar proposta comercial completa. O que precisa?',
     'Research Studio': 'Painel de Pesquisa ativo! 🔍 Posso pesquisar normas técnicas (ABNT, NBR), regulamentações, melhores práticas, fornecedores, preços de mercado e referências técnicas. Qual assunto quer explorar?',
@@ -1170,6 +1176,9 @@ function buildProductFallbackAnswer(userText: string, identity: ChatIdentityCont
   // Only apply local fallbacks for single-line messages to prevent interception.
   const nonEmptyLines = userText.trim().split(/\n/).filter(l => l.trim()).length
   if (nonEmptyLines === 1) {
+    const aiIdentityAnswer = buildAIIdentityAnswer(userText)
+    if (aiIdentityAnswer) return aiIdentityAnswer
+
     if (isGreeting(userText)) return buildGreetingReply(userText)
     const identityAnswer = buildIdentityAnswer(userText, identity)
     if (identityAnswer) return identityAnswer
