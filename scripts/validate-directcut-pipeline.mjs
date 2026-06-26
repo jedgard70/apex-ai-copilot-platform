@@ -1,3 +1,4 @@
+import '../server/env.mjs'
 import assert from 'node:assert/strict'
 import handler from '../api/copilot/video-plan.mjs'
 import renderHandler from '../api/copilot/video-render.mjs'
