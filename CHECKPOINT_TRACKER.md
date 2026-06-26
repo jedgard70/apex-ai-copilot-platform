@@ -230,7 +230,7 @@ Apenas local (não vai para Vercel): `LOCAL_WORKER_*`, `REVIT_MCP_*`, shell/path
 
 ---
 
-## Sessão 2026-06-26 — Correção e Estabilização dos Validadores
+## Sessão 2026-06-26 — Correção, Estabilização e Melhorias de UX
 
 | # | Mudança | Commits | Status |
 | :--- | :--------- | :--------- | :-------- |
@@ -238,6 +238,11 @@ Apenas local (não vai para Vercel): `LOCAL_WORKER_*`, `REVIT_MCP_*`, shell/path
 | 2 | Corrigida falta do executável `ffmpeg.exe` em `ffmpeg-static` local | `d40fcde` | ✅ Done |
 | 3 | Corrigido validador `validate-directcut-pipeline` importando `env.mjs` | `d40fcde` | ✅ Done |
 | 4 | Alinhado validador `api-plan.test.ts` com transição Gemini-only | `d40fcde` | ✅ Done |
+| 5 | Redesenho do seletor de modelos com glassmorphism, busca e filtros rápidos | `7b7f256` | ✅ Done |
+| 6 | Importação de `Sparkles` no `src/main.tsx` sanando erro TS2304 | `fd934e4`, `7b7f256` | ✅ Done |
+| 7 | Adicionados botões "Copiar" e "Usar no Chat" na Biblioteca de Prompts | `41e71e4`, `ea1e3ea` | ✅ Done |
+| 8 | Redesenhados painéis iniciais vazios de ArchVis, DirectCut e BIM Studio | `c19b0f6` | ✅ Done |
+| 9 | Remoção do overlay temporário de depuração mobile em `AppLayout.tsx` | `c19b0f6` | ✅ Done |
 
 ---
 

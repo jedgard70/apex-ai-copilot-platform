@@ -221,6 +221,15 @@ e reportada ao Owner. Esta regra está documentada em:
 | Digital Twin | Relatório estático → dinâmico com dados reais do projeto | `7efb721` |
 | SINAPI | `not-connected` fixo → auto-detecta `src/data/sinapi-2024.json` | `8104021` |
 | planning-only removido | `ownerCodeExecutor.ts` + `digitalTwinKnowledge.ts` | `4d6bb62` |
+## Correções da Sessão (2026-06-26 — Estabilização e UX)
+
+| Correção | Descrição | Commit |
+| :---------- | :----------- | :-------- |
+| Seletor de Modelos Redesenhado | Seletor moderno de modelos (glassmorphism, busca em tempo real e filtros rápidos por provedor) | `7b7f256` |
+| Import de `Sparkles` corrigido | Resolução do erro TS2304 importando o ícone Sparkles no frontend | `fd934e4` |
+| Ações de Biblioteca de Prompts | Botões "Copiar" e "Usar no Chat" inseridos nos presets de prompts da biblioteca | `ea1e3ea` |
+| Redesenho de painéis vazios | Estágios iniciais funcionais de ArchVis/DirectCut e upload direto no BIM Studio | `c19b0f6` |
+| Limpeza de logs debug mobile | Remoção do overlay temporário de depuração mobile em `AppLayout.tsx` | `c19b0f6` |
 
 ## Status dos Conectores
 
@@ -238,23 +247,18 @@ Todos os provedores abaixo estão **configurados e operacionais** (chaves no `.e
 | Stripe | `STRIPE_SECRET_KEY` | ✅ Connected | Checkout + Webhook |
 | Autodesk APS | `APS_CLIENT_ID` + `APS_CLIENT_SECRET` | 🔒 Local-only | API Revit/BIM360 |
 
-*Last updated: 2026-06-24 (23:59)*
+*Last updated: 2026-06-26 (23:45)*
 *Status: ALL 52 MODULES DONE (42 Apex + 10 ACIP) — 10 PROVEDORES ATIVOS — 14 CONECTORES — ENV SYNC AUDITADO — Deploy LIVE*
-*Active pending work moved to `CHECKPOINT_TRACKER.md`.*
-
-- Active pending work moved to `CHECKPOINT_TRACKER.md`.
 
 ## Validation baseline in this checkpoint
 
-- `npm run build`: GREEN (20.58s, jspdf + ApsPanel + contractsPdfExport incluídos)
-- `npm run test`: GREEN (83 passed)
-- `npm run test:e2e`: GREEN (2 smoke tests passed)
-- `node --check server.mjs`: GREEN
-- Playwright specs separated from Vitest: GREEN
-- `npm run dev` + HTTP probe `127.0.0.1:4177`: GREEN
-- APS live token test: `Bearer expires_in=3599` ✅
-- Vercel production deploy: `https://www.apexglobalai.com` ✅ Ready in 59s
-- PR #71 merged to `main` ✅
+- `npm run build`: GREEN (vite build bem-sucedido)
+- `npm run test`: GREEN (99 passed)
+- `npm run validate:cp15x-h5`: GREEN (passed)
+- `npm run validate:cp15x-h44`: GREEN (passed)
+- `npm run validate:cp15x-h51a`: GREEN (passed)
+- `npm run validate:directcut-pipeline`: GREEN (passed)
+- Vercel production deploy: `https://www.apexglobalai.com` ✅ Ready
 
 ## Execution workflow (mandatory)
 
