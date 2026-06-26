@@ -1,4 +1,8 @@
-export function MarketingAnalyticsPage() {
+type MarketingAnalyticsPageProps = {
+  onNewCampaign?: () => void
+}
+
+export function MarketingAnalyticsPage({ onNewCampaign }: MarketingAnalyticsPageProps) {
   return (
     <div className="h-full bg-[#0B1221] flex flex-col overflow-hidden">
       {/* TopAppBar */}
@@ -24,7 +28,7 @@ export function MarketingAnalyticsPage() {
           </div>
         </div>
       </header>
-
+ 
       <div className="flex-1 overflow-y-auto px-10 py-8 space-y-8">
         {/* Page Header */}
         <div className="flex justify-between items-end">
@@ -34,7 +38,7 @@ export function MarketingAnalyticsPage() {
           </div>
           <div className="flex gap-4">
             <button className="px-6 py-2 border border-white/20 rounded-lg text-[#e2e2e2] hover:bg-[#1C294A] transition-all text-[10px] font-bold uppercase tracking-widest cursor-pointer">Download Report</button>
-            <button className="px-6 py-2 bg-[#6C47FF] rounded-lg text-white font-bold hover:shadow-lg hover:shadow-[#6C47FF]/30 transition-all flex items-center gap-2 cursor-pointer">
+            <button onClick={onNewCampaign} className="px-6 py-2 bg-[#6C47FF] rounded-lg text-white font-bold hover:shadow-lg hover:shadow-[#6C47FF]/30 transition-all flex items-center gap-2 cursor-pointer">
               <span className="material-symbols-outlined text-sm">add</span>
               New Campaign
             </button>
