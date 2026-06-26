@@ -6707,6 +6707,34 @@ const server = http.createServer(async (req, res) => {
     return
   }
 
+  // ── Docs / Walkthrough & Checkpoint Tracker API ────────────────────────────────
+  if (req.url?.startsWith('/api/docs/') && ['GET'].includes(req.method)) {
+    const docName = req.url.replace('/api/docs/', '')
+    let filepath = ''
+    if (docName === 'walkthrough') {
+      filepath = path.join(root, 'walkthrough.md')
+    } else if (docName === 'tracker') {
+      filepath = path.join(root, 'CHECKPOINT_TRACKER.md')
+    } else if (docName === 'state') {
+      filepath = path.join(root, 'docs/APEX_PLATFORM_CURRENT_STATE.md')
+    }
+
+    if (filepath && fs.existsSync(filepath)) {
+      try {
+        const content = fs.readFileSync(filepath, 'utf8')
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' })
+        res.end(JSON.stringify({ ok: true, content }))
+      } catch (e) {
+        res.writeHead(500, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ ok: false, error: 'Failed to read document' }))
+      }
+    } else {
+      res.writeHead(404, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ ok: false, error: 'Document not found' }))
+    }
+    return
+  }
+
   // ── Reports / Relatórios Inteligentes Apex ────────────────────────────────────
   if (req.url?.startsWith('/api/reports/') && ['GET'].includes(req.method)) {
     const { default: handler } = await import('./api/reports/index.mjs')
