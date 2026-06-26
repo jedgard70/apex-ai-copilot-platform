@@ -19,6 +19,7 @@ The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.m
 - Env vars protection: **GREEN** (regra absoluta no AGENTS.md, .env.local e server.mjs)
 - Deploy hygiene: **GREEN** — CI workflow now validates builds/tests before deployment
 - PWA/Mobile: **GREEN** — App instalável no celular (Android/iOS), layout responsivo completo, Service Worker v2 offline
+- **AGENTIC CAPABILITIES**: **GREEN** — Field Ops Time Tracker (Payroll) & Personal Brain (Reminders/Lists) implemented with real-time polling and multi-tenant isolation.
 
 ## Complete module map (42 capabilities — ALL DONE)
 

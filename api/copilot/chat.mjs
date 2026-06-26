@@ -1233,6 +1233,7 @@ async function callGeminiNative(requestPayload, overrideConfig) {
         'x-goog-api-key': apiKey,
       },
       body: JSON.stringify(body),
+      signal: AbortSignal.timeout(12000),
     })
 
     const interactionData = await primaryResponse.json().catch(() => ({}))

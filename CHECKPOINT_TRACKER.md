@@ -13,9 +13,16 @@
 
 Use this file as the canonical checkpoint snapshot for module/connector status. The platform is now documented as a consolidated inventory of 34 operational capabilities; the primary runtime modules are all done and live.
 
-Last updated: 2026-06-25 (19:30) — 📱 SESSÃO MOBILE/PWA: App instalável no celular + layout responsivo completo.
+Last updated: 2026-06-26 (19:57) — 🚀 SESSÃO CAPACIDADE TOTAL: Field Ops AI e Cérebro Pessoal.
 
-🔥 HOJE (2026-06-25 — sessão mobile/PWA):
+🔥 HOJE (2026-06-26 — sessão de super capacidades da IA):
+• ✅ **Mobile Full-Screen Layout Fix** — Reparo completo no `src/main.tsx` para mobile assumir 100% da tela preservando o Desktop (sem amassar o chat).
+• ✅ **Correção de Estabilidade do Servidor** — Tratados erros de Promise rejection (`Local Worker`) e removido parâmetro obsoleto `frequency_penalty` da API do Gemini para evitar travamentos silenciosos no Vercel/Local.
+• ✅ **Diário de Obras (Field Ops Time Tracker)** — Novo sistema de banco de dados JSON invisível para a IA calcular folhas de pagamento semanais automaticamente (Dias Trabalhados x Diária - Adiantamentos), acionado via Cron nas Sextas-feiras ao meio-dia.
+• ✅ **Memória Pessoal e Lembretes (Personal Brain)** — Novo módulo `personalAssistantLogic.mjs` que gerencia listas de compras/materiais e lembretes com polling em tempo real na UI atrelado estritamente ao e-mail do usuário logado (Multi-tenant isolation).
+• ✅ **Automação de Skils Nativas** — Criação das Skills fundacionais (Personal Assistant, Field Ops Logger, Local Worker, etc) para transformar o Apex AI num Agente Autônomo corporativo.
+
+🔥 ONTEM (2026-06-25 — sessão mobile/PWA):
 • ✅ **PWA instalável** — manifest.json com display:standalone, shortcuts, ícones maskable
 • ✅ **Service Worker v2** — cache offline robusto (network-first para nav, cache-first para assets)
 • ✅ **Banner de instalação** — Android (beforeinstallprompt) + iOS (instruções manuais Safari)

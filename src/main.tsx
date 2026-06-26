@@ -3971,6 +3971,45 @@ function App() {
     if (cmd) { setInput(cmd); setTimeout(() => askCopilot(cmd), 50) }
   }
 
+  const [hasTriggeredFridayReport, setHasTriggeredFridayReport] = useState(false);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      // Friday (5) at 12:00 PM
+      if (now.getDay() === 5 && now.getHours() === 12 && !hasTriggeredFridayReport) {
+        setHasTriggeredFridayReport(true);
+        handleCommand('SYSTEM_EVENT: TRIGGER_FIELDOPS_REPORT');
+      }
+      // Reset trigger on Saturday
+      if (now.getDay() === 6 && hasTriggeredFridayReport) {
+        setHasTriggeredFridayReport(false);
+      }
+    }, 60000); // verify every minute
+    return () => clearInterval(timer);
+  }, [hasTriggeredFridayReport]);
+
+  useEffect(() => {
+    const email = accountState?.user?.email || accountState?.profile?.email;
+    if (!email) return;
+
+    const timer = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/copilot/reminders?email=${encodeURIComponent(email)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.ok && data.reminders && data.reminders.length > 0) {
+            data.reminders.forEach((rem: any) => {
+              handleCommand(`SYSTEM_EVENT: PERSONAL_REMINDER "${rem.text}"`);
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch personal reminders", err);
+      }
+    }, 60000); // Check every minute
+    return () => clearInterval(timer);
+  }, [accountState?.user?.email, accountState?.profile?.email]);
+
   // Render painel ativo no split 80/20
   function renderPanelContent(panelView: string) {
     switch (panelView) {
@@ -4099,7 +4138,15 @@ function App() {
         <div className="h-full" style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow: 'hidden', height: '100%' }}>
           {/* Panel — hidden on mobile, 70% on desktop */}
           {activeView !== 'chat' && activeView !== 'client-dashboard' && !hasOperationalPanel && (
-          <section style={{ flex: '1 1 70%', display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, minWidth: 0, overflow: 'hidden' }}>
+          <section className={isMobile ? 'fixed inset-0 z-[60] bg-[#0f172a] overflow-auto' : ''} style={{ flex: isMobile ? undefined : '1 1 70%', display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, minWidth: 0, overflow: 'hidden' }}>
+            {isMobile && (
+              <div style={{ padding: '12px', background: '#1e293b', display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                <button onClick={() => setActiveView('chat')} style={{ background: 'transparent', border: 'none', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_back</span>
+                  Voltar ao Chat
+                </button>
+              </div>
+            )}
             {renderPanelContent(activeView)}
           </section>
           )}
@@ -4812,7 +4859,15 @@ function App() {
         )}
 
         {hasOperationalPanel && (
-        <aside className="right-panel" aria-label="Active Apex tool" style={{ flex: '1 1 65%', minWidth: 0, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+        <aside className={`right-panel ${isMobile ? 'fixed inset-0 z-[60] bg-[#0f172a]' : ''}`} aria-label="Active Apex tool" style={{ flex: isMobile ? undefined : '1 1 65%', minWidth: 0, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+          {isMobile && (
+            <div style={{ padding: '12px', background: '#1e293b', display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+              <button onClick={() => closeOtherPanels('none')} style={{ background: 'transparent', border: 'none', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_back</span>
+                Voltar ao Chat
+              </button>
+            </div>
+          )}
           {archVisOutput && (
             <ArchVisPanel
               source={archVisOutput.source}
