@@ -1,7 +1,7 @@
 # APEX Platform — Unified Current State
 
 Checkpoint: CP-LIVE-FINAL — 62 capabilities documentadas + PWA/Mobile
-Last update: 2026-06-26 (11:25)
+Last update: 2026-06-26 (11:50)
 
 ## Canonical rule
 

@@ -247,6 +247,7 @@ Apenas local (não vai para Vercel): `LOCAL_WORKER_*`, `REVIT_MCP_*`, shell/path
 | 11 | Adicionado interceptador local e fallbacks de painéis ao abrir painéis no chat | `antigravity` | ✅ Done |
 | 12 | Removidas mensagens mecânicas de falha de conexão por respostas alternativas úteis | `antigravity` | ✅ Done |
 | 13 | Refinada detecção de saudação (não-ambiciosa) + fallback de navigator.language + resposta identidade Apex | `antigravity` | ✅ Done |
+| 14 | Ajustada a resposta de identidade da Apex AI para a frase curta: "Sou a Apex AI. Como posso te ajudar?" | `antigravity` | ✅ Done |
 
 ---
 
