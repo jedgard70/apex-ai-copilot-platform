@@ -2300,17 +2300,7 @@ async function handleChat(req, res) {
       })
     }
 
-    // Fast-path: greeting
-    if (isGreetingText(userText)) {
-      const pt = prefersPortugueseText(userText, locale)
-      const reply = pt
-        ? 'Olá! 😊 Como posso ajudar no seu projeto hoje? Posso analisar plantas e documentos, gerar imagens e vídeos, revisar contratos, preparar orçamentos, criar campanhas de marketing, ou fazer pesquisas de mercado. É só me dizer o que precisa!'
-        : 'Hello! 😊 How can I help with your project today? I can analyze plans and documents, generate images and videos, review contracts, prepare budgets, create marketing campaigns, or do market research. Just let know what you need!'
-      return chatJson(res, 200, {
-        finalReply: reply,
-        mode: 'greeting-short-circuit',
-      })
-    }
+
 
     const languageSwitch = String(userText || '').trim().toLowerCase()
     if (['en', 'english'].includes(languageSwitch)) {

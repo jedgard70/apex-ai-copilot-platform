@@ -1179,27 +1179,10 @@ function buildProductFallbackAnswer(userText: string, identity: ChatIdentityCont
     const aiIdentityAnswer = buildAIIdentityAnswer(userText)
     if (aiIdentityAnswer) return aiIdentityAnswer
 
-    if (isGreeting(userText)) return buildGreetingReply(userText)
     const identityAnswer = buildIdentityAnswer(userText, identity)
     if (identityAnswer) return identityAnswer
     const operationalAnswer = buildOperationalSkillResponse(userText)
     if (operationalAnswer) return operationalAnswer
-  }
-  const pt = prefersPortuguese(userText)
-  if (isCapabilitiesQuestion(userText)) {
-    return pt
-      ? 'Sim. Eu consigo responder, criar e executar fluxos da plataforma — por exemplo fachada, planta humanizada, orçamento, contratos, cronograma, relatórios, campanhas e automações. Me diga o resultado que você quer e eu sigo direto.'
-      : 'Yes. I can answer, create and run platform workflows — for example facade concepts, floor plan work, budgets, contracts, schedules, reports, campaigns and automations. Tell me the result you want and I will proceed directly.'
-  }
-  if (isContactQuestion(userText)) {
-    return pt
-      ? 'Posso ajudar a preparar a consulta. Envie nome, email, telefone, cidade, tipo de projeto e o que precisa: BIM, 3D, contrato, alvara, proposta, financeiro, marketing ou operacao de campo.'
-      : 'I can help prepare the consultation. Send name, email, phone, city, project type and what you need: BIM, 3D, contract, permit, proposal, finance, marketing or field operations.'
-  }
-  if (isUploadQuestion(userText)) {
-    return pt
-      ? 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botao de anexar. Eu uso o arquivo como contexto da conversa e sigo com uma resposta direta.'
-      : 'You can upload a file, PDF, image, plan or screenshot with the attach button. I will use it as conversation context and continue with a direct answer.'
   }
   return ''
 }
