@@ -58,7 +58,7 @@ e reportada ao Owner. Esta regra está documentada em:
 
 | # | Provedor | Problema | Correção | Commit |
 | :--- | :--------- | :--------- | :---------- | :-------- |
-| 7 | OpenRouter | Modelo padrão quebrado (Gemini) | Default alterado p/ `openrouter\|openai/gpt-4o-mini` | `5f273c0` |
+| 7 | Gemini | Modelo padrão quebrado | Default alterado p/ gemini-2.5-flash | `5f273c0` |
 | 8 | Gemini Interactions | Import quebrava Vercel (500) | Dynamic import + `@google/genai` lazy | `a836659` |
 | 9 | OpenCode Go | Modelos não carregavam | API key sync + fetch da API oficial | `4622f8b` |
 | 10 | OpenCode Go | Chat fallback | `apiBase`/`apiKey` não passados p/ `callOpenAIChat` | `c19dab5` |
@@ -199,7 +199,7 @@ f3892bf fix: FAL API retorna 'items' nao 'models' - corrigido
 4951bcd fix: mais modelos OpenCode Go
 4cbc57b feat: busca modelos de TODOS provedores via API
 98d1008 feat: busca modelos FAL direto da API fal.ai
-daa5f6f fix: modelos estaticos para provedores nao-OpenRouter
+daa5f6f fix: modelos estaticos para provedores nativos
 a16e956 fix: modelos filtrados por provedor selecionado
 261a49f fix: provider antes do modelo + sidebar funcional + dashboard real
 5f273c0 fix: reorganiza layout do seletor
@@ -247,7 +247,6 @@ a836659 fix: import dinamico do @google/genai
 | Conector | Status | Chave |
 | :---------- | :-------- | :------- |
 | OpenAI | ✅ Connected | `OPENAI_API_KEY` |
-| OpenRouter | ✅ Connected | `OPENAI_API_KEYROUTER` |
 | Gemini (direto) | ✅ Connected | `GEMINI_API_KEY` |
 | Gemini Interactions | ✅ Connected | `GEMINI_API_KEY` |
 | Anthropic | ✅ Connected | `ANTHROPIC_API_KEY` |

@@ -108,9 +108,9 @@ INTERNO
 
 | Etapa | Status | Observação |
 |-------|--------|------------|
-| Chat com IA | ✅ | Provider Router com fallback automático entre 6 provedores |
-| Provider Router | ✅ | Gemini FREE → OpenRouter → OpenCode Go → FAL → OpenAI → AI Gateway |
-| Modelos dinâmicos | ✅ | Busca TODOS os modelos da API de cada provedor (300+ OpenRouter) |
+| Chat com IA | ✅ | Provider Router com fallback automático entre os provedores |
+| Provider Router | ✅ | Gemini FREE → FAL.ai |
+| Modelos dinâmicos | ✅ | Busca todos os modelos da API do Gemini e FAL |
 | Auto-Fix Engine | ✅ | Detecta e corrige erros/ conflitos automaticamente |
 | ArchVis (imagens) | ✅ | FAL.ai + OpenAI |
 | DirectCut (vídeos) | ✅ | FAL.ai (Kling, Sora, Veo) |
