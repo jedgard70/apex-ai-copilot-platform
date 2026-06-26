@@ -21,6 +21,7 @@ import {
   Search,
   Settings,
   Share2,
+  Sparkles,
   Square,
   Terminal,
   Volume2,
