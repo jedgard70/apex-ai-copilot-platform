@@ -13,4 +13,4 @@ Created by Apex AI Copilot.
 ### Active Monitors:
 - **Cost Alert Threshold**: $150.00 / month
 - **Critical Cap (Hard Stop)**: $300.00 / month
-- **Gateway Dashboard Link**: `https://dashboard.openrouter.ai`
+- **Gemini API Dashboard Link**: `https://aistudio.google.com/`

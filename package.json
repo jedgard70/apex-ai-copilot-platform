@@ -32,8 +32,6 @@
     "@auth0/nextjs-auth0": "^4.22.0",
     "@genkit-ai/googleai": "^1.28.0",
     "@google/genai": "^2.9.0",
-    "@openrouter/agent": "^0.7.2",
-    "@openrouter/sdk": "^0.13.7",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
     "@sentry/node": "^10.59.0",
