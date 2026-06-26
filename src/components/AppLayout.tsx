@@ -54,12 +54,63 @@ type AppLayoutProps = {
   onMapClick?: () => void
   onAccountTreeClick?: () => void
   onProfileClick?: () => void
+  userRole?: string
 }
 
 /** ── Provider LED colors ── */
 const LED_GREEN = '#22c55e'
 const LED_RED = '#ef4444'
 const LED_AMBER = '#f59e0b'
+
+const normalizeRole = (role: string | null | undefined): string => {
+  if (!role) return 'owner_admin'
+  const normalized = role.toLowerCase().replace(/\s+/g, '_')
+  if (normalized === 'owner/admin') return 'owner_admin'
+  return normalized
+}
+
+const roleSidebarMap: Record<string, string[]> = {
+  owner_admin: [
+    'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
+    'research', 'crm', 'finance', 'governance', 'marketing', 'archvis',
+    'directcut', 'owner', 'deployment', 'navigator', 'training', 'docs'
+  ],
+  internal_team: [
+    'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
+    'crm', 'archvis', 'directcut', 'training', 'docs'
+  ],
+  client: [
+    'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
+    'archvis', 'directcut'
+  ],
+  partner: [
+    'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
+    'archvis', 'directcut'
+  ],
+  viewer: [
+    'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
+    'archvis', 'directcut'
+  ],
+  contractor: [
+    'dashboard', 'chat', 'fieldops', 'contracts'
+  ],
+  finance: [
+    'dashboard', 'chat', 'budget', 'finance', 'contracts'
+  ],
+  sales: [
+    'dashboard', 'chat', 'crm', 'contracts', 'budget'
+  ],
+  field: [
+    'dashboard', 'chat', 'fieldops'
+  ],
+  bim_manager: [
+    'dashboard', 'chat', 'bim', 'archvis', 'directcut', 'budget'
+  ],
+  project_manager: [
+    'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
+    'crm', 'finance', 'governance', 'marketing', 'archvis', 'directcut'
+  ]
+}
 
 export default function AppLayout({
   children,
@@ -76,12 +127,17 @@ export default function AppLayout({
   onMapClick,
   onAccountTreeClick,
   onProfileClick,
+  userRole,
 }: AppLayoutProps) {
   const [navActive, setNavActive] = useState(activeNav)
   const [ledTooltip, setLedTooltip] = useState<string | null>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
+
+  const normalizedRole = normalizeRole(userRole)
+  const allowedItems = roleSidebarMap[normalizedRole] || roleSidebarMap.owner_admin
+  const filteredSidebarItems = sidebarItems.filter(item => allowedItems.includes(item.id))
 
   // Debug: mostrar status na tela (temporário)
   const debugInfo = `Mobile: ${isMobile} | Tablet: ${isTablet} | Width: ${typeof window !== 'undefined' ? window.innerWidth : 'N/A'}`
