@@ -86,7 +86,7 @@ function prioritizeGeminiModels(modelsList) {
 }
 
 export async function getProviderChain(options = {}) {
-  const { preferredModel } = options
+  const { preferredModel, skipDynamicFetch } = options
   const chain = []
   const geminiKey = (process.env.GEMINI_API_KEY || "").trim()
   const falKey = (process.env.FAL_KEY || process.env.FAL_API_KEY || "").trim()
@@ -115,7 +115,7 @@ export async function getProviderChain(options = {}) {
   // Gemini — usa /openai para compatibilidade com chat/completions
   if (geminiKey) {
     const chatBase = process.env.GEMINI_API_BASE || "https://generativelanguage.googleapis.com/v1beta/openai"
-    const models = await getGeminiModels(geminiKey)
+    const models = skipDynamicFetch ? [] : await getGeminiModels(geminiKey)
     const rawList = models.length > 0 ? models.map(m => m.id) : GEMINI_STATIC_FALLBACKS
     const geminiModelsList = prioritizeGeminiModels(rawList)
     const defaultModel = preferredModel && preferredModel.startsWith("gemini") ? preferredModel : (geminiModelsList[0] || "gemini-3.1-flash-lite")
@@ -131,7 +131,7 @@ export async function getProviderChain(options = {}) {
 
   // FAL.ai
   if (falKey) {
-    const models = await getFalModels(falKey)
+    const models = skipDynamicFetch ? [] : await getFalModels(falKey)
     const falModelsList = models.length > 0 ? models.map(m => m.id) : FAL_STATIC_FALLBACKS
     const defaultModel = preferredModel && preferredModel.startsWith("fal") ? preferredModel : (falModelsList[0] || "fal-ai/mistral-large")
     chain.push({
@@ -149,7 +149,7 @@ export async function getProviderChain(options = {}) {
 
 export async function chatWithFallback(params) {
   const { messages, tools, preferredProvider, preferredModel, temperature = 0.72, maxTokens = 900, toolRound = 0 } = params
-  const chain = await getProviderChain({ preferredProvider, preferredModel })
+  const chain = await getProviderChain({ preferredProvider, preferredModel, skipDynamicFetch: true })
   if (chain.length === 0) return { ok: false, error: "Nenhum provedor configurado." }
 
   const errors = []
