@@ -1015,14 +1015,14 @@ function isOperationalGovernancePrompt(text: string) {
 }
 
 function prefersPortuguese(text: string) {
-  return /\b(vc|voce|você|quem sou|o que|serviços|servicos|preciso|ajuda|ajudar|me ajuda|orçamento|orcamento|consultoria|arquivo|anexar|upload|cronograma|marketing|vendas|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra)\b|[ãõçáéíóú]/i.test(text)
+  return /\b(vc|voce|você|ola|oi|eai|salve|bom dia|boa tarde|boa noite|quem sou|o que|serviços|servicos|preciso|ajuda|ajudar|me ajuda|orçamento|orcamento|consultoria|arquivo|anexar|upload|cronograma|marketing|vendas|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra)\b|[ãõçáéíóú]/i.test(text)
 }
 
 function buildCopilotFailureMessage(userText: string) {
   const pt = prefersPortuguese(userText) || true
   return pt
-    ? 'Estou com dificuldade de conectar agora. Pode repetir ou tentar de outro jeito? Se quiser, posso tentar com outro modelo de IA disponível no seletor.'
-    : 'I am having trouble connecting right now. Could you try again or phrase it differently? You can also try a different AI model from the selector.'
+    ? 'Pode repetir de outro jeito? Estou online e pronto pra ajudar — me diga o que quer fazer: analisar planta, gerar imagem, orçamento, contrato, pesquisa ou qualquer outra tarefa.'
+    : 'Could you rephrase that? I am online and ready to help — just tell me what you need: analyze a plan, generate an image, budget, contract, research, or any other task.'
 }
 
 function isIdentityQuestion(text: string) {
