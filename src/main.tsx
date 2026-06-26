@@ -4207,7 +4207,14 @@ function App() {
             {/* ── Prompt Library or Messages ── */}
             {showPromptLibrary ? (
               <div style={{ flex: 1, overflow: 'auto', background: '#0f172a' }}>
-                <ProfessionalPromptPanel onClear={() => { setShowPromptLibrary(false); setActivePromptLibraryModule(undefined) }} initialModule={activePromptLibraryModule} />
+                <ProfessionalPromptPanel
+                  onClear={() => { setShowPromptLibrary(false); setActivePromptLibraryModule(undefined) }}
+                  initialModule={activePromptLibraryModule}
+                  onSelectPrompt={(promptText) => {
+                    setInput(promptText);
+                    setShowPromptLibrary(false);
+                  }}
+                />
               </div>
             ) : (
           <div className="chat-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, position: 'relative', height: '100%', overflow: 'hidden' }}>
