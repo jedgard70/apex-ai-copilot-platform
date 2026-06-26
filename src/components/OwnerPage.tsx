@@ -65,9 +65,12 @@ export function OwnerPage({ onNavigate, onOpenChat }: OwnerPageProps) {
     <div className="h-full overflow-hidden bg-[#0B1221] flex">
       {/* Sidebar — Stitch style */}
       <aside className="w-[240px] bg-[#1e2020] border-r border-white/5 flex flex-col flex-shrink-0">
-        <div className="px-5 py-6">
-          <h2 className="text-[18px] font-bold text-[#e2e2e2]">Enterprise Panel</h2>
-          <p className="text-[10px] text-[#c6c6ce] tracking-widest uppercase mt-1">Global Control Center</p>
+        <div className="px-5 py-6 flex items-center gap-3">
+          <img src="/apex-global-logo.png" alt="Apex Global" className="w-9 h-9 rounded-lg object-cover" />
+          <div>
+            <h2 className="text-[16px] font-bold text-[#e2e2e2] leading-tight">Apex Global</h2>
+            <p className="text-[9px] text-[#c6c6ce] tracking-widest uppercase mt-0.5">Control Center</p>
+          </div>
         </div>
         <nav className="flex-grow space-y-1 px-3">
           {[
