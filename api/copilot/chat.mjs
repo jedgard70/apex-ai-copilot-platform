@@ -1748,14 +1748,34 @@ export default async function handler(req, res) {
     )
     const looksLikeDocSummary = hasReadyText && PDF_SUMMARY_PATTERN.test(routingMessage || '')
 
-    // Fast-path: greeting — unconditional, any language
-    if (/^\s*(ol[aá]|oi|ola|hi|hello|hey)\b/i.test(userMessage.trim())) {
+    const locale = body.language || body.locale || req.headers['accept-language'] || ''
+
+    // Fast-path: AI identity question
+    const aiIdentityReply = buildAIIdentityReply(userMessage, locale)
+    if (aiIdentityReply) {
       return sendJson(res, 200, {
-        finalReply: 'Olá! 😊 Como posso ajudar no seu projeto hoje? Posso analisar plantas e documentos, gerar imagens e vídeos, revisar contratos, preparar orçamentos, criar campanhas de marketing, ou fazer pesquisas. É só me dizer o que precisa!',
-        reply: 'Olá! 😊 Como posso ajudar no seu projeto hoje? Posso analisar plantas e documentos, gerar imagens e vídeos, revisar contratos, preparar orçamentos, criar campanhas de marketing, ou fazer pesquisas. É só me dizer o que precisa!',
+        finalReply: aiIdentityReply,
+        reply: aiIdentityReply,
         memoryPatch: null,
-        mode: 'apex-greeting-pt',
-        operator: { intent: 'production_affirmation' },
+        mode: 'apex-identity-local',
+        operator: { intent: 'production_identity' },
+        confirmation: null,
+        productionStatus,
+      })
+    }
+
+    // Fast-path: greeting
+    if (isGreetingText(userMessage)) {
+      const pt = prefersPortugueseText(userMessage, locale)
+      const reply = pt
+        ? 'Olá! 😊 Como posso ajudar no seu projeto hoje? Posso analisar plantas e documentos, gerar imagens e vídeos, revisar contratos, preparar orçamentos, criar campanhas de marketing, ou fazer pesquisas. É só me dizer o que precisa!'
+        : 'Hello! 😊 How can I help with your project today? I can analyze plans and documents, generate images and videos, review contracts, prepare budgets, create marketing campaigns, or do research. Just tell me what you need!'
+      return sendJson(res, 200, {
+        finalReply: reply,
+        reply: reply,
+        memoryPatch: null,
+        mode: pt ? 'apex-greeting-pt' : 'apex-greeting-en',
+        operator: { intent: 'production_greeting' },
         confirmation: null,
         productionStatus,
       })
@@ -1861,7 +1881,7 @@ export default async function handler(req, res) {
     // to the operator runtime so it can prepare a confirmation and set pendingH6Action.
     const h6Route = APEX_FREE_AGENT ? null : routeH6ActionRequest({ userMessage: routingMessage })
     if (h6Route) {
-      const fallbackText = buildChatFallbackReply(userMessage, {}, body.file || null)
+      const fallbackText = buildChatFallbackReply(userMessage, { locale }, body.file || null)
       return sendJson(res, 200, {
         finalReply: fallbackText,
         reply: fallbackText,
@@ -1877,7 +1897,7 @@ export default async function handler(req, res) {
     const fileCandidate2 = body.file || null
     const looksLikeDocSummary2 = Boolean(fileCandidate2 && fileCandidate2.extractionStatus === 'ready' && String(fileCandidate2.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize|analise o arquivo|resuma o arquivo|analise este arquivo|resuma este arquivo|explique o arquivo|explique este arquivo)\b/i.test(userMessage || ''))
     if (!APEX_FREE_AGENT && !looksLikeDocSummary2 && !body.file) {
-      const fallbackText = buildChatFallbackReply(userMessage, {}, null)
+      const fallbackText = buildChatFallbackReply(userMessage, { locale }, null)
       return sendJson(res, 200, {
         finalReply: fallbackText,
         reply: fallbackText,
@@ -1888,6 +1908,7 @@ export default async function handler(req, res) {
 
     // Conversational/Natural Flow: Fall through to Gemini completions
     const identityContext = normalizeIdentityContext(body.identityContext || {})
+    identityContext.locale = locale
     const identityReply = buildIdentityReply(userMessage, identityContext)
     if (identityReply) {
       return sendJson(res, 200, {
@@ -1899,11 +1920,28 @@ export default async function handler(req, res) {
       })
     }
 
-    // Portuguese greeting short-circuit — unconditional
-    if (/^\s*(ol[aá]|oi|ola|hi|hello|hey)\b/i.test((userMessage || '').trim())) {
+    const aiIdentityReplySecond = buildAIIdentityReply(userMessage, locale)
+    if (aiIdentityReplySecond) {
       return sendJson(res, 200, {
-        finalReply: 'Olá! 😊 Como posso ajudar no seu projeto hoje? Posso analisar plantas e documentos, gerar imagens e vídeos, revisar contratos, preparar orçamentos, criar campanhas de marketing, ou fazer pesquisas. É só me dizer o que precisa!',
-        reply: 'Olá! 😊 Como posso ajudar no seu projeto hoje? Posso analisar plantas e documentos, gerar imagens e vídeos, revisar contratos, preparar orçamentos, criar campanhas de marketing, ou fazer pesquisas. É só me dizer o que precisa!',
+        finalReply: aiIdentityReplySecond,
+        reply: aiIdentityReplySecond,
+        memoryPatch: null,
+        mode: 'apex-identity-local-second',
+        operator: { intent: 'production_identity' },
+        confirmation: null,
+        productionStatus,
+      })
+    }
+
+    // Portuguese/English greeting short-circuit
+    if (isGreetingText(userMessage)) {
+      const pt = prefersPortugueseText(userMessage, locale)
+      const reply = pt
+        ? 'Olá! 😊 Como posso ajudar no seu projeto hoje? Posso analisar plantas e documentos, gerar imagens e vídeos, revisar contratos, preparar orçamentos, criar campanhas de marketing, ou fazer pesquisas. É só me dizer o que precisa!'
+        : 'Hello! 😊 How can I help with your project today? I can analyze plans and documents, generate images and videos, review contracts, prepare budgets, create marketing campaigns, or do research. Just tell me what you need!'
+      return sendJson(res, 200, {
+        finalReply: reply,
+        reply: reply,
         mode: 'greeting-short-circuit',
         confirmation: null,
         productionStatus,
