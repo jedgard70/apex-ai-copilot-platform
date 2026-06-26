@@ -1,4 +1,28 @@
+import { useState, useEffect } from 'react'
+
 export function TechnicalDocumentationPage() {
+  const [activeTab, setActiveTab] = useState('Architecture')
+  const [docContent, setDocContent] = useState('')
+  const [selectedDoc, setSelectedDoc] = useState('walkthrough')
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (activeTab === 'Upgrades') {
+      setLoading(true)
+      fetch(`/api/docs/${selectedDoc}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.ok) {
+            setDocContent(data.content)
+          } else {
+            setDocContent('Erro ao carregar o documento.')
+          }
+        })
+        .catch(() => setDocContent('Erro ao carregar o documento.'))
+        .finally(() => setLoading(false))
+    }
+  }, [activeTab, selectedDoc])
+
   return (
     <div className="h-full bg-[#051424] text-[#d4e4fa] flex flex-col overflow-hidden">
       {/* TopNavBar */}
@@ -6,10 +30,10 @@ export function TechnicalDocumentationPage() {
         <div className="flex items-center gap-8">
           <span className="text-2xl font-bold text-[#00f0ff] tracking-tighter" style={{ fontFamily: 'Geist, sans-serif' }}>Apex Global AI</span>
           <nav className="hidden md:flex gap-6">
-            <span className="text-sm text-[#00f0ff] border-b-2 border-[#00f0ff] pb-1 cursor-pointer" style={{ fontFamily: 'Geist, sans-serif' }}>Docs</span>
+            <span className={`text-sm pb-1 cursor-pointer transition-colors ${activeTab === 'Architecture' ? 'text-[#00f0ff] border-b-2 border-[#00f0ff]' : 'text-[#b9cacb] hover:text-[#00f0ff]'}`} onClick={() => setActiveTab('Architecture')} style={{ fontFamily: 'Geist, sans-serif' }}>Docs</span>
             <span className="text-sm text-[#b9cacb] hover:text-[#00f0ff] transition-colors cursor-pointer" style={{ fontFamily: 'Geist, sans-serif' }}>API</span>
             <span className="text-sm text-[#b9cacb] hover:text-[#00f0ff] transition-colors cursor-pointer" style={{ fontFamily: 'Geist, sans-serif' }}>Pricing</span>
-            <span className="text-sm text-[#b9cacb] hover:text-[#00f0ff] transition-colors cursor-pointer" style={{ fontFamily: 'Geist, sans-serif' }}>Changelog</span>
+            <span className={`text-sm pb-1 cursor-pointer transition-colors ${activeTab === 'Upgrades' ? 'text-[#00f0ff] border-b-2 border-[#00f0ff]' : 'text-[#b9cacb] hover:text-[#00f0ff]'}`} onClick={() => setActiveTab('Upgrades')} style={{ fontFamily: 'Geist, sans-serif' }}>Upgrades</span>
           </nav>
         </div>
         <div className="flex items-center gap-4">
@@ -44,16 +68,18 @@ export function TechnicalDocumentationPage() {
           </div>
           <nav className="flex-1 px-2 space-y-1">
             {[
-              { icon: 'bolt', label: 'Quickstart', active: false },
-              { icon: 'hub', label: 'Architecture', active: true },
-              { icon: 'code', label: 'API Reference', active: false },
-              { icon: 'lock', label: 'Security', active: false },
-              { icon: 'verified_user', label: 'Compliance', active: false },
+              { icon: 'bolt', label: 'Quickstart', id: 'Quickstart' },
+              { icon: 'hub', label: 'Architecture', id: 'Architecture' },
+              { icon: 'history', label: 'Upgrades & Walkthroughs', id: 'Upgrades' },
+              { icon: 'code', label: 'API Reference', id: 'API' },
+              { icon: 'lock', label: 'Security', id: 'Security' },
+              { icon: 'verified_user', label: 'Compliance', id: 'Compliance' },
             ].map((item) => (
               <div
                 key={item.label}
+                onClick={() => setActiveTab(item.id)}
                 className={`flex items-center gap-3 pl-4 py-2 cursor-pointer transition-all ${
-                  item.active
+                  activeTab === item.id
                     ? 'text-[#00f0ff] font-bold border-l-2 border-[#00f0ff] bg-[#1c2b3c]'
                     : 'text-[#b9cacb] hover:bg-[#122131]'
                 }`}
@@ -88,9 +114,11 @@ export function TechnicalDocumentationPage() {
             <nav className="flex items-center text-[11px] text-[#849495] space-x-2" style={{ fontFamily: 'Geist, sans-serif' }}>
               <span className="hover:text-[#00f0ff] transition-colors cursor-pointer">Docs</span>
               <span className="material-symbols-outlined text-[12px]">chevron_right</span>
-              <span className="hover:text-[#00f0ff] transition-colors cursor-pointer">Architecture</span>
+              <span className={`hover:text-[#00f0ff] transition-colors cursor-pointer ${activeTab === 'Upgrades' ? 'text-[#00f0ff]' : ''}`} onClick={() => setActiveTab(activeTab === 'Upgrades' ? 'Upgrades' : 'Architecture')}>
+                {activeTab === 'Upgrades' ? 'Upgrades' : 'Architecture'}
+              </span>
               <span className="material-symbols-outlined text-[12px]">chevron_right</span>
-              <span className="text-[#d4e4fa]">Ecosystem Overview</span>
+              <span className="text-[#d4e4fa]">{activeTab === 'Upgrades' ? selectedDoc : 'Ecosystem Overview'}</span>
             </nav>
             <button className="flex items-center gap-1.5 text-xs text-[#849495] hover:text-[#00f0ff] transition-colors cursor-pointer">
               <span className="material-symbols-outlined text-sm">edit</span>
@@ -100,30 +128,79 @@ export function TechnicalDocumentationPage() {
 
           {/* Content + Right Sidebar */}
           <div className="flex flex-1 overflow-hidden">
-            <article className="flex-1 overflow-y-auto px-6 py-12 max-w-[800px] mx-auto">
-              <header className="mb-12">
-                <h1 className="text-3xl font-bold text-[#00f0ff] mb-4" style={{ fontFamily: 'Geist, sans-serif' }}>Ecosystem Overview</h1>
-                <p className="text-lg text-[#b9cacb] leading-relaxed" style={{ fontFamily: 'JetBrains Mono, monospace' }}>
-                  A high-level architectural walkthrough of the Apex Global AI Platform, designed for security-first enterprise integration and autonomous intelligence scaling.
-                </p>
-              </header>
-
-              <div className="space-y-8">
-                <section>
-                  <h2 className="text-xl font-semibold text-[#dbfcff] border-b border-[#3b494b] pb-2 mb-4" style={{ fontFamily: 'Geist, sans-serif' }}>Core Philosophy</h2>
-                  <p className="leading-relaxed mb-4" style={{ fontFamily: 'JetBrains Mono, monospace' }}>
-                    The Apex platform is built on the principle of "Encapsulated Intelligence." This means every model, dataset, and pipeline is treated as a secure, isolated entity that can communicate via our proprietary{' '}
-                    <code className="bg-[#273647] px-1.5 py-0.5 rounded text-[#7df4ff]">ApexBridge</code> protocol.
+            {activeTab === 'Upgrades' ? (
+              <article className="flex-1 overflow-y-auto px-6 py-12 max-w-[900px] mx-auto">
+                <header className="mb-8">
+                  <h1 className="text-3xl font-bold text-[#00f0ff] mb-4" style={{ fontFamily: 'Geist, sans-serif' }}>Histórico de Upgrades & Walkthroughs</h1>
+                  <p className="text-sm text-[#b9cacb]" style={{ fontFamily: 'JetBrains Mono, monospace' }}>
+                    Verifique os walkthroughs de programação, registros de checkpoints e o estado atual de desenvolvimento da Apex AI.
                   </p>
-                  <div className="my-8 rounded-lg overflow-hidden border border-[#3b494b] bg-[#122131]" style={{ boxShadow: '0 0 15px rgba(0,240,255,0.15)' }}>
-                    <div className="px-4 py-2 flex justify-between items-center" style={{ background: 'rgba(18,20,28,0.8)', borderBottom: '1px solid #3b494b' }}>
-                      <span className="text-xs font-bold uppercase tracking-widest text-[#849495]" style={{ fontFamily: 'Geist, sans-serif' }}>architecture-manifest.yaml</span>
-                      <button className="text-[#849495] hover:text-[#00f0ff] cursor-pointer">
-                        <span className="material-symbols-outlined text-sm">content_copy</span>
-                      </button>
-                    </div>
-                    <pre className="p-6 text-sm text-[#b9cacb] overflow-x-auto" style={{ fontFamily: 'JetBrains Mono, monospace' }}>
-                      <code>{`version: "2.4.0-stable"
+                </header>
+
+                <div className="flex gap-2.5 mb-6 bg-[#0d1c2d] p-2 rounded border border-[#3b494b] items-center flex-wrap">
+                  {[
+                    { id: 'walkthrough', label: 'Walkthrough Recente' },
+                    { id: 'tracker', label: 'Checkpoint Tracker (Canônico)' },
+                    { id: 'state', label: 'Current State (Canônico)' }
+                  ].map(doc => (
+                    <button
+                      key={doc.id}
+                      onClick={() => setSelectedDoc(doc.id)}
+                      className={`px-3 py-1.5 text-xs font-bold rounded transition-colors cursor-pointer ${
+                        selectedDoc === doc.id ? 'bg-[#00f0ff] text-[#00363a]' : 'bg-[#122131] text-[#b9cacb] hover:text-[#fff]'
+                      }`}
+                    >
+                      {doc.label}
+                    </button>
+                  ))}
+                  
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(docContent)
+                      alert('Documentação copiada com sucesso!')
+                    }}
+                    className="md:ml-auto flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-[#273647] hover:bg-[#3b494b] text-[#00f0ff] rounded transition-colors cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-sm">content_copy</span>
+                    Copiar Relatório
+                  </button>
+                </div>
+
+                {loading ? (
+                  <div className="text-center py-12 text-[#b9cacb]">Carregando documento...</div>
+                ) : (
+                  <div className="bg-[#0d1c2d] border border-[#3b494b] rounded-lg p-6 overflow-x-auto" style={{ maxHeight: '600px', overflowY: 'auto' }}>
+                    <pre style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', lineHeight: '1.6', color: '#b9cacb', whiteSpace: 'pre-wrap' }}>
+                      {docContent}
+                    </pre>
+                  </div>
+                )}
+              </article>
+            ) : (
+              <article className="flex-1 overflow-y-auto px-6 py-12 max-w-[800px] mx-auto">
+                <header className="mb-12">
+                  <h1 className="text-3xl font-bold text-[#00f0ff] mb-4" style={{ fontFamily: 'Geist, sans-serif' }}>Ecosystem Overview</h1>
+                  <p className="text-lg text-[#b9cacb] leading-relaxed" style={{ fontFamily: 'JetBrains Mono, monospace' }}>
+                    A high-level architectural walkthrough of the Apex Global AI Platform, designed for security-first enterprise integration and autonomous intelligence scaling.
+                  </p>
+                </header>
+
+                <div className="space-y-8">
+                  <section>
+                    <h2 className="text-xl font-semibold text-[#dbfcff] border-b border-[#3b494b] pb-2 mb-4" style={{ fontFamily: 'Geist, sans-serif' }}>Core Philosophy</h2>
+                    <p className="leading-relaxed mb-4" style={{ fontFamily: 'JetBrains Mono, monospace' }}>
+                      The Apex platform is built on the principle of "Encapsulated Intelligence." This means every model, dataset, and pipeline is treated as a secure, isolated entity that can communicate via our proprietary{' '}
+                      <code className="bg-[#273647] px-1.5 py-0.5 rounded text-[#7df4ff]">ApexBridge</code> protocol.
+                    </p>
+                    <div className="my-8 rounded-lg overflow-hidden border border-[#3b494b] bg-[#122131]" style={{ boxShadow: '0 0 15px rgba(0,240,255,0.15)' }}>
+                      <div className="px-4 py-2 flex justify-between items-center" style={{ background: 'rgba(18,20,28,0.8)', borderBottom: '1px solid #3b494b' }}>
+                        <span className="text-xs font-bold uppercase tracking-widest text-[#849495]" style={{ fontFamily: 'Geist, sans-serif' }}>architecture-manifest.yaml</span>
+                        <button className="text-[#849495] hover:text-[#00f0ff] cursor-pointer" onClick={() => navigator.clipboard.writeText('version: "2.4.0-stable"\nservices:\n  gateway:\n    type: secure_ingress\n    auth: OIDC_ENFORCED\n  intelligence_core:\n    nodes: auto_scale\n    isolation: kernel_level')}>
+                          <span className="material-symbols-outlined text-sm">content_copy</span>
+                        </button>
+                      </div>
+                      <pre className="p-6 text-sm text-[#b9cacb] overflow-x-auto" style={{ fontFamily: 'JetBrains Mono, monospace' }}>
+                        <code>{`version: "2.4.0-stable"
 services:
   gateway:
     type: secure_ingress
@@ -131,60 +208,73 @@ services:
   intelligence_core:
     nodes: auto_scale
     isolation: kernel_level`}</code>
-                    </pre>
-                  </div>
-                </section>
+                      </pre>
+                    </div>
+                  </section>
 
-                <section>
-                  <h2 className="text-xl font-semibold text-[#dbfcff] border-b border-[#3b494b] pb-2 mb-4" style={{ fontFamily: 'Geist, sans-serif' }}>The Triad Structure</h2>
-                  <p className="mb-6" style={{ fontFamily: 'JetBrains Mono, monospace' }}>The ecosystem consists of three primary layers that work in orchestration:</p>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {[
-                      { icon: 'layers', label: 'Foundation', desc: 'Scalable GPU clusters and distributed storage systems.', color: 'text-[#d1bcff]', bg: 'bg-[#7000ff]/20' },
-                      { icon: 'psychology', label: 'Inference', desc: 'Proprietary LLMs and specialized RAG architectures.', color: 'text-[#00f0ff]', bg: 'bg-[#00f0ff]/20' },
-                      { icon: 'integration_instructions', label: 'Interface', desc: 'Robust APIs, SDKs, and visual engineering studios.', color: 'text-[#f5f4ff]', bg: 'bg-[#d8d8e4]/20' },
-                    ].map((item) => (
-                      <div key={item.label} className="p-6 bg-[#0d1c2d] border border-[#3b494b] rounded-lg">
-                        <div className={`w-10 h-10 mb-4 ${item.bg} flex items-center justify-center rounded`}>
-                          <span className={`material-symbols-outlined ${item.color}`}>{item.icon}</span>
+                  <section>
+                    <h2 className="text-xl font-semibold text-[#dbfcff] border-b border-[#3b494b] pb-2 mb-4" style={{ fontFamily: 'Geist, sans-serif' }}>The Triad Structure</h2>
+                    <p className="mb-6" style={{ fontFamily: 'JetBrains Mono, monospace' }}>The ecosystem consists of three primary layers that work in orchestration:</p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {[
+                        { icon: 'layers', label: 'Foundation', desc: 'Scalable GPU clusters and distributed storage systems.', color: 'text-[#d1bcff]', bg: 'bg-[#7000ff]/20' },
+                        { icon: 'psychology', label: 'Inference', desc: 'Proprietary LLMs and specialized RAG architectures.', color: 'text-[#00f0ff]', bg: 'bg-[#00f0ff]/20' },
+                        { icon: 'integration_instructions', label: 'Interface', desc: 'Robust APIs, SDKs, and visual engineering studios.', color: 'text-[#f5f4ff]', bg: 'bg-[#d8d8e4]/20' },
+                      ].map((item) => (
+                        <div key={item.label} className="p-6 bg-[#0d1c2d] border border-[#3b494b] rounded-lg">
+                          <div className={`w-10 h-10 mb-4 ${item.bg} flex items-center justify-center rounded`}>
+                            <span className={`material-symbols-outlined ${item.color}`}>{item.icon}</span>
+                          </div>
+                          <h3 className={`text-lg font-semibold ${item.color} mb-2`} style={{ fontFamily: 'Geist, sans-serif' }}>{item.label}</h3>
+                          <p className="text-sm text-[#b9cacb]">{item.desc}</p>
                         </div>
-                        <h3 className={`text-lg font-semibold ${item.color} mb-2`} style={{ fontFamily: 'Geist, sans-serif' }}>{item.label}</h3>
-                        <p className="text-sm text-[#b9cacb]">{item.desc}</p>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                  </section>
+
+                  <div className="p-4 border-l-4 border-[#00f0ff] bg-[#273647]/30 rounded-r">
+                    <h4 className="font-bold text-[#00f0ff] text-sm flex items-center gap-2 mb-1">
+                      <span className="material-symbols-outlined text-sm">info</span>
+                      NOTE
+                    </h4>
+                    <p className="text-sm italic" style={{ fontFamily: 'JetBrains Mono, monospace' }}>Architectural compliance is validated at every commit. Any divergence from the defined security protocol will trigger an automated platform freeze.</p>
                   </div>
-                </section>
-
-                <div className="p-4 border-l-4 border-[#00f0ff] bg-[#273647]/30 rounded-r">
-                  <h4 className="font-bold text-[#00f0ff] text-sm flex items-center gap-2 mb-1">
-                    <span className="material-symbols-outlined text-sm">info</span>
-                    NOTE
-                  </h4>
-                  <p className="text-sm italic" style={{ fontFamily: 'JetBrains Mono, monospace' }}>Architectural compliance is validated at every commit. Any divergence from the defined security protocol will trigger an automated platform freeze.</p>
                 </div>
-              </div>
 
-              {/* Footer */}
-              <footer className="mt-24 pt-12 border-t border-[#3b494b] flex flex-col md:flex-row justify-between items-center">
-                <span className="text-xs text-[#849495]" style={{ fontFamily: 'Geist, sans-serif' }}>© 2024 Apex Global AI. All rights reserved. Built for secure intelligence.</span>
-                <div className="flex gap-6 mt-4 md:mt-0">
-                  <span className="text-xs text-[#849495] hover:text-[#00f0ff] transition-all cursor-pointer" style={{ fontFamily: 'Geist, sans-serif' }}>Privacy Policy</span>
-                  <span className="text-xs text-[#849495] hover:text-[#00f0ff] transition-all cursor-pointer" style={{ fontFamily: 'Geist, sans-serif' }}>Terms of Service</span>
-                  <span className="text-xs text-[#849495] hover:text-[#00f0ff] transition-all cursor-pointer" style={{ fontFamily: 'Geist, sans-serif' }}>Security Whitepaper</span>
-                  <span className="text-xs text-[#849495] hover:text-[#00f0ff] transition-all cursor-pointer" style={{ fontFamily: 'Geist, sans-serif' }}>Status</span>
-                </div>
-              </footer>
-            </article>
+                {/* Footer */}
+                <footer className="mt-24 pt-12 border-t border-[#3b494b] flex flex-col md:flex-row justify-between items-center">
+                  <span className="text-xs text-[#849495]" style={{ fontFamily: 'Geist, sans-serif' }}>© 2024 Apex Global AI. All rights reserved. Built for secure intelligence.</span>
+                  <div className="flex gap-6 mt-4 md:mt-0 font-sans">
+                    <span className="text-xs text-[#849495] hover:text-[#00f0ff] transition-all cursor-pointer">Privacy Policy</span>
+                    <span className="text-xs text-[#849495] hover:text-[#00f0ff] transition-all cursor-pointer">Terms of Service</span>
+                    <span className="text-xs text-[#849495] hover:text-[#00f0ff] transition-all cursor-pointer">Security Whitepaper</span>
+                    <span className="text-xs text-[#849495] hover:text-[#00f0ff] transition-all cursor-pointer">Status</span>
+                  </div>
+                </footer>
+              </article>
+            )}
 
             {/* On this page right sidebar */}
             <aside className="hidden lg:block w-72 overflow-y-auto py-12 pr-6 pl-4 shrink-0">
               <div className="mb-10">
                 <h4 className="text-xs font-bold uppercase tracking-widest text-[#d4e4fa] mb-4" style={{ fontFamily: 'Geist, sans-serif' }}>On this page</h4>
                 <ul className="space-y-3 text-[13px] border-l border-[#3b494b]" style={{ fontFamily: 'JetBrains Mono, monospace' }}>
-                  <li className="pl-4 border-l-2 border-[#00f0ff] -ml-[1px]"><span className="text-[#00f0ff] cursor-pointer">Core Philosophy</span></li>
-                  {['The Triad Structure', 'Infrastructure Layers', 'Connectivity Graph', 'Compliance Benchmarks'].map((item) => (
-                    <li key={item} className="pl-4 hover:text-[#00f0ff] transition-colors cursor-pointer"><span className="text-[#849495]">{item}</span></li>
-                  ))}
+                  {activeTab === 'Upgrades' ? (
+                    <>
+                      <li className="pl-4 border-l-2 border-[#00f0ff] -ml-[1px]"><span className="text-[#00f0ff] cursor-pointer">Upgrade Log</span></li>
+                      <li className="pl-4 hover:text-[#00f0ff] transition-colors cursor-pointer"><span className="text-[#849495]" onClick={() => {
+                        navigator.clipboard.writeText(docContent)
+                        alert('Copiado!')
+                      }}>Export document</span></li>
+                    </>
+                  ) : (
+                    <>
+                      <li className="pl-4 border-l-2 border-[#00f0ff] -ml-[1px]"><span className="text-[#00f0ff] cursor-pointer">Core Philosophy</span></li>
+                      {['The Triad Structure', 'Infrastructure Layers', 'Connectivity Graph', 'Compliance Benchmarks'].map((item) => (
+                        <li key={item} className="pl-4 hover:text-[#00f0ff] transition-colors cursor-pointer"><span className="text-[#849495]">{item}</span></li>
+                      ))}
+                    </>
+                  )}
                 </ul>
               </div>
               <div>
