@@ -1569,6 +1569,8 @@ function App() {
   const [availableModels, setAvailableModels] = useState<ModelOption[]>([])
   const [modelProvider, setModelProvider] = useState<string>('')
   const [manualModelProvider, setManualModelProvider] = useState<ManualModelProvider>('gemini')
+  const [modelDropdownOpen, setModelDropdownOpen] = useState(false)
+  const [modelSearchQuery, setModelSearchQuery] = useState('')
   const [providerLedStatuses, setProviderLedStatuses] = useState<Array<{ id: string; label: string; hasKey: boolean; tooltip?: string; topUpUrl?: string }>>(() => {
     // Default: 11 live providers; will be updated from /api/copilot/provider-status
     const defaults: Array<{ id: string; label: string; hasKey: boolean; tooltip?: string; topUpUrl?: string }> = [
@@ -3990,20 +3992,207 @@ function App() {
           <section className="chat-shell" aria-label="Apex AI Copilot chat" style={{ flex: activeView === 'chat' ? '1 1 100%' : '0 0 30%', display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, minWidth: 0, borderLeft: activeView === 'chat' ? 'none' : '1px solid rgba(150, 164, 195, 0.15)' }}>
             {/* ── Top Bar: Model + Actions ── */}
             <div style={{ padding: '6px 10px', borderBottom: '1px solid rgba(150, 164, 195, 0.15)', display: 'flex', alignItems: 'center', gap: 6, background: '#121a2f', flexShrink: 0, minHeight: 40 }}>
-              <select value={selectedModel} onChange={e => { setSelectedModel(e.target.value); try { localStorage.setItem('apex_selected_model', e.target.value) } catch {} }}
-                style={{ flex: 1, minWidth: 0, background: '#1a233d', color: '#fff', border: '1px solid rgba(150, 164, 195, 0.25)', borderRadius: 5, padding: '3px 6px', fontSize: 10, cursor: 'pointer', outline: 'none' }}>
-                {modelOptions.map((m: ModelOption) => (
-                  <option key={m.id} value={m.id}>{`${m.provider ? `${getProviderLabel(m.provider)} · ` : ''}${m.name || m.id}`}</option>
-                ))}
-              </select>
-              <select value={manualModelProvider} onChange={e => setManualModelProvider(e.target.value as ManualModelProvider)}
-                style={{ width: 80, background: '#1a233d', color: '#fff', border: '1px solid rgba(150, 164, 195, 0.25)', borderRadius: 5, padding: '3px 6px', fontSize: 9, cursor: 'pointer', outline: 'none' }}>
-                <option value="all">🔥 Todos</option>
-                <option value="gemini">Gemini</option>
-                <option value="gemini-interactions">Interact</option>
-                <option value="fal">FAL</option>
-                <option value="elevenlabs">Eleven</option>
-              </select>
+              <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
+                <button
+                  type="button"
+                  onClick={() => setModelDropdownOpen(!modelDropdownOpen)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    width: '100%',
+                    background: '#1a233d',
+                    color: '#fff',
+                    border: '1px solid rgba(150, 164, 195, 0.25)',
+                    borderRadius: 6,
+                    padding: '5px 10px',
+                    fontSize: 10,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    outline: 'none',
+                    textAlign: 'left'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+                    {selectedModelInfo.provider === 'gemini' || selectedModelInfo.provider === 'gemini-interactions' ? (
+                      <Sparkles size={11} style={{ color: '#60a5fa' }} />
+                    ) : selectedModelInfo.provider === 'fal' ? (
+                      <Cpu size={11} style={{ color: '#f59e0b' }} />
+                    ) : selectedModelInfo.provider === 'elevenlabs' ? (
+                      <Volume2 size={11} style={{ color: '#10b981' }} />
+                    ) : (
+                      <Bot size={11} style={{ color: '#a78bfa' }} />
+                    )}
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {selectedModelInfo.name || selectedModelInfo.modelId}
+                    </span>
+                  </div>
+                  <ChevronDown size={11} style={{ opacity: 0.7, marginLeft: 4, flexShrink: 0 }} />
+                </button>
+
+                {modelDropdownOpen && (
+                  <>
+                    <div 
+                      onClick={() => setModelDropdownOpen(false)} 
+                      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999 }}
+                    />
+                    
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: 0,
+                        width: 320,
+                        marginTop: 4,
+                        background: 'rgba(15, 23, 42, 0.95)',
+                        backdropFilter: 'blur(12px)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: 8,
+                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5)',
+                        zIndex: 1000,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        maxHeight: 380,
+                        overflow: 'hidden'
+                      }}
+                    >
+                      <div style={{ padding: 8, borderBottom: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Search size={11} style={{ opacity: 0.5, marginLeft: 4 }} />
+                        <input
+                          type="text"
+                          placeholder="Buscar modelo..."
+                          value={modelSearchQuery}
+                          onChange={e => setModelSearchQuery(e.target.value)}
+                          style={{
+                            flex: 1,
+                            background: 'transparent',
+                            border: 'none',
+                            color: '#fff',
+                            fontSize: 10,
+                            outline: 'none',
+                            padding: '4px 0'
+                          }}
+                        />
+                        {modelSearchQuery && (
+                          <button 
+                            onClick={() => setModelSearchQuery('')}
+                            style={{ background: 'none', border: 'none', color: '#fff', opacity: 0.5, cursor: 'pointer', display: 'flex', padding: 2 }}
+                          >
+                            <X size={9} />
+                          </button>
+                        )}
+                      </div>
+
+                      <div style={{ display: 'flex', padding: '4px 8px', gap: 4, borderBottom: '1px solid rgba(255, 255, 255, 0.08)', background: 'rgba(0, 0, 0, 0.2)' }}>
+                        {[
+                          { id: 'all', label: 'Todos' },
+                          { id: 'gemini', label: 'Gemini' },
+                          { id: 'gemini-interactions', label: 'Interact' },
+                          { id: 'fal', label: 'FAL' },
+                          { id: 'elevenlabs', label: 'Eleven' }
+                        ].map(prov => (
+                          <button
+                            key={prov.id}
+                            type="button"
+                            onClick={() => setManualModelProvider(prov.id as ManualModelProvider)}
+                            style={{
+                              background: manualModelProvider === prov.id ? 'rgba(96, 165, 250, 0.2)' : 'transparent',
+                              color: manualModelProvider === prov.id ? '#60a5fa' : '#94a3b8',
+                              border: 'none',
+                              borderRadius: 4,
+                              padding: '3px 6px',
+                              fontSize: 8,
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            {prov.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      <div style={{ flex: 1, overflowY: 'auto', padding: '6px 0' }}>
+                        {(() => {
+                          const query = modelSearchQuery.toLowerCase();
+                          const filtered = modelOptions.filter(m => 
+                            m.name.toLowerCase().includes(query) || m.id.toLowerCase().includes(query)
+                          );
+                          
+                          if (filtered.length === 0) {
+                            return (
+                              <div style={{ padding: '20px 10px', textAlign: 'center', fontSize: 10, color: '#94a3b8' }}>
+                                Nenhum modelo encontrado.
+                              </div>
+                            );
+                          }
+
+                          const groups: Record<string, ModelOption[]> = {};
+                          filtered.forEach(m => {
+                            const p = m.provider || 'other';
+                            if (!groups[p]) groups[p] = [];
+                            groups[p].push(m);
+                          });
+
+                          return Object.entries(groups).map(([prov, models]) => (
+                            <div key={prov} style={{ marginBottom: 8 }}>
+                              <div style={{ 
+                                padding: '4px 12px', 
+                                fontSize: 8, 
+                                fontWeight: 700, 
+                                color: '#64748b', 
+                                textTransform: 'uppercase', 
+                                letterSpacing: '0.05em' 
+                              }}>
+                                {getProviderLabel(prov)}
+                              </div>
+                              {models.map(m => {
+                                const isSelected = selectedModel === m.id;
+                                return (
+                                  <button
+                                    key={m.id}
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedModel(m.id);
+                                      try { localStorage.setItem('apex_selected_model', m.id) } catch {}
+                                      setModelDropdownOpen(false);
+                                    }}
+                                    style={{
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      width: '100%',
+                                      padding: '6px 12px',
+                                      background: isSelected ? 'rgba(96, 165, 250, 0.08)' : 'transparent',
+                                      border: 'none',
+                                      color: isSelected ? '#60a5fa' : '#f1f5f9',
+                                      textAlign: 'left',
+                                      cursor: 'pointer',
+                                      transition: 'all 0.15s ease'
+                                    }}
+                                    onMouseEnter={e => {
+                                      if (!isSelected) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                                    }}
+                                    onMouseLeave={e => {
+                                      if (!isSelected) e.currentTarget.style.background = 'transparent';
+                                    }}
+                                  >
+                                    <span style={{ fontSize: 10, fontWeight: isSelected ? 700 : 500 }}>
+                                      {m.name || m.modelId}
+                                    </span>
+                                    <span style={{ fontSize: 8, color: '#64748b', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                      {m.modelId}
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          ));
+                        })()}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
               <button type="button" onClick={handleNewChat} title="Nova conversa"
                 style={{ background: '#2563eb', color: '#fff', border: 'none', borderRadius: 5, padding: '3px 7px', fontSize: 10, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
                 <Plus size={10} /> Novo
