@@ -352,8 +352,8 @@ function buildAIIdentityReply(userText, locale = '') {
   if (!isAIIdentityQuestionText(userText)) return ''
   const pt = prefersPortugueseText(userText, locale)
   return pt
-    ? 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.'
-    : 'I am Apex. Give me the task to run now. If a connector is missing, I will tell you exactly what is missing and follow up with a useful alternative.'
+    ? 'Sou a Apex AI. Como posso te ajudar?'
+    : 'I am Apex AI. How can I help you?'
 }
 
 function buildIdentityReply(userText, identity) {
@@ -2104,8 +2104,8 @@ export default async function handler(req, res) {
       '',
       'IDENTITY QUERY DIRECTIVE:',
       'If the user asks who you are (e.g. "quem é você", "who are you", "what is apex") or what you do, you must reply exactly with:',
-      '- In Portuguese: "Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil."',
-      '- In English: "I am Apex. Give me the task to run now. If a connector is missing, I will tell you exactly what is missing and follow up with a useful alternative."',
+      '- In Portuguese: "Sou a Apex AI. Como posso te ajudar?"',
+      '- In English: "I am Apex AI. How can I help you?"',
       '',
       'CORE DIRECTIVES:',
       '1. FULL AUTHORITY: You may read, write, edit, create, or delete ANY file in this repository without asking permission.',

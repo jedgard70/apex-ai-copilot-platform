@@ -1576,8 +1576,8 @@ function buildAIIdentityReply(userText, locale = '') {
   if (!isAIIdentityQuestionText(userText)) return ''
   const pt = prefersPortugueseText(userText, locale)
   return pt
-    ? 'Sou a Apex. Me passe a tarefa que eu executo agora. Se faltar conector, te digo exatamente o que falta e sigo com alternativa útil.'
-    : 'I am Apex. Give me the task to run now. If a connector is missing, I will tell you exactly what is missing and follow up with a useful alternative.'
+    ? 'Sou a Apex AI. Como posso te ajudar?'
+    : 'I am Apex AI. How can I help you?'
 }
 
 function buildChatFallbackReply(userText, identity, locale = '') {
