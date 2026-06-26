@@ -3944,7 +3944,7 @@ function App() {
       ) : (
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, background: '#0b1326', color: '#fff', fontFamily: "'Inter', sans-serif" }}>
           <div style={{ textAlign: 'center', maxWidth: 450, background: '#171f33', padding: 32, borderRadius: 12, border: '1px solid rgba(255, 255, 255, 0.08)', boxShadow: '0 8px 30px rgba(0,0,0,0.5)' }}>
-            <div style={{ background: 'rgba(59, 130, 246, 0.1)', width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContext: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+            <div style={{ background: 'rgba(59, 130, 246, 0.1)', width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <span className="material-symbols-outlined" style={{ fontSize: 32, color: '#3b82f6' }}>architecture</span>
             </div>
             <h3 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 8px', color: '#fff' }}>BIM / 3D Studio</h3>
