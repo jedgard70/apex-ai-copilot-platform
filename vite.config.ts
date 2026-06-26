@@ -39,6 +39,16 @@ export default defineConfig({
   worker: {
     format: 'es',
   },
+  server: {
+    host: '0.0.0.0',
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:4177',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
+  },
   build: {
     rollupOptions: {
       output: {
