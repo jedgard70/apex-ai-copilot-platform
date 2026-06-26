@@ -49,12 +49,39 @@ export function CampaignAutomationPanel({ goal, conversationContext, onSaveToPro
   const [format, setFormat] = useState<CampaignFormat>(/\b(vsl|landing|video sales|v[íi]deo de vendas|p[aá]gina de vendas)\b/i.test(goal) ? 'vsl-landing' : 'social-pack')
   const [audience, setAudience] = useState('Prospective architecture / construction clients')
   const [offer, setOffer] = useState(goal)
+  const [productPreset, setProductPreset] = useState<'custom' | 'apex_saas' | 'engineering' | 'ebook'>('custom')
   const [plan, setPlan] = useState<CampaignAutomationPlan | null>(null)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [activeTab, setActiveTab] = useState<'campaign' | 'social'>('campaign')
   const [socialContent, setSocialContent] = useState<SocialContent | null>(null)
   const [socialLoading, setSocialLoading] = useState(false)
+
+  const applyPreset = (preset: 'custom' | 'apex_saas' | 'engineering' | 'ebook') => {
+    setProductPreset(preset)
+    if (preset === 'apex_saas') {
+      setCampaignGoal('lead-generation')
+      setChannel('instagram-facebook')
+      setFormat('social-pack')
+      setAudience('SaaS startup founders, enterprise builders, real estate developers')
+      setOffer('Apex AI Copilot Platform — automated multi-modal architectural analysis, BIM viewers, automatic quantities, and AI field operations control.')
+    } else if (preset === 'engineering') {
+      setCampaignGoal('client-approval')
+      setChannel('whatsapp')
+      setFormat('social-pack')
+      setAudience('Real estate developers, construction companies, private builders')
+      setOffer('Real engineering & construction site services: direct supervision, NR compliance audits, project approvals, CREA/OE technical manager responsibilities.')
+    } else if (preset === 'ebook') {
+      setCampaignGoal('lead-generation')
+      setChannel('instagram')
+      setFormat('vsl-landing')
+      setAudience('Engineers, architecture students, builders looking to learn automation')
+      setOffer('Ebook Apex Hotmart: Como automatizar orçamentos, contratos e conformidades em canteiros de obras reais usando inteligência artificial.')
+    } else {
+      setOffer(goal)
+      setAudience('Prospective architecture / construction clients')
+    }
+  }
 
   async function generatePlan() {
     setLoading(true)
@@ -126,6 +153,15 @@ export function CampaignAutomationPanel({ goal, conversationContext, onSaveToPro
         <aside className="contracts-controls">
           <div className="contracts-card">
             <strong>Campaign setup</strong>
+            <label>
+              <span>Product Preset</span>
+              <select value={productPreset} onChange={event => applyPreset(event.target.value as any)}>
+                <option value="custom">Custom (based on chat)</option>
+                <option value="apex_saas">1. Apex AI SaaS Platform</option>
+                <option value="engineering">2. Engineering & Construction Services</option>
+                <option value="ebook">3. Hotmart Ebook (Ebook Apex)</option>
+              </select>
+            </label>
             <label>
               <span>Goal</span>
               <select value={campaignGoal} onChange={event => setCampaignGoal(event.target.value as CampaignGoal)}>
