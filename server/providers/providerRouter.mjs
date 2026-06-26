@@ -172,16 +172,19 @@ export async function chatWithFallback(params) {
       if (triedModelSet.has(modelKey)) continue
       triedModelSet.add(modelKey)
       try {
+        console.log(`[chatWithFallback] Trying ${provider.name} with model ${model}...`);
         const body = { model, messages, temperature: toolRound > 0 ? 0.45 : temperature, max_tokens: toolRound > 0 ? 1500 : maxTokens }
-        if (tools && toolRound === 0) { body.tools = tools; body.tool_choice = "auto"; body.frequency_penalty = 0.2 }
+        if (tools && toolRound === 0) { body.tools = tools; body.tool_choice = "auto"; }
         const headers = { Authorization: `Bearer ${provider.apiKey}`, "Content-Type": "application/json" }
-        const response = await fetch(`${provider.baseUrl}/chat/completions`, { method: "POST", headers, body: JSON.stringify(body), signal: AbortSignal.timeout(35000) })
+        const response = await fetch(`${provider.baseUrl}/chat/completions`, { method: "POST", headers, body: JSON.stringify(body), signal: AbortSignal.timeout(15000) })
+        console.log(`[chatWithFallback] Response for ${model}: ${response.status}`);
         if (response.ok) {
           const data = await response.json()
           return { ok: true, data, model: data.model || model, provider: provider.name, providerLabel: provider.label, usedFallback: triedModelSet.size > 1 }
         }
         lastError = `HTTP ${response.status}`
-        const errorBody = await response.text().catch(() => "").catch(() => "")
+        const errorBody = await response.text().catch(() => "")
+        console.error(`[chatWithFallback] Provider error body: ${errorBody}`);
         errors.push(`[${provider.label}:${model}] ${lastError}`)
       } catch (err) {
         lastError = err.message || String(err)

@@ -2262,7 +2262,9 @@ async function handleModelsList(req, res) {
 
 async function handleChat(req, res) {
   try {
+    console.log('[handleChat] Received request');
     const body = await readJson(req)
+    console.log('[handleChat] Parsed body', Object.keys(body));
     const identityContext = normalizeChatIdentityContext(body.identityContext)
     let userText = String(body.message || '').slice(0, 12000)
     // H5.0D: action tools hard-override — disabled when APEX_FREE_AGENT=1
@@ -2538,6 +2540,7 @@ async function handleChat(req, res) {
 
 
     const liveAgentPreflightContext = await buildLiveAgentPreflightContext(userText)
+    console.log('[handleChat] preflight done');
 
     const liveAgentMessages = [
       ...messages.slice(0, -1),
@@ -2569,9 +2572,10 @@ async function handleChat(req, res) {
     ]
 
     // ── Provider Router with automatic fallback ─────────────────────────
+    const isGatewayModel = modelProvider === 'gateway'
     const preferredProvider = isGatewayModel ? 'gateway' : modelProvider
     const preferredModel = model
-
+    
     // First call with tools for tool-calling
     const fallbackResult = await chatWithFallback({
       messages: liveAgentMessages,
@@ -2680,9 +2684,10 @@ async function handleChat(req, res) {
       method: 'POST',
       mode: 'local-fallback',
     })
-    return chatJson(res, 200, {
-      finalReply: buildChatFallbackReply(userText, { locale }, locale),
-      mode: 'local-fallback',
+    return chatJson(res, 500, {
+      error: 'Unexpected server error.',
+      detail: error.message,
+      providerStatus: 'SERVER_ERROR_CAPTURED',
     })
   }
 }
@@ -6349,7 +6354,7 @@ const server = http.createServer(async (req, res) => {
     handleModelsList(req, res)
     return
   }
-  if (req.url === '/api/copilot/chat' && req.method === 'POST') {
+  if (requestUrl.pathname === '/api/copilot/chat' && req.method === 'POST') {
     handleChat(req, res)
     return
   }
@@ -6898,8 +6903,8 @@ const server = http.createServer(async (req, res) => {
 const port = Number(process.env.PORT || 4177)
 server.listen(port, () => {
   console.log(`Apex AI Copilot platform listening on http://127.0.0.1:${port}`)
-  // Start auto-fix monitor (local only)
-  if (process.env.AUTO_FIX_ENABLED !== '0') {
+  // Start auto-fix monitor (local only) - disabled by default to prevent blocking the event loop
+  if (process.env.AUTO_FIX_ENABLED === '1') {
     import('./server/service/autoFix.mjs').then(mod => {
       const stop = mod.startAutoFixMonitor(45000)
       console.log('[auto-fix] Monitor ativo a cada 45s')
