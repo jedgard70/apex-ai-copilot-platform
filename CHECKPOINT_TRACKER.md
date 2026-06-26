@@ -230,5 +230,16 @@ Apenas local (não vai para Vercel): `LOCAL_WORKER_*`, `REVIT_MCP_*`, shell/path
 
 ---
 
-*Last updated: 2026-06-22*
-*All 25 modules + Phase 4 + Phase 5 RDO PDF: DONE. ENV: SYNC auditado. Build: GREEN. Deploy: apexglobalai.com LIVE.*
+## Sessão 2026-06-26 — Correção e Estabilização dos Validadores
+
+| # | Mudança | Commits | Status |
+| :--- | :--------- | :--------- | :-------- |
+| 1 | Restaurado roteamento de operador em `api/copilot/chat.mjs` para set-name/H6 | `d40fcde` | ✅ Done |
+| 2 | Corrigida falta do executável `ffmpeg.exe` em `ffmpeg-static` local | `d40fcde` | ✅ Done |
+| 3 | Corrigido validador `validate-directcut-pipeline` importando `env.mjs` | `d40fcde` | ✅ Done |
+| 4 | Alinhado validador `api-plan.test.ts` com transição Gemini-only | `d40fcde` | ✅ Done |
+
+---
+
+*Last updated: 2026-06-26*
+*All 62 capabilities: DONE. Build: GREEN (100% ok). Tests: GREEN (99/99 passed). DirectCut Pipeline: GREEN. H5/H44/H51a: GREEN. Deploy: apexglobalai.com LIVE.*
