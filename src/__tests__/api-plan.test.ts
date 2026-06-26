@@ -150,8 +150,8 @@ describe('plan API — bim-tour fallback', () => {
     expect(r.exportNotes).toContain('twinmotion')
   })
 
-  it('narration mentions ANTHROPIC_API_KEY', () => {
+  it('narration mentions GEMINI_API_KEY', () => {
     const r = handleBimTourFallback({})
-    expect(r.narration).toContain('ANTHROPIC_API_KEY')
+    expect(r.narration).toContain('GEMINI_API_KEY')
   })
 })

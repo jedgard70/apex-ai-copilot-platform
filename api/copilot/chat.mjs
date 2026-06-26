@@ -6,6 +6,7 @@ import { spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { collectProductionOperatorStatus } from '../../server/agent/productionStatus.mjs'
 import { classifyToolExecutionRequest, routeToolExecution, routeH6ActionRequest } from '../../server/agent/toolExecutionRouter.mjs'
+import { runApexOperatorProductionSafe } from '../../server/agent/apexOperatorRuntime.mjs'
 import { isConfirmationSignal, isCancelSignal, hasPendingAction } from '../../server/agent/confirmationStateMachine.mjs'
 let _interactionsModels = null
 let _isInteractionModel = null
@@ -1785,6 +1786,30 @@ export default async function handler(req, res) {
           productionStatus,
         })
       }
+    }
+
+    // Run the production operator safe mode check for structured platform intents
+    const opResult = await runApexOperatorProductionSafe({
+      userMessage: routingMessage,
+      identityContext: normalizeIdentityContext(body.identityContext || {}),
+      workspaceContext: body.workspaceContext || {},
+      repoPath: process.cwd(),
+      permissions: {},
+      productionStatus,
+      clientMemory,
+      messages: Array.isArray(body.messages) ? body.messages.slice(-10) : [],
+    })
+
+    if (opResult.intent !== 'production_general' && opResult.intent !== 'production_general_portuguese') {
+      return sendJson(res, 200, {
+        finalReply: opResult.finalReply,
+        reply: opResult.finalReply,
+        memoryPatch: opResult.memoryPatch || null,
+        mode: 'apex-operator-production-safe',
+        operator: opResult,
+        confirmation: buildConfirmationUi(opResult),
+        productionStatus,
+      })
     }
 
     // Short-circuit: If the request includes an active file with ready extraction and
