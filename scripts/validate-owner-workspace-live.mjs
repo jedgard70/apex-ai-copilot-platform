@@ -25,10 +25,14 @@ console.log('OWNER WORKSPACE LIVE VALIDATION')
 console.log(`Project ref: ${projectRef || '(missing)'}`)
 console.log(`Owner email: ${ownerEmail}`)
 
+function exitGracefully(code) {
+  setTimeout(() => process.exit(code), 100)
+}
+
 if (!accessToken || !projectRef) {
   console.error('[OWNER WORKSPACE ERROR] Missing SUPABASE_ACCESS_TOKEN or SUPABASE_PROJECT_REF.')
-  process.exit(1)
-}
+  exitGracefully(1)
+} else {
 
 const sql = `
 select
@@ -73,14 +77,14 @@ try {
   const data = await response.json().catch(() => ({}))
   if (!response.ok) {
     console.error(`[OWNER WORKSPACE ERROR] Supabase API HTTP ${response.status}: ${data?.message || data?.error || 'unknown error'}`)
-    process.exit(1)
-  }
+    exitGracefully(1)
+  } else {
 
   const row = Array.isArray(data) ? data[0] : null
   if (!row) {
     console.error('[OWNER WORKSPACE ERROR] Unexpected empty response.')
-    process.exit(1)
-  }
+    exitGracefully(1)
+  } else {
 
   const checks = {
     authUser: Number(row.auth_user_count || 0) > 0,
@@ -96,12 +100,18 @@ try {
 
   if (Object.values(checks).every(Boolean)) {
     console.log('[OWNER WORKSPACE STATUS] Ready for real Supabase owner workspace.')
-    process.exit(0)
+    exitGracefully(0)
+  } else {
+    console.error('[OWNER WORKSPACE STATUS] Not ready. Sign in once through the app to trigger bootstrap, or add the missing profile/tenant membership.')
+    exitGracefully(1)
   }
 
-  console.error('[OWNER WORKSPACE STATUS] Not ready. Sign in once through the app to trigger bootstrap, or add the missing profile/tenant membership.')
-  process.exit(1)
+  }
+  }
 } catch (error) {
   console.error(`[OWNER WORKSPACE ERROR] ${error.message}`)
-  process.exit(1)
+  exitGracefully(1)
 }
+
+}
+
