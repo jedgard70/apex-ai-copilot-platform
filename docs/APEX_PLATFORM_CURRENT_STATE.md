@@ -14,7 +14,7 @@ The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.m
 - Tests: **GREEN** (114 passed)
 - Local app: **GREEN** (`server.mjs` + Electron `.exe`)
 - Production: **GREEN** (`www.apexglobalai.com` Vercel main branch)
-- AI providers: **GREEN** (14/14 online — Gemini FREE, OpenRouter, FAL.ai, AI Gateway, OpenCode Go, OpenAI, ElevenLabs, Firebase, Tavily, Stripe, Supabase, GitHub, AuthKey, FFmpeg)
+- AI providers: **GREEN** (13/13 online — Gemini FREE, FAL.ai, AI Gateway, OpenCode Go, OpenAI, ElevenLabs, Firebase, Tavily, Stripe, Supabase, GitHub, AuthKey, FFmpeg)
 - Gemini Interactions SDK: **GREEN** (`@google/genai` v2.9.0 integrado)
 - Env vars protection: **GREEN** (regra absoluta no AGENTS.md, .env.local e server.mjs)
 - Deploy hygiene: **GREEN** — CI workflow now validates builds/tests before deployment
@@ -197,7 +197,7 @@ e reportada ao Owner. Esta regra está documentada em:
 
 | Correção | Arquivos | Descrição |
 | --- | --- | --- |
-| Safe mode resolvido | `src/main.tsx`, `server.mjs` | Default alterado para OpenRouter + fallback automático entre providers |
+| Safe mode resolvido | `src/main.tsx`, `server.mjs` | Default alterado para Gemini + fallback automático entre providers |
 | Gemini Interactions SDK | `server/providers/gemini-interactions.mjs` | SDK `@google/genai` v2.9.0 integrado com `client.interactions.create()` |
 | FAL image/video gen | `server.mjs` | Suporte FAL para geração de imagem no servidor local |
 | Rotas /api/fal/* | `server.mjs` | Models, webhook-status e webhook adicionados no servidor local |
