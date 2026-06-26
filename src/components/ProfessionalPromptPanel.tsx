@@ -19,7 +19,7 @@ const MODULE_COLORS: Record<string, string> = {
   export: '#ec4899',
 }
 
-export function ProfessionalPromptPanel({ onClear, initialModule }: { onClear: () => void; initialModule?: string }) {
+export function ProfessionalPromptPanel({ onClear, initialModule, onSelectPrompt }: { onClear: () => void; initialModule?: string; onSelectPrompt?: (prompt: string) => void }) {
   const [categories, setCategories] = useState<any[]>([])
   const [selected, setSelected] = useState<any>(null)
   const [loading, setLoading] = useState(false)
@@ -128,6 +128,44 @@ export function ProfessionalPromptPanel({ onClear, initialModule }: { onClear: (
                   </summary>
                   <div style={{ marginTop: '6px', padding: '8px 10px', background: '#111827', borderRadius: '6px', fontSize: '12px', color: '#94a3b8', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
                     {p.prompt}
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px', justifyContent: 'flex-end' }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(p.prompt);
+                        }}
+                        style={{
+                          background: '#374151',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '4px',
+                          padding: '4px 8px',
+                          fontSize: '11px',
+                          cursor: 'pointer',
+                          fontWeight: 600
+                        }}
+                      >
+                        Copiar
+                      </button>
+                      {onSelectPrompt && (
+                        <button
+                          type="button"
+                          onClick={() => onSelectPrompt(p.prompt)}
+                          style={{
+                            background: '#3b82f6',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '4px',
+                            padding: '4px 8px',
+                            fontSize: '11px',
+                            cursor: 'pointer',
+                            fontWeight: 600
+                          }}
+                        >
+                          Usar no Chat
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </details>
               ))}
