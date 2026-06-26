@@ -3915,12 +3915,12 @@ function App() {
   // Render painel ativo no split 80/20
   function renderPanelContent(panelView: string) {
     switch (panelView) {
-      case 'navigator': return <PlatformNavigatorPage onNavigate={setActiveView} />;
+      case 'navigator': return <PlatformNavigatorPage onNavigate={setActiveView} userRole={currentRole} />;
       case 'governance': return <GovernanceHubPage />;
       case 'training': return <ModelTrainingPage />;
       case 'deployment': return <DeploymentFlowPage />;
       case 'docs': return <TechnicalDocumentationPage />;
-      case 'marketing': return <MarketingAnalyticsPage />;
+      case 'marketing': return <MarketingAnalyticsPage onNewCampaign={() => setCampaignAutomationOutput({ goal: 'Nova campanha', conversationContext: [] })} />;
       case 'archvis': return (
         <ArchVisPanel
           source={archVisOutput?.source || undefined}
@@ -4003,11 +4003,30 @@ function App() {
       projectName="Apex Platform"
       projectStatus={accountState?.providerStatus === 'supabase-connected' ? 'Live' : 'Ready'}
       providerLeds={providerLedStatuses}
-      onProfileClick={() => { setActiveView('owner') }}
+      onProfileClick={() => {
+        if (currentRole === 'owner_admin') {
+          setActiveView('owner')
+        } else {
+          setAuthOutput({ goal: 'Open client account', conversationContext: [] })
+        }
+      }}
       avatarUrl={(accountState as any)?.user?.user_metadata?.avatar_url}
+      userRole={currentRole}
     >
       {activeView === 'dashboard' ? (
-        <DashboardPage onNavigate={setActiveView} />
+        currentRole === 'client' ? (
+          <div className="h-full" style={{ background: '#0f172a', minHeight: '100vh' }}>
+            <ClientDashboard email={accountState?.user?.email} onBack={() => setActiveView('chat')} />
+          </div>
+        ) : (
+          <DashboardPage onNavigate={(view) => {
+            if (view === 'owner' && currentRole !== 'owner_admin') {
+              setAuthOutput({ goal: 'Open client account', conversationContext: [] })
+            } else {
+              setActiveView(view)
+            }
+          }} />
+        )
       ) : activeView === 'client-dashboard' ? (
         <div className="h-full" style={{ background: '#0f172a', minHeight: '100vh' }}>
           <ClientDashboard email={accountState?.user?.email} onBack={() => setActiveView('chat')} />
@@ -4031,42 +4050,49 @@ function App() {
             {/* ── Top Bar: Model + Actions ── */}
             <div style={{ padding: '6px 10px', borderBottom: '1px solid rgba(150, 164, 195, 0.15)', display: 'flex', alignItems: 'center', gap: 6, background: '#121a2f', flexShrink: 0, minHeight: 40 }}>
               <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
-                <button
-                  type="button"
-                  onClick={() => setModelDropdownOpen(!modelDropdownOpen)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    width: '100%',
-                    background: '#1a233d',
-                    color: '#fff',
-                    border: '1px solid rgba(150, 164, 195, 0.25)',
-                    borderRadius: 6,
-                    padding: '5px 10px',
-                    fontSize: 10,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    outline: 'none',
-                    textAlign: 'left'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-                    {selectedModelInfo.provider === 'gemini' || selectedModelInfo.provider === 'gemini-interactions' ? (
-                      <Sparkles size={11} style={{ color: '#60a5fa' }} />
-                    ) : selectedModelInfo.provider === 'fal' ? (
-                      <Cpu size={11} style={{ color: '#f59e0b' }} />
-                    ) : selectedModelInfo.provider === 'elevenlabs' ? (
-                      <Volume2 size={11} style={{ color: '#10b981' }} />
-                    ) : (
-                      <Bot size={11} style={{ color: '#a78bfa' }} />
-                    )}
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {selectedModelInfo.name || selectedModelInfo.modelId}
-                    </span>
+                {currentRole === 'client' ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#94a3b8', fontSize: 11, fontWeight: 700, paddingLeft: 4 }}>
+                    <Sparkles size={12} style={{ color: '#60a5fa' }} />
+                    <span>Apex AI Personal Assistant</span>
                   </div>
-                  <ChevronDown size={11} style={{ opacity: 0.7, marginLeft: 4, flexShrink: 0 }} />
-                </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setModelDropdownOpen(!modelDropdownOpen)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      width: '100%',
+                      background: '#1a233d',
+                      color: '#fff',
+                      border: '1px solid rgba(150, 164, 195, 0.25)',
+                      borderRadius: 6,
+                      padding: '5px 10px',
+                      fontSize: 10,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      outline: 'none',
+                      textAlign: 'left'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+                      {selectedModelInfo.provider === 'gemini' || selectedModelInfo.provider === 'gemini-interactions' ? (
+                        <Sparkles size={11} style={{ color: '#60a5fa' }} />
+                      ) : selectedModelInfo.provider === 'fal' ? (
+                        <Cpu size={11} style={{ color: '#f59e0b' }} />
+                      ) : selectedModelInfo.provider === 'elevenlabs' ? (
+                        <Volume2 size={11} style={{ color: '#10b981' }} />
+                      ) : (
+                        <Bot size={11} style={{ color: '#a78bfa' }} />
+                      )}
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {selectedModelInfo.name || selectedModelInfo.modelId}
+                      </span>
+                    </div>
+                    <ChevronDown size={11} style={{ opacity: 0.7, marginLeft: 4, flexShrink: 0 }} />
+                  </button>
+                )}
 
                 {modelDropdownOpen && (
                   <>
