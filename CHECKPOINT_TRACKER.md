@@ -243,6 +243,9 @@ Apenas local (não vai para Vercel): `LOCAL_WORKER_*`, `REVIT_MCP_*`, shell/path
 | 7 | Adicionados botões "Copiar" e "Usar no Chat" na Biblioteca de Prompts | `41e71e4`, `ea1e3ea` | ✅ Done |
 | 8 | Redesenhados painéis iniciais vazios de ArchVis, DirectCut e BIM Studio | `c19b0f6` | ✅ Done |
 | 9 | Remoção do overlay temporário de depuração mobile em `AppLayout.tsx` | `c19b0f6` | ✅ Done |
+| 10 | Corrigida detecção de saudações em português e naturalidade de greetings no front/backend | `antigravity` | ✅ Done |
+| 11 | Adicionado interceptador local e fallbacks de painéis ao abrir painéis no chat | `antigravity` | ✅ Done |
+| 12 | Removidas mensagens mecânicas de falha de conexão por respostas alternativas úteis | `antigravity` | ✅ Done |
 
 ---
 
