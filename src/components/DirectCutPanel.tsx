@@ -489,7 +489,8 @@ function MultiTrackTimeline({ timecode, onSeek }: { timecode: string; onSeek?: (
       id: 'fx', label: 'FX / Presets', icon: <Sparkles size={14} />,
       clips: [
         { id: 'fx1', label: 'Cinematic Color Grade', startPct: 0, widthPct: 58, color: D.tertiary, status: 'ready' },
-        { id: 'fx2', label: 'Slow Zoom (AI)', startPct: 58, widthPct: 20, color: D.tertiaryContainer, status: 'ready' },
+        { id: 'fx2', label: 'Slow Zoom (Ecossistema IA)', startPct: 58, widthPct: 20, color: D.tertiaryContainer, status: 'ready' },
+        { id: 'fx3', label: 'Deforum Morph (Ecossistema IA)', startPct: 78, widthPct: 22, color: D.tertiaryContainer, status: 'syncing' },
       ],
       height: 24,
     },
