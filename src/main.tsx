@@ -3953,9 +3953,7 @@ function App() {
     return <PublicVslLandingPage />
   }
 
-  if (isPremiumSalesRoute) {
-    return <ApexPremiumSalesPage />
-  }
+
 
   if ((!isSignedIn || authLoading) && !isLocalDemoOwner) {
     return (
