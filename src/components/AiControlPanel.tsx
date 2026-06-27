@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabaseClient'
+import { getBrowserSupabaseClient } from '../lib/supabaseClient'
 import {
   Brain,
   Save,
@@ -31,14 +31,19 @@ export function AiControlPanel() {
 
   async function fetchPersonas() {
     setLoading(true)
-    const { data, error } = await supabase
+    const { client } = getBrowserSupabaseClient()
+    if (!client) {
+      setLoading(false)
+      return
+    }
+    const { data, error } = await client
       .from('ai_personas')
       .select('*')
       .order('name')
 
     if (!error && data) {
       setPersonas(data)
-      const active = data.find(p => p.is_active)
+      const active = data.find((p: AiPersona) => p.is_active)
       if (active) {
         setSelectedPersona(active)
         setEditPrompt(active.system_prompt)
@@ -63,7 +68,13 @@ export function AiControlPanel() {
     if (!selectedPersona) return
     setSaveStatus('saving')
 
-    const { error } = await supabase
+    const { client } = getBrowserSupabaseClient()
+    if (!client) {
+      setSaveStatus('error')
+      return
+    }
+
+    const { error } = await client
       .from('ai_personas')
       .update({
         name: editName,
@@ -84,7 +95,10 @@ export function AiControlPanel() {
 
   async function handleCreateNew() {
     const newName = `Nova Persona ${personas.length + 1}`
-    const { data, error } = await supabase
+    const { client } = getBrowserSupabaseClient()
+    if (!client) return
+
+    const { data, error } = await client
       .from('ai_personas')
       .insert({
         name: newName,
@@ -101,16 +115,20 @@ export function AiControlPanel() {
   }
 
   async function handleActivate(id: string) {
+    const { client } = getBrowserSupabaseClient()
+    if (!client) return
     // Desativa todos
-    await supabase.from('ai_personas').update({ is_active: false }).neq('id', '00000000-0000-0000-0000-000000000000')
+    await client.from('ai_personas').update({ is_active: false }).neq('id', '00000000-0000-0000-0000-000000000000')
     // Ativa o alvo
-    await supabase.from('ai_personas').update({ is_active: true }).eq('id', id)
+    await client.from('ai_personas').update({ is_active: true }).eq('id', id)
     fetchPersonas()
   }
 
   async function handleDelete(id: string) {
     if (!confirm('Excluir esta persona?')) return
-    await supabase.from('ai_personas').delete().eq('id', id)
+    const { client } = getBrowserSupabaseClient()
+    if (!client) return
+    await client.from('ai_personas').delete().eq('id', id)
     fetchPersonas()
   }
 
