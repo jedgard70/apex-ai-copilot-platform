@@ -2,8 +2,13 @@ import React, { useEffect } from 'react';
 import { Bot, Zap, Shield, Sparkles, ChevronRight, CheckCircle2 } from 'lucide-react';
 
 export function ApexPremiumSalesPage() {
-  // Inject the Hotmart Widget script on mount
   useEffect(() => {
+    // Unlock global scrolling for the sales page
+    document.documentElement.style.overflow = 'auto';
+    document.body.style.overflow = 'auto';
+    const root = document.getElementById('root');
+    if (root) root.style.overflow = 'auto';
+
     // Prevent duplicate injections
     if (!document.querySelector('script[src="https://static.hotmart.com/checkout/widget.min.js"]')) {
       const script = document.createElement('script');
@@ -17,12 +22,17 @@ export function ApexPremiumSalesPage() {
       link.href = 'https://static.hotmart.com/css/hotmart-fb.min.css';
       document.head.appendChild(link);
     }
+
+    return () => {
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+      if (root) root.style.overflow = '';
+    };
   }, []);
 
   return (
     <main style={{ 
-      height: '100vh', 
-      overflowY: 'auto',
+      minHeight: '100vh', 
       background: '#020617', 
       color: '#f8fafc', 
       fontFamily: 'Inter, system-ui, sans-serif',
