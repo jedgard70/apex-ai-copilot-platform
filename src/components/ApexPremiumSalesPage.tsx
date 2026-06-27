@@ -21,7 +21,8 @@ export function ApexPremiumSalesPage() {
 
   return (
     <main style={{ 
-      minHeight: '100vh', 
+      height: '100vh', 
+      overflowY: 'auto',
       background: '#020617', 
       color: '#f8fafc', 
       fontFamily: 'Inter, system-ui, sans-serif',
