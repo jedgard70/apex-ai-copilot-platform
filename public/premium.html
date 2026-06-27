@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seu Imóvel Sem Arrependimento | Dr. José Edgard de Oliveira</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Barlow:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+html{background:#02040a;scroll-behavior:smooth;}
+body{min-height:100vh;background:radial-gradient(circle at top,#101827 0%,#06090f 42%,#02040a 100%);display:flex;justify-content:center;font-family:'Barlow',sans-serif;color:#fff;}
+.pg{font-family:'Barlow',sans-serif;background:#06090f;color:#fff;width:100%;max-width:680px;box-shadow:0 0 60px rgba(0,0,0,0.45);}
+
+.ticker{background:#c8a84b;padding:7px 0;overflow:hidden;white-space:nowrap;}
+.ticker span{display:inline-block;animation:tick 22s linear infinite;font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2.5px;color:#06090f;font-weight:700;}
+@keyframes tick{0%{transform:translateX(680px)}100%{transform:translateX(-100%)}}
+
+.urgency-bar{background:#991b1b;padding:10px 16px;text-align:center;border-bottom:2px solid #ef4444;}
+.urgency-bar p{font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:1.5px;color:#fff;font-weight:600;}
+.urgency-bar span{color:#fde68a;}
+
+.hero-block{position:relative;overflow:hidden;}
+.hero-img{width:100%;display:block;}
+.hero-img-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,9,15,0.3) 0%,rgba(6,9,15,0.15) 40%,rgba(6,9,15,0.95) 100%);}
+.hero-text{position:absolute;bottom:0;left:0;right:0;padding:20px 24px 24px;}
+.hero-eyebrow{display:inline-block;background:#c8a84b;color:#06090f;font-family:'Oswald',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;padding:4px 12px;border-radius:1px;margin-bottom:10px;}
+.hero-h{font-family:'Oswald',sans-serif;font-size:38px;font-weight:700;text-transform:uppercase;line-height:0.95;color:#fff;text-shadow:0 2px 20px rgba(0,0,0,0.8);}
+.hero-h em{font-style:normal;color:#c8a84b;}
+.hero-tagline{font-size:14px;color:#cbd5e1;margin-top:8px;font-style:italic;text-shadow:0 1px 8px rgba(0,0,0,0.9);}
+
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:2px solid #c8a84b;border-bottom:1px solid rgba(200,168,75,0.2);}
+.stat{padding:14px 8px;text-align:center;border-right:1px solid rgba(200,168,75,0.15);}
+.stat:last-child{border:none;}
+.stat-n{font-family:'Oswald',sans-serif;font-size:26px;font-weight:700;color:#c8a84b;}
+.stat-l{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+
+.hook-band{background:linear-gradient(90deg,#0f1a2e,#0a1220,#0f1a2e);border-top:1px solid rgba(200,168,75,0.15);border-bottom:1px solid rgba(200,168,75,0.15);padding:20px 24px;}
+.hook-band blockquote{font-family:'Oswald',sans-serif;font-size:22px;font-weight:400;color:#fff;line-height:1.3;border-left:4px solid #c8a84b;padding-left:16px;}
+.hook-band blockquote em{font-style:normal;color:#c8a84b;}
+.hook-band small{display:block;font-size:12px;color:#64748b;margin-top:8px;padding-left:20px;}
+
+.sec{padding:28px 24px;}
+.tag{display:inline-block;background:#991b1b;color:#fca5a5;font-family:'Oswald',sans-serif;font-size:9px;letter-spacing:2.5px;font-weight:700;padding:4px 10px;border-radius:1px;margin-bottom:10px;}
+.tag.gold{background:rgba(200,168,75,0.15);color:#c8a84b;border:1px solid rgba(200,168,75,0.3);}
+.sec-h{font-family:'Oswald',sans-serif;font-size:28px;font-weight:700;text-transform:uppercase;line-height:1.1;margin-bottom:10px;}
+.sec-h .g{color:#c8a84b;}
+.sec-h .r{color:#ef4444;}
+.body-txt{font-size:15px;color:#94a3b8;line-height:1.75;margin-bottom:20px;}
+
+.video-sec{padding:28px 24px;background:linear-gradient(180deg,#06090f 0%,#0c1322 100%);border-top:1px solid rgba(200,168,75,0.16);border-bottom:1px solid rgba(200,168,75,0.16);}
+.video-shell{position:relative;border:2px solid rgba(200,168,75,0.55);border-radius:4px;overflow:hidden;background:#02040a;box-shadow:0 18px 40px rgba(0,0,0,0.35);}
+.video-shell video{display:block;width:100%;aspect-ratio:16/9;background:#02040a;object-fit:cover;}
+.video-caption{background:#0c1322;padding:14px 16px;border-top:1px solid rgba(200,168,75,0.18);}
+.video-caption strong{display:block;font-family:'Oswald',sans-serif;color:#c8a84b;font-size:15px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+.video-caption span{font-size:13px;color:#94a3b8;line-height:1.55;}
+
+.pain-list{margin-bottom:8px;}
+.pain-item{display:flex;gap:14px;padding:13px 0;border-bottom:1px solid rgba(255,255,255,0.05);align-items:flex-start;}
+.pain-x{width:26px;height:26px;min-width:26px;background:#b91c1c;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin-top:1px;}
+.pain-item p{font-size:14px;color:#cbd5e1;line-height:1.6;}
+.pain-item p strong{color:#fff;display:block;}
+
+.gold-line{height:2px;background:linear-gradient(90deg,transparent,#c8a84b 30%,#c8a84b 70%,transparent);margin:0 24px;}
+
+.ben-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:20px 0;}
+.ben-card{background:#0c1322;border:1px solid rgba(200,168,75,0.12);border-top:3px solid #c8a84b;padding:16px 14px;}
+.ben-ico{font-size:22px;margin-bottom:8px;}
+.ben-h{font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;color:#c8a84b;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;}
+.ben-p{font-size:12px;color:#475569;line-height:1.55;}
+
+.caps-label{font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;}
+.cap-list{margin-bottom:4px;}
+.cap-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;}
+.cap-row:last-child{border:none;}
+.cap-n{font-family:'Oswald',sans-serif;font-size:11px;color:#c8a84b;min-width:22px;font-weight:600;}
+.cap-row strong{color:#e2e8f0;}
+.cap-row span{color:#64748b;}
+
+.author-img{width:100%;display:block;}
+
+.cred-bar{background:#0c1322;border-top:2px solid #c8a84b;padding:18px 24px;display:flex;flex-wrap:wrap;gap:8px;}
+.cred{background:rgba(200,168,75,0.08);border:1px solid rgba(200,168,75,0.25);color:#c8a84b;font-size:10px;padding:4px 10px;border-radius:1px;font-weight:600;letter-spacing:0.5px;font-family:'Oswald',sans-serif;}
+
+.alert-box{margin:0 24px 24px;background:linear-gradient(135deg,#7f1d1d,#991b1b);border:2px solid #ef4444;border-radius:4px;padding:22px 20px;text-align:center;}
+.alert-box h3{font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.alert-box p{font-size:13px;color:#fca5a5;line-height:1.65;}
+.alert-box p strong{color:#fff;}
+
+.bonus-wrap{padding:0 24px 28px;}
+.bonus-panel{background:#0c1322;border:1px solid rgba(200,168,75,0.26);border-top:3px solid #c8a84b;border-radius:3px;padding:22px 18px;}
+.bonus-head{font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;text-transform:uppercase;line-height:1.15;margin-bottom:8px;}
+.bonus-head span{color:#c8a84b;}
+.bonus-intro{font-size:13px;color:#94a3b8;line-height:1.6;margin-bottom:16px;}
+.bonus-list{display:grid;gap:10px;}
+.bonus-item{display:flex;gap:12px;align-items:flex-start;background:#06090f;border:1px solid rgba(255,255,255,0.06);padding:14px;border-radius:3px;}
+.bonus-ico{width:34px;height:34px;min-width:34px;display:flex;align-items:center;justify-content:center;background:rgba(200,168,75,0.13);border:1px solid rgba(200,168,75,0.3);border-radius:50%;font-size:17px;}
+.bonus-item h3{font-family:'Oswald',sans-serif;font-size:14px;color:#e2e8f0;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;}
+.bonus-item p{font-size:12px;color:#64748b;line-height:1.55;}
+
+.price-wrap{padding:20px 24px 28px;}
+.price-card{background:#0c1322;border:2px solid #c8a84b;border-radius:3px;padding:28px 24px;}
+.from-price{font-size:14px;color:#475569;text-decoration:line-through;text-align:center;}
+.by-label{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1.5px;text-align:center;margin-bottom:4px;}
+.price-big{font-family:'Oswald',sans-serif;font-size:72px;font-weight:700;color:#c8a84b;text-align:center;line-height:1;}
+.price-big small{font-size:26px;font-family:'Barlow',sans-serif;font-weight:400;}
+.price-note{font-size:12px;color:#475569;text-align:center;margin:6px 0 22px;}
+.cta{display:block;width:100%;background:linear-gradient(135deg,#c8a84b 0%,#e8c870 50%,#c8a84b 100%);background-size:200% auto;color:#06090f;font-family:'Oswald',sans-serif;font-size:21px;font-weight:700;padding:20px;border:none;cursor:pointer;text-align:center;text-transform:uppercase;letter-spacing:2px;border-radius:2px;transition:background-position 0.4s;}
+.cta:hover{background-position:right center;}
+.cta-sub{font-size:11px;color:#475569;text-align:center;margin:8px 0 20px;}
+.guar{display:flex;gap:14px;align-items:center;background:#06090f;border:1px solid rgba(200,168,75,0.2);border-radius:2px;padding:16px;}
+.guar-ico{font-size:32px;flex-shrink:0;}
+.guar h4{font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;color:#c8a84b;margin-bottom:2px;}
+.guar p{font-size:12px;color:#475569;line-height:1.55;}
+
+.faq-block{padding:4px 24px 28px;}
+.faq-h{font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;text-transform:uppercase;color:#fff;margin-bottom:16px;}
+.faq-item{border-bottom:1px solid rgba(255,255,255,0.06);padding:13px 0;}
+.faq-q{font-size:14px;font-weight:600;color:#e2e8f0;margin-bottom:5px;}
+.faq-a{font-size:13px;color:#64748b;line-height:1.6;}
+
+.foot{background:#04060a;padding:18px 24px;text-align:center;font-size:11px;color:#1e293b;line-height:1.9;}
+@media (max-width:520px){
+  body{display:block;}
+  .pg{max-width:none;box-shadow:none;}
+  .hero-h{font-size:34px;}
+  .sec,.video-sec{padding-left:18px;padding-right:18px;}
+  .ben-grid{grid-template-columns:1fr;}
+  .price-big{font-size:64px;}
+  .cta{font-size:18px;padding:18px 14px;}
+}
+</style>
+</head>
+<body>
+
+<div class="pg">
+
+<div class="ticker"><span>★ DR. JOSÉ EDGARD DE OLIVEIRA ★ CREA 5071162007 ★ 25 ANOS DE OBRA ★ PHD BUSINESS MARKETING ★ BIM + INTELIGÊNCIA ARTIFICIAL ★ EMBAIXADOR DA PAZ — ONU ★ COMENDADOR ORDEM JK ★ MASTER PNL ★ 70 COLABORADORES GERENCIADOS ★ J. EDGARD ENGENHARIA &amp; GESTÃO ★</span></div>
+
+<div class="urgency-bar"><p>⚡ OFERTA DE LANÇAMENTO — SOMENTE <span>R$ 147</span> — PREÇO SOBE SEM AVISO PRÉVIO</p></div>
+
+<div class="hero-block">
+  <img class="hero-img" src="cartaoebook.png" alt="Seu Imóvel Sem Arrependimento — Dr. José Edgard de Oliveira">
+  <div class="hero-img-overlay"></div>
+  <div class="hero-text">
+    <div class="hero-eyebrow">★ PREMIUM EBOOK 2026</div>
+    <div class="hero-h">Seu Imóvel<br><em>Sem Arrependimento</em></div>
+    <p class="hero-tagline">O guia que as construtoras não querem que você leia</p>
+  </div>
+</div>
+
+<div class="stats-row">
+  <div class="stat"><div class="stat-n">25+</div><div class="stat-l">Anos de Obra</div></div>
+  <div class="stat"><div class="stat-n">14</div><div class="stat-l">Capítulos</div></div>
+  <div class="stat"><div class="stat-n">PhD</div><div class="stat-l">Business & Mkt</div></div>
+</div>
+
+<div class="hook-band">
+  <blockquote>"Obra a gente sabe quando começa,<br>mas <em>não quando termina.</em>"<br><span style="color:#fff;font-size:18px;">— Isso é mentira. E este guia prova.</span></blockquote>
+  <small>Dr. José Edgard de Oliveira — Engenheiro Civil &amp; Gestor</small>
+</div>
+
+<div class="video-sec">
+  <div class="tag gold">ASSISTA PRIMEIRO</div>
+  <h2 class="sec-h">Antes de comprar ou construir,<br>entenda o <span class="g">risco invisível</span></h2>
+  <p class="body-txt">Em poucos minutos, veja por que tantos proprietários só descobrem o prejuízo quando ele já está dentro da parede, do contrato ou do orçamento.</p>
+  <div class="video-shell">
+    <video src="ebook.mp4" poster="capa-ebook.png" controls preload="metadata" playsinline></video>
+    <div class="video-caption">
+      <strong>Mensagem direta do Dr. José Edgard</strong>
+      <span>Use este vídeo como ponto de virada: primeiro gera consciência do problema, depois a página mostra a solução completa.</span>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="tag">O PROBLEMA</div>
+  <h2 class="sec-h">Você está prestes a<br>perder <span class="r">muito dinheiro</span><br>sem perceber</h2>
+  <p class="body-txt">Todos os anos, brasileiros entram numa obra achando que vão economizar — e saem endividados, traídos por fornecedores e morando num imóvel cheio de problemas que a tinta fresca escondia.</p>
+  <div class="pain-list">
+    <div class="pain-item"><div class="pain-x">✕</div><p><strong>O orçamento dobra no meio da obra</strong> — a construtora embute "gordura" de risco e lucro que você paga sem saber o que é</p></div>
+    <div class="pain-item"><div class="pain-x">✕</div><p><strong>Você compra um imóvel "lindo" e descobre pesadelos</strong> — infiltração, elétrica subdimensionada, fundação sem sondagem de solo</p></div>
+    <div class="pain-item"><div class="pain-x">✕</div><p><strong>O acordo de boca vai te prejudicar</strong> — sem escopo técnico contratual, você fica refém da palavra do empreiteiro</p></div>
+    <div class="pain-item"><div class="pain-x">✕</div><p><strong>Você paga 30% a 50% de lucro alheio</strong> — esse dinheiro poderia estar no seu patrimônio, não no bolso da construtora</p></div>
+    <div class="pain-item"><div class="pain-x">✕</div><p><strong>Sem BIM, os erros aparecem no concreto</strong> — e aí o prejuízo já está feito e custa caro para corrigir</p></div>
+  </div>
+</div>
+
+<div class="gold-line"></div>
+
+<div class="sec">
+  <div class="tag gold">A SOLUÇÃO</div>
+  <h2 class="sec-h">25 anos de canteiro<br>destilados em <span class="g">1 guia definitivo</span></h2>
+  <p class="body-txt">Cada capítulo foi escrito para eliminar o amadorismo e colocar você no controle absoluto do seu investimento — com método, tecnologia e transparência.</p>
+  <div class="ben-grid">
+    <div class="ben-card"><div class="ben-ico">🛡️</div><div class="ben-h">Preço de Custo</div><div class="ben-p">Você paga só o custo real dos materiais. Zero taxas ocultas. Cada centavo rastreado.</div></div>
+    <div class="ben-card"><div class="ben-ico">🔬</div><div class="ben-h">BIM + Inteligência Artificial</div><div class="ben-p">Veja sua casa em 3D antes de gastar um real. Elimine erros no papel, não no concreto.</div></div>
+    <div class="ben-card"><div class="ben-ico">⚖️</div><div class="ben-h">Contratos Blindados</div><div class="ben-p">Regras de ouro para nunca ser enganado por fornecedor, pedreiro ou empreiteiro.</div></div>
+    <div class="ben-card"><div class="ben-ico">🔍</div><div class="ben-h">Raio-X Vícios Ocultos</div><div class="ben-p">O que está dentro das paredes antes de comprar. A tinta fresca esconde mais do que você imagina.</div></div>
+    <div class="ben-card"><div class="ben-ico">🗺️</div><div class="ben-h">Do Terreno ao Habite-se</div><div class="ben-p">Cada fase da obra com cronograma financeiro claro — semana a semana.</div></div>
+    <div class="ben-card"><div class="ben-ico">💰</div><div class="ben-h">Decorar Gastando Pouco</div><div class="ben-p">A regra 80/20 dos acabamentos: onde investir e onde economizar sem perder padrão.</div></div>
+  </div>
+  <p class="caps-label">Conteúdo completo — 14 capítulos:</p>
+  <div class="cap-list">
+    <div class="cap-row"><span class="cap-n">01</span><p><strong>O Sonho que Não Pode Virar Pesadelo</strong></p></div>
+    <div class="cap-row"><span class="cap-n">03</span><p><strong>O Alerta Real:</strong> <span>O Barato que Sai Caro</span></p></div>
+    <div class="cap-row"><span class="cap-n">04</span><p><strong>Os 4 Maiores Mitos</strong> <span>da Construção Civil — desmontados com provas</span></p></div>
+    <div class="cap-row"><span class="cap-n">05</span><p><strong>Do Papel à Realidade:</strong> <span>O Método J. Edgard de Construir</span></p></div>
+    <div class="cap-row"><span class="cap-n">06</span><p><strong>Comprar Pronto ou Construir?</strong> <span>O veredito definitivo com matemática real</span></p></div>
+    <div class="cap-row"><span class="cap-n">07</span><p><strong>O Cofre da Obra:</strong> <span>Blindagem Total do Preço de Custo</span></p></div>
+    <div class="cap-row"><span class="cap-n">08</span><p><strong>Vícios Ocultos:</strong> <span>O que a Tinta Fresca Esconde</span></p></div>
+    <div class="cap-row"><span class="cap-n">09</span><p><strong>Escolha Inteligente do Terreno:</strong> <span>Onde o Projeto Nasce</span></p></div>
+    <div class="cap-row"><span class="cap-n">10</span><p><strong>Do Terreno ao Habite-se:</strong> <span>O Mapa Completo da Construção</span></p></div>
+    <div class="cap-row"><span class="cap-n">11</span><p><strong>Contratos e Fornecedores:</strong> <span>Blindagem Jurídica Total</span></p></div>
+    <div class="cap-row"><span class="cap-n">12</span><p><strong>Decorando com Economia:</strong> <span>Segredos de Designer de Alto Padrão</span></p></div>
+    <div class="cap-row"><span class="cap-n">13</span><p><strong>O Refúgio e a Máquina:</strong> <span>Residência vs. Galpão Industrial</span></p></div>
+    <div class="cap-row"><span class="cap-n">14</span><p><strong>Seu Novo Capítulo Começa Aqui</strong></p></div>
+  </div>
+</div>
+
+<div class="gold-line"></div>
+
+<img class="author-img" src="0131ewb.png" alt="Dr. José Edgard de Oliveira — A Engenharia Aliada à Alta Gestão">
+
+<div class="cred-bar">
+  <span class="cred">ENGENHEIRO CIVIL</span>
+  <span class="cred">CREA 5071162007</span>
+  <span class="cred">25 ANOS DE OBRA</span>
+  <span class="cred">PHD BUSINESS — LONDRES</span>
+  <span class="cred">MBA INTERNACIONAL</span>
+  <span class="cred">BIM + IA</span>
+  <span class="cred">MASTER PNL</span>
+  <span class="cred">EMBAIXADOR DA PAZ — ONU</span>
+  <span class="cred">COMENDADOR ORDEM JK</span>
+</div>
+
+<div class="alert-box">
+  <h3>⚡ Atenção — Cada Dia Sem Isso Te Custa Dinheiro</h3>
+  <p>Um único erro de fundação pode custar <strong>R$ 30.000 em correções</strong>. Uma elétrica subdimensionada pode causar <strong>incêndio</strong>. Vícios ocultos numa compra pronta podem virar <strong>anos na justiça</strong>.<br><br>O preço deste guia é menor do que <strong>uma hora de consultoria de engenharia.</strong></p>
+</div>
+
+<div class="bonus-wrap">
+  <div class="bonus-panel">
+    <h2 class="bonus-head">Você também recebe <span>materiais práticos</span></h2>
+    <p class="bonus-intro">Além do ebook principal, você terá ferramentas para decidir melhor, configurar a venda e consultar tudo sem depender de internet.</p>
+    <div class="bonus-list">
+      <div class="bonus-item">
+        <div class="bonus-ico">💰</div>
+        <div>
+          <h3>Cálculo de custos</h3>
+          <p>Compare quanto você recebe líquido por venda no Hotmart versus Systeme.io, já considerando taxas e impacto no lucro final.</p>
+        </div>
+      </div>
+      <div class="bonus-item">
+        <div class="bonus-ico">✅</div>
+        <div>
+          <h3>Checklist de configuração</h3>
+          <p>Passo a passo para colocar a estrutura no ar com página, pagamento, entrega do PDF e conferência antes de divulgar.</p>
+        </div>
+      </div>
+      <div class="bonus-item">
+        <div class="bonus-ico">📄</div>
+        <div>
+          <h3>Guia em PDF</h3>
+          <p>Tudo documentado em um arquivo organizado para consultar offline sempre que precisar revisar a implantação.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="price-wrap">
+  <div class="price-card">
+    <p class="by-label">Investimento único — acesso vitalício</p>
+    <p class="from-price">De R$ 297,00</p>
+    <p class="price-big"><small>R$</small> 147</p>
+    <p class="price-note">PDF completo — acesso imediato — leia em qualquer dispositivo</p>
+    <button class="cta">🔓 PROTEGER MEU PATRIMÔNIO AGORA</button>
+    <p class="cta-sub">Pix · Cartão de Crédito (até 12x) · Boleto — Pagamento 100% seguro via Hotmart</p>
+    <div class="guar">
+      <div class="guar-ico">🔒</div>
+      <div>
+        <h4>Garantia Incondicional de 7 Dias</h4>
+        <p>Se por qualquer motivo você não ficar 100% satisfeito, devolvemos cada centavo. Sem perguntas. Sem burocracia. Risco zero.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="faq-block">
+  <h2 class="faq-h">Dúvidas frequentes</h2>
+  <div class="faq-item"><p class="faq-q">Precisa de conhecimento técnico para ler?</p><p class="faq-a">Não. Escrito para leigos e técnicos. Linguagem direta, exemplos reais, visuais em cada capítulo.</p></div>
+  <div class="faq-item"><p class="faq-q">Vale para quem vai comprar imóvel pronto também?</p><p class="faq-a">Sim. O capítulo sobre vícios ocultos e o dilema comprar vs. construir foram feitos exatamente para esse perfil.</p></div>
+  <div class="faq-item"><p class="faq-q">Como recebo após a compra?</p><p class="faq-a">Imediatamente. Confirmado o pagamento, você recebe o link de download no e-mail cadastrado.</p></div>
+  <div class="faq-item"><p class="faq-q">Vale para galpão e imóvel comercial?</p><p class="faq-a">Sim. O capítulo 13 trata especificamente de galpões industriais, com foco em BIM, estrutura e ROI.</p></div>
+  <div class="faq-item"><p class="faq-q">E se eu não gostar?</p><p class="faq-a">Garantia de 7 dias. Peça reembolso sem nenhuma justificativa e receba 100% de volta. Risco zero.</p></div>
+</div>
+
+<div class="foot">
+  © 2026 J. Edgard Engenharia &amp; Gestão — Todos os direitos reservados<br>
+  Dr. José Edgard de Oliveira — CREA 5071162007<br>
+  Nenhuma parte desta publicação pode ser reproduzida sem autorização prévia por escrito do autor.
+</div>
+
+</div>
+</body>
+</html>
