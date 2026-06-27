@@ -204,8 +204,9 @@ export function ApexPremiumSalesPage() {
           </div>
         </div>
 
-        <div className="foot">
-          © 2026 Dr. José Edgard de Oliveira<br/>CREA 5071162007 • Todos os direitos reservados.
+        <div className="foot" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+          <img src="/assets/vendas/jedgard-e.png" alt="J Edgard Engenharia e Gestão" style={{ height: '40px', width: 'auto', marginBottom: '8px' }} />
+          <div>© 2026 Dr. José Edgard de Oliveira<br/>CREA 5071162007 • Todos os direitos reservados.</div>
         </div>
       </div>
     </div>
