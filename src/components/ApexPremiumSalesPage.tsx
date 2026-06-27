@@ -126,33 +126,45 @@ export function ApexPremiumSalesPage() {
           <p>Um único erro de fundação pode custar <strong>R$ 30.000</strong> em correções. O preço deste guia é menor que <strong>uma hora de consultoria.</strong></p>
         </div>
 
-        <img src="/assets/vendas/0131ewb.png" alt="Dr. José Edgard" className="author-img" />
+        <img src="/assets/vendas/0131ewb.png" alt="Dr. José Edgard" className="author-img" style={{ padding: '20px', borderRadius: '24px' }} />
         <div className="cred-bar">
           <span className="cred">DR. JOSÉ EDGARD</span>
           <span className="cred">ENG. CIVIL</span>
           <span className="cred">PHD BUSINESS</span>
         </div>
 
-        <div className="bonus-wrap">
+        <div className="bonus-wrap" style={{ marginTop: '30px' }}>
           <div className="bonus-panel">
-            <h3 className="bonus-head">Bônus <span>Inclusos</span></h3>
-            <p className="bonus-intro">Comprando hoje, você leva gratuitamente 3 ferramentas de alto valor agregado:</p>
+            <h3 className="bonus-head">Bônus <span>Exclusivos</span></h3>
+            <p className="bonus-intro">Além do ebook principal, você terá ferramentas práticas para aplicar o método hoje mesmo.</p>
             
             <div className="bonus-list">
               <div className="bonus-item">
                 <div className="bonus-ico">📊</div>
                 <div>
                   <h3>Calculadora de Custos</h3>
-                  <p>Planilha prática para você entender se o orçamento que te passaram faz sentido.</p>
+                  <p>Planilha prática para você entender se o preço que estão cobrando faz sentido matemático.</p>
                 </div>
               </div>
               <div className="bonus-item">
                 <div className="bonus-ico">📋</div>
                 <div>
-                  <h3>Checklist Blindado</h3>
-                  <p>O que perguntar antes de assinar contrato com construtores e engenheiros.</p>
+                  <h3>Checklist de Contratação</h3>
+                  <p>O que perguntar para o pedreiro, arquiteto ou construtora antes de assinar qualquer papel.</p>
                 </div>
               </div>
+              <div className="bonus-item">
+                <div className="bonus-ico">📱</div>
+                <div>
+                  <h3>Guia Completo em PDF</h3>
+                  <p>Tudo documentado para consultar offline ou no celular no meio da obra.</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Business Card / Ebook Image added inside bonus section as requested */}
+            <div style={{ marginTop: '24px', textAlign: 'center' }}>
+               <img src="/assets/vendas/cartaoebook.png" alt="Ebook Cartão de Visita" style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px' }} />
             </div>
           </div>
         </div>

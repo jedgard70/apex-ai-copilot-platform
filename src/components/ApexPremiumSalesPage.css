@@ -62,7 +62,7 @@
 
 .ebook-wrapper .video-sec { padding:28px 24px; background:linear-gradient(180deg,#06090f 0%,#0c1322 100%); border-top:1px solid rgba(200,168,75,0.16); border-bottom:1px solid rgba(200,168,75,0.16); }
 .ebook-wrapper .video-shell { position:relative; border:2px solid rgba(200,168,75,0.55); border-radius:4px; overflow:hidden; background:#02040a; box-shadow:0 18px 40px rgba(0,0,0,0.35); }
-.ebook-wrapper .video-shell video { display:block; width:100%; aspect-ratio:16/9; background:#02040a; object-fit:cover; }
+.ebook-wrapper .video-shell video { display:block; width:100%; height:auto; background:#02040a; }
 .ebook-wrapper .video-caption { background:#0c1322; padding:14px 16px; border-top:1px solid rgba(200,168,75,0.18); }
 .ebook-wrapper .video-caption strong { display:block; font-family:'Oswald',sans-serif; color:#c8a84b; font-size:15px; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
 .ebook-wrapper .video-caption span { font-size:13px; color:#94a3b8; line-height:1.55; }
