@@ -13,9 +13,17 @@
 
 Use this file as the canonical checkpoint snapshot for module/connector status. The platform is now documented as a consolidated inventory of 34 operational capabilities; the primary runtime modules are all done and live.
 
-Last updated: 2026-06-26 (19:57) — 🚀 SESSÃO CAPACIDADE TOTAL: Field Ops AI e Cérebro Pessoal.
+Last updated: 2026-06-27 (10:00) — 🚀 SESSÃO AGENTES AUTÔNOMOS E INFRAESTRUTURA DE VENDAS
 
-🔥 HOJE (2026-06-26 — sessão de super capacidades da IA):
+🔥 HOJE (2026-06-27 — SESSÃO AGENTES AUTÔNOMOS E INFRAESTRUTURA DE VENDAS):
+• ✅ **Motor do Apex Agent (`brain.mjs`)** — Implementação do cérebro assíncrono conectado à tabela `agent_tasks`, orquestrando agentes multi-ferramentas (Gemini 2.5) via WhatsApp/Telegram.
+• ✅ **Integração de Relatórios e Comandos** — Tools nativos no cérebro para buscar métricas e acionar scripts NPM.
+• ✅ **Automação Google Workspace** — Tools `read_recent_emails`, `send_email`, `get_upcoming_events` e `schedule_meeting` para o Agente Autônomo interagir com calendário e e-mails.
+• ✅ **Webhook Hotmart (`api/webhook/hotmart.mjs`)** — Endpoint preparado para interceptar Vendas e Abandonos de Carrinho do eBook, escalonando para o Agente de WhatsApp.
+• ✅ **Trend Scout Agent (Agente de Radar)** — Job 24/7 (`trendScout.mjs`) operando via Tavily Search e Gemini para analisar mercado (IAs, arquitetura) e fazer *push* proativo via WhatsApp.
+• ✅ **Injeção de Contexto de Negócio** — Cérebro atualizado com "Escada de Valor Apex" (Upsell SaaS) e Normas Americanas (Imperial/IBC/Woodframe).
+
+🔥 SESSÃO ANTERIOR (2026-06-26 — SESSÃO CAPACIDADE TOTAL):
 • ✅ **Mobile Full-Screen Layout Fix** — Reparo completo no `src/main.tsx` para mobile assumir 100% da tela preservando o Desktop (sem amassar o chat).
 • ✅ **Correção de Estabilidade do Servidor** — Tratados erros de Promise rejection (`Local Worker`) e removido parâmetro obsoleto `frequency_penalty` da API do Gemini para evitar travamentos silenciosos no Vercel/Local.
 • ✅ **Diário de Obras (Field Ops Time Tracker)** — Novo sistema de banco de dados JSON invisível para a IA calcular folhas de pagamento semanais automaticamente (Dias Trabalhados x Diária - Adiantamentos), acionado via Cron nas Sextas-feiras ao meio-dia.
