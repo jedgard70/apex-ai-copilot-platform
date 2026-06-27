@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import './ApexPremiumSalesPage.css';
+import { Bot, Zap, Shield, Sparkles, ChevronRight, CheckCircle2 } from 'lucide-react';
 
 export function ApexPremiumSalesPage() {
   // Inject the Hotmart Widget script on mount
@@ -20,192 +20,280 @@ export function ApexPremiumSalesPage() {
   }, []);
 
   return (
-    <div className="ebook-sales-wrapper">
-      <div className="pg">
-        
-        <div className="ticker">
-          <span>★ DR. JOSÉ EDGARD DE OLIVEIRA ★ CREA 5071162007 ★ 25 ANOS DE OBRA ★ PHD BUSINESS MARKETING ★ BIM + INTELIGÊNCIA ARTIFICIAL ★ EMBAIXADOR DA PAZ — ONU ★ COMENDADOR ORDEM JK ★ MASTER PNL ★ 70 COLABORADORES GERENCIADOS ★ J. EDGARD ENGENHARIA &amp; GESTÃO ★</span>
-        </div>
-
-        <div className="urgency-bar">
-          <p>⚡ OFERTA DE LANÇAMENTO — SOMENTE <span>R$ 147</span> — PREÇO SOBE SEM AVISO PRÉVIO</p>
-        </div>
-
-        <div className="hero-block">
-          <img className="hero-img" src="/assets/vendas/cartaoebook.png" alt="Seu Imóvel Sem Arrependimento — Dr. José Edgard de Oliveira" />
-          <div className="hero-img-overlay"></div>
-          <div className="hero-text">
-            <div className="hero-eyebrow">★ PREMIUM EBOOK 2026</div>
-            <div className="hero-h">Seu Imóvel<br /><em>Sem Arrependimento</em></div>
-            <p className="hero-tagline">O guia que as construtoras não querem que você leia</p>
-          </div>
-        </div>
-
-        <div className="stats-row">
-          <div className="stat"><div className="stat-n">25+</div><div className="stat-l">Anos de Obra</div></div>
-          <div className="stat"><div className="stat-n">14</div><div className="stat-l">Capítulos</div></div>
-          <div className="stat"><div className="stat-n">PhD</div><div className="stat-l">Business &amp; Mkt</div></div>
-        </div>
-
-        <div className="hook-band">
-          <blockquote>"Obra a gente sabe quando começa,<br />mas <em>não quando termina.</em>"<br /><span style={{ color: '#fff', fontSize: '18px' }}>— Isso é mentira. E este guia prova.</span></blockquote>
-          <small>Dr. José Edgard de Oliveira — Engenheiro Civil &amp; Gestor</small>
-        </div>
-
-        <div className="video-sec">
-          <div className="tag gold">ASSISTA PRIMEIRO</div>
-          <h2 className="sec-h">Antes de comprar ou construir,<br />entenda o <span className="g">risco invisível</span></h2>
-          <p className="body-txt">Em poucos minutos, veja por que tantos proprietários só descobrem o prejuízo quando ele já está dentro da parede, do contrato ou do orçamento.</p>
-          <div className="video-shell">
-            <video src="/assets/vendas/ebook.mp4" poster="/assets/vendas/capa-ebook.png" controls preload="metadata" playsInline></video>
-            <div className="video-caption">
-              <strong>Mensagem direta do Dr. José Edgard</strong>
-              <span>Use este vídeo como ponto de virada: primeiro gera consciência do problema, depois a página mostra a solução completa.</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="sec">
-          <div className="tag">O PROBLEMA</div>
-          <h2 className="sec-h">Você está prestes a<br />perder <span className="r">muito dinheiro</span><br />sem perceber</h2>
-          <p className="body-txt">Todos os anos, brasileiros entram numa obra achando que vão economizar — e saem endividados, traídos por fornecedores e morando num imóvel cheio de problemas que a tinta fresca escondia.</p>
-          <div className="pain-list">
-            <div className="pain-item"><div className="pain-x">✕</div><p><strong>O orçamento dobra no meio da obra</strong> — a construtora embute "gordura" de risco e lucro que você paga sem saber o que é</p></div>
-            <div className="pain-item"><div className="pain-x">✕</div><p><strong>Você compra um imóvel "lindo" e descobre pesadelos</strong> — infiltração, elétrica subdimensionada, fundação sem sondagem de solo</p></div>
-            <div className="pain-item"><div className="pain-x">✕</div><p><strong>O acordo de boca vai te prejudicar</strong> — sem escopo técnico contratual, você fica refém da palavra do empreiteiro</p></div>
-            <div className="pain-item"><div className="pain-x">✕</div><p><strong>Você paga 30% a 50% de lucro alheio</strong> — esse dinheiro poderia estar no seu patrimônio, não no bolso da construtora</p></div>
-            <div className="pain-item"><div className="pain-x">✕</div><p><strong>Sem BIM, os erros aparecem no concreto</strong> — e aí o prejuízo já está feito e custa caro para corrigir</p></div>
-          </div>
-        </div>
-
-        <div className="gold-line"></div>
-
-        <div className="sec">
-          <div className="tag gold">A SOLUÇÃO</div>
-          <h2 className="sec-h">25 anos de canteiro<br />destilados em <span className="g">1 guia definitivo</span></h2>
-          <p className="body-txt">Cada capítulo foi escrito para eliminar o amadorismo e colocar você no controle absoluto do seu investimento — com método, tecnologia e transparência.</p>
-          <div className="ben-grid">
-            <div className="ben-card"><div className="ben-ico">🛡️</div><div className="ben-h">Preço de Custo</div><div className="ben-p">Você paga só o custo real dos materiais. Zero taxas ocultas. Cada centavo rastreado.</div></div>
-            <div className="ben-card"><div className="ben-ico">🔬</div><div className="ben-h">BIM + Inteligência Artificial</div><div className="ben-p">Veja sua casa em 3D antes de gastar um real. Elimine erros no papel, não no concreto.</div></div>
-            <div className="ben-card"><div className="ben-ico">⚖️</div><div className="ben-h">Contratos Blindados</div><div className="ben-p">Regras de ouro para nunca ser enganado por fornecedor, pedreiro ou empreiteiro.</div></div>
-            <div className="ben-card"><div className="ben-ico">🔍</div><div className="ben-h">Raio-X Vícios Ocultos</div><div className="ben-p">O que está dentro das paredes antes de comprar. A tinta fresca esconde mais do que você imagina.</div></div>
-            <div className="ben-card"><div className="ben-ico">🗺️</div><div className="ben-h">Do Terreno ao Habite-se</div><div className="ben-p">Cada fase da obra com cronograma financeiro claro — semana a semana.</div></div>
-            <div className="ben-card"><div className="ben-ico">💰</div><div className="ben-h">Decorar Gastando Pouco</div><div className="ben-p">A regra 80/20 dos acabamentos: onde investir e onde economizar sem perder padrão.</div></div>
-          </div>
-          <p className="caps-label">Conteúdo completo — 14 capítulos:</p>
-          <div className="cap-list">
-            <div className="cap-row"><span className="cap-n">01</span><p><strong>O Sonho que Não Pode Virar Pesadelo</strong></p></div>
-            <div className="cap-row"><span className="cap-n">03</span><p><strong>O Alerta Real:</strong> <span>O Barato que Sai Caro</span></p></div>
-            <div className="cap-row"><span className="cap-n">04</span><p><strong>Os 4 Maiores Mitos</strong> <span>da Construção Civil — desmontados com provas</span></p></div>
-            <div className="cap-row"><span className="cap-n">05</span><p><strong>Do Papel à Realidade:</strong> <span>O Método J. Edgard de Construir</span></p></div>
-            <div className="cap-row"><span className="cap-n">06</span><p><strong>Comprar Pronto ou Construir?</strong> <span>O veredito definitivo com matemática real</span></p></div>
-            <div className="cap-row"><span className="cap-n">07</span><p><strong>O Cofre da Obra:</strong> <span>Blindagem Total do Preço de Custo</span></p></div>
-            <div className="cap-row"><span className="cap-n">08</span><p><strong>Vícios Ocultos:</strong> <span>O que a Tinta Fresca Esconde</span></p></div>
-            <div className="cap-row"><span className="cap-n">09</span><p><strong>Escolha Inteligente do Terreno:</strong> <span>Onde o Projeto Nasce</span></p></div>
-            <div className="cap-row"><span className="cap-n">10</span><p><strong>Do Terreno ao Habite-se:</strong> <span>O Mapa Completo da Construção</span></p></div>
-            <div className="cap-row"><span className="cap-n">11</span><p><strong>Contratos e Fornecedores:</strong> <span>Blindagem Jurídica Total</span></p></div>
-            <div className="cap-row"><span className="cap-n">12</span><p><strong>Decorando com Economia:</strong> <span>Segredos de Designer de Alto Padrão</span></p></div>
-            <div className="cap-row"><span className="cap-n">13</span><p><strong>O Refúgio e a Máquina:</strong> <span>Residência vs. Galpão Industrial</span></p></div>
-            <div className="cap-row"><span className="cap-n">14</span><p><strong>Seu Novo Capítulo Começa Aqui</strong></p></div>
-          </div>
-        </div>
-
-        <div className="gold-line"></div>
-
-        <img className="author-img" src="/assets/vendas/0131ewb.png" alt="Dr. José Edgard de Oliveira — A Engenharia Aliada à Alta Gestão" />
-
-        <div className="cred-bar">
-          <span className="cred">ENGENHEIRO CIVIL</span>
-          <span className="cred">CREA 5071162007</span>
-          <span className="cred">25 ANOS DE OBRA</span>
-          <span className="cred">PHD BUSINESS — LONDRES</span>
-          <span className="cred">MBA INTERNACIONAL</span>
-          <span className="cred">BIM + IA</span>
-          <span className="cred">MASTER PNL</span>
-          <span className="cred">EMBAIXADOR DA PAZ — ONU</span>
-          <span className="cred">COMENDADOR ORDEM JK</span>
-        </div>
-
-        <div className="alert-box">
-          <h3>⚡ Atenção — Cada Dia Sem Isso Te Custa Dinheiro</h3>
-          <p>Um único erro de fundação pode custar <strong>R$ 30.000 em correções</strong>. Uma elétrica subdimensionada pode causar <strong>incêndio</strong>. Vícios ocultos numa compra pronta podem virar <strong>anos na justiça</strong>.<br /><br />O preço deste guia é menor do que <strong>uma hora de consultoria de engenharia.</strong></p>
-        </div>
-
-        <div className="bonus-wrap">
-          <div className="bonus-panel">
-            <h2 className="bonus-head">Você também recebe <span>materiais práticos</span></h2>
-            <p className="bonus-intro">Além do ebook principal, você terá ferramentas para decidir melhor, configurar a venda e consultar tudo sem depender de internet.</p>
-            <div className="bonus-list">
-              <div className="bonus-item">
-                <div className="bonus-ico">💰</div>
-                <div>
-                  <h3>Cálculo de custos</h3>
-                  <p>Compare quanto você recebe líquido por venda no Hotmart versus Systeme.io, já considerando taxas e impacto no lucro final.</p>
-                </div>
-              </div>
-              <div className="bonus-item">
-                <div className="bonus-ico">✅</div>
-                <div>
-                  <h3>Checklist de configuração</h3>
-                  <p>Passo a passo para colocar a estrutura no ar com página, pagamento, entrega do PDF e conferência antes de divulgar.</p>
-                </div>
-              </div>
-              <div className="bonus-item">
-                <div className="bonus-ico">📄</div>
-                <div>
-                  <h3>Guia em PDF</h3>
-                  <p>Tudo documentado em um arquivo organizado para consultar offline sempre que precisar revisar a implantação.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="price-wrap">
-          <div className="price-card">
-            <p className="by-label">Investimento único — acesso vitalício</p>
-            <p className="from-price">De R$ 297,00</p>
-            <p className="price-big"><small>R$</small> 147</p>
-            <p className="price-note">PDF completo — acesso imediato — leia em qualquer dispositivo</p>
-            
-            {/* The actual Hotmart integration anchor */}
-            <a 
-              className="cta hotmart-fb" 
-              href="https://pay.hotmart.com/E105852820L?checkoutMode=2"
-              onClick={(e) => {
-                // The Hotmart widget intercepts this
-              }}
-            >
-              🔓 PROTEGER MEU PATRIMÔNIO AGORA
-            </a>
-
-            <p className="cta-sub">Pix · Cartão de Crédito (até 12x) · Boleto — Pagamento 100% seguro via Hotmart</p>
-            <div className="guar">
-              <div className="guar-ico">🔒</div>
-              <div>
-                <h4>Garantia Incondicional de 7 Dias</h4>
-                <p>Se por qualquer motivo você não ficar 100% satisfeito, devolvemos cada centavo. Sem perguntas. Sem burocracia. Risco zero.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="faq-block">
-          <h2 className="faq-h">Dúvidas frequentes</h2>
-          <div className="faq-item"><p className="faq-q">Precisa de conhecimento técnico para ler?</p><p className="faq-a">Não. Escrito para leigos e técnicos. Linguagem direta, exemplos reais, visuais em cada capítulo.</p></div>
-          <div className="faq-item"><p className="faq-q">Vale para quem vai comprar imóvel pronto também?</p><p className="faq-a">Sim. O capítulo sobre vícios ocultos e o dilema comprar vs. construir foram feitos exatamente para esse perfil.</p></div>
-          <div className="faq-item"><p className="faq-q">Como recebo após a compra?</p><p className="faq-a">Imediatamente. Confirmado o pagamento, você recebe o link de download no e-mail cadastrado.</p></div>
-          <div className="faq-item"><p className="faq-q">Vale para galpão e imóvel comercial?</p><p className="faq-a">Sim. O capítulo 13 trata especificamente de galpões industriais, com foco em BIM, estrutura e ROI.</p></div>
-          <div className="faq-item"><p className="faq-q">E se eu não gostar?</p><p className="faq-a">Garantia de 7 dias. Peça reembolso sem nenhuma justificativa e receba 100% de volta. Risco zero.</p></div>
-        </div>
-
-        <div className="foot">
-          © {new Date().getFullYear()} J. Edgard Engenharia &amp; Gestão — Todos os direitos reservados<br />
-          Dr. José Edgard de Oliveira — CREA 5071162007<br />
-          Nenhuma parte desta publicação pode ser reproduzida sem autorização prévia por escrito do autor.
-        </div>
-
+    <main style={{ 
+      minHeight: '100vh', 
+      background: '#020617', 
+      color: '#f8fafc', 
+      fontFamily: 'Inter, system-ui, sans-serif',
+      overflowX: 'hidden'
+    }}>
+      {/* Top Warning/Urgency Bar */}
+      <div style={{ 
+        background: 'linear-gradient(90deg, #ea580c 0%, #dc2626 100%)', 
+        textAlign: 'center', 
+        padding: '12px 16px', 
+        fontWeight: 700, 
+        letterSpacing: '0.05em', 
+        textTransform: 'uppercase', 
+        fontSize: 13,
+        boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)'
+      }}>
+        🔥 OFERTA FUNDADOR: ACESSO VITALÍCIO COM DESCONTO EXCLUSIVO NESTA PÁGINA
       </div>
-    </div>
+
+      {/* Hero Section */}
+      <section style={{ 
+        maxWidth: 1120, 
+        margin: '0 auto', 
+        padding: '60px 24px', 
+        display: 'grid', 
+        gap: 32,
+        position: 'relative'
+      }}>
+        {/* Background Glow */}
+        <div style={{
+          position: 'absolute',
+          top: -100,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '80%',
+          height: 400,
+          background: 'radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(2,6,23,0) 70%)',
+          pointerEvents: 'none',
+          zIndex: 0
+        }} />
+
+        <div style={{ textAlign: 'center', display: 'grid', gap: 20, zIndex: 1, position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 8 }}>
+            <strong style={{ 
+              fontSize: 16, 
+              letterSpacing: '0.15em', 
+              color: '#fbbf24',
+              textTransform: 'uppercase',
+              background: 'linear-gradient(90deg, #fde68a, #fbbf24)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              ★ PREMIUM EBOOK 2026 ★
+            </strong>
+          </div>
+          
+          <h1 style={{ 
+            margin: 0, 
+            fontSize: 'clamp(40px, 6vw, 68px)', 
+            lineHeight: 1.1,
+            fontWeight: 800,
+            letterSpacing: '-0.02em'
+          }}>
+            Seu Imóvel <br/>
+            <span style={{ color: '#fbbf24' }}>Sem Arrependimento</span>
+          </h1>
+          
+          <p style={{ 
+            margin: '0 auto', 
+            fontSize: 'clamp(18px, 2.5vw, 24px)', 
+            color: '#94a3b8', 
+            maxWidth: 800,
+            lineHeight: 1.5,
+            fontWeight: 400
+          }}>
+            O guia definitivo que as construtoras não querem que você leia. 25 anos de canteiro de obras destilados para você não perder dinheiro.
+          </p>
+        </div>
+
+        {/* Action Button - Hotmart Widget Integration */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, zIndex: 1, position: 'relative' }}>
+          <a 
+            href="https://pay.hotmart.com/E105852820L" 
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ 
+              background: 'linear-gradient(135deg, #fbbf24, #d97706)', 
+              color: '#ffffff', 
+              textDecoration: 'none', 
+              padding: '20px 48px', 
+              borderRadius: 16, 
+              fontWeight: 800, 
+              fontSize: 22,
+              letterSpacing: '0.02em',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              boxShadow: '0 10px 30px rgba(217, 119, 6, 0.4)',
+              transition: 'transform 0.2s, box-shadow 0.2s',
+              cursor: 'pointer'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
+              e.currentTarget.style.boxShadow = '0 15px 40px rgba(217, 119, 6, 0.6)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = 'none';
+              e.currentTarget.style.boxShadow = '0 10px 30px rgba(217, 119, 6, 0.4)';
+            }}
+          >
+            <Shield size={26} fill="#fff" color="#d97706" />
+            PROTEGER MEU PATRIMÔNIO - R$ 147
+            <ChevronRight size={26} />
+          </a>
+        </div>
+        
+        <p style={{ textAlign: 'center', color: '#64748b', fontSize: 14, marginTop: -8, zIndex: 1 }}>
+          Pagamento 100% seguro processado pela Hotmart.
+        </p>
+
+        {/* Video or VSL Section */}
+        <div style={{ 
+          marginTop: 40,
+          background: 'rgba(15, 23, 42, 0.6)', 
+          backdropFilter: 'blur(12px)',
+          borderRadius: 24, 
+          overflow: 'hidden', 
+          border: '1px solid rgba(251, 191, 36, 0.2)', 
+          boxShadow: '0 30px 80px rgba(0,0,0,0.5)',
+          zIndex: 1,
+          position: 'relative'
+        }}>
+          <video 
+            src="/assets/vendas/ebook.mp4" 
+            poster="/assets/vendas/capa-ebook.png" 
+            controls 
+            playsInline 
+            style={{ width: '100%', display: 'block', aspectRatio: '16/9', objectFit: 'cover' }}
+          ></video>
+        </div>
+      </section>
+
+      {/* Features Grid */}
+      <section style={{ maxWidth: 1120, margin: '0 auto', padding: '40px 24px 80px' }}>
+        <div style={{ textAlign: 'center', marginBottom: 48 }}>
+          <h2 style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 800, marginBottom: 16 }}>Você está prestes a perder dinheiro sem perceber</h2>
+          <p style={{ color: '#94a3b8', fontSize: 18, maxWidth: 800, margin: '0 auto' }}>
+            Todos os anos, brasileiros entram numa obra achando que vão economizar e saem endividados, traídos por fornecedores e morando num imóvel cheio de vícios ocultos.
+          </p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
+          {[
+            { icon: <Shield size={32} color="#fbbf24" />, title: 'Preço de Custo Real', desc: 'Aprenda a pagar só o custo real dos materiais. Zero taxas ocultas. Cada centavo rastreado.' },
+            { icon: <Sparkles size={32} color="#fbbf24" />, title: 'BIM + IA na Prática', desc: 'Veja sua casa em 3D antes de gastar um real. Elimine erros no papel, não no concreto.' },
+            { icon: <CheckCircle2 size={32} color="#fbbf24" />, title: 'Contratos Blindados', desc: 'Regras de ouro para nunca ser enganado por fornecedor, pedreiro ou empreiteiro.' },
+          ].map((feature, i) => (
+            <div key={i} style={{ 
+              background: 'rgba(30, 41, 59, 0.4)', 
+              border: '1px solid rgba(255,255,255,0.05)', 
+              borderRadius: 20, 
+              padding: 32,
+              transition: 'transform 0.3s, background 0.3s',
+              cursor: 'default'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = 'rgba(30, 41, 59, 0.8)';
+              e.currentTarget.style.transform = 'translateY(-4px)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = 'rgba(30, 41, 59, 0.4)';
+              e.currentTarget.style.transform = 'none';
+            }}>
+              <div style={{ 
+                background: 'rgba(251, 191, 36, 0.1)', 
+                width: 64, height: 64, 
+                borderRadius: 16, 
+                display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                marginBottom: 20 
+              }}>
+                {feature.icon}
+              </div>
+              <h3 style={{ fontSize: 22, fontWeight: 700, marginBottom: 12, color: '#f8fafc' }}>{feature.title}</h3>
+              <p style={{ color: '#94a3b8', lineHeight: 1.6 }}>{feature.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Author Section */}
+      <section style={{ maxWidth: 1120, margin: '0 auto 80px', padding: '0 24px' }}>
+        <div style={{ 
+          background: 'linear-gradient(90deg, #0f172a, #1e293b)', 
+          borderRadius: 24, 
+          padding: 40, 
+          display: 'flex', 
+          gap: 40, 
+          alignItems: 'center',
+          flexWrap: 'wrap'
+        }}>
+          <img src="/assets/vendas/0131ewb.png" alt="Dr. José Edgard" style={{ width: 250, borderRadius: 16, border: '2px solid #fbbf24' }} />
+          <div style={{ flex: 1, minWidth: 300 }}>
+            <h3 style={{ fontSize: 32, fontWeight: 800, marginBottom: 16, color: '#f8fafc' }}>Dr. José Edgard de Oliveira</h3>
+            <p style={{ color: '#94a3b8', fontSize: 18, lineHeight: 1.6, marginBottom: 24 }}>
+              Engenheiro Civil (CREA 5071162007) com mais de 25 anos de experiência em obras. PhD em Business, Embaixador da Paz pela ONU e especialista em BIM + Inteligência Artificial.
+            </p>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <span style={{ padding: '8px 16px', background: 'rgba(251,191,36,0.1)', color: '#fbbf24', borderRadius: 8, fontWeight: 600, fontSize: 14 }}>Engenheiro Civil</span>
+              <span style={{ padding: '8px 16px', background: 'rgba(251,191,36,0.1)', color: '#fbbf24', borderRadius: 8, fontWeight: 600, fontSize: 14 }}>25 Anos de Obra</span>
+              <span style={{ padding: '8px 16px', background: 'rgba(251,191,36,0.1)', color: '#fbbf24', borderRadius: 8, fontWeight: 600, fontSize: 14 }}>PhD Business</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Trust & Guarantee */}
+      <section style={{ background: '#0f172a', padding: '80px 24px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12, background: 'rgba(16, 185, 129, 0.1)', color: '#34d399', padding: '12px 24px', borderRadius: 999, fontWeight: 700, marginBottom: 32 }}>
+            <Shield size={24} />
+            GARANTIA INCONDICIONAL DE 7 DIAS
+          </div>
+          <h2 style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 800, marginBottom: 20 }}>Risco Zero.</h2>
+          <p style={{ color: '#94a3b8', fontSize: 18, lineHeight: 1.6, marginBottom: 40 }}>
+            Se por qualquer motivo você não ficar 100% satisfeito, devolvemos cada centavo. Sem perguntas. Sem burocracia.
+          </p>
+
+          <a 
+            href="https://pay.hotmart.com/E105852820L" 
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ 
+              background: 'transparent', 
+              color: '#fbbf24', 
+              border: '2px solid #fbbf24',
+              textDecoration: 'none', 
+              padding: '18px 40px', 
+              borderRadius: 16, 
+              fontWeight: 800, 
+              fontSize: 20,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 12,
+              transition: 'all 0.2s',
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = '#fbbf24';
+              e.currentTarget.style.color = '#000';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = '#fbbf24';
+            }}
+          >
+            QUERO ACESSAR O EBOOK AGORA
+          </a>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer style={{ background: '#020617', borderTop: '1px solid rgba(255,255,255,0.05)', padding: '40px 24px', color: '#64748b' }}>
+        <div style={{ maxWidth: 1120, margin: '0 auto', display: 'flex', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <strong style={{ color: '#f8fafc' }}>J. Edgard Engenharia & Gestão</strong>
+          </div>
+          <span>© {new Date().getFullYear()} Todos os direitos reservados.</span>
+          <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+            <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Termos de Uso</a>
+            <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Política de Privacidade</a>
+          </div>
+        </div>
+      </footer>
+    </main>
   );
 }
