@@ -6616,6 +6616,17 @@ const server = http.createServer(async (req, res) => {
     handler(req, res)
     return
   }
+
+  if (req.url === '/api/fal/webhook' && req.method === 'POST') {
+    const { default: handler } = await import('./api/fal/webhook.mjs')
+    return handler(req, res)
+  }
+
+  if (req.url?.startsWith('/api/webhook/telegram') && req.method === 'POST') {
+    const { default: handler } = await import('./api/webhook/telegram.mjs')
+    return handler(req, res)
+  }
+
   if (req.url === "/api/vercel/deploy" && req.method === "POST") {
     const { default: handler } = await import("./api/vercel/deploy.mjs")
     handler(req, res)
