@@ -2993,6 +2993,13 @@ function App() {
       return
     }
     setMessages(prev => [...prev, userMessage])
+    if (isSupabaseConfigured) {
+      getBrowserSupabaseClient().from('chat_history').insert({
+        session_id: activeConversationId,
+        role: 'user',
+        content: userMessage.text
+      }).catch(err => console.error('[Apex H5] Error saving user message:', err))
+    }
     setInput('')
     setLoading(true)
     setModelRuntimeState('running')
@@ -3128,6 +3135,13 @@ function App() {
           ? data.confirmation as H7Confirmation
           : null
         setMessages(prev => [...prev, { id: id(), role: 'assistant', text: reply, toolCards, confirmation }])
+        if (isSupabaseConfigured) {
+          getBrowserSupabaseClient().from('chat_history').insert({
+            session_id: activeConversationId,
+            role: 'assistant',
+            content: reply
+          }).catch(err => console.error('[Apex H5] Error saving assistant message:', err))
+        }
       }
     } catch (error) {
       setModelRuntimeState('fallback')
