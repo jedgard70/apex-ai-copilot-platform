@@ -65,6 +65,7 @@ import { SkillUpdatePanel } from './components/SkillUpdatePanel'
 import { SupplyChainPanel } from './components/SupplyChainPanel'
 import { PlatformMapPanel } from './components/PlatformMapPanel'
 import { PublicVslLandingPage } from './components/PublicVslLandingPage'
+import { ApexPremiumSalesPage } from './components/ApexPremiumSalesPage'
 import { UserAccountPanel } from './components/UserAccountPanel'
 import AppLayout from './components/AppLayout'
 import { ClientDashboard } from './components/ClientDashboard'
@@ -1307,6 +1308,7 @@ type ChatConversation = {
 function App() {
   const pathname = useMemo(() => window.location.pathname, [])
   const isPublicVslRoute = useMemo(() => /^(\/(vsl|oferta|apresentacao|landing\/vsl|campaign\/vsl))\/?$/i.test(pathname), [pathname])
+  const isPremiumSalesRoute = useMemo(() => /^(\/(premium|assinar|checkout))\/?$/i.test(pathname), [pathname])
   const isMobile = useIsMobile()
   const fileInput = useRef<HTMLInputElement | null>(null)
   const composerTextarea = useRef<HTMLTextAreaElement | null>(null)
@@ -3949,6 +3951,10 @@ function App() {
 
   if (isPublicVslRoute) {
     return <PublicVslLandingPage />
+  }
+
+  if (isPremiumSalesRoute) {
+    return <ApexPremiumSalesPage />
   }
 
   if ((!isSignedIn || authLoading) && !isLocalDemoOwner) {
