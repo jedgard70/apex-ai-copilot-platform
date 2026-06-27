@@ -50,6 +50,7 @@ import { FieldOpsPanel } from './components/FieldOpsPanel'
 import { GenerationHistoryPanel } from './components/GenerationHistoryPanel'
 import { ApsPanel } from './components/ApsPanel'
 import { KnowledgeBasePanel } from './components/KnowledgeBasePanel'
+import { AiControlPanel } from './components/AiControlPanel'
 import { MetricsDashboardPanel } from './components/MetricsDashboardPanel'
 import { MultiTenantPanel } from './components/MultiTenantPanel'
 import { NotificationsPanel } from './components/NotificationsPanel'
@@ -4093,6 +4094,7 @@ function App() {
       case 'research': return <ResearchPanel goal="" conversationContext={[]} onClear={() => {}} />;
       case 'crm': return <CrmPipelinePanel onClear={() => {}} />;
       case 'finance': return <FinancePanel goal="" conversationContext={[]} onClear={() => {}} />;
+      case 'aicontrol': return <AiControlPanel />;
       default: return <EmptyPanel />;
     }
   }

@@ -285,3 +285,5 @@ Apenas local (não vai para Vercel): `LOCAL_WORKER_*`, `REVIT_MCP_*`, shell/path
 4. **Estabilizar Instalador Desktop (Electron):** Consertar o executável `Apex AI Copilot Setup 0.1.0.exe`, transformando-o num serviço de segundo plano (System Tray) silencioso que liga junto com o Windows, sem precisar de tela preta do PowerShell.
 
 5. **Implementar Pipeline de Atualização OTA (Over-The-Air):** Configurar CI/CD para compilar novas versões do Instalador Desktop (`.exe`) e do App Mobile sempre que houver código novo, integrando com o `electron-updater` para atualizações automáticas e silenciosas nas máquinas dos usuários.
+
+6. **Soberania Tecnológica (O Endgame):** Fine-Tuning de modelo Open-Source (Gemma 3 / Llama) no Google Vertex AI utilizando o histórico de conversas do Supabase. Exportar os pesos do modelo (`.safetensors`) e integrá-lo offline ao `Local Worker` via Ollama, garantindo inteligência proprietária rodando 100% offline e sem custos de API na máquina do usuário.

@@ -233,6 +233,17 @@ e reportada ao Owner. Esta regra está documentada em:
 | Limpeza de logs debug mobile | Remoção do overlay temporário de depuração mobile em `AppLayout.tsx` | `c19b0f6` |
 | Correções de Fallbacks e Saudações | Correção de detecção de "ola/oi" em português, saudações calorosas no front/backend, interceptador local de painéis e remoção de falhas mecânicas de conexão | `antigravity` |
 
+
+## Roadmap Estratégico de Inteligência Artificial (Aprovado em 2026-06-26)
+
+O desenvolvimento da inteligência da plataforma seguirá as seguintes fases para garantir personalidade, memória e soberania de dados:
+
+1. **Matar o "Modo Robô" (Curto Prazo):** System Instructions rígidas e Few-Shot Prompting.
+2. **Memória Conversacional (Curto Prazo):** Histórico via Supabase (RAG base).
+3. **Busca Vetorial / RAG (Médio Prazo):** pgvector no Supabase para dados da empresa.
+4. **Function Calling Autônomo (Médio Prazo):** Execução de ações reais no Supabase e Google Workspace.
+5. **Soberania Tecnológica / O Endgame (Longo Prazo):** Fine-Tuning de modelo Open-Source (Gemma 3 / Llama) no Google Vertex AI usando o histórico real do Supabase. Exportação dos pesos (`.safetensors`) para o Local Worker (Ollama), garantindo inteligência proprietária, offline e sem custos de API na máquina final do usuário.
+
 ## Status dos Conectores
 
 Todos os provedores abaixo estão **configurados e operacionais** (chaves no `.env.local`, detectadas via `loadEnvLocal()`):

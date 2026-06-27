@@ -21,6 +21,7 @@ const sidebarItems = [
   { icon: 'explore', label: 'Platform Map', id: 'navigator' },
   { icon: 'school', label: 'Training', id: 'training' },
   { icon: 'menu_book', label: 'Documentation', id: 'docs' },
+  { icon: 'smart_toy', label: 'Cérebro IA', id: 'aicontrol' },
 ]
 
 /** Individual provider LED */
@@ -73,7 +74,7 @@ const roleSidebarMap: Record<string, string[]> = {
   owner_admin: [
     'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
     'research', 'crm', 'finance', 'governance', 'marketing', 'archvis',
-    'directcut', 'owner', 'deployment', 'navigator', 'training', 'docs'
+    'directcut', 'owner', 'deployment', 'navigator', 'training', 'docs', 'aicontrol'
   ],
   internal_team: [
     'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
