@@ -1,0 +1,16 @@
+{
+  "users": {
+    "jedgard70@gmail.com": {
+      "reminders": [
+        {
+          "id": "1782553778693",
+          "text": "Rodar node scripts/export-vertex-tuning.mjs, pegar o arquivo vertex_tuning_data.jsonl e fazer o Fine-Tuning do Gemma 4 no Vertex AI Model Garden!",
+          "due_time": "2026-07-11T06:48:44-03:00",
+          "notified": false,
+          "created_at": "2026-06-27T09:49:38.693Z"
+        }
+      ],
+      "lists": {}
+    }
+  }
+}
