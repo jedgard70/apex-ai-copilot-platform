@@ -117,6 +117,7 @@ const twinmotionControls = [
   { label: 'Orbit', icon: Move3D, status: 'ready' },
   { label: 'Walkthrough', icon: Route, status: 'ready' },
   { label: 'Section Box', icon: Scissors, status: 'ready' },
+  { label: 'Clash Detection (Interferências)', icon: AlertTriangle, status: 'ready' }, // Highlighted tool
   { label: 'Exploded View', icon: Layers3, status: 'ready' },
   { label: 'X-Ray', icon: Eye, status: 'ready' },
   { label: 'Sun Study', icon: Sun, status: 'ready' },
@@ -853,6 +854,9 @@ export function Bim3DPanel({ source, externalCommand, onSendTourToDirectCut, onS
             <h3>Technical analysis and correction plan</h3>
           </div>
           <div className="bim3d-export-actions">
+            <button type="button" onClick={() => downloadText(`apex-bim-permit-analysis-${Date.now()}.txt`, technicalReport)} style={{ background: '#2563eb', color: '#fff', border: '1px solid #3b82f6' }}>
+              <FileText size={16} /> Analisar para Permit Americano (IBC)
+            </button>
             <button type="button" onClick={() => downloadText(`apex-bim-technical-report-${Date.now()}.txt`, technicalReport)}><Download size={16} /> Export Technical Report</button>
             <button type="button" onClick={() => downloadText(`apex-bim-correction-report-${Date.now()}.txt`, correctionReport)}><Download size={16} /> Export Correction Report</button>
             <button type="button" onClick={() => downloadText(`apex-bim-tour-script-${Date.now()}.txt`, tourScript)}><Download size={16} /> Export Tour Script</button>
