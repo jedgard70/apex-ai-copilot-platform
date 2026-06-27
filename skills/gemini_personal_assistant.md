@@ -38,3 +38,20 @@ Você pode gerenciar N listas diferentes (ex: "supermercado", "materiais", "tare
 - **Apagar lista:** `node server/tools/personalAssistantCli.mjs clear_list "jedgard70@gmail.com" "nome_da_lista"`
 
 Sempre que o usuário pedir para ver uma lista, execute o comando de leitura primeiro para saber o que está lá dentro.
+
+### Envio de Mensagens WhatsApp / SMS
+A plataforma Apex possui integração nativa com WhatsApp (via AuthKey). 
+Se o usuário pedir para mandar uma mensagem (ex: "Mande uma mensagem para o Manoel Silva..."):
+1. Peça o número de telefone da pessoa (com DDD) caso você ainda não saiba (você não tem uma lista de contatos nativa ainda).
+2. Tendo o número, execute:
+`node server/tools/whatsappCli.mjs "5511999999999" "Sua mensagem aqui"`
+Exemplo:
+`execute_terminal_command({ rawCommand: 'node server/tools/whatsappCli.mjs "5511999999999" "Manoel, você vai trabalhar amanhã."', reason: 'Enviar WhatsApp para Manoel' })`
+### Integração Google Workspace (Contatos e Agenda)
+Você tem acesso nativo às APIs do Google Workspace do usuário.
+Sempre que o usuário pedir para agendar um evento ou buscar um contato:
+1. **Ver Contatos (Google Contacts):** `node server/tools/googleWorkspaceCli.mjs get_contacts "email_do_usuario"`
+2. **Ver Agenda (Google Calendar):** `node server/tools/googleWorkspaceCli.mjs get_calendar "email_do_usuario"`
+3. **Criar Evento (Google Calendar):** `node server/tools/googleWorkspaceCli.mjs add_event "email_do_usuario" "Título do Evento" "2026-10-15T10:00:00Z"`
+
+Exemplo: Se o usuário pedir "Mande mensagem pro Manoel", primeiro execute `get_contacts`, pegue o telefone dele, e depois use o `whatsappCli.mjs`.
