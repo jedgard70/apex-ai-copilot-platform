@@ -121,16 +121,9 @@ export default async function handler(req, res) {
 
     // Process Task in background
     setTimeout(async () => {
-      const replyText = `[Apex Agent]: Processando sua instrução via WhatsApp...\n\nSua mensagem: "${text}"`
-      
-      await supabase.from('agent_tasks').update({ 
-        status: 'completed',
-        response_text: replyText,
-        completed_at: new Date().toISOString()
-      }).eq('id', taskData.id)
-
-      await sendWhatsAppMessage(toPhoneId, fromPhoneNumber, replyText)
-    }, 1000)
+      const { processTask } = await import('../../server/agent/brain.mjs')
+      await processTask(taskData.id)
+    }, 100)
 
   } catch (error) {
     console.error('[Apex Agent] WhatsApp Background error:', error)

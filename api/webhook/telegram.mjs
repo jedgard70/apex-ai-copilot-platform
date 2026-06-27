@@ -81,27 +81,11 @@ export default async function handler(req, res) {
       return
     }
 
-    // 3. Process Task in background (Simulating Apex Agent / Copilot AI)
-    // Here we could call our internal chat endpoint or Gemini directly.
-    // For the initial PoC, we will just echo back via Telegram and update task.
-    
-    // TODO: In the next iteration, we will plug this into our actual api/copilot/chat.mjs
-    // logic so the agent has access to all the tools.
-    
+    // 3. Process Task in background
     setTimeout(async () => {
-      const replyText = `[Apex Agent]: Recebi sua instrução e estou processando em background...\n\nSua mensagem: "${text}"`
-      
-      // Update task to completed
-      await supabase.from('agent_tasks').update({ 
-        status: 'completed',
-        response_text: replyText,
-        completed_at: new Date().toISOString()
-      }).eq('id', taskData.id)
-
-      // Send to Telegram
-      await sendTelegramMessage(chatId, replyText)
-      
-    }, 1000)
+      const { processTask } = await import('../../server/agent/brain.mjs')
+      await processTask(taskData.id)
+    }, 100)
 
   } catch (error) {
     console.error('[Apex Agent] Background error:', error)
