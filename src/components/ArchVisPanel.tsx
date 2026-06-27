@@ -111,6 +111,7 @@ function RenderingEditor({ source, output, conversationContext, revisionConstrai
   const [prompt, setPrompt] = useState(() => output || '')
   const [negativePrompt, setNegativePrompt] = useState('cartoon, anime, 3d model look, low quality, blurry, distorted, deformed, wrong perspective, text, watermark, logo, extra rooms, different layout')
   const [gallery, setGallery] = useState<GalleryItem[]>([])
+  const [references, setReferences] = useState<string[]>([])
   const [selectedId, setSelectedId] = useState('')
   const [loading, setLoading] = useState(false)
   const [manualCorrection, setManualCorrection] = useState('')
@@ -239,23 +240,44 @@ function RenderingEditor({ source, output, conversationContext, revisionConstrai
     <div style={{ display: 'flex', flex: 1, overflow: 'hidden', height: '100%' }}>
       {/* ── Left: Source + Preview + Gallery ────────────────────── */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', borderRight: `1px solid ${T.outlineVariant}` }}>
-        {/* Source image */}
+        {/* Source image & Multiple References */}
         <div style={{ padding: '12px 16px', borderBottom: `1px solid ${T.outlineVariant}` }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: T.onSurfaceVariant, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>
-            Imagem original (referência)
-          </div>
-          <div style={{ height: 220, background: T.surfaceContainerLowest, borderRadius: 8, overflow: 'hidden', position: 'relative', border: `1px solid ${T.outlineVariant}` }}>
-            {source?.dataUrl ? (
-              <img src={source.dataUrl} alt="Source" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: T.onSurfaceVariant, gap: 6 }}>
-                <ImageIcon size={24} />
-                <span style={{ fontSize: 11 }}>Nenhuma imagem enviada</span>
-              </div>
-            )}
-            <div style={{ position: 'absolute', bottom: 6, right: 6, background: 'rgba(11,19,38,0.8)', backdropFilter: 'blur(8px)', borderRadius: 4, padding: '2px 6px', fontSize: 10, color: T.onSurfaceVariant }}>
-              1024 × 1024
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: T.onSurfaceVariant, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              Múltiplas Referências (Base + Estilo)
             </div>
+            <label style={{ fontSize: 10, color: T.primary, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Plus size={12} /> Add Foto
+              <input type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={e => {
+                const files = Array.from(e.target.files || []);
+                files.forEach(file => {
+                  const r = new FileReader();
+                  r.onload = () => setReferences(prev => [...prev, r.result as string]);
+                  r.readAsDataURL(file);
+                });
+              }} />
+            </label>
+          </div>
+          <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 4 }}>
+            {/* Primary Source */}
+            <div style={{ width: 140, height: 100, background: T.surfaceContainerLowest, borderRadius: 8, overflow: 'hidden', position: 'relative', border: `2px solid ${T.primaryContainer}`, flexShrink: 0 }}>
+              {source?.dataUrl ? (
+                <img src={source.dataUrl} alt="Source" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: T.onSurfaceVariant, gap: 6 }}>
+                  <ImageIcon size={20} />
+                  <span style={{ fontSize: 9 }}>Principal</span>
+                </div>
+              )}
+            </div>
+            
+            {/* Additional References */}
+            {references.map((ref, i) => (
+              <div key={i} style={{ width: 140, height: 100, background: T.surfaceContainerLowest, borderRadius: 8, overflow: 'hidden', position: 'relative', border: `1px solid ${T.outlineVariant}`, flexShrink: 0 }}>
+                <img src={ref} alt="Reference" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <button onClick={() => setReferences(refs => refs.filter((_, idx) => idx !== i))} style={{ position: 'absolute', top: 4, right: 4, background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', color: '#fff', width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 10 }}>×</button>
+              </div>
+            ))}
           </div>
         </div>
 
