@@ -6382,6 +6382,11 @@ const server = http.createServer(async (req, res) => {
     handleChat(req, res)
     return
   }
+  if (req.url === '/api/webhooks/hotmart' && req.method === 'POST') {
+    const hotmartHandler = await import('./api/webhooks/hotmart.mjs').then(m => m.default)
+    hotmartHandler(req, res)
+    return
+  }
   if (req.url === '/api/copilot/image-edit-plan' && req.method === 'POST') {
     handleImageEditPlan(req, res)
     return
