@@ -260,3 +260,28 @@ Apenas local (não vai para Vercel): `LOCAL_WORKER_*`, `REVIT_MCP_*`, shell/path
 
 *Last updated: 2026-06-26*
 *All 62 capabilities: DONE. Build: GREEN (100% ok). Tests: GREEN (114 passed). DirectCut Pipeline: GREEN. H5/H44/H51a: GREEN. Deploy: apexglobalai.com LIVE.*
+
+## Sessão 2026-06-26 — Integração Google Workspace e Agentes Gemini
+
+| # | Mudança | Status |
+| :--- | :--------- | :-------- |
+| 1 | Construção da arquitetura API Google Workspace (auth, contacts, calendar) | ✅ Done |
+| 2 | Orquestrador de Agentes Gemini (`geminiAgents.mjs`) mapeado aos modelos | ✅ Done |
+| 3 | Atualização das credenciais GCP no Tracker e infra | ✅ Done |
+
+## Dados Estratégicos Extraídos: Google Cloud Platform
+- **Project ID:** `apex-ai-copilot-platform`
+- **Project Number:** `429362775436`
+- **OAuth Web Client ID (Prefix):** `429362775436-kcj3...` e `429362775436-6bgi...`
+- **Service Account (Compute):** `429362775436-compute@developer.gserviceaccount.com`
+- **Service Account (Firebase):** `firebase-adminsdk-fbsvc@apex-ai-copilot-platform.iam.gserviceaccount.com`
+- **APIs Ativas:** Gemini, Contacts, Cloud Build, Firestore, Workspace, Ads, etc.
+
+## PLANO DE AÇÃO PARA AS PRÓXIMAS SESSÕES (Aprovado)
+1. **Desmembrar Arquivos Gigantes:** Modularizar `main.tsx` e `server.mjs`.
+2. **Migrar Mocks para Banco de Dados:** Mover de `personal_brain.json` para Supabase.
+3. **Central de Controle da IA:** UI para gestão dos prompts sem edição de código.
+
+4. **Estabilizar Instalador Desktop (Electron):** Consertar o executável `Apex AI Copilot Setup 0.1.0.exe`, transformando-o num serviço de segundo plano (System Tray) silencioso que liga junto com o Windows, sem precisar de tela preta do PowerShell.
+
+5. **Implementar Pipeline de Atualização OTA (Over-The-Air):** Configurar CI/CD para compilar novas versões do Instalador Desktop (`.exe`) e do App Mobile sempre que houver código novo, integrando com o `electron-updater` para atualizações automáticas e silenciosas nas máquinas dos usuários.
