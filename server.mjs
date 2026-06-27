@@ -6627,6 +6627,11 @@ const server = http.createServer(async (req, res) => {
     return handler(req, res)
   }
 
+  if (req.url?.startsWith('/api/webhook/whatsapp') && ['GET', 'POST'].includes(req.method)) {
+    const { default: handler } = await import('./api/webhook/whatsapp.mjs')
+    return handler(req, res)
+  }
+
   if (req.url === "/api/vercel/deploy" && req.method === "POST") {
     const { default: handler } = await import("./api/vercel/deploy.mjs")
     handler(req, res)
