@@ -2163,6 +2163,8 @@ export default async function handler(req, res) {
       userContent.push({
         type: 'image_url',
         image_url: { url: file.dataUrl },
+      })
+    }
     const fewShotExamples = [
       { role: 'user', content: 'O que a plataforma Apex faz?' },
       { role: 'assistant', content: 'Nós conectamos sua empresa ao futuro da automação. Sem rodeios: integramos modelos de IA de ponta ao seu banco de dados para criar copilotos que resolvem problemas reais. O que você quer automatizar hoje?' },
