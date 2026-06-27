@@ -11,6 +11,9 @@ export type ContractDocumentType =
   | 'Contract'
   | 'Proposal'
   | 'Memorial descritivo'
+  | 'Immigration (EB2-NIW / Visas)'
+  | 'Corporate Structuring'
+  | 'Lawsuit / Contest'
   | 'Permit checklist'
   | 'Compliance checklist'
   | 'Scope agreement'
@@ -112,6 +115,9 @@ export const contractDocumentTypes: ContractDocumentType[] = [
   'Contract',
   'Proposal',
   'Memorial descritivo',
+  'Immigration (EB2-NIW / Visas)',
+  'Corporate Structuring',
+  'Lawsuit / Contest',
   'Permit checklist',
   'Compliance checklist',
   'Scope agreement',

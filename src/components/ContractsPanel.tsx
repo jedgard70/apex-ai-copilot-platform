@@ -296,6 +296,8 @@ export function ContractsPanel({ source, goal, conversationContext, onSendToBudg
             <button className="contracts-primary" type="button" onClick={() => generatePlan('draft')} disabled={loading}><ShieldCheck size={16} /> Generate contract draft</button>
             <button type="button" onClick={() => generatePlan('review')} disabled={loading}><AlertTriangle size={16} /> Review uploaded document</button>
             <button type="button" onClick={() => generatePlan('permits')} disabled={loading}><Clipboard size={16} /> Permit checklist report</button>
+            <button className="contracts-primary" type="button" style={{ marginTop: '4px', background: 'var(--brand-primary)', color: '#fff' }} onClick={() => { updateContext('documentType', 'Immigration (EB2-NIW / Visas)'); generatePlan('draft') }} disabled={loading}><FileText size={16} /> Automate EB2-NIW Visa Petition</button>
+            <button type="button" style={{ marginTop: '4px' }} onClick={() => { updateContext('documentType', 'Corporate Structuring'); generatePlan('draft') }} disabled={loading}><FileText size={16} /> Corporate & Legal Structuring</button>
             {message && <p className="contracts-message">{message}</p>}
           </div>
 
