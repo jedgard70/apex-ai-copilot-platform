@@ -469,26 +469,41 @@ function MultiTrackTimeline({ timecode, onSeek }: { timecode: string; onSeek?: (
 
   const tracks = [
     {
-      id: 'frames', label: 'Frames', icon: <Film size={14} />,
+      id: 'video2', label: 'V2 (Overlay)', icon: <Layers size={14} />,
       clips: [
-        { id: 'f1', label: 'Shot_01.exr', startPct: 0, widthPct: 18, color: D.primaryContainer, status: 'ready' },
-        { id: 'f2', label: 'Shot_02.exr', startPct: 19, widthPct: 24, color: D.onSurfaceVariant, status: 'ready' },
-        { id: 'f3', label: '⟳ AI syncing', startPct: 44, widthPct: 10, color: D.primaryContainer, status: 'syncing' },
-      ],
-      height: 48,
-    },
-    {
-      id: 'video', label: 'Video', icon: <Video size={14} />,
-      clips: [
-        { id: 'v1', label: 'B_ROLL_DRONE_PAN.mp4', startPct: 13, widthPct: 28, color: D.secondaryContainer, status: 'ready' },
-        { id: 'v2', label: 'DETAIL_MACRO.mp4', startPct: 42, widthPct: 16, color: D.secondaryContainer, status: 'ready' },
+        { id: 'v2_1', label: 'LENS_FLARE.mov', startPct: 20, widthPct: 15, color: D.secondaryContainer, status: 'ready' },
+        { id: 'v2_2', label: 'TEXT_INTRO.png', startPct: 5, widthPct: 10, color: D.primaryContainer, status: 'ready' },
       ],
       height: 30,
     },
     {
-      id: 'audio', label: 'Audio', icon: <Volume2 size={14} />,
+      id: 'video1', label: 'V1 (Primary)', icon: <Video size={14} />,
       clips: [
-        { id: 'a1', label: 'AMBIENT_STREET_01.wav', startPct: 0, widthPct: 55, color: D.tertiary, status: 'ready' },
+        { id: 'v1_1', label: 'B_ROLL_DRONE_PAN.mp4', startPct: 0, widthPct: 28, color: D.primary, status: 'ready' },
+        { id: 'v1_2', label: 'DETAIL_MACRO.mp4', startPct: 28, widthPct: 30, color: D.primary, status: 'ready' },
+        { id: 'v1_3', label: '⟳ Generating AI clip', startPct: 58, widthPct: 20, color: D.primaryContainer, status: 'syncing' },
+      ],
+      height: 48,
+    },
+    {
+      id: 'fx', label: 'FX / Presets', icon: <Sparkles size={14} />,
+      clips: [
+        { id: 'fx1', label: 'Cinematic Color Grade', startPct: 0, widthPct: 58, color: D.tertiary, status: 'ready' },
+        { id: 'fx2', label: 'Slow Zoom (AI)', startPct: 58, widthPct: 20, color: D.tertiaryContainer, status: 'ready' },
+      ],
+      height: 24,
+    },
+    {
+      id: 'audio1', label: 'A1 (Dialogue)', icon: <Mic size={14} />,
+      clips: [
+        { id: 'a1_1', label: 'VOICE_OVER_AI.wav', startPct: 0, widthPct: 40, color: D.outline, status: 'ready' },
+      ],
+      height: 30,
+    },
+    {
+      id: 'audio2', label: 'A2 (SFX/Music)', icon: <Volume2 size={14} />,
+      clips: [
+        { id: 'a2_1', label: 'AMBIENT_STREET_01.wav', startPct: 0, widthPct: 80, color: D.outline, status: 'ready' },
       ],
       height: 30,
     },
@@ -501,7 +516,7 @@ function MultiTrackTimeline({ timecode, onSeek }: { timecode: string; onSeek?: (
     onSeek?.(pct)
   }
 
-  const timeMarkers = ['00:00:00', '00:00:05', '00:00:10', '00:00:15', '00:00:20', '00:00:25']
+  const timeMarkers = ['00:00:00', '00:00:05', '00:00:10', '00:00:15', '00:00:20', '00:00:25', '00:00:30', '00:00:35', '00:00:40']
 
   return (
     <footer style={{ height: 220, background: D.surfaceContainerLowest, borderTop: `1px solid ${D.outlineVariant}`, display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
