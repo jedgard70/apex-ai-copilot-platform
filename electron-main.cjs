@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, utilityProcess, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, Menu, utilityProcess, ipcMain, shell, Tray } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const http = require('http');
@@ -7,6 +7,7 @@ let mainWindow = null;
 let serverProcess = null;
 let workerProcess = null;
 let logFile = null;
+let tray = null;
 
 function log(msg) {
   const line = `[${new Date().toISOString()}] ${msg}\n`;
@@ -283,6 +284,8 @@ async function startAuthServerAndOpen() {
 ipcMain.handle('auth-start', async () => { return await startAuthServerAndOpen(); });
 
 app.on('ready', () => {
+  // Configura inicialização automática invisível no Windows
+  app.setLoginItemSettings({ openAtLogin: true, openAsHidden: true });
 
   const userData = app.getPath('userData');
   if (!fs.existsSync(userData)) {
@@ -296,11 +299,25 @@ app.on('ready', () => {
   startServers();
   waitForServerReady(20000, 500).then((ready) => {
     if (!ready) {
-      log('[electron-main] Backend readiness timed out. Opening window anyway.');
+      log('[electron-main] Backend readiness timed out. Service running in background.');
     } else {
-      log('[electron-main] Backend ready. Opening window.');
+      log('[electron-main] Backend ready. Service running in background.');
     }
-    createWindow();
+    
+    const iconPath = getUnpackedPath(path.join('dist', 'apex-global-logo.png'));
+    if (fs.existsSync(iconPath)) {
+      tray = new Tray(iconPath);
+      const contextMenu = Menu.buildFromTemplate([
+        { label: 'Open Apex Copilot UI', click: () => { 
+            if (!mainWindow) createWindow(); 
+            else mainWindow.show(); 
+          } 
+        },
+        { label: 'Quit Service', click: () => { app.quit(); } }
+      ]);
+      tray.setToolTip('Apex AI Copilot Platform (Background Service)');
+      tray.setContextMenu(contextMenu);
+    }
   });
 
   // Check for updates after 10 seconds (give server time to start)
@@ -310,9 +327,7 @@ app.on('ready', () => {
 });
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  // Do not quit when windows are closed. Service remains running in background.
 });
 
 app.on('will-quit', () => {
