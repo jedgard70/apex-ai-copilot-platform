@@ -6,7 +6,7 @@ const npmCmd = isWindows ? 'npm.cmd' : 'npm';
 const electronCmd = isWindows ? 'electron.cmd' : 'electron';
 
 console.log('[start-electron-dev] Building frontend assets...');
-const build = spawn(npmCmd, ['run', 'build'], { stdio: 'inherit' });
+const build = spawn(npmCmd, ['run', 'build'], { stdio: 'inherit', shell: true });
 
 build.on('close', (code) => {
   if (code !== 0) {
@@ -15,7 +15,7 @@ build.on('close', (code) => {
   }
 
   console.log('[start-electron-dev] Launching Electron...');
-  const electron = spawn(electronCmd, ['.'], { stdio: 'inherit' });
+  const electron = spawn(electronCmd, ['.'], { stdio: 'inherit', shell: true });
 
   electron.on('close', (elCode) => {
     process.exit(elCode);

@@ -39,6 +39,7 @@ setTimeout(() => {
   const vite = spawn(process.platform === 'win32' ? 'npx.cmd' : 'npx', ['vite', '--host', '0.0.0.0', '--open'], { 
     cwd: root, 
     stdio: 'inherit',
+    shell: true,
     env: { ...process.env }
   })
   
