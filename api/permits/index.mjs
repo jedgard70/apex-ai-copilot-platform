@@ -31,6 +31,16 @@ export default async function handler(req, res) {
     if (path === '/api/permits/types' && req.method === 'GET') {
       return res.status(200).json({ providerStatus: 'connected', types: mod.PERMIT_TYPES })
     }
+    if (path === '/api/permits/download-pdf' && req.method === 'POST') {
+      try {
+        const pdfBytes = await mod.generateRealPDF(body.id)
+        res.setHeader('Content-Type', 'application/pdf')
+        res.setHeader('Content-Disposition', `attachment; filename=permit_${body.id}.pdf`)
+        return res.status(200).send(Buffer.from(pdfBytes))
+      } catch (err) {
+        return res.status(500).json({ error: 'Erro ao gerar PDF real: ' + err.message })
+      }
+    }
     return res.status(404).json({ error: 'Not found' })
   } catch (err) {
     console.error('[permits] Error:', err.message)

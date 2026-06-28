@@ -38,6 +38,26 @@ export default async function handler(req, res) {
       return res.status(200).json({ providerStatus: 'connected', ...data })
     }
 
+    const traderMod = await import('../../server/service/autoTrader.mjs').catch(() => null);
+    if (traderMod) {
+      if (path === '/api/stock/autotrader/status' && req.method === 'GET') {
+        const status = await traderMod.calculateLiveEquity();
+        return res.status(200).json({ providerStatus: 'connected', data: status });
+      }
+      if (path === '/api/stock/autotrader/setup' && req.method === 'POST') {
+        const status = traderMod.setupPortfolio(body);
+        return res.status(200).json({ providerStatus: 'connected', data: status });
+      }
+      if (path === '/api/stock/autotrader/start' && req.method === 'POST') {
+        const status = await traderMod.startBot();
+        return res.status(200).json({ providerStatus: 'connected', data: status });
+      }
+      if (path === '/api/stock/autotrader/stop' && req.method === 'POST') {
+        const status = traderMod.stopBot();
+        return res.status(200).json({ providerStatus: 'connected', data: status });
+      }
+    }
+
     return res.status(404).json({ error: 'Not found' })
   } catch (err) {
     console.error('[stock] Error:', err.message)

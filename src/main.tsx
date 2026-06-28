@@ -72,6 +72,7 @@ import { ClientDashboard } from './components/ClientDashboard'
 import { DashboardPage } from './components/DashboardPage'
 import { DashboardByRolePanel } from './components/DashboardByRolePanel'
 import { CrmPipelinePanel } from './components/CrmPipelinePanel'
+import GlobalPermitsPanel from './components/GlobalPermitsPanel'
 import { BimClashPanel } from './components/BimClashPanel'
 import { QualidadeNCIsPanel } from './components/QualidadeNCIsPanel'
 import { WorkflowTasksPanel } from './components/WorkflowTasksPanel'
@@ -88,7 +89,7 @@ import { StockMarketPanel } from './components/StockMarketPanel'
 import { TripPlannerPanel } from './components/TripPlannerPanel'
 import { NRCompliancePanel } from './components/NRCompliancePanel'
 import { AccountingPanel } from './components/AccountingPanel'
-import { AmericanPermitsPanel } from './components/AmericanPermitsPanel'
+
 import { classifyFile, formatSize, IntakeFile, isVisionReady, readFileAsDataUrl, readImageDimensions } from './lib/fileIntake'
 import { extractPdfText } from './lib/pdfExtractor'
 import {
@@ -1921,9 +1922,9 @@ function App() {
   const isInternalUser = isOwnerUser || accountState?.role === 'Internal Team' || accountState?.role === 'Finance' || accountState?.role === 'Sales' || accountState?.user?.email?.includes('apexglobal')
 
   const currentRole = (() => {
-    if (!accountState?.user) return 'owner_admin';
-    if (accountState?.user?.email === 'jedgard70@gmail.com') return 'owner_admin';
-    return accountState?.role || 'client';
+    if (!accountState?.user) return 'owner';
+    if (accountState?.user?.email === 'jedgard70@gmail.com') return 'owner';
+    return accountState?.role || 'cliente_c';
   })();
 
   async function refreshAuthState() {
@@ -4123,7 +4124,7 @@ function App() {
       projectStatus={accountState?.providerStatus === 'supabase-connected' ? 'Live' : 'Ready'}
       providerLeds={providerLedStatuses}
       onProfileClick={() => {
-        if (currentRole === 'owner_admin') {
+        if (currentRole === 'owner' || currentRole === 'admin') {
           setActiveView('owner')
         } else {
           setAuthOutput({ goal: 'Open client account', conversationContext: [] })
@@ -4133,13 +4134,13 @@ function App() {
       userRole={currentRole}
     >
       {activeView === 'dashboard' ? (
-        currentRole === 'client' ? (
+        currentRole.startsWith('cliente_') ? (
           <div className="h-full" style={{ background: '#0f172a', minHeight: '100vh' }}>
             <ClientDashboard email={accountState?.user?.email} onBack={() => setActiveView('chat')} />
           </div>
         ) : (
           <DashboardPage onNavigate={(view) => {
-            if (view === 'owner' && currentRole !== 'owner_admin') {
+            if (view === 'owner' && currentRole !== 'owner' && currentRole !== 'admin') {
               setAuthOutput({ goal: 'Open client account', conversationContext: [] })
             } else {
               setActiveView(view)
@@ -4179,7 +4180,7 @@ function App() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Sparkles size={14} style={{ color: '#60a5fa' }} />
                 <span style={{ fontSize: '12px', fontWeight: 700, color: '#f1f5f9' }}>
-                  {currentRole === 'client' ? 'Apex AI Personal Assistant' : 'Apex AI Copilot'}
+                  {currentRole.startsWith('cliente_') ? 'Apex AI Personal Assistant' : 'Apex AI Copilot'}
                 </span>
               </div>
               <div style={{ display: 'flex', gap: 6 }}>
@@ -4571,7 +4572,7 @@ function App() {
                   {/* Right side actions: Model dropdown, Mic/Voice, Send */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     {/* Model dropdown button integrated */}
-                    {currentRole !== 'client' && (
+                    {!currentRole.startsWith('cliente_') && (
                       <div style={{ position: 'relative' }}>
                         <button
                           type="button"
@@ -5377,6 +5378,19 @@ function App() {
 
           {pipelineOutput && (
             <PipelineProgressPanel onClear={() => setPipelineOutput(false)} />
+          )}
+
+          {permitsOutput && (
+            <div className="relative w-full h-full bg-surface">
+              <button 
+                onClick={() => setPermitsOutput(false)} 
+                className="absolute top-4 right-4 z-50 p-2 bg-surface-container rounded-full hover:bg-surface-container-highest text-white"
+                aria-label="Close Permits Panel"
+              >
+                <X size={20} />
+              </button>
+              <GlobalPermitsPanel />
+            </div>
           )}
 
         </aside>
