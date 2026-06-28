@@ -1482,7 +1482,7 @@ function buildProviderStatusContext() {
     'GEMINI_API_KEY',
     'FAL_KEY',
     'ELEVENLABS_API_KEY',
-    'TAVILY_API_KEY',
+    'BRAVE_SEARCH_API_KEY',
     'AUTHKEY_AUTHKEY',
     'STRIPE_SECRET_KEY',
     'CRON_SECRET',
@@ -4493,7 +4493,7 @@ async function handleResearchPlan(req, res) {
     const searchQuery = buildResearchSearchQuery(researchType, query, region, freshness)
     let liveSources = []
 
-    const tavilyKey = process.env.TAVILY_API_KEY
+    const braveKey = process.env.BRAVE_SEARCH_API_KEY
     if (tavilyKey && query) {
       try {
         const tavilyRes = await fetch('https://api.tavily.com/search', {
@@ -4514,7 +4514,7 @@ async function handleResearchPlan(req, res) {
             note: r.content || '',
           }))
         }
-      } catch { /* Tavily search failed, fallback below */ }
+      } catch { /* Brave search failed, fallback below */ }
     }
 
     if (!liveSources.length) {

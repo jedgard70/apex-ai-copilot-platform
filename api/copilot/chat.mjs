@@ -793,7 +793,7 @@ function buildLocalSkillContext(userText, file) {
     ['Gemini API', 'GEMINI_API_KEY', 'chat, multimodal, TTS, image'],
     ['FAL.ai', 'FAL_KEY', 'image/video generation'],
     ['ElevenLabs', 'ELEVENLABS_API_KEY', 'text-to-speech'],
-    ['Tavily', 'TAVILY_API_KEY', 'web search'],
+    ['Brave Search', 'BRAVE_SEARCH_API_KEY', 'web search'],
     ['Stripe', 'STRIPE_SECRET_KEY', 'payments (test)'],
     ['Supabase', 'VITE_SUPABASE_URL', 'database/auth', 'VITE_SUPABASE_ANON_KEY'],
     ['AuthKey', 'AUTHKEY_AUTHKEY', 'SMS/OTP'],
@@ -868,7 +868,7 @@ function buildProviderStatusContext() {
     { name: 'Gemini API', key: 'GEMINI_API_KEY', desc: 'chat, multimodal, TTS, image' },
     { name: 'FAL.ai', key: 'FAL_KEY', desc: 'image/video generation, LLMs' },
     { name: 'ElevenLabs', key: 'ELEVENLABS_API_KEY', desc: 'text-to-speech' },
-    { name: 'Tavily', key: 'TAVILY_API_KEY', desc: 'web search' },
+    { name: 'Brave Search', key: 'BRAVE_SEARCH_API_KEY', desc: 'web search' },
     { name: 'Stripe', key: 'STRIPE_SECRET_KEY', desc: 'payments (test)' },
     { name: 'Supabase', key: 'VITE_SUPABASE_URL', desc: 'database, auth, storage', pairsWith: 'VITE_SUPABASE_ANON_KEY' },
     { name: 'AuthKey', key: 'AUTHKEY_AUTHKEY', desc: 'SMS/OTP' },
@@ -1434,8 +1434,8 @@ async function executeLiveAgentToolCall(toolCall) {
       return { error: 'Invalid tool arguments.' }
     }
     const query = String(args.query || '').trim()
-    const tavilyKey = process.env.TAVILY_API_KEY
-    if (!tavilyKey) {
+    const braveKey = process.env.BRAVE_SEARCH_API_KEY
+    if (!braveKey) {
       try {
         const ddgUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query.slice(0, 400))}&format=json&no_redirect=1&no_html=1`
         const resp = await fetch(ddgUrl, { method: 'GET' })
@@ -1459,19 +1459,19 @@ async function executeLiveAgentToolCall(toolCall) {
             url: item.FirstURL,
             content: String(item.Text || '').slice(0, 400),
           })),
-          note: 'Web search running in fallback mode (DuckDuckGo) because TAVILY_API_KEY is not configured.',
+          note: 'Web search running in fallback mode (DuckDuckGo) because BRAVE_SEARCH_API_KEY is not configured.',
         }
       } catch (err) {
         return {
           error: 'Failed to execute fallback web search: ' + err.message,
-          note: 'Configure TAVILY_API_KEY for richer search results.',
+          note: 'Configure BRAVE_SEARCH_API_KEY for richer search results.',
         }
       }
     }
     try {
       const resp = await fetch('https://api.tavily.com/search', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tavilyKey}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${braveKey}` },
         body: JSON.stringify({
           query: query.slice(0, 400),
           search_depth: 'basic',
@@ -1481,7 +1481,7 @@ async function executeLiveAgentToolCall(toolCall) {
       })
       const data = await resp.json()
       if (!resp.ok) {
-        return { error: data?.error?.message || `Tavily API returned HTTP ${resp.status}` }
+        return { error: data?.error?.message || `Brave Search API returned HTTP ${resp.status}` }
       }
       return {
         results: (data.results || []).map(r => ({ title: r.title, url: r.url, content: r.content })),

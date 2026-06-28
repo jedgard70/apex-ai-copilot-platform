@@ -90,22 +90,22 @@ async function checkElevenLabs() {
   }
 }
 
-// ─── Tavily (Web Search) ─────────────────────────────────────────────────────
-async function checkTavily() {
-  const key = process.env.TAVILY_API_KEY
-  if (!key) return { id: 'tavily', name: 'Tavily (Pesquisa Web)', status: 'unconfigured', message: 'TAVILY_API_KEY não configurado.', topUpUrl: 'https://app.tavily.com' }
+// ─── Brave Search (Web Search) ─────────────────────────────────────────────────────
+async function checkBrave Search() {
+  const key = process.env.BRAVE_SEARCH_API_KEY
+  if (!key) return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'unconfigured', message: 'BRAVE_SEARCH_API_KEY não configurado.', topUpUrl: 'https://app.brave.com' }
   try {
-    const res = await safeFetch('https://api.tavily.com/search', {
+    const res = await safeFetch('https://api.brave.com/search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ api_key: key, query: 'test', max_results: 1 }),
     })
-    if (res.ok) return { id: 'tavily', name: 'Tavily (Pesquisa Web)', status: 'ok', message: 'Chave válida.' }
-    if (res.status === 401 || res.status === 403) return { id: 'tavily', name: 'Tavily (Pesquisa Web)', status: 'error', message: 'Chave inválida ou expirada.', topUpUrl: 'https://app.tavily.com' }
-    if (res.status === 429) { recordRateLimit({ provider: 'tavily', endpoint: 'search', statusCode: 429 }); return { id: 'tavily', name: 'Tavily (Pesquisa Web)', status: 'needs-topup', message: 'Quota mensal atingida.', topUpUrl: 'https://app.tavily.com' } }
-    return { id: 'tavily', name: 'Tavily (Pesquisa Web)', status: 'warning', message: `Status ${res.status}.`, topUpUrl: 'https://app.tavily.com' }
+    if (res.ok) return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'ok', message: 'Chave válida.' }
+    if (res.status === 401 || res.status === 403) return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'error', message: 'Chave inválida ou expirada.', topUpUrl: 'https://app.brave.com' }
+    if (res.status === 429) { recordRateLimit({ provider: 'brave', endpoint: 'search', statusCode: 429 }); return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'needs-topup', message: 'Quota mensal atingida.', topUpUrl: 'https://app.brave.com' } }
+    return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'warning', message: `Status ${res.status}.`, topUpUrl: 'https://app.brave.com' }
   } catch (err) {
-    return { id: 'tavily', name: 'Tavily (Pesquisa Web)', status: 'error', message: `Erro: ${scrub(err?.message)}`, topUpUrl: 'https://app.tavily.com' }
+    return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'error', message: `Erro: ${scrub(err?.message)}`, topUpUrl: 'https://app.brave.com' }
   }
 }
 
@@ -311,7 +311,7 @@ export default async function handler(req, res) {
     checkFal(),
     checkElevenLabs(),
     checkFirebase(),
-    checkTavily(),
+    checkBrave Search(),
     checkStripe(),
     checkSupabase(),
     checkGitHub(),
