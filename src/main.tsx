@@ -44,6 +44,7 @@ import { CrmPanel } from './components/CrmPanel'
 import { DigitalTwinPanel } from './components/DigitalTwinPanel'
 import { DirectCutInitialConfig, DirectCutPanel } from './components/DirectCutPanel'
 import { EvmSchedulerCompliancePanel } from './components/EvmSchedulerCompliancePanel'
+import { CaixaCompliancePanel } from './components/CaixaCompliancePanel'
 import { ExportCenterPanel } from './components/ExportCenterPanel'
 import { FinancePanel } from './components/FinancePanel'
 import { FieldOpsPanel } from './components/FieldOpsPanel'
@@ -4036,6 +4037,7 @@ function App() {
       case 'training': return <ModelTrainingPage />;
       case 'deployment': return <DeploymentFlowPage />;
       case 'docs': return <TechnicalDocumentationPage />;
+      case 'caixa_mcmv': return <CaixaCompliancePanel />;
       case 'marketing': return <MarketingAnalyticsPage onNewCampaign={() => setCampaignAutomationOutput({ goal: 'Nova campanha', conversationContext: [] })} />;
       case 'archvis': return (
         <ArchVisPanel

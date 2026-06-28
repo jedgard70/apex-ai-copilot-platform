@@ -9,9 +9,10 @@ const sidebarItems = [
   { icon: 'engineering', label: 'Field Operations', id: 'fieldops' },
   { icon: 'request_quote', label: 'Budget / Quantity', id: 'budget' },
   { icon: 'description', label: 'Contracts / Permits', id: 'contracts' },
+  { icon: 'account_balance', label: 'Financiamento (Caixa)', id: 'caixa_mcmv' },
   { icon: 'search', label: 'Research', id: 'research' },
   { icon: 'groups', label: 'CRM / Sales', id: 'crm' },
-  { icon: 'account_balance', label: 'Finance', id: 'finance' },
+  { icon: 'account_balance_wallet', label: 'Finance', id: 'finance' },
   { icon: 'verified_user', label: 'Governance / EVMS', id: 'governance' },
   { icon: 'insights', label: 'Marketing / Campaign', id: 'marketing' },
   { icon: 'photo_camera', label: 'ArchVis Studio', id: 'archvis' },
@@ -74,15 +75,15 @@ const roleSidebarMap: Record<string, string[]> = {
   owner_admin: [
     'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
     'research', 'crm', 'finance', 'governance', 'marketing', 'archvis',
-    'directcut', 'owner', 'deployment', 'navigator', 'training', 'docs', 'aicontrol'
+    'directcut', 'owner', 'deployment', 'navigator', 'training', 'docs', 'aicontrol', 'caixa_mcmv'
   ],
   internal_team: [
     'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
-    'crm', 'archvis', 'directcut', 'training', 'docs'
+    'crm', 'archvis', 'directcut', 'training', 'docs', 'caixa_mcmv'
   ],
   client: [
     'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
-    'archvis', 'directcut'
+    'archvis', 'directcut', 'caixa_mcmv'
   ],
   partner: [
     'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',

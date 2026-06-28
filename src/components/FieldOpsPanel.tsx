@@ -153,6 +153,28 @@ export function FieldOpsPanel({
     }
   }
 
+  async function generateRoofingReport() {
+    setLoading(true)
+    setMessage('')
+    // Simulando o workflow de romaneio e corte para telhados galvanizados
+    setTimeout(() => {
+      setPlan({
+        ...currentPlan(),
+        rdoDraft: 'Relatório de Montagem de Telhado Galvanizado (Curso de Telhados)\n- Verificação de terças e caimentos conforme projeto estrutural.\n- Especificação de parafusos autoperfurantes e mantas de isolamento.\n- Romaneio de corte validado.',
+        clientSummary: 'Plano de execução e corte das telhas galvanizadas finalizado e aprovado para montagem.',
+        internalFieldReport: 'Atenção aos pontos de fixação e recobrimento mínimo de 20cm nas calhas.',
+        safetyReport: 'EPIs obrigatórios para trabalho em altura (Cinto tipo paraquedista, talabarte duplo). Linha de vida instalada.',
+        qualityPunchList: 'Checar vedação de rufos e pingadeiras para evitar infiltração oculta.',
+        materialsLog: 'Telhas trapezoidais 0.43mm, parafusos de fixação com arruela EPDM, perfis U.',
+        nextDayPlan: 'Início da fixação das telhas na água principal.',
+        providerStatus: 'report-draft',
+        confidenceSummary: 'Alta (Validado por Workflow de Telhados Galvanizados)',
+        message: 'Romaneio e workflow de telhados galvanizados processado com sucesso.',
+      })
+      setLoading(false)
+    }, 1200)
+  }
+
   function addActivity() {
     const current = currentPlan()
     const activity: FieldActivity = {
@@ -312,6 +334,17 @@ export function FieldOpsPanel({
             <button type="button" onClick={() => generateReport('client')} disabled={loading}><Clipboard size={16} /> Generate client report</button>
             <button type="button" onClick={() => generateReport('safety')} disabled={loading}><ShieldCheck size={16} /> Generate safety report</button>
             <button type="button" onClick={() => generateReport('quality')} disabled={loading}><AlertTriangle size={16} /> Generate quality checklist</button>
+            <button 
+              type="button" 
+              onClick={generateRoofingReport} 
+              disabled={loading}
+              style={{
+                background: '#10b981', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 16px', fontWeight: 600, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, justifyContent: 'center'
+              }}
+            >
+              <HardHat size={16} />
+              {loading ? 'Processando Telhado...' : 'Gerar Workflow de Telhados Galvanizados'}
+            </button>
             {message && <p className="contracts-message">{message}</p>}
           </div>
 

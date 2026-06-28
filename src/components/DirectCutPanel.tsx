@@ -303,6 +303,32 @@ function AIGenerationPanel({ onGenerate, loading, source, initialImage, setIniti
           />
         </div>
 
+          {/* 🌟 Automações Master J. Edgard */}
+          <div style={{ marginBottom: 16, marginTop: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#f59e0b', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Sparkles size={14} color="#f59e0b" /> Automações J. Edgard
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <button onClick={() => {
+                setPrompt('PROMPT MASTER (J. EDGARD - TIMELAPSE REVERSO): Gere um timelapse hiper-realista reverso. Inicie com o edifício 100% construído e finalizado. Em um movimento fluido e acelerado (dolly out + pan right), vá "desconstruindo" a obra através de suas fases construtivas estruturais, até chegar na marcação original do terreno e terraplenagem. Câmera: Drone FPV. Iluminação: Transição de dia para entardecer. Arquivo: 100MB+ Quality.');
+                // @ts-ignore
+                if(typeof setStyle === 'function') setStyle('documentary');
+              }}
+                style={{ padding: '8px 10px', fontSize: 11, background: '#f59e0b22', color: '#fbbf24', border: '1px solid #f59e0b44', borderRadius: 6, cursor: 'pointer', textAlign: 'left', fontWeight: 600 }}>
+                ⏪ Engenharia Reversa (Timelapse Automático)
+              </button>
+              
+              <button onClick={() => {
+                setPrompt('PROMPT MASTER (J. EDGARD - CINEMATIC): Gere uma cena em movimento cinematográfico hiper-realista. Câmera: Slow pan (Panorâmica lenta) com Dolly In (aproximação suave) focando na fachada de alto padrão. Iluminação: Golden Hour (Entardecer dourado), reflexos HDR nos vidros, sombras dramáticas longas. Texturas 8k, Unreal Engine 5 vibe, detalhamento arquitetônico premium.');
+                // @ts-ignore
+                if(typeof setStyle === 'function') setStyle('cinematic');
+              }}
+                style={{ padding: '8px 10px', fontSize: 11, background: '#0ea5e922', color: '#38bdf8', border: '1px solid #0ea5e944', borderRadius: 6, cursor: 'pointer', textAlign: 'left', fontWeight: 600 }}>
+                🎬 Movimento Cinematográfico (Director's Cut)
+              </button>
+            </div>
+          </div>
+
         {/* Reference Images */}
         <div style={{ background: `${D.surfaceContainerHigh}80`, borderRadius: 6, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
           <label style={{ fontSize: 10, color: D.onSurfaceVariant, display: 'block' }}>Reference Images (FFmpeg slideshow)</label>
