@@ -502,6 +502,36 @@ function RenderingEditor({ source, output, conversationContext, revisionConstrai
             </div>
           </div>
 
+          {/* 🌟 Automações Master J. Edgard */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#f59e0b', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Sparkles size={14} color="#f59e0b" /> Automações J. Edgard
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <button onClick={() => {
+                setPrompt('PROMPT MASTER (J. EDGARD): Converta esta planta técnica 2D em uma planta humanizada foto-realista. Mantenha as paredes exatas (preserve-layout). Adicione texturas de madeira premium, mobiliário contemporâneo de alto padrão, iluminação natural indireta, tapetes e vegetação interna. Estilo: renderização arquitetônica de luxo, vista superior ortográfica 100% perfeita (Nadir).');
+                setPromptStyle('humanized-floor-plan');
+                setMode('preserve-layout');
+                setLockBoundaries(true);
+                setCameraPreset('Top-Down (Vista Superior 2D)');
+              }}
+                style={{ padding: '8px 10px', fontSize: 11, background: '#f59e0b22', color: '#fbbf24', border: '1px solid #f59e0b44', borderRadius: 6, cursor: 'pointer', textAlign: 'left', fontWeight: 600 }}>
+                🏠 Planta Humanizada (Nível Apex)
+              </button>
+              
+              <button onClick={() => {
+                setPrompt('PROMPT MASTER (J. EDGARD): Visualização holográfica 3D sobre topografia real. Estilo técnico editorial e futurista. Linhas de contorno brilhantes (néon ciano e âmbar), mapa de calor da base do terreno. O projeto da casa deve aparecer como um holograma translúcido encaixado no terreno perfeitamente em escala. Iluminação: cinematic dusk, low ambient, volumetric glow. Fundo escuro isolado.');
+                setPromptStyle('technical-drawing');
+                setMode('creative-redesign');
+                setLockBoundaries(false);
+                setCameraPreset('Perspective 3/4');
+              }}
+                style={{ padding: '8px 10px', fontSize: 11, background: '#0ea5e922', color: '#38bdf8', border: '1px solid #0ea5e944', borderRadius: 6, cursor: 'pointer', textAlign: 'left', fontWeight: 600 }}>
+                🧊 Topografia + Holograma 3D
+              </button>
+            </div>
+          </div>
+
           {/* 🎨 Presets de estilo */}
           {presets.length > 0 && (
             <div style={{ marginBottom: 16 }}>

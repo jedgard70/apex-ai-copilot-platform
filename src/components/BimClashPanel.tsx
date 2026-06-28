@@ -62,6 +62,27 @@ export function BimClashPanel({ onClear }: { onClear: () => void }) {
           <p style={{ fontSize: '11px', color: '#6b7280', margin: 0 }}>{kpis?.total || 0} conflitos · {kpis?.criticalAbertos || 0} críticos abertos</p>
         </div>
         <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+          <button onClick={async () => {
+             setLoading(true);
+             setTimeout(() => {
+                setClashes(prev => [{
+                   id: `clash-ai-${Date.now()}`,
+                   titulo: '🚨 [BIM_Coordinator_AI] Erro Crítico: Conflito Tubulação vs Vigota',
+                   disciplina1: 'Estrutural',
+                   disciplina2: 'Hidrossanitário',
+                   localizacao: 'Laje Térreo - Eixo 4/C',
+                   severidade: 'critical',
+                   status: 'aberto',
+                   modelo: 'PROJETO_EDGARD_AUTODESK',
+                   origem: 'Apex AI Navisworks Engine',
+                   dataDescoberta: new Date().toISOString().split('T')[0],
+                   observacoes: 'A inteligência artificial detectou uma interferência de Nível 1 (Risco Estrutural). Tubo de queda de esgoto (100mm) interceptando a Vigota V44. Ação recomendada: Rerroteamento pelo shaft adjacente.'
+                }, ...prev]);
+                setLoading(false);
+             }, 1500);
+          }} style={{ padding: '4px 10px', borderRadius: '6px', background: '#ef4444', color: '#fff', border: 'none', fontSize: '11px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <Activity size={12} /> Scan IA (Nível Autodesk)
+          </button>
           <button onClick={() => setShowForm(!showForm)} style={{ padding: '4px 10px', borderRadius: '6px', background: '#f59e0b', color: '#fff', border: 'none', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}><Plus size={12} /> Novo</button>
           <button onClick={load} disabled={loading} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }}><RefreshCw size={15} className={loading ? 'spin-icon' : ''} /></button>
           <button className="ghost-action" onClick={onClear}><X size={16} /></button>

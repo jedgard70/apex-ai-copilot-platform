@@ -36,7 +36,7 @@ server.on('exit', code => {
 // 3. Start Vite UI Server for Hot Reloading
 setTimeout(() => {
   console.log('\n[dev-live] Starting Vite UI Dev Server (Hot Reloading)...\n')
-  const vite = spawn(process.platform === 'win32' ? 'npx.cmd' : 'npx', ['vite', '--host', '0.0.0.0'], { 
+  const vite = spawn(process.platform === 'win32' ? 'npx.cmd' : 'npx', ['vite', '--host', '0.0.0.0', '--open'], { 
     cwd: root, 
     stdio: 'inherit',
     env: { ...process.env }

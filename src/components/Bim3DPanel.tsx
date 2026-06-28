@@ -118,6 +118,7 @@ const twinmotionControls = [
   { label: 'Walkthrough', icon: Route, status: 'ready' },
   { label: 'Section Box', icon: Scissors, status: 'ready' },
   { label: 'Clash Detection (Interferências)', icon: AlertTriangle, status: 'ready' }, // Highlighted tool
+  { label: 'Structural AI Analysis (EngBox/Revit)', icon: ScanSearch, status: 'ready' },
   { label: 'Exploded View', icon: Layers3, status: 'ready' },
   { label: 'X-Ray', icon: Eye, status: 'ready' },
   { label: 'Sun Study', icon: Sun, status: 'ready' },
@@ -434,7 +435,40 @@ export function Bim3DPanel({ source, externalCommand, onSendTourToDirectCut, onS
   ])
 
   function toggleControl(label: string) {
-    setSelectedControls(prev => prev.includes(label) ? prev.filter(item => item !== label) : [...prev, label])
+    setSelectedControls(prev => {
+      const isActivating = !prev.includes(label);
+      if (isActivating && label === 'Structural AI Analysis (EngBox/Revit)') {
+        // Simulação da inteligência do curso de Revit Estrutural
+        setTimeout(() => {
+          setCorrections(c => [
+            ...c,
+            {
+              id: id(),
+              kind: 'Issue',
+              title: 'Falha de Armação (EngBox/Revit)',
+              description: 'Viga V-12 com taxa de armadura superior a 4% (congestionamento de nós). Refazer cálculo paramétrico.',
+              category: 'Structure',
+              priority: 'Critical',
+              evidenceLevel: 'CONFIRMED',
+              timestamp: new Date().toISOString(),
+              status: 'Open'
+            },
+            {
+              id: id(),
+              kind: 'Observation',
+              title: 'Caminho de Carga (Revit)',
+              description: 'Pilar P-04 nascendo sobre laje de transição sem capitel adequado. Risco de punção.',
+              category: 'Structure',
+              priority: 'High',
+              evidenceLevel: 'CONFIRMED',
+              timestamp: new Date().toISOString(),
+              status: 'Open'
+            }
+          ])
+        }, 1000);
+      }
+      return prev.includes(label) ? prev.filter(item => item !== label) : [...prev, label]
+    })
   }
 
   function addCorrection() {

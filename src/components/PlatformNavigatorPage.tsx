@@ -2,15 +2,15 @@ const roleSidebarMap: Record<string, string[]> = {
   owner_admin: [
     'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
     'research', 'crm', 'finance', 'governance', 'marketing', 'archvis',
-    'directcut', 'owner', 'deployment', 'navigator', 'training', 'docs'
+    'directcut', 'owner', 'deployment', 'navigator', 'training', 'docs', 'caixa_mcmv'
   ],
   internal_team: [
     'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
-    'crm', 'archvis', 'directcut', 'training', 'docs'
+    'crm', 'archvis', 'directcut', 'training', 'docs', 'caixa_mcmv'
   ],
   client: [
     'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
-    'archvis', 'directcut'
+    'archvis', 'directcut', 'caixa_mcmv'
   ],
   partner: [
     'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
@@ -24,7 +24,7 @@ const roleSidebarMap: Record<string, string[]> = {
     'dashboard', 'chat', 'fieldops', 'contracts'
   ],
   finance: [
-    'dashboard', 'chat', 'budget', 'finance', 'contracts'
+    'dashboard', 'chat', 'budget', 'finance', 'contracts', 'caixa_mcmv'
   ],
   sales: [
     'dashboard', 'chat', 'crm', 'contracts', 'budget'
@@ -37,7 +37,7 @@ const roleSidebarMap: Record<string, string[]> = {
   ],
   project_manager: [
     'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
-    'crm', 'finance', 'governance', 'marketing', 'archvis', 'directcut'
+    'crm', 'finance', 'governance', 'marketing', 'archvis', 'directcut', 'caixa_mcmv'
   ]
 }
 

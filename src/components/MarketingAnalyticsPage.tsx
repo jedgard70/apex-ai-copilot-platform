@@ -1,3 +1,5 @@
+import { OrganicSocialAutomation } from './OrganicSocialAutomation';
+
 type MarketingAnalyticsPageProps = {
   onNewCampaign?: () => void
 }
@@ -45,8 +47,11 @@ export function MarketingAnalyticsPage({ onNewCampaign }: MarketingAnalyticsPage
           </div>
         </div>
 
+        {/* Organic Social Automation Integration */}
+        <OrganicSocialAutomation />
+
         {/* Bento Grid */}
-        <div className="grid grid-cols-12 gap-6">
+        <div className="grid grid-cols-12 gap-6 mt-8">
           {/* Performance Metrics */}
           <div className="col-span-12 lg:col-span-8 grid grid-cols-3 gap-6">
             <div className="bg-[#16213e] p-6 rounded-xl border border-white/5 relative overflow-hidden group">
