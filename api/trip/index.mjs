@@ -7,6 +7,10 @@
  * POST /api/trip/update       → Atualizar viagem
  * POST /api/trip/delete       → Deletar viagem
  * GET  /api/trip/destinations → Sugestões de destinos
+ * POST /api/trip/flights/search → Buscar passagens aéreas (Amadeus API)
+ * POST /api/trip/flights/book   → Comprar passagem
+ * POST /api/trip/insurance/search → Buscar seguro viagem
+ * POST /api/trip/insurance/book   → Comprar seguro
  */
 
 export default async function handler(req, res) {
@@ -38,7 +42,7 @@ export default async function handler(req, res) {
     if (path === '/api/trip/update' && req.method === 'POST') {
       const trip = mod.updateTrip(body.id, body)
       if (!trip) return res.status(404).json({ error: 'Trip not found' })
-      return res.status(200).json({ providerStatus: 'connected', trip })
+      return res.status(200).json({ providerStatus: 'connected', trip, budget: mod.calculateBudgetSummary(trip) })
     }
 
     if (path === '/api/trip/delete' && req.method === 'POST') {
@@ -49,6 +53,34 @@ export default async function handler(req, res) {
     if (path === '/api/trip/destinations' && req.method === 'GET') {
       const destinations = mod.suggestDestinations()
       return res.status(200).json({ providerStatus: 'connected', destinations })
+    }
+
+    // Novos endpoints Assíncronos
+    if (path === '/api/trip/flights/search' && req.method === 'POST') {
+      try {
+        const flights = await mod.searchFlights(body.originIata, body.destIata, body.date, body.travelers)
+        return res.status(200).json({ providerStatus: 'connected', flights })
+      } catch (e) {
+        if (e.message.includes('MISSING_DUFFEL_TOKEN')) {
+          return res.status(401).json({ error: 'Chave da API da Duffel não encontrada. Configure DUFFEL_ACCESS_TOKEN no .env para emissão NDC.' })
+        }
+        throw e;
+      }
+    }
+
+    if (path === '/api/trip/flights/book' && req.method === 'POST') {
+      const trip = mod.bookFlight(body.tripId, body.flight, body.paymentMethod)
+      return res.status(200).json({ providerStatus: 'connected', trip, budget: mod.calculateBudgetSummary(trip) })
+    }
+
+    if (path === '/api/trip/insurance/search' && req.method === 'POST') {
+      const insurance = mod.searchInsurance(body.destination, body.days, body.travelers)
+      return res.status(200).json({ providerStatus: 'connected', insurance })
+    }
+
+    if (path === '/api/trip/insurance/book' && req.method === 'POST') {
+      const trip = mod.bookInsurance(body.tripId, body.insurance)
+      return res.status(200).json({ providerStatus: 'connected', trip, budget: mod.calculateBudgetSummary(trip) })
     }
 
     return res.status(404).json({ error: 'Not found' })

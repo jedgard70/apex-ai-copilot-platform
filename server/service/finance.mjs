@@ -70,8 +70,42 @@ import { randomUUID } from 'node:crypto'
 
 // ─── In-memory store ─────────────────────────────────────────────────────────
 
-const EXPENSES = new Map()
-const REVENUES = new Map()
+import fs from 'fs'
+import path from 'path'
+
+const DB_DIR = path.join(process.cwd(), '.system_generated')
+const EXPENSES_FILE = path.join(DB_DIR, 'expenses.json')
+const REVENUES_FILE = path.join(DB_DIR, 'revenues.json')
+
+let EXPENSES = new Map()
+let REVENUES = new Map()
+
+function loadDB() {
+  try {
+    if (fs.existsSync(EXPENSES_FILE)) {
+      const data = JSON.parse(fs.readFileSync(EXPENSES_FILE, 'utf-8'))
+      EXPENSES = new Map(data)
+    }
+    if (fs.existsSync(REVENUES_FILE)) {
+      const data = JSON.parse(fs.readFileSync(REVENUES_FILE, 'utf-8'))
+      REVENUES = new Map(data)
+    }
+  } catch (err) {
+    console.error('[finance] Error loading DB:', err)
+  }
+}
+
+function saveDB() {
+  try {
+    fs.mkdirSync(DB_DIR, { recursive: true })
+    fs.writeFileSync(EXPENSES_FILE, JSON.stringify([...EXPENSES]))
+    fs.writeFileSync(REVENUES_FILE, JSON.stringify([...REVENUES]))
+  } catch (err) {
+    console.error('[finance] Error saving DB:', err)
+  }
+}
+
+loadDB()
 
 // ─── Expenses CRUD ──────────────────────────────────────────────────────────
 
@@ -93,6 +127,7 @@ export function createExpense(entry) {
     createdAt: new Date().toISOString(),
   }
   EXPENSES.set(id, expense)
+  saveDB()
   return expense
 }
 
@@ -103,10 +138,15 @@ export function updateExpense(id, updates) {
   if (!existing) return null
   const updated = { ...existing, ...updates, id: existing.id, createdAt: existing.createdAt, updatedAt: new Date().toISOString() }
   EXPENSES.set(id, updated)
+  saveDB()
   return updated
 }
 
-export function deleteExpense(id) { return EXPENSES.delete(id) }
+export function deleteExpense(id) { 
+  const res = EXPENSES.delete(id);
+  if(res) saveDB();
+  return res;
+}
 
 export function listExpenses(filters = {}) {
   let items = Array.from(EXPENSES.values())
@@ -137,6 +177,7 @@ export function createRevenue(entry) {
     createdAt: new Date().toISOString(),
   }
   REVENUES.set(id, revenue)
+  saveDB()
   return revenue
 }
 
@@ -147,10 +188,15 @@ export function updateRevenue(id, updates) {
   if (!existing) return null
   const updated = { ...existing, ...updates, id: existing.id, createdAt: existing.createdAt, updatedAt: new Date().toISOString() }
   REVENUES.set(id, updated)
+  saveDB()
   return updated
 }
 
-export function deleteRevenue(id) { return REVENUES.delete(id) }
+export function deleteRevenue(id) {
+  const res = REVENUES.delete(id);
+  if(res) saveDB();
+  return res;
+}
 
 export function listRevenues(filters = {}) {
   let items = Array.from(REVENUES.values())

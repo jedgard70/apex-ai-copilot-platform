@@ -1,0 +1,24 @@
+{
+  "system": "Apex AI Copilot Platform",
+  "version": "1.0.0",
+  "author": "Edgard",
+  "organization": "Apex Global",
+  "licensing": {
+    "enabled": true,
+    "licenseType": "SaaS_Enterprise",
+    "allowThirdPartyIntegration": true
+  },
+  "engine": {
+    "defaultAgentMode": "proactive",
+    "telemetryEnabled": true,
+    "maxConcurrentTasks": 10,
+    "apiGateway": {
+      "corsOrigins": ["*"],
+      "rateLimitPerMinute": 100
+    }
+  },
+  "security": {
+    "encryptWebhooks": true,
+    "requireAuthentication": true
+  }
+}

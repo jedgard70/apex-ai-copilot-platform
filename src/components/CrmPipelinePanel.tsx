@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { X, RefreshCw, TrendingUp, UserPlus, ChevronRight, DollarSign, Target, Users, BarChart3, Filter } from 'lucide-react'
+import { X, RefreshCw, TrendingUp, UserPlus, ChevronRight, DollarSign, Target, Users, BarChart3, Filter, Sparkles } from 'lucide-react'
 
 const STAGE_COLORS: Record<string, string> = {
   prospeccao: '#6b7280', qualificacao: '#3b82f6', proposta: '#f59e0b',
@@ -111,12 +111,20 @@ export function CrmPipelinePanel({ onClear, onSendToMarketing }: { onClear: () =
           <button onClick={onClear} style={{ width: 30, height: 30, borderRadius: 6, background: 'rgba(255,255,255,0.05)', border: `1px solid ${S.border}`, color: S.textDim, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <X size={13} />
           </button>
-          {onSendToMarketing && leads.length > 0 && (
-            <button onClick={() => onSendToMarketing(leads.length)}
-              style={{ padding: '6px 14px', borderRadius: 8, background: '#f59e0b', color: '#fff', border: 'none', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-              🎯 Leads p/ Marketing ({leads.length})
-            </button>
-          )}
+          <button onClick={async () => {
+            if (!confirm('Deseja que a Inteligência Artificial da Apex analise todos os seus Leads Mornos e Frios e crie uma campanha de E-mail Marketing agressiva de conversão?')) return;
+            setLoading(true);
+            try {
+              const res = await fetch('/api/crm-pipeline/campaign', { method: 'POST' });
+              const data = await res.json();
+              if (data.campaign) alert("🎯 Campanha IA Gerada com Sucesso:\n\n" + data.campaign);
+              else alert('Não há leads frios/mornos suficientes para campanha.');
+            } catch { alert('Erro ao gerar campanha IA. Verifique GEMINI_API_KEY.'); }
+            finally { setLoading(false); }
+          }}
+            style={{ padding: '6px 14px', borderRadius: 8, background: '#f59e0b', color: '#fff', border: 'none', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+            🎯 Criar Campanha IA ({leads.length})
+          </button>
         </div>
       </div>
 
@@ -235,8 +243,42 @@ export function CrmPipelinePanel({ onClear, onSendToMarketing }: { onClear: () =
                       </button>
                     )
                   })}
+                  
+                  <div style={{ flex: 1 }} />
+                  
+                  <button onClick={async (e) => { 
+                    e.stopPropagation(); 
+                    setLoading(true);
+                    try {
+                      await fetch(`/api/crm-pipeline/leads/${lead.id}/qualify`, { method: 'POST' });
+                      await load();
+                    } catch { alert('Erro na Qualificação IA. Verifique se o GEMINI_API_KEY está no .env'); }
+                    finally { setLoading(false); }
+                  }}
+                    style={{ padding: '3px 10px', borderRadius: 6, background: 'rgba(108, 71, 255, 0.2)', color: '#a78bfa', border: '1px solid rgba(108, 71, 255, 0.4)', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Sparkles size={10} /> Qualificar IA
+                  </button>
+
+                  <button onClick={async (e) => { 
+                    e.stopPropagation(); 
+                    setLoading(true);
+                    try {
+                      const r = await fetch(`/api/crm-pipeline/leads/${lead.id}/propose`, { method: 'POST' });
+                      const d = await r.json();
+                      if (d.proposalText) {
+                        alert("Proposta Comercial Gerada com IA:\n\n" + d.proposalText);
+                      } else {
+                        alert('Erro ao gerar proposta.');
+                      }
+                    } catch { alert('Erro na Geração de Proposta. Verifique se o GEMINI_API_KEY está no .env'); }
+                    finally { setLoading(false); }
+                  }}
+                    style={{ padding: '3px 10px', borderRadius: 6, background: 'rgba(34, 197, 94, 0.2)', color: '#4ade80', border: '1px solid rgba(34, 197, 94, 0.4)', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Sparkles size={10} /> Gerar Proposta
+                  </button>
+
                   <button onClick={(e) => { e.stopPropagation(); deleteLead(lead.id) }}
-                    style={{ padding: '3px 10px', borderRadius: 6, background: '#ef444422', color: '#ef4444', border: '1px solid #ef444444', fontSize: 10, cursor: 'pointer', marginLeft: 'auto' }}>
+                    style={{ padding: '3px 10px', borderRadius: 6, background: '#ef444422', color: '#ef4444', border: '1px solid #ef444444', fontSize: 10, cursor: 'pointer' }}>
                     Excluir
                   </button>
                 </div>

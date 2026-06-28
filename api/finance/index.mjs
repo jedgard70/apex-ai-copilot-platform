@@ -74,6 +74,22 @@ export default async function handler(req, res) {
       return res.status(200).json({ providerStatus: 'connected', revenue })
     }
 
+    // ── POST /api/finance/revenue/:id/payment-link ──
+    if (path?.includes('/payment-link') && req.method === 'POST') {
+      const id = path.replace('/payment-link', '').replace('/api/finance/revenue/', '')
+      const revenue = mod.getRevenue(id)
+      if (!revenue) return res.status(404).json({ error: 'Revenue not found' })
+      
+      // Se tiver chave Stripe, gera um Payment Link real (aqui simplificado).
+      // Como fallback, geramos um link simulado para POC
+      const paymentLink = process.env.STRIPE_SECRET_KEY 
+        ? `https://buy.stripe.com/test_${revenue.id.split('-')[0]}` 
+        : `https://apex-pay.local/checkout/${revenue.id}?amount=${revenue.amount}`;
+      
+      const updated = mod.updateRevenue(id, { notes: `Link de Pagamento Gerado: ${paymentLink}` })
+      return res.status(200).json({ providerStatus: 'connected', revenue: updated, paymentLink })
+    }
+
     // ── GET /api/finance/monthly ──
     if (path === '/api/finance/monthly' && req.method === 'GET') {
       const months = Number(req.query?.months) || 6

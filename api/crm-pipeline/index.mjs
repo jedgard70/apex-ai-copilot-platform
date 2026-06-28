@@ -67,6 +67,26 @@ export default async function handler(req, res) {
       return res.status(200).json({ providerStatus: 'connected', lead })
     }
 
+    // POST /api/crm-pipeline/campaign (AI)
+    if (path === '/api/crm-pipeline/campaign' && req.method === 'POST') {
+      const campaign = await mod.generateCampaignAI()
+      return res.status(200).json({ providerStatus: 'connected', campaign })
+    }
+
+    // POST /api/crm-pipeline/leads/:id/qualify (AI)
+    if (path?.includes('/qualify') && req.method === 'POST') {
+      const id = path.replace('/qualify', '').replace('/api/crm-pipeline/leads/', '')
+      const lead = await mod.qualifyLeadAI(id)
+      return res.status(200).json({ providerStatus: 'connected', lead })
+    }
+
+    // POST /api/crm-pipeline/leads/:id/propose (AI)
+    if (path?.includes('/propose') && req.method === 'POST') {
+      const id = path.replace('/propose', '').replace('/api/crm-pipeline/leads/', '')
+      const proposalText = await mod.generateProposalAI(id)
+      return res.status(200).json({ providerStatus: 'connected', proposalText })
+    }
+
     // DELETE /api/crm-pipeline/leads/:id
     if (path?.startsWith('/api/crm-pipeline/leads/') && req.method === 'DELETE') {
       const id = path.replace('/api/crm-pipeline/leads/', '')
