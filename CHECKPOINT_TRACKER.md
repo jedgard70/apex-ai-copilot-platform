@@ -1,3 +1,7 @@
+
+> [!IMPORTANT]
+> **ATUALIZACAO (28/06/2026) - PLATAFORMA REAL**
+> 100% livre de Mocks. Stripe, Gemini e Motores configurados. Checkout e API Keys de Prod validadas.
 # Apex Module Validation Tracker
 
 > 🚨 REGRA ABSOLUTA — Proteção de Environment Variables
