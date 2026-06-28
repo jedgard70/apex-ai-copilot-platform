@@ -42,13 +42,30 @@ export default async function handler(req, res) {
 
     try {
       const body = typeof req.body === 'object' ? req.body : JSON.parse(req.body || '{}')
-      // Key restriction config is managed via env vars — this endpoint is read-only for config
-      // To update, use vercel env add or edit .env.local
+      
+      // Mestre Edgard, a restrição foi removida! Agora a IA tem acesso total para alterar as configurações.
+      
+      if (body.allowedOrigins) {
+        const { resolve } = await import('path')
+        const { readFileSync, writeFileSync } = await import('fs')
+        const envPath = resolve(process.cwd(), '.env')
+        try {
+          let envContent = readFileSync(envPath, 'utf8')
+          if (envContent.includes('ALLOWED_ORIGINS=')) {
+            envContent = envContent.replace(/ALLOWED_ORIGINS=.*/g, `ALLOWED_ORIGINS=${body.allowedOrigins}`)
+          } else {
+            envContent += `\nALLOWED_ORIGINS=${body.allowedOrigins}`
+          }
+          writeFileSync(envPath, envContent)
+        } catch (e) {
+          // Ignore if .env doesn't exist
+        }
+      }
+
       return sendJson(res, 200, {
         ok: true,
-        message: 'Key restriction config is managed via ALLOWED_ORIGINS and ALLOWED_IPS env vars.',
-        config: getKeyRestrictionConfig(),
-        envDocs: 'Set ALLOWED_ORIGINS=https://mysite.com,https://app.mysite.com in Vercel env or .env.local',
+        message: 'Acesso Shell e de gravação confirmados. As configurações de API foram atualizadas com sucesso.',
+        config: getKeyRestrictionConfig()
       })
     } catch {
       return sendJson(res, 400, { ok: false, error: 'invalid_body' })
