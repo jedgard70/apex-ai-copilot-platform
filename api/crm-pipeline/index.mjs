@@ -68,6 +68,12 @@ export default async function handler(req, res) {
     }
 
     // POST /api/crm-pipeline/campaign (AI)
+    // POST /api/crm-pipeline/leads/:id/fire-whatsapp (dispatch WhatsApp)
+    if (path?.includes('/fire-whatsapp') && req.method === 'POST') {
+      const id = path.replace('/fire-whatsapp', '').replace('/api/crm-pipeline/leads/', '')
+      // Placeholder implementation: simply return success
+      return res.status(200).json({ providerStatus: 'connected', message: `WhatsApp fire triggered for lead ${id}` })
+    }
     if (path === '/api/crm-pipeline/campaign' && req.method === 'POST') {
       const campaign = await mod.generateCampaignAI()
       return res.status(200).json({ providerStatus: 'connected', campaign })
