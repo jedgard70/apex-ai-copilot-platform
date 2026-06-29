@@ -4495,24 +4495,22 @@ async function handleResearchPlan(req, res) {
     let liveSources = []
 
     const braveKey = process.env.BRAVE_SEARCH_API_KEY
-    if (tavilyKey && query) {
+    if (braveKey && query) {
       try {
-        const tavilyRes = await fetch('https://api.tavily.com/search', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tavilyKey}` },
-          body: JSON.stringify({ query: searchQuery, search_depth: 'basic', max_results: 5 }),
+        const braveRes = await fetch(`https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(searchQuery)}&count=5`, {
+          headers: { 'Accept': 'application/json', 'Accept-Encoding': 'gzip', 'X-Subscription-Token': braveKey },
           signal: AbortSignal.timeout(10000),
         })
-        if (tavilyRes.ok) {
-          const tavilyData = await tavilyRes.json()
-          liveSources = (tavilyData.results || []).map((r, i) => ({
+        if (braveRes.ok) {
+          const braveData = await braveRes.json()
+          liveSources = (braveData.web?.results || []).map((r, i) => ({
             citationId: `T${i + 1}`,
             title: r.title || r.url || 'Fonte web',
-            sourceName: 'Tavily',
+            sourceName: 'Brave Search',
             url: r.url || '',
             dateChecked: checked,
             evidenceLevel: 'WEB_SEARCH',
-            note: r.content || '',
+            note: r.description || r.content || '',
           }))
         }
       } catch { /* Brave search failed, fallback below */ }

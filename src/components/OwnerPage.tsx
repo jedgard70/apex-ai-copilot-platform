@@ -13,7 +13,7 @@ type KeyLifecycleEntry = { id: string; provider: string; name: string; configure
 const PROVIDER_LABELS: Record<string, string> = {
   gemini: 'Gemini',
   fal: 'FAL.ai', elevenlabs: 'ElevenLabs',
-  firebase: 'Firebase', tavily: 'Tavily', stripe: 'Stripe', supabase: 'Supabase',
+  firebase: 'Firebase', brave: 'Brave Search', stripe: 'Stripe', supabase: 'Supabase',
   authkey: 'AuthKey', github: 'GitHub', ffmpeg: 'FFmpeg', aps: 'Autodesk APS',
 }
 

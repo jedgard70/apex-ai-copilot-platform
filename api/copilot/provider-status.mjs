@@ -219,15 +219,30 @@ async function checkAuthKey() {
 
 // ─── FFmpeg local ─────────────────────────────────────────────────────────────
 async function checkFfmpeg() {
+  // Try ffmpeg-static first (bundled binary)
   try {
     const { createRequire } = await import('node:module')
     const require = createRequire(import.meta.url)
     const ffmpegPath = require('ffmpeg-static')
-    if (ffmpegPath) return { id: 'ffmpeg', name: 'FFmpeg local', status: 'ok', message: 'ffmpeg-static disponível.' }
-    return { id: 'ffmpeg', name: 'FFmpeg local', status: 'error', message: 'ffmpeg-static não encontrado.' }
+    if (ffmpegPath) {
+      return { id: 'ffmpeg', name: 'FFmpeg local', status: 'ok', message: 'ffmpeg-static disponível.' }
+    }
   } catch {
-    return { id: 'ffmpeg', name: 'FFmpeg local', status: 'error', message: 'ffmpeg-static não pôde ser carregado.' }
+    // ffmpeg-static not available, try system ffmpeg
   }
+  // Fallback: check if ffmpeg is available in system PATH
+  try {
+    const { execSync } = await import('node:child_process')
+    const result = execSync('ffmpeg -version', { encoding: 'utf8', timeout: 5000, stdio: ['ignore', 'pipe', 'ignore'] })
+    if (result.includes('ffmpeg version')) {
+      const versionMatch = result.match(/ffmpeg version ([^\s]+)/)
+      const version = versionMatch ? versionMatch[1] : 'disponível'
+      return { id: 'ffmpeg', name: 'FFmpeg local', status: 'ok', message: `FFmpeg ${version} no sistema.` }
+    }
+  } catch {
+    // System ffmpeg not available
+  }
+  return { id: 'ffmpeg', name: 'FFmpeg local', status: 'error', message: 'FFmpeg não encontrado (ffmpeg-static ou sistema).' }
 }
 
 // ─── Autodesk APS ──────────────────────────────────────────────────────────
