@@ -91,7 +91,7 @@ async function checkElevenLabs() {
 }
 
 // ─── Brave Search (Web Search) ─────────────────────────────────────────────────────
-async function checkBrave Search() {
+async function checkBraveSearch() {
   const key = process.env.BRAVE_SEARCH_API_KEY
   if (!key) return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'unconfigured', message: 'BRAVE_SEARCH_API_KEY não configurado.', topUpUrl: 'https://app.brave.com' }
   try {
@@ -311,7 +311,7 @@ export default async function handler(req, res) {
     checkFal(),
     checkElevenLabs(),
     checkFirebase(),
-    checkBrave Search(),
+    checkBraveSearch(),
     checkStripe(),
     checkSupabase(),
     checkGitHub(),
