@@ -3215,6 +3215,9 @@ async function handleVideoPlan(req, res) {
       planEditor ? `User editable plan/prompt:\n${planEditor}` : '',
     ].join('\n')
 
+    const directCutFullEnabled = String(process.env.DIRECTCUT_ENABLE_FULL || 'true').toLowerCase() !== 'false'
+    const providerStatus = directCutFullEnabled ? 'connector-ready' : 'planning-only'
+
     const negativePrompt = [
       'fake generated video',
       'claiming video was generated',
@@ -3230,9 +3233,9 @@ async function handleVideoPlan(req, res) {
       ...lockedConstraints.map(item => `violate constraint: ${item}`),
     ].filter(Boolean).join(', ')
 
-    const hasAiPlanner = Boolean(process.env.GEMINI_API_KEY)
+    // const hasAiPlanner = Boolean(process.env.GEMINI_API_KEY)
     const directCutFullEnabled = String(process.env.DIRECTCUT_ENABLE_FULL || 'true').toLowerCase() !== 'false'
-    const providerStatus = hasAiPlanner && directCutFullEnabled ? 'connector-ready' : 'connected'
+    const providerStatus = directCutFullEnabled ? 'connector-ready' : 'planning-only'
 
     return json(res, 200, {
       providerStatus,

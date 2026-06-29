@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { X, RefreshCw, TrendingUp, UserPlus, ChevronRight, DollarSign, Target, Users, BarChart3, Filter, Sparkles } from 'lucide-react'
+import { X, RefreshCw, TrendingUp, UserPlus, ChevronRight, DollarSign, Target, Users, BarChart3, Filter, Sparkles, MessageSquare } from 'lucide-react'
 
 const STAGE_COLORS: Record<string, string> = {
   prospeccao: '#6b7280', qualificacao: '#3b82f6', proposta: '#f59e0b',
@@ -247,9 +247,14 @@ export function CrmPipelinePanel({ onClear, onSendToMarketing }: { onClear: () =
                   <div style={{ flex: 1 }} />
                   
                   <button onClick={async (e) => { 
-                    e.stopPropagation(); 
-                    setLoading(true);
-                    try {
+                      e.stopPropagation(); 
+                      // Fire WhatsApp notification
+                      try {
+                        await fetch(`/api/crm-pipeline/leads/${lead.id}/fire-whatsapp`, { method: 'POST' })
+                        alert('WhatsApp fired for lead ' + lead.id)
+                      } catch { alert('Failed to fire WhatsApp') }
+                      setLoading(true); 
+                      try {
                       await fetch(`/api/crm-pipeline/leads/${lead.id}/qualify`, { method: 'POST' });
                       await load();
                     } catch { alert('Erro na Qualificação IA. Verifique se o GEMINI_API_KEY está no .env'); }
