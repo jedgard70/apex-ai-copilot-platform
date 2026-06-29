@@ -1200,11 +1200,12 @@ async function callGeminiNative(requestPayload, overrideConfig) {
   const modelName = requestPayload.model || 'unknown'
   // Use standard Gemini API base, not OpenAI-compatible, for native generateContent
   const geminiBase = apiBase.includes('/openai') ? 'https://generativelanguage.googleapis.com/v1beta' : apiBase
-  const endpoint = `${geminiBase}/interactions`
+  // Interactions API lives at /v1/interactions, NOT /v1beta/interactions
+  const endpoint = `${geminiBase.replace(/\/v1beta\/?$/, '/v1')}/interactions`
 
-  let success = true
-  let data = true
-  let errorMsg = true
+  let success = false
+  let data = null
+  let errorMsg = null
 
   try {
     const { systemText, steps } = convertToInteractionInput(requestPayload.messages)
@@ -1284,11 +1285,15 @@ async function callGeminiNative(requestPayload, overrideConfig) {
     } else {
       const apiErr = interactionData?.error?.message || JSON.stringify(interactionData).slice(0, 200)
       errorMsg = `HTTP ${primaryResponse.status}: ${apiErr}`
+      success = false
+      data = null
       console.error('[callGeminiNative] Primary failed:', errorMsg)
       // SEM FALLBACK — erro honesto. O usuário vê o erro e troca de provedor se quiser.
     }
   } catch (err) {
     errorMsg = err.message
+    success = false
+    data = null
   }
 
   const duration = Date.now() - startTime
