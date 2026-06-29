@@ -3233,9 +3233,7 @@ async function handleVideoPlan(req, res) {
       ...lockedConstraints.map(item => `violate constraint: ${item}`),
     ].filter(Boolean).join(', ')
 
-    // const hasAiPlanner = Boolean(process.env.GEMINI_API_KEY)
-    const directCutFullEnabled = String(process.env.DIRECTCUT_ENABLE_FULL || 'true').toLowerCase() !== 'false'
-    const providerStatus = directCutFullEnabled ? 'connector-ready' : 'planning-only'
+    
 
     return json(res, 200, {
       providerStatus,
