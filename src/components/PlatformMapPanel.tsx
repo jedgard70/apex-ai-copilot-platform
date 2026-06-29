@@ -276,7 +276,7 @@ function StatusTab() {
         <div className="contracts-card" style={{ marginTop: 12 }}>
           <strong style={{ fontSize: 12 }}>O que é monitorado</strong>
           <p style={{ fontSize: 12, color: '#64748b', marginTop: 6, lineHeight: 1.6 }}>
-            Gemini Genuíno · fal.ai · ElevenLabs · Tavily · Stripe · Supabase · GitHub · AuthKey · FFmpeg local
+            Gemini Genuíno · fal.ai · ElevenLabs · Brave Search · Stripe · Supabase · GitHub · AuthKey · FFmpeg local
             <br />Cada check faz uma chamada real à API para verificar chave, saldo e quota.
           </p>
         </div>

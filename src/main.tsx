@@ -1664,7 +1664,7 @@ function App() {
       { id: 'github', label: 'GitHub', hasKey: false },
       { id: 'stripe', label: 'Stripe', hasKey: false },
       { id: 'supabase', label: 'Supabase', hasKey: false },
-      { id: 'tavily', label: 'Tavily', hasKey: false },
+      { id: 'brave', label: 'Brave Search', hasKey: false },
       { id: 'ffmpeg', label: 'FFmpeg', hasKey: false },
       { id: 'aps', label: 'Autodesk APS', hasKey: false },
     ]

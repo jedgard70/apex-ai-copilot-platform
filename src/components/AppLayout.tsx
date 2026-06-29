@@ -183,6 +183,13 @@ export default function AppLayout({
               <span style={{ fontSize: 8, color: 'rgba(180,197,255,0.4)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>AI Platform</span>
             </div>
           )}
+          {/* Platform Status Badge */}
+          {!isMobile && (
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-secondary-fixed/20 rounded-full border border-secondary-fixed/30">
+              <span className="inline-block rounded-full" style={{ width: '6px', height: '6px', backgroundColor: LED_GREEN, boxShadow: `0 0 4px ${LED_GREEN}88` }} />
+              <span className="font-jetbrains-mono text-[9px] text-secondary-fixed font-medium">{projectStatus}</span>
+            </div>
+          )}
         </div>
 
         {/* RIGHT SIDE */}
