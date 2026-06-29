@@ -1495,6 +1495,46 @@ function App() {
   const [voiceStatus, setVoiceStatus] = useState('')
   const recognitionRef = useRef<any>(null)
 
+  // Friday report trigger
+  const [hasTriggeredFridayReport, setHasTriggeredFridayReport] = useState(false);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      // Friday (5) at 12:00 PM
+      if (now.getDay() === 5 && now.getHours() === 12 && !hasTriggeredFridayReport) {
+        setHasTriggeredFridayReport(true);
+        if (input !== undefined) setTimeout(() => askCopilot?.('SYSTEM_EVENT: TRIGGER_FIELDOPS_REPORT'), 50);
+      }
+      // Reset trigger on Saturday
+      if (now.getDay() === 6 && hasTriggeredFridayReport) {
+        setHasTriggeredFridayReport(false);
+      }
+    }, 60000); // verify every minute
+    return () => clearInterval(timer);
+  }, [hasTriggeredFridayReport]);
+
+  // Personal reminders polling
+  useEffect(() => {
+    const email = accountState?.user?.email || accountState?.profile?.email;
+    if (!email) return;
+    const timer = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/copilot/reminders?email=${encodeURIComponent(email)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.ok && data.reminders && data.reminders.length > 0) {
+            data.reminders.forEach((rem: any) => {
+              if (input !== undefined) setTimeout(() => askCopilot?.(`SYSTEM_EVENT: PERSONAL_REMINDER "${rem.text}"`), 50);
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch personal reminders', err);
+      }
+    }, 60000);
+    return () => clearInterval(timer);
+  }, [accountState?.user?.email, accountState?.profile?.email]);
+
   function toggleSpeechRecognition() {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
     if (!SpeechRecognition) {
@@ -1919,7 +1959,7 @@ function App() {
     && (accountState?.role === 'owner_admin' || accountState?.role === 'admin' || accountState?.role === 'developer')
     && (isSupabaseConfigured || isLocalDemoOwner)
   )
-  const isInternalUser = isOwnerUser || accountState?.role === 'Internal Team' || accountState?.role === 'Finance' || accountState?.role === 'Sales' || accountState?.user?.email?.includes('apexglobal')
+  const isInternalUser = isOwnerUser || accountState?.role === 'Internal Team' || accountState?.role === 'Finance' || accountState?.role === 'Sales' || accountState?.user?.email?.includes('apexglobal') || accountState?.user?.email === 'jedgard70@gmail.com'
 
   const currentRole = (() => {
     if (!accountState?.user) return 'owner';
@@ -3957,6 +3997,20 @@ function App() {
 
 
   if ((!isSignedIn || authLoading) && !isLocalDemoOwner) {
+    // If signed in but bootstrap is blocked, show a helpful message instead of white screen
+    if (isSignedIn && (accountState?.bootstrapStatus === 'blocked-by-rls' || accountState?.bootstrapStatus === 'needs-tenant-assignment')) {
+      return (
+        <main className="app" style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', backgroundColor: '#051424' }}>
+          <div style={{ textAlign: 'center', color: '#94a3b8', padding: 32, maxWidth: 480 }}>
+            <img src="/apex-global-logo.png" alt="Apex" style={{ width: 64, height: 64, marginBottom: 24 }} />
+            <h2 style={{ color: '#e2e8f0', fontFamily: 'Inter, sans-serif', marginBottom: 8 }}>Bem-vindo à Apex AI</h2>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14 }}>Seu acesso está sendo configurado. Aguarde ou contate o administrador.</p>
+            <p style={{ fontFamily: 'monospace', fontSize: 11, color: '#475569', marginTop: 16 }}>{accountState?.message}</p>
+            <button onClick={() => refreshAuthState()} style={{ marginTop: 24, background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 24px', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>Tentar novamente</button>
+          </div>
+        </main>
+      )
+    }
     return (
       <main
         className="app"
@@ -3990,45 +4044,6 @@ function App() {
   const handleCommand = (cmd: string) => {
     if (cmd) { setInput(cmd); setTimeout(() => askCopilot(cmd), 50) }
   }
-
-  const [hasTriggeredFridayReport, setHasTriggeredFridayReport] = useState(false);
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const now = new Date();
-      // Friday (5) at 12:00 PM
-      if (now.getDay() === 5 && now.getHours() === 12 && !hasTriggeredFridayReport) {
-        setHasTriggeredFridayReport(true);
-        handleCommand('SYSTEM_EVENT: TRIGGER_FIELDOPS_REPORT');
-      }
-      // Reset trigger on Saturday
-      if (now.getDay() === 6 && hasTriggeredFridayReport) {
-        setHasTriggeredFridayReport(false);
-      }
-    }, 60000); // verify every minute
-    return () => clearInterval(timer);
-  }, [hasTriggeredFridayReport]);
-
-  useEffect(() => {
-    const email = accountState?.user?.email || accountState?.profile?.email;
-    if (!email) return;
-
-    const timer = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/copilot/reminders?email=${encodeURIComponent(email)}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.ok && data.reminders && data.reminders.length > 0) {
-            data.reminders.forEach((rem: any) => {
-              handleCommand(`SYSTEM_EVENT: PERSONAL_REMINDER "${rem.text}"`);
-            });
-          }
-        }
-      } catch (err) {
-        console.error("Failed to fetch personal reminders", err);
-      }
-    }, 60000); // Check every minute
-    return () => clearInterval(timer);
-  }, [accountState?.user?.email, accountState?.profile?.email]);
 
   // Render painel ativo no split 80/20
   function renderPanelContent(panelView: string) {
@@ -5520,17 +5535,11 @@ function App() {
 }
 
 
-import { Auth0Provider } from '@auth0/auth0-react';
-const _AUTH0_DOMAIN = (import.meta.env.VITE_AUTH0_DOMAIN || 'icfg-6yanelekncpdkv3rpxy4t1am.us.auth0.com');
-const _AUTH0_CLIENT_ID = (import.meta.env.VITE_AUTH0_CLIENT_ID || 'Ldyth7MciFnivVvNzg9WZa8PoFd63lfo');
+
 createRoot(document.getElementById('root')!).render(
-  <Auth0Provider domain={_AUTH0_DOMAIN} clientId={_AUTH0_CLIENT_ID} authorizationParams={{ redirect_uri: window.location.origin }}>
-    <>
-      <App />
-      <Analytics />
-      <SpeedInsights />
-    </>
-  </Auth0Provider>
+  <>
+    <App />
+    <Analytics />
+    <SpeedInsights />
+  </>
 )
-
-
