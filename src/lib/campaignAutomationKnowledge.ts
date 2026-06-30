@@ -35,7 +35,7 @@ export type CampaignAutomationPlan = {
 }
 
 export function isCampaignAutomationIntent(text: string) {
-  return /\b(campanha|social media|instagram|facebook|an[uú]ncio|anuncios|ads|copy de campanha|roteiro de campanha|cta|campanha pronta|marketing pack|midia social|vsl|video sales letter|v[ií]deo de vendas|landing page|p[aá]gina de vendas|webinar)\b/i.test(text)
+  return /\b(campanha|social media|instagram|facebook|an[uú]ncio|anuncios|ads|copy de campanha|roteiro de campanha|cta|campanha pronta|marketing pack|marketing|campanha de marketing|midia social|vsl|video sales letter|v[ií]deo de vendas|landing page|p[aá]gina de vendas|webinar)\b/i.test(text)
 }
 
 export function createCampaignAutomationPlan(

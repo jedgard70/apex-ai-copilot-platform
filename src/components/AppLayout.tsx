@@ -134,6 +134,7 @@ export default function AppLayout({
   const [navActive, setNavActive] = useState(activeNav)
   const [ledTooltip, setLedTooltip] = useState<string | null>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
 
@@ -229,12 +230,49 @@ export default function AppLayout({
           )}
 
           {/* Profile avatar — real user photo */}
-          <div className={`rounded-full bg-surface-container-highest border border-outline-variant/30 flex items-center justify-center overflow-hidden cursor-pointer hover:border-primary/50 transition-colors ${isMobile ? 'w-7 h-7' : 'w-8 h-8'}`}
-            onClick={onProfileClick} title={normalizedRole === 'owner_admin' ? (avatarUrl ? 'Perfil' : 'Owner Console') : 'Perfil / Configurações'}>
-            {avatarUrl ? (
-              <img className="w-full h-full object-cover" src={avatarUrl} alt="avatar" />
-            ) : (
-              <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: isMobile ? '16px' : '18px' }}>admin_panel_settings</span>
+          <div className="relative">
+            <div className={`rounded-full bg-surface-container-highest border border-outline-variant/30 flex items-center justify-center overflow-hidden cursor-pointer hover:border-primary/50 transition-colors ${isMobile ? 'w-7 h-7' : 'w-8 h-8'}`}
+              onClick={() => setProfileMenuOpen(prev => !prev)} title={normalizedRole === 'owner_admin' ? (avatarUrl ? 'Perfil' : 'Owner Console') : 'Perfil / Configurações'}>
+              {avatarUrl ? (
+                <img className="w-full h-full object-cover" src={avatarUrl} alt="avatar" />
+              ) : (
+                <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: isMobile ? '16px' : '18px' }}>account_circle</span>
+              )}
+            </div>
+            {/* Profile dropdown menu */}
+            {profileMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setProfileMenuOpen(false)} />
+                <div className="absolute right-0 top-full mt-2 z-50 min-w-[200px] bg-surface-container-high border border-outline-variant/20 rounded-xl shadow-2xl backdrop-blur-xl overflow-hidden">
+                  <div className="px-4 py-3 border-b border-outline-variant/10">
+                    <div className="font-jetbrains-mono text-[10px] text-on-surface-variant uppercase tracking-wider">{normalizedRole === 'owner_admin' ? 'Administrador' : normalizedRole === 'client' ? 'Cliente' : 'Usuário'}</div>
+                    <div className="font-inter text-[13px] text-on-surface font-medium mt-0.5 truncate">{title}</div>
+                  </div>
+                  <div className="py-1">
+                    <button
+                      onClick={() => { setProfileMenuOpen(false); onProfileClick?.() }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-surface-container-highest text-on-surface-variant hover:text-on-surface transition-colors text-left"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">settings</span>
+                      <span className="font-inter text-[13px]">Configurar</span>
+                    </button>
+                    <button
+                      onClick={() => { setProfileMenuOpen(false); onProfileClick?.() }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-surface-container-highest text-on-surface-variant hover:text-on-surface transition-colors text-left"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">edit</span>
+                      <span className="font-inter text-[13px]">Personalizar Usuário</span>
+                    </button>
+                    <button
+                      onClick={() => { setProfileMenuOpen(false); onNavChange?.('chat') }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-surface-container-highest text-on-surface-variant hover:text-on-surface transition-colors text-left"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">forum</span>
+                      <span className="font-inter text-[13px]">Suporte</span>
+                    </button>
+                  </div>
+                </div>
+              </>
             )}
           </div>
         </div>
