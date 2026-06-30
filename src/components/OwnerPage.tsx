@@ -15,6 +15,8 @@ const PROVIDER_LABELS: Record<string, string> = {
   fal: 'FAL.ai', elevenlabs: 'ElevenLabs',
   firebase: 'Firebase', brave: 'Brave Search', stripe: 'Stripe', supabase: 'Supabase',
   authkey: 'AuthKey', github: 'GitHub', ffmpeg: 'FFmpeg', aps: 'Autodesk APS',
+  ollama: 'Ollama (Local)',
+  'deploy-model': 'Deploy Model (HF)',
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -256,16 +258,26 @@ export function OwnerPage({ onNavigate, onOpenChat }: OwnerPageProps) {
           </div>
 
           {/* Quick Launch */}
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
             {[
               { label: 'All Models', icon: 'psychology', view: 'chat' },
               { label: 'Platform Map', icon: 'map', view: 'navigator' },
               { label: 'Deployment', icon: 'rocket_launch', view: 'deployment' },
               { label: 'Training', icon: 'school', view: 'training' },
+              { label: 'Treinar 🧠', icon: 'model_training', action: 'colab' },
+              { label: 'Deploy 🚀', icon: 'cloud_upload', action: 'deploy' },
               { label: 'Docs', icon: 'menu_book', view: 'docs' },
               { label: 'Dashboard', icon: 'dashboard', view: 'dashboard' },
             ].map(a => (
-              <button key={a.view} onClick={() => onNavigate?.(a.view)}
+              <button key={a.view || a.action} onClick={() => {
+                if (a.action === 'colab') {
+                  window.open('https://colab.research.google.com/github/jedgard70/apex-ai-copilot-platform/blob/main/notebooks/fine_tune_gemma_apex_colab.ipynb', '_blank')
+                } else if (a.action === 'deploy') {
+                  window.open('https://huggingface.co/new', '_blank')
+                } else if (a.view) {
+                  onNavigate?.(a.view)
+                }
+              }}
                 className="p-4 rounded-xl flex flex-col items-center gap-2 text-center hover:bg-white/5 transition-colors"
                 style={{ background: 'rgba(22, 33, 62, 0.7)', backdropFilter: 'blur(12px)', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
                 <span className="material-symbols-outlined text-[#6C47FF] text-2xl">{a.icon}</span>
