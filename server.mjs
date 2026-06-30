@@ -6677,6 +6677,12 @@ const server = http.createServer(async (req, res) => {
     return
   }
 
+  if (req.url === '/api/copilot/upload-to-gcs' && (req.method === 'GET' || req.method === 'POST')) {
+    const { default: handler } = await import('./api/copilot/upload-to-gcs.mjs')
+    handler(req, res)
+    return
+  }
+
   if (req.url === '/api/service/order' && req.method === 'POST') {
     const { createServiceOrder, buildServiceOrderReply } = await import('./server/service/serviceOrder.mjs')
     const body = await readJson(req)

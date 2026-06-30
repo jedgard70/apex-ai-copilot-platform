@@ -1,0 +1,15 @@
+{
+  "total_examples": 20,
+  "format": "JSONL",
+  "vertex_file": "apex_training_vertex.jsonl",
+  "chat_file": "apex_training_chat.jsonl",
+  "generated_at": "2026-06-30T15:40:26.747Z",
+  "ready_for_vertex_ai": true,
+  "next_steps": [
+    "1. Upload apex_training_vertex.jsonl to Google Cloud Storage",
+    "2. Create fine-tuning job in Vertex AI Model Garden",
+    "3. Use gemma-4-31b-it as base model",
+    "4. After training, deploy as new endpoint",
+    "5. Add trained model to Apex AI selector"
+  ]
+}

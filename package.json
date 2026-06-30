@@ -68,7 +68,8 @@
     "vite": "^6.4.3",
     "web-ifc": "^0.0.77",
     "xlsx": "^0.18.5",
-    "zustand": "^5.0.5"
+    "zustand": "^5.0.5",
+    "@google-cloud/storage": "^7.13.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.0",
