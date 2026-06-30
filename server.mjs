@@ -1911,20 +1911,20 @@ async function executeLiveAgentToolCall(toolCall) {
       const args = JSON.parse(toolCall.function.arguments || '{}')
       const { updateServiceOrderStatus, getServiceOrder, buildServiceOrderReply } = await import('./server/service/serviceOrder.mjs')
       const { payInvoice } = await import('./server/service/invoice.mjs')
-      
+
       const order = getServiceOrder(args.orderId)
       if (!order) return { providerStatus: 'error', finalReply: 'Pedido não encontrado.' }
-      
-      updateServiceOrderStatus(args.orderId, 'approved', { 
+
+      updateServiceOrderStatus(args.orderId, 'approved', {
         deliveredAt: new Date().toISOString(),
         deliveryUrl: args.deliveryUrl || '',
       })
-      
+
       if (order.invoiceId) payInvoice(order.invoiceId, 'manual-' + args.orderId)
-      
+
       const updated = getServiceOrder(args.orderId)
       const receipt = buildServiceOrderReply(updated)
-      
+
       return {
         providerStatus: 'connected',
         finalReply: [
@@ -1956,12 +1956,12 @@ async function executeLiveAgentToolCall(toolCall) {
       const reportType = args.type || 'status'
       const { default: reportHandler } = await import('./api/reports/index.mjs')
       let reportResult = null
-      const mockRes = { 
+      const mockRes = {
         status() { return this },
         json(d) { reportResult = d },
         send(d) { reportResult = d },
-        setHeader() {},
-        end() {},
+        setHeader() { },
+        end() { },
       }
       const mockReq = {
         method: 'GET',
@@ -2443,19 +2443,19 @@ async function handleChat(req, res) {
       'When asked about platform status, provider keys, or system health, answer directly in the chat with the actual status. Do NOT open a panel or say "Abri o painel". Just answer conversationally with the real information.',
       ...(workspaceSummary
         ? [
-            '',
-            'Active project workspace context:',
-            workspaceSummary,
-            'Use this as persistent client/project memory when drafting, researching, generating or revising outputs.',
-          ]
+          '',
+          'Active project workspace context:',
+          workspaceSummary,
+          'Use this as persistent client/project memory when drafting, researching, generating or revising outputs.',
+        ]
         : []),
       ...(hasIdentityContext(identityContext)
         ? [
-            '',
-            'Authenticated session context:',
-            buildIdentityContextSummary(identityContext),
-            'Use this context when the user asks who they are. Do not invent a full name if profileName is unknown.',
-          ]
+          '',
+          'Authenticated session context:',
+          buildIdentityContextSummary(identityContext),
+          'Use this context when the user asks who they are. Do not invent a full name if profileName is unknown.',
+        ]
         : []),
       ...(file ? ['', buildFileContext(file)] : []),
       '',
@@ -2575,7 +2575,7 @@ async function handleChat(req, res) {
     const isGatewayModel = modelProvider === 'gateway'
     const preferredProvider = isGatewayModel ? 'gateway' : modelProvider
     const preferredModel = model
-    
+
     // First call with tools for tool-calling
     const fallbackResult = await chatWithFallback({
       messages: liveAgentMessages,
@@ -2916,20 +2916,20 @@ async function handleGenerateImage(req, res) {
 
     const fidelityRules = mode === 'preserve-layout'
       ? [
-          'STRICT FIDELITY MODE:',
-          'Use the uploaded image as the strict reference/base image.',
-          'Transform this exact uploaded architectural floor plan into a high-quality humanized floor plan visualization.',
-          outputType === 'humanized-floor-plan' ? 'Keep strict top-down orthographic view. Do not convert into eye-level, side-view, room perspective, facade, or 3D interior camera. This is a floor plan humanization, not a perspective render.' : '',
-          'Preserve the original geometry, walls, room positions, labels where possible, pool location, garage location, road/access, lot shape, proportions and top-down camera.',
-          'Do not redesign the plan.',
-          'Do not add/remove rooms.',
-          'Do not change layout.',
-          'Do not crop important parts.',
-          'Do not create a perspective 3D house, exterior facade, or random architecture.',
-          preserveLabels ? 'Preserve labels where possible and avoid misspelled labels.' : '',
-          'Only improve materials, floor textures, furniture, landscaping, shadows, water, lighting and presentation quality.',
-          'The output should look like a humanized/rendered version of the same uploaded top-down floor plan.',
-        ].filter(Boolean).join('\n')
+        'STRICT FIDELITY MODE:',
+        'Use the uploaded image as the strict reference/base image.',
+        'Transform this exact uploaded architectural floor plan into a high-quality humanized floor plan visualization.',
+        outputType === 'humanized-floor-plan' ? 'Keep strict top-down orthographic view. Do not convert into eye-level, side-view, room perspective, facade, or 3D interior camera. This is a floor plan humanization, not a perspective render.' : '',
+        'Preserve the original geometry, walls, room positions, labels where possible, pool location, garage location, road/access, lot shape, proportions and top-down camera.',
+        'Do not redesign the plan.',
+        'Do not add/remove rooms.',
+        'Do not change layout.',
+        'Do not crop important parts.',
+        'Do not create a perspective 3D house, exterior facade, or random architecture.',
+        preserveLabels ? 'Preserve labels where possible and avoid misspelled labels.' : '',
+        'Only improve materials, floor textures, furniture, landscaping, shadows, water, lighting and presentation quality.',
+        'The output should look like a humanized/rendered version of the same uploaded top-down floor plan.',
+      ].filter(Boolean).join('\n')
       : 'Creative variation mode: use the uploaded plan as source context, but allow more visual interpretation while keeping the project recognizable.'
 
     const outputTypeRules = {
@@ -2942,29 +2942,29 @@ async function handleGenerateImage(req, res) {
 
     const autoFloorPlanConstraints = outputType === 'humanized-floor-plan'
       ? [
-          'Preserve 1 bathroom and 1 laundry/service room, do not create two bathrooms.',
-          'Keep grass/green area only where it appears in the original plan.',
-          'Do not extend grass beyond the original left strip/half.',
-          'Keep all walls, openings and layout positions.',
-        ]
+        'Preserve 1 bathroom and 1 laundry/service room, do not create two bathrooms.',
+        'Keep grass/green area only where it appears in the original plan.',
+        'Do not extend grass beyond the original left strip/half.',
+        'Keep all walls, openings and layout positions.',
+      ]
       : []
 
     const boundaryRules = mode === 'preserve-layout' && (lockBoundaries || noInventedAreas)
       ? [
-          'STRICT BOUNDARY LOCK:',
-          lockBoundaries ? 'Preserve exact lot boundary.' : '',
-          lockBoundaries ? 'Preserve exact building footprint.' : '',
-          lockBoundaries ? 'Preserve exact exterior/service areas.' : '',
-          noInventedAreas ? 'Do not extend garden/landscaping beyond the original garden/patio areas.' : '',
-          noInventedAreas ? 'Do not create garden behind sauna, lavanderia, suite, pool, garage, or any area where it is not shown in the source image.' : '',
-          noInventedAreas ? 'Do not fill blank/white/technical areas with invented landscaping.' : '',
-          noInventedAreas ? 'Do not infer missing spaces outside the drawing.' : '',
-          noInventedAreas ? 'Do not complete or continue any area beyond what is visible.' : '',
-          noInventedAreas ? 'Treat unknown/blank areas as unchanged neutral surfaces.' : '',
-          noInventedAreas ? 'Only enhance existing zones already present in the source image.' : '',
-          noInventedAreas ? 'If an area is unclear, keep it neutral rather than inventing details.' : '',
-          noInventedAreas ? 'No garden continuation, invented garden, extra landscaping, added patio, added deck, extended vegetation, filled blank area, new exterior area, invented service yard, changed backyard, added outdoor strip, or random plants outside original garden.' : '',
-        ].filter(Boolean).join('\n')
+        'STRICT BOUNDARY LOCK:',
+        lockBoundaries ? 'Preserve exact lot boundary.' : '',
+        lockBoundaries ? 'Preserve exact building footprint.' : '',
+        lockBoundaries ? 'Preserve exact exterior/service areas.' : '',
+        noInventedAreas ? 'Do not extend garden/landscaping beyond the original garden/patio areas.' : '',
+        noInventedAreas ? 'Do not create garden behind sauna, lavanderia, suite, pool, garage, or any area where it is not shown in the source image.' : '',
+        noInventedAreas ? 'Do not fill blank/white/technical areas with invented landscaping.' : '',
+        noInventedAreas ? 'Do not infer missing spaces outside the drawing.' : '',
+        noInventedAreas ? 'Do not complete or continue any area beyond what is visible.' : '',
+        noInventedAreas ? 'Treat unknown/blank areas as unchanged neutral surfaces.' : '',
+        noInventedAreas ? 'Only enhance existing zones already present in the source image.' : '',
+        noInventedAreas ? 'If an area is unclear, keep it neutral rather than inventing details.' : '',
+        noInventedAreas ? 'No garden continuation, invented garden, extra landscaping, added patio, added deck, extended vegetation, filled blank area, new exterior area, invented service yard, changed backyard, added outdoor strip, or random plants outside original garden.' : '',
+      ].filter(Boolean).join('\n')
       : ''
 
     const safePrompt = [
@@ -3038,10 +3038,10 @@ async function handleGenerateImage(req, res) {
 
     const images = Array.isArray(data?.data)
       ? data.data.map(item => ({
-          image: item?.b64_json ? `data:image/png;base64,${item.b64_json}` : undefined,
-          imageUrl: item?.url,
-          revisedPrompt: item?.revised_prompt,
-        })).filter(item => item.image || item.imageUrl)
+        image: item?.b64_json ? `data:image/png;base64,${item.b64_json}` : undefined,
+        imageUrl: item?.url,
+        revisedPrompt: item?.revised_prompt,
+      })).filter(item => item.image || item.imageUrl)
       : []
     const image = data?.data?.[0] || {}
     const b64 = image.b64_json
@@ -3088,12 +3088,12 @@ async function handleVideoPlan(req, res) {
     const cameraMovement = String(body.cameraMovement || 'dolly-in')
     const references = Array.isArray(body.references)
       ? body.references.map(item => ({
-          role: String(item?.role || 'additional').slice(0, 40),
-          name: String(item?.name || 'reference media').slice(0, 180),
-          type: String(item?.type || 'unknown').slice(0, 80),
-          size: Number(item?.size || 0),
-          hasPreview: Boolean(item?.hasPreview),
-        })).slice(0, 8)
+        role: String(item?.role || 'additional').slice(0, 40),
+        name: String(item?.name || 'reference media').slice(0, 180),
+        type: String(item?.type || 'unknown').slice(0, 80),
+        size: Number(item?.size || 0),
+        hasPreview: Boolean(item?.hasPreview),
+      })).slice(0, 8)
       : []
     const lockedConstraints = Array.isArray(body.lockedConstraints)
       ? body.lockedConstraints.map(item => String(item).slice(0, 400)).filter(Boolean).slice(0, 12)
@@ -3150,35 +3150,35 @@ async function handleVideoPlan(req, res) {
 
     const sceneList = isSocial
       ? [
-          'Hook frame: open with the strongest project image and a short sales phrase.',
-          'Motion frame: create a vertical reveal with clean movement and readable project context.',
-          'Lifestyle/value frame: show what the buyer/client gains from the project.',
-          'Detail frame: highlight pool, facade, plan, material, BIM model or visual differentiator from the reference media.',
-          'Closing frame: show CTA, project name and next action in a clean final composition.',
-        ]
+        'Hook frame: open with the strongest project image and a short sales phrase.',
+        'Motion frame: create a vertical reveal with clean movement and readable project context.',
+        'Lifestyle/value frame: show what the buyer/client gains from the project.',
+        'Detail frame: highlight pool, facade, plan, material, BIM model or visual differentiator from the reference media.',
+        'Closing frame: show CTA, project name and next action in a clean final composition.',
+      ]
       : isRelight
         ? [
-            'Reference frame: show the original media and preserve the subject, framing and timing.',
-            'Lighting analysis frame: identify where the relight direction should change.',
-            'Relight pass: apply the selected light mood without changing project geometry.',
-            'Comparison beat: show before/after intent or visual continuity.',
-            'Final hold: keep the best lit frame readable for approval.',
-          ]
+          'Reference frame: show the original media and preserve the subject, framing and timing.',
+          'Lighting analysis frame: identify where the relight direction should change.',
+          'Relight pass: apply the selected light mood without changing project geometry.',
+          'Comparison beat: show before/after intent or visual continuity.',
+          'Final hold: keep the best lit frame readable for approval.',
+        ]
         : isTechnical
           ? [
-              'Technical opening: show the plan/model/project context clearly.',
-              'Layer reveal: introduce BIM/CAD/technical information with controlled overlays.',
-              'Coordination beat: show circulation, clash, quantity or execution logic.',
-              'Detail callout: focus on a critical construction or documentation point.',
-              'Final overview: return to the full project for decision or technical review.',
-            ]
+            'Technical opening: show the plan/model/project context clearly.',
+            'Layer reveal: introduce BIM/CAD/technical information with controlled overlays.',
+            'Coordination beat: show circulation, clash, quantity or execution logic.',
+            'Detail callout: focus on a critical construction or documentation point.',
+            'Final overview: return to the full project for decision or technical review.',
+          ]
           : [
-              'Opening establishing shot: reveal the project context and strongest selling angle.',
-              'Context shot: show the plan, facade, render or construction material as the project anchor.',
-              'Value shot: highlight the main benefit, lifestyle, technical feature or delivery promise.',
-              'Detail shot: focus on materials, space organization, BIM/technical clarity or commercial differentiator.',
-              'Closing shot: call to action, project name, next step or premium final frame.',
-            ]
+            'Opening establishing shot: reveal the project context and strongest selling angle.',
+            'Context shot: show the plan, facade, render or construction material as the project anchor.',
+            'Value shot: highlight the main benefit, lifestyle, technical feature or delivery promise.',
+            'Detail shot: focus on materials, space organization, BIM/technical clarity or commercial differentiator.',
+            'Closing shot: call to action, project name, next step or premium final frame.',
+          ]
 
     const movementPhrase = cameraMovement.replace(/-/g, ' ')
     const cameraMovements = isTechnical
@@ -3190,11 +3190,11 @@ async function handleVideoPlan(req, res) {
     const narrationScript = voice === 'none'
       ? 'No narration selected. Use visual pacing, text-safe frames and music-driven cuts.'
       : [
-          isVoice ? 'Scene 1: Start with a confident narrator line that names the project value immediately.' : 'Scene 1: This project is presented as a clear, high-value opportunity.',
-          isImageToVideo ? 'Scene 2: Transform the source image into motion while preserving the original composition.' : 'Scene 2: The layout and visual material reveal the strongest spatial and commercial qualities.',
-          isRelight ? 'Scene 3: Explain the lighting mood change and why it improves the presentation.' : 'Scene 3: Materials, light, circulation and presentation details reinforce the project value.',
-          'Scene 4: The final frame invites the client to approve the next step or request a full presentation package.',
-        ].join('\n')
+        isVoice ? 'Scene 1: Start with a confident narrator line that names the project value immediately.' : 'Scene 1: This project is presented as a clear, high-value opportunity.',
+        isImageToVideo ? 'Scene 2: Transform the source image into motion while preserving the original composition.' : 'Scene 2: The layout and visual material reveal the strongest spatial and commercial qualities.',
+        isRelight ? 'Scene 3: Explain the lighting mood change and why it improves the presentation.' : 'Scene 3: Materials, light, circulation and presentation details reinforce the project value.',
+        'Scene 4: The final frame invites the client to approve the next step or request a full presentation package.',
+      ].join('\n')
 
     const videoPrompt = [
       `Create a ${duration} ${aspectRatio} DirectCut ${modeLabel.toLowerCase()}.`,
@@ -3233,7 +3233,7 @@ async function handleVideoPlan(req, res) {
       ...lockedConstraints.map(item => `violate constraint: ${item}`),
     ].filter(Boolean).join(', ')
 
-    
+
 
     return json(res, 200, {
       providerStatus,
@@ -3338,15 +3338,15 @@ async function handleBimPlan(req, res) {
     ]
     const suggestedCorrections = mode === 'viewer'
       ? [
-          evidence('CONFIRMED', 'Retry viewer inside Apex when the real loader/parser is connected.'),
-          evidence('ASSUMPTION', 'If parser/viewer fails, convert internally to GLB/IFC and repeat the opening in BIM / 3D Studio.'),
-          evidence('ASSUMPTION', 'Correction in source model recommended: adjust in Revit/authoring tool and re-export IFC/GLB. Apex report attached.'),
-        ]
+        evidence('CONFIRMED', 'Retry viewer inside Apex when the real loader/parser is connected.'),
+        evidence('ASSUMPTION', 'If parser/viewer fails, convert internally to GLB/IFC and repeat the opening in BIM / 3D Studio.'),
+        evidence('ASSUMPTION', 'Correction in source model recommended: adjust in Revit/authoring tool and re-export IFC/GLB. Apex report attached.'),
+      ]
       : [
-          evidence('CONFIRMED', 'Prepare Apex import package with original file, extension, size and technical objective.'),
-          evidence('CONFIRMED', 'Convert internally to IFC or GLB before web visualization.'),
-          evidence('ASSUMPTION', 'Correction in source model recommended: adjust in Revit/authoring tool and re-export IFC/GLB. Apex report attached.'),
-        ]
+        evidence('CONFIRMED', 'Prepare Apex import package with original file, extension, size and technical objective.'),
+        evidence('CONFIRMED', 'Convert internally to IFC or GLB before web visualization.'),
+        evidence('ASSUMPTION', 'Correction in source model recommended: adjust in Revit/authoring tool and re-export IFC/GLB. Apex report attached.'),
+      ]
     const tourScript = [
       evidence('ASSUMPTION', 'Start with full model overview after Apex load/conversion.'),
       evidence('ASSUMPTION', 'Add orbit around full model.'),
@@ -3782,19 +3782,19 @@ async function handleBudgetPlan(req, res) {
     const scopeIncluded = Array.isArray(body.scopeIncluded) && body.scopeIncluded.length
       ? body.scopeIncluded
       : [
-          'Preliminary quantity structure',
-          'Budget allowance by section',
-          'Scope and exclusion draft',
-          'Proposal text draft',
-        ]
+        'Preliminary quantity structure',
+        'Budget allowance by section',
+        'Scope and exclusion draft',
+        'Proposal text draft',
+      ]
     const scopeExcluded = Array.isArray(body.scopeExcluded) && body.scopeExcluded.length
       ? body.scopeExcluded
       : [
-          'Taxes, permit fees and authority charges',
-          'Final supplier quotes',
-          'Engineering stamps and third-party approvals',
-          'Hidden conditions not visible in the current file/context',
-        ]
+        'Taxes, permit fees and authority charges',
+        'Final supplier quotes',
+        'Engineering stamps and third-party approvals',
+        'Hidden conditions not visible in the current file/context',
+      ]
     const ownerSupplied = Array.isArray(body.ownerSupplied) ? body.ownerSupplied : []
 
     const projectType = String(assumptions.projectType || 'construction project')
@@ -4456,13 +4456,13 @@ function buildResearchProposalFromSources({ researchType, query, region, freshne
     competitivePositioning: sources.slice(0, 2).map(source => `[${source.citationId}] ${source.title}`).join(' | ') || 'Use the attached live citations to position the offer against the current market.',
     pricingAssumptions: sinapiIntent
       ? [
-          'SINAPI web references were found, but no official uploaded table/API is active yet.',
-          'Treat live snippets as directional only until official SINAPI bases are attached.',
-        ]
+        'SINAPI web references were found, but no official uploaded table/API is active yet.',
+        'Treat live snippets as directional only until official SINAPI bases are attached.',
+      ]
       : [
-          `Freshness requested: ${freshness || 'Current source required'}.`,
-          'Use the cited source snippets as the current reference layer before closing pricing or positioning.',
-        ],
+        `Freshness requested: ${freshness || 'Current source required'}.`,
+        'Use the cited source snippets as the current reference layer before closing pricing or positioning.',
+      ],
     recommendedOffer: `Prepare the next client-facing deliverable using citations ${citationLine || '[S1]'} as the evidence baseline.`,
     ctaNextStep: sinapiIntent
       ? 'Upload the official SINAPI table or connect the pricing source, then rerun the research to lock final values with citations.'
@@ -5470,7 +5470,7 @@ function createAvatarVoicePlan(goal = '', useCase = 'internal-demo', brandNotes 
     ].join('\n'),
   }
 }
-async function handleAvatarVoicePlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createAvatarVoicePlan(String(body.goal || ''), String(body.useCase || 'internal-demo'), String(body.brandNotes || ''), body.assetSummary || null, body.consentConfirmed === true) }) } catch (error) {     return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' }) } }
+async function handleAvatarVoicePlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createAvatarVoicePlan(String(body.goal || ''), String(body.useCase || 'internal-demo'), String(body.brandNotes || ''), body.assetSummary || null, body.consentConfirmed === true) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' }) } }
 
 function createCampaignAutomationPlan(goal = '', campaignGoal = 'lead-generation', channel = 'instagram-facebook', format = 'social-pack', audience = '', offer = '') {
   const resolvedAudience = String(audience || '').trim() || 'Prospective architecture / construction clients'
@@ -6244,7 +6244,7 @@ function serveStatic(req, res) {
     res.end('Forbidden')
     return
   }
-  
+
   let filePath = resolved
   if (fs.existsSync(resolved) && fs.statSync(resolved).isDirectory()) {
     filePath = path.join(resolved, 'index.html')
@@ -6264,675 +6264,718 @@ function serveStatic(req, res) {
 
 const server = http.createServer(async (req, res) => {
   try {
-  if (req.url === '/api/copilot/code-executor/plan' && req.method === 'POST') {
-    handleOwnerCodeExecutorPlan(req, res)
-    return
-  }
-  if (req.url.startsWith('/api/copilot/reminders') && req.method === 'GET') {
-    const emailMatch = req.url.match(/email=([^&]+)/)
-    const email = emailMatch ? decodeURIComponent(emailMatch[1]) : ''
-    if (!email) {
-      res.writeHead(400, { 'Content-Type': 'application/json' })
-      res.end(JSON.stringify({ error: 'email parameter required' }))
+    if (req.url === '/api/copilot/code-executor/plan' && req.method === 'POST') {
+      handleOwnerCodeExecutorPlan(req, res)
       return
     }
-    try {
-      // Import dynamicly to avoid circular/init issues
-      import('./server/tools/personalAssistantLogic.mjs').then(({ checkDueReminders }) => {
-        const result = checkDueReminders(email)
-        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
-        res.end(JSON.stringify(result))
-      }).catch(err => {
+    if (req.url.startsWith('/api/copilot/reminders') && req.method === 'GET') {
+      const emailMatch = req.url.match(/email=([^&]+)/)
+      const email = emailMatch ? decodeURIComponent(emailMatch[1]) : ''
+      if (!email) {
+        res.writeHead(400, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: 'email parameter required' }))
+        return
+      }
+      try {
+        // Import dynamicly to avoid circular/init issues
+        import('./server/tools/personalAssistantLogic.mjs').then(({ checkDueReminders }) => {
+          const result = checkDueReminders(email)
+          res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
+          res.end(JSON.stringify(result))
+        }).catch(err => {
+          res.writeHead(500, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ error: err.message }))
+        })
+      } catch (err) {
         res.writeHead(500, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ error: err.message }))
-      })
-    } catch (err) {
-      res.writeHead(500, { 'Content-Type': 'application/json' })
-      res.end(JSON.stringify({ error: err.message }))
-    }
-    return
-  }
-  if (req.url === '/api/copilot/code-executor/validate-command' && req.method === 'POST') {
-    handleOwnerCodeExecutorValidateCommand(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/code-executor/status' && req.method === 'POST') {
-    handleOwnerCodeExecutorStatus(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/code-executor/log' && req.method === 'POST') {
-    handleOwnerCodeExecutorLog(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/execution/commands' && req.method === 'GET') {
-    handleExecutionCommands(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/execution/run' && req.method === 'POST') {
-    handleExecutionRun(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/execution/plan' && req.method === 'POST') {
-    handleOwnerCodeExecutorPlan(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/execution/validate' && req.method === 'POST') {
-    handleOwnerCodeExecutorValidateCommand(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/execution/status' && req.method === 'GET') {
-    handleOwnerCodeExecutorStatus(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/execution/log' && req.method === 'POST') {
-    handleOwnerCodeExecutorLog(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/operator-preview' && req.method === 'POST') {
-    handleOperatorPreview(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/key-restriction' && req.method === 'GET') {
-    const keyRestrictionHandler = await import('./api/copilot/key-restriction.mjs').then(m => m.default)
-    keyRestrictionHandler(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/rate-limit' && req.method === 'GET') {
-    const rateLimitHandler = await import('./api/copilot/rate-limit.mjs').then(m => m.default)
-    rateLimitHandler(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/security-audit' && req.method === 'GET') {
-    const auditHandler = await import('./api/copilot/security-audit.mjs').then(m => m.default)
-    auditHandler(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/key-lifecycle' && (req.method === 'GET' || req.method === 'POST')) {
-    const lifecycleHandler = await import('./api/copilot/key-lifecycle.mjs').then(m => m.default)
-    lifecycleHandler(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/tool-execute' && req.method === 'POST') {
-    handleToolExecute(req, res)
-    return
-  }
-  if ((req.url === '/api/copilot/learn-url' || req.url.startsWith('/api/copilot/learn-url?')) && (req.method === 'GET' || req.method === 'POST')) {
-    const learnUrlHandler = await import('./api/copilot/learn-url.mjs').then(m => m.default)
-    learnUrlHandler(req, res)
-    return
-  }
-  if ((req.url === '/api/copilot/deep-research' || req.url.startsWith('/api/copilot/deep-research?')) && (req.method === 'GET' || req.method === 'POST')) {
-    const researchHandler = await import('./api/copilot/deep-research.mjs').then(m => m.default)
-    researchHandler(req, res)
-    return
-  }
-  const requestUrl = new URL(req.url, 'http://127.0.0.1')
-  if (
-    req.method === 'GET' &&
-    (
-      req.url === '/api/copilot/models' ||
-      (requestUrl.pathname === '/api/copilot/chat' && requestUrl.searchParams.get('models') === '1')
-    )
-  ) {
-    handleModelsList(req, res)
-    return
-  }
-  if (requestUrl.pathname === '/api/copilot/chat' && req.method === 'POST') {
-    handleChat(req, res)
-    return
-  }
-  if (req.url === '/api/webhooks/hotmart' && req.method === 'POST') {
-    const hotmartHandler = await import('./api/webhooks/hotmart.mjs').then(m => m.default)
-    hotmartHandler(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/image-edit-plan' && req.method === 'POST') {
-    handleImageEditPlan(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/generate-image' && req.method === 'POST') {
-    handleGenerateImage(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/video-plan' && req.method === 'POST') {
-    handleVideoPlan(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/video-render' && req.method === 'POST') {
-    handleVideoRender(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/bim-plan' && req.method === 'POST') {
-    handleBimPlan(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/bim-tour-plan' && req.method === 'POST') {
-    handleBimTourPlan(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/fieldops-plan' && req.method === 'POST') {
-    handleFieldOpsPlan(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/budget-plan' && req.method === 'POST') {
-    handleBudgetPlan(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/contracts-plan' && req.method === 'POST') {
-    handleContractsPlan(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/research-plan' && req.method === 'POST') {
-    handleResearchPlan(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/source-evidence' && req.method === 'POST') {
-    handleSourceEvidence(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/export-package' && req.method === 'POST') {
-    handleExportPackage(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/generation-history' && req.method === 'POST') {
-    handleGenerationHistory(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/project-package' && req.method === 'POST') {
-    handleProjectPackage(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/business-plan' && req.method === 'POST') {
-    handleBusinessPlan(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/evm-scheduler-compliance' && req.method === 'POST') {
-    handleEvmSchedulerCompliance(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/background-task' && req.method === 'POST') {
-    handleBackgroundTask(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/supply-chain-plan' && req.method === 'POST') {
-    handleSupplyChainPlan(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/notifications-plan' && req.method === 'POST') {
-    handleNotificationsPlan(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/ai-cost-plan' && req.method === 'POST') {
-    handleAiCostPlan(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/multitenant-plan' && req.method === 'POST') {
-    handleMultiTenantPlan(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/pwa-plan' && req.method === 'POST') {
-    handlePwaPlan(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/digital-twin-plan' && req.method === 'POST') {
-    handleDigitalTwinPlan(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/knowledge-base' && req.method === 'POST') {
-    handleKnowledgeBaseInsert(req, res)
-    return
-  }
-  if (req.url === '/api/msproject/parse' && req.method === 'POST') {
-    const { default: handler } = await import('./api/msproject/parse.mjs')
-    handler(req, res)
-    return
-  }
-  // MS Project REST API (server-side service)
-  if (req.url === '/api/msproject/analyze' && req.method === 'POST') {
-    const { parseMsProjectXml, analyzeProject, projectToSimplifiedJson } = await import('./server/service/msproject.mjs')
-    const body = await readJson(req)
-    const options = body.options || {}
-    if (!body.xml && !body.content) {
-      json(res, 400, { error: 'xml or content field required' })
+      }
       return
     }
-    try {
-      const xml = body.xml || body.content
-      const project = parseMsProjectXml(xml, { includeCalendars: false, includeResources: body.includeResources !== false })
-      const analysis = analyzeProject(project)
-      const simplified = projectToSimplifiedJson(project)
-      json(res, 200, { project: simplified, analysis })
-    } catch (err) {
-      json(res, 400, { error: 'Failed to parse MS Project XML', detail: err.message })
+    if (req.url === '/api/copilot/code-executor/validate-command' && req.method === 'POST') {
+      handleOwnerCodeExecutorValidateCommand(req, res)
+      return
     }
-    return
-  }
-  if (req.url === '/api/msproject/projects' && req.method === 'GET') {
-    const { listProjects } = await import('./server/service/msproject.mjs')
-    json(res, 200, { projects: listProjects() })
-    return
-  }
-
-  // ── Auto-Fix API ───────────────────────────────────────────────────────────
-  if (req.url?.startsWith('/api/autofix/') && ['GET', 'POST'].includes(req.method)) {
-    const { default: handler } = await import('./api/autofix/index.mjs')
-    handler(req, res)
-    return
-  }
-
-  // ── Notification API ────────────────────────────────────────────────────────
-  if (req.url?.startsWith('/api/notification/') && ['GET', 'POST'].includes(req.method)) {
-    const { default: handler } = await import('./api/notification/index.mjs')
-    handler(req, res)
-    return
-  }
-
-  if (req.url === '/api/copilot/embed' && req.method === 'POST') {
-    handleEmbed(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/knowledge-plan' && req.method === 'POST') {
-    handleKnowledgePlan(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/metrics-plan' && req.method === 'POST') {
-    handleMetricsPlan(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/avatar-voice-plan' && req.method === 'POST') {
-    handleAvatarVoicePlan(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/campaign-plan' && req.method === 'POST') {
-    handleCampaignAutomationPlan(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/autoupgrade-plan' && req.method === 'POST') {
-    handleAutoupgradePlan(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/auth-plan' && req.method === 'POST') {
-    handleAuthPlan(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/status' && req.method === 'GET') {
-    handleDashboardStatus(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/analyze-skill-update' && req.method === 'POST') {
-    handleAnalyzeSkillUpdate(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/apply-skill-update' && req.method === 'POST') {
-    handleApplySkillUpdate(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/export-skill-pack' && req.method === 'POST') {
-    handleExportSkillPack(req, res)
-    return
-  }
-  if (req.url === "/api/stripe/checkout" && req.method === "POST") {
-    const { default: handler } = await import("./api/stripe/checkout.mjs")
-    handler(req, res)
-    return
-  }
-  if (req.url === "/api/stripe/webhook" && req.method === "POST") {
-    const { default: handler } = await import("./api/stripe/webhook.mjs")
-    handler(req, res)
-    return
-  }
-  if (req.url === "/api/service/payment-callback" && req.method === "POST") {
-    const { updateServiceOrderStatus } = await import('./server/service/serviceOrder.mjs')
-    const body = await readJson(req)
-    const { order_id, payment_id } = body
-    if (order_id) {
-      const order = updateServiceOrderStatus(order_id, 'paid', { paymentId: payment_id || 'manual' })
-      // Subscription auto-approve: grant access immediately on payment
-      if (order && order.plan === 'subscription') {
-        updateServiceOrderStatus(order.id, 'approved', { deliveredAt: new Date().toISOString() })
+    if (req.url === '/api/copilot/code-executor/status' && req.method === 'POST') {
+      handleOwnerCodeExecutorStatus(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/code-executor/log' && req.method === 'POST') {
+      handleOwnerCodeExecutorLog(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/execution/commands' && req.method === 'GET') {
+      handleExecutionCommands(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/execution/run' && req.method === 'POST') {
+      handleExecutionRun(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/execution/plan' && req.method === 'POST') {
+      handleOwnerCodeExecutorPlan(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/execution/validate' && req.method === 'POST') {
+      handleOwnerCodeExecutorValidateCommand(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/execution/status' && req.method === 'GET') {
+      handleOwnerCodeExecutorStatus(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/execution/log' && req.method === 'POST') {
+      handleOwnerCodeExecutorLog(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/operator-preview' && req.method === 'POST') {
+      handleOperatorPreview(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/key-restriction' && req.method === 'GET') {
+      const keyRestrictionHandler = await import('./api/copilot/key-restriction.mjs').then(m => m.default)
+      keyRestrictionHandler(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/rate-limit' && req.method === 'GET') {
+      const rateLimitHandler = await import('./api/copilot/rate-limit.mjs').then(m => m.default)
+      rateLimitHandler(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/security-audit' && req.method === 'GET') {
+      const auditHandler = await import('./api/copilot/security-audit.mjs').then(m => m.default)
+      auditHandler(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/key-lifecycle' && (req.method === 'GET' || req.method === 'POST')) {
+      const lifecycleHandler = await import('./api/copilot/key-lifecycle.mjs').then(m => m.default)
+      lifecycleHandler(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/tool-execute' && req.method === 'POST') {
+      handleToolExecute(req, res)
+      return
+    }
+    if ((req.url === '/api/copilot/learn-url' || req.url.startsWith('/api/copilot/learn-url?')) && (req.method === 'GET' || req.method === 'POST')) {
+      const learnUrlHandler = await import('./api/copilot/learn-url.mjs').then(m => m.default)
+      learnUrlHandler(req, res)
+      return
+    }
+    if ((req.url === '/api/copilot/deep-research' || req.url.startsWith('/api/copilot/deep-research?')) && (req.method === 'GET' || req.method === 'POST')) {
+      const researchHandler = await import('./api/copilot/deep-research.mjs').then(m => m.default)
+      researchHandler(req, res)
+      return
+    }
+    const requestUrl = new URL(req.url, 'http://127.0.0.1')
+    if (
+      req.method === 'GET' &&
+      (
+        req.url === '/api/copilot/models' ||
+        (requestUrl.pathname === '/api/copilot/chat' && requestUrl.searchParams.get('models') === '1')
+      )
+    ) {
+      handleModelsList(req, res)
+      return
+    }
+    if (requestUrl.pathname === '/api/copilot/chat' && req.method === 'POST') {
+      handleChat(req, res)
+      return
+    }
+    if (req.url === '/api/webhooks/hotmart' && req.method === 'POST') {
+      const hotmartHandler = await import('./api/webhooks/hotmart.mjs').then(m => m.default)
+      hotmartHandler(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/image-edit-plan' && req.method === 'POST') {
+      handleImageEditPlan(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/generate-image' && req.method === 'POST') {
+      handleGenerateImage(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/video-plan' && req.method === 'POST') {
+      handleVideoPlan(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/video-render' && req.method === 'POST') {
+      handleVideoRender(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/bim-plan' && req.method === 'POST') {
+      handleBimPlan(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/bim-tour-plan' && req.method === 'POST') {
+      handleBimTourPlan(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/fieldops-plan' && req.method === 'POST') {
+      handleFieldOpsPlan(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/budget-plan' && req.method === 'POST') {
+      handleBudgetPlan(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/contracts-plan' && req.method === 'POST') {
+      handleContractsPlan(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/research-plan' && req.method === 'POST') {
+      handleResearchPlan(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/source-evidence' && req.method === 'POST') {
+      handleSourceEvidence(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/export-package' && req.method === 'POST') {
+      handleExportPackage(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/generation-history' && req.method === 'POST') {
+      handleGenerationHistory(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/project-package' && req.method === 'POST') {
+      handleProjectPackage(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/business-plan' && req.method === 'POST') {
+      handleBusinessPlan(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/evm-scheduler-compliance' && req.method === 'POST') {
+      handleEvmSchedulerCompliance(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/background-task' && req.method === 'POST') {
+      handleBackgroundTask(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/supply-chain-plan' && req.method === 'POST') {
+      handleSupplyChainPlan(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/notifications-plan' && req.method === 'POST') {
+      handleNotificationsPlan(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/ai-cost-plan' && req.method === 'POST') {
+      handleAiCostPlan(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/multitenant-plan' && req.method === 'POST') {
+      handleMultiTenantPlan(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/pwa-plan' && req.method === 'POST') {
+      handlePwaPlan(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/digital-twin-plan' && req.method === 'POST') {
+      handleDigitalTwinPlan(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/knowledge-base' && req.method === 'POST') {
+      handleKnowledgeBaseInsert(req, res)
+      return
+    }
+    if (req.url === '/api/msproject/parse' && req.method === 'POST') {
+      const { default: handler } = await import('./api/msproject/parse.mjs')
+      handler(req, res)
+      return
+    }
+    // MS Project REST API (server-side service)
+    if (req.url === '/api/msproject/analyze' && req.method === 'POST') {
+      const { parseMsProjectXml, analyzeProject, projectToSimplifiedJson } = await import('./server/service/msproject.mjs')
+      const body = await readJson(req)
+      const options = body.options || {}
+      if (!body.xml && !body.content) {
+        json(res, 400, { error: 'xml or content field required' })
+        return
       }
-    }
-    json(res, 200, { ok: true })
-    return
-  }
-  if (req.url === "/api/stripe/status" && req.method === "GET") {
-    const { default: handler } = await import("./api/stripe/status.mjs")
-    handler(req, res)
-    return
-  }
-  if (req.url === "/api/ifc/ifcopenshell-status" && req.method === "GET") {
-    const { default: handler } = await import("./api/ifc/ifcopenshell-status.mjs")
-    handler(req, res)
-    return
-  }
-  if (req.url === "/api/aps/status" && req.method === "GET") {
-    const { default: handler } = await import("./api/aps/status.mjs")
-    handler(req, res)
-    return
-  }
-  if (req.url === "/api/aps/token" && req.method === "POST") {
-    const { default: handler } = await import("./api/aps/token.mjs")
-    handler(req, res)
-    return
-  }
-  if (req.url === "/api/aps/hubs" && req.method === "GET") {
-    const { default: handler } = await import("./api/aps/hubs.mjs")
-    handler(req, res)
-    return
-  }
-
-  if (req.url === '/api/fal/webhook' && req.method === 'POST') {
-    const { default: handler } = await import('./api/fal/webhook.mjs')
-    return handler(req, res)
-  }
-
-  if (req.url?.startsWith('/api/webhook/telegram') && req.method === 'POST') {
-    const { default: handler } = await import('./api/webhook/telegram.mjs')
-    return handler(req, res)
-  }
-
-  if (req.url?.startsWith('/api/webhook/whatsapp') && ['GET', 'POST'].includes(req.method)) {
-    const { default: handler } = await import('./api/webhook/whatsapp.mjs')
-    return handler(req, res)
-  }
-
-  if (req.url === "/api/vercel/deploy" && req.method === "POST") {
-    const { default: handler } = await import("./api/vercel/deploy.mjs")
-    handler(req, res)
-    return
-  }
-  if (req.url === "/api/supabase/migrate" && req.method === "POST") {
-    const { default: handler } = await import("./api/supabase/migrate.mjs")
-    handler(req, res)
-    return
-  }
-  if (req.url === "/api/local-worker/execute" && req.method === "POST") {
-    const { default: handler } = await import("./api/local-worker/execute.mjs")
-    handler(req, res)
-    return
-  }
-  if (req.url === "/api/revit/mcp" && req.method === "POST") {
-    const { default: handler } = await import("./api/revit/mcp.mjs")
-    handler(req, res)
-    return
-  }
-  if (req.url === '/api/fal/models' && req.method === 'GET') {
-    const { default: handler } = await import('./api/fal/models.mjs')
-    handler(req, res)
-    return
-  }
-  if (req.url?.startsWith('/api/fal/webhook-status') && req.method === 'GET') {
-    const { default: handler } = await import('./api/fal/webhook-status.mjs')
-    handler(req, res)
-    return
-  }
-  if (req.url === '/api/fal/webhook' && req.method === 'POST') {
-    const { default: handler } = await import('./api/fal/webhook.mjs')
-    handler(req, res)
-    return
-  }
-  if (req.url === '/api/copilot/provider-status' && req.method === 'GET') {
-    const { default: handler } = await import('./api/copilot/provider-status.mjs')
-    handler(req, res)
-    return
-  }
-
-  if (req.url === '/api/copilot/upload-to-gcs' && (req.method === 'GET' || req.method === 'POST')) {
-    const { default: handler } = await import('./api/copilot/upload-to-gcs.mjs')
-    handler(req, res)
-    return
-  }
-
-  if (req.url === '/api/service/order' && req.method === 'POST') {
-    const { createServiceOrder, buildServiceOrderReply } = await import('./server/service/serviceOrder.mjs')
-    const body = await readJson(req)
-    const order = createServiceOrder({
-      clientId: body.clientId,
-      clientName: body.clientName,
-      clientEmail: body.clientEmail,
-      serviceType: body.serviceType,
-      serviceName: body.serviceName,
-      description: body.description,
-      amount: body.amount,
-      currency: body.currency,
-      plan: body.plan,
-    })
-    return chatJson(res, 200, { ok: true, order, reply: buildServiceOrderReply(order) })
-  }
-
-  if (req.url === '/api/service/invoice' && req.method === 'POST') {
-    const { createInvoice, listInvoices } = await import('./server/service/invoice.mjs')
-    const body = await readJson(req)
-    if (body.action === 'list') {
-      const list = listInvoices(body.clientEmail)
-      return chatJson(res, 200, { ok: true, invoices: list })
-    }
-    const invoice = createInvoice(body)
-    return chatJson(res, 200, { ok: true, invoice })
-  }
-
-  if (req.url === '/api/service/client' && req.method === 'POST') {
-    const { findOrCreateClient, listClients, getClient } = await import('./server/service/client.mjs')
-    const body = await readJson(req)
-    if (body.action === 'list') return chatJson(res, 200, { ok: true, clients: listClients() })
-    const client = findOrCreateClient(body)
-    return chatJson(res, 200, { ok: true, client })
-  }
-
-  if (req.url?.startsWith('/api/service/order/') && req.method === 'GET') {
-    const { getServiceOrder, listServiceOrders } = await import('./server/service/serviceOrder.mjs')
-    const parts = req.url.split('/')
-    const id = parts[parts.length - 1]
-    const clientId = new URL(req.url, 'http://localhost').searchParams.get('clientId')
-    if (id && id !== 'order') {
-      const order = getServiceOrder(id)
-      return chatJson(res, 200, order || { error: 'Order not found' })
-    }
-    const list = listServiceOrders(clientId || undefined)
-    return chatJson(res, 200, { ok: true, orders: list })
-  }
-
-  if (req.url === '/api/service/my-orders' && req.method === 'GET') {
-    const email = new URL(req.url, 'http://localhost').searchParams.get('email')
-    if (!email) return chatJson(res, 400, { error: 'email required' })
-    const { listServiceOrders } = await import('./server/service/serviceOrder.mjs')
-    const { listInvoices } = await import('./server/service/invoice.mjs')
-    const { getClient } = await import('./server/service/client.mjs')
-    const orders = listServiceOrders(email)
-    const invoices = listInvoices(email)
-    const client = getClient(email)
-    return chatJson(res, 200, { ok: true, client, orders, invoices })
-  }
-
-  // ── Finance / Controle Financeiro ──────────────────────────────────────────
-  if (req.url?.startsWith('/api/finance/') && ['GET', 'POST'].includes(req.method)) {
-    const { default: handler } = await import('./api/finance/index.mjs')
-    handler(req, res)
-    return
-  }
-
-  // ── Stock Market API ───────────────────────────────────────────────────────
-  if (req.url?.startsWith('/api/stock/') && ['GET', 'POST'].includes(req.method)) {
-    const { default: handler } = await import('./api/stock/index.mjs')
-    handler(req, res)
-    return
-  }
-
-  // ── Trip Planner API ──────────────────────────────────────────────────────
-  if (req.url?.startsWith('/api/trip/') && ['GET', 'POST'].includes(req.method)) {
-    const { default: handler } = await import('./api/trip/index.mjs')
-    handler(req, res)
-    return
-  }
-
-  // ── Campaign / Marketing API ─────────────────────────────────────────────────
-  if (req.url?.startsWith('/api/campaign/') && ['GET', 'POST'].includes(req.method)) {
-    const { default: handler } = await import('./api/campaign/index.mjs')
-    handler(req, res)
-    return
-  }
-
-  // ── NR Compliance API ───────────────────────────────────────────────────────
-  if (req.url?.startsWith('/api/nr/') && ['GET', 'POST'].includes(req.method)) {
-    const { default: handler } = await import('./api/nr/index.mjs')
-    handler(req, res)
-    return
-  }
-
-  // ── Accounting API ──────────────────────────────────────────────────────────
-  if (req.url?.startsWith('/api/accounting/') && ['GET', 'POST'].includes(req.method)) {
-    const { default: handler } = await import('./api/accounting/index.mjs')
-    handler(req, res)
-    return
-  }
-
-  // ── American Permits API ────────────────────────────────────────────────────
-  if (req.url?.startsWith('/api/permits/') && ['GET', 'POST'].includes(req.method)) {
-    const { default: handler } = await import('./api/permits/index.mjs')
-    handler(req, res)
-    return
-  }
-
-  // ── Social / Marketing API (Vercel-style) ─────────────────────────────────────
-  if (req.url?.startsWith('/api/social/') && ['GET', 'POST', 'DELETE'].includes(req.method)) {
-    const { default: handler } = await import('./api/social/index.mjs')
-    handler(req, res)
-    return
-  }
-
-  // ── Prompts / Biblioteca de Skills API ────────────────────────────────────────
-  if (req.url?.startsWith('/api/prompts/') && ['GET'].includes(req.method)) {
-    const { default: handler } = await import('./api/prompts/index.mjs')
-    handler(req, res)
-    return
-  }
-
-  // ── Docs / Walkthrough & Checkpoint Tracker API ────────────────────────────────
-  if (req.url?.startsWith('/api/docs/') && ['GET'].includes(req.method)) {
-    const docName = req.url.replace('/api/docs/', '')
-    let filepath = ''
-    if (docName === 'walkthrough') {
-      filepath = path.join(root, 'walkthrough.md')
-    } else if (docName === 'tracker') {
-      filepath = path.join(root, 'CHECKPOINT_TRACKER.md')
-    } else if (docName === 'state') {
-      filepath = path.join(root, 'docs/APEX_PLATFORM_CURRENT_STATE.md')
-    }
-
-    if (filepath && fs.existsSync(filepath)) {
       try {
-        const content = fs.readFileSync(filepath, 'utf8')
-        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' })
-        res.end(JSON.stringify({ ok: true, content }))
-      } catch (e) {
-        res.writeHead(500, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ ok: false, error: 'Failed to read document' }))
+        const xml = body.xml || body.content
+        const project = parseMsProjectXml(xml, { includeCalendars: false, includeResources: body.includeResources !== false })
+        const analysis = analyzeProject(project)
+        const simplified = projectToSimplifiedJson(project)
+        json(res, 200, { project: simplified, analysis })
+      } catch (err) {
+        json(res, 400, { error: 'Failed to parse MS Project XML', detail: err.message })
       }
-    } else {
-      res.writeHead(404, { 'Content-Type': 'application/json' })
-      res.end(JSON.stringify({ ok: false, error: 'Document not found' }))
+      return
     }
-    return
-  }
+    if (req.url === '/api/msproject/projects' && req.method === 'GET') {
+      const { listProjects } = await import('./server/service/msproject.mjs')
+      json(res, 200, { projects: listProjects() })
+      return
+    }
 
-  // ── Reports / Relatórios Inteligentes Apex ────────────────────────────────────
-  if (req.url?.startsWith('/api/reports/') && ['GET'].includes(req.method)) {
-    const { default: handler } = await import('./api/reports/index.mjs')
-    handler(req, res)
-    return
-  }
+    // ── Auto-Fix API ───────────────────────────────────────────────────────────
+    if (req.url?.startsWith('/api/autofix/') && ['GET', 'POST'].includes(req.method)) {
+      const { default: handler } = await import('./api/autofix/index.mjs')
+      handler(req, res)
+      return
+    }
 
-  // ── DashboardByRole API (ACIP) ────────────────────────────────────────────────
-  if ((req.url === '/api/dashboard/roles' || req.url === '/api/dashboard/generate') && ['GET', 'POST'].includes(req.method)) {
-    const { default: handler } = await import('./api/dashboard/index.mjs')
-    handler(req, res)
-    return
-  }
+    // ── Notification API ────────────────────────────────────────────────────────
+    if (req.url?.startsWith('/api/notification/') && ['GET', 'POST'].includes(req.method)) {
+      const { default: handler } = await import('./api/notification/index.mjs')
+      handler(req, res)
+      return
+    }
 
-  // ── Cognitive Agents API ───────────────────────────────────────────────────────
-  if (req.url?.startsWith('/api/agents/') && ['GET', 'POST'].includes(req.method)) {
-    const { default: handler } = await import('./api/agents/index.mjs')
-    handler(req, res)
-    return
-  }
+    if (req.url === '/api/copilot/embed' && req.method === 'POST') {
+      handleEmbed(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/knowledge-plan' && req.method === 'POST') {
+      handleKnowledgePlan(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/metrics-plan' && req.method === 'POST') {
+      handleMetricsPlan(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/avatar-voice-plan' && req.method === 'POST') {
+      handleAvatarVoicePlan(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/campaign-plan' && req.method === 'POST') {
+      handleCampaignAutomationPlan(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/autoupgrade-plan' && req.method === 'POST') {
+      handleAutoupgradePlan(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/auth-plan' && req.method === 'POST') {
+      handleAuthPlan(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/status' && req.method === 'GET') {
+      handleDashboardStatus(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/analyze-skill-update' && req.method === 'POST') {
+      handleAnalyzeSkillUpdate(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/apply-skill-update' && req.method === 'POST') {
+      handleApplySkillUpdate(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/export-skill-pack' && req.method === 'POST') {
+      handleExportSkillPack(req, res)
+      return
+    }
+    if (req.url === "/api/stripe/checkout" && req.method === "POST") {
+      const { default: handler } = await import("./api/stripe/checkout.mjs")
+      handler(req, res)
+      return
+    }
+    if (req.url === "/api/stripe/webhook" && req.method === "POST") {
+      const { default: handler } = await import("./api/stripe/webhook.mjs")
+      handler(req, res)
+      return
+    }
+    if (req.url === "/api/service/payment-callback" && req.method === "POST") {
+      const { updateServiceOrderStatus } = await import('./server/service/serviceOrder.mjs')
+      const body = await readJson(req)
+      const { order_id, payment_id } = body
+      if (order_id) {
+        const order = updateServiceOrderStatus(order_id, 'paid', { paymentId: payment_id || 'manual' })
+        // Subscription auto-approve: grant access immediately on payment
+        if (order && order.plan === 'subscription') {
+          updateServiceOrderStatus(order.id, 'approved', { deliveredAt: new Date().toISOString() })
+        }
+      }
+      json(res, 200, { ok: true })
+      return
+    }
+    if (req.url === "/api/stripe/status" && req.method === "GET") {
+      const { default: handler } = await import("./api/stripe/status.mjs")
+      handler(req, res)
+      return
+    }
+    if (req.url === "/api/ifc/ifcopenshell-status" && req.method === "GET") {
+      const { default: handler } = await import("./api/ifc/ifcopenshell-status.mjs")
+      handler(req, res)
+      return
+    }
+    if (req.url === "/api/aps/status" && req.method === "GET") {
+      const { default: handler } = await import("./api/aps/status.mjs")
+      handler(req, res)
+      return
+    }
+    if (req.url === "/api/aps/token" && req.method === "POST") {
+      const { default: handler } = await import("./api/aps/token.mjs")
+      handler(req, res)
+      return
+    }
+    if (req.url === "/api/aps/hubs" && req.method === "GET") {
+      const { default: handler } = await import("./api/aps/hubs.mjs")
+      handler(req, res)
+      return
+    }
 
-  // ── CRM Pipeline API ───────────────────────────────────────────────────────────
-  if (req.url?.startsWith('/api/crm-pipeline/') && ['GET', 'POST', 'PATCH', 'DELETE'].includes(req.method)) {
-    const { default: handler } = await import('./api/crm-pipeline/index.mjs')
-    handler(req, res)
-    return
-  }
+    if (req.url === '/api/fal/webhook' && req.method === 'POST') {
+      const { default: handler } = await import('./api/fal/webhook.mjs')
+      return handler(req, res)
+    }
 
-  // ── BIM Clash Detection API (ACIP) ─────────────────────────────────────────────
-  if (req.url?.startsWith('/api/bim-clash/') && ['GET', 'POST', 'PATCH', 'DELETE'].includes(req.method)) {
-    const { default: handler } = await import('./api/bim-clash/index.mjs')
-    handler(req, res)
-    return
-  }
+    if (req.url?.startsWith('/api/webhook/telegram') && req.method === 'POST') {
+      const { default: handler } = await import('./api/webhook/telegram.mjs')
+      return handler(req, res)
+    }
 
-  // ── Qualidade / NCIs API (ACIP) ────────────────────────────────────────────────
-  if (req.url?.startsWith('/api/qualidade/') && ['GET', 'POST', 'PATCH'].includes(req.method)) {
-    const { default: handler } = await import('./api/qualidade/index.mjs')
-    handler(req, res)
-    return
-  }
+    if (req.url?.startsWith('/api/webhook/whatsapp') && ['GET', 'POST'].includes(req.method)) {
+      const { default: handler } = await import('./api/webhook/whatsapp.mjs')
+      return handler(req, res)
+    }
 
-  // ── Workflow Tasks API (ACIP) ──────────────────────────────────────────────────
-  if (req.url?.startsWith('/api/workflow/') && ['GET', 'POST', 'PATCH'].includes(req.method)) {
-    const { default: handler } = await import('./api/workflow/index.mjs')
-    handler(req, res)
-    return
-  }
+    if (req.url === "/api/vercel/deploy" && req.method === "POST") {
+      const { default: handler } = await import("./api/vercel/deploy.mjs")
+      handler(req, res)
+      return
+    }
+    if (req.url === "/api/supabase/migrate" && req.method === "POST") {
+      const { default: handler } = await import("./api/supabase/migrate.mjs")
+      handler(req, res)
+      return
+    }
+    if (req.url === "/api/local-worker/execute" && req.method === "POST") {
+      const { default: handler } = await import("./api/local-worker/execute.mjs")
+      handler(req, res)
+      return
+    }
+    if (req.url === "/api/revit/mcp" && req.method === "POST") {
+      const { default: handler } = await import("./api/revit/mcp.mjs")
+      handler(req, res)
+      return
+    }
+    if (req.url === '/api/fal/models' && req.method === 'GET') {
+      const { default: handler } = await import('./api/fal/models.mjs')
+      handler(req, res)
+      return
+    }
+    if (req.url?.startsWith('/api/fal/webhook-status') && req.method === 'GET') {
+      const { default: handler } = await import('./api/fal/webhook-status.mjs')
+      handler(req, res)
+      return
+    }
+    if (req.url === '/api/fal/webhook' && req.method === 'POST') {
+      const { default: handler } = await import('./api/fal/webhook.mjs')
+      handler(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/provider-status' && req.method === 'GET') {
+      const { default: handler } = await import('./api/copilot/provider-status.mjs')
+      handler(req, res)
+      return
+    }
 
-  // ── Predictive Analytics API (ACIP) ────────────────────────────────────────────
-  if (req.url?.startsWith('/api/predictive/') && ['GET', 'POST'].includes(req.method)) {
-    const { default: handler } = await import('./api/predictive/index.mjs')
-    handler(req, res)
-    return
-  }
+    if (req.url === '/api/copilot/upload-to-gcs' && (req.method === 'GET' || req.method === 'POST')) {
+      const { default: handler } = await import('./api/copilot/upload-to-gcs.mjs')
+      handler(req, res)
+      return
+    }
 
-  // ── Digital Twin IoT API (ACIP) ────────────────────────────────────────────────
-  if (req.url?.startsWith('/api/digital-twin/') && ['GET'].includes(req.method)) {
-    const { default: handler } = await import('./api/digital-twin/index.mjs')
-    handler(req, res)
-    return
-  }
+    if (req.url === '/api/copilot/train-gemma' && (req.method === 'GET' || req.method === 'POST')) {
+      const { default: handler } = await import('./api/copilot/train-gemma.mjs')
+      handler(req, res)
+      return
+    }
 
-  // ── Enterprise Integrations API (ACIP) ──────────────────────────────────────────
-  if (req.url?.startsWith('/api/enterprise/') && ['GET'].includes(req.method)) {
-    const { default: handler } = await import('./api/enterprise/index.mjs')
-    handler(req, res)
-    return
-  }
+    // ─── Deploy Model (Hugging Face Inference) ─────────────────────────
+    if (req.url === '/api/copilot/deploy-model' && (req.method === 'GET' || req.method === 'POST')) {
+      const { default: handler } = await import('./api/copilot/deploy-model.mjs')
+      handler(req, res)
+      return
+    }
 
-  // ── Pipeline Status API ───────────────────────────────────────────────────────
-  if (req.url === '/api/pipeline/active' && req.method === 'GET') {
-    const ps = await import('./server/service/pipelineStatus.mjs')
-    const tasks = ps.listActiveTasks()
-    const brief = ps.getBriefStatus()
-    return json(res, 200, { providerStatus: 'connected', tasks, brief })
-  }
-  if (req.url?.startsWith('/api/pipeline/task/') && req.method === 'GET') {
-    const id = req.url.replace('/api/pipeline/task/', '').split('?')[0]
-    if (!id) return json(res, 400, { error: 'Missing task id' })
-    const ps = await import('./server/service/pipelineStatus.mjs')
-    const task = ps.getTask(id)
-    if (!task) return json(res, 404, { error: 'Task not found' })
-    return json(res, 200, { providerStatus: 'connected', task })
-  }
-  if (req.url === '/api/pipeline/recent' && req.method === 'GET') {
-    const ps = await import('./server/service/pipelineStatus.mjs')
-    const tasks = ps.listRecentTasks()
-    const brief = ps.getBriefStatus()
-    return json(res, 200, { providerStatus: 'connected', tasks, brief })
-  }
-  if (req.url === '/api/pipeline/brief' && req.method === 'GET') {
-    const ps = await import('./server/service/pipelineStatus.mjs')
-    const brief = ps.getBriefStatus()
-    return json(res, 200, { providerStatus: 'connected', brief })
-  }
+    // ─── Ollama Local API Proxy ─────────────────────────────────────────
+    if (req.url === '/api/copilot/ollama-models' && req.method === 'GET') {
+      try {
+        const ollamaRes = await fetch('http://127.0.0.1:11434/api/tags', { signal: AbortSignal.timeout(3000) })
+        if (!ollamaRes.ok) return chatJson(res, 200, { ok: true, ollamaRunning: false, models: [], note: 'ollama_not_running' })
+        const data = await ollamaRes.json()
+        return chatJson(res, 200, { ok: true, ollamaRunning: true, models: data.models || [] })
+      } catch {
+        return chatJson(res, 200, { ok: true, ollamaRunning: false, models: [], note: 'ollama_not_reachable' })
+      }
+    }
 
-  serveStatic(req, res)
+    if (req.url === '/api/copilot/ollama-chat' && req.method === 'POST') {
+      const body = await readJson(req)
+      const { model = 'gemma2:2b', messages = [] } = body
+      try {
+        const ollamaRes = await fetch('http://127.0.0.1:11434/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model, messages, stream: false }),
+          signal: AbortSignal.timeout(30000),
+        })
+        if (!ollamaRes.ok) return chatJson(res, 200, { ok: false, error: 'ollama_error', status: ollamaRes.status })
+        const data = await ollamaRes.json()
+        return chatJson(res, 200, { ok: true, response: data })
+      } catch (err) {
+        return chatJson(res, 200, { ok: false, error: 'ollama_not_reachable', message: err.message })
+      }
+    }
+
+    if (req.url === '/api/service/order' && req.method === 'POST') {
+      const { createServiceOrder, buildServiceOrderReply } = await import('./server/service/serviceOrder.mjs')
+      const body = await readJson(req)
+      const order = createServiceOrder({
+        clientId: body.clientId,
+        clientName: body.clientName,
+        clientEmail: body.clientEmail,
+        serviceType: body.serviceType,
+        serviceName: body.serviceName,
+        description: body.description,
+        amount: body.amount,
+        currency: body.currency,
+        plan: body.plan,
+      })
+      return chatJson(res, 200, { ok: true, order, reply: buildServiceOrderReply(order) })
+    }
+
+    if (req.url === '/api/service/invoice' && req.method === 'POST') {
+      const { createInvoice, listInvoices } = await import('./server/service/invoice.mjs')
+      const body = await readJson(req)
+      if (body.action === 'list') {
+        const list = listInvoices(body.clientEmail)
+        return chatJson(res, 200, { ok: true, invoices: list })
+      }
+      const invoice = createInvoice(body)
+      return chatJson(res, 200, { ok: true, invoice })
+    }
+
+    if (req.url === '/api/service/client' && req.method === 'POST') {
+      const { findOrCreateClient, listClients, getClient } = await import('./server/service/client.mjs')
+      const body = await readJson(req)
+      if (body.action === 'list') return chatJson(res, 200, { ok: true, clients: listClients() })
+      const client = findOrCreateClient(body)
+      return chatJson(res, 200, { ok: true, client })
+    }
+
+    if (req.url?.startsWith('/api/service/order/') && req.method === 'GET') {
+      const { getServiceOrder, listServiceOrders } = await import('./server/service/serviceOrder.mjs')
+      const parts = req.url.split('/')
+      const id = parts[parts.length - 1]
+      const clientId = new URL(req.url, 'http://localhost').searchParams.get('clientId')
+      if (id && id !== 'order') {
+        const order = getServiceOrder(id)
+        return chatJson(res, 200, order || { error: 'Order not found' })
+      }
+      const list = listServiceOrders(clientId || undefined)
+      return chatJson(res, 200, { ok: true, orders: list })
+    }
+
+    if (req.url === '/api/service/my-orders' && req.method === 'GET') {
+      const email = new URL(req.url, 'http://localhost').searchParams.get('email')
+      if (!email) return chatJson(res, 400, { error: 'email required' })
+      const { listServiceOrders } = await import('./server/service/serviceOrder.mjs')
+      const { listInvoices } = await import('./server/service/invoice.mjs')
+      const { getClient } = await import('./server/service/client.mjs')
+      const orders = listServiceOrders(email)
+      const invoices = listInvoices(email)
+      const client = getClient(email)
+      return chatJson(res, 200, { ok: true, client, orders, invoices })
+    }
+
+    // ── Finance / Controle Financeiro ──────────────────────────────────────────
+    if (req.url?.startsWith('/api/finance/') && ['GET', 'POST'].includes(req.method)) {
+      const { default: handler } = await import('./api/finance/index.mjs')
+      handler(req, res)
+      return
+    }
+
+    // ── Stock Market API ───────────────────────────────────────────────────────
+    if (req.url?.startsWith('/api/stock/') && ['GET', 'POST'].includes(req.method)) {
+      const { default: handler } = await import('./api/stock/index.mjs')
+      handler(req, res)
+      return
+    }
+
+    // ── Trip Planner API ──────────────────────────────────────────────────────
+    if (req.url?.startsWith('/api/trip/') && ['GET', 'POST'].includes(req.method)) {
+      const { default: handler } = await import('./api/trip/index.mjs')
+      handler(req, res)
+      return
+    }
+
+    // ── Campaign / Marketing API ─────────────────────────────────────────────────
+    if (req.url?.startsWith('/api/campaign/') && ['GET', 'POST'].includes(req.method)) {
+      const { default: handler } = await import('./api/campaign/index.mjs')
+      handler(req, res)
+      return
+    }
+
+    // ── NR Compliance API ───────────────────────────────────────────────────────
+    if (req.url?.startsWith('/api/nr/') && ['GET', 'POST'].includes(req.method)) {
+      const { default: handler } = await import('./api/nr/index.mjs')
+      handler(req, res)
+      return
+    }
+
+    // ── Accounting API ──────────────────────────────────────────────────────────
+    if (req.url?.startsWith('/api/accounting/') && ['GET', 'POST'].includes(req.method)) {
+      const { default: handler } = await import('./api/accounting/index.mjs')
+      handler(req, res)
+      return
+    }
+
+    // ── American Permits API ────────────────────────────────────────────────────
+    if (req.url?.startsWith('/api/permits/') && ['GET', 'POST'].includes(req.method)) {
+      const { default: handler } = await import('./api/permits/index.mjs')
+      handler(req, res)
+      return
+    }
+
+    // ── Social / Marketing API (Vercel-style) ─────────────────────────────────────
+    if (req.url?.startsWith('/api/social/') && ['GET', 'POST', 'DELETE'].includes(req.method)) {
+      const { default: handler } = await import('./api/social/index.mjs')
+      handler(req, res)
+      return
+    }
+
+    // ── Prompts / Biblioteca de Skills API ────────────────────────────────────────
+    if (req.url?.startsWith('/api/prompts/') && ['GET'].includes(req.method)) {
+      const { default: handler } = await import('./api/prompts/index.mjs')
+      handler(req, res)
+      return
+    }
+
+    // ── Docs / Walkthrough & Checkpoint Tracker API ────────────────────────────────
+    if (req.url?.startsWith('/api/docs/') && ['GET'].includes(req.method)) {
+      const docName = req.url.replace('/api/docs/', '')
+      let filepath = ''
+      if (docName === 'walkthrough') {
+        filepath = path.join(root, 'walkthrough.md')
+      } else if (docName === 'tracker') {
+        filepath = path.join(root, 'CHECKPOINT_TRACKER.md')
+      } else if (docName === 'state') {
+        filepath = path.join(root, 'docs/APEX_PLATFORM_CURRENT_STATE.md')
+      }
+
+      if (filepath && fs.existsSync(filepath)) {
+        try {
+          const content = fs.readFileSync(filepath, 'utf8')
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' })
+          res.end(JSON.stringify({ ok: true, content }))
+        } catch (e) {
+          res.writeHead(500, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ ok: false, error: 'Failed to read document' }))
+        }
+      } else {
+        res.writeHead(404, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ ok: false, error: 'Document not found' }))
+      }
+      return
+    }
+
+    // ── Reports / Relatórios Inteligentes Apex ────────────────────────────────────
+    if (req.url?.startsWith('/api/reports/') && ['GET'].includes(req.method)) {
+      const { default: handler } = await import('./api/reports/index.mjs')
+      handler(req, res)
+      return
+    }
+
+    // ── DashboardByRole API (ACIP) ────────────────────────────────────────────────
+    if ((req.url === '/api/dashboard/roles' || req.url === '/api/dashboard/generate') && ['GET', 'POST'].includes(req.method)) {
+      const { default: handler } = await import('./api/dashboard/index.mjs')
+      handler(req, res)
+      return
+    }
+
+    // ── Cognitive Agents API ───────────────────────────────────────────────────────
+    if (req.url?.startsWith('/api/agents/') && ['GET', 'POST'].includes(req.method)) {
+      const { default: handler } = await import('./api/agents/index.mjs')
+      handler(req, res)
+      return
+    }
+
+    // ── CRM Pipeline API ───────────────────────────────────────────────────────────
+    if (req.url?.startsWith('/api/crm-pipeline/') && ['GET', 'POST', 'PATCH', 'DELETE'].includes(req.method)) {
+      const { default: handler } = await import('./api/crm-pipeline/index.mjs')
+      handler(req, res)
+      return
+    }
+
+    // ── BIM Clash Detection API (ACIP) ─────────────────────────────────────────────
+    if (req.url?.startsWith('/api/bim-clash/') && ['GET', 'POST', 'PATCH', 'DELETE'].includes(req.method)) {
+      const { default: handler } = await import('./api/bim-clash/index.mjs')
+      handler(req, res)
+      return
+    }
+
+    // ── Qualidade / NCIs API (ACIP) ────────────────────────────────────────────────
+    if (req.url?.startsWith('/api/qualidade/') && ['GET', 'POST', 'PATCH'].includes(req.method)) {
+      const { default: handler } = await import('./api/qualidade/index.mjs')
+      handler(req, res)
+      return
+    }
+
+    // ── Workflow Tasks API (ACIP) ──────────────────────────────────────────────────
+    if (req.url?.startsWith('/api/workflow/') && ['GET', 'POST', 'PATCH'].includes(req.method)) {
+      const { default: handler } = await import('./api/workflow/index.mjs')
+      handler(req, res)
+      return
+    }
+
+    // ── Predictive Analytics API (ACIP) ────────────────────────────────────────────
+    if (req.url?.startsWith('/api/predictive/') && ['GET', 'POST'].includes(req.method)) {
+      const { default: handler } = await import('./api/predictive/index.mjs')
+      handler(req, res)
+      return
+    }
+
+    // ── Digital Twin IoT API (ACIP) ────────────────────────────────────────────────
+    if (req.url?.startsWith('/api/digital-twin/') && ['GET'].includes(req.method)) {
+      const { default: handler } = await import('./api/digital-twin/index.mjs')
+      handler(req, res)
+      return
+    }
+
+    // ── Enterprise Integrations API (ACIP) ──────────────────────────────────────────
+    if (req.url?.startsWith('/api/enterprise/') && ['GET'].includes(req.method)) {
+      const { default: handler } = await import('./api/enterprise/index.mjs')
+      handler(req, res)
+      return
+    }
+
+    // ── Pipeline Status API ───────────────────────────────────────────────────────
+    if (req.url === '/api/pipeline/active' && req.method === 'GET') {
+      const ps = await import('./server/service/pipelineStatus.mjs')
+      const tasks = ps.listActiveTasks()
+      const brief = ps.getBriefStatus()
+      return json(res, 200, { providerStatus: 'connected', tasks, brief })
+    }
+    if (req.url?.startsWith('/api/pipeline/task/') && req.method === 'GET') {
+      const id = req.url.replace('/api/pipeline/task/', '').split('?')[0]
+      if (!id) return json(res, 400, { error: 'Missing task id' })
+      const ps = await import('./server/service/pipelineStatus.mjs')
+      const task = ps.getTask(id)
+      if (!task) return json(res, 404, { error: 'Task not found' })
+      return json(res, 200, { providerStatus: 'connected', task })
+    }
+    if (req.url === '/api/pipeline/recent' && req.method === 'GET') {
+      const ps = await import('./server/service/pipelineStatus.mjs')
+      const tasks = ps.listRecentTasks()
+      const brief = ps.getBriefStatus()
+      return json(res, 200, { providerStatus: 'connected', tasks, brief })
+    }
+    if (req.url === '/api/pipeline/brief' && req.method === 'GET') {
+      const ps = await import('./server/service/pipelineStatus.mjs')
+      const brief = ps.getBriefStatus()
+      return json(res, 200, { providerStatus: 'connected', brief })
+    }
+
+    serveStatic(req, res)
   } catch (error) {
     const normalized = captureServerException(error, {
       route: req.url,

@@ -16,17 +16,33 @@ function createWindow() {
       contextIsolation: true
     },
   });
-  
+
   // In Electron, we will load the Express server that serves our built frontend and API.
-  mainWindow.loadURL('http://localhost:3333'); 
+  mainWindow.loadURL('http://localhost:3333');
+}
+
+function tryStartOllama() {
+  const { execSync } = require('child_process');
+  try {
+    execSync('curl -s http://127.0.0.1:11434/api/tags', { timeout: 2000, stdio: 'ignore' });
+    console.log("✅ Ollama já está rodando.");
+    return true;
+  } catch {
+    console.log("ℹ️ Ollama não detectado. O chat continuará funcionando via Gemini API.");
+    console.log("   Para ativar modelos locais, instale Ollama em https://ollama.com");
+    return false;
+  }
 }
 
 app.whenReady().then(() => {
   console.log("Iniciando Servidor Interno Apex AI...");
-  
+
+  // Tenta detectar Ollama (modelo local)
+  const ollamaRunning = tryStartOllama();
+
   // Start the backend server on port 3333
-  serverProcess = spawn('node', [path.join(__dirname, 'server/server.mjs')], {
-    env: { ...process.env, PORT: 3333, NODE_ENV: 'production' },
+  serverProcess = spawn('node', [path.join(__dirname, 'server.mjs')], {
+    env: { ...process.env, PORT: 3333, NODE_ENV: 'production', OLLAMA_RUNNING: ollamaRunning ? 'true' : 'false' },
     stdio: 'inherit'
   });
 
