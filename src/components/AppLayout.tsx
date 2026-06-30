@@ -17,7 +17,7 @@ const sidebarItems = [
   { icon: 'insights', label: 'Marketing / Campaign', id: 'marketing' },
   { icon: 'photo_camera', label: 'ArchVis Studio', id: 'archvis' },
   { icon: 'movie_edit', label: "Director's Cut", id: 'directcut' },
-  { icon: 'admin_panel_settings', label: 'Owner Console', id: 'owner' },
+  { icon: 'manage_accounts', label: 'Owner Console', id: 'owner' },
   { icon: 'rocket_launch', label: 'Deployment', id: 'deployment' },
   { icon: 'explore', label: 'Platform Map', id: 'navigator' },
   { icon: 'school', label: 'Training', id: 'training' },
