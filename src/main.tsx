@@ -304,6 +304,9 @@ const DIRECT_GEMINI_MODELS = [
   { id: 'gemini-2.5-flash-preview-tts', name: 'Gemini 2.5 Flash TTS' },
   { id: 'gemini-2.5-pro-preview-tts', name: 'Gemini 2.5 Pro TTS' },
   { id: 'gemini-2.5-flash-native-audio-preview-12-2025', name: 'Gemini 2.5 Native Audio' },
+  // Gemma — open-source (Google)
+  { id: 'gemma-4-31b-it', name: 'Gemma 4 31B Instruct (Open-Source)' },
+  { id: 'gemma-4-26b-a4b-it', name: 'Gemma 4 26B A4B (Open-Source)' },
 ]
 
 const INTERACTION_MODELS = [
