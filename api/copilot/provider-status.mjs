@@ -90,22 +90,26 @@ async function checkElevenLabs() {
   }
 }
 
-// ─── Brave Search (Web Search) ─────────────────────────────────────────────────────
+// ─── Brave Search (Web Search) — API correta: GET + X-Subscription-Token ─────
 async function checkBraveSearch() {
   const key = process.env.BRAVE_SEARCH_API_KEY
-  if (!key) return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'unconfigured', message: 'BRAVE_SEARCH_API_KEY não configurado.', topUpUrl: 'https://app.brave.com' }
+  if (!key) return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'unconfigured', message: 'BRAVE_SEARCH_API_KEY não configurado.', topUpUrl: 'https://brave.com/search/api/' }
   try {
-    const res = await safeFetch('https://api.brave.com/search', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ api_key: key, query: 'test', max_results: 1 }),
-    })
-    if (res.ok) return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'ok', message: 'Chave válida.' }
-    if (res.status === 401 || res.status === 403) return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'error', message: 'Chave inválida ou expirada.', topUpUrl: 'https://app.brave.com' }
-    if (res.status === 429) { recordRateLimit({ provider: 'brave', endpoint: 'search', statusCode: 429 }); return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'needs-topup', message: 'Quota mensal atingida.', topUpUrl: 'https://app.brave.com' } }
-    return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'warning', message: `Status ${res.status}.`, topUpUrl: 'https://app.brave.com' }
+    // Brave Search API — GET request com X-Subscription-Token
+    const res = await safeFetch('https://api.search.brave.com/res/v1/web/search?q=test&count=1', {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Accept-Encoding': 'gzip',
+        'X-Subscription-Token': key,
+      },
+    }, 8000)
+    if (res.ok) return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'ok', message: 'Chave válida e API respondendo.' }
+    if (res.status === 401 || res.status === 403) return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'error', message: 'Chave inválida ou expirada.', topUpUrl: 'https://brave.com/search/api/' }
+    if (res.status === 429) { recordRateLimit({ provider: 'brave', endpoint: 'search', statusCode: 429 }); return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'needs-topup', message: 'Quota mensal atingida.', topUpUrl: 'https://brave.com/search/api/' } }
+    return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'warning', message: `Status ${res.status}.`, topUpUrl: 'https://brave.com/search/api/' }
   } catch (err) {
-    return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'error', message: `Erro: ${scrub(err?.message)}`, topUpUrl: 'https://app.brave.com' }
+    return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'error', message: `Erro: ${scrub(err?.message)}`, topUpUrl: 'https://brave.com/search/api/' }
   }
 }
 
@@ -219,30 +223,49 @@ async function checkAuthKey() {
 
 // ─── FFmpeg local ─────────────────────────────────────────────────────────────
 async function checkFfmpeg() {
-  // Try ffmpeg-static first (bundled binary)
+  // 1. Try ffmpeg-static first (npm package with bundled binary)
   try {
     const { createRequire } = await import('node:module')
     const require = createRequire(import.meta.url)
-    const ffmpegPath = require('ffmpeg-static')
+    const ffmpegPath = require.resolve('ffmpeg-static')
     if (ffmpegPath) {
-      return { id: 'ffmpeg', name: 'FFmpeg local', status: 'ok', message: 'ffmpeg-static disponível.' }
+      return { id: 'ffmpeg', name: 'FFmpeg local', status: 'ok', message: 'ffmpeg-static instalado.' }
     }
   } catch {
-    // ffmpeg-static not available, try system ffmpeg
+    // ffmpeg-static not available
   }
-  // Fallback: check if ffmpeg is available in system PATH
+
+  // 2. Try system ffmpeg via execSync
   try {
     const { execSync } = await import('node:child_process')
-    const result = execSync('ffmpeg -version', { encoding: 'utf8', timeout: 5000, stdio: ['ignore', 'pipe', 'ignore'] })
-    if (result.includes('ffmpeg version')) {
-      const versionMatch = result.match(/ffmpeg version ([^\s]+)/)
+    const result = execSync('ffmpeg -version', { encoding: 'utf8', timeout: 5000, stdio: ['pipe', 'pipe', 'pipe'] })
+    if (result && result.toLowerCase().includes('ffmpeg version')) {
+      const versionMatch = result.match(/ffmpeg version ([^\s]+)/i)
       const version = versionMatch ? versionMatch[1] : 'disponível'
-      return { id: 'ffmpeg', name: 'FFmpeg local', status: 'ok', message: `FFmpeg ${version} no sistema.` }
+      return { id: 'ffmpeg', name: 'FFmpeg local', status: 'ok', message: `FFmpeg ${version} no PATH do sistema.` }
     }
   } catch {
-    // System ffmpeg not available
+    // System ffmpeg not in PATH
   }
-  return { id: 'ffmpeg', name: 'FFmpeg local', status: 'error', message: 'FFmpeg não encontrado (ffmpeg-static ou sistema).' }
+
+  // 3. Fallback: check common Windows install paths
+  const commonPaths = [
+    'C:\\ffmpeg\\bin\\ffmpeg.exe',
+    'C:\\Program Files\\ffmpeg\\bin\\ffmpeg.exe',
+    'C:\\tools\\ffmpeg\\bin\\ffmpeg.exe',
+    process.env.LOCALAPPDATA + '\\ffmpeg\\ffmpeg.exe',
+  ]
+  for (const p of commonPaths) {
+    try {
+      const { accessSync, constants } = await import('node:fs')
+      accessSync(p, constants.X_OK)
+      return { id: 'ffmpeg', name: 'FFmpeg local', status: 'ok', message: `FFmpeg encontrado em ${p}.` }
+    } catch {
+      // not at this path
+    }
+  }
+
+  return { id: 'ffmpeg', name: 'FFmpeg local', status: 'error', message: 'FFmpeg não encontrado (ffmpeg-static ausente ou ffmpeg não está no PATH).' }
 }
 
 // ─── Autodesk APS ──────────────────────────────────────────────────────────
