@@ -307,6 +307,7 @@ const DIRECT_GEMINI_MODELS = [
   // Gemma — open-source (Google)
   { id: 'gemma-4-31b-it', name: 'Gemma 4 31B Instruct (Open-Source)' },
   { id: 'gemma-4-26b-a4b-it', name: 'Gemma 4 26B A4B (Open-Source)' },
+    { id: 'gemma-4-31b-it-apex', name: 'Gemma 4 31B Apex (Fine-Tuned)' },
 ]
 
 const INTERACTION_MODELS = [
