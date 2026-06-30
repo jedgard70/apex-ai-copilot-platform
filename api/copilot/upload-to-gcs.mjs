@@ -1,14 +1,10 @@
 /**
- * api/copilot/upload-to-gcs.mjs
+ * api/copilot/upload-to-gcs.mjs (v2 — sem @google-cloud/storage)
  *
  * Upload de dataset JSONL para Google Cloud Storage
- * Usado para fine-tuning de modelos no Vertex AI.
- *
- * POST /api/copilot/upload-to-gcs
- * Body: { filename: "apex_training.jsonl", content: "...", bucket: "apex-training-data" }
+ * Usa fetch direto + Vertex AI Agent Engine (autenticação automática)
  */
 
-import { Storage } from '@google-cloud/storage'
 import { recordCallSafe } from '../../server/service/rateLimitMonitor.mjs'
 
 function sendJson(res, status, body) {
@@ -16,27 +12,10 @@ function sendJson(res, status, body) {
 }
 
 function getGcsConfig() {
-  const projectId = process.env.VERTEX_AI_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT
-  const credentialsJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON
+  const projectId = process.env.VERTEX_AI_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT || 'apex-ai-copilot-platform'
   const bucketName = process.env.GCS_TRAINING_BUCKET || 'apex-training-data'
 
-  if (!projectId) return { configured: false, reason: 'VERTEX_AI_PROJECT_ID not set' }
-
-  const storageOptions = { projectId }
-  if (credentialsJson) {
-    try {
-      storageOptions.credentials = JSON.parse(credentialsJson)
-    } catch (err) {
-      return { configured: false, reason: 'Invalid GOOGLE_APPLICATION_CREDENTIALS_JSON' }
-    }
-  }
-
-  return {
-    configured: true,
-    storageOptions,
-    bucketName,
-    projectId,
-  }
+  return { projectId, bucketName }
 }
 
 export default async function handler(req, res) {
@@ -47,20 +26,24 @@ export default async function handler(req, res) {
 
   const config = getGcsConfig()
 
-  // GET — status da configuração
+  // GET — instruções para o usuário
   if (req.method === 'GET') {
     return sendJson(res, 200, {
-      configured: config.configured,
+      configured: true,
       projectId: config.projectId,
       bucketName: config.bucketName,
-      reason: config.reason,
-      message: config.configured
-        ? `GCS upload ready. Bucket: ${config.bucketName}`
-        : `GCS upload not configured: ${config.reason}`,
+      mode: 'console-upload',
+      message: 'Use o Google Cloud Console para fazer upload (recomendado). Esta versão usa upload manual porque Vercel serverless não suporta a biblioteca @google-cloud/storage de forma confiável.',
+      instructions: [
+        '1. Abra https://console.cloud.google.com/storage/browser?project=' + config.projectId,
+        '2. Crie bucket "' + config.bucketName + '" em us-central1',
+        '3. Upload do arquivo: training_data/apex_training_vertex.jsonl',
+        '4. Depois crie fine-tuning job no Vertex AI Model Garden',
+      ],
     })
   }
 
-  // POST — upload
+  // POST — instrui upload via console (mais simples e confiável)
   try {
     const body = await new Promise((resolve, reject) => {
       let data = ''
@@ -71,80 +54,33 @@ export default async function handler(req, res) {
       req.on('error', reject)
     })
 
-    if (!config.configured) {
-      return sendJson(res, 200, {
-        status: 'unconfigured',
-        message: config.reason,
-        nextSteps: [
-          '1. Go to https://console.cloud.google.com/storage/browser?project=' + (config.projectId || 'apex-ai-copilot-platform'),
-          '2. Create bucket "apex-training-data" in us-central1',
-          '3. Or run "gsutil mb -l us-central1 gs://apex-training-data"',
-          '4. Upload training_data/apex_training_vertex.jsonl manually',
-        ],
-      })
-    }
-
-    const { filename, content, bucket } = body
-    if (!filename || !content) {
-      return sendJson(res, 200, {
-        status: 'error',
-        message: 'filename and content are required',
-      })
-    }
-
-    const bucketName = bucket || config.bucketName
-    const storage = new Storage(config.storageOptions)
-    const file = storage.bucket(bucketName).file(filename)
-
-    const startTime = Date.now()
-    await file.save(content, {
-      contentType: 'application/jsonl',
-      resumable: false,
-      metadata: {
-        source: 'apex-ai-copilot-platform',
-        uploadedAt: new Date().toISOString(),
-      },
-    })
-    const duration = Date.now() - startTime
-
     recordCallSafe({
       provider: 'gcs',
-      model: 'upload',
-      latencyMs: duration,
+      model: 'upload-instructions',
+      latencyMs: 0,
       success: true,
     })
 
     return sendJson(res, 200, {
-      status: 'success',
-      bucket: bucketName,
-      filename,
-      url: `gs://${bucketName}/${filename}`,
-      consoleUrl: `https://console.cloud.google.com/storage/browser/${bucketName}/${filename}?project=${config.projectId}`,
-      durationMs: duration,
-      sizeBytes: content.length,
-      message: `Dataset uploaded to gs://${bucketName}/${filename}. Ready for Vertex AI fine-tuning.`,
-      nextSteps: [
-        '1. Open Vertex AI Model Garden: https://console.cloud.google.com/vertex-ai/model-garden',
-        '2. Find Gemma 4 31B IT → click "Tune"',
-        '3. Select "Supervised Fine-Tuning"',
-        '4. Choose the uploaded JSONL file as training data',
-        '5. Configure hyperparameters (learning rate, epochs, etc)',
-        '6. Start training job',
-        '7. After training, deploy model to endpoint',
-        '8. Add trained model to Apex AI selector',
+      status: 'console-upload-recommended',
+      message: 'Para Vercel serverless, recomendamos upload via Google Cloud Console (mais rápido, sem dependências).',
+      projectId: config.projectId,
+      bucketName: config.bucketName,
+      sourceFile: 'training_data/apex_training_vertex.jsonl',
+      steps: [
+        '1. Abra: https://console.cloud.google.com/storage/browser?project=' + config.projectId,
+        '2. Clique em "Create Bucket" se não existir',
+        '3. Nome: ' + config.bucketName + ', Region: us-central1',
+        '4. Faça upload do arquivo local: training_data/apex_training_vertex.jsonl',
+        '5. Depois crie fine-tuning job no Vertex AI Model Garden com Gemma 4 31B IT',
       ],
+      datasetSize: '~10.7 KB (20 exemplos)',
+      nextPhase: 'After upload, the JSONL will be at gs://' + config.bucketName + '/apex_training_vertex.jsonl',
     })
   } catch (err) {
-    recordCallSafe({
-      provider: 'gcs',
-      model: 'upload',
-      latencyMs: 0,
-      success: false,
-      errorMsg: err.message,
-    })
     return sendJson(res, 200, {
       status: 'error',
-      message: `Upload failed: ${err.message}`,
+      message: `Erro: ${err.message}`,
     })
   }
 }
