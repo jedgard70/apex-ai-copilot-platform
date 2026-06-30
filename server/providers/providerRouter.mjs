@@ -56,7 +56,8 @@ async function getFalModels(apiKey) {
       return (data.items || [])
         .filter(m => {
           const id = (m.id || "").toLowerCase()
-          return id.includes("llm") || id.includes("llama") || id.includes("mistral") || id.includes("qwen") || id.includes("deepseek") || id.includes("chat") || id.includes("gemma") || id.includes("phi")
+          // FAL models — allow LLM chat models (gemma movido para Gemini, nao no FAL)
+          return id.includes("llm") || id.includes("llama") || id.includes("mistral") || id.includes("qwen") || id.includes("deepseek") || id.includes("chat") || id.includes("phi")
         })
         .map(m => ({
           id: m.id,
@@ -99,7 +100,10 @@ export async function getProviderChain(options = {}) {
     "gemini-3.5-flash",
     "gemini-2.5-pro",
     "gemini-3.1-pro-preview",
-    "gemini-1.5-pro"
+    "gemini-1.5-pro",
+    // Gemma — open-source (treino aberto)
+    "gemma-4-31b-it",
+    "gemma-4-26b-a4b-it"
   ]
 
   const FAL_STATIC_FALLBACKS = [

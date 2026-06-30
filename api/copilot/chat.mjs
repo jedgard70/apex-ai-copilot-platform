@@ -51,14 +51,14 @@ async function _getRecordCall() {
     _recordCall = mod.recordCall
     return _recordCall
   } catch {
-    _recordCall = () => {} // silent noop
+    _recordCall = () => { } // silent noop
     return _recordCall
   }
 }
 function recordCallSafe(...args) {
   Promise.resolve().then(async () => {
-    try { const fn = await _getRecordCall(); fn(...args) } catch {}
-  }).catch(() => {})
+    try { const fn = await _getRecordCall(); fn(...args) } catch { }
+  }).catch(() => { })
 }
 
 if (process.env.Local_Worker_URL && !process.env.LOCAL_WORKER_URL) {
@@ -89,7 +89,7 @@ const DIRECT_GEMINI_MODELS = [
   { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash (gratuito)' },
   { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview (gratuito)' },
   { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash Lite (gratuito)' },
-  
+
   // Pro models (10 RPM) — use for complex reasoning
   { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro (gratuito)' },
   { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview (gratuito)' },
@@ -98,17 +98,21 @@ const DIRECT_GEMINI_MODELS = [
   // Music generation models (Lyria 3 — gratuito)
   { id: 'lyria-3-clip-preview', name: 'Lyria 3 Clip (música, gratuito)' },
   { id: 'lyria-3-pro-preview', name: 'Lyria 3 Pro (música, gratuito)' },
-  
+
   // Image models (gratuito)
   { id: 'gemini-3.1-flash-image', name: 'Gemini 3.1 Flash Image (gratuito)' },
   { id: 'gemini-2.5-flash-image', name: 'Gemini 2.5 Flash Image (gratuito)' },
   { id: 'gemini-3-pro-image', name: 'Gemini 3 Pro Image (gratuito)' },
-  
+
   // TTS models (gratuito)
   { id: 'gemini-3.1-flash-tts-preview', name: 'Gemini 3.1 Flash TTS (gratuito)' },
   { id: 'gemini-2.5-flash-preview-tts', name: 'Gemini 2.5 Flash TTS (gratuito)' },
   { id: 'gemini-2.5-pro-preview-tts', name: 'Gemini 2.5 Pro TTS (gratuito)' },
   { id: 'gemini-2.5-flash-native-audio-preview-12-2025', name: 'Gemini 2.5 Native Audio (gratuito)' },
+
+  // Gemma — open-source (Google) — treino aberto
+  { id: 'gemma-4-31b-it', name: 'Gemma 4 31B Instruct (Open-Source) (gratuito)' },
+  { id: 'gemma-4-26b-a4b-it', name: 'Gemma 4 26B A4B (Open-Source) (gratuito)' },
 ]
 
 const FAL_CHAT_MODELS = [
@@ -388,73 +392,73 @@ function buildChatFallbackReply(userText, identity, file = null, locale = '') {
       ? 'Posso ajudar a preparar a consulta. Envie nome, email, telefone, cidade, tipo de projeto e o que precisa: BIM, 3D, contrato, alvará, proposta, financeiro, marketing ou operação de campo.'
       : 'I can help prepare the consultation. Send name, email, phone, city, project type and what you need: BIM, 3D, contract, permit, proposal, finance, marketing or field operations.'
   }
-    if (isUploadQuestionText(userText)) {
-      if (file && file.extractionStatus === 'ready' && String(file.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize|analise o arquivo|resuma o arquivo|analise este arquivo|resuma este arquivo|explique o arquivo|explique este arquivo)\b/i.test(userText || '')) {
-        return buildLocalDocSummary(file.name, file.pageCount || 0, file.extractedText || '', file.kind)
-      }
-      return 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar. Eu uso o arquivo como contexto e continuo com a ação em vez de parar para explicar o processo.'
+  if (isUploadQuestionText(userText)) {
+    if (file && file.extractionStatus === 'ready' && String(file.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize|analise o arquivo|resuma o arquivo|analise este arquivo|resuma este arquivo|explique o arquivo|explique este arquivo)\b/i.test(userText || '')) {
+      return buildLocalDocSummary(file.name, file.pageCount || 0, file.extractedText || '', file.kind)
     }
-    return pt
-        ? 'To aqui! Fala o que voce precisa que eu vejo o que da pra fazer. Pode ser projeto, documento, codigo, orcamento, campanha — e se faltar algo, te aviso na hora.'
-        : 'Ready when you are. Tell me what you need — project, document, code, budget, campaign. If something is missing, I will let you know right away.'
+    return 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar. Eu uso o arquivo como contexto e continuo com a ação em vez de parar para explicar o processo.'
   }
+  return pt
+    ? 'To aqui! Fala o que voce precisa que eu vejo o que da pra fazer. Pode ser projeto, documento, codigo, orcamento, campanha — e se faltar algo, te aviso na hora.'
+    : 'Ready when you are. Tell me what you need — project, document, code, budget, campaign. If something is missing, I will let you know right away.'
+}
 
-  function buildLocalDocSummary(fileName, pageCount, extractedText, fileKind) {
-    const text = String(extractedText || '').trim()
-    const snippet = text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).slice(0,6).join(' ').replace(/\s+/g, ' ').slice(0,800)
-    const isPdf = fileKind === 'pdf'
-    const isCode = /code|def|import|class|function|let|const|var|module/i.test(text)
-    const tipo = isPdf ? (/certida/i.test(text) ? 'Certidão (PDF)' : /relat/i.test(text) ? 'Relatório (PDF)' : 'Documento (PDF)') : (isCode ? 'Código Fonte' : 'Documento de Texto')
-    const numberMatch = text.match(/(?:Certid[aã]o\s*(?:n[oº]?\.?|n[oº]?|\:)?\s*([\w\-\/\.]+))/i) || text.match(/\b(n[oº]\s*[:\-]?\s*([\d\-\/\.]+))/i)
-    const certNumber = numberMatch ? (numberMatch[1] || numberMatch[2]) : undefined
-    const dateMatches = Array.from(new Set([...(text.match(/\b\d{1,2}\/\d{1,2}\/\d{4}\b/g) || []), ...(text.match(/\b\d{1,2}\s+de\s+[A-Za-zçãéíóú]+\s+de\s+\d{4}\b/gi) || [])])).slice(0,5)
-    const ext = fileName ? fileName.split('.').pop() : ''
-    const nameFromFile = fileName ? fileName.replace(new RegExp(`\\.${ext}$`, 'i'), '').split('-').pop().trim() : null
-    const orgMatch = text.match(/\b(Servi[cç]o P[uú]blico Federal|Servi[cç]o P[uú]blico|Prefeitura|Cart[oó]rio|Tribunal|Secretaria|Minist[eé]rio|Junta|Cartorio|Conselho|Registro)\b/i)
-    const org = orgMatch ? orgMatch[0] : undefined
+function buildLocalDocSummary(fileName, pageCount, extractedText, fileKind) {
+  const text = String(extractedText || '').trim()
+  const snippet = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean).slice(0, 6).join(' ').replace(/\s+/g, ' ').slice(0, 800)
+  const isPdf = fileKind === 'pdf'
+  const isCode = /code|def|import|class|function|let|const|var|module/i.test(text)
+  const tipo = isPdf ? (/certida/i.test(text) ? 'Certidão (PDF)' : /relat/i.test(text) ? 'Relatório (PDF)' : 'Documento (PDF)') : (isCode ? 'Código Fonte' : 'Documento de Texto')
+  const numberMatch = text.match(/(?:Certid[aã]o\s*(?:n[oº]?\.?|n[oº]?|\:)?\s*([\w\-\/\.]+))/i) || text.match(/\b(n[oº]\s*[:\-]?\s*([\d\-\/\.]+))/i)
+  const certNumber = numberMatch ? (numberMatch[1] || numberMatch[2]) : undefined
+  const dateMatches = Array.from(new Set([...(text.match(/\b\d{1,2}\/\d{1,2}\/\d{4}\b/g) || []), ...(text.match(/\b\d{1,2}\s+de\s+[A-Za-zçãéíóú]+\s+de\s+\d{4}\b/gi) || [])])).slice(0, 5)
+  const ext = fileName ? fileName.split('.').pop() : ''
+  const nameFromFile = fileName ? fileName.replace(new RegExp(`\\.${ext}$`, 'i'), '').split('-').pop().trim() : null
+  const orgMatch = text.match(/\b(Servi[cç]o P[uú]blico Federal|Servi[cç]o P[uú]blico|Prefeitura|Cart[oó]rio|Tribunal|Secretaria|Minist[eé]rio|Junta|Cartorio|Conselho|Registro)\b/i)
+  const org = orgMatch ? orgMatch[0] : undefined
 
-    const mainPoints = []
-    if (snippet) mainPoints.push(snippet)
-    if (certNumber) mainPoints.push(`Número: ${certNumber}`)
-    if (dateMatches.length) mainPoints.push(`Datas relevantes: ${dateMatches.join(', ')}`)
-    if (org) mainPoints.push(`Órgão emissor: ${org}`)
+  const mainPoints = []
+  if (snippet) mainPoints.push(snippet)
+  if (certNumber) mainPoints.push(`Número: ${certNumber}`)
+  if (dateMatches.length) mainPoints.push(`Datas relevantes: ${dateMatches.join(', ')}`)
+  if (org) mainPoints.push(`Órgão emissor: ${org}`)
 
-    const conclusion = isCode
-      ? 'Código/Arquivo de texto lido com sucesso pela Apex. O conteúdo completo foi injetado como habilidade real de conversação no modelo.'
-      : (/certida/i.test(text)
-        ? 'Documento de natureza administrativa/registral. Recomenda-se verificar assinaturas e autenticidade no cartório/órgão emissor quando necessário.'
-        : 'Resumo gerado a partir do texto extraído; revisar o documento completo para decisões finais.')
+  const conclusion = isCode
+    ? 'Código/Arquivo de texto lido com sucesso pela Apex. O conteúdo completo foi injetado como habilidade real de conversação no modelo.'
+    : (/certida/i.test(text)
+      ? 'Documento de natureza administrativa/registral. Recomenda-se verificar assinaturas e autenticidade no cartório/órgão emissor quando necessário.'
+      : 'Resumo gerado a partir do texto extraído; revisar o documento completo para decisões finais.')
 
-    const parts = []
-    parts.push(`Resumo local de ${fileName}:`)
-    parts.push('')
-    parts.push('Tipo de documento:')
-    parts.push(tipo)
-    parts.push('')
-    parts.push('Finalidade:')
-    parts.push(isCode ? 'Implementação/Lógica de software ou dados.' : (/certida/i.test(text) ? 'Certificar/atestar informação legal registrada.' : 'Informar/registrar dados oficiais contidos no documento.'))
-    parts.push('')
-    parts.push('Principais informações:')
-    if (mainPoints.length) {
-      mainPoints.forEach(p => parts.push(`- ${p}`))
-    } else {
-      parts.push('- Conteúdo extraído disponível, mas sem pontos claros identificáveis automaticamente.')
-    }
-    parts.push('')
-    parts.push('Dados relevantes identificados:')
-    parts.push(`- Nome: ${nameFromFile || 'Não identificado'}`)
-    parts.push(`- Órgão: ${org || 'Não identificado'}`)
-    if (certNumber) parts.push(`- Número da certidão: ${certNumber}`)
-    parts.push(`- Datas: ${dateMatches.length ? dateMatches.join(', ') : 'Não identificadas'}`)
-    parts.push('')
-    parts.push('Conclusão:')
-    parts.push(conclusion)
-    parts.push('')
-    parts.push('Limitações:')
-    parts.push('Resumo gerado a partir do texto extraído automaticamente.')
-
-    return parts.join('\n')
+  const parts = []
+  parts.push(`Resumo local de ${fileName}:`)
+  parts.push('')
+  parts.push('Tipo de documento:')
+  parts.push(tipo)
+  parts.push('')
+  parts.push('Finalidade:')
+  parts.push(isCode ? 'Implementação/Lógica de software ou dados.' : (/certida/i.test(text) ? 'Certificar/atestar informação legal registrada.' : 'Informar/registrar dados oficiais contidos no documento.'))
+  parts.push('')
+  parts.push('Principais informações:')
+  if (mainPoints.length) {
+    mainPoints.forEach(p => parts.push(`- ${p}`))
+  } else {
+    parts.push('- Conteúdo extraído disponível, mas sem pontos claros identificáveis automaticamente.')
   }
+  parts.push('')
+  parts.push('Dados relevantes identificados:')
+  parts.push(`- Nome: ${nameFromFile || 'Não identificado'}`)
+  parts.push(`- Órgão: ${org || 'Não identificado'}`)
+  if (certNumber) parts.push(`- Número da certidão: ${certNumber}`)
+  parts.push(`- Datas: ${dateMatches.length ? dateMatches.join(', ') : 'Não identificadas'}`)
+  parts.push('')
+  parts.push('Conclusão:')
+  parts.push(conclusion)
+  parts.push('')
+  parts.push('Limitações:')
+  parts.push('Resumo gerado a partir do texto extraído automaticamente.')
+
+  return parts.join('\n')
+}
 
 
 function detectIntent(userText) {
@@ -652,7 +656,7 @@ function parseFrontmatter(content) {
     if (colon === -1) continue
     const key = trimmed.slice(0, colon).trim()
     const valStr = trimmed.slice(colon + 1).trim()
-    
+
     let val = valStr
     if (valStr.startsWith('"') && valStr.endsWith('"')) {
       val = valStr.slice(1, -1)
@@ -741,7 +745,7 @@ function buildLocalSkillContext(userText, file) {
     const deps = pkg.dependencies ? Object.keys(pkg.dependencies).length : 0
     const devDeps = pkg.devDependencies ? Object.keys(pkg.devDependencies).length : 0
     contexts.push(`   Dependencies: ${deps} prod + ${devDeps} dev`)
-  } catch {}
+  } catch { }
 
   // Scan top-level directories (depth 1)
   try {
@@ -749,7 +753,7 @@ function buildLocalSkillContext(userText, file) {
       .filter(d => d.isDirectory() && !d.name.startsWith('.') && d.name !== 'node_modules' && d.name !== 'dist' && d.name !== '.vercel')
       .map(d => d.name)
     contexts.push(`📂 Top-level dirs: ${topDirs.join(', ')}`)
-  } catch {}
+  } catch { }
 
   // Scan api/ subdirectories
   try {
@@ -757,7 +761,7 @@ function buildLocalSkillContext(userText, file) {
       .filter(d => d.isDirectory())
       .map(d => d.name)
     contexts.push(`🖥️ API endpoints: ${apiDirs.join(', ')}`)
-  } catch {}
+  } catch { }
 
   // Count source files
   let totalSourceFiles = 0
@@ -770,7 +774,7 @@ function buildLocalSkillContext(userText, file) {
         if (entry.isDirectory()) countFiles(full, depth + 1)
         else totalSourceFiles++
       }
-    } catch {}
+    } catch { }
   }
   countFiles(rootDir)
   contexts.push(`📄 Source files: ~${totalSourceFiles} total`)
@@ -784,7 +788,7 @@ function buildLocalSkillContext(userText, file) {
     const lastCommit = gitLog.split('\n').filter(l => l.trim()).pop() || ''
     const match = lastCommit.match(/^[a-f0-9]+\s+[a-f0-9]+\s+(.+?)(?:\s+<|\s+\d+)/)
     if (match) contexts.push(`   Last commit by: ${match[1].trim()}`)
-  } catch {}
+  } catch { }
 
   // ─── Dynamic env-based tool registry ───────────────────────────────
   contexts.push('')
@@ -1147,7 +1151,7 @@ function convertToInteractionInput(messages) {
       if (Array.isArray(msg.tool_calls)) {
         for (const tc of msg.tool_calls) {
           let args = {}
-          try { args = JSON.parse(tc.function?.arguments || '{}') } catch {}
+          try { args = JSON.parse(tc.function?.arguments || '{}') } catch { }
           steps.push({
             type: 'function_call',
             name: tc.function?.name || 'unknown',
@@ -1157,11 +1161,28 @@ function convertToInteractionInput(messages) {
         }
       }
     } else {
-      // user role
-      const content = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content || '')
+      // user role — content can be string or array of parts (OpenAI format)
+      const contentArray = []
+      if (typeof msg.content === 'string') {
+        contentArray.push({ type: 'text', text: msg.content })
+      } else if (Array.isArray(msg.content)) {
+        for (const part of msg.content) {
+          if (part.type === 'text' && part.text) {
+            contentArray.push({ type: 'text', text: part.text })
+          } else if (part.type === 'image_url' && part.image_url?.url) {
+            contentArray.push({
+              type: 'image_url',
+              image_url: { url: part.image_url.url },
+            })
+          }
+        }
+      } else if (msg.content) {
+        // fallback for any other type
+        contentArray.push({ type: 'text', text: JSON.stringify(msg.content) })
+      }
       steps.push({
         type: 'user_input',
-        content: [{ type: 'text', text: content }],
+        content: contentArray.length > 0 ? contentArray : [{ type: 'text', text: '' }],
       })
     }
   }
@@ -1653,11 +1674,11 @@ async function executeLiveAgentToolCall(toolCall) {
   }
 
   return {
-  providerStatus: 'unavailable',
-  commandId,
-  reason,
-  error: 'Local command runtime unavailable for this action in the current environment.',
-  nextStep: 'Continue using read/search/list/GitHub tools and web_search to deliver the requested result without blocking on infrastructure setup.'
+    providerStatus: 'unavailable',
+    commandId,
+    reason,
+    error: 'Local command runtime unavailable for this action in the current environment.',
+    nextStep: 'Continue using read/search/list/GitHub tools and web_search to deliver the requested result without blocking on infrastructure setup.'
   }
 }
 
@@ -1694,8 +1715,8 @@ function buildConfirmationUi(result) {
     pendingAction: result.memoryPatch?.pendingH6Action || null,
     buttons: [
       { id: 'confirm', label: 'Sim, executar', variant: 'primary', message: 'sim' },
-      { id: 'cancel',  label: 'Não, cancelar', variant: 'secondary', message: 'não' },
-      { id: 'adjust',  label: 'Ajustar',        variant: 'ghost',     message: null },
+      { id: 'cancel', label: 'Não, cancelar', variant: 'secondary', message: 'não' },
+      { id: 'adjust', label: 'Ajustar', variant: 'ghost', message: null },
     ],
   }
 }
