@@ -994,6 +994,12 @@ function buildOperationalSkillResponse(text: string) {
   if (isCodeSkillIntent(text)) {
     return 'Code execution is not connected yet. I can prepare the checkpoint, handoff, scope, validation plan and PR checklist.'
   }
+  // Assistente pessoal — intercepta comandos de execução que iriam para API
+  if (/\b(executar|execute|rodar|roda|run|commit|push|git|deploy|migration|rollback|roll.?back|npm run|npm install|yarn|pnpm|migrate|database.*migrate|prisma.*migrate)\b/i.test(text)) {
+    return pt
+      ? 'Entendi! Parece que você quer executar uma operação. Como assistente pessoal, posso ajudar com:\n\n• **Análise** — revisar código, documentos, plantas\n• **Geração** — criar imagens, vídeos, orçamentos, contratos\n• **Pesquisa** — buscar informações, analisar mercado\n• **Documentação** — preparar relatórios, memoriais, propostas\n\nPara executar comandos no sistema (git, deploy, build), use o **Owner Console → Copilot Execution** com as permissões adequadas.\n\nMe diga o que precisa e vou preparar do melhor jeito! ✨'
+      : 'I understand you want to execute something. As a personal assistant, I can help with:\n\n• **Analysis** — review code, documents, blueprints\n• **Generation** — create images, videos, budgets, contracts\n• **Research** — find information, analyze markets\n• **Documentation** — prepare reports, proposals, memos\n\nTo run system commands (git, deploy, build), use **Owner Console → Copilot Execution** with proper permissions.\n\nTell me what you need and I will help! ✨'
+  }
   const connectorStatusAnswer = buildConnectorStatusFallback(text)
   if (connectorStatusAnswer) return connectorStatusAnswer
   if (isPlatformEngineeringIntent(text)) {
