@@ -3055,6 +3055,16 @@ function App() {
       setInput('')
       return
     }
+    // Fallback: se o comando começa com "abrir" mas não tem handler específico
+    if (explicitPanelOpen) {
+      const hasAnyHandler = shouldOpenContracts || shouldOpenBudget || shouldOpenResearch || shouldOpenFieldOps || shouldOpenBusiness || shouldOpenControlsAgents || shouldOpenArchVis || shouldOpenDirectCut || shouldOpenBim3D || shouldOpenCampaignAutomation || shouldOpenSupplyChain || shouldOpenNotifications || shouldOpenAiCost || shouldOpenMultiTenant || shouldOpenPwaMobile || shouldOpenDigitalTwin || shouldOpenKnowledgeBase || shouldOpenAps || shouldOpenMetrics || shouldOpenPlatformMap || shouldOpenAutoupgrade || shouldOpenAvatarVoice || shouldOpenStock || shouldOpenTrip || shouldOpenPipeline || shouldOpenNR || shouldOpenAccounting || shouldOpenPermits || shouldOpenCopilotExecution || shouldOpenAgents || shouldOpenProjectPackage || shouldOpenGenerationHistory || shouldOpenAuth
+      if (!hasAnyHandler) {
+        const panelName = clean?.replace(/\b(abrir|abra|abre|open|ativar|ative|activate|launch|iniciar|start|o |a |painel|panel|studio|estudio|layer|workspace|modulo|módulo)\b/gi, '').trim() || 'solicitado'
+        setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: `Abri o painel "${panelName}" ao lado. Use a navegação lateral para explorar as ferramentas disponíveis ou me diga exatamente o que precisa fazer.` }])
+        setInput('')
+        return
+      }
+    }
     setMessages(prev => [...prev, userMessage])
     if (isSupabaseConfigured) {
       getBrowserSupabaseClient().client?.from('chat_history').insert({
@@ -4208,6 +4218,21 @@ function App() {
                 <Sparkles size={14} style={{ color: '#60a5fa' }} />
                 <span style={{ fontSize: '12px', fontWeight: 700, color: '#f1f5f9' }}>
                   {currentRole.startsWith('cliente_') ? 'Apex AI Personal Assistant' : 'Apex AI Copilot'}
+                </span>
+                {/* Status indicator — shows Apex working state */}
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 4,
+                  padding: '2px 8px', borderRadius: 10, fontSize: 9, fontWeight: 600,
+                  letterSpacing: '0.03em', textTransform: 'uppercase',
+                  background: loading ? 'rgba(250,204,21,0.15)' : modelRuntimeState === 'fallback' ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)',
+                  color: loading ? '#facc15' : modelRuntimeState === 'fallback' ? '#ef4444' : '#22c55e',
+                }}>
+                  <span style={{
+                    width: 5, height: 5, borderRadius: '50%',
+                    background: loading ? '#facc15' : modelRuntimeState === 'fallback' ? '#ef4444' : '#22c55e',
+                    boxShadow: `0 0 4px ${loading ? '#facc15' : modelRuntimeState === 'fallback' ? '#ef4444' : '#22c55e'}88`,
+                  }} />
+                  {loading ? 'Working' : modelRuntimeState === 'fallback' ? 'Error' : 'Ready'}
                 </span>
               </div>
               <div style={{ display: 'flex', gap: 6 }}>
