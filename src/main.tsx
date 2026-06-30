@@ -1185,6 +1185,11 @@ function buildProductFallbackAnswer(userText: string, identity: ChatIdentityCont
   // Only apply local fallbacks for single-line messages to prevent interception.
   const nonEmptyLines = userText.trim().split(/\n/).filter(l => l.trim()).length
   if (nonEmptyLines === 1) {
+    const trimmed = userText.trim()
+    // Greetings — respond as personal assistant
+    if (/^(ola|olá|oi|oie|hello|hey|hei|salve|eai|e aí|fala|opa|bom dia|boa tarde|boa noite|bom dia tudo bem|blz|beleza|tudo bem|howdy|hi)\b/i.test(trimmed)) {
+      return 'Olá! 😊 Como posso te ajudar hoje? Posso analisar documentos, imagens, plantas, criar orçamentos, contratos, campanhas de marketing, fazer pesquisas e muito mais. É só me falar o que precisa!'
+    }
     const aiIdentityAnswer = buildAIIdentityAnswer(userText)
     if (aiIdentityAnswer) return aiIdentityAnswer
 
@@ -1648,6 +1653,7 @@ function App() {
   const [activeConversationId, setActiveConversationId] = useState<string>(() => {
     return localStorage.getItem('apex_active_conversation_id') || 'default'
   })
+  const [showConversationList, setShowConversationList] = useState(false)
   const [showPromptLibrary, setShowPromptLibrary] = useState(false)
   const [activePromptLibraryModule, setActivePromptLibraryModule] = useState<string | undefined>(undefined)
   const [selectedModel, setSelectedModel] = useState<string>(() => {
@@ -4242,6 +4248,10 @@ function App() {
                 </span>
               </div>
               <div style={{ display: 'flex', gap: 6 }}>
+                <button type="button" onClick={() => setShowConversationList(p => !p)} title="Histórico de conversas"
+                  style={{ background: showConversationList ? '#8b5cf6' : '#1f2937', color: '#fff', border: 'none', borderRadius: 5, padding: '4px 10px', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 12 }}>history</span> {showConversationList ? 'Fechar' : 'Histórico'}
+                </button>
                 <button type="button" onClick={handleNewChat} title="Nova conversa"
                   style={{ background: '#2563eb', color: '#fff', border: 'none', borderRadius: 5, padding: '4px 10px', fontSize: 10, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
                   <Plus size={10} /> Novo
@@ -4252,6 +4262,41 @@ function App() {
                 </button>
               </div>
             </div>
+
+            {/* ── Conversation History Sidebar ── */}
+            {showConversationList && (
+              <div style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', background: '#0d1321', maxHeight: '40%', overflow: 'auto' }}>
+                <div style={{ padding: '8px 12px', fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  Conversas Anteriores ({conversations.length})
+                  <button onClick={() => { localStorage.removeItem('apex_conversations_v1'); setConversations([]) }}
+                    style={{ float: 'right', background: 'none', border: 'none', color: '#ef4444', fontSize: 9, cursor: 'pointer', padding: 0 }}>
+                    Limpar tudo
+                  </button>
+                </div>
+                {conversations.map(conv => (
+                  <div key={conv.id}
+                    onClick={() => { setActiveConversationId(conv.id); setShowConversationList(false) }}
+                    style={{
+                      padding: '8px 12px', cursor: 'pointer', borderBottom: '1px solid rgba(255,255,255,0.03)',
+                      background: conv.id === activeConversationId ? 'rgba(59,130,246,0.1)' : 'transparent',
+                      transition: 'background 0.15s',
+                    }}
+                    onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                    onMouseOut={e => e.currentTarget.style.background = conv.id === activeConversationId ? 'rgba(59,130,246,0.1)' : 'transparent'}
+                  >
+                    <div style={{ fontSize: 11, fontWeight: 600, color: '#e2e8f0', marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{conv.title}</div>
+                    <div style={{ fontSize: 9, color: '#64748b' }}>
+                      {conv.messages.length} msgs · {new Date(conv.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                ))}
+                {conversations.length === 0 && (
+                  <div style={{ padding: '16px 12px', textAlign: 'center', fontSize: 10, color: '#64748b' }}>
+                    Nenhuma conversa anterior
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* ── Prompt Library or Messages ── */}
             {showPromptLibrary ? (
