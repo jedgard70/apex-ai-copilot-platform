@@ -200,7 +200,7 @@ type PendingLayerDecision = {
 }
 
 type ArchVisOutput = {
-  source: IntakeFile
+  source?: IntakeFile
   output: string
   conversationContext: string[]
 }
@@ -213,7 +213,7 @@ type DirectCutOutput = {
 }
 
 type Bim3DOutput = {
-  source: IntakeFile
+  source?: IntakeFile
 }
 
 type BudgetOutput = {
@@ -694,7 +694,7 @@ function isGenerationHistoryIntent(text: string) {
 function isContractsIntent(text: string) {
   const lower = text.toLowerCase()
   const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|revisar|review|criar|create|gerar|generate|analisar|analyze|validar|validate|quero|preciso|faça|faca|prepare|montar)\b/i.test(lower)
-  const hasKeyword = /\b(contrato|contrato simples|revisar contrato|jur[ií]dico|juridico|cl[aá]usula|clausula|proposta jur[ií]dica|memorial|memorial descritivo|alvar[aá]|licen[cç]a|permits?|permits americanos|documentos para aprova[cç][aã]o nos eua|us permits?|european permits?|eu building permit|planning permission|ahj|certificate of occupancy|fire marshal|ada|building control|compliance|endossos|endosso|art|rrt|habite-se|scope agreement|addendum|lawyer|legal|contract)\b/i.test(lower)
+  const hasKeyword = /\b(contrato|contrato simples|revisar contrato|jur[ií]dico|juridico|cl[aá]usula|clausula|proposta jur[ií]dica|memorial|memorial descritivo|alvar[aá]|licen[cç]a|permits?|permits americanos|documentos para aprova[cç][aã]o nos eua|us permits?|european permits?|eu building permit|planning permission|ahj|certificate of occupancy|fire marshal|ada|building control|compliance|endossos|endosso|art|rrt|habite-se|scope agreement|addendum|lawyer|legal|contracts?)\b/i.test(lower)
   return hasVerb && hasKeyword
 }
 
@@ -709,7 +709,7 @@ function isFieldOpsIntent(text: string, attachment?: IntakeFile) {
   if (attachment?.kind === 'image' && /\b(obra|campo|rdo|di[aá]rio|relat[oó]rio|andamento|progresso|qualidade|seguran[cç]a|punch|pend[eê]ncia|foto de obra)\b/i.test(text)) return true
   const lower = text.toLowerCase()
   const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|criar|create|gerar|generate|preencher|fill|fazer|make|quero|preciso|faça|faca|prepare)\b/i.test(lower)
-  const hasKeyword = /\b(rdo|di[aá]rio de obra|relat[oó]rio de obra|andamento da obra|progresso da obra|checklist de qualidade|checklist de seguran[cç]a|equipe de obra|materiais entregues|pend[eê]ncia de obra|punch list|foto de obra|field operations|daily report|jobsite|site report|quality checklist|safety checklist|field photo)\b/i.test(lower)
+  const hasKeyword = /\b(rdo|di[aá]rio de obra|relat[oó]rio de obra|andamento da obra|progresso da obra|checklist de qualidade|checklist de seguran[cç]a|equipe de obra|materiais entregues|pend[eê]ncia de obra|punch list|foto de obra|field operations?|field.?ops|daily report|jobsite|site report|quality checklist|safety checklist|field photo|construction site|obra|campo)\b/i.test(lower)
   return hasVerb && hasKeyword
 }
 
@@ -773,7 +773,7 @@ function isExplicitPanelOpenRequest(text: string) {
   const lower = text.toLowerCase().trim()
   const hasOpenVerb = /\b(abrir|abra|abre|open|ativar|ative|activate|launch|iniciar|start)\b/.test(lower)
   const hasProductionVerb = /\b(renderizar|renderize|renderiza|render|gerar|gere|gera|generate|fazer|faça|faca|faz|criar|crie|cria|create|produzir|produza|prepare|monte|montar|humanizar|humanize|editar|edite|edit|refazer|refaça|regenerar|regenerate|melhorar|melhore|improve|transformar|transforme|converter|converta)\b/.test(lower)
-  const hasKnownLayer = /\b(archvis|directcut|render|planta humanizada|v[ií]deo de venda|video|imagem|fachada|interior|shot list|storyboard|humaniza[cç][aã]o|planta baixa|apresenta[cç][aã]o|tour virtual|anima[cç][aã]o|prompt de render|direct.?cut|bolsa|stock market|a[cç][oõ]es|b3|trip|viagem|pipeline|nr crea|nr compliance|segurança do trabalho|contabilidade|accounting|crc|american permits|building permit)\b/.test(lower)
+  const hasKnownLayer = /\b(archvis|directcut|render|planta humanizada|v[ií]deo de venda|video|imagem|fachada|interior|shot list|storyboard|humaniza[cç][aã]o|planta baixa|apresenta[cç][aã]o|tour virtual|anima[cç][aã]o|prompt de render|direct.?cut|bolsa|stock market|a[cç][oõ]es|b3|trip|viagem|pipeline|nr crea|nr compliance|segurança do trabalho|contabilidade|accounting|crc|american permits|building permit|field ops?|fieldops|field.?operations?|obra|campo|rdo|di[aá]rio de obra|or[cç]amento|orcamento|budget|proposta|contratos?|contracts?|permits?|finance?|financeiro|finan[cç]as|financas|marketing|campaign|campanha|deploy|deployment|implanta[cç][aã]o|publica[cç][aã]o|platform engineering|status da plataforma|platform status|pipeline deploy|publicar|publicação)\b/.test(lower)
 
   if (hasOpenVerb) {
     const hasPanelWord = /\b(layer|painel|panel|studio|estudio|workspace|m[oó]dulo|modulo|console)\b/.test(lower)
@@ -2232,12 +2232,12 @@ function App() {
       activeFileId: activeRecord?.id || activeProject.activeFileId,
       activeStudio,
       archVisOutputs: archVisOutput
-        ? [{ output: archVisOutput.output, conversationContext: archVisOutput.conversationContext, updatedAt: new Date().toISOString() }]
+            ? [{ output: archVisOutput.output, conversationContext: archVisOutput.conversationContext, updatedAt: new Date().toISOString() }]
         : activeProject.archVisOutputs,
       directCutPlans: directCutOutput
         ? [{ ...directCutOutput, updatedAt: new Date().toISOString() }]
         : activeProject.directCutPlans,
-      bim3dItems: bim3DOutput
+      bim3dItems: bim3DOutput && bim3DOutput.source
         ? [{ fileName: bim3DOutput.source.file.name, updatedAt: new Date().toISOString() }]
         : activeProject.bim3dItems,
       appState: {
@@ -3033,6 +3033,25 @@ function App() {
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: studioMessage }])
       closeOtherPanels('bim3D')
       setBim3DOutput({ source: attachment })
+      setInput('')
+      return
+    }
+    if (shouldOpenBim3D) {
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o BIM / 3D Studio ao lado. Faça upload de um modelo IFC, GLB, GLTF, OBJ, STL, FBX, RVT, DWG, DXF ou SKP para visualizar, analisar e gerar relatório técnico.' }])
+      closeOtherPanels('bim3D')
+      setBim3DOutput({ source: undefined })
+      setInput('')
+      return
+    }
+    // ArchVis sem attachment — apenas comando "abrir archvis studio"
+    if (shouldOpenArchVis && !attachment) {
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o ArchVis Studio ao lado. Faça upload de uma imagem de planta, fachada ou referência para eu renderizar com IA.' }])
+      closeOtherPanels('archVis')
+      setArchVisOutput({
+        source: undefined,
+        output: '',
+        conversationContext: [...messages, userMessage].slice(-8).map(message => `${message.role}: ${message.text}`),
+      })
       setInput('')
       return
     }
@@ -4080,35 +4099,27 @@ function App() {
         />
       );
       case 'bim': return bim3DOutput ? (
-        <Bim3DPanel source={bim3DOutput.source} onClear={() => setBim3DOutput(null)} />
-      ) : (
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, background: '#0b1326', color: '#fff', fontFamily: "'Inter', sans-serif" }}>
-          <div style={{ textAlign: 'center', maxWidth: 450, background: '#171f33', padding: 32, borderRadius: 12, border: '1px solid rgba(255, 255, 255, 0.08)', boxShadow: '0 8px 30px rgba(0,0,0,0.5)' }}>
-            <div style={{ background: 'rgba(59, 130, 246, 0.1)', width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 32, color: '#3b82f6' }}>architecture</span>
+        bim3DOutput.source ? (
+          <Bim3DPanel source={bim3DOutput.source} onClear={() => setBim3DOutput(null)} />
+        ) : (
+          <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, background: '#0b1326', color: '#fff', fontFamily: "'Inter', sans-serif" }}>
+            <div style={{ textAlign: 'center', maxWidth: 450, background: '#171f33', padding: 32, borderRadius: 12, border: '1px solid rgba(255, 255, 255, 0.08)', boxShadow: '0 8px 30px rgba(0,0,0,0.5)' }}>
+              <div style={{ background: 'rgba(59, 130, 246, 0.1)', width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 32, color: '#3b82f6' }}>architecture</span>
+              </div>
+              <h3 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 8px', color: '#fff' }}>BIM / 3D Studio</h3>
+              <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.5, margin: '0 0 24px' }}>
+                Faça upload de um modelo IFC, GLB, GLTF, OBJ, STL, FBX, RVT, DWG, DXF ou SKP para visualizar, analisar e gerar relatório técnico.
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', justifyContent: 'center' }}>
+                {['IFC', 'GLB', 'GLTF', 'OBJ', 'STL', 'FBX', 'RVT', 'DWG', 'DXF', 'SKP'].map(f => (
+                  <span key={f} style={{ padding: '4px 8px', background: 'rgba(59,130,246,0.08)', borderRadius: 4, fontSize: 10, color: '#60a5fa', fontFamily: "'JetBrains Mono', monospace" }}>{f}</span>
+                ))}
+              </div>
             </div>
-            <h3 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 8px', color: '#fff' }}>BIM / 3D Studio</h3>
-            <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.5, margin: '0 0 24px' }}>
-              Carregue modelos 3D diretamente no visualizador Apex. Suporta arquivos nos formatos <strong>.ifc</strong>, <strong>.glb</strong>, <strong>.gltf</strong>, <strong>.obj</strong> ou <strong>.stl</strong>.
-            </p>
-            <label style={{
-              display: 'inline-block', background: '#2563eb', color: '#fff', padding: '10px 24px', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'background 0.15s'
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = '#1d4ed8'}
-            onMouseLeave={e => e.currentTarget.style.background = '#2563eb'}
-            >
-              Selecionar Modelo 3D
-              <input type="file" accept=".ifc,.glb,.gltf,.obj,.stl" style={{ display: 'none' }} onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  const mockIntakeFile = { file, name: file.name, size: file.size, type: file.type, kind: 'document' as const };
-                  setBim3DOutput({ source: mockIntakeFile });
-                }
-              }} />
-            </label>
           </div>
-        </div>
-      );
+        )
+      ) : null;
       case 'fieldops': return <FieldOpsPanel goal="" conversationContext={[]} onClear={() => {}} />;
       case 'budget': return <BudgetPanel goal="" conversationContext={[]} onClear={() => {}} />;
       case 'contracts': return <ContractsPanel goal="" conversationContext={[]} onClear={() => {}} />;
@@ -4176,14 +4187,15 @@ function App() {
           {/* Panel — hidden on mobile, 70% on desktop */}
           {activeView !== 'chat' && activeView !== 'client-dashboard' && !hasOperationalPanel && (
           <section className={isMobile ? 'fixed inset-0 z-[60] bg-[#0f172a] overflow-auto' : ''} style={{ flex: isMobile ? undefined : '1 1 70%', display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, minWidth: 0, overflow: 'hidden' }}>
-            {isMobile && (
-              <div style={{ padding: '12px', background: '#1e293b', display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                <button onClick={() => setActiveView('chat')} style={{ background: 'transparent', border: 'none', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_back</span>
-                  Voltar ao Chat
-                </button>
-              </div>
-            )}
+            <div style={{ padding: '8px 12px', background: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: '#f1f5f9', textTransform: 'uppercase', letterSpacing: '0.03em' }}>{activeView === 'archvis' ? 'ArchVis Studio' : activeView === 'directcut' ? "Director's Cut" : activeView === 'bim' ? 'BIM / 3D Studio' : activeView === 'budget' ? 'Budget / Quantity' : activeView === 'finance' ? 'Financeiro' : activeView === 'marketing' ? 'Marketing / Campaign' : activeView === 'deployment' ? 'Deployment' : typeof activeView === 'string' ? activeView.charAt(0).toUpperCase() + activeView.slice(1) : 'Painel'}</span>
+              <button onClick={() => setActiveView('chat')} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', padding: '4px 8px', borderRadius: '6px', transition: 'all 0.15s' }}
+                onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#fff' }}
+                onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#94a3b8' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>close</span>
+                Fechar
+              </button>
+            </div>
             {renderPanelContent(activeView)}
           </section>
           )}
@@ -5016,7 +5028,7 @@ function App() {
             />
           )}
 
-          {bim3DOutput && (
+          {bim3DOutput && bim3DOutput.source && (
             <Bim3DPanel
               source={bim3DOutput.source}
               externalCommand={bimCommand}
