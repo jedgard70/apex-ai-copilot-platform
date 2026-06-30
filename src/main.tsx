@@ -3085,6 +3085,14 @@ function App() {
         content: userMessage.text
       }).catch((err: any) => console.error('[Apex H5] Error saving user message:', err))
     }
+    // ── Local fallback BEFORE API call ──
+    const localFallback = buildProductFallbackAnswer(userText, identityContext)
+    if (localFallback) {
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: localFallback }])
+      setInput('')
+      setLoading(false)
+      return
+    }
     setInput('')
     setLoading(true)
     setModelRuntimeState('running')
@@ -3172,10 +3180,9 @@ function App() {
           return next
         })
       }
-      const localFallback = buildProductFallbackAnswer(userText, identityContext)
       const reply = response.ok
-        ? pickCanonicalReply(data, localFallback || buildCopilotFailureMessage(userText))
-        : localFallback || buildCopilotFailureMessage(userText)
+        ? pickCanonicalReply(data, buildCopilotFailureMessage(userText))
+        : buildCopilotFailureMessage(userText)
       // H5.1C/H5.1B: extract tool cards from H5 tool execution response
       const rawToolExec = (data?.operator as Record<string, unknown> | undefined)?.toolExecution
       const toolsArr = rawToolExec && typeof rawToolExec === 'object' ? (rawToolExec as Record<string, unknown>).tools : undefined

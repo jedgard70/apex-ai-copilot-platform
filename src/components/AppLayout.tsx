@@ -232,7 +232,7 @@ export default function AppLayout({
           {/* Profile avatar — real user photo */}
           <div className="relative">
             <div className={`rounded-full bg-surface-container-highest border border-outline-variant/30 flex items-center justify-center overflow-hidden cursor-pointer hover:border-primary/50 transition-colors ${isMobile ? 'w-7 h-7' : 'w-8 h-8'}`}
-              onClick={() => setProfileMenuOpen(prev => !prev)} title={normalizedRole === 'owner_admin' ? (avatarUrl ? 'Perfil' : 'Owner Console') : 'Perfil / Configurações'}>
+              onClick={() => { onProfileClick?.(); setProfileMenuOpen(prev => !prev) }} title={normalizedRole === 'owner_admin' ? (avatarUrl ? 'Perfil' : 'Owner Console') : 'Perfil / Configurações'}>
               {avatarUrl ? (
                 <img className="w-full h-full object-cover" src={avatarUrl} alt="avatar" />
               ) : (
