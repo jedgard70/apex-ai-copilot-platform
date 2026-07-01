@@ -89,6 +89,7 @@ import { StockMarketPanel } from './components/StockMarketPanel'
 import { TripPlannerPanel } from './components/TripPlannerPanel'
 import { NRCompliancePanel } from './components/NRCompliancePanel'
 import { AccountingPanel } from './components/AccountingPanel'
+import { RuntimeStatusIndicator } from './components/RuntimeStatusIndicator'
 
 import { classifyFile, formatSize, IntakeFile, isVisionReady, readFileAsDataUrl, readImageDimensions } from './lib/fileIntake'
 import { extractPdfText } from './lib/pdfExtractor'
@@ -284,6 +285,10 @@ type ModelOption = {
 
 type ManualModelProvider = 'all' | 'gemini' | 'gemini-interactions' | 'fal' | 'elevenlabs'
 
+const APEX_OWN_MODELS = [
+  { id: 'apex-ai', name: 'Apex AI (Modelo Principal Ollama/Local)' }
+]
+
 const DIRECT_GEMINI_MODELS = [
   // Flash (gratuito, 60 RPM) — padrão
   { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
@@ -375,6 +380,12 @@ const ELEVENLABS_MODELS = [
 
 function buildStaticModelCatalog(): ModelOption[] {
   return [
+    ...APEX_OWN_MODELS.map(model => ({
+      id: composeModelValue('apex-local', model.id),
+      name: model.name,
+      provider: 'apex-local',
+      modelId: model.id,
+    })),
     ...INTERACTION_MODELS.map(model => ({
       id: composeModelValue('gemini-interactions', model.id),
       name: model.name,
@@ -1661,7 +1672,7 @@ function App() {
   const [showPromptLibrary, setShowPromptLibrary] = useState(false)
   const [activePromptLibraryModule, setActivePromptLibraryModule] = useState<string | undefined>(undefined)
   const [selectedModel, setSelectedModel] = useState<string>(() => {
-    return localStorage.getItem('apex_selected_model') || composeModelValue('gemini', 'gemini-3.1-flash-lite')
+    return localStorage.getItem('apex_selected_model') || composeModelValue('apex-local', 'apex-ai')
   })
   const [availableModels, setAvailableModels] = useState<ModelOption[]>([])
   const [modelProvider, setModelProvider] = useState<string>('')
@@ -5637,6 +5648,7 @@ function App() {
 
 createRoot(document.getElementById('root')!).render(
   <>
+    <RuntimeStatusIndicator />
     <App />
     <Analytics />
     <SpeedInsights />

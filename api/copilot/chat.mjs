@@ -180,6 +180,12 @@ function splitModelValue(value) {
 
 function buildStaticModelCatalog() {
   return [
+    ...APEX_LOCAL_MODELS.map(model => ({
+      id: composeModelValue('apex-local', model.id),
+      modelId: model.id,
+      provider: 'apex-local',
+      name: model.name,
+    })),
     ...(_interactionsModels || []).map(model => ({
       id: composeModelValue('gemini-interactions', model.id),
       modelId: model.id,
