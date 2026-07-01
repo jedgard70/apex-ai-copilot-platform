@@ -689,7 +689,8 @@ function isBudgetIntent(text: string) {
   const lower = text.toLowerCase()
   const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|gerar|generate|fazer|make|calcular|calculate|estimar|estimate|montar|quero|preciso|faça|faca|prepare)\b/i.test(lower)
   const hasKeyword = /\b(or[cç]amento|orcamento|quantitativo|estimativa|materiais|proposta|quanto custa|custo de obra|memorial de compra|budget|estimate|quantity|takeoff|materials|proposal|construction cost)\b/i.test(lower)
-  return hasVerb && hasKeyword
+  const isShortKeywordOnly = /^\s*(or[cç]amentos?|orcamentos?|budget|estimate|quantitativo|estimativa)\s*$/i.test(lower)
+  return hasKeyword && (hasVerb || isShortKeywordOnly)
 }
 
 function isProjectPackageIntent(text: string) {
@@ -3195,9 +3196,7 @@ function App() {
           return next
         })
       }
-      const reply = response.ok
-        ? pickCanonicalReply(data, buildCopilotFailureMessage(userText))
-        : buildCopilotFailureMessage(userText)
+      const reply = pickCanonicalReply(data, buildCopilotFailureMessage(userText))
       // H5.1C/H5.1B: extract tool cards from H5 tool execution response
       const rawToolExec = (data?.operator as Record<string, unknown> | undefined)?.toolExecution
       const toolsArr = rawToolExec && typeof rawToolExec === 'object' ? (rawToolExec as Record<string, unknown>).tools : undefined

@@ -16,7 +16,6 @@ import { fileURLToPath } from 'node:url'
 import { spawn } from 'node:child_process'
 import crypto from 'node:crypto'
 import { createClient } from '@supabase/supabase-js'
-import { generateText } from 'ai'
 import { captureServerException, flushObservability, isServerObservabilityEnabled } from './server/lib/observability.mjs'
 import { generateEmbedding } from './server/agent/embeddings.mjs'
 import {
@@ -93,6 +92,10 @@ const FAL_CHAT_MODELS = [
   { id: 'fal-ai/phi-3-mini', name: 'Phi-3 Mini (FAL)' },
 ]
 
+const APEX_LOCAL_MODELS = [
+  { id: 'apex-ai', name: 'Apex AI (modelo proprio, local/Ollama)' },
+]
+
 function composeModelValue(provider, modelId) {
   return `${provider}|${modelId}`
 }
@@ -123,6 +126,13 @@ function sanitizeAssistantReply(value) {
 
 function buildStaticModelCatalog() {
   return [
+    ...APEX_LOCAL_MODELS.map(model => ({
+      ...model,
+      provider: 'apex-local',
+      id: composeModelValue('apex-local', model.id),
+      modelId: model.id,
+      name: model.name,
+    })),
     ...INTERACTION_MODELS.map(model => ({
       ...model,
       provider: 'gemini-interactions',
@@ -2240,7 +2250,7 @@ async function handleModelsList(req, res) {
       addModel(model)
     }
 
-    const providerOrder = ['gemini', 'gemini-interactions', 'fal', 'elevenlabs']
+    const providerOrder = ['apex-local', 'gemini', 'gemini-interactions', 'fal', 'elevenlabs']
     models.sort((left, right) => {
       const leftIdx = providerOrder.indexOf(left.provider)
       const rightIdx = providerOrder.indexOf(right.provider)
@@ -2349,15 +2359,67 @@ async function handleChat(req, res) {
     let apiKey = process.env.GEMINI_API_KEY
     let apiBase = process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta'
 
-    const selectedModel = splitModelValue(body.model || process.env.GEMINI_MODEL || 'gemini-3.5-flash')
-    const model = normalizeLegacyChatModel(selectedModel.modelId || 'gemini-3.5-flash')
-    const modelProvider = selectedModel.provider
+    const envDefaultModel = String(process.env.GEMINI_MODEL || '').trim()
+    const safeDefaultModel = envDefaultModel.toLowerCase().startsWith('apex-local') ? envDefaultModel : 'apex-local|apex-ai'
+    const selectedModelRaw = body.model || body.selectedModel || safeDefaultModel
+    const selectedModel = splitModelValue(selectedModelRaw)
+    let modelProvider = selectedModel.provider
+    let resolvedModelId = selectedModel.modelId
+
+    if (!modelProvider && String(selectedModel.raw || '').trim().toLowerCase() === 'apex-local') {
+      modelProvider = 'apex-local'
+      resolvedModelId = 'apex-ai'
+    }
+
+    const model = normalizeLegacyChatModel(resolvedModelId || 'apex-ai')
+    const isApexLocal = modelProvider === 'apex-local'
     const isGeminiProvider = modelProvider === 'gemini'
     const isInteractionsProvider = modelProvider === 'gemini-interactions'
     const isFalProvider = modelProvider === 'fal'
     const isElevenLabs = modelProvider === 'elevenlabs'
     const isFirebase = modelProvider === 'firebase'
     const isDirectGeminiModel = ['gemini-3.5-flash', 'gemini-3.1-pro-preview', 'gemini-3.1-flash-lite', 'gemini-3.1-flash-image', 'gemini-3.1-flash-tts-preview', 'gemma-4-31b-it', 'gemma-4-26b-a4b-it'].includes(model)
+
+    if (isApexLocal) {
+      const ollamaBase = process.env.APEX_LOCAL_URL || 'http://localhost:11434'
+      const systemText = 'Voce e a Apex AI, plataforma profissional de arquitetura, construcao, BIM, orcamentos, marketing e gestao. Responda em portugues, de forma tecnica e direta, sem inventar dados ou integracoes que nao existem.'
+      const ollamaMessages = [
+        { role: 'system', content: systemText },
+        ...(Array.isArray(body.messages) ? body.messages.slice(-10) : [])
+          .filter(m => m?.role === 'user' || m?.role === 'assistant')
+          .map(m => ({ role: m.role, content: String(m.text || m.content || '').slice(0, 4000) })),
+        { role: 'user', content: userText },
+      ]
+
+      try {
+        const ollamaRes = await fetch(`${ollamaBase.replace(/\/$/, '')}/api/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: model || 'apex-ai', messages: ollamaMessages, stream: false }),
+          signal: AbortSignal.timeout(30000),
+        })
+        const ollamaData = await ollamaRes.json().catch(() => ({}))
+        const reply = String(ollamaData?.message?.content || '').trim()
+
+        if (ollamaRes.ok && reply) {
+          return chatJson(res, 200, {
+            finalReply: reply,
+            reply,
+            model: model || 'apex-ai',
+            mode: 'apex-local-ollama',
+            provider: 'apex-local',
+          })
+        }
+      } catch (err) {
+        console.warn('[apex-local] ollama unavailable:', scrubProviderError(err?.message || err))
+      }
+
+      return chatJson(res, 200, {
+        finalReply: `O modelo Apex local nao respondeu. Verifique se o Ollama esta rodando (${ollamaBase}) com o modelo "apex-ai" criado.`,
+        mode: 'apex-local-unavailable',
+        provider: 'apex-local',
+      })
+    }
 
     if (isInteractionsProvider) {
       const interactionsResult = await generateWithInteractions({
@@ -5201,6 +5263,25 @@ async function handleDashboardStatus(req, res) {
   }
 }
 
+async function handleRuntimeStatus(_req, res) {
+  const runtimeUrl = String(process.env.LOCAL_WORKER_URL || '').trim() || 'http://localhost:1337/health'
+  try {
+    const response = await fetch(runtimeUrl, {
+      method: 'GET',
+      signal: AbortSignal.timeout(1500),
+    })
+    if (response.ok) {
+      return json(res, 200, { status: 'running' })
+    }
+    return json(res, 503, {
+      status: 'down',
+      error: `Runtime returned status ${response.status}`,
+    })
+  } catch (error) {
+    return json(res, 503, { status: 'down', error: error.message || String(error) })
+  }
+}
+
 async function handleMetricsPlan(req, res) {
   try {
     const body = await readJson(req)
@@ -6553,6 +6634,10 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.url === '/api/copilot/auth-plan' && req.method === 'POST') {
       handleAuthPlan(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/runtime-status' && req.method === 'GET') {
+      handleRuntimeStatus(req, res)
       return
     }
     if (req.url === '/api/copilot/status' && req.method === 'GET') {

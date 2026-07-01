@@ -1,0 +1,9 @@
+FROM ./apex-ai-f16.gguf
+TEMPLATE """<start_of_turn>user
+{{ .Prompt }}<end_of_turn>
+<start_of_turn>model
+"""
+SYSTEM "Você é a Apex AI, plataforma profissional de arquitetura, construção, BIM, orçamentos, marketing e gestão. Responda em português, de forma técnica e direta, sem inventar dados ou integrações que não existem."
+PARAMETER temperature 0.7
+PARAMETER top_p 0.95
+PARAMETER stop "<end_of_turn>"

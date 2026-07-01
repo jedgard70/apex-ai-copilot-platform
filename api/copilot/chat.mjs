@@ -2081,10 +2081,17 @@ export default async function handler(req, res) {
 
     // ─── GEMINI NOW USES FULL TOOL-CAPABLE PIPELINE (same as all providers) ───
     // Gemini gets the same full Apex system prompt + tools.
-    const selectedModelRaw = body.model || process.env.GEMINI_MODEL || 'gemini|gemini-2.5-flash'
-    const selectedModel = splitModelValue ? splitModelValue(selectedModelRaw) : { provider: null, modelId: selectedModelRaw }
-    const modelProvider = selectedModel.provider || ''
-    const model = selectedModel.modelId || selectedModelRaw
+    const envDefaultModel = String(process.env.GEMINI_MODEL || '').trim()
+    const safeDefaultModel = envDefaultModel.toLowerCase().startsWith('apex-local') ? envDefaultModel : 'apex-local|apex-ai'
+    const selectedModelRaw = body.model || body.selectedModel || safeDefaultModel
+    const selectedModel = splitModelValue ? splitModelValue(selectedModelRaw) : { provider: null, modelId: selectedModelRaw, raw: selectedModelRaw }
+    let modelProvider = selectedModel.provider || ''
+    let model = selectedModel.modelId || selectedModelRaw
+
+    if (!modelProvider && String(selectedModel.raw || '').trim().toLowerCase() === 'apex-local') {
+      modelProvider = 'apex-local'
+      model = 'apex-ai'
+    }
 
     const directImageType = classifyImageGenRequest(userMessage)
     if (directImageType) {

@@ -113,7 +113,8 @@
       "electron-main.cjs",
       "package.json",
       ".env",
-      ".env.local"
+      ".env.local",
+      "runtime/**/*"
     ],
     "win": {
       "target": "nsis"
