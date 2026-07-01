@@ -141,6 +141,13 @@ const ELEVENLABS_MODELS = [
   { id: 'eleven_english_sts_v2', name: 'Eleven English STS v2' },
 ]
 
+// Apex local — modelo Gemma treinado, exportado em GGUF e servido via Ollama.
+// Roda 100% local (desktop .exe, site, apps) sem depender de provedor externo.
+// Endpoint configurável por APEX_LOCAL_URL (padrão http://localhost:11434).
+const APEX_LOCAL_MODELS = [
+  { id: 'apex-ai', name: 'Apex AI (modelo próprio, local/Ollama)' },
+]
+
 const MODEL_CATALOG_CACHE_TTL_MS = 5 * 60 * 1000
 let modelCatalogCache = {
   expiresAt: 0,
@@ -197,6 +204,12 @@ function buildStaticModelCatalog() {
       provider: 'elevenlabs',
       name: model.name,
     })),
+    ...APEX_LOCAL_MODELS.map(model => ({
+      id: composeModelValue('apex-local', model.id),
+      modelId: model.id,
+      provider: 'apex-local',
+      name: model.name,
+    })),
   ]
 }
 
@@ -248,7 +261,7 @@ async function handleModelsList(res) {
       addModel(model)
     }
 
-    const providerOrder = ['gemini', 'gemini-interactions', 'fal', 'elevenlabs']
+    const providerOrder = ['apex-local', 'gemini', 'gemini-interactions', 'fal', 'elevenlabs']
     models.sort((left, right) => {
       const leftIdx = providerOrder.indexOf(left.provider)
       const rightIdx = providerOrder.indexOf(right.provider)
@@ -1731,7 +1744,7 @@ async function callGemmaApexVertex(messages, overrideConfig) {
   const projectId = process.env.VERTEX_AI_PROJECT_ID || 'apex-ai-copilot-platform'
   const location = process.env.VERTEX_AI_LOCATION || 'us-central1'
   const endpointId = process.env.VERTEX_GEMMA_ENDPOINT_ID
-  
+
   if (!endpointId) {
     return {
       provider: 'gemma-apex-no-endpoint',
@@ -1740,10 +1753,10 @@ async function callGemmaApexVertex(messages, overrideConfig) {
       usedFallback: true,
     }
   }
-  
+
   const { systemText, steps } = convertToInteractionInput(messages)
   const url = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/endpoints/${endpointId}:predict`
-  
+
   try {
     const body = {
       instances: [{
@@ -1755,11 +1768,11 @@ async function callGemmaApexVertex(messages, overrideConfig) {
         topP: 0.9,
       },
     }
-    
+
     if (systemText) {
       body.instances[0].systemInstruction = systemText
     }
-    
+
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -1769,13 +1782,13 @@ async function callGemmaApexVertex(messages, overrideConfig) {
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(30000),
     })
-    
+
     const data = await response.json().catch(() => ({}))
     const duration = Date.now() - startTime
     const success = response.ok && !data.error
-    
+
     const text = data?.predictions?.[0]?.content || data?.predictions?.[0]?.text || data?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || ''
-    
+
     recordCallSafe({
       provider: 'vertex-gemma-apex',
       model: 'gemma-4-31b-it-apex',
@@ -1783,7 +1796,7 @@ async function callGemmaApexVertex(messages, overrideConfig) {
       success,
       errorMsg: success ? null : (data?.error?.message || `HTTP ${response.status}`),
     })
-    
+
     return {
       provider: 'vertex-gemma-apex',
       response: { ok: success, status: response.status },
@@ -2105,6 +2118,58 @@ export default async function handler(req, res) {
     const isFalProvider = modelProvider === 'fal'
     const isElevenLabs = modelProvider === 'elevenlabs'
     const isFirebase = modelProvider === 'firebase'
+    const isApexLocal = modelProvider === 'apex-local'
+
+    // ─── Apex local (Gemma treinado, servido via Ollama) — 100% local, sem provedor externo ───
+    if (isApexLocal) {
+      const t0 = Date.now()
+      const ollamaBase = process.env.APEX_LOCAL_URL || 'http://localhost:11434'
+      const systemText = 'Você é a Apex AI, plataforma profissional de arquitetura, construção, BIM, orçamentos, marketing e gestão. Responda em português, de forma técnica e direta, sem inventar dados ou integrações que não existem.'
+      const ollamaMessages = [
+        { role: 'system', content: systemText },
+        ...(Array.isArray(body.messages) ? body.messages.slice(-10) : [])
+          .filter(m => m?.role === 'user' || m?.role === 'assistant')
+          .map(m => ({ role: m.role, content: String(m.text || m.content || '').slice(0, 4000) })),
+        { role: 'user', content: userMessage },
+      ]
+      try {
+        const ollamaRes = await fetch(`${ollamaBase.replace(/\/$/, '')}/api/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: model || 'apex-ai', messages: ollamaMessages, stream: false }),
+          signal: AbortSignal.timeout(30000),
+        })
+        const ollamaData = await ollamaRes.json().catch(() => ({}))
+        const reply = ollamaData?.message?.content || ''
+        recordCallSafe({ provider: 'apex-local', model, latencyMs: Date.now() - t0, success: ollamaRes.ok && !!reply, errorMsg: ollamaRes.ok ? null : 'ollama unavailable' })
+        if (ollamaRes.ok && reply) {
+          return sendJson(res, 200, {
+            finalReply: reply,
+            reply,
+            model: model || 'apex-ai',
+            mode: 'apex-local-ollama',
+            provider: 'apex-local',
+            confirmation: null,
+            productionStatus,
+          })
+        }
+      } catch (err) {
+        recordCallSafe({ provider: 'apex-local', model, latencyMs: Date.now() - t0, success: false, errorMsg: err.message })
+      }
+      // Ollama indisponível — resposta honesta
+      const pt = prefersPortugueseText(userMessage, locale)
+      const offlineMsg = pt
+        ? `O modelo Apex local não respondeu. Verifique se o Ollama está rodando (${ollamaBase}) com o modelo "apex-ai" criado. No terminal: "ollama create apex-ai -f Modelfile" e "ollama serve".`
+        : `The local Apex model did not respond. Make sure Ollama is running (${ollamaBase}) with the "apex-ai" model created: "ollama create apex-ai -f Modelfile" then "ollama serve".`
+      return sendJson(res, 200, {
+        finalReply: offlineMsg,
+        reply: offlineMsg,
+        mode: 'apex-local-unavailable',
+        provider: 'apex-local',
+        productionStatus,
+      })
+    }
+
 
     if (isInteractionsProvider) {
       const t0 = Date.now()
@@ -2385,7 +2450,7 @@ STYLE & FORMATTING:
 
 
 
-    
+
     // ─── Roteamento Gemma Apex (Vertex AI) ───
     if (model === 'gemma-4-31b-it-apex' && process.env.VERTEX_GEMMA_ENDPOINT_ID) {
       const gemmaResult = await callGemmaApexVertex(liveAgentMessages, { apiBase, apiKey: resolvedApiKey })
@@ -2405,7 +2470,7 @@ STYLE & FORMATTING:
         // Fallback: usa Gemma base se Vertex falhar
         recordCallSafe({ provider: 'gemma-apex-fallback', model: 'gemma-4-31b-it', success: false, errorMsg: 'vertex endpoint unavailable' })
       }
-    }const chatResult = await callGeminiNative(requestPayload, { apiBase, apiKey: resolvedApiKey })
+    } const chatResult = await callGeminiNative(requestPayload, { apiBase, apiKey: resolvedApiKey })
 
     const response = chatResult.response
     const data = chatResult.data
