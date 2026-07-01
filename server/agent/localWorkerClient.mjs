@@ -117,7 +117,7 @@ function commandForAction(action, params = {}) {
     case 'project.validate_h44': return 'npm run validate:cp15x-h44'
     case 'project.validate_h5': return 'npm run validate:cp15x-h5'
     case 'project.validate_h6': return 'node --check server.mjs'
-    case 'system.diag_full': return 'powershell -ExecutionPolicy Bypass -Command "Write-Host === SISTEMA ===; $os = Get-CimInstance Win32_OperatingSystem; $uptime = (Get-Date) - $os.LastBootUpTime; Write-Host OS: $($os.Caption); Write-Host Uptime: $($uptime.Days)d $($uptime.Hours)h; Get-CimInstance Win32_Processor | Select-Object -First 1 | %% { Write-Host CPU: $($_.Name) }; $totalGB = [math]::Round($os.TotalVisibleMemorySize/1MB,1); $freeGB = [math]::Round($os.FreePhysicalMemory/1MB,1); Write-Host RAM: $totalGB GB total, $([math]::Round($totalGB-$freeGB,1)) GB em uso"' 
+    case 'system.diag_full': return 'powershell -ExecutionPolicy Bypass -Command "Write-Host === SISTEMA ===; $os = Get-CimInstance Win32_OperatingSystem; $uptime = (Get-Date) - $os.LastBootUpTime; Write-Host OS: $($os.Caption); Write-Host Uptime: $($uptime.Days)d $($uptime.Hours)h; Get-CimInstance Win32_Processor | Select-Object -First 1 | %% { Write-Host CPU: $($_.Name) }; $totalGB = [math]::Round($os.TotalVisibleMemorySize/1MB,1); $freeGB = [math]::Round($os.FreePhysicalMemory/1MB,1); Write-Host RAM: $totalGB GB total, $([math]::Round($totalGB-$freeGB,1)) GB em uso"'
     case 'system.diag_cpu_ram': return 'powershell -ExecutionPolicy Bypass -Command "$cpu = Get-CimInstance Win32_Processor | Select-Object -First 1; $cpuLoad = (Get-CimInstance Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average; Write-Host CPU: $($cpu.Name) - $($cpu.NumberOfCores) nucleos - $cpuLoad% uso; $os = Get-CimInstance Win32_OperatingSystem; $totalGB = [math]::Round($os.TotalVisibleMemorySize/1MB,1); $freeGB = [math]::Round($os.FreePhysicalMemory/1MB,1); Write-Host RAM: $totalGB GB total, $([math]::Round($totalGB-$freeGB,1)) GB em uso ($([math]::Round(($totalGB-$freeGB)/$totalGB*100,1))%); Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 10 | %% { $mb=[math]::Round($_.WorkingSet64/1MB,1); Write-Host ($_.ProcessName + \": \" + $mb + \" MB\") }"'
     case 'system.diag_disk': return 'powershell -ExecutionPolicy Bypass -Command "Get-CimInstance Win32_LogicalDisk -Filter DriveType=3 | %% { $t=[math]::Round($_.Size/1GB,1); $f=[math]::Round($_.FreeSpace/1GB,1); Write-Host ($_.DeviceID + \" \" + $t + \" GB total, \" + $([math]::Round($t-$f,1)) + \" GB usados, \" + $f + \" GB livres\") }"'
     case 'system.diag_services': return 'powershell -ExecutionPolicy Bypass -Command "@(\"WSearch\",\"wuauserv\",\"Spooler\",\"MpsSvc\",\"Dnscache\",\"DHCP\",\"Winmgmt\") | % { $s = Get-Service $_ -ErrorAction SilentlyContinue; if ($s) { Write-Host ($_.PadRight(20) + $s.Status) } }"'
@@ -225,6 +225,7 @@ async function fetchWorker(path, method, body = null) {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
+        'bypass-tunnel-reminder': '1',
       },
       signal: controller.signal,
     }
@@ -245,11 +246,11 @@ async function fetchWorker(path, method, body = null) {
   }
 }
 
-export function isReadAction(action)      { return READ_ACTIONS.has(action) }
-export function isValidateAction(action)  { return VALIDATE_ACTIONS.has(action) }
-export function isWriteAction(action)     { return WRITE_ACTIONS.has(action) }
+export function isReadAction(action) { return READ_ACTIONS.has(action) }
+export function isValidateAction(action) { return VALIDATE_ACTIONS.has(action) }
+export function isWriteAction(action) { return WRITE_ACTIONS.has(action) }
 export function isDangerousAction(action) { return DANGEROUS_ACTIONS.has(action) }
-export function isAllowedAction(action)   { return ALL_ALLOWED_ACTIONS.has(action) }
+export function isAllowedAction(action) { return ALL_ALLOWED_ACTIONS.has(action) }
 
 // Legacy aliases
 export function isLightAction(action) { return READ_ACTIONS.has(action) }

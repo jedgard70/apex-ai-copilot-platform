@@ -29,38 +29,6 @@ async function ensureInteractionsLoaded() {
   })()
   return _interactionsPromise
 }
-async function getInteractionsProvider() {
-  await ensureInteractionsLoaded()
-  const mod = await import('../../server/providers/gemini-interactions.mjs')
-  return mod.generateWithInteractions
-}
-import { buildCodeToolDefinitions, executeCodeToolCall, CODE_TOOL_NAMES } from '../../server/agent/codeTools.mjs'
-import { runLocalWorkerAction } from '../../server/agent/localWorkerClient.mjs'
-import { classifyImageGenRequest, buildImagePrompt, generateImage, buildImageResultReply } from '../../server/agent/imageGenerationConnector.mjs'
-import { classifyVideoGenRequest, generateVideo, buildVideoResultReply } from '../../server/agent/videoGenerationConnector.mjs'
-import { sendAuthkeySms, sendAuthkeyOtp, buildAuthkeyResultReply } from '../../server/agent/authkeyConnector.mjs'
-import { keyRestrictionMiddleware, validateOrigin } from '../../server/middleware/keyRestriction.mjs'
-import { recordAuditEvent } from '../../server/service/securityAudit.mjs'
-
-// Dynamic import — safe fallback if server/ not bundled in Vercel serverless
-let _recordCall = null
-async function _getRecordCall() {
-  if (_recordCall) return _recordCall
-  try {
-    const mod = await import('../../server/service/providerAnalytics.mjs')
-    _recordCall = mod.recordCall
-    return _recordCall
-  } catch {
-    _recordCall = () => { } // silent noop
-    return _recordCall
-  }
-}
-function recordCallSafe(...args) {
-  Promise.resolve().then(async () => {
-    try { const fn = await _getRecordCall(); fn(...args) } catch { }
-  }).catch(() => { })
-}
-
 if (process.env.Local_Worker_URL && !process.env.LOCAL_WORKER_URL) {
   process.env.LOCAL_WORKER_URL = process.env.Local_Worker_URL
 }
@@ -145,7 +113,7 @@ const ELEVENLABS_MODELS = [
 // Roda 100% local (desktop .exe, site, apps) sem depender de provedor externo.
 // Endpoint configurável por APEX_LOCAL_URL (padrão http://localhost:11434).
 const APEX_LOCAL_MODELS = [
-  { id: 'apex-ai', name: 'Apex AI (modelo próprio, local/Ollama)' },
+  { id: 'apex-ai', name: 'Apex AI 2.0 (Gemini genuino)' },
 ]
 
 const MODEL_CATALOG_CACHE_TTL_MS = 5 * 60 * 1000
@@ -208,12 +176,6 @@ function buildStaticModelCatalog() {
       id: composeModelValue('elevenlabs', model.id),
       modelId: model.id,
       provider: 'elevenlabs',
-      name: model.name,
-    })),
-    ...APEX_LOCAL_MODELS.map(model => ({
-      id: composeModelValue('apex-local', model.id),
-      modelId: model.id,
-      provider: 'apex-local',
       name: model.name,
     })),
   ]
@@ -347,6 +309,23 @@ function isGreetingText(text = '') {
   const shortResponseRegex = /^(boa|tamo junto|valeu|obrigad[oa]|ok|certo|entendi|sim|n[aã]o|pode|t[aá]|ta|blz|bl[ée]z|teste|test)$/i
   const cleaned = trimmed.replace(/[\s!?,.]+$/, '')
   return shortResponseRegex.test(cleaned)
+}
+
+function isQuantitativoRequestText(text = '') {
+  const value = String(text || '').toLowerCase()
+  return /\b(quantitativo|orcamento|orçamento|lista de compras|piso|degrau|rejunte|clipe|cunha|revestimento|porcelanato|banheiro|lavanderia|balc[aã]o|churrasqueira|forno a lenha|fog[aã]o a lenha|m2|m²|metro quadrado|metro quadrados|area|área)\b/.test(value)
+}
+
+function buildQuantitativoInstructionText() {
+  return [
+    'Quantitativo rule: answer in a natural, live and human tone. Never force a rigid fixed template.',
+    'When user asks orçamento/quantitativo, deliver practical numbers with transparent assumptions and direct calculation logic.',
+    'You may organize content in short sections if useful, but avoid mechanical mandatory numbering.',
+    'Cover these points naturally in the flow: premissas, cálculo por ambiente/elemento, tabelas numéricas quando fizer sentido, rejunte em kg, clipes/cunhas e lista final de compras consolidada.',
+    'Defaults quando faltar dado: perda 10%, piso/degrau junta 3mm espessura 10mm, parede junta 2mm espessura 8mm, clipe 4 un/m², cunha 1:1.',
+    'Se houver porta/vão, mostrar explicitamente o desconto antes/depois.',
+    'Do not give generic text; provide useful numbers and clear purchase guidance.',
+  ].join('\n')
 }
 
 function shouldForceLiveAgentToolUse(text = '') {
@@ -601,6 +580,9 @@ function buildIntentInstruction(userText, file, conversation, preferredLanguage)
       '3. Make it ready to copy.',
       '4. Do not offer a blank template.',
     )
+  }
+  if (isQuantitativoRequestText(userText)) {
+    instructions.push(buildQuantitativoInstructionText())
   }
   if (intent.asksRenderPrompt && file) {
     instructions.push(
@@ -2088,6 +2070,14 @@ export default async function handler(req, res) {
     let modelProvider = selectedModel.provider || ''
     let model = selectedModel.modelId || selectedModelRaw
 
+    // Apex model lock: enabled by default to keep Apex AI (ApexAI2.0 behavior baseline) as the primary runtime model.
+    // Set APEX_MODEL_LOCK=false only when you intentionally need external model routing.
+    const apexModelLock = String(process.env.APEX_MODEL_LOCK || 'true').toLowerCase() !== 'false'
+    if (apexModelLock) {
+      modelProvider = 'apex-local'
+      model = 'apex-ai'
+    }
+
     if (!modelProvider && String(selectedModel.raw || '').trim().toLowerCase() === 'apex-local') {
       modelProvider = 'apex-local'
       model = 'apex-ai'
@@ -2133,34 +2123,55 @@ export default async function handler(req, res) {
     const isFirebase = modelProvider === 'firebase'
     const isApexLocal = modelProvider === 'apex-local'
 
-    // ─── Apex local (Gemma treinado, servido via Ollama) — 100% local, sem provedor externo ───
+    // ─── Apex local runtime (ApexAI2.0) — 100% local, sem provedor externo ───
     if (isApexLocal) {
       const t0 = Date.now()
-      const ollamaBase = process.env.APEX_LOCAL_URL || 'http://localhost:11434'
-      const systemText = 'Você é a Apex AI, plataforma profissional de arquitetura, construção, BIM, orçamentos, marketing e gestão. Responda em português, de forma técnica e direta, sem inventar dados ou integrações que não existem.'
-      const ollamaMessages = [
+      const runtimeBase = process.env.APEX_LOCAL_URL || 'http://localhost:11434'
+      const budgetInstruction = isQuantitativoRequestText(userMessage)
+        ? `\n${buildQuantitativoInstructionText()}`
+        : ''
+      const systemText = `Você é a Apex AI, plataforma profissional de arquitetura, construção, BIM, orçamentos, marketing e gestão. Responda em português, de forma técnica e direta, sem inventar dados ou integrações que não existem.${budgetInstruction}`
+      const runtimeMessages = [
         { role: 'system', content: systemText },
         ...(Array.isArray(body.messages) ? body.messages.slice(-10) : [])
           .filter(m => m?.role === 'user' || m?.role === 'assistant')
           .map(m => ({ role: m.role, content: String(m.text || m.content || '').slice(0, 4000) })),
         { role: 'user', content: userMessage },
       ]
+
       try {
-        const ollamaRes = await fetch(`${ollamaBase.replace(/\/$/, '')}/api/chat`, {
+        const base = runtimeBase.replace(/\/$/, '')
+        let reply = ''
+        let mode = 'apex-local-runtime'
+
+        const runtimeRes = await fetch(`${base}/api/chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model: model || 'apex-ai', messages: ollamaMessages, stream: false }),
+          body: JSON.stringify({ model: model || 'apex-ai', messages: runtimeMessages, stream: false }),
           signal: AbortSignal.timeout(30000),
         })
-        const ollamaData = await ollamaRes.json().catch(() => ({}))
-        const reply = ollamaData?.message?.content || ''
-        recordCallSafe({ provider: 'apex-local', model, latencyMs: Date.now() - t0, success: ollamaRes.ok && !!reply, errorMsg: ollamaRes.ok ? null : 'ollama unavailable' })
-        if (ollamaRes.ok && reply) {
+        const runtimeData = await runtimeRes.json().catch(() => ({}))
+        reply = String(runtimeData?.message?.content || '').trim()
+
+        if (!reply) {
+          const compatRes = await fetch(`${base}/v1/chat/completions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model: model || 'apex-ai', messages: runtimeMessages, temperature: 0.35 }),
+            signal: AbortSignal.timeout(30000),
+          })
+          const compatData = await compatRes.json().catch(() => ({}))
+          reply = String(compatData?.choices?.[0]?.message?.content || '').trim()
+          mode = 'apex-ai-2.0-gemini-native'
+        }
+
+        recordCallSafe({ provider: 'apex-local', model, latencyMs: Date.now() - t0, success: !!reply, errorMsg: reply ? null : 'apex runtime unavailable' })
+        if (reply) {
           return sendJson(res, 200, {
             finalReply: reply,
             reply,
             model: model || 'apex-ai',
-            mode: 'apex-local-ollama',
+            mode,
             provider: 'apex-local',
             confirmation: null,
             productionStatus,
@@ -2169,11 +2180,11 @@ export default async function handler(req, res) {
       } catch (err) {
         recordCallSafe({ provider: 'apex-local', model, latencyMs: Date.now() - t0, success: false, errorMsg: err.message })
       }
-      // Ollama indisponível — resposta honesta
+      // Apex Runtime indisponível — resposta honesta
       const pt = prefersPortugueseText(userMessage, locale)
       const offlineMsg = pt
-        ? `O modelo Apex local não respondeu. Verifique se o Ollama está rodando (${ollamaBase}) com o modelo "apex-ai" criado. No terminal: "ollama create apex-ai -f Modelfile" e "ollama serve".`
-        : `The local Apex model did not respond. Make sure Ollama is running (${ollamaBase}) with the "apex-ai" model created: "ollama create apex-ai -f Modelfile" then "ollama serve".`
+        ? `O runtime local da Apex não respondeu (${runtimeBase}). Verifique se o serviço Apex Runtime está ativo no app local e se o túnel configurado em LOCAL_WORKER_URL está online.`
+        : `The Apex local runtime did not respond (${runtimeBase}). Ensure Apex Runtime is active in the local app and the tunnel configured in LOCAL_WORKER_URL is online.`
       return sendJson(res, 200, {
         finalReply: offlineMsg,
         reply: offlineMsg,

@@ -7,6 +7,11 @@
   "opencodego.temperature": 1.7,
   "opencodego.top_p": 0,
   "opencodego.visionProxyThinking": true,
+  "terminal.integrated.env.windows": {
+    "GEMINI_MODEL": "apex-local|apex-ai",
+    "APEX_MODEL_LOCK": "true",
+    "APEX_LOCAL_URL": "http://localhost:11434"
+  },
   "workbench.editor.showTabIndex": true,
   "workbench.editor.sharedViewState": true,
   "workbench.editor.scrollToSwitchTabs": true,

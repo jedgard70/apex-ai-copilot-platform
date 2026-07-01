@@ -52,25 +52,25 @@ export function classifyToolExecutionRequest(message = '') {
 
   // H5.0C — bare keyword fallbacks: any isolated mention routes to H5 status check
   if (!tools.includes('local_worker.status') && !asksComputerCapability &&
-      /\b(computador|pc|notebook)\b/.test(text)) {
+    /\b(computador|pc|notebook)\b/.test(text)) {
     tools.push('local_worker.status')
   }
   const asksRevitHelp =
     /\b(o que|como|consegue|pode|ajudar|ajuda|duvida|sobre|bim help)\b.*\brevit\b|\brevit\b.*\b(ajudar|ajuda|duvida|sobre)\b/.test(text) ||
     /\brevit\b.*\b(travando|trava|lento|nao abre|nao funciona|erro|falha|crash|problema)\b|\b(travando|trava|lento|crash|problema).{0,40}\brevit\b/.test(text)
   if (!asksRevitHelp && !tools.includes('revit_mcp.status') && !tools.includes('revit_model.status') &&
-      /\brevit\b/.test(text)) {
+    /\brevit\b/.test(text)) {
     tools.push('revit_mcp.status')
   }
   if (!tools.includes('github.status') && /\bgithub\b/.test(text)) {
     tools.push('github.status')
   }
   if (!tools.includes('vercel.status') && !tools.includes('vercel.deploy') &&
-      /\bvercel\b/.test(text)) {
+    /\bvercel\b/.test(text)) {
     tools.push('vercel.status')
   }
   if (!tools.includes('supabase.status') && !tools.includes('supabase.migration') &&
-      /\bsupabase\b/.test(text)) {
+    /\bsupabase\b/.test(text)) {
     tools.push('supabase.status')
   }
   if (!tools.includes('supabase.migration') && /\b(migration|migracao)\b/.test(text)) {
@@ -107,13 +107,13 @@ function connectorSummaryFromStatus(status, toolId) {
       status: status.github.status,
       latestCommit: status.github.latestCommit
         ? {
-            shortSha: status.github.latestCommit.shortSha,
-            sha: status.github.latestCommit.sha,
-            message: status.github.latestCommit.message,
-            author: status.github.latestCommit.author,
-            date: status.github.latestCommit.date,
-            url: status.github.latestCommit.url || '',
-          }
+          shortSha: status.github.latestCommit.shortSha,
+          sha: status.github.latestCommit.sha,
+          message: status.github.latestCommit.message,
+          author: status.github.latestCommit.author,
+          date: status.github.latestCommit.date,
+          url: status.github.latestCommit.url || '',
+        }
         : null,
       openPRs: status.github.openPRs || [],
       latestWorkflowRun: status.github.latestWorkflowRun || null,
@@ -209,7 +209,10 @@ async function executeLocalWorkerHealth() {
     const timer = setTimeout(() => controller.abort(), 5000)
     const response = await fetch(`${workerUrl}/health`, {
       method: 'GET',
-      headers: { Authorization: `Bearer ${workerToken}` },
+      headers: {
+        Authorization: `Bearer ${workerToken}`,
+        'bypass-tunnel-reminder': '1',
+      },
       signal: controller.signal,
     }).finally(() => clearTimeout(timer))
 
@@ -397,7 +400,7 @@ export function routeH6ActionRequest({ userMessage = '' } = {}) {
   if (!actions.length) return null
 
   const needsConfirmation = []
-  const directActions    = actions
+  const directActions = actions
 
   if (directActions.length > 0) {
     return {

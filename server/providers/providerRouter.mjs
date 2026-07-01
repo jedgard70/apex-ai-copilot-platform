@@ -90,19 +90,6 @@ export async function getProviderChain(options = {}) {
   const { preferredModel, skipDynamicFetch } = options
   const chain = []
 
-  // Injeta o Apex Runtime local se estiver habilitado
-  if (process.env.APEX_RUNTIME_ENABLED === 'true') {
-    const localModels = ["gemma-2b-it-gguf", "phi-3-mini-gguf"];
-    chain.push({
-      name: "apex-runtime",
-      baseUrl: "http://localhost:1337/v1", // OpenAI-compatible API
-      apiKey: "local-no-key",
-      model: preferredModel && localModels.includes(preferredModel) ? preferredModel : localModels[0],
-      label: "Apex Runtime (Local)",
-      models: localModels,
-    });
-  }
-
   const geminiKey = (process.env.GEMINI_API_KEY || "").trim()
   const falKey = (process.env.FAL_KEY || process.env.FAL_API_KEY || "").trim()
 

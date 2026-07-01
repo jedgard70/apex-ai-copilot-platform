@@ -15,10 +15,10 @@ interface TrainStatus {
   options?: DatasetOption[]
 }
 
-const OLLAMA_COMMANDS = [
-  'ollama create apex-ai -f Modelfile',
-  'ollama run apex-ai "Quem é você?"',
-  'ollama serve   # expõe http://localhost:11434 para o site e apps',
+const APEX_RUNTIME_COMMANDS = [
+  'cd local-worker',
+  'npm start   # inicia o Apex Runtime local integrado',
+  'npx localtunnel --port 8789 --subdomain apex-copilot-jedgard   # publica para o site',
 ]
 
 const COLAB_URL =
@@ -51,7 +51,7 @@ export function ModelTrainingPage() {
   const testCount = status?.options?.find(o => /teste/i.test(o.name))?.examples ?? 0
 
   const copyCommands = () => {
-    navigator.clipboard?.writeText(OLLAMA_COMMANDS.join('\n')).then(() => {
+    navigator.clipboard?.writeText(APEX_RUNTIME_COMMANDS.join('\n')).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     })
@@ -80,14 +80,14 @@ export function ModelTrainingPage() {
     },
     {
       icon: 'computer',
-      title: '4. Rodar LOCAL via Ollama',
-      body: 'Baixe apex-ai.gguf + Modelfile, crie o modelo local. Serve o Apex Desktop (.exe), o site e os apps de celular — sem API paga por token.',
+      title: '4. Rodar Runtime Local Integrado da Apex',
+      body: 'Suba o Apex Runtime local integrado e, se necessario, publique via tunel para o site. O cliente final usa Apex AI sem depender de ferramenta externa separada.',
       done: false,
     },
     {
       icon: 'check_circle',
       title: '5. Aparece no seletor de modelos',
-      body: 'O modelo "Apex AI (modelo próprio, local/Ollama)" já está no seletor. Aponte APEX_LOCAL_URL para o Ollama (padrão http://localhost:11434).',
+      body: 'O modelo "Apex AI (Runtime Local Integrado)" já está no seletor. Aponte APEX_LOCAL_URL (ou LOCAL_WORKER_URL no backend) para o runtime ativo.',
       done: true,
     },
   ]
@@ -124,7 +124,7 @@ export function ModelTrainingPage() {
                 <p className="text-sm text-[#c6c6ce] leading-relaxed">
                   Fine-tuning do <strong className="text-[#e2e2e2]">Gemma 2 2B</strong> com o dataset da Apex,
                   exportado em <strong className="text-[#e2e2e2]">GGUF portável</strong>. Roda 100% local
-                  (desktop, site e apps) via Ollama —{' '}
+                  (desktop, site e apps) via Apex Runtime integrado —{' '}
                   <strong className="text-[#e2e2e2]">sem depender de nenhum provedor pago</strong>. O treino
                   real acontece no Google Colab (GPU grátis); este painel mostra o passo a passo real, sem
                   dados fictícios.
@@ -138,7 +138,7 @@ export function ModelTrainingPage() {
             {[
               { label: 'EXEMPLOS DE TREINO', value: loading ? '…' : String(trainCount), accent: true, sub: '' },
               { label: 'TESTE (SEPARADO)', value: loading ? '…' : String(testCount), accent: false, sub: '' },
-              { label: 'FORMATO DE EXPORTAÇÃO', value: 'GGUF', accent: false, sub: 'Ollama / llama.cpp' },
+              { label: 'FORMATO DE EXPORTAÇÃO', value: 'GGUF', accent: false, sub: 'Apex Runtime local / llama.cpp' },
             ].map((stat, i) => (
               <div
                 key={i}
@@ -177,10 +177,10 @@ export function ModelTrainingPage() {
             ))}
           </section>
 
-          {/* Comandos Ollama reais */}
+          {/* Comandos de runtime local Apex */}
           <section className="p-6 rounded-2xl" style={{ background: 'rgba(12,15,15,0.9)', border: '1px solid #45464d' }}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-[#bbc5eb]">Rodar local (depois de baixar apex-ai.gguf + Modelfile)</h3>
+              <h3 className="font-bold text-[#bbc5eb]">Rodar runtime local integrado (desktop/site/apps)</h3>
               <button
                 onClick={copyCommands}
                 className="text-xs bg-[#6C47FF]/15 border border-[#6C47FF]/30 text-[#6C47FF] px-3 py-1 rounded-full font-bold hover:bg-[#6C47FF]/25 transition-all"
@@ -188,7 +188,7 @@ export function ModelTrainingPage() {
                 {copied ? 'Copiado ✓' : 'Copiar comandos'}
               </button>
             </div>
-            <pre className="font-mono text-[12px] leading-relaxed text-[#c6c6ce] whitespace-pre-wrap">{OLLAMA_COMMANDS.join('\n')}</pre>
+            <pre className="font-mono text-[12px] leading-relaxed text-[#c6c6ce] whitespace-pre-wrap">{APEX_RUNTIME_COMMANDS.join('\n')}</pre>
           </section>
 
           {status?.notebook ? (

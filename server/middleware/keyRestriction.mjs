@@ -31,6 +31,9 @@ const DEFAULT_ORIGINS = new Set([
   'https://www.apexglobalai.com',
   'https://apexglobalai.com',
   'https://apex-ai-copilot-platform.vercel.app',
+  'https://*.vercel.app',
+  'https://busy-hands-attack.loca.lt',
+  'https://*.loca.lt',
   'http://localhost:3000',
   'http://localhost:3001',
   'http://localhost:4173',
@@ -45,8 +48,23 @@ const DEFAULT_ORIGINS = new Set([
   'http://127.0.0.1:5173',
 ])
 
+function normalizeOriginValue(value) {
+  return String(value || '').toLowerCase().replace(/\/+$/, '')
+}
+
+function originMatchesAllowed(origin, allowed) {
+  const cleanedOrigin = normalizeOriginValue(origin)
+  const cleanedAllowed = normalizeOriginValue(allowed)
+  if (!cleanedOrigin || !cleanedAllowed) return false
+  if (cleanedAllowed.includes('*')) {
+    const escaped = cleanedAllowed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\*/g, '.*')
+    return new RegExp(`^${escaped}$`).test(cleanedOrigin)
+  }
+  return cleanedOrigin === cleanedAllowed || cleanedOrigin.startsWith(cleanedAllowed + '/')
+}
+
 function getActiveOrigins() {
-  return ALLOWED_ORIGINS.size > 0 ? ALLOWED_ORIGINS : DEFAULT_ORIGINS
+  return new Set([...ALLOWED_ORIGINS, ...DEFAULT_ORIGINS])
 }
 
 function ipInCIDR(ip, cidr) {
@@ -94,10 +112,7 @@ export function keyRestrictionMiddleware(req, res, next) {
   const origin = (req.headers['origin'] || req.headers['referer'] || '').toLowerCase().replace(/\/+$/, '')
   if (origin) {
     const allowedOrigins = getActiveOrigins()
-    const isAllowed = [...allowedOrigins].some(allowed =>
-      origin === allowed.toLowerCase().replace(/\/+$/, '')
-      || origin.startsWith(allowed.toLowerCase().replace(/\/+$/, '') + '/')
-    )
+    const isAllowed = [...allowedOrigins].some(allowed => originMatchesAllowed(origin, allowed))
     if (!isAllowed) {
       return res.status(403).json({
         error: 'origin_denied',
@@ -115,12 +130,8 @@ export function keyRestrictionMiddleware(req, res, next) {
  */
 export function validateOrigin(origin) {
   if (!origin) return { allowed: true } // no origin = skip check (non-browser)
-  const cleaned = origin.toLowerCase().replace(/\/+$/, '')
   const allowedOrigins = getActiveOrigins()
-  const isAllowed = [...allowedOrigins].some(allowed =>
-    cleaned === allowed.toLowerCase().replace(/\/+$/, '')
-    || cleaned.startsWith(allowed.toLowerCase().replace(/\/+$/, '') + '/')
-  )
+  const isAllowed = [...allowedOrigins].some(allowed => originMatchesAllowed(origin, allowed))
   if (isAllowed) return { allowed: true }
   return { allowed: false, reason: `Origin "${origin}" is not in the allowed list.` }
 }

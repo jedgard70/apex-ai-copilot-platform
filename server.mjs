@@ -5,9 +5,6 @@
 // nas Environment Variables do Vercel sem autorização EXPLÍCITA e VERBAL
 // do Owner (jedgard70@gmail.com / Dr. Edgard).
 // VIOLAÇÕES: qualquer alteração não autorizada deve ser revertida imediatamente
-// e reportada ao Owner.
-// ═══════════════════════════════════════════════════════════════════════════════
-
 import './server/env.mjs'
 import http from 'node:http'
 import fs from 'node:fs'
@@ -93,7 +90,7 @@ const FAL_CHAT_MODELS = [
 ]
 
 const APEX_LOCAL_MODELS = [
-  { id: 'apex-ai', name: 'Apex AI (modelo proprio, local/Ollama)' },
+  { id: 'apex-ai', name: 'Apex AI 2.0 (Gemini genuino)' },
 ]
 
 function composeModelValue(provider, modelId) {
@@ -249,64 +246,9 @@ const copilotExecutionCommands = [
     source: 'allowlist',
   },
   {
-    id: 'git_diff_name_only',
-    label: 'Git changed names',
-    description: 'List changed file paths only.',
-    executable: 'git',
-    args: ['diff', '--name-only'],
-    risk: 'low',
-    requiresApproval: false,
-    timeoutMs: 15000,
-    source: 'allowlist',
-  },
-  {
-    id: 'build',
-    label: 'Build',
-    description: 'Run the local Vite production build.',
-    executable: process.platform === 'win32' ? 'npm.cmd' : 'npm',
-    args: ['run', 'build'],
-    risk: 'medium',
-    requiresApproval: false,
-    timeoutMs: 120000,
-    source: 'allowlist',
-  },
-  {
-    id: 'validate_supabase_sql',
-    label: 'Validate Supabase SQL',
-    description: 'Run the local read-only Supabase SQL validation script.',
-    executable: process.platform === 'win32' ? 'npm.cmd' : 'npm',
-    args: ['run', 'validate:supabase-sql'],
-    risk: 'medium',
-    requiresApproval: false,
-    timeoutMs: 60000,
-    source: 'allowlist',
-  },
-  {
-    id: 'validate_vercel_live',
-    label: 'Vercel: Check live deployments',
-    description: 'Queries the live Vercel API for deployment logs, URLs, and states.',
-    executable: 'node',
-    args: ['scripts/validate-vercel.mjs'],
-    risk: 'medium',
-    requiresApproval: false,
-    timeoutMs: 30000,
-    source: 'allowlist',
-  },
-  {
-    id: 'validate_supabase_live',
-    label: 'Supabase: Check live database',
-    description: 'Queries the live Supabase project database connection, schema info, and tables.',
-    executable: 'node',
-    args: ['scripts/validate-supabase-live.mjs'],
-    risk: 'medium',
-    requiresApproval: false,
-    timeoutMs: 30000,
-    source: 'allowlist',
-  },
-  {
     id: 'validate_owner_workspace_live',
-    label: 'Supabase: Check owner workspace',
-    description: 'Verifies the configured owner email has auth user, profile, active tenant and owner_admin membership.',
+    label: 'Validate owner workspace live',
+    description: 'Validate the owner workspace live runtime flow.',
     executable: 'node',
     args: ['scripts/validate-owner-workspace-live.mjs'],
     risk: 'medium',
@@ -1404,6 +1346,9 @@ function buildIntentInstruction(userText, file, conversation, preferredLanguage)
       'Do not ask a question before this list.',
     )
   }
+  if (isQuantitativoRequestText(userText)) {
+    instructions.push(buildQuantitativoInstructionText())
+  }
   return instructions.join('\n')
 }
 
@@ -1575,6 +1520,23 @@ function isGreetingText(text = '') {
   const shortResponseRegex = /^(boa|tamo junto|valeu|obrigad[oa]|ok|certo|entendi|sim|n[aã]o|pode|t[aá]|ta|blz|bl[ée]z|teste|test)$/i
   const cleaned = trimmed.replace(/[\s!?,.]+$/, '')
   return shortResponseRegex.test(cleaned)
+}
+
+function isQuantitativoRequestText(text = '') {
+  const value = String(text || '').toLowerCase()
+  return /\b(quantitativo|orcamento|orçamento|lista de compras|piso|degrau|rejunte|clipe|cunha|revestimento|porcelanato|banheiro|lavanderia|balc[aã]o|churrasqueira|forno a lenha|fog[aã]o a lenha|m2|m²|metro quadrado|metro quadrados|area|área)\b/.test(value)
+}
+
+function buildQuantitativoInstructionText() {
+  return [
+    'Quantitativo rule: answer in a natural, live and human tone. Never force a rigid fixed template.',
+    'When user asks orçamento/quantitativo, deliver practical numbers with transparent assumptions and direct calculation logic.',
+    'You may organize content in short sections if useful, but avoid mechanical mandatory numbering.',
+    'Cover these points naturally in the flow: premissas, cálculo por ambiente/elemento, tabelas numéricas quando fizer sentido, rejunte em kg, clipes/cunhas e lista final de compras consolidada.',
+    'Defaults quando faltar dado: perda 10%, piso/degrau junta 3mm espessura 10mm, parede junta 2mm espessura 8mm, clipe 4 un/m², cunha 1:1.',
+    'Se houver porta/vão, mostrar explicitamente o desconto antes/depois.',
+    'Do not give generic text; provide useful numbers and clear purchase guidance.',
+  ].join('\n')
 }
 
 function isAIIdentityQuestionText(text = '') {
@@ -2366,6 +2328,14 @@ async function handleChat(req, res) {
     let modelProvider = selectedModel.provider
     let resolvedModelId = selectedModel.modelId
 
+    // Apex model lock: enabled by default to keep Apex AI (ApexAI2.0 behavior baseline) as the primary runtime model.
+    // Set APEX_MODEL_LOCK=false only when you intentionally need external model routing.
+    const apexModelLock = String(process.env.APEX_MODEL_LOCK || 'true').toLowerCase() !== 'false'
+    if (apexModelLock) {
+      modelProvider = 'apex-local'
+      resolvedModelId = 'apex-ai'
+    }
+
     if (!modelProvider && String(selectedModel.raw || '').trim().toLowerCase() === 'apex-local') {
       modelProvider = 'apex-local'
       resolvedModelId = 'apex-ai'
@@ -2381,9 +2351,12 @@ async function handleChat(req, res) {
     const isDirectGeminiModel = ['gemini-3.5-flash', 'gemini-3.1-pro-preview', 'gemini-3.1-flash-lite', 'gemini-3.1-flash-image', 'gemini-3.1-flash-tts-preview', 'gemma-4-31b-it', 'gemma-4-26b-a4b-it'].includes(model)
 
     if (isApexLocal) {
-      const ollamaBase = process.env.APEX_LOCAL_URL || 'http://localhost:11434'
-      const systemText = 'Voce e a Apex AI, plataforma profissional de arquitetura, construcao, BIM, orcamentos, marketing e gestao. Responda em portugues, de forma tecnica e direta, sem inventar dados ou integracoes que nao existem.'
-      const ollamaMessages = [
+      const runtimeBase = process.env.APEX_LOCAL_URL || 'http://localhost:11434'
+      const budgetInstruction = isQuantitativoRequestText(userText)
+        ? `\n${buildQuantitativoInstructionText()}`
+        : ''
+      const systemText = `Voce e a Apex AI, plataforma profissional de arquitetura, construcao, BIM, orcamentos, marketing e gestao. Responda em portugues, de forma tecnica e direta, sem inventar dados ou integracoes que nao existem.${budgetInstruction}`
+      const runtimeMessages = [
         { role: 'system', content: systemText },
         ...(Array.isArray(body.messages) ? body.messages.slice(-10) : [])
           .filter(m => m?.role === 'user' || m?.role === 'assistant')
@@ -2392,30 +2365,46 @@ async function handleChat(req, res) {
       ]
 
       try {
-        const ollamaRes = await fetch(`${ollamaBase.replace(/\/$/, '')}/api/chat`, {
+        const base = runtimeBase.replace(/\/$/, '')
+        let reply = ''
+        let mode = 'apex-local-runtime'
+
+        const runtimeRes = await fetch(`${base}/api/chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model: model || 'apex-ai', messages: ollamaMessages, stream: false }),
+          body: JSON.stringify({ model: model || 'apex-ai', messages: runtimeMessages, stream: false }),
           signal: AbortSignal.timeout(30000),
         })
-        const ollamaData = await ollamaRes.json().catch(() => ({}))
-        const reply = String(ollamaData?.message?.content || '').trim()
+        const runtimeData = await runtimeRes.json().catch(() => ({}))
+        reply = String(runtimeData?.message?.content || '').trim()
 
-        if (ollamaRes.ok && reply) {
+        if (!reply) {
+          const compatRes = await fetch(`${base}/v1/chat/completions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model: model || 'apex-ai', messages: runtimeMessages, temperature: 0.35 }),
+            signal: AbortSignal.timeout(30000),
+          })
+          const compatData = await compatRes.json().catch(() => ({}))
+          reply = String(compatData?.choices?.[0]?.message?.content || '').trim()
+          mode = 'apex-ai-2.0-gemini-native'
+        }
+
+        if (reply) {
           return chatJson(res, 200, {
             finalReply: reply,
             reply,
             model: model || 'apex-ai',
-            mode: 'apex-local-ollama',
+            mode,
             provider: 'apex-local',
           })
         }
       } catch (err) {
-        console.warn('[apex-local] ollama unavailable:', scrubProviderError(err?.message || err))
+        console.warn('[apex-local] runtime unavailable:', scrubProviderError(err?.message || err))
       }
 
       return chatJson(res, 200, {
-        finalReply: `O modelo Apex local nao respondeu. Verifique se o Ollama esta rodando (${ollamaBase}) com o modelo "apex-ai" criado.`,
+        finalReply: `O runtime local da Apex nao respondeu (${runtimeBase}). Verifique se o servico Apex Runtime esta ativo no app local e se o tunel configurado em LOCAL_WORKER_URL esta online.`,
         mode: 'apex-local-unavailable',
         provider: 'apex-local',
       })

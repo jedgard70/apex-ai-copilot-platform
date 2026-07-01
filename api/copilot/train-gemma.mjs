@@ -65,7 +65,7 @@ export default async function handler(req, res) {
             // Treino local via Ollama
             const commands = [
                 'ollama pull gemma:2b',
-                'ollama create apex-ai -f Modelfile.apex',
+                'ollama create apex-ai -f notebooks/ApexAI2.0',
                 'ollama run apex-ai "Quem é você?"',
                 '# Pronto! Modelo apex-ai criado localmente'
             ]
@@ -156,7 +156,7 @@ tokenizer.save_pretrained("./gemma-apex-final")
 print("Treinamento concluído! Modelo salvo em ./gemma-apex-final")`,
             nextSteps: [
                 'Depois do treinamento, baixe a pasta gemma-apex-final',
-                'Converta para Ollama: ollama create apex-ai -f Modelfile.apex',
+                'Converta para Ollama: ollama create apex-ai -f notebooks/ApexAI2.0',
                 'Configure o Apex AI para usar o modelo local ou faça deploy no Hugging Face',
             ]
         })
