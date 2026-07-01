@@ -6,9 +6,23 @@
  */
 
 import { recordCallSafe } from '../../server/service/rateLimitMonitor.mjs'
+import fs from 'node:fs'
+import path from 'node:path'
 
 function sendJson(res, status, body) {
     res.status(status).json(body)
+}
+
+function countDatasetExamples() {
+    try {
+        const dir = path.join(process.cwd(), 'training_data')
+        const train = path.join(dir, 'apex_train.jsonl')
+        const test = path.join(dir, 'apex_test.jsonl')
+        const count = f => (fs.existsSync(f) ? fs.readFileSync(f, 'utf8').split('\n').filter(l => l.trim()).length : 0)
+        return { train: count(train), test: count(test) }
+    } catch {
+        return { train: 0, test: 0 }
+    }
 }
 
 export default async function handler(req, res) {
@@ -19,13 +33,17 @@ export default async function handler(req, res) {
 
     // GET — status e link para treinar
     if (req.method === 'GET') {
+        const ds = countDatasetExamples()
         return sendJson(res, 200, {
             status: 'ready',
             message: 'Endpoint de treinamento Gemma Apex pronto.',
+            notebook: 'notebooks/fine_tune_gemma_apex_colab.ipynb',
+            export: 'GGUF portável (Ollama/llama.cpp) — roda local no .exe, site e apps',
             options: [
-                { name: 'Treinar via Google Colab (grátis, GPU)', url: 'https://colab.research.google.com' },
+                { name: 'Treinar via Google Colab (grátis, GPU T4)', url: 'https://colab.research.google.com' },
                 { name: 'Treinar local via Ollama (CPU)', url: '' },
-                { name: 'Dataset atual', size: '10.7 KB', examples: 20, path: 'training_data/apex_training_vertex.jsonl' },
+                { name: 'Dataset de treino', examples: ds.train, path: 'training_data/apex_train.jsonl' },
+                { name: 'Dataset de teste (separado)', examples: ds.test, path: 'training_data/apex_test.jsonl' },
             ]
         })
     }
