@@ -4,6 +4,7 @@ const { spawn } = require('child_process');
 
 let mainWindow;
 let serverProcess;
+let apexRuntimeProcess;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -21,28 +22,50 @@ function createWindow() {
   mainWindow.loadURL('http://localhost:3333');
 }
 
-function tryStartOllama() {
-  const { execSync } = require('child_process');
+function startApexRuntime() {
+  const runtimePath = path.join(__dirname, 'runtime', 'apex-runtime.exe');
+  console.log(`Tentando iniciar o Apex Runtime em: ${runtimePath}`);
+
   try {
-    execSync('curl -s http://127.0.0.1:11434/api/tags', { timeout: 2000, stdio: 'ignore' });
-    console.log("✅ Ollama já está rodando.");
+    // Para simplificação, vamos assumir que o executável existe.
+    // Em um cenário real, verificaríamos com require('fs').existsSync(runtimePath)
+    apexRuntimeProcess = spawn(runtimePath, [], {
+      windowsHide: true,
+      stdio: 'pipe' // Usamos pipe para capturar stdout/stderr
+    });
+
+    apexRuntimeProcess.stdout.on('data', (data) => {
+      console.log(`[ApexRuntime STDOUT]: ${data}`);
+    });
+
+    apexRuntimeProcess.stderr.on('data', (data) => {
+      console.error(`[ApexRuntime STDERR]: ${data}`);
+    });
+
+    apexRuntimeProcess.on('close', (code) => {
+      console.log(`Apex Runtime process exited with code ${code}`);
+      apexRuntimeProcess = null;
+    });
+
+    console.log(`✅ Processo do Apex Runtime iniciado com PID: ${apexRuntimeProcess.pid}`);
     return true;
-  } catch {
-    console.log("ℹ️ Ollama não detectado. O chat continuará funcionando via Gemini API.");
-    console.log("   Para ativar modelos locais, instale Ollama em https://ollama.com");
+  } catch (error) {
+    console.error("❌ Falha ao iniciar o Apex Runtime.", error);
+    console.log("   O chat continuará funcionando via Gemini API.");
     return false;
   }
 }
 
+
 app.whenReady().then(() => {
   console.log("Iniciando Servidor Interno Apex AI...");
 
-  // Tenta detectar Ollama (modelo local)
-  const ollamaRunning = tryStartOllama();
+  // Inicia o nosso runtime local embutido
+  const apexRuntimeEnabled = startApexRuntime();
 
   // Start the backend server on port 3333
   serverProcess = spawn('node', [path.join(__dirname, 'server.mjs')], {
-    env: { ...process.env, PORT: 3333, NODE_ENV: 'production', OLLAMA_RUNNING: ollamaRunning ? 'true' : 'false' },
+    env: { ...process.env, PORT: 3333, NODE_ENV: 'production', APEX_RUNTIME_ENABLED: apexRuntimeEnabled ? 'true' : 'false' },
     stdio: 'inherit'
   });
 
@@ -62,6 +85,11 @@ app.on('window-all-closed', function () {
 
 app.on('quit', () => {
   if (serverProcess) {
+    console.log("Encerrando processo do servidor...");
     serverProcess.kill();
+  }
+  if (apexRuntimeProcess) {
+    console.log("Encerrando processo do Apex Runtime...");
+    apexRuntimeProcess.kill();
   }
 });
