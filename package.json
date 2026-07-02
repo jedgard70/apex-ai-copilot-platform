@@ -27,7 +27,9 @@
     "test:watch": "node node_modules/vitest/vitest.mjs",
     "test:coverage": "node node_modules/vitest/vitest.mjs run --coverage",
     "train": "node scripts/train-apex-ai.mjs",
-    "train:dry": "node scripts/train-apex-ai.mjs --dry-run"
+    "train:dry": "node scripts/train-apex-ai.mjs --dry-run",
+    "setup:runtime": "node scripts/setup-own-runtime.mjs",
+    "setup:runtime:check": "node scripts/setup-own-runtime.mjs --check"
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.19.0",
