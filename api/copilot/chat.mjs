@@ -2116,7 +2116,10 @@ export default async function handler(req, res) {
     // ─── GEMINI NOW USES FULL TOOL-CAPABLE PIPELINE (same as all providers) ───
     // Gemini gets the same full Apex system prompt + tools.
     const envDefaultModel = String(process.env.GEMINI_MODEL || '').trim()
-    const safeDefaultModel = envDefaultModel.toLowerCase().startsWith('apex-local') ? envDefaultModel : 'apex-local|apex-ai'
+    // Modelo padrão: Gemini no site/web, apex-local só quando explicitamente selecionado
+    const safeDefaultModel = envDefaultModel && !envDefaultModel.toLowerCase().startsWith('apex-local')
+      ? `gemini|${envDefaultModel}`
+      : 'gemini|gemini-2.5-flash'
     const selectedModelRaw = body.model || body.selectedModel || safeDefaultModel
     const selectedModel = splitModelValue ? splitModelValue(selectedModelRaw) : { provider: null, modelId: selectedModelRaw, raw: selectedModelRaw }
     let modelProvider = selectedModel.provider || ''
