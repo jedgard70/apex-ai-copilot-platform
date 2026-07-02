@@ -141,11 +141,9 @@ const ELEVENLABS_MODELS = [
   { id: 'eleven_english_sts_v2', name: 'Eleven English STS v2' },
 ]
 
-// Apex local — modelo Gemma treinado, exportado em GGUF e servido via Ollama.
-// Roda 100% local (desktop .exe, site, apps) sem depender de provedor externo.
-// Endpoint configurável por APEX_LOCAL_URL (padrão http://localhost:11434).
+// Apex AI — motor proprio da Apex. Detalhes de runtime nao devem vazar para o usuario final.
 const APEX_LOCAL_MODELS = [
-  { id: 'apex-ai', name: 'Apex AI (modelo próprio, local/Ollama)' },
+  { id: 'apex-ai', name: 'Apex AI 2.0 (motor próprio)' },
 ]
 
 const MODEL_CATALOG_CACHE_TTL_MS = 5 * 60 * 1000
@@ -2237,23 +2235,61 @@ export default async function handler(req, res) {
     const isFirebase = modelProvider === 'firebase'
     const isApexLocal = modelProvider === 'apex-local'
 
-    // ─── Apex local (Gemma treinado, servido via Ollama) — 100% local, sem provedor externo ───
+    // ─── Apex AI 2.0 — motor proprio / gateway Apex, sem expor runtime externo ───
     if (isApexLocal) {
       const t0 = Date.now()
-      const ollamaBase = process.env.APEX_LOCAL_URL || 'http://localhost:11434'
       const systemText = 'Você é a Apex AI, plataforma profissional de arquitetura, construção, BIM, orçamentos, marketing e gestão. Responda em português, de forma técnica e direta, sem inventar dados ou integrações que não existem.'
-      const ollamaMessages = [
+      const apexMessages = [
         { role: 'system', content: systemText },
         ...(Array.isArray(body.messages) ? body.messages.slice(-10) : [])
           .filter(m => m?.role === 'user' || m?.role === 'assistant')
           .map(m => ({ role: m.role, content: String(m.text || m.content || '').slice(0, 4000) })),
         { role: 'user', content: userMessage },
       ]
+
+      const apexEngineUrls = [
+        process.env.APEX_OWN_ENGINE_URL,
+        process.env.APEX_API_URL,
+        process.env.LOCAL_WORKER_URL,
+      ].filter(Boolean)
+
+      for (const engineUrl of apexEngineUrls) {
+        try {
+          const engineToken = process.env.APEX_API_TOKEN || process.env.LOCAL_WORKER_TOKEN || ''
+          const headers = { 'Content-Type': 'application/json' }
+          if (engineToken) headers.Authorization = `Bearer ${engineToken}`
+          const engineRes = await fetch(`${String(engineUrl).replace(/\/$/, '')}/ai/chat`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ model: model || 'apex-ai', messages: apexMessages }),
+            signal: AbortSignal.timeout(30000),
+          })
+          if (engineRes.ok) {
+            const engineData = await engineRes.json().catch(() => ({}))
+            const reply = engineData.reply || engineData.finalReply || engineData.choices?.[0]?.message?.content || ''
+            if (reply) {
+              recordCallSafe({ provider: engineData.provider || 'apex-ai-own-engine', model: model || 'apex-ai', latencyMs: Date.now() - t0, success: true })
+              return sendJson(res, 200, {
+                finalReply: reply,
+                reply,
+                model: model || 'apex-ai',
+                mode: 'apex-ai-own-engine',
+                provider: engineData.provider || 'apex-ai-own-engine',
+                confirmation: null,
+                productionStatus,
+              })
+            }
+          }
+        } catch (_) { /* Apex own engine unavailable in this runtime */ }
+      }
+
+      if (process.env.APEX_ENABLE_OLLAMA_LEGACY === 'true') {
+        const ollamaBase = process.env.APEX_LOCAL_URL || 'http://localhost:11434'
       try {
         const ollamaRes = await fetch(`${ollamaBase.replace(/\/$/, '')}/api/chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model: model || 'apex-ai', messages: ollamaMessages, stream: false }),
+          body: JSON.stringify({ model: model || 'apex-ai', messages: apexMessages, stream: false }),
           signal: AbortSignal.timeout(30000),
         })
         const ollamaData = await ollamaRes.json().catch(() => ({}))
@@ -2273,8 +2309,9 @@ export default async function handler(req, res) {
       } catch (err) {
         recordCallSafe({ provider: 'apex-local', model, latencyMs: Date.now() - t0, success: false, errorMsg: err.message })
       }
+      }
 
-      // ── Fallback: tenta local-worker como gateway de IA ──────────────────
+      // ── Fallback legado: tenta local-worker como gateway de IA ───────────
       const localWorkerUrl = process.env.LOCAL_WORKER_URL || ''
       const localWorkerToken = process.env.LOCAL_WORKER_TOKEN || ''
       if (localWorkerUrl && localWorkerToken) {
@@ -2315,11 +2352,11 @@ export default async function handler(req, res) {
         } catch (_) { /* local-worker unavailable */ }
       }
 
-      // Ollama e local-worker indisponíveis — resposta honesta
+      // Motor Apex indisponivel neste runtime: nao exponha detalhes internos como Ollama/Gemma/Gemini.
       const pt = prefersPortugueseText(userMessage, locale)
       const offlineMsg = pt
-        ? `O modelo Apex local não respondeu. Verifique se o Ollama está rodando (${process.env.APEX_LOCAL_URL || 'http://localhost:11434'}) com o modelo "apex-ai" criado. No terminal: "ollama create apex-ai -f Modelfile" e "ollama serve".`
-        : `The local Apex model did not respond. Make sure Ollama is running (${process.env.APEX_LOCAL_URL || 'http://localhost:11434'}) with the "apex-ai" model created: "ollama create apex-ai -f Modelfile" then "ollama serve".`
+        ? 'A Apex AI 2.0 esta ativa, mas o motor proprio conectado a este ambiente nao respondeu agora. Posso continuar em modo Apex controlado para analisar, planejar e orientar a execucao; acoes que alterem arquivos, modelos, deploys ou dados exigem confirmacao explicita.'
+        : 'Apex AI 2.0 is active, but the own engine connected to this environment did not respond right now. I can continue in controlled Apex mode for analysis, planning, and execution guidance; actions that change files, models, deployments, or data require explicit confirmation.'
       return sendJson(res, 200, {
         finalReply: offlineMsg,
         reply: offlineMsg,

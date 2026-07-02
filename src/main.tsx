@@ -295,7 +295,7 @@ type ModelOption = {
 type ManualModelProvider = 'all' | 'gemini' | 'gemini-interactions' | 'fal' | 'elevenlabs'
 
 const APEX_OWN_MODELS = [
-  { id: 'apex-ai', name: 'Apex AI (Modelo Principal Ollama/Local)' }
+  { id: 'apex-ai', name: 'Apex AI 2.0 (Motor Principal)' }
 ]
 
 const DIRECT_GEMINI_MODELS = [
