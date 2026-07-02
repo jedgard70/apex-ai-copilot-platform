@@ -53,6 +53,14 @@ npm start
 - **Platform Status** now reports whether Sentry frontend/backend are configured and whether the runtime is running on Vercel.
 - **Platform Status** also reports whether Gateway and Gemini model paths are actually configured.
 - **Model picker** supports manual advanced provider/model entry for Gateway and Gemini paths.
+- **Local Apex model selection** shows the user-facing Apex local option in the picker and stores it as `apex-local|apex-ai`. That stored value maps to the Ollama model name `apex-ai`, served from `APEX_LOCAL_URL` (default `http://localhost:11434`).
+- **Provisioning the local Apex model** requires creating the Ollama model first. This repository includes the base Ollama definition at `./Modelfile.apex`:
+
+```bash
+ollama create apex-ai -f ./Modelfile.apex
+ollama serve
+```
+
 - **Field Operations / RDO** now saves to the local Project Workspace and, when Supabase session + tenant bootstrap are ready, syncs the report into `rdos`, `rdo_activities`, `field_issues`, `punch_items`, `field_photos`, `safety_checklists`, `quality_checklists` and `corrective_actions`.
 - **Campaign Automation** now includes a VSL / video-sales landing blueprint with CTA destination, urgency bar, player behavior and tracking checklist.
 - **Public VSL route** is available at `/vsl` (also `/oferta` and `/apresentacao`) with configurable `headline`, `subheadline`, `video`, `cta`, `ctaLabel`, `terms`, `privacy`, `brand` and `support` query parameters.
