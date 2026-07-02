@@ -614,7 +614,14 @@ function buildRuntimeCapabilitySnapshot(productionStatus = {}) {
   const githubReady = Boolean(connectorStatus?.github?.configured)
   const vercelReady = Boolean(connectorStatus?.vercel?.configured)
   const supabaseReady = Boolean(process.env.SUPABASE_ACCESS_TOKEN || process.env.SUPABASE_DB_URL)
-  const imageReady = Boolean(process.env.OPENAI_API_KEY)
+  const imageReady = Boolean(process.env.FAL_KEY || process.env.FAL_API_KEY || process.env.GEMINI_API_KEY || process.env.AI_GATEWAY_API_KEY || process.env.OPENAI_API_KEY)
+  const revitReady = Boolean(
+    process.env.REVIT_MCP_URL && process.env.REVIT_MCP_TOKEN
+    || process.env.APS_CLIENT_ID && process.env.APS_CLIENT_SECRET
+    || process.env.AUTODESK_CLIENT_ID && process.env.AUTODESK_CLIENT_SECRET
+    || process.env.AUTODESK_ACCESS_TOKEN
+    || process.env.APS_ACCESS_TOKEN
+  )
   const webSearchReady = Boolean(process.env.TAVILY_API_KEY)
   const localShellStatus = String(capabilities.localShell || '').toLowerCase()
   const localShellActive = localShellStatus.includes('active') || localShellStatus.includes('supported')
@@ -623,6 +630,7 @@ function buildRuntimeCapabilitySnapshot(productionStatus = {}) {
     vercelReady,
     supabaseReady,
     imageReady,
+    revitReady,
     webSearchReady,
     localShellActive,
     checkedAt: productionStatus?.checkedAt || '',
@@ -635,7 +643,7 @@ function buildCapabilityListingReply(productionStatus = {}) {
     'Capacidades reais neste runtime (sem marketing):',
     '',
     `1. Operacional agora: conversa técnica, análise/edição de código, diagnóstico da plataforma, pesquisa web (${snap.webSearchReady ? 'Tavily ativo' : 'fallback básico'}), execução local (${snap.localShellActive ? 'ativa' : 'parcial'}).`,
-    `2. Depende de configuração: GitHub (${snap.githubReady ? 'ativo' : 'pendente'}), Vercel (${snap.vercelReady ? 'ativo' : 'pendente'}), Supabase (${snap.supabaseReady ? 'ativo' : 'pendente'}), geração de imagem (${snap.imageReady ? 'ativa' : 'pendente'}).`,
+    `2. Depende de configuração: GitHub (${snap.githubReady ? 'ativo' : 'pendente'}), Vercel (${snap.vercelReady ? 'ativo' : 'pendente'}), Supabase (${snap.supabaseReady ? 'ativo' : 'pendente'}), Revit/BIM APS/MCP (${snap.revitReady ? 'ativo' : 'modo conhecimento'}), geração de imagem Gemini/FAL (${snap.imageReady ? 'ativa' : 'pendente'}).`,
     '3. Não faço: inventar resultado, fingir deploy/migration/push, ou afirmar execução sem saída real/log.',
   ].join('\n')
 }
@@ -850,6 +858,13 @@ function buildPlatformPositionReply(productionStatus = {}) {
 }
 
 function buildRevitBimHelpReply() {
+  const revitReady = Boolean(
+    process.env.REVIT_MCP_URL && process.env.REVIT_MCP_TOKEN
+    || process.env.APS_CLIENT_ID && process.env.APS_CLIENT_SECRET
+    || process.env.AUTODESK_CLIENT_ID && process.env.AUTODESK_CLIENT_SECRET
+    || process.env.AUTODESK_ACCESS_TOKEN
+    || process.env.APS_ACCESS_TOKEN
+  )
   return [
     'Com Revit e BIM, posso ajudar de forma bem prática:',
     '- montar checklist de modelagem por disciplina;',
@@ -860,7 +875,9 @@ function buildRevitBimHelpReply() {
     '- revisar documentação, vistas, folhas e padrões de entrega;',
     '- planejar exportação IFC/NWC para coordenação, orçamento ou obra;',
     '- montar um plano BIM com responsabilidades, LOD/LOI, entregáveis e validações.',
-    'Quando o conector Revit/MCP estiver configurado, essa ajuda poderá evoluir para leitura e ações assistidas direto no ambiente conectado. Por enquanto, eu preparo o plano, checklist e documentação sem fingir execução no Revit.',
+    revitReady
+      ? 'Revit/BIM APS/MCP está configurado neste runtime. Posso tratar isso como caminho conectado para status, leitura/planejamento e ações assistidas quando a rota local/APS responder, sem expor token.'
+      : 'Sem APS/MCP ativo neste runtime, eu opero em modo conhecimento: preparo plano, checklist e documentação sem fingir execução no Revit.',
   ].join('\n')
 }
 
@@ -942,7 +959,9 @@ function buildNaturalFallbackReply(userMessage = '') {
       '- em seguida continuo com fallback útil (diagnóstico, plano aplicável, prompt pronto, edição de código, pesquisa).',
       '',
       'Conectores mais comuns para ações externas reais:',
-      '• OPENAI_API_KEY (geração de imagem e chat externo)',
+      '• GEMINI_API_KEY (chat principal, Gemma/Gemini, multimodal)',
+      '• FAL_KEY ou AI_GATEWAY_API_KEY (geração de imagem/vídeo)',
+      '• APS_CLIENT_ID + APS_CLIENT_SECRET ou REVIT_MCP_URL + REVIT_MCP_TOKEN (Revit/BIM conectado)',
       '• GITHUB_TOKEN (push/PR)',
       '• VERCEL_TOKEN + VERCEL_PROJECT_ID (deploy)',
       '• SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (migration)',

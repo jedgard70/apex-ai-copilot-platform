@@ -101,8 +101,8 @@ const CONTROLLED_COMMANDS = {
 const TASK_COMMANDS = {
   repository_status: ['repository_status', 'git_log'],
   git_log: ['git_log'],
-  route_validation: ['check_chat_route', 'check_operator_preview_route', 'check_operator_status_route', 'check_operator_execute_route', 'check_connector_status_route'],
-  validation: ['check_server', 'check_operator_runtime', 'check_production_status', 'check_production_router', 'check_controlled_executor', 'check_chat_route', 'check_operator_preview_route', 'check_operator_status_route', 'check_operator_execute_route', 'check_connector_status_route'],
+  route_validation: ['check_chat_route', 'check_operator_unified_route', 'check_execution_unified_route', 'check_connector_status_route'],
+  validation: ['check_server', 'check_operator_runtime', 'check_production_status', 'check_production_router', 'check_controlled_executor', 'check_chat_route', 'check_operator_unified_route', 'check_execution_unified_route', 'check_connector_status_route'],
   build_validation: ['check_server', 'check_operator_runtime', 'check_controlled_executor', 'build_validation'],
 }
 
@@ -388,8 +388,8 @@ function buildControlledFinalReply({ tasks, policy, summary, connectors }) {
 
   const lines = []
   lines.push(summary.status === 'UNAVAILABLE'
-    ? 'UNAVAILABLE - execução controlada H4 indisponível neste runtime.'
-    : `${summary.status} - execução controlada H4 concluída.`)
+    ? 'UNAVAILABLE - verificação local indisponível neste runtime; posso explicar o motivo e usar conectores remotos quando configurados.'
+    : `${summary.status} - verificação controlada concluída.`)
   lines.push(`Tarefas: ${tasks.join(', ')}.`)
 
   if (summary.commandProof.length) {
@@ -398,7 +398,7 @@ function buildControlledFinalReply({ tasks, policy, summary, connectors }) {
       lines.push(`- ${proof.label}: ${proof.status}, saída ${proof.exitCode === null ? 'sem código' : proof.exitCode}.`)
       if (proof.stdout) lines.push(`  ${proof.stdout.split(/\r?\n/).slice(0, 3).join(' | ')}`)
       if (proof.status === 'unavailable') lines.push(`  ${proof.stderr}`)
-      else if (proof.stderr && proof.status !== 'completed') lines.push(`  Erro: ${proof.stderr.split(/\r?\n/).slice(0, 2).join(' | ')}`)
+      else if (proof.stderr && proof.status !== 'completed') lines.push(`  Erro: ${proof.stderr.split(/\r?\n/).slice(0, 4).join(' | ')}`)
     }
   }
 
@@ -409,7 +409,7 @@ function buildControlledFinalReply({ tasks, policy, summary, connectors }) {
     lines.push(`Conectores pendentes: ${missing.length ? missing.join(', ') : 'nenhum'}.`)
   }
 
-  lines.push('Nenhum deploy, migração, commit, push, escrita, remoção ou comando livre foi executado.')
+  lines.push('Nenhum deploy, migração, commit, push, escrita, remoção ou comando livre foi executado nesta verificação.')
   return lines.join('\n')
 }
 

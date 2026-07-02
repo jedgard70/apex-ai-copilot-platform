@@ -192,6 +192,15 @@ type ClientMemory = {
   pendingH6Action?: Record<string, unknown> | null
 }
 
+type ChatMessageBoundaryProps = {
+  text: string
+  children: React.ReactNode
+}
+
+type ChatMessageBoundaryState = {
+  hasError: boolean
+}
+
 type UiLanguage = 'EN' | 'PT'
 
 type PendingLayerDecision = {
@@ -488,6 +497,64 @@ function id() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
 
+const MAX_RENDERED_MESSAGE_CHARS = 80000
+const MAX_CONTEXT_MESSAGE_CHARS = 6000
+const MAX_INLINE_DATA_IMAGE_CHARS = 650000
+const DATA_IMAGE_RE = /data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g
+
+function compactMessageTextForRuntime(text: string, maxChars = MAX_CONTEXT_MESSAGE_CHARS) {
+  const withoutInlineImages = String(text || '').replace(DATA_IMAGE_RE, '[imagem-data-url-removida-do-contexto]')
+  if (withoutInlineImages.length <= maxChars) return withoutInlineImages
+  return `${withoutInlineImages.slice(0, maxChars)}\n\n[conteudo anterior truncado para manter o chat estavel]`
+}
+
+function getRenderableMessageText(text: string) {
+  const value = String(text || '')
+  if (value.length <= MAX_RENDERED_MESSAGE_CHARS) return value
+  return `${value.slice(0, MAX_RENDERED_MESSAGE_CHARS)}\n\n[Resposta muito longa: exibindo a primeira parte para manter a tela estavel. Use Copiar ou Derivar para preservar o conteudo completo.]`
+}
+
+function isHeavyDataImageUrl(src: string) {
+  return src.startsWith('data:image/') && src.length > MAX_INLINE_DATA_IMAGE_CHARS
+}
+
+function openLargeDataImage(src: string) {
+  try {
+    const byteString = window.atob(src.split(',')[1] || '')
+    const mime = src.slice(5, src.indexOf(';')) || 'image/png'
+    const bytes = new Uint8Array(byteString.length)
+    for (let i = 0; i < byteString.length; i += 1) bytes[i] = byteString.charCodeAt(i)
+    const blobUrl = URL.createObjectURL(new Blob([bytes], { type: mime }))
+    window.open(blobUrl, '_blank', 'noopener,noreferrer')
+    window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60000)
+  } catch (error) {
+    console.error('[Apex chat] Could not open large inline image:', error)
+  }
+}
+
+class ChatMessageBoundary extends React.Component<ChatMessageBoundaryProps, ChatMessageBoundaryState> {
+  state: ChatMessageBoundaryState = { hasError: false }
+
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: unknown) {
+    console.error('[Apex chat] Message render failed:', error)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <pre className="message-render-fallback">
+          {compactMessageTextForRuntime(this.props.text, 12000)}
+        </pre>
+      )
+    }
+    return this.props.children
+  }
+}
+
 async function copyToClipboard(text: string) {
   try {
     await navigator.clipboard.writeText(text)
@@ -744,7 +811,10 @@ function isAuthIntent(text: string) {
 }
 
 function isCopilotExecutionIntent(text: string) {
-  return /\b(copilot execution|local execution|executar comando|executa comando|rodar comando|repo checks|build checks|git status|git log|check server|validar server|npm build|rodar build|build local|executar checkpoint|abrir checkpoint manager|checkpoint manager)\b/i.test(text)
+  const lower = text.toLowerCase()
+  const explicitlyOpensPanel = /\b(abrir|abra|abre|open|mostrar|mostre|show|acessar|ativar|ative|launch|iniciar|start)\b/.test(lower)
+  const namesExecutionPanel = /\b(copilot execution|local execution|painel de execu[cç][aã]o|execution panel|platform maintenance|repo checks|build checks|checkpoint manager)\b/i.test(lower)
+  return explicitlyOpensPanel && namesExecutionPanel
 }
 
 function suggestLayerOpenDecision(text: string, attachment?: IntakeFile): PendingLayerDecision | null {
@@ -881,9 +951,34 @@ function renderMessageText(text: string): React.ReactNode {
   const codeBlockRe = /^```[\s\S]*?```$/m
   const inlineCodeRe = /`([^`]+)`/g
 
-  const lines = text.split('\n')
+  const lines = getRenderableMessageText(text).split('\n')
   const nodes: React.ReactNode[] = []
   let i = 0
+
+  const renderImage = (key: React.Key, src: string, alt: string) => {
+    if (isHeavyDataImageUrl(src)) {
+      return (
+        <div key={key} className="large-inline-media">
+          <strong>{alt || 'Imagem gerada'}</strong>
+          <span>Imagem grande recebida. Ela foi mantida fora da renderizacao inline para evitar tela branca.</span>
+          <button type="button" onClick={() => openLargeDataImage(src)}>Abrir imagem</button>
+        </div>
+      )
+    }
+    return (
+      <img
+        key={key}
+        src={src}
+        alt={alt || 'Imagem gerada'}
+        loading="lazy"
+        decoding="async"
+        style={{ maxWidth: '100%', maxHeight: '70vh', borderRadius: '8px', marginTop: '8px', display: 'block', objectFit: 'contain' }}
+        onError={event => {
+          event.currentTarget.style.display = 'none'
+        }}
+      />
+    )
+  }
 
   while (i < lines.length) {
     const line = lines[i]
@@ -904,9 +999,7 @@ function renderMessageText(text: string): React.ReactNode {
     // Image-only line → render as <img>
     const imgMatch = imageLineRe.exec(line)
     if (imgMatch) {
-      nodes.push(
-        <img key={i} src={imgMatch[2]} alt={imgMatch[1] || 'Imagem gerada'} style={{ maxWidth: '100%', borderRadius: '8px', marginTop: '8px', display: 'block' }} />
-      )
+      nodes.push(renderImage(i, imgMatch[2], imgMatch[1] || 'Imagem gerada'))
       i++
       continue
     }
@@ -930,7 +1023,7 @@ function renderMessageText(text: string): React.ReactNode {
         if (m.index > last) parts.push(s.slice(last, m.index))
         if (m[0].startsWith('**')) parts.push(<strong key={m.index}>{m[2]}</strong>)
         else if (m[0].startsWith('`')) parts.push(<code key={m.index} style={{ background: '#f1f5f9', borderRadius: '3px', padding: '1px 4px', fontSize: '11px', fontFamily: 'monospace' }}>{m[3]}</code>)
-        else if (m[0].startsWith('!')) parts.push(<img key={m.index} src={m[5]} alt={m[4] || 'img'} style={{ maxWidth: '100%', borderRadius: '8px', display: 'block', marginTop: '6px' }} />)
+        else if (m[0].startsWith('!')) parts.push(renderImage(m.index, m[5], m[4] || 'img'))
         last = m.index + m[0].length
       }
       if (last < s.length) parts.push(s.slice(last))
@@ -1378,7 +1471,9 @@ function App() {
   }
   const initialProject = useMemo(() => loadActiveProject() || createProject('Apex Project'), [])
   const initialAppState = initialProject.appState || {}
-  const restoredFile = recordToIntakeFile(initialProject.files.find(file => file.id === initialProject.activeFileId) || initialProject.files[initialProject.files.length - 1])
+  const restoredFile = initialProject.activeFileId
+    ? recordToIntakeFile(initialProject.files.find(file => file.id === initialProject.activeFileId))
+    : undefined
   const [input, setInput] = useState('')
   const [projects, setProjects] = useState<ProjectWorkspace[]>(() => {
     const existing = loadProjects()
@@ -2245,7 +2340,7 @@ function App() {
       chatMessages: messages.map(message => ({
         id: message.id,
         role: message.role,
-        text: message.text,
+        text: compactMessageTextForRuntime(message.text, 20000),
         attachmentFileId: message.attachment ? activeRecord?.id : undefined,
       })),
       revisionConstraints: archVisRevisionConstraints,
@@ -2271,7 +2366,7 @@ function App() {
       lastExecutionSummary,
       generationHistory: activeProject.generationHistory,
       activeTool: activeTool.id,
-      activeFileId: activeRecord?.id || activeProject.activeFileId,
+      activeFileId: activeRecord?.id,
       activeStudio,
       archVisOutputs: archVisOutput
             ? [{ output: archVisOutput.output, conversationContext: archVisOutput.conversationContext, updatedAt: new Date().toISOString() }]
@@ -3153,7 +3248,7 @@ function App() {
         messages: [
           ...messages.map(message => ({
             role: message.role,
-            text: message.text,
+            text: compactMessageTextForRuntime(message.text),
           })),
           {
             role: userMessage.role,
@@ -3321,11 +3416,9 @@ function App() {
       dimensions: dataUrl ? await readImageDimensions(dataUrl).catch(() => undefined) : undefined,
     }
 
-    // Add to active files list
+    // Keep the newest uploaded/pasted file as the active chat attachment.
     const currentFiles = activeFiles.current
-    if (currentFiles.length === 0) {
-      setActiveFile(intake)
-    }
+    setActiveFile(intake)
     activeFiles.current = [...currentFiles, intake]
 
     setSkillUpdateAutoAnalyzeSignal('')
@@ -3462,7 +3555,9 @@ function App() {
   function applyProject(project: ProjectWorkspace) {
     setActiveProjectId(project.id)
     setActiveProject(project)
-    const restored = recordToIntakeFile(project.files.find(file => file.id === project.activeFileId) || project.files[project.files.length - 1])
+    const restored = project.activeFileId
+      ? recordToIntakeFile(project.files.find(file => file.id === project.activeFileId))
+      : undefined
     setActiveFile(restored)
     setArchVisRevisionConstraints(project.revisionConstraints || [])
     setMessages(project.chatMessages.length ? project.chatMessages.map(message => ({
@@ -4352,7 +4447,9 @@ function App() {
                 <article key={message.id} className={`message ${message.role}`}>
                   <div className="avatar">{message.role === 'assistant' ? <Bot size={18} /> : <Building2 size={18} />}</div>
                   <div className={`bubble ${message.text.length > 900 || message.text.includes('\n') ? 'long-text' : ''}`}>
-                    <div className="message-body">{renderMessageText(message.text)}</div>
+                    <ChatMessageBoundary text={message.text}>
+                      <div className="message-body">{renderMessageText(message.text)}</div>
+                    </ChatMessageBoundary>
                     <div className="message-actions" style={{ display: 'flex', gap: '6px', marginTop: '10px', opacity: 0.6 }}>
                       <button
                         onClick={() => copyToClipboard(message.text)}
@@ -4577,7 +4674,12 @@ function App() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => setActiveFile(undefined)}
+                    onClick={() => {
+                      const removedName = activeFile.file.name
+                      setActiveFile(undefined)
+                      activeFiles.current = activeFiles.current.filter(item => item.file.name !== removedName)
+                      setActiveProject(prev => ({ ...prev, activeFileId: undefined }))
+                    }}
                     style={{
                       background: 'transparent',
                       border: 'none',
