@@ -25,13 +25,16 @@
     "validate:directcut-pipeline": "node scripts/validate-directcut-pipeline.mjs",
     "test": "node node_modules/vitest/vitest.mjs run",
     "test:watch": "node node_modules/vitest/vitest.mjs",
-    "test:coverage": "node node_modules/vitest/vitest.mjs run --coverage"
+    "test:coverage": "node node_modules/vitest/vitest.mjs run --coverage",
+    "train": "node scripts/train-apex-ai.mjs",
+    "train:dry": "node scripts/train-apex-ai.mjs --dry-run"
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.19.0",
     "@auth0/nextjs-auth0": "^4.22.0",
     "@genkit-ai/googleai": "^1.28.0",
     "@google/genai": "^2.9.0",
+    "@modelcontextprotocol/sdk": "^1.26.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
     "@sentry/node": "^10.59.0",
@@ -56,6 +59,7 @@
     "googleapis": "^173.0.0",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.511.0",
+    "mcp-handler": "^1.1.0",
     "mdn-data": "^2.28.1",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^6.0.227",
@@ -68,6 +72,7 @@
     "vite": "^6.4.3",
     "web-ifc": "^0.0.77",
     "xlsx": "^0.18.5",
+    "zod": "^3.25.76",
     "zustand": "^5.0.5"
   },
   "devDependencies": {
