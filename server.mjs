@@ -93,7 +93,7 @@ const FAL_CHAT_MODELS = [
 ]
 
 const APEX_LOCAL_MODELS = [
-  { id: 'apex-ai', name: 'Apex AI (modelo proprio, local/Ollama)' },
+  { id: 'apex-ai', name: 'Apex AI 2.0 (motor proprio)' },
 ]
 
 function composeModelValue(provider, modelId) {
@@ -2381,9 +2381,8 @@ async function handleChat(req, res) {
     const isDirectGeminiModel = ['gemini-3.5-flash', 'gemini-3.1-pro-preview', 'gemini-3.1-flash-lite', 'gemini-3.1-flash-image', 'gemini-3.1-flash-tts-preview', 'gemma-4-31b-it', 'gemma-4-26b-a4b-it'].includes(model)
 
     if (isApexLocal) {
-      const ollamaBase = process.env.APEX_LOCAL_URL || 'http://localhost:11434'
       const systemText = 'Voce e a Apex AI, plataforma profissional de arquitetura, construcao, BIM, orcamentos, marketing e gestao. Responda em portugues, de forma tecnica e direta, sem inventar dados ou integracoes que nao existem.'
-      const ollamaMessages = [
+      const apexMessages = [
         { role: 'system', content: systemText },
         ...(Array.isArray(body.messages) ? body.messages.slice(-10) : [])
           .filter(m => m?.role === 'user' || m?.role === 'assistant')
@@ -2391,11 +2390,47 @@ async function handleChat(req, res) {
         { role: 'user', content: userText },
       ]
 
+      const apexEngineUrls = [
+        process.env.APEX_OWN_ENGINE_URL,
+        process.env.APEX_API_URL,
+        process.env.LOCAL_WORKER_URL,
+        'http://127.0.0.1:8888',
+      ].filter(Boolean)
+
+      for (const engineUrl of apexEngineUrls) {
+        try {
+          const engineToken = process.env.APEX_API_TOKEN || process.env.LOCAL_WORKER_TOKEN || ''
+          const headers = { 'Content-Type': 'application/json' }
+          if (engineToken) headers.Authorization = `Bearer ${engineToken}`
+          const engineRes = await fetch(`${String(engineUrl).replace(/\/$/, '')}/ai/chat`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ model: model || 'apex-ai', messages: apexMessages }),
+            signal: AbortSignal.timeout(30000),
+          })
+          if (engineRes.ok) {
+            const engineData = await engineRes.json().catch(() => ({}))
+            const reply = String(engineData.reply || engineData.finalReply || engineData.choices?.[0]?.message?.content || '').trim()
+            if (reply) {
+              return chatJson(res, 200, {
+                finalReply: reply,
+                reply,
+                model: model || 'apex-ai',
+                mode: 'apex-ai-own-engine',
+                provider: engineData.provider || 'apex-ai-own-engine',
+              })
+            }
+          }
+        } catch (_) { /* Apex own engine unavailable in this runtime */ }
+      }
+
+      if (process.env.APEX_ENABLE_OLLAMA_LEGACY === 'true') {
+        const ollamaBase = process.env.APEX_LOCAL_URL || 'http://localhost:11434'
       try {
         const ollamaRes = await fetch(`${ollamaBase.replace(/\/$/, '')}/api/chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model: model || 'apex-ai', messages: ollamaMessages, stream: false }),
+          body: JSON.stringify({ model: model || 'apex-ai', messages: apexMessages, stream: false }),
           signal: AbortSignal.timeout(30000),
         })
         const ollamaData = await ollamaRes.json().catch(() => ({}))
@@ -2413,9 +2448,10 @@ async function handleChat(req, res) {
       } catch (err) {
         console.warn('[apex-local] ollama unavailable:', scrubProviderError(err?.message || err))
       }
+      }
 
       return chatJson(res, 200, {
-        finalReply: `O modelo Apex local nao respondeu. Verifique se o Ollama esta rodando (${ollamaBase}) com o modelo "apex-ai" criado.`,
+        finalReply: 'A Apex AI 2.0 esta ativa, mas o motor proprio conectado a este ambiente nao respondeu agora. Posso continuar em modo Apex controlado para analisar, planejar e orientar a execucao; acoes que alterem arquivos, modelos, deploys ou dados exigem confirmacao explicita.',
         mode: 'apex-local-unavailable',
         provider: 'apex-local',
       })
