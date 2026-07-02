@@ -1,5 +1,6 @@
 export const EXECUTION_CLASSES = {
   READ_ONLY: 'read_only',
+  OPERATIONAL_CONNECTED: 'operational_connected',
   VALIDATION: 'validation',
   MUTATION_REQUIRES_CONFIRMATION: 'mutation_requires_confirmation',
   EXTERNAL_DESKTOP_REQUIRES_LOCAL_WORKER: 'external_desktop_requires_local_worker',
@@ -122,7 +123,7 @@ export const TOOL_REGISTRY = [
     provider: 'revit_mcp',
     get executionClass() {
       return hasRevitBimStack()
-        ? EXECUTION_CLASSES.READ_ONLY
+        ? EXECUTION_CLASSES.OPERATIONAL_CONNECTED
         : EXECUTION_CLASSES.EXTERNAL_DESKTOP_REQUIRES_LOCAL_WORKER
     },
     capability: 'revit_desktop_mcp',
@@ -137,7 +138,7 @@ export const TOOL_REGISTRY = [
     provider: 'revit_mcp',
     get executionClass() {
       return hasRevitBimStack()
-        ? EXECUTION_CLASSES.READ_ONLY
+        ? EXECUTION_CLASSES.OPERATIONAL_CONNECTED
         : EXECUTION_CLASSES.EXTERNAL_DESKTOP_REQUIRES_LOCAL_WORKER
     },
     capability: 'revit_model_status_check',

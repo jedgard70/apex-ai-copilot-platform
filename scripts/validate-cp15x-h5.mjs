@@ -48,6 +48,7 @@ function assertNoFakeMutation(result) {
 const matrix = getExecutionCapabilityMatrix()
 for (const expectedClass of [
   'read_only',
+  'operational_connected',
   'validation',
   'mutation_requires_confirmation',
   'external_desktop_requires_local_worker',
@@ -98,6 +99,7 @@ const openRevit = await route('abra o revit')
 assert.equal(openRevit.intent, 'tool_execution')
 assertFinalReplyContract(openRevit)
 assertIncludes(openRevit.finalReply, ['revit mcp bridge'])
+assertIncludes(openRevit.finalReply, ['operational_connected'])
 assertNoFakeMutation(openRevit)
 console.log(`GREEN open Revit status: ${openRevit.finalReply.split('\n')[0]}`)
 
@@ -105,6 +107,7 @@ const verifyRevit = await route('verifique o modelo revit')
 assert.equal(verifyRevit.intent, 'tool_execution')
 assertFinalReplyContract(verifyRevit)
 assertIncludes(verifyRevit.finalReply, ['revit model check'])
+assertIncludes(verifyRevit.finalReply, ['operational_connected'])
 assertNoFakeMutation(verifyRevit)
 console.log(`GREEN verify Revit model status: ${verifyRevit.finalReply.split('\n')[0]}`)
 

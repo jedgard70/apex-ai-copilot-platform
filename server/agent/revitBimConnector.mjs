@@ -205,7 +205,7 @@ const CURATED_KNOWLEDGE = {
   },
   revit_general: {
     title: 'Revit e BIM — ajuda geral',
-    content: [
+    content: () => [
       'Posso ajudar com Revit e BIM em vários níveis:',
       '- **Famílias**: organização, nomenclatura, parâmetros, biblioteca.',
       '- **Templates**: padronização de projeto, view templates, filtros.',
@@ -214,7 +214,9 @@ const CURATED_KNOWLEDGE = {
       '- **Coordenação**: clash detection, BEP, LOD/LOI, CDE.',
       '- **Automação**: Dynamo, pyRevit, Revit API/C# add-ins.',
       '',
-      'Por enquanto, eu preparo o plano, checklist e documentação sem fingir execução no Revit.',
+      hasAutodeskConfig()
+        ? 'APS/Revit MCP está configurado: posso operar em modo conectado quando a rota correspondente estiver acessível. Escrita/mutação no modelo exige confirmação explícita.'
+        : 'Sem APS/Revit MCP ativo, eu preparo plano, checklist e documentação sem fingir execução no Revit.',
       '',
       'Me diga qual área ou desafio específico você quer resolver.',
     ],
@@ -249,7 +251,7 @@ export function buildRevitBimReply(result) {
   const lines = [
     `**${knowledge.title}**`,
     '',
-    ...knowledge.content,
+    ...(typeof knowledge.content === 'function' ? knowledge.content() : knowledge.content),
   ]
 
   if (liveResults?.results?.length) {
