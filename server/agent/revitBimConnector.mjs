@@ -11,12 +11,15 @@ const CONNECTOR_TIMEOUT_MS = 8000
 function hasAutodeskConfig() {
   return Boolean(
     process.env.AUTODESK_CLIENT_ID && process.env.AUTODESK_CLIENT_SECRET
+    || process.env.APS_CLIENT_ID && process.env.APS_CLIENT_SECRET
     || process.env.AUTODESK_ACCESS_TOKEN
+    || process.env.APS_ACCESS_TOKEN
+    || process.env.REVIT_MCP_URL && process.env.REVIT_MCP_TOKEN
   )
 }
 
 function getAutodeskToken() {
-  return process.env.AUTODESK_ACCESS_TOKEN || ''
+  return process.env.AUTODESK_ACCESS_TOKEN || process.env.APS_ACCESS_TOKEN || ''
 }
 
 export function classifyRevitBimQuery(message = '') {
@@ -257,7 +260,7 @@ export function buildRevitBimReply(result) {
     }
   } else if (!connectorConfigured && queryType !== 'revit_general') {
     lines.push('')
-    lines.push('_Para conteúdo ao vivo da Autodesk Help, configure `AUTODESK_ACCESS_TOKEN` no backend._')
+    lines.push('_Para conteúdo ao vivo da Autodesk/APS ou ponte desktop, configure `APS_CLIENT_ID`/`APS_CLIENT_SECRET` ou `REVIT_MCP_URL`/`REVIT_MCP_TOKEN` no backend._')
   }
 
   return lines.join('\n')
@@ -270,7 +273,7 @@ export function getRevitConnectorStatus() {
     status: hasAutodeskConfig() ? 'configured' : 'knowledge_only',
     configured: hasAutodeskConfig(),
     detail: hasAutodeskConfig()
-      ? 'Autodesk Platform Services configurado — busca ao vivo disponível.'
-      : 'Operando com base de conhecimento curada. Configure AUTODESK_ACCESS_TOKEN para busca ao vivo.',
+      ? 'Autodesk APS/Revit MCP configurado — Revit/BIM pode operar conectado quando a rota correspondente estiver acessível.'
+      : 'Operando com base de conhecimento curada. Configure APS_CLIENT_ID/APS_CLIENT_SECRET ou REVIT_MCP_URL/REVIT_MCP_TOKEN para execução conectada.',
   }
 }

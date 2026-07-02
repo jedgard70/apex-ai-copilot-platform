@@ -109,6 +109,21 @@ function createWindow(initialPath = "/") {
     autoHideMenuBar: true,
     webPreferences: { nodeIntegration: false, contextIsolation: true },
   });
+
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    log(`[Apex] Bloqueada tentativa de abrir nova janela: ${url}`);
+    return { action: "deny" };
+  });
+  mainWindow.webContents.on("did-fail-load", (_event, errorCode, errorDescription, validatedURL) => {
+    log(`[Apex] Falha ao carregar renderer: ${errorCode} ${errorDescription} ${validatedURL}`);
+  });
+  mainWindow.webContents.on("render-process-gone", (_event, details) => {
+    log(`[Apex] Renderer encerrado: reason=${details.reason} exitCode=${details.exitCode}`);
+  });
+  mainWindow.on("unresponsive", () => {
+    log("[Apex] Janela Electron ficou sem resposta.");
+  });
+
   mainWindow.loadURL(`http://127.0.0.1:${APP_PORT}${initialPath}`);
 }
 

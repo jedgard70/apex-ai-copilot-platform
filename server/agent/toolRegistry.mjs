@@ -16,6 +16,11 @@ export const EXECUTION_CLASSES = {
 const ENV_ALIASES = {
   LOCAL_WORKER_URL: ['Local_Worker_URL'],
   LOCAL_WORKER_TOKEN: ['Local_Worker_TOKEN'],
+  AUTODESK_CLIENT_ID: ['APS_CLIENT_ID'],
+  AUTODESK_CLIENT_SECRET: ['APS_CLIENT_SECRET'],
+  AUTODESK_ACCESS_TOKEN: ['APS_ACCESS_TOKEN'],
+  REVIT_MCP_URL: ['APEX_REVIT_MCP_URL'],
+  REVIT_MCP_TOKEN: ['APEX_REVIT_MCP_TOKEN'],
 }
 
 function hasAnyEnv(names = []) {
@@ -26,6 +31,24 @@ function hasEnv(name) {
   if (process.env[name]) return true
   const aliases = ENV_ALIASES[name] || []
   return aliases.some(alias => Boolean(process.env[alias]))
+}
+
+function hasAutodeskStack() {
+  return hasEnv('AUTODESK_ACCESS_TOKEN')
+    || (hasEnv('AUTODESK_CLIENT_ID') && hasEnv('AUTODESK_CLIENT_SECRET'))
+}
+
+function hasRevitMcpStack() {
+  return hasEnv('REVIT_MCP_URL') && hasEnv('REVIT_MCP_TOKEN')
+}
+
+function hasRevitBimStack() {
+  return hasRevitMcpStack() || hasAutodeskStack()
+}
+
+function missingRevitBimStack() {
+  if (hasRevitBimStack()) return []
+  return ['REVIT_MCP_URL/REVIT_MCP_TOKEN or APS_CLIENT_ID/APS_CLIENT_SECRET']
 }
 
 export const TOOL_REGISTRY = [
@@ -97,28 +120,41 @@ export const TOOL_REGISTRY = [
     id: 'revit_mcp.status',
     label: 'Revit MCP bridge',
     provider: 'revit_mcp',
-    executionClass: EXECUTION_CLASSES.EXTERNAL_DESKTOP_REQUIRES_LOCAL_WORKER,
+    get executionClass() {
+      return hasRevitBimStack()
+        ? EXECUTION_CLASSES.READ_ONLY
+        : EXECUTION_CLASSES.EXTERNAL_DESKTOP_REQUIRES_LOCAL_WORKER
+    },
     capability: 'revit_desktop_mcp',
-    env: ['REVIT_MCP_URL', 'REVIT_MCP_TOKEN'],
-    isConfigured: () => hasEnv('REVIT_MCP_URL'),
-    missing: () => [
-      ...(!hasEnv('REVIT_MCP_URL') ? ['REVIT_MCP_URL'] : []),
-      ...(!hasEnv('REVIT_MCP_TOKEN') ? ['REVIT_MCP_TOKEN'] : []),
-    ],
+    env: ['REVIT_MCP_URL', 'REVIT_MCP_TOKEN', 'APS_CLIENT_ID', 'APS_CLIENT_SECRET'],
+    isConfigured: () => hasRevitBimStack(),
+    missing: missingRevitBimStack,
     mutates: false,
   },
   {
     id: 'revit_model.status',
     label: 'Revit model check',
     provider: 'revit_mcp',
-    executionClass: EXECUTION_CLASSES.EXTERNAL_DESKTOP_REQUIRES_LOCAL_WORKER,
+    get executionClass() {
+      return hasRevitBimStack()
+        ? EXECUTION_CLASSES.READ_ONLY
+        : EXECUTION_CLASSES.EXTERNAL_DESKTOP_REQUIRES_LOCAL_WORKER
+    },
     capability: 'revit_model_status_check',
-    env: ['REVIT_MCP_URL', 'REVIT_MCP_TOKEN'],
-    isConfigured: () => hasEnv('REVIT_MCP_URL'),
-    missing: () => [
-      ...(!hasEnv('REVIT_MCP_URL') ? ['REVIT_MCP_URL'] : []),
-      ...(!hasEnv('REVIT_MCP_TOKEN') ? ['REVIT_MCP_TOKEN'] : []),
-    ],
+    env: ['REVIT_MCP_URL', 'REVIT_MCP_TOKEN', 'APS_CLIENT_ID', 'APS_CLIENT_SECRET'],
+    isConfigured: () => hasRevitBimStack(),
+    missing: missingRevitBimStack,
+    mutates: false,
+  },
+  {
+    id: 'desktop_app.status',
+    label: 'Desktop app control bridge',
+    provider: 'local_worker',
+    executionClass: EXECUTION_CLASSES.EXTERNAL_DESKTOP_REQUIRES_LOCAL_WORKER,
+    capability: 'desktop_application_control_status',
+    env: ['LOCAL_WORKER_URL', 'LOCAL_WORKER_TOKEN', 'app-specific bridge token when required'],
+    isConfigured: () => false,
+    missing: () => ['dedicated desktop app bridge route'],
     mutates: false,
   },
   {

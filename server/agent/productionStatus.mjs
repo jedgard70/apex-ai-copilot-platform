@@ -72,10 +72,10 @@ export function collectProductionOperatorStatus() {
       // H12 — Multi-turn params
       paramExtraction: 'supported — message/branch/remote extraídos da mensagem do usuário',
       // H13 — Revit/BIM connector
-      revitBimConnector: 'supported — knowledge_only; upgrade para live com AUTODESK_ACCESS_TOKEN',
+      revitBimConnector: 'supported — APS_CLIENT_ID/APS_CLIENT_SECRET, AUTODESK_* ou REVIT_MCP_URL/REVIT_MCP_TOKEN habilitam modo conectado; sem isso usa conhecimento curado',
       revitTopics: 'famílias, parâmetros, quantitativos, IFC, Dynamo, pyRevit, Revit API, BIM standards, GLB, templates, coordenação',
       // H14 — Image Generation
-      imageGeneration: 'supported — prompt_only sem OPENAI_API_KEY; geração DALL-E 3 direta com OPENAI_API_KEY',
+      imageGeneration: 'supported — Gemini/FAL/prompt mode; OpenAI não é requisito para o stack Apex principal',
       imageRenderTypes: 'facade_render, interior_render, floor_plan_visual, aerial_masterplan, concept_moodboard, topo_hologram',
       // H15 — Markdown renderer
       markdownRenderer: 'supported — bold, inline code, fenced code blocks, bullet lists, inline images no chat bubble',

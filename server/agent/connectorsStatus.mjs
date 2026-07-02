@@ -32,6 +32,11 @@ const CONNECTOR_TIMEOUT_MS = 7000
 const ENV_ALIASES = {
   LOCAL_WORKER_URL: ['Local_Worker_URL'],
   LOCAL_WORKER_TOKEN: ['Local_Worker_TOKEN'],
+  AUTODESK_CLIENT_ID: ['APS_CLIENT_ID'],
+  AUTODESK_CLIENT_SECRET: ['APS_CLIENT_SECRET'],
+  AUTODESK_ACCESS_TOKEN: ['APS_ACCESS_TOKEN'],
+  REVIT_MCP_URL: ['APEX_REVIT_MCP_URL'],
+  REVIT_MCP_TOKEN: ['APEX_REVIT_MCP_TOKEN'],
 }
 
 function hasEnv(name) {
@@ -70,6 +75,27 @@ function cleanUrl(value = '') {
   const text = String(value || '').trim()
   if (!text) return ''
   return text.startsWith('http') ? text : `https://${text}`
+}
+
+function hasGeminiStack() {
+  return hasEnv('GEMINI_API_KEY') || hasEnv('GOOGLE_API_KEY')
+}
+
+function hasApexLocalStack() {
+  return hasEnv('LOCAL_WORKER_URL') || hasEnv('APEX_LOCAL_URL') || hasEnv('APEX_RUNTIME_ENABLED')
+}
+
+function hasAutodeskStack() {
+  return hasEnv('AUTODESK_ACCESS_TOKEN')
+    || (hasEnv('AUTODESK_CLIENT_ID') && hasEnv('AUTODESK_CLIENT_SECRET'))
+}
+
+function hasRevitMcpStack() {
+  return hasEnv('REVIT_MCP_URL') && hasEnv('REVIT_MCP_TOKEN')
+}
+
+function hasImageStack() {
+  return hasEnv('FAL_KEY') || hasEnv('FAL_API_KEY') || hasGeminiStack() || hasEnv('AI_GATEWAY_API_KEY') || hasEnv('OPENAI_API_KEY')
 }
 
 function safeIsoDate(value) {
@@ -493,29 +519,35 @@ export function connectorsAsProductionList(status = collectConnectorsStatus()) {
         : 'Conector FCM implementado; configure Firebase client, VAPID e service account env vars para envio real.',
     },
     {
-      id: 'openai',
-      label: 'OpenAI provider',
-      status: hasEnv('OPENAI_API_KEY') ? 'configured' : 'missing_configuration',
-      configured: hasEnv('OPENAI_API_KEY'),
-      detail: 'Opcional para respostas generativas; o operador seguro responde sem isso.',
+      id: 'gemini_gemma_apex_ai',
+      label: 'Gemini / Gemma / Apex AI 2.0 provider',
+      status: hasGeminiStack() || hasApexLocalStack() ? 'configured' : 'missing_configuration',
+      configured: hasGeminiStack() || hasApexLocalStack(),
+      detail: hasGeminiStack() || hasApexLocalStack()
+        ? 'Stack principal configurado para Gemini/Gemma/Apex AI. OpenAI não é requisito para o chat principal.'
+        : 'Configure GEMINI_API_KEY ou o runtime local Apex para ativar o provedor principal.',
     },
     {
       id: 'image_generation',
-      label: 'Image generation (DALL-E)',
-      status: hasEnv('OPENAI_API_KEY') ? 'configured' : 'prompt_only',
-      configured: hasEnv('OPENAI_API_KEY'),
-      detail: hasEnv('OPENAI_API_KEY')
-        ? 'DALL-E 3 configurado — geração direta de imagens disponível.'
-        : 'Modo prompt: gera prompts para Midjourney/DALL-E/SD. Configure OPENAI_API_KEY para geração direta.',
+      label: 'Image generation (Gemini / FAL / prompt mode)',
+      status: hasImageStack() ? 'configured' : 'prompt_only',
+      configured: hasImageStack(),
+      detail: hasEnv('FAL_KEY')
+        ? 'FAL configurado para geração visual. Gemini permanece como provedor principal de chat/multimodal.'
+        : hasGeminiStack()
+          ? 'Gemini configurado para multimodal/prompt visual. OpenAI não é requisito.'
+          : 'Modo prompt: gera prompts seguros para Gemini/FAL/SD sem exigir OpenAI.',
     },
     {
       id: 'revit_bim_mcp',
       label: 'Revit/BIM MCP connector',
-      status: hasEnv('AUTODESK_ACCESS_TOKEN') || (hasEnv('AUTODESK_CLIENT_ID') && hasEnv('AUTODESK_CLIENT_SECRET')) ? 'configured' : 'knowledge_only',
-      configured: hasEnv('AUTODESK_ACCESS_TOKEN') || (hasEnv('AUTODESK_CLIENT_ID') && hasEnv('AUTODESK_CLIENT_SECRET')),
-      detail: hasEnv('AUTODESK_ACCESS_TOKEN')
-        ? 'Autodesk Platform Services configurado — busca ao vivo na Autodesk Help disponível.'
-        : 'Operando com base de conhecimento curada. Configure AUTODESK_ACCESS_TOKEN para busca ao vivo.',
+      status: hasRevitMcpStack() || hasAutodeskStack() ? 'configured' : 'knowledge_only',
+      configured: hasRevitMcpStack() || hasAutodeskStack(),
+      detail: hasRevitMcpStack()
+        ? 'Revit MCP configurado para ponte local/desktop. APS também será usado quando APS_CLIENT_ID/SECRET ou AUTODESK_* estiverem presentes.'
+        : hasAutodeskStack()
+          ? 'Autodesk Platform Services configurado. Revit/BIM opera com APS e base curada; MCP desktop fica disponível quando REVIT_MCP_URL/TOKEN estiverem presentes.'
+          : 'Operando em modo conhecimento/planejamento BIM sem Autodesk/MCP ao vivo. Configure APS_CLIENT_ID/APS_CLIENT_SECRET ou REVIT_MCP_URL/REVIT_MCP_TOKEN para execução conectada.',
     },
     {
       id: 'background_tasks',

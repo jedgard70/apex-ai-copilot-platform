@@ -18,6 +18,14 @@ function hasOpenAIConfig() {
   return Boolean(process.env.OPENAI_API_KEY)
 }
 
+function hasFalConfig() {
+  return Boolean(process.env.FAL_KEY || process.env.FAL_API_KEY)
+}
+
+function hasGeminiImageConfig() {
+  return Boolean(process.env.GEMINI_API_KEY)
+}
+
 function getOpenAIKey() {
   return process.env.OPENAI_API_KEY || ''
 }
@@ -118,7 +126,9 @@ export async function generateImage({ prompt, size = '1024x1024', quality = 'sta
   if (!hasOpenAIConfig()) {
     return {
       ok: false,
-      reason: 'AI_GATEWAY_API_KEY ou OPENAI_API_KEY não configurado. Para gerar imagens, configure uma dessas variáveis.',
+      reason: hasFalConfig() || hasGeminiImageConfig()
+        ? 'Gemini/FAL está configurado no stack Apex. Este executor direto usa AI Gateway/OpenAI; siga pelo ArchVis/DirectCut ou pelo prompt gerado sem exigir OpenAI.'
+        : 'Nenhum executor direto de imagem está configurado. Configure AI_GATEWAY_API_KEY, FAL_KEY ou GEMINI_API_KEY conforme o fluxo desejado.',
       requiresConfig: true,
       secretsExposed: false,
     }
@@ -217,7 +227,9 @@ export function buildImageGenPromptReply(userMessage = '') {
       ? 'Posso gerar a imagem agora com AI Gateway. Confirma? (sim / ajustar prompt)'
       : hasOpenAIConfig()
         ? 'Posso gerar a imagem agora com DALL-E 3. Confirma? (sim / ajustar prompt)'
-        : '_Para geração direta, configure `AI_GATEWAY_API_KEY` ou `OPENAI_API_KEY`. Por enquanto, use o prompt acima no Midjourney, DALL-E ou Stable Diffusion._',
+        : hasFalConfig() || hasGeminiImageConfig()
+          ? '_Gemini/FAL está disponível no stack Apex. Posso seguir pelo ArchVis/DirectCut ou usar o prompt acima sem exigir OpenAI._'
+          : '_Para geração direta, configure `AI_GATEWAY_API_KEY`, `FAL_KEY` ou `GEMINI_API_KEY`. Por enquanto, use o prompt acima no Gemini/FAL/Stable Diffusion._',
   ].join('\n')
 }
 
@@ -225,7 +237,7 @@ export function buildImageResultReply(result, prompt) {
   if (!result.ok) {
     return [
       `Não foi possível gerar a imagem: ${result.reason}`,
-      result.requiresConfig ? 'Configure `AI_GATEWAY_API_KEY` ou `OPENAI_API_KEY` para habilitar geração direta.' : '',
+      result.requiresConfig ? 'Use `AI_GATEWAY_API_KEY`, `FAL_KEY` ou `GEMINI_API_KEY` conforme o fluxo de imagem escolhido; OpenAI é opcional.' : '',
     ].filter(Boolean).join('\n')
   }
 
@@ -242,12 +254,16 @@ export function buildImageResultReply(result, prompt) {
 }
 
 export function getImageGenConnectorStatus() {
-  const configured = hasGatewayConfig() || hasOpenAIConfig()
+  const configured = hasGatewayConfig() || hasOpenAIConfig() || hasFalConfig() || hasGeminiImageConfig()
   const detail = hasGatewayConfig()
     ? 'AI Gateway configurado — geração direta disponível.'
     : hasOpenAIConfig()
       ? 'OpenAI DALL-E configurado — geração direta disponível.'
-      : 'Modo prompt: gera prompts profissionais para Midjourney/DALL-E/SD. Configure AI_GATEWAY_API_KEY ou OPENAI_API_KEY para geração direta.'
+      : hasFalConfig()
+        ? 'FAL configurado no stack Apex para geração visual.'
+        : hasGeminiImageConfig()
+          ? 'Gemini configurado para fluxo multimodal/prompt visual no stack Apex.'
+          : 'Modo prompt: gera prompts profissionais para Gemini/FAL/SD. OpenAI é opcional.'
 
   return {
     id: 'image_generation',

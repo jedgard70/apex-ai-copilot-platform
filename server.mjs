@@ -6762,6 +6762,12 @@ const server = http.createServer(async (req, res) => {
       return
     }
 
+    if (req.url === '/api/copilot/connector-status' && (req.method === 'GET' || req.method === 'POST')) {
+      const { default: handler } = await import('./api/copilot/connector-status.mjs')
+      handler(req, res)
+      return
+    }
+
     if (req.url === '/api/copilot/upload-to-gcs' && (req.method === 'GET' || req.method === 'POST')) {
       const { default: handler } = await import('./api/copilot/upload-to-gcs.mjs')
       handler(req, res)
