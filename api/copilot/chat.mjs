@@ -348,7 +348,7 @@ function stripGovernanceRestrictions(lines = []) {
 }
 
 function prefersPortugueseText(text = '', locale = '') {
-  const hasPtSignal = /\b(oi|ola|ol[aá]|bom dia|boa tarde|boa noite|vc|voce|você|quem sou|o que|serviços|servicos|preciso|ajuda|ajudar|me ajuda|orçamento|orcamento|consultoria|arquivo|anexar|upload|cronograma|marketing|vendas|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra|teste|quem é você|quem e voce|quem e vc|quem e apex|quem é a apex)\b|[ãõçáéíóú]/i.test(text)
+  const hasPtSignal = /\b(oi|ola|ol[aá]|bom dia|boa tarde|boa noite|vc|voce|você|quem sou|o que|fale|fala|explique|sobre|vistos|visto|serviços|servicos|preciso|ajuda|ajudar|me ajuda|orçamento|orcamento|consultoria|arquivo|anexar|upload|cronograma|marketing|vendas|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra|teste|quem é você|quem e voce|quem e vc|quem e apex|quem é a apex)\b|[ãõçáéíóú]/i.test(text)
   if (hasPtSignal) return true
   if (locale && String(locale).toLowerCase().startsWith('pt')) return true
   return false
@@ -360,6 +360,10 @@ function isCapabilitiesQuestionText(text = '') {
 
 function isContactQuestionText(text = '') {
   return /\b(como entrar em contato|falar com o suporte|falar com a equipe|telefone de contato|e-mail de contato|consultoria de contato|falar com|contact information|how to contact|contact support)\b/i.test(text.trim())
+}
+
+function isVisaQuestionText(text = '') {
+  return /\b(visto|vistos|visa|imigracao|imigração|consulado|turismo|trabalho|estudo)\b/i.test(text.trim())
 }
 
 function isUploadQuestionText(text = '') {
@@ -456,6 +460,11 @@ function buildChatFallbackReply(userText, identity, file = null, locale = '') {
     return pt
       ? 'Posso ajudar a preparar a consulta. Envie nome, email, telefone, cidade, tipo de projeto e o que precisa: BIM, 3D, contrato, alvará, proposta, financeiro, marketing ou operação de campo.'
       : 'I can help prepare the consultation. Send name, email, phone, city, project type and what you need: BIM, 3D, contract, permit, proposal, finance, marketing or field operations.'
+  }
+  if (isVisaQuestionText(userText)) {
+    return pt
+      ? 'Vistos são autorizações para entrar, permanecer, estudar, trabalhar ou investir em outro país. Em geral, o caminho depende do país, objetivo da viagem, duração, vínculos financeiros/profissionais e documentos de suporte. Posso te ajudar a comparar tipos de visto, montar checklist de documentos, preparar carta/declaração, organizar um cronograma e revisar riscos antes do envio. Para orientar melhor, me diga o país de destino e o objetivo: turismo, estudo, trabalho, negócios, investimento ou residência.'
+      : 'Visas are authorizations to enter, stay, study, work, or invest in another country. The right path depends on destination country, purpose, duration, financial/professional ties, and supporting documents. I can compare visa types, build a document checklist, draft letters, organize a timeline, and review risks before submission. Tell me the destination country and purpose: tourism, study, work, business, investment, or residency.'
   }
   if (isUploadQuestionText(userText)) {
     if (file && file.extractionStatus === 'ready' && String(file.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize|analise o arquivo|resuma o arquivo|analise este arquivo|resuma este arquivo|explique o arquivo|explique este arquivo)\b/i.test(userText || '')) {
@@ -2354,9 +2363,7 @@ export default async function handler(req, res) {
 
       // Motor Apex indisponivel neste runtime: nao exponha detalhes internos como Ollama/Gemma/Gemini.
       const pt = prefersPortugueseText(userMessage, locale)
-      const offlineMsg = pt
-        ? 'A Apex AI 2.0 esta ativa, mas o motor proprio conectado a este ambiente nao respondeu agora. Posso continuar em modo Apex controlado para analisar, planejar e orientar a execucao; acoes que alterem arquivos, modelos, deploys ou dados exigem confirmacao explicita.'
-        : 'Apex AI 2.0 is active, but the own engine connected to this environment did not respond right now. I can continue in controlled Apex mode for analysis, planning, and execution guidance; actions that change files, models, deployments, or data require explicit confirmation.'
+      const offlineMsg = buildChatFallbackReply(userMessage, identityContext, file, locale)
       return sendJson(res, 200, {
         finalReply: offlineMsg,
         reply: offlineMsg,
