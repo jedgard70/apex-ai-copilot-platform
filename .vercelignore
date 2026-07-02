@@ -7,6 +7,10 @@
 node_modules
 dist
 dist_electron
+build
+coverage
+playwright-report
+test-results
 *.tsbuildinfo
 .vercel
 
@@ -26,4 +30,21 @@ skill
 skills
 skills/imported/recovered_docsedgard
 skills/imported/auto_wrapped
+runtime
+training_data
+brain
+scratch
+notebooks
+integrations/tmp
 *.log
+*.tmp
+*.zip.tmp
+cloudflared.exe
+output.png
+output.mp4
+server/service-account.json
+.env
+.env.local
+.env.local.full
+.env*.local
+.env.vercel.sync
