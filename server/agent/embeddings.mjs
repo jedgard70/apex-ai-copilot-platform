@@ -1,12 +1,12 @@
 /**
  * Apex AI Copilot — Local & Remote Embeddings Generator
- * Connects to process.env.OPENAI_API_BASE/embeddings or local Ollama embeddings
+ * Connects to process.env.OPENAI_API_BASE/embeddings or Apex-owned embeddings
  */
 
 export async function generateEmbedding(text = '') {
   const apiKey = process.env.OPENAI_API_KEY || ''
   const apiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
-  const model = process.env.EMBEDDING_MODEL || 'text-embedding-3-small' // nomic-embed-text or all-minilm for local Ollama
+  const model = process.env.EMBEDDING_MODEL || 'text-embedding-3-small'
 
   if (!text.trim()) {
     const dimension = model.includes('384') || model.includes('minilm') ? 384 : 1536

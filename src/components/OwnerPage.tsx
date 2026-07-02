@@ -15,7 +15,7 @@ const PROVIDER_LABELS: Record<string, string> = {
   fal: 'FAL.ai', elevenlabs: 'ElevenLabs',
   firebase: 'Firebase', brave: 'Brave Search', stripe: 'Stripe', supabase: 'Supabase',
   authkey: 'AuthKey', github: 'GitHub', ffmpeg: 'FFmpeg', aps: 'Autodesk APS',
-  ollama: 'Ollama (Local)',
+  apexOwnEngine: 'Apex AI 2.0 Engine',
   'deploy-model': 'Deploy Model (HF)',
 }
 

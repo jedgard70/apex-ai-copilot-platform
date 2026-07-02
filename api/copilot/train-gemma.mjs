@@ -38,10 +38,10 @@ export default async function handler(req, res) {
             status: 'ready',
             message: 'Endpoint de treinamento Gemma Apex pronto.',
             notebook: 'notebooks/fine_tune_gemma_apex_colab.ipynb',
-            export: 'GGUF portável (Ollama/llama.cpp) — roda local no .exe, site e apps',
+            export: 'GGUF portável para Apex Own Runtime — roda no .exe, site e apps',
             options: [
                 { name: 'Treinar via Google Colab (grátis, GPU T4)', url: 'https://colab.research.google.com' },
-                { name: 'Treinar local via Ollama (CPU)', url: '' },
+                { name: 'Publicar no Apex Own Runtime', url: '' },
                 { name: 'Dataset de treino', examples: ds.train, path: 'training_data/apex_train.jsonl' },
                 { name: 'Dataset de teste (separado)', examples: ds.test, path: 'training_data/apex_test.jsonl' },
             ]
@@ -61,20 +61,19 @@ export default async function handler(req, res) {
 
         const method = body.method || 'colab'
 
-        if (method === 'ollama') {
-            // Treino local via Ollama
+        if (method === 'runtime') {
+            // Publicacao no runtime proprio Apex
             const commands = [
-                'ollama pull gemma:2b',
-                'ollama create apex-ai -f Modelfile.apex',
-                'ollama run apex-ai "Quem é você?"',
-                '# Pronto! Modelo apex-ai criado localmente'
+                'npm run setup:runtime',
+                'node server/apex-runtime/api-server.mjs',
+                '# Pronto! Apex Own Runtime servindo o modelo apex-ai'
             ]
             return sendJson(res, 200, {
                 status: 'instructions',
-                method: 'ollama',
+                method: 'runtime',
                 commands,
-                message: 'Rode os comandos abaixo no PowerShell para treinar o Gemma localmente.',
-                nextStep: 'Depois de treinar, configure o Apex AI para usar o endpoint local do Ollama.'
+                message: 'Rode os comandos abaixo no PowerShell para publicar o modelo no Apex Own Runtime.',
+                nextStep: 'Depois de publicar, configure APEX_API_URL ou APEX_OWN_ENGINE_URL para o endpoint próprio da Apex.'
             })
         }
 
@@ -156,8 +155,8 @@ tokenizer.save_pretrained("./gemma-apex-final")
 print("Treinamento concluído! Modelo salvo em ./gemma-apex-final")`,
             nextSteps: [
                 'Depois do treinamento, baixe a pasta gemma-apex-final',
-                'Converta para Ollama: ollama create apex-ai -f Modelfile.apex',
-                'Configure o Apex AI para usar o modelo local ou faça deploy no Hugging Face',
+                'Publique o modelo no Apex Own Runtime',
+                'Configure APEX_API_URL ou APEX_OWN_ENGINE_URL para o endpoint próprio da Apex',
             ]
         })
     } catch (err) {

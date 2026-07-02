@@ -2433,32 +2433,6 @@ async function handleChat(req, res) {
         } catch (_) { /* Apex own engine unavailable in this runtime */ }
       }
 
-      if (process.env.APEX_ENABLE_OLLAMA_LEGACY === 'true') {
-        const ollamaBase = process.env.APEX_LOCAL_URL || 'http://localhost:11434'
-      try {
-        const ollamaRes = await fetch(`${ollamaBase.replace(/\/$/, '')}/api/chat`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model: model || 'apex-ai', messages: apexMessages, stream: false }),
-          signal: AbortSignal.timeout(30000),
-        })
-        const ollamaData = await ollamaRes.json().catch(() => ({}))
-        const reply = String(ollamaData?.message?.content || '').trim()
-
-        if (ollamaRes.ok && reply) {
-          return chatJson(res, 200, {
-            finalReply: reply,
-            reply,
-            model: model || 'apex-ai',
-            mode: 'apex-local-ollama',
-            provider: 'apex-local',
-          })
-        }
-      } catch (err) {
-        console.warn('[apex-local] ollama unavailable:', scrubProviderError(err?.message || err))
-      }
-      }
-
       return chatJson(res, 200, {
         finalReply: buildChatFallbackReply(userText, identityContext, locale),
         mode: 'apex-local-unavailable',
@@ -6830,36 +6804,6 @@ const server = http.createServer(async (req, res) => {
       const { default: handler } = await import('./api/copilot/deploy-model.mjs')
       handler(req, res)
       return
-    }
-
-    // ─── Ollama Local API Proxy ─────────────────────────────────────────
-    if (req.url === '/api/copilot/ollama-models' && req.method === 'GET') {
-      try {
-        const ollamaRes = await fetch('http://127.0.0.1:11434/api/tags', { signal: AbortSignal.timeout(3000) })
-        if (!ollamaRes.ok) return chatJson(res, 200, { ok: true, ollamaRunning: false, models: [], note: 'ollama_not_running' })
-        const data = await ollamaRes.json()
-        return chatJson(res, 200, { ok: true, ollamaRunning: true, models: data.models || [] })
-      } catch {
-        return chatJson(res, 200, { ok: true, ollamaRunning: false, models: [], note: 'ollama_not_reachable' })
-      }
-    }
-
-    if (req.url === '/api/copilot/ollama-chat' && req.method === 'POST') {
-      const body = await readJson(req)
-      const { model = 'gemma2:2b', messages = [] } = body
-      try {
-        const ollamaRes = await fetch('http://127.0.0.1:11434/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model, messages, stream: false }),
-          signal: AbortSignal.timeout(30000),
-        })
-        if (!ollamaRes.ok) return chatJson(res, 200, { ok: false, error: 'ollama_error', status: ollamaRes.status })
-        const data = await ollamaRes.json()
-        return chatJson(res, 200, { ok: true, response: data })
-      } catch (err) {
-        return chatJson(res, 200, { ok: false, error: 'ollama_not_reachable', message: err.message })
-      }
     }
 
     if (req.url === '/api/service/order' && req.method === 'POST') {

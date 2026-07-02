@@ -337,23 +337,6 @@ async function checkFirebase() {
   } catch { return { id: 'firebase', name: 'Firebase (Auth, DB, Storage)', status: 'warning', message: 'Firebase configurado (verificação offline).' } }
 }
 
-// ─── Ollama (local) ─────────────────────────────────────────────────────────
-async function checkOllama() {
-  try {
-    const res = await safeFetch('http://127.0.0.1:11434/api/tags', {}, 3000)
-    if (!res.ok) return { id: 'ollama', name: 'Ollama (Local Models)', status: 'error', message: 'Ollama instalado mas não está rodando.' }
-    const data = await res.json().catch(() => ({ models: [] }))
-    const models = (data.models || []).map(m => m.name).filter(Boolean)
-    return {
-      id: 'ollama', name: 'Ollama (Local Models)', status: 'ok',
-      message: `${models.length} modelos locais: ${models.slice(0, 5).join(', ')}${models.length > 5 ? ` (+${models.length - 5})` : ''}`,
-      models,
-    }
-  } catch {
-    return { id: 'ollama', name: 'Ollama (Local Models)', status: 'unconfigured', message: 'Ollama não detectado. Disponível em https://ollama.com' }
-  }
-}
-
 // ─── Handler ──────────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -373,7 +356,6 @@ export default async function handler(req, res) {
     checkAuthKey(),
     checkFfmpeg(),
     checkAps(),
-    checkOllama(),
   ])
 
   const providers = checks.map(r =>
