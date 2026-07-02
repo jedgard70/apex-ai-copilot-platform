@@ -393,6 +393,23 @@ function shouldForceLiveAgentToolUse(text = '') {
   return /\b(implementar|corrigir|editar|alterar|ajustar|criar|gerar|build|testar|validar|commit|push|deploy|migration|supabase|vercel|github|executar|execute|rodar|run|aplicar|verificar|checar|revisar|revisao|auditar|auditoria|atualizar|codigo|arquivo|arquivos|repositorio|modulo|modulos|integracao|mostrar|mostra|ver|analisar|analise|mcp|conector|conectores|git|status|branch|projeto|plataforma|habilidade|habilidades|capacidade|capacidades|fazer|faz)\b/.test(value)
 }
 
+function isVercelRuntime() {
+  return Boolean(process.env.VERCEL || process.env.NOW_REGION || process.env.VERCEL_ENV)
+}
+
+function shouldUseProductionOperator(text = '') {
+  const value = String(text || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+
+  if (!shouldForceLiveAgentToolUse(value)) return false
+  if (/^\s*(responda|responder|explique|me explique|conte|diga|fale|qual|quais|quem|onde|quando|por que|porque|como)\b/.test(value)) {
+    return /\b(verifique|cheque|status|conector|conectores|github|vercel|deploy|supabase|validar|validacao|build|commit|push|git|revit|mcp)\b/.test(value)
+  }
+  return true
+}
+
 function isIdentityQuestionText(text) {
   return /\b(vc sabe quem sou eu|você sabe quem sou eu|voce sabe quem sou eu|quem sou eu|do you know who i am|who am i)\b/i.test(String(text || '').trim())
 }
@@ -1998,28 +2015,32 @@ export default async function handler(req, res) {
       }
     }
 
-    // Run the production operator safe mode check for structured platform intents
-    const opResult = await runApexOperatorProductionSafe({
-      userMessage: routingMessage,
-      identityContext: normalizeIdentityContext(body.identityContext || {}),
-      workspaceContext: body.workspaceContext || {},
-      repoPath: process.cwd(),
-      permissions: {},
-      productionStatus,
-      clientMemory,
-      messages: Array.isArray(body.messages) ? body.messages.slice(-10) : [],
-    })
-
-    if (opResult.intent !== 'production_general' && opResult.intent !== 'production_general_portuguese') {
-      return sendJson(res, 200, {
-        finalReply: opResult.finalReply,
-        reply: opResult.finalReply,
-        memoryPatch: opResult.memoryPatch || null,
-        mode: 'apex-operator-production-safe',
-        operator: opResult,
-        confirmation: buildConfirmationUi(opResult),
+    // Run the production operator only for explicit platform/connector/execution intents.
+    // Plain chat must stay conversational; otherwise harmless prompts like
+    // "responda apenas..." can be misclassified as validation/execution.
+    if (shouldUseProductionOperator(routingMessage)) {
+      const opResult = await runApexOperatorProductionSafe({
+        userMessage: routingMessage,
+        identityContext: normalizeIdentityContext(body.identityContext || {}),
+        workspaceContext: body.workspaceContext || {},
+        repoPath: process.cwd(),
+        permissions: {},
         productionStatus,
+        clientMemory,
+        messages: Array.isArray(body.messages) ? body.messages.slice(-10) : [],
       })
+
+      if (opResult.intent !== 'production_general' && opResult.intent !== 'production_general_portuguese') {
+        return sendJson(res, 200, {
+          finalReply: opResult.finalReply,
+          reply: opResult.finalReply,
+          memoryPatch: opResult.memoryPatch || null,
+          mode: 'apex-operator-production-safe',
+          operator: opResult,
+          confirmation: buildConfirmationUi(opResult),
+          productionStatus,
+        })
+      }
     }
 
     // Short-circuit: If the request includes an active file with ready extraction and
@@ -2117,7 +2138,7 @@ export default async function handler(req, res) {
     const envDefaultModel = String(process.env.GEMINI_MODEL || '').trim()
     // Se LOCAL_WORKER_URL configurado → usa Apex AI própria (Gemma) como padrão
     // Se não → usa Gemini como padrão
-    const hasLocalWorker = Boolean(process.env.LOCAL_WORKER_URL && process.env.LOCAL_WORKER_TOKEN)
+    const hasLocalWorker = Boolean(!isVercelRuntime() && process.env.LOCAL_WORKER_URL && process.env.LOCAL_WORKER_TOKEN)
     const safeDefaultModel = hasLocalWorker
       ? 'local-worker|apex-ai'
       : (envDefaultModel && !envDefaultModel.toLowerCase().startsWith('apex-local')
@@ -2127,6 +2148,12 @@ export default async function handler(req, res) {
     const selectedModel = splitModelValue ? splitModelValue(selectedModelRaw) : { provider: null, modelId: selectedModelRaw, raw: selectedModelRaw }
     let modelProvider = selectedModel.provider || ''
     let model = selectedModel.modelId || selectedModelRaw
+    if (isVercelRuntime() && modelProvider === 'local-worker') {
+      modelProvider = 'gemini'
+      model = envDefaultModel && !envDefaultModel.toLowerCase().startsWith('apex-local')
+        ? envDefaultModel
+        : 'gemini-2.5-flash'
+    }
 
     // local-worker provider — usa o servidor Apex AI do PC do Owner
     if (modelProvider === 'local-worker' || (hasLocalWorker && !modelProvider)) {
