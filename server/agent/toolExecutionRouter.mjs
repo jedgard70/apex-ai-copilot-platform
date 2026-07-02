@@ -1,6 +1,7 @@
 import { collectConnectorsStatusReadOnly } from './connectorsStatus.mjs'
 import { EXECUTION_CLASSES, getExecutionCapabilityMatrix, getToolDefinition, getToolRegistry } from './toolRegistry.mjs'
 import { classifyH6ActionRequest, buildConfirmationReply, ACTION_CATALOG } from './executionPolicy.mjs'
+import { getRevitConnectorStatus } from './revitBimConnector.mjs'
 
 function normalizeMessage(message = '') {
   return String(message || '')
@@ -173,6 +174,34 @@ async function executeReadOnlyTool(toolId) {
   }
 }
 
+async function executeOperationalTool(toolId) {
+  if (toolId === 'revit_mcp.status' || toolId === 'revit_model.status') {
+    const status = getRevitConnectorStatus()
+    return {
+      executed: true,
+      executionMode: 'operational_connector',
+      result: {
+        status: status.status,
+        configured: status.configured,
+        label: status.label,
+        detail: status.detail,
+        canOperate: Boolean(status.configured),
+        operationScope: toolId === 'revit_model.status'
+          ? 'model_status_check_and_bim_operations'
+          : 'aps_or_revit_mcp_bridge',
+        requiresConfirmationForMutation: true,
+        secretsExposed: false,
+      },
+    }
+  }
+
+  return {
+    executed: false,
+    executionMode: 'not_supported',
+    result: null,
+  }
+}
+
 async function executeLocalWorkerHealth() {
   const workerUrl = process.env.LOCAL_WORKER_URL || process.env.Local_Worker_URL
   const workerToken = process.env.LOCAL_WORKER_TOKEN || process.env.Local_Worker_TOKEN
@@ -263,6 +292,9 @@ function buildCapabilityDetail(item) {
   const missing = item.missing.length ? item.missing.join(', ') : 'nenhum'
   if (item.executionClass === EXECUTION_CLASSES.MUTATION_REQUIRES_CONFIRMATION) {
     return `   Classe: ${item.executionClass}. Status: ${item.configured ? 'available' : 'unavailable'} para preparar. Mutação exige confirmação explícita, evidência, rollback e rota dedicada. Faltando: ${missing}.`
+  }
+  if (item.executionClass === EXECUTION_CLASSES.OPERATIONAL_CONNECTED) {
+    return `   Classe: ${item.executionClass}. Status: ${item.configured ? 'operational' : 'unavailable'}. Operação conectada disponível; alterações no modelo exigem confirmação explícita. Faltando: ${missing}.`
   }
   if (item.executionClass === EXECUTION_CLASSES.EXTERNAL_DESKTOP_REQUIRES_LOCAL_WORKER) {
     return `   Classe: ${item.executionClass}. Status: ${item.configured ? 'available' : 'unavailable'}. Faltando: ${missing}.`
@@ -360,6 +392,13 @@ function buildToolExecutionReply({ requestTools = [], executions = [] } = {}) {
           lines.push(`   Ações permitidas (${r.allowedActions.length}): ${r.allowedActions.slice(0, 5).join(', ')}${r.allowedActions.length > 5 ? '...' : ''}.`)
         }
         if (r?.nextRequired) lines.push(`   Próximo: ${r.nextRequired}`)
+      } else if (item.id === 'revit_mcp.status' || item.id === 'revit_model.status') {
+        const r = exec.result
+        if (r?.status) lines.push(`   Status conector: ${redact(r.status)}.`)
+        if (r?.canOperate) lines.push('   Operacional: sim, com APS/Revit MCP configurado.')
+        if (r?.operationScope) lines.push(`   Escopo operacional: ${redact(r.operationScope)}.`)
+        if (r?.requiresConfirmationForMutation) lines.push('   Escrita/mutação no modelo: exige confirmação explícita.')
+        if (r?.detail) lines.push(`   Detalhe: ${redact(r.detail)}`)
       } else {
         if (exec.result?.status) lines.push(`   Status conector: ${redact(exec.result.status)}.`)
         if (exec.result?.projectId) lines.push(`   Projeto: ${redact(exec.result.projectId)}.`)
@@ -439,6 +478,10 @@ export async function routeToolExecution({
   for (const item of requestTools) {
     if (item.executionClass === EXECUTION_CLASSES.READ_ONLY && item.configured) {
       executions.push({ toolId: item.id, ...(await executeReadOnlyTool(item.id)) })
+      continue
+    }
+    if (item.executionClass === EXECUTION_CLASSES.OPERATIONAL_CONNECTED && item.configured) {
+      executions.push({ toolId: item.id, ...(await executeOperationalTool(item.id)) })
       continue
     }
     executions.push({

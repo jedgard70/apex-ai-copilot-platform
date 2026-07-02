@@ -40,7 +40,13 @@ const cases = [
     message: 'O que voce pode me ajudar com Revit e BIM?',
     intent: 'production_revit_bim_help',
     validate(result) {
-      assertIncludes(result.finalReply, ['revit', 'bim', 'quantitativos', 'sem fingir execucao'])
+      assertIncludes(result.finalReply, ['revit', 'bim', 'quantitativos'])
+      assert.ok(
+        String(result.finalReply || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes('operar em modo conectado')
+          || String(result.finalReply || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes('sem fingir execucao'),
+        `expected Revit reply to state connected operation or no fake execution\n\n${result.finalReply}`,
+      )
+      assertIncludes(result.finalReply, ['confirmacao explicita'])
       assert.equal(result.requiresApproval, false)
     },
   },
