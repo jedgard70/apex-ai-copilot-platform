@@ -15,6 +15,7 @@
     { "source": "/api/copilot/bim-tour-plan", "destination": "/api/copilot/plan" },
     { "source": "/api/prompts/:path*", "destination": "/api/prompts/index.mjs" },
     { "source": "/api/reports/:path*", "destination": "/api/reports/index.mjs" },
+    { "source": "/v1/:path*", "destination": "/api/v1/:path*" },
     { "source": "/premium", "destination": "/premium.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
