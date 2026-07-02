@@ -343,7 +343,7 @@ async function checkOllama() {
     const res = await safeFetch('http://127.0.0.1:11434/api/tags', {}, 3000)
     if (!res.ok) return { id: 'ollama', name: 'Ollama (Local Models)', status: 'error', message: 'Ollama instalado mas não está rodando.' }
     const data = await res.json().catch(() => ({ models: [] }))
-    const models = (data.models || []).map((m: any) => m.name).filter(Boolean)
+    const models = (data.models || []).map(m => m.name).filter(Boolean)
     return {
       id: 'ollama', name: 'Ollama (Local Models)', status: 'ok',
       message: `${models.length} modelos locais: ${models.slice(0, 5).join(', ')}${models.length > 5 ? ` (+${models.length - 5})` : ''}`,
