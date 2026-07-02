@@ -132,7 +132,13 @@ export async function getProviderChain(options = {}) {
 
   // Gemini — usa /openai para compatibilidade com chat/completions
   if (geminiKey) {
-    const chatBase = process.env.GEMINI_API_BASE || "https://generativelanguage.googleapis.com/v1beta/openai"
+    // Sanitiza GEMINI_API_BASE: se estiver configurado como URL legacy generateContent
+    // (ex: .../models/model:generateContent), usa o endpoint OpenAI-compatible correto.
+    const rawBase = process.env.GEMINI_API_BASE || ""
+    const isLegacyUrl = rawBase && (rawBase.includes('/models/') || rawBase.includes(':generateContent'))
+    const chatBase = isLegacyUrl || !rawBase
+      ? "https://generativelanguage.googleapis.com/v1beta/openai"
+      : rawBase
     const models = skipDynamicFetch ? [] : await getGeminiModels(geminiKey)
     const rawList = models.length > 0 ? models.map(m => m.id) : GEMINI_STATIC_FALLBACKS
     const geminiModelsList = prioritizeGeminiModels(rawList)
