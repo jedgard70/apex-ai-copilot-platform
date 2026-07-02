@@ -2166,11 +2166,53 @@ export default async function handler(req, res) {
       } catch (err) {
         recordCallSafe({ provider: 'apex-local', model, latencyMs: Date.now() - t0, success: false, errorMsg: err.message })
       }
-      // Ollama indisponível — resposta honesta
+
+      // ── Fallback: tenta local-worker como gateway de IA ──────────────────
+      const localWorkerUrl = process.env.LOCAL_WORKER_URL || ''
+      const localWorkerToken = process.env.LOCAL_WORKER_TOKEN || ''
+      if (localWorkerUrl && localWorkerToken) {
+        try {
+          const lwRes = await fetch(`${localWorkerUrl.replace(/\/$/, '')}/ai/chat`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${localWorkerToken}`,
+            },
+            body: JSON.stringify({
+              messages: [
+                { role: 'system', content: 'Você é a Apex AI, assistente profissional. Responda em português, diretamente.' },
+                ...(Array.isArray(body.messages) ? body.messages.slice(-10) : [])
+                  .filter(m => m?.role === 'user' || m?.role === 'assistant')
+                  .map(m => ({ role: m.role, content: String(m.text || m.content || '') })),
+                { role: 'user', content: userMessage },
+              ],
+              model: 'apex-ai',
+            }),
+            signal: AbortSignal.timeout(30000),
+          })
+          if (lwRes.ok) {
+            const lwData = await lwRes.json()
+            const reply = lwData.reply || lwData.finalReply || lwData.choices?.[0]?.message?.content || ''
+            if (reply) {
+              recordCallSafe({ provider: lwData.provider || 'local-worker-gemma', model: 'apex-ai', latencyMs: Date.now() - t0, success: true })
+              return sendJson(res, 200, {
+                finalReply: reply,
+                reply,
+                mode: 'local-worker-gemma',
+                provider: lwData.provider || 'local-worker-gemma',
+                confirmation: null,
+                productionStatus,
+              })
+            }
+          }
+        } catch (_) { /* local-worker unavailable */ }
+      }
+
+      // Ollama e local-worker indisponíveis — resposta honesta
       const pt = prefersPortugueseText(userMessage, locale)
       const offlineMsg = pt
-        ? `O modelo Apex local não respondeu. Verifique se o Ollama está rodando (${ollamaBase}) com o modelo "apex-ai" criado. No terminal: "ollama create apex-ai -f Modelfile" e "ollama serve".`
-        : `The local Apex model did not respond. Make sure Ollama is running (${ollamaBase}) with the "apex-ai" model created: "ollama create apex-ai -f Modelfile" then "ollama serve".`
+        ? `O modelo Apex local não respondeu. Verifique se o Ollama está rodando (${process.env.APEX_LOCAL_URL || 'http://localhost:11434'}) com o modelo "apex-ai" criado. No terminal: "ollama create apex-ai -f Modelfile" e "ollama serve".`
+        : `The local Apex model did not respond. Make sure Ollama is running (${process.env.APEX_LOCAL_URL || 'http://localhost:11434'}) with the "apex-ai" model created: "ollama create apex-ai -f Modelfile" then "ollama serve".`
       return sendJson(res, 200, {
         finalReply: offlineMsg,
         reply: offlineMsg,

@@ -81,7 +81,7 @@ function probeVersion(bin, timeoutMs = 4000) {
     proc.stderr.on('data', d => { out += d.toString() })
 
     const timer = setTimeout(() => {
-      try { proc.kill() } catch (_) {}
+      try { proc.kill() } catch (_) { }
       settle(null)
     }, timeoutMs)
 
@@ -209,8 +209,8 @@ async function discoverBin(candidates) {
 
 // Log override presence (never log values)
 console.log(`[apex-worker] NODE_BIN override: ${process.env.NODE_BIN ? 'configured' : 'not configured'}`)
-console.log(`[apex-worker] NPM_BIN override:  ${process.env.NPM_BIN  ? 'configured' : 'not configured'}`)
-console.log(`[apex-worker] GIT_BIN override:  ${process.env.GIT_BIN  ? 'configured' : 'not configured'}`)
+console.log(`[apex-worker] NPM_BIN override:  ${process.env.NPM_BIN ? 'configured' : 'not configured'}`)
+console.log(`[apex-worker] GIT_BIN override:  ${process.env.GIT_BIN ? 'configured' : 'not configured'}`)
 
 // Run discovery once at startup — never fatal
 console.log('[apex-worker] Discovering tools...')
@@ -222,19 +222,19 @@ const [nodeDiscovered, npmDiscovered, gitDiscovered] = await Promise.all([
 
 const TOOLS = {
   node: nodeDiscovered
-    ? { available: true,  path: nodeDiscovered.path, version: nodeDiscovered.version, reason: null }
+    ? { available: true, path: nodeDiscovered.path, version: nodeDiscovered.version, reason: null }
     : { available: false, path: null, version: null, reason: 'Not found. Set NODE_BIN in .env or reinstall Node.js.' },
   npm: npmDiscovered
-    ? { available: true,  path: npmDiscovered.path, version: npmDiscovered.version, reason: null }
+    ? { available: true, path: npmDiscovered.path, version: npmDiscovered.version, reason: null }
     : { available: false, path: null, version: null, reason: 'Not found. Set NPM_BIN=npm.cmd in .env or reinstall Node.js.' },
   git: gitDiscovered
-    ? { available: true,  path: gitDiscovered.path, version: gitDiscovered.version, reason: null }
+    ? { available: true, path: gitDiscovered.path, version: gitDiscovered.version, reason: null }
     : { available: false, path: null, version: null, reason: 'Not found. Set GIT_BIN in .env or install Git for Windows (https://git-scm.com).' },
 }
 
 console.log(`[apex-worker] node: ${TOOLS.node.available ? `✓ ${TOOLS.node.path} (${TOOLS.node.version})` : `✗ ${TOOLS.node.reason}`}`)
-console.log(`[apex-worker] npm:  ${TOOLS.npm.available  ? `✓ ${TOOLS.npm.path} (${TOOLS.npm.version})`   : `✗ ${TOOLS.npm.reason}`}`)
-console.log(`[apex-worker] git:  ${TOOLS.git.available  ? `✓ ${TOOLS.git.path} (${TOOLS.git.version})`   : `✗ ${TOOLS.git.reason}`}`)
+console.log(`[apex-worker] npm:  ${TOOLS.npm.available ? `✓ ${TOOLS.npm.path} (${TOOLS.npm.version})` : `✗ ${TOOLS.npm.reason}`}`)
+console.log(`[apex-worker] git:  ${TOOLS.git.available ? `✓ ${TOOLS.git.path} (${TOOLS.git.version})` : `✗ ${TOOLS.git.reason}`}`)
 
 // ─── Command timeout ───────────────────────────────────────────────────────────
 
@@ -253,9 +253,9 @@ function requireTool(name) {
 // ─── Risk classification ───────────────────────────────────────────────────────
 
 const RISK_CLASS = {
-  READ:      'read',
-  VALIDATE:  'validate',
-  WRITE:     'write',
+  READ: 'read',
+  VALIDATE: 'validate',
+  WRITE: 'write',
   DANGEROUS: 'dangerous',
 }
 
@@ -267,8 +267,8 @@ function buildActionMap() {
       risk: RISK_CLASS.READ,
       build: () => [
         { ...requireTool('node'), args: ['--version'] },
-        { ...requireTool('npm'),  args: ['--version'] },
-        { ...requireTool('git'),  args: ['--version'] },
+        { ...requireTool('npm'), args: ['--version'] },
+        { ...requireTool('git'), args: ['--version'] },
       ],
     },
     'node.version': {
@@ -608,7 +608,8 @@ function buildActionMap() {
           : ''
         return [
           // System info
-          { ...requireTool(IS_WINDOWS ? 'git' : 'node'), tag: 'system-info',
+          {
+            ...requireTool(IS_WINDOWS ? 'git' : 'node'), tag: 'system-info',
             bin: IS_WINDOWS ? 'powershell' : 'echo',
             args: IS_WINDOWS ? [
               '-ExecutionPolicy', 'Bypass', '-Command', `
@@ -621,7 +622,8 @@ function buildActionMap() {
                 Write-Host ("Ultimo boot: " + $os.LastBootUpTime);
               `
             ] : ['Sistema: modo diagnóstico não-Windows limitado'],
-            shell: false },
+            shell: false
+          },
         ]
       }
     },
@@ -631,8 +633,9 @@ function buildActionMap() {
       risk: RISK_CLASS.READ,
       build: () => {
         if (!IS_WINDOWS) return [{ ...requireTool('node'), tag: 'system', bin: 'echo', args: ['Diagnóstico CPU/RAM apenas no Windows'], shell: false }]
-        return [{ ...requireTool('git'), tag: 'cpu-ram', bin: 'powershell', args: [
-          '-ExecutionPolicy', 'Bypass', '-Command', `
+        return [{
+          ...requireTool('git'), tag: 'cpu-ram', bin: 'powershell', args: [
+            '-ExecutionPolicy', 'Bypass', '-Command', `
             Write-Host "=== CPU ===";
             $cpu = Get-CimInstance Win32_Processor | Select-Object -First 1;
             $cpuLoad = (Get-CimInstance Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average;
@@ -657,7 +660,8 @@ function buildActionMap() {
               Write-Host ($_.ProcessName.Substring(0, [Math]::Min($_.ProcessName.Length, 25)).PadRight(26) + $mb.ToString().PadLeft(8) + " MB (PID " + $_.Id + ")");
             }
           `
-        ], shell: false }]
+          ], shell: false
+        }]
       }
     },
 
@@ -666,8 +670,9 @@ function buildActionMap() {
       risk: RISK_CLASS.READ,
       build: () => {
         if (!IS_WINDOWS) return [{ ...requireTool('node'), tag: 'system', bin: 'echo', args: ['Diagnóstico de disco apenas no Windows'], shell: false }]
-        return [{ ...requireTool('git'), tag: 'disk', bin: 'powershell', args: [
-          '-ExecutionPolicy', 'Bypass', '-Command', `
+        return [{
+          ...requireTool('git'), tag: 'disk', bin: 'powershell', args: [
+            '-ExecutionPolicy', 'Bypass', '-Command', `
             Write-Host "=== DISCOS ===";
             Get-CimInstance Win32_LogicalDisk -Filter "DriveType=3" | % {
               $total = [math]::Round($_.Size/1GB, 1);
@@ -682,7 +687,8 @@ function buildActionMap() {
               Write-Host ($_.Name + ": fila " + $_.AvgDiskQueueLength + " | leituras/s " + $_.DiskReadsPerSec + " | escritas/s " + $_.DiskWritesPerSec + " | tempo% " + $_.PercentDiskTime + "%");
             }
           `
-        ], shell: false }]
+          ], shell: false
+        }]
       }
     },
 
@@ -691,8 +697,9 @@ function buildActionMap() {
       risk: RISK_CLASS.READ,
       build: () => {
         if (!IS_WINDOWS) return [{ ...requireTool('node'), tag: 'system', bin: 'echo', args: ['Diagnóstico de serviços apenas no Windows'], shell: false }]
-        return [{ ...requireTool('git'), tag: 'services', bin: 'powershell', args: [
-          '-ExecutionPolicy', 'Bypass', '-Command', `
+        return [{
+          ...requireTool('git'), tag: 'services', bin: 'powershell', args: [
+            '-ExecutionPolicy', 'Bypass', '-Command', `
             Write-Host "=== SERVICOS IMPORTANTES ===";
             @("WSearch","wuauserv","Spooler","MpsSvc","Dnscache","DHCP","Winmgmt","RemoteRegistry","Themes","UxSms","Audiosrv","Schedule","BFE","iphlpsvc","lmhosts","PolicyAgent","WdiServiceHost","WdiSystemHost","WinHttpAutoProxySvc","WlanSvc") | % {
               $s = Get-Service -Name $_ -ErrorAction SilentlyContinue;
@@ -702,7 +709,8 @@ function buildActionMap() {
               }
             }
           `
-        ], shell: false }]
+          ], shell: false
+        }]
       }
     },
 
@@ -711,14 +719,16 @@ function buildActionMap() {
       risk: RISK_CLASS.READ,
       build: () => {
         if (!IS_WINDOWS) return [{ ...requireTool('node'), tag: 'system', bin: 'echo', args: ['Diagnóstico de inicialização apenas no Windows'], shell: false }]
-        return [{ ...requireTool('git'), tag: 'startup', bin: 'powershell', args: [
-          '-ExecutionPolicy', 'Bypass', '-Command', `
+        return [{
+          ...requireTool('git'), tag: 'startup', bin: 'powershell', args: [
+            '-ExecutionPolicy', 'Bypass', '-Command', `
             Write-Host "=== PROGRAMAS DE INICIALIZACAO ===";
             $startup = Get-CimInstance Win32_StartupCommand | Sort Name;
             if ($startup) { $startup | % { Write-Host ($_.Name + " - " + $_.Command + (if ($_.User) { " (Usuario: " + $_.User + ")" } else { "" })); } }
             else { Write-Host "Nenhum programa de inicializacao encontrado." }
           `
-        ], shell: false }]
+          ], shell: false
+        }]
       }
     },
 
@@ -727,8 +737,9 @@ function buildActionMap() {
       risk: RISK_CLASS.READ,
       build: () => {
         if (!IS_WINDOWS) return [{ ...requireTool('node'), tag: 'system', bin: 'echo', args: ['Auditoria de temporários apenas no Windows'], shell: false }]
-        return [{ ...requireTool('git'), tag: 'temp', bin: 'powershell', args: [
-          '-ExecutionPolicy', 'Bypass', '-Command', `
+        return [{
+          ...requireTool('git'), tag: 'temp', bin: 'powershell', args: [
+            '-ExecutionPolicy', 'Bypass', '-Command', `
             Write-Host "=== ARQUIVOS TEMPORARIOS ===";
             $paths = @("$env:TEMP", "$env:WINDIR\\Prefetch", "$env:WINDIR\\Temp", "$env:LOCALAPPDATA\\Temp");
             foreach ($p in $paths) {
@@ -744,7 +755,8 @@ function buildActionMap() {
             $rbCount = $rb.Items().Count;
             Write-Host ("Itens na lixeira: " + $rbCount);
           `
-        ], shell: false }]
+          ], shell: false
+        }]
       }
     },
 
@@ -754,8 +766,9 @@ function buildActionMap() {
       requiresConfirmation: true,
       build: () => {
         if (!IS_WINDOWS) return [{ ...requireTool('node'), tag: 'system', bin: 'echo', args: ['Limpeza de temporários apenas no Windows'], shell: false }]
-        return [{ ...requireTool('git'), tag: 'clean', bin: 'powershell', args: [
-          '-ExecutionPolicy', 'Bypass', '-Command', `
+        return [{
+          ...requireTool('git'), tag: 'clean', bin: 'powershell', args: [
+            '-ExecutionPolicy', 'Bypass', '-Command', `
             Write-Host "Limpando arquivos temporarios...";
             $paths = @("$env:TEMP\\*", "$env:WINDIR\\Temp\\*", "$env:LOCALAPPDATA\\Temp\\*");
             $totalRemoved = 0;
@@ -770,7 +783,8 @@ function buildActionMap() {
             Write-Host ("Total removido: " + $totalRemoved + " arquivos.");
             Write-Host "Arquivos temporarios limpos com sucesso.";
           `
-        ], shell: false }]
+          ], shell: false
+        }]
       }
     },
 
@@ -782,8 +796,9 @@ function buildActionMap() {
         const name = String(params.name || '').trim()
         if (!name) return [{ ok: false, tag: 'system', reason: 'nome do programa obrigatório (params.name)' }]
         if (!IS_WINDOWS) return [{ ...requireTool('node'), tag: 'system', bin: 'echo', args: ['Gestão de inicialização apenas no Windows'], shell: false }]
-        return [{ ...requireTool('git'), tag: 'startup-disable', bin: 'powershell', args: [
-          '-ExecutionPolicy', 'Bypass', '-Command', `
+        return [{
+          ...requireTool('git'), tag: 'startup-disable', bin: 'powershell', args: [
+            '-ExecutionPolicy', 'Bypass', '-Command', `
             Write-Host "Desabilitando entrada de inicializacao: ${name}";
             Get-CimInstance Win32_StartupCommand | Where-Object { \$_.Name -like "*${name}*" -or \$_.Command -like "*${name}*" } | % {
               Write-Host "Removendo: " + \$_.Name;
@@ -794,7 +809,8 @@ function buildActionMap() {
             }
             Write-Host "Entrada de inicializacao desabilitada. Recomenda-se reiniciar o computador.";
           `
-        ], shell: false }]
+          ], shell: false
+        }]
       }
     },
 
@@ -807,8 +823,9 @@ function buildActionMap() {
       risk: RISK_CLASS.READ,
       build: () => {
         if (!IS_WINDOWS) return [{ ...requireTool('node'), tag: 'revit', bin: 'echo', args: ['Revit apenas no Windows'], shell: false }]
-        return [{ ...requireTool('git'), tag: 'revit', bin: 'powershell', args: [
-          '-ExecutionPolicy', 'Bypass', '-Command', `
+        return [{
+          ...requireTool('git'), tag: 'revit', bin: 'powershell', args: [
+            '-ExecutionPolicy', 'Bypass', '-Command', `
             Write-Host "=== VERIFICANDO INSTALACAO DO REVIT ===";
             $paths = @(
               "C:\\Program Files\\Autodesk\\Revit *\\Revit.exe",
@@ -847,7 +864,8 @@ function buildActionMap() {
             }
             if (-not $found) { Write-Host "Revit nao encontrado nos diretorios padrao." }
           `
-        ], shell: false }]
+          ], shell: false
+        }]
       }
     },
 
@@ -861,8 +879,9 @@ function buildActionMap() {
         // Write script to temp file and execute via pyRevit CLI
         const scriptPath = `$env:TEMP\\apex_revit_${Date.now()}.py`
         return [
-          { ...requireTool('git'), tag: 'revit', bin: 'powershell', args: [
-            '-ExecutionPolicy', 'Bypass', '-Command', `
+          {
+            ...requireTool('git'), tag: 'revit', bin: 'powershell', args: [
+              '-ExecutionPolicy', 'Bypass', '-Command', `
               $scriptContent = @'
 ${script}
 '@;
@@ -885,7 +904,8 @@ ${script}
                 }
               }
             `
-          ], shell: false }
+            ], shell: false
+          }
         ]
       }
     },
@@ -895,8 +915,9 @@ ${script}
       risk: RISK_CLASS.READ,
       build: () => {
         if (!IS_WINDOWS) return [{ ...requireTool('node'), tag: 'revit', bin: 'echo', args: ['Revit apenas no Windows'], shell: false }]
-        return [{ ...requireTool('git'), tag: 'revit', bin: 'powershell', args: [
-          '-ExecutionPolicy', 'Bypass', '-Command', `
+        return [{
+          ...requireTool('git'), tag: 'revit', bin: 'powershell', args: [
+            '-ExecutionPolicy', 'Bypass', '-Command', `
             Write-Host "=== ADD-INS DO REVIT ===";
             $addinDirs = @(
               "$env:APPDATA\\Autodesk\\Revit\\Addins",
@@ -922,7 +943,8 @@ ${script}
               }
             }
           `
-        ], shell: false }]
+          ], shell: false
+        }]
       }
     },
   }
@@ -993,7 +1015,7 @@ function runCommand(bin, args, timeoutMs = COMMAND_TIMEOUT_MS, input = null, use
     proc.stderr.on('data', d => { stderr += d.toString() })
 
     const timer = setTimeout(() => {
-      try { proc.kill('SIGTERM') } catch (_) {}
+      try { proc.kill('SIGTERM') } catch (_) { }
       res({ exitCode: -1, stdout, stderr: stderr + '\n[timeout]', durationMs: Date.now() - start })
     }, timeoutMs)
 
@@ -1120,7 +1142,7 @@ async function handleRequest(req, res) {
   const url = new URL(req.url || '/', `http://127.0.0.1:${PORT}`)
   const path = url.pathname
 
-  res.setHeader('Access-Control-Allow-Origin', '127.0.0.1')
+  res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type')
 
@@ -1214,6 +1236,127 @@ async function handleRequest(req, res) {
     return sendJson(res, result.ok || result.partial ? 200 : 500, result)
   }
 
+  // ── POST /ai/chat  ────────────────────────────────────────────────────────
+  // Gateway unificado: usa Gemma local (Ollama) ou Gemini API como fallback.
+  // Funciona em QUALQUER país — sem restrições de região.
+  // Chamado por: site, app .exe, WhatsApp bot, integrações externas.
+  if (req.method === 'POST' && (path === '/ai/chat' || path === '/v1/chat/completions')) {
+    const auth = checkAuth(req)
+    if (!auth.ok) return sendJson(res, auth.status, { ok: false, reason: auth.reason })
+
+    const body = await readBody(req)
+    const messages = Array.isArray(body.messages) ? body.messages : []
+    const model = String(body.model || 'apex-ai')
+    const temperature = Number(body.temperature) || 0.7
+    const maxTokens = Number(body.max_tokens || body.maxTokens) || 1000
+
+    // 1ª tentativa: Ollama local (Gemma / apex-ai — grátis, offline, qualquer país)
+    const ollamaUrl = process.env.APEX_LOCAL_URL || process.env.OLLAMA_URL || 'http://127.0.0.1:11434'
+    try {
+      const ollamaModel = model.startsWith('apex') || model.startsWith('gemma') ? model : 'apex-ai'
+      const ollamaBody = JSON.stringify({
+        model: ollamaModel,
+        messages,
+        stream: false,
+        options: { temperature, num_predict: maxTokens },
+      })
+      const ollamaRes = await fetch(`${ollamaUrl}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: ollamaBody,
+        signal: AbortSignal.timeout(25000),
+      })
+      if (ollamaRes.ok) {
+        const data = await ollamaRes.json()
+        const reply = data?.message?.content || ''
+        if (reply) {
+          // Retorna no formato OpenAI-compatible (funciona com qualquer integração)
+          return sendJson(res, 200, {
+            ok: true,
+            provider: 'apex-local-gemma',
+            model: ollamaModel,
+            choices: [{ index: 0, message: { role: 'assistant', content: reply }, finish_reason: 'stop' }],
+            usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+            finalReply: reply,
+            reply,
+          })
+        }
+      }
+    } catch (ollamaErr) {
+      console.log('[apex-worker/ai] Ollama indisponível, tentando Gemini:', ollamaErr?.message?.slice(0, 80))
+    }
+
+    // 2ª tentativa: Gemini API (requer internet + GEMINI_API_KEY)
+    const geminiKey = process.env.GEMINI_API_KEY
+    if (geminiKey) {
+      try {
+        const geminiModel = 'gemini-2.5-flash'
+        const geminiMessages = messages.filter(m => m.role !== 'system')
+        const systemText = messages.find(m => m.role === 'system')?.content || ''
+        const body = JSON.stringify({
+          model: geminiModel,
+          messages: geminiMessages,
+          temperature,
+          max_tokens: maxTokens,
+          ...(systemText && { system: systemText }),
+        })
+        const geminiRes = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${geminiKey}` },
+            body,
+            signal: AbortSignal.timeout(20000),
+          }
+        )
+        if (geminiRes.ok) {
+          const data = await geminiRes.json()
+          const reply = data?.choices?.[0]?.message?.content || ''
+          if (reply) {
+            return sendJson(res, 200, {
+              ok: true,
+              provider: 'gemini-fallback',
+              model: geminiModel,
+              choices: data.choices,
+              usage: data.usage,
+              finalReply: reply,
+              reply,
+            })
+          }
+        }
+      } catch (geminiErr) {
+        console.log('[apex-worker/ai] Gemini também falhou:', geminiErr?.message?.slice(0, 80))
+      }
+    }
+
+    return sendJson(res, 503, {
+      ok: false,
+      reason: 'Nenhum provedor de IA disponível. Verifique se o Ollama está rodando ou se GEMINI_API_KEY está configurado.',
+    })
+  }
+
+  // ── GET /ai/status ────────────────────────────────────────────────────────
+  // Retorna status dos provedores de IA disponíveis localmente
+  if (req.method === 'GET' && path === '/ai/status') {
+    const ollamaUrl = process.env.APEX_LOCAL_URL || 'http://127.0.0.1:11434'
+    let ollamaOnline = false
+    let ollamaModels = []
+    try {
+      const r = await fetch(`${ollamaUrl}/api/tags`, { signal: AbortSignal.timeout(3000) })
+      if (r.ok) {
+        const data = await r.json()
+        ollamaOnline = true
+        ollamaModels = (data.models || []).map(m => m.name)
+      }
+    } catch (_) { }
+    return sendJson(res, 200, {
+      ok: true,
+      ollama: { online: ollamaOnline, url: ollamaUrl, models: ollamaModels },
+      gemini: { configured: Boolean(process.env.GEMINI_API_KEY) },
+      recommended: ollamaOnline ? 'apex-ai (local, grátis, qualquer país)' : 'gemini-2.5-flash (requer internet)',
+    })
+  }
+
   // ── 404 ───────────────────────────────────────────────────────────────────
   sendJson(res, 404, { ok: false, reason: `Route ${req.method} ${path} not found.` })
 }
@@ -1245,8 +1388,8 @@ server.listen(PORT, '127.0.0.1', () => {
   console.log(`[apex-worker] Apex Local Worker H6.0 running on http://127.0.0.1:${PORT}`)
   console.log(`[apex-worker] Project path: ${PROJECT_PATH}`)
   console.log(`[apex-worker] node: ${TOOLS.node.available ? TOOLS.node.version : 'NOT FOUND'}`)
-  console.log(`[apex-worker] npm:  ${TOOLS.npm.available  ? TOOLS.npm.version  : 'NOT FOUND — set NPM_BIN=npm.cmd in .env'}`)
-  console.log(`[apex-worker] git:  ${TOOLS.git.available  ? TOOLS.git.version  : 'NOT FOUND — set GIT_BIN in .env'}`)
+  console.log(`[apex-worker] npm:  ${TOOLS.npm.available ? TOOLS.npm.version : 'NOT FOUND — set NPM_BIN=npm.cmd in .env'}`)
+  console.log(`[apex-worker] git:  ${TOOLS.git.available ? TOOLS.git.version : 'NOT FOUND — set GIT_BIN in .env'}`)
   console.log(`[apex-worker] Allowed actions: ${[...ALLOWED_ACTION_IDS].join(', ')}`)
   console.log('[apex-worker] Free shell: ENABLED (via project.raw_shell)')
 })
