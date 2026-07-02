@@ -1547,7 +1547,7 @@ function buildIdentityReply(userText, identity) {
 }
 
 function prefersPortugueseText(text = '', locale = '') {
-  const hasPtSignal = /\b(oi|ola|ol[aá]|bom dia|boa tarde|boa noite|vc|voce|você|quem sou|o que|serviços|servicos|preciso|ajuda|ajudar|me ajuda|orçamento|orcamento|consultoria|arquivo|anexar|upload|cronograma|marketing|vendas|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra|teste|quem é você|quem e voce|quem e vc|quem e apex|quem é a apex)\b|[ãõçáéíóú]/i.test(text)
+  const hasPtSignal = /\b(oi|ola|ol[aá]|bom dia|boa tarde|boa noite|vc|voce|você|quem sou|o que|fale|fala|explique|sobre|vistos|visto|serviços|servicos|preciso|ajuda|ajudar|me ajuda|orçamento|orcamento|consultoria|arquivo|anexar|upload|cronograma|marketing|vendas|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra|teste|quem é você|quem e voce|quem e vc|quem e apex|quem é a apex)\b|[ãõçáéíóú]/i.test(text)
   if (hasPtSignal) return true
   if (locale && String(locale).toLowerCase().startsWith('pt')) return true
   return false
@@ -1559,6 +1559,10 @@ function isCapabilitiesQuestionText(text = '') {
 
 function isContactQuestionText(text = '') {
   return /\b(como entrar em contato|falar com o suporte|falar com a equipe|telefone de contato|e-mail de contato|consultoria de contato|falar com|contact information|how to contact|contact support)\b/i.test(text.trim())
+}
+
+function isVisaQuestionText(text = '') {
+  return /\b(visto|vistos|visa|imigracao|imigração|consulado|turismo|trabalho|estudo)\b/i.test(text.trim())
 }
 
 function isUploadQuestionText(text = '') {
@@ -1611,6 +1615,11 @@ function buildChatFallbackReply(userText, identity, locale = '') {
     return pt
       ? 'Claro! Posso ajudar a preparar um pré-cadastro. Para isso, preciso de algumas informações: nome completo, email, telefone, cidade, tipo de projeto (BIM, 3D, contrato, alvará, proposta) e uma breve descrição do que precisa. Quer começar?'
       : 'Sure! I can help prepare a pre-registration. I\'ll need some info: full name, email, phone, city, project type (BIM, 3D, contract, permit, proposal), and a brief description of what you need. Shall we start?'
+  }
+  if (isVisaQuestionText(userText)) {
+    return pt
+      ? 'Vistos são autorizações para entrar, permanecer, estudar, trabalhar ou investir em outro país. Em geral, o caminho depende do país, objetivo da viagem, duração, vínculos financeiros/profissionais e documentos de suporte. Posso te ajudar a comparar tipos de visto, montar checklist de documentos, preparar carta/declaração, organizar um cronograma e revisar riscos antes do envio. Para orientar melhor, me diga o país de destino e o objetivo: turismo, estudo, trabalho, negócios, investimento ou residência.'
+      : 'Visas are authorizations to enter, stay, study, work, or invest in another country. The right path depends on destination country, purpose, duration, financial/professional ties, and supporting documents. I can compare visa types, build a document checklist, draft letters, organize a timeline, and review risks before submission. Tell me the destination country and purpose: tourism, study, work, business, investment, or residency.'
   }
   if (isUploadQuestionText(userText)) {
     return 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar (ícone de clipe). Eu uso o arquivo como contexto e sigo com uma análise direta — sem rodeios!'
@@ -2451,7 +2460,7 @@ async function handleChat(req, res) {
       }
 
       return chatJson(res, 200, {
-        finalReply: 'A Apex AI 2.0 esta ativa, mas o motor proprio conectado a este ambiente nao respondeu agora. Posso continuar em modo Apex controlado para analisar, planejar e orientar a execucao; acoes que alterem arquivos, modelos, deploys ou dados exigem confirmacao explicita.',
+        finalReply: buildChatFallbackReply(userText, identityContext, locale),
         mode: 'apex-local-unavailable',
         provider: 'apex-local',
       })
