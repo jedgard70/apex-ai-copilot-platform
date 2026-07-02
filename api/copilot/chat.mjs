@@ -2114,16 +2114,56 @@ export default async function handler(req, res) {
     }
 
     // ─── GEMINI NOW USES FULL TOOL-CAPABLE PIPELINE (same as all providers) ───
-    // Gemini gets the same full Apex system prompt + tools.
     const envDefaultModel = String(process.env.GEMINI_MODEL || '').trim()
-    // Modelo padrão: Gemini no site/web, apex-local só quando explicitamente selecionado
-    const safeDefaultModel = envDefaultModel && !envDefaultModel.toLowerCase().startsWith('apex-local')
-      ? `gemini|${envDefaultModel}`
-      : 'gemini|gemini-2.5-flash'
+    // Se LOCAL_WORKER_URL configurado → usa Apex AI própria (Gemma) como padrão
+    // Se não → usa Gemini como padrão
+    const hasLocalWorker = Boolean(process.env.LOCAL_WORKER_URL && process.env.LOCAL_WORKER_TOKEN)
+    const safeDefaultModel = hasLocalWorker
+      ? 'local-worker|apex-ai'
+      : (envDefaultModel && !envDefaultModel.toLowerCase().startsWith('apex-local')
+        ? `gemini|${envDefaultModel}`
+        : 'gemini|gemini-2.5-flash')
     const selectedModelRaw = body.model || body.selectedModel || safeDefaultModel
     const selectedModel = splitModelValue ? splitModelValue(selectedModelRaw) : { provider: null, modelId: selectedModelRaw, raw: selectedModelRaw }
     let modelProvider = selectedModel.provider || ''
     let model = selectedModel.modelId || selectedModelRaw
+
+    // local-worker provider — usa o servidor Apex AI do PC do Owner
+    if (modelProvider === 'local-worker' || (hasLocalWorker && !modelProvider)) {
+      const lwUrl = (process.env.LOCAL_WORKER_URL || '').replace(/\/$/, '')
+      const lwToken = process.env.LOCAL_WORKER_TOKEN || ''
+      try {
+        const lwMessages = [
+          { role: 'system', content: 'Você é a Apex AI, plataforma profissional de arquitetura, construção, BIM e gestão. Responda em português de forma direta e técnica.' },
+          ...(Array.isArray(body.messages) ? body.messages.slice(-10) : [])
+            .filter(m => m?.role === 'user' || m?.role === 'assistant')
+            .map(m => ({ role: m.role, content: String(m.text || m.content || '').slice(0, 4000) })),
+          { role: 'user', content: userMessage },
+        ]
+        const lwRes = await fetch(`${lwUrl}/ai/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${lwToken}` },
+          body: JSON.stringify({ messages: lwMessages, model: model || 'apex-ai' }),
+          signal: AbortSignal.timeout(30000),
+        })
+        if (lwRes.ok) {
+          const lwData = await lwRes.json()
+          const reply = lwData.reply || lwData.finalReply || ''
+          if (reply) {
+            recordCallSafe({ provider: 'local-worker-apex', model: 'apex-ai', latencyMs: 0, success: true })
+            return sendJson(res, 200, {
+              finalReply: reply, reply,
+              mode: 'local-worker-apex-ai',
+              provider: 'apex-ai-proprio',
+              confirmation: null, productionStatus,
+            })
+          }
+        }
+      } catch (_) { /* fallthrough para Gemini */ }
+      // Fallback para Gemini se local-worker falhar
+      modelProvider = 'gemini'
+      model = 'gemini-2.5-flash'
+    }
 
     if (!modelProvider && String(selectedModel.raw || '').trim().toLowerCase() === 'apex-local') {
       modelProvider = 'apex-local'
