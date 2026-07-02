@@ -210,12 +210,6 @@ function buildStaticModelCatalog() {
       provider: 'elevenlabs',
       name: model.name,
     })),
-    ...APEX_LOCAL_MODELS.map(model => ({
-      id: composeModelValue('apex-local', model.id),
-      modelId: model.id,
-      provider: 'apex-local',
-      name: model.name,
-    })),
   ]
 }
 
@@ -926,7 +920,7 @@ function buildLiveAgentToolDefinitions() {
     {
       type: 'function',
       function: {
-        name: 'run_safe_local_command',
+        name: 'run_local_command',
         description: 'Run a local Apex project command when live project evidence is needed. Use this naturally; the user does not need to know command names.',
         parameters: {
           type: 'object',
@@ -1234,10 +1228,13 @@ function convertToInteractionTools(tools) {
 async function callGeminiNative(requestPayload, overrideConfig) {
   const startTime = Date.now()
   const resolved = getGeminiConfig(requestPayload.model)
-  const apiBase = overrideConfig?.apiBase || resolved.apiBase
+  const rawApiBase = overrideConfig?.apiBase || resolved.apiBase
   const apiKey = overrideConfig?.apiKey || resolved.apiKey
   const providerLabel = 'gemini'
   const modelName = requestPayload.model || 'unknown'
+  // Sanitiza: se a URL for legacy generateContent ou OpenAI-compat, normaliza para v1beta puro
+  const isLegacyUrl = rawApiBase && (rawApiBase.includes('/models/') || rawApiBase.includes(':generateContent'))
+  const apiBase = isLegacyUrl ? 'https://generativelanguage.googleapis.com/v1beta' : rawApiBase
   // Use standard Gemini API base, not OpenAI-compatible, for native generateContent
   const geminiBase = apiBase.includes('/openai') ? 'https://generativelanguage.googleapis.com/v1beta' : apiBase
   // Interactions API lives at /v1/interactions, NOT /v1beta/interactions
