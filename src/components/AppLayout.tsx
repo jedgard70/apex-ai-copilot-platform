@@ -1,6 +1,6 @@
 import { ReactNode, useState } from 'react'
 import { useIsMobile, useIsTablet } from '../lib/useIsMobile'
-import { PwaInstallBanner, IosInstallBanner } from './PwaInstallBanner'
+import { PwaInstallBanner, IosInstallBanner, PwaInstallButton } from './PwaInstallBanner'
 
 const sidebarItems = [
   { icon: 'dashboard', label: 'Dashboard', id: 'dashboard' },
@@ -427,6 +427,8 @@ export default function AppLayout({
         <>
           <PwaInstallBanner />
           <IosInstallBanner />
+          {/* Botão fixo sempre visível enquanto não instalado */}
+          <PwaInstallButton />
         </>
       )}
     </div>
