@@ -2292,34 +2292,6 @@ export default async function handler(req, res) {
         } catch (_) { /* Apex own engine unavailable in this runtime */ }
       }
 
-      if (process.env.APEX_ENABLE_OLLAMA_LEGACY === 'true') {
-        const ollamaBase = process.env.APEX_LOCAL_URL || 'http://localhost:11434'
-      try {
-        const ollamaRes = await fetch(`${ollamaBase.replace(/\/$/, '')}/api/chat`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model: model || 'apex-ai', messages: apexMessages, stream: false }),
-          signal: AbortSignal.timeout(30000),
-        })
-        const ollamaData = await ollamaRes.json().catch(() => ({}))
-        const reply = ollamaData?.message?.content || ''
-        recordCallSafe({ provider: 'apex-local', model, latencyMs: Date.now() - t0, success: ollamaRes.ok && !!reply, errorMsg: ollamaRes.ok ? null : 'ollama unavailable' })
-        if (ollamaRes.ok && reply) {
-          return sendJson(res, 200, {
-            finalReply: reply,
-            reply,
-            model: model || 'apex-ai',
-            mode: 'apex-local-ollama',
-            provider: 'apex-local',
-            confirmation: null,
-            productionStatus,
-          })
-        }
-      } catch (err) {
-        recordCallSafe({ provider: 'apex-local', model, latencyMs: Date.now() - t0, success: false, errorMsg: err.message })
-      }
-      }
-
       // ── Fallback legado: tenta local-worker como gateway de IA ───────────
       const localWorkerUrl = process.env.LOCAL_WORKER_URL || ''
       const localWorkerToken = process.env.LOCAL_WORKER_TOKEN || ''
@@ -2361,7 +2333,7 @@ export default async function handler(req, res) {
         } catch (_) { /* local-worker unavailable */ }
       }
 
-      // Motor Apex indisponivel neste runtime: nao exponha detalhes internos como Ollama/Gemma/Gemini.
+      // Motor Apex indisponivel neste runtime: continue conversacional sem expor detalhes internos.
       const pt = prefersPortugueseText(userMessage, locale)
       const offlineMsg = buildChatFallbackReply(userMessage, identityContext, file, locale)
       return sendJson(res, 200, {

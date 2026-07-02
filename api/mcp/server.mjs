@@ -151,13 +151,13 @@ async function executeTool(name, args) {
                     'Contracts Studio', 'Field Ops + RDO', 'EVM Scheduler',
                     'CRM Pipeline', 'Research Studio', 'WhatsApp/SMS',
                     'Stripe Payments', 'MS Project', 'NR Compliance',
-                    'Local Worker (comandos PC)', 'Apex AI Local (Gemma/Ollama)',
+                    'Local Worker (comandos PC)', 'Apex AI 2.0 Own Engine',
                 ],
                 providers: {
                     gemini: Boolean(process.env.GEMINI_API_KEY),
                     fal: Boolean(process.env.FAL_KEY),
                     elevenlabs: Boolean(process.env.ELEVENLABS_API_KEY),
-                    ollama: Boolean(process.env.APEX_LOCAL_URL),
+                    apexOwnEngine: Boolean(process.env.APEX_OWN_ENGINE_URL || process.env.APEX_API_URL || process.env.APEX_RUNTIME_ENABLED),
                     localWorker: Boolean(process.env.LOCAL_WORKER_URL),
                 },
             }

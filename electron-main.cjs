@@ -81,7 +81,7 @@ function isEngineReady() {
   });
 }
 
-// Inicia o motor de IA proprio da Apex (sem Ollama)
+// Inicia o motor de IA proprio da Apex
 function startApexEngine(appRoot) {
   const engineScript = path.join(appRoot, "server", "apex-runtime", "api-server.mjs");
   if (!fs.existsSync(engineScript)) {
@@ -149,8 +149,9 @@ app.whenReady().then(async () => {
       ...buildNodeChildEnv(),
       PORT: String(APP_PORT),
       NODE_ENV: "production",
-      // Motor proprio na porta 11435
-      APEX_LOCAL_URL: "http://127.0.0.1:11435",
+      // Motor proprio Apex
+      APEX_OWN_ENGINE_URL: "http://127.0.0.1:8888",
+      APEX_API_URL: "http://127.0.0.1:8888",
       APEX_RUNTIME_ENABLED: "true",
       LOCAL_WORKER_URL: "http://127.0.0.1:8787",
     },

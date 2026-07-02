@@ -1,7 +1,7 @@
 /**
  * server/apex-runtime/engine.mjs
  *
- * Motor de IA da Apex AI — 100% proprietário, sem Ollama, sem Google.
+ * Motor de IA da Apex AI — 100% proprietário.
  *
  * COMO FUNCIONA:
  *   1. Na primeira vez: baixa llama-server.exe (~50MB) e o modelo GGUF (~1.5GB)

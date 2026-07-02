@@ -27,6 +27,41 @@ async function callGemini(apiKey, model, prompt) {
   return data?.candidates?.[0]?.content?.parts?.[0]?.text || ''
 }
 
+async function callApexOwnEngine(prompt) {
+  const engineUrls = [
+    process.env.APEX_OWN_ENGINE_URL,
+    process.env.APEX_API_URL,
+    process.env.LOCAL_WORKER_URL,
+  ].filter(Boolean)
+
+  for (const engineUrl of engineUrls) {
+    try {
+      const token = process.env.APEX_API_TOKEN || process.env.LOCAL_WORKER_TOKEN || ''
+      const headers = { 'Content-Type': 'application/json' }
+      if (token) headers.Authorization = `Bearer ${token}`
+      const resp = await fetch(`${String(engineUrl).replace(/\/$/, '')}/ai/chat`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          model: 'apex-ai',
+          messages: [
+            { role: 'system', content: buildSystemPrompt() },
+            { role: 'user', content: prompt },
+          ],
+          temperature: 0.2,
+          maxTokens: 2048,
+        }),
+        signal: AbortSignal.timeout(30000),
+      })
+      if (!resp.ok) continue
+      const data = await resp.json().catch(() => ({}))
+      const text = data.reply || data.finalReply || data.choices?.[0]?.message?.content || ''
+      if (text) return text
+    } catch (_) { /* try next Apex endpoint */ }
+  }
+  return ''
+}
+
 function parseAiResponse(text) {
   const clean = text.trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim()
   try { return JSON.parse(clean) } catch { return null }
@@ -154,9 +189,16 @@ export default async function handler(req, res) {
     
     const geminiKey = process.env.GEMINI_API_KEY
     const fallback = getLocalFallback(visaId)
+    const prompt = buildUserPrompt(visaId, formData)
+
+    const apexText = await callApexOwnEngine(prompt)
+    const apexData = apexText ? parseAiResponse(apexText) : null
+    if (apexData) {
+      return sendJson(res, 200, { documents: apexData, providerStatus: 'apex-ai-own-engine' })
+    }
 
     if (geminiKey) {
-      const rawText = await callGemini(geminiKey, 'gemini-2.5-flash', `${buildSystemPrompt()}\n\n${buildUserPrompt(visaId, formData)}`)
+      const rawText = await callGemini(geminiKey, 'gemini-2.5-flash', `${buildSystemPrompt()}\n\n${prompt}`)
       const aiData = parseAiResponse(rawText)
       if (aiData) {
         return sendJson(res, 200, { documents: aiData, providerStatus: 'gemini' })

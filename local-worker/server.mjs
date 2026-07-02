@@ -1237,8 +1237,7 @@ async function handleRequest(req, res) {
   }
 
   // ── POST /ai/chat  ────────────────────────────────────────────────────────
-  // Gateway unificado: usa Gemma local (Ollama) ou Gemini API como fallback.
-  // Funciona em QUALQUER país — sem restrições de região.
+  // Gateway Apex AI 2.0: usa somente o motor proprio Apex para este modelo.
   // Chamado por: site, app .exe, WhatsApp bot, integrações externas.
   if (req.method === 'POST' && (path === '/ai/chat' || path === '/v1/chat/completions')) {
     const auth = checkAuth(req)
@@ -1250,110 +1249,60 @@ async function handleRequest(req, res) {
     const temperature = Number(body.temperature) || 0.7
     const maxTokens = Number(body.max_tokens || body.maxTokens) || 1000
 
-    // 1ª tentativa: Ollama local (Gemma / apex-ai — grátis, offline, qualquer país)
-    const ollamaUrl = process.env.APEX_LOCAL_URL || process.env.OLLAMA_URL || 'http://127.0.0.1:11434'
-    try {
-      const ollamaModel = model.startsWith('apex') || model.startsWith('gemma') ? model : 'apex-ai'
-      const ollamaBody = JSON.stringify({
-        model: ollamaModel,
-        messages,
-        stream: false,
-        options: { temperature, num_predict: maxTokens },
-      })
-      const ollamaRes = await fetch(`${ollamaUrl}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: ollamaBody,
-        signal: AbortSignal.timeout(25000),
-      })
-      if (ollamaRes.ok) {
-        const data = await ollamaRes.json()
-        const reply = data?.message?.content || ''
+    const apexEngineUrls = [
+      process.env.APEX_OWN_ENGINE_URL,
+      process.env.APEX_API_URL,
+      'http://127.0.0.1:8888',
+    ].filter(Boolean)
+
+    for (const engineUrl of apexEngineUrls) {
+      try {
+        const engineToken = process.env.APEX_API_TOKEN || ''
+        const headers = { 'Content-Type': 'application/json' }
+        if (engineToken) headers.Authorization = `Bearer ${engineToken}`
+        const engineRes = await fetch(`${String(engineUrl).replace(/\/$/, '')}/ai/chat`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ model, messages, temperature, maxTokens }),
+          signal: AbortSignal.timeout(25000),
+        })
+        if (!engineRes.ok) continue
+        const data = await engineRes.json().catch(() => ({}))
+        const reply = data.reply || data.finalReply || data.choices?.[0]?.message?.content || ''
         if (reply) {
-          // Retorna no formato OpenAI-compatible (funciona com qualquer integração)
           return sendJson(res, 200, {
             ok: true,
-            provider: 'apex-local-gemma',
-            model: ollamaModel,
+            provider: data.provider || 'apex-ai-own-engine',
+            model: model || 'apex-ai',
             choices: [{ index: 0, message: { role: 'assistant', content: reply }, finish_reason: 'stop' }],
-            usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+            usage: data.usage || { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
             finalReply: reply,
             reply,
           })
         }
-      }
-    } catch (ollamaErr) {
-      console.log('[apex-worker/ai] Ollama indisponível, tentando Gemini:', ollamaErr?.message?.slice(0, 80))
-    }
-
-    // 2ª tentativa: Gemini API (requer internet + GEMINI_API_KEY)
-    const geminiKey = process.env.GEMINI_API_KEY
-    if (geminiKey) {
-      try {
-        const geminiModel = 'gemini-2.5-flash'
-        const geminiMessages = messages.filter(m => m.role !== 'system')
-        const systemText = messages.find(m => m.role === 'system')?.content || ''
-        const body = JSON.stringify({
-          model: geminiModel,
-          messages: geminiMessages,
-          temperature,
-          max_tokens: maxTokens,
-          ...(systemText && { system: systemText }),
-        })
-        const geminiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${geminiKey}` },
-            body,
-            signal: AbortSignal.timeout(20000),
-          }
-        )
-        if (geminiRes.ok) {
-          const data = await geminiRes.json()
-          const reply = data?.choices?.[0]?.message?.content || ''
-          if (reply) {
-            return sendJson(res, 200, {
-              ok: true,
-              provider: 'gemini-fallback',
-              model: geminiModel,
-              choices: data.choices,
-              usage: data.usage,
-              finalReply: reply,
-              reply,
-            })
-          }
-        }
-      } catch (geminiErr) {
-        console.log('[apex-worker/ai] Gemini também falhou:', geminiErr?.message?.slice(0, 80))
+      } catch (engineErr) {
+        console.log('[apex-worker/ai] Apex Own Engine indisponivel:', engineErr?.message?.slice(0, 80))
       }
     }
 
-    return sendJson(res, 503, {
-      ok: false,
-      reason: 'Nenhum provedor de IA disponível. Verifique se o Ollama está rodando ou se GEMINI_API_KEY está configurado.',
-    })
+    const reply = 'Apex AI 2.0 esta ativa em modo controlado. Posso analisar, planejar e preparar a execucao com seguranca; acoes de escrita exigem confirmacao explicita.'
+    return sendJson(res, 200, { ok: true, provider: 'apex-ai-controlled', model: 'apex-ai', finalReply: reply, reply })
   }
 
   // ── GET /ai/status ────────────────────────────────────────────────────────
-  // Retorna status dos provedores de IA disponíveis localmente
+  // Retorna status do motor Apex AI proprio
   if (req.method === 'GET' && path === '/ai/status') {
-    const ollamaUrl = process.env.APEX_LOCAL_URL || 'http://127.0.0.1:11434'
-    let ollamaOnline = false
-    let ollamaModels = []
+    const apexEngineUrl = process.env.APEX_OWN_ENGINE_URL || process.env.APEX_API_URL || 'http://127.0.0.1:8888'
+    let apexOwnEngineOnline = false
     try {
-      const r = await fetch(`${ollamaUrl}/api/tags`, { signal: AbortSignal.timeout(3000) })
-      if (r.ok) {
-        const data = await r.json()
-        ollamaOnline = true
-        ollamaModels = (data.models || []).map(m => m.name)
-      }
+      const r = await fetch(`${apexEngineUrl.replace(/\/$/, '')}/health`, { signal: AbortSignal.timeout(3000) })
+      apexOwnEngineOnline = Boolean(r.ok)
     } catch (_) { }
     return sendJson(res, 200, {
       ok: true,
-      ollama: { online: ollamaOnline, url: ollamaUrl, models: ollamaModels },
+      apexOwnEngine: { online: apexOwnEngineOnline, url: apexEngineUrl },
       gemini: { configured: Boolean(process.env.GEMINI_API_KEY) },
-      recommended: ollamaOnline ? 'apex-ai (local, grátis, qualquer país)' : 'gemini-2.5-flash (requer internet)',
+      recommended: 'apex-ai',
     })
   }
 

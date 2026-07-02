@@ -82,7 +82,7 @@ function hasGeminiStack() {
 }
 
 function hasApexLocalStack() {
-  return hasEnv('LOCAL_WORKER_URL') || hasEnv('APEX_LOCAL_URL') || hasEnv('APEX_RUNTIME_ENABLED')
+  return hasEnv('LOCAL_WORKER_URL') || hasEnv('APEX_OWN_ENGINE_URL') || hasEnv('APEX_API_URL') || hasEnv('APEX_RUNTIME_ENABLED')
 }
 
 function hasAutodeskStack() {
