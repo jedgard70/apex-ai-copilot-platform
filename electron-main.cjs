@@ -123,19 +123,14 @@ function createWindow() {
 app.whenReady().then(async () => {
   console.log('[Apex] Iniciando plataforma Apex AI...');
 
-  // Inicia o Ollama em background (invisível para o usuário)
-  const ollamaReady = await startOllama();
-
-  // Inicia o servidor backend Node.js na porta 3333
+  // Inicia o servidor backend IMEDIATAMENTE (não espera Ollama)
   serverProcess = spawn('node', [path.join(__dirname, 'server.mjs')], {
     env: {
       ...process.env,
       PORT: '3333',
       NODE_ENV: 'production',
-      // Se Ollama estiver pronto, ativa o modelo local automaticamente
-      APEX_LOCAL_URL: ollamaReady ? 'http://127.0.0.1:11434' : '',
-      APEX_RUNTIME_ENABLED: ollamaReady ? 'true' : 'false',
-      // Local worker também será iniciado junto
+      APEX_LOCAL_URL: 'http://127.0.0.1:11434',
+      APEX_RUNTIME_ENABLED: 'true',
       LOCAL_WORKER_URL: 'http://127.0.0.1:8787',
     },
     stdio: 'inherit',
@@ -143,10 +138,16 @@ app.whenReady().then(async () => {
 
   serverProcess.on('error', err => console.error('[Apex] Server error:', err.message));
 
-  // Abre a janela após o servidor estar pronto
+  // Abre a janela após 2.5s (servidor precisa de tempo para iniciar)
   setTimeout(() => {
     createWindow();
-  }, ollamaReady ? 3000 : 2000);
+  }, 2500);
+
+  // Inicia Ollama EM BACKGROUND — não bloqueia a abertura do app
+  startOllama().then(ready => {
+    if (ready) console.log('[Apex] ✅ Modelo local Apex AI ativado.');
+    else console.log('[Apex] Modelo local não disponível — usando Gemini.');
+  }).catch(() => { });
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
