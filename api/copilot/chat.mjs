@@ -2334,8 +2334,7 @@ export default async function handler(req, res) {
       }
 
       // Motor Apex indisponivel neste runtime: continue conversacional sem expor detalhes internos.
-      const pt = prefersPortugueseText(userMessage, locale)
-      const offlineMsg = buildChatFallbackReply(userMessage, identityContext, file, locale)
+      const offlineMsg = buildChatFallbackReply(userMessage, identityContext, body.file || null, locale)
       return sendJson(res, 200, {
         finalReply: offlineMsg,
         reply: offlineMsg,
