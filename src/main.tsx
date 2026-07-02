@@ -2197,8 +2197,21 @@ function App() {
       return
     }
 
+    // Timeout de segurança: se o Supabase demorar >8s (rede lenta / mobile),
+    // libera a tela de login em vez de ficar congelado indefinidamente.
+    const authTimeout = setTimeout(() => {
+      if (mounted) {
+        setAuthLoading(false)
+        setAuthMessage('Conexão lenta. Faça login para continuar.')
+      }
+    }, 8000)
+
     refreshAuthState().then(state => {
+      clearTimeout(authTimeout)
       if (mounted && state?.sessionStatus !== 'signed-in') clearProtectedPanels()
+    }).catch(() => {
+      clearTimeout(authTimeout)
+      if (mounted) setAuthLoading(false)
     })
 
     const { client } = getBrowserSupabaseClient()
@@ -2210,6 +2223,7 @@ function App() {
 
     return () => {
       mounted = false
+      clearTimeout(authTimeout)
       subscription?.unsubscribe()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
