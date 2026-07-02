@@ -14,6 +14,9 @@ const APP_PORT = 3333;
 function getAppRoot() {
   if (!app.isPackaged) return __dirname;
 
+  const asarRoot = path.join(process.resourcesPath, "app.asar");
+  if (fs.existsSync(path.join(asarRoot, "server.mjs"))) return asarRoot;
+
   const unpackedRoot = path.join(process.resourcesPath, "app.asar.unpacked");
   if (fs.existsSync(path.join(unpackedRoot, "server.mjs"))) return unpackedRoot;
 
@@ -66,6 +69,24 @@ function buildNodeChildEnv(extra = {}) {
     ELECTRON_RUN_AS_NODE: "1",
     ...extra,
   };
+}
+
+function startupHtml({ title = "Apex AI Copilot", message = "Iniciando plataforma local...", detail = "" } = {}) {
+  return `data:text/html;charset=utf-8,${encodeURIComponent(`<!doctype html>
+    <html lang="pt-BR">
+      <head>
+        <meta charset="utf-8" />
+        <title>${title}</title>
+        <style>
+          body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #07111f; color: #e5edf7; font-family: Inter, Segoe UI, Arial, sans-serif; }
+          main { width: min(620px, calc(100vw - 48px)); border: 1px solid #22324a; background: #0d1b2f; padding: 28px; border-radius: 10px; box-shadow: 0 24px 80px rgba(0,0,0,.35); }
+          h1 { margin: 0 0 10px; font-size: 24px; }
+          p { margin: 8px 0; color: #b8c4d6; line-height: 1.45; }
+          code { color: #9dd3ff; }
+        </style>
+      </head>
+      <body><main><h1>${title}</h1><p>${message}</p>${detail ? `<p><code>${detail}</code></p>` : ""}</main></body>
+    </html>`)}`;
 }
 
 // Verifica se o motor proprio esta rodando
@@ -124,13 +145,18 @@ function createWindow(initialPath = "/") {
     log("[Apex] Janela Electron ficou sem resposta.");
   });
 
-  mainWindow.loadURL(`http://127.0.0.1:${APP_PORT}${initialPath}`);
+  if (initialPath === "__startup__") {
+    mainWindow.loadURL(startupHtml());
+  } else {
+    mainWindow.loadURL(`http://127.0.0.1:${APP_PORT}${initialPath}`);
+  }
 }
 
 app.whenReady().then(async () => {
   const appRoot = getAppRoot();
   const serverScript = path.join(appRoot, "server.mjs");
   log(`[Apex] Iniciando plataforma. packaged=${app.isPackaged} root=${appRoot}`);
+  createWindow("__startup__");
 
   // Inicia motor de IA proprio em background (nao bloqueia)
   apexEngineProcess = startApexEngine(appRoot);
@@ -138,7 +164,14 @@ app.whenReady().then(async () => {
   // Inicia servidor Node.js na porta 3333
   if (!fs.existsSync(serverScript)) {
     log(`[Apex] server.mjs nao encontrado em ${serverScript}`);
-    createWindow("/?startupError=server-not-found");
+    if (mainWindow) {
+      mainWindow.loadURL(startupHtml({
+        title: "Apex AI Copilot",
+        message: "Servidor local não foi encontrado no pacote. Abrindo a versão web de produção.",
+        detail: "fallback=https://www.apexglobalai.com",
+      }));
+      setTimeout(() => mainWindow?.loadURL("https://www.apexglobalai.com"), 1800);
+    }
     return;
   }
 
@@ -169,7 +202,18 @@ app.whenReady().then(async () => {
   if (!ready) {
     log(`[Apex] Server nao respondeu em http://127.0.0.1:${APP_PORT} dentro do timeout.`);
   }
-  createWindow(ready ? "/" : "/?startupError=server-timeout");
+  if (mainWindow) {
+    if (ready) {
+      mainWindow.loadURL(`http://127.0.0.1:${APP_PORT}/`);
+    } else {
+      mainWindow.loadURL(startupHtml({
+        title: "Apex AI Copilot",
+        message: "O servidor local não respondeu a tempo. Abrindo a versão web de produção para evitar tela branca.",
+        detail: `local=http://127.0.0.1:${APP_PORT}`,
+      }));
+      setTimeout(() => mainWindow?.loadURL("https://www.apexglobalai.com"), 2200);
+    }
+  }
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

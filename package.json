@@ -29,7 +29,8 @@
     "train": "node scripts/train-apex-ai.mjs",
     "train:dry": "node scripts/train-apex-ai.mjs --dry-run",
     "setup:runtime": "node scripts/setup-own-runtime.mjs",
-    "setup:runtime:check": "node scripts/setup-own-runtime.mjs --check"
+    "setup:runtime:check": "node scripts/setup-own-runtime.mjs --check",
+    "daemon": "node local-worker/server.mjs"
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.19.0",
@@ -103,14 +104,6 @@
     "npmRebuild": false,
     "buildDependenciesFromSource": false,
     "asar": true,
-    "asarUnpack": [
-      "server.mjs",
-      "local-worker/**/*",
-      "server/**/*",
-      "api/**/*",
-      "dist/**/*",
-      "node_modules/**/*"
-    ],
     "files": [
       "dist/**/*",
       "api/**/*",
@@ -118,10 +111,7 @@
       "local-worker/**/*",
       "server.mjs",
       "electron-main.cjs",
-      "package.json",
-      ".env",
-      ".env.local",
-      "runtime/**/*"
+      "package.json"
     ],
     "win": {
       "target": "nsis"
