@@ -54,10 +54,10 @@ function isHttpReady(port, pathname = "/") {
   });
 }
 
-async function waitForServer(port, timeoutMs = 45000) {
+async function waitForServer(port, timeoutMs = 60000) {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
-    if (await isHttpReady(port, "/api/copilot/chat")) return true;
+    if (await isHttpReady(port, "/")) return true;
     await new Promise(resolve => setTimeout(resolve, 750));
   }
   return false;
@@ -207,11 +207,11 @@ app.whenReady().then(async () => {
       mainWindow.loadURL(`http://127.0.0.1:${APP_PORT}/`);
     } else {
       mainWindow.loadURL(startupHtml({
-        title: "Apex AI Copilot",
-        message: "O servidor local não respondeu a tempo. Abrindo a versão web de produção para evitar tela branca.",
-        detail: `local=http://127.0.0.1:${APP_PORT}`,
+        title: "Erro ao Iniciar o Servidor Local",
+        message: "O servidor da plataforma demorou muito para responder (timeout de 60s). Isso pode ocorrer se alguma porta (3333, 8888) já estiver em uso, se houver um erro no código-fonte, ou se as permissões estiverem bloqueando a execução.",
+        detail: `Por favor, verifique o arquivo de log em: ${logPath()}`,
       }));
-      setTimeout(() => mainWindow?.loadURL("https://www.apexglobalai.com"), 2200);
+      // setTimeout(() => mainWindow?.loadURL("https://www.apexglobalai.com"), 2200);
     }
   }
 

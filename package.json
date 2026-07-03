@@ -10,6 +10,7 @@
     "worker": "node local-worker/server.mjs",
     "electron:dev": "node scripts/start-electron-dev.mjs",
     "electron:build": "npm run build && node node_modules/electron-builder/cli.js",
+    "daemon": "node local-worker/server.mjs",
     "dev:ui": "node node_modules/vite/bin/vite.js --host 0.0.0.0",
     "build": "node node_modules/typescript/bin/tsc -b && node node_modules/vite/bin/vite.js build",
     "preview": "node node_modules/vite/bin/vite.js preview --host 0.0.0.0",
@@ -29,14 +30,14 @@
     "train": "node scripts/train-apex-ai.mjs",
     "train:dry": "node scripts/train-apex-ai.mjs --dry-run",
     "setup:runtime": "node scripts/setup-own-runtime.mjs",
-    "setup:runtime:check": "node scripts/setup-own-runtime.mjs --check",
-    "daemon": "node local-worker/server.mjs"
+    "setup:runtime:check": "node scripts/setup-own-runtime.mjs --check"
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.19.0",
     "@auth0/nextjs-auth0": "^4.22.0",
     "@genkit-ai/googleai": "^1.28.0",
     "@google/genai": "^2.9.0",
+    "@google/generative-ai": "^0.24.1",
     "@modelcontextprotocol/sdk": "^1.26.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
@@ -50,10 +51,12 @@
     "@vercel/speed-insights": "^1.3.1",
     "@vitejs/plugin-react": "^4.3.4",
     "ai": "6.0.208",
+    "cors": "^2.8.6",
     "csstype": "^3.1.3",
     "docx": "^9.7.1",
     "dompurify": "^3.1.6",
     "dotenv": "^17.4.2",
+    "express": "^5.2.1",
     "fast-xml-parser": "5.9.3",
     "ffmpeg-static": "^5.3.0",
     "firebase": "^12.15.0",
@@ -129,5 +132,22 @@
       "repo": "apex-ai-copilot-platform",
       "releaseType": "release"
     }
-  }
+  },
+  "description": "Clean rebuild of the Apex AI Copilot platform.",
+  "directories": {
+    "doc": "docs",
+    "example": "examples",
+    "lib": "lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jedgard70/apex-ai-copilot-platform.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jedgard70/apex-ai-copilot-platform/issues"
+  },
+  "homepage": "https://github.com/jedgard70/apex-ai-copilot-platform#readme"
 }

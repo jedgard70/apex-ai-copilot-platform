@@ -91,7 +91,7 @@ import { NRCompliancePanel } from './components/NRCompliancePanel'
 import { AccountingPanel } from './components/AccountingPanel'
 import { RuntimeStatusIndicator } from './components/RuntimeStatusIndicator'
 
-import { classifyFile, formatSize, IntakeFile, isVisionReady, readFileAsDataUrl, readImageDimensions } from './lib/fileIntake'
+import { classifyFile, formatSize, IntakeFile, isVisionReady, readFileAsDataUrl, compressImageAsDataUrl, readImageDimensions } from './lib/fileIntake'
 import { extractPdfText } from './lib/pdfExtractor'
 import {
   createProjectProfile,
@@ -2486,23 +2486,34 @@ function App() {
 
   async function askCopilot(text = input, attachment = activeFile) {
     const clean = text.trim()
-    if ((!clean && !attachment) || loading) return
-    setActiveFile(undefined)
+    const isUsingActiveFiles = attachment === activeFile
+    const currentFiles = isUsingActiveFiles && activeFiles.current.length > 0 ? [...activeFiles.current] : (attachment ? [attachment] : [])
+    if ((!clean && currentFiles.length === 0) || loading) return
+    if (isUsingActiveFiles) {
+      setActiveFile(undefined)
+      activeFiles.current = []
+    }
     setInput('')
-    const userText = clean || (attachment ? `Uploaded ${attachment.file.name}` : '')
+    const userText = clean || (currentFiles.length > 0 ? `Uploaded ${currentFiles.map(f => f.file.name).join(', ')}` : '')
+    const mainAttachment = currentFiles.find(f => f.kind === 'image') || currentFiles[0]
+
     const panelName = isPanelContextMessage(clean)
     if (panelName) {
-      const userMessage: Message = { id: id(), role: 'user', text: userText, attachment }
+      const userMessage: Message = { id: id(), role: 'user', text: userText, attachment: mainAttachment }
       const reply = buildPanelContextReply(panelName)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: reply }])
       return
     }
-    const modelText = clean || (attachment
-      ? attachment.extractedText
-        ? `O usuário enviou o arquivo "${attachment.file.name}" (tipo: ${attachment.kind}, extensão: ${attachment.file.name.toLowerCase().split('.').pop() || 'unknown'}). Conteúdo extraído:\n\n${attachment.extractedText}\n\nResponda de forma direta e conversacional com base no conteúdo acima. Não faça relatório nem lista de tópicos.`
-        : 'User uploaded this file. Analyze it as project context and continue naturally in a short conversational reply. Do not write a report, heading, observations list, or capabilities list.'
-      : '')
-    const userMessage: Message = { id: id(), role: 'user', text: userText, attachment }
+
+    const textAttachments = currentFiles.filter(f => f.extractedText).map(f => `[Arquivo: ${f.file.name}]\n${f.extractedText}`).join('\n\n')
+    let modelText = clean
+    if (textAttachments) {
+      modelText = clean ? `${clean}\n\n${textAttachments}` : `Conteúdo extraído dos arquivos:\n\n${textAttachments}\n\nResponda de forma direta e conversacional com base no conteúdo acima.`
+    } else if (!clean && currentFiles.length > 0) {
+      modelText = 'User uploaded file(s). Analyze it as project context and continue naturally in a short conversational reply. Do not write a report, heading, observations list, or capabilities list.'
+    }
+    
+    const userMessage: Message = { id: id(), role: 'user', text: userText, attachment: mainAttachment }
     if (/^(en|english)$/i.test(clean)) {
       setUiLanguage('EN')
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'English mode enabled. Tell me what you want to create, review or fix.' }])
@@ -2558,7 +2569,7 @@ function App() {
     const identityContext = buildChatIdentityContext(accountState)
     const confirmationSignal = /^(sim|ok|pode|confirmo|yes|yep|manda|vai)$/i.test(clean)
     const cancelSignal = /^(nao|não|cancelar|cancela|no|deixa)$/i.test(clean)
-    let routingText = clean
+    let routingText = clean.length < 300 ? clean : ''
     let layerGoalText = clean
     if (pendingLayerDecision && clean) {
       if (confirmationSignal) {
@@ -2605,7 +2616,7 @@ function App() {
       return
     }
     // Let natural conversations go to the server, so they are processed by the live AI agent (or fall back to local answers on failure)
-    const explicitPanelOpen = Boolean(routingText) && isExplicitPanelOpenRequest(routingText)
+    const explicitPanelOpen = Boolean(routingText) && routingText.length < 300 && isExplicitPanelOpenRequest(routingText)
     const archVisIntent = isArchVisIntent(routingText, attachment)
     const directCutIntent = isDirectCutIntent(routingText)
     const openArchVisOrDirect = explicitPanelOpen && (archVisIntent || directCutIntent)
@@ -3379,7 +3390,7 @@ function App() {
 
   async function handleFile(file: File) {
     const kind = classifyFile(file)
-    const dataUrl = kind === 'image' ? await readFileAsDataUrl(file) : undefined
+    const dataUrl = kind === 'image' ? await compressImageAsDataUrl(file) : undefined
     const previewUrl = kind === 'image' || kind === 'pdf' ? URL.createObjectURL(file) : undefined
     const extension = file.name.toLowerCase().split('.').pop() || ''
 
@@ -4634,8 +4645,8 @@ function App() {
             </div>
 
             <div className="composer">
-              {activeFile && (
-                <div className="composer-file" style={{
+              {activeFiles.current.map((fileItem, idx) => (
+                <div key={fileItem.file.name + idx} className="composer-file" style={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
@@ -4647,9 +4658,9 @@ function App() {
                   gap: '12px'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-                    {activeFile.kind === 'image' && activeFile.previewUrl ? (
+                    {fileItem.kind === 'image' && fileItem.previewUrl ? (
                       <img
-                        src={activeFile.previewUrl}
+                        src={fileItem.previewUrl}
                         alt="Attachment Preview"
                         style={{
                           width: '32px',
@@ -4664,21 +4675,26 @@ function App() {
                     )}
                     <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                       <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {activeFile.file.name}
+                        {fileItem.file.name}
                       </span>
                       <span style={{ fontSize: '9px', color: '#8fa2cf' }}>
-                        {activeFile.kind.toUpperCase()} · {formatSize(activeFile.file.size)}
-                        {activeFile.pageCount ? ` · ${activeFile.pageCount} pág.` : ''}
+                        {fileItem.kind.toUpperCase()} · {formatSize(fileItem.file.size)}
+                        {fileItem.pageCount ? ` · ${fileItem.pageCount} pág.` : ''}
                       </span>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => {
-                      const removedName = activeFile.file.name
-                      setActiveFile(undefined)
+                      const removedName = fileItem.file.name
                       activeFiles.current = activeFiles.current.filter(item => item.file.name !== removedName)
-                      setActiveProject(prev => ({ ...prev, activeFileId: undefined }))
+                      const nextActive = activeFiles.current.length > 0 ? activeFiles.current[activeFiles.current.length - 1] : undefined
+                      setActiveFile(nextActive)
+                      setActiveProject(prev => {
+                        const next = { ...prev, activeFileId: nextActive ? nextActive.id : undefined }
+                        upsertProject(next)
+                        return next
+                      })
                     }}
                     style={{
                       background: 'transparent',
@@ -4697,7 +4713,7 @@ function App() {
                     <X size={12} />
                   </button>
                 </div>
-              )}
+              ))}
               <div className="composer-card" style={{
                 display: 'flex',
                 flexDirection: 'column',
