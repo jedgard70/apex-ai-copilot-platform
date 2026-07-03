@@ -48,6 +48,7 @@ import * as notificationsService from './server/service/notificationsService.mjs
 import * as crmService from './server/service/crm.mjs'
 import * as ownerCodeExecutorService from './server/service/ownerCodeExecutor.mjs'
 import * as rdoService from './server/service/rdo.mjs'
+import { attachTerminal } from './server/terminal.mjs'
 
 function normalizeEnvironmentAliases() {
   const aliasPairs = [
@@ -7076,6 +7077,7 @@ const server = http.createServer(async (req, res) => {
 const port = Number(process.env.PORT || 4177)
 server.listen(port, () => {
   console.log(`Apex AI Copilot platform listening on http://127.0.0.1:${port}`)
+  attachTerminal(server)
   // Start auto-fix monitor (local only) - disabled by default to prevent blocking the event loop
   if (process.env.AUTO_FIX_ENABLED === '1') {
     import('./server/service/autoFix.mjs').then(mod => {

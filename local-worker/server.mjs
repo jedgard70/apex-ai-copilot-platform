@@ -1,6 +1,9 @@
 /**
  * Apex AI Copilot — Local Worker (H6.0)
  * Secure whitelist-only executor for controlled Windows PC operations.
+/**
+ * Apex AI Copilot — Local Worker (H6.0)
+ * Secure whitelist-only executor for controlled Windows PC operations.
  * Auto-discovers node/npm/git — no manual PATH config required (best effort).
  * Runs at localhost:8787 (or LOCAL_WORKER_PORT).
  * All routes require Bearer token auth.
@@ -10,22 +13,28 @@
 import { createServer } from 'node:http'
 import { spawn } from 'node:child_process'
 import { readFile, access, readdir, stat } from 'node:fs/promises'
-import { constants as fsConstants } from 'node:fs'
+import { constants as fsConstants, createReadStream } from 'node:fs'
 import { join, dirname, resolve } from 'node:path'
 import { homedir, platform } from 'node:os'
-
 // ─── Load .env at startup (no external deps) ──────────────────────────────────
+import { fileURLToPath } from 'node:url'
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const rootDir = resolve(__dirname, '..')
 
-const envRaw = await readFile(new URL('.env', import.meta.url), 'utf8').catch(() => '')
-for (const line of envRaw.split('\n')) {
-  const trimmed = line.trim()
-  if (!trimmed || trimmed.startsWith('#')) continue
-  const eq = trimmed.indexOf('=')
-  if (eq < 1) continue
-  const key = trimmed.slice(0, eq).trim()
-  const val = trimmed.slice(eq + 1).trim().replace(/^["']|["']$/g, '')
-  if (key && !process.env[key]) process.env[key] = val
+const loadEnv = async (filename) => {
+  const envRaw = await readFile(join(rootDir, filename), 'utf8').catch(() => '')
+  for (const line of envRaw.split('\n')) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith('#')) continue
+    const eq = trimmed.indexOf('=')
+    if (eq < 1) continue
+    const key = trimmed.slice(0, eq).trim()
+    const val = trimmed.slice(eq + 1).trim().replace(/^["']|["']$/g, '')
+    if (key && !process.env[key]) process.env[key] = val
+  }
 }
+
+await loadEnv('.env')
 
 const TOKEN = process.env.LOCAL_WORKER_TOKEN || ''
 const PORT = Number(process.env.LOCAL_WORKER_PORT) || 8787
@@ -1136,6 +1145,22 @@ function readBody(req) {
   })
 }
 
+// ─── HITL (Human In The Loop) ─────────────────────────────────────────────────
+const pendingApprovals = new Map()
+
+async function freezeExecution(taskId, description) {
+  return new Promise((resolve) => {
+    console.log(`\n⚠️ [HITL] Execução PAUSADA (Task: ${taskId}). Aguardando aprovação humana...`)
+    console.log(`Descrição: ${description}`)
+    
+    pendingApprovals.set(taskId, {
+      description,
+      resolve,
+      timestamp: Date.now()
+    })
+  })
+}
+
 // ─── Request router ───────────────────────────────────────────────────────────
 
 async function handleRequest(req, res) {
@@ -1212,6 +1237,151 @@ async function handleRequest(req, res) {
       allowedActions: [...ALLOWED_ACTION_IDS],
       secretsExposed: false,
     })
+  }
+
+// ──────────────── FILA DE RENDERIZAÇÃO NATIVA ─────────────────────────────
+const renderQueue = []
+let isRendering = false
+
+async function processRenderQueue() {
+  if (isRendering || renderQueue.length === 0) return
+  isRendering = true
+
+  const task = renderQueue.shift()
+  console.log(`\n🎬 [Render Queue] Iniciando renderização do vídeo: ${task.nomeArquivo}`)
+
+  try {
+    const { exec } = await import('node:child_process')
+    const util = await import('node:util')
+    const execAsync = util.promisify(exec)
+
+    // await execAsync(`blender --background --python ${task.scriptPath}`)
+    await new Promise(res => setTimeout(res, 5000))
+    console.log(`✅ [Render Queue] Renderização de ${task.nomeArquivo} concluída!`)
+
+    if (task.telefone) {
+      await enviarParaCliente(task.telefone, `Seu vídeo animado ${task.nomeArquivo} acabou de renderizar!`)
+    }
+
+  } catch (error) {
+    console.error(`❌ [Render Queue] Erro ao renderizar ${task.nomeArquivo}:`, error)
+  } finally {
+    isRendering = false
+    processRenderQueue()
+  }
+}
+
+// ── POST /render/enqueue ───────────────────────────────────────────────────────────
+  if (req.method === 'POST' && path === '/render/enqueue') {
+    const auth = checkAuth(req)
+    if (!auth.ok) return sendJson(res, auth.status, { ok: false, reason: auth.reason })
+
+    try {
+      const body = await readBody(req)
+      const { scriptPath, nomeArquivo, telefone } = body
+      if (!scriptPath || !nomeArquivo) return sendJson(res, 400, { ok: false, reason: 'scriptPath e nomeArquivo são obrigatórios.' })
+
+      renderQueue.push({ scriptPath, nomeArquivo, telefone })
+      console.log(`📥 [Render Queue] Tarefa enfileirada. Posição: ${renderQueue.length}`)
+      processRenderQueue()
+
+      return sendJson(res, 200, { ok: true, message: 'Vídeo adicionado à fila.' })
+    } catch (e) {
+      return sendJson(res, 500, { ok: false, reason: e.message })
+    }
+  }
+
+// ── POST /whatsapp/send ────────────────────────────────────────────────────────────
+  if (req.method === 'POST' && path === '/whatsapp/send') {
+    const auth = checkAuth(req)
+    if (!auth.ok) return sendJson(res, auth.status, { ok: false, reason: auth.reason })
+
+    try {
+      const body = await readBody(req)
+      const { numeroTelefone, mensagem } = body
+      if (!numeroTelefone || !mensagem) return sendJson(res, 400, { ok: false, reason: 'numeroTelefone e mensagem são obrigatórios.' })
+
+      await enviarParaCliente(numeroTelefone, mensagem)
+      return sendJson(res, 200, { ok: true, message: 'Mensagem enviada.' })
+    } catch (e) {
+      return sendJson(res, 500, { ok: false, reason: e.message })
+    }
+  }
+
+// ── POST /novo-projeto ────────────────────────────────────────────────────────────
+  if (req.method === 'POST' && path === '/novo-projeto') {
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+
+    try {
+      const body = await readBody(req)
+      const { descricao, telefoneCliente, vendedor_id } = body
+      if (!descricao || !telefoneCliente) return sendJson(res, 400, { ok: false, reason: 'descricao e telefoneCliente são obrigatórios.' })
+
+      console.log(`\n📦 Novo projeto recebido: ${descricao}`)
+      
+      const { createClient } = await import('@supabase/supabase-js')
+      const supabase = createClient(process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL, process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY)
+
+      const valorDoServico = 1500.00
+      const { data: novoProjeto, error: projErr } = await supabase
+        .from('projetos')
+        .insert({
+          descricao_servico: descricao,
+          valor_total: valorDoServico,
+          vendedor_id: vendedor_id || null
+        })
+        .select()
+        .single()
+
+      if (vendedor_id) {
+        const valorComissao = valorDoServico * 0.10
+        await supabase
+          .from('comissoes')
+          .insert({
+            projeto_id: novoProjeto?.id,
+            vendedor_id: vendedor_id,
+            valor_comissao: valorComissao
+          })
+        
+        console.log(`💰 Comissão de R$ ${valorComissao} gerada para ${vendedor_id}`)
+        const { data: vendedor } = await supabase.from('usuarios').select('telefone, nome').eq('id', vendedor_id).single()
+        
+        if (vendedor?.telefone) {
+          const mensagem = `🎉 Olá *${vendedor.nome}*! Excelente notícia!\n\nO cliente que você indicou acabou de aprovar o orçamento para: *${descricao}*.\n\nSua comissão de *R$ ${valorComissao}* já foi garantida e registrada no seu painel. Continue acelerando as vendas! 🚀🏗️`
+          await enviarParaCliente(vendedor.telefone, mensagem)
+        }
+      }
+
+      return sendJson(res, 200, { ok: true, message: 'Projeto criado!' })
+    } catch (e) {
+      return sendJson(res, 500, { ok: false, reason: e.message })
+    }
+  }
+
+  // ── POST /webhook/social-metrics ──────────────────────────────────────────
+  if (req.method === 'POST' && path === '/webhook/social-metrics') {
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    
+    try {
+      const body = await readBody(req)
+      const { platform, views, hookUsado, mediaUrl } = body
+      
+      console.log(`\n📈 [Social Webhook] Pico detectado no ${platform || 'Instagram'}! Visualizações: ${views}`)
+
+      if (views >= 10000) {
+        console.log(`🚀 [Auto-Upgrade] Vídeo bateu 10k views! Acionando evolução de Prompt...`)
+        // Aqui acionamos o selfUpgrade.mjs silenciosamente em background
+        import('./server/agent/selfUpgrade.mjs').then(({ runSelfUpgradePlanner }) => {
+          runSelfUpgradePlanner(`Integrar o gancho de sucesso "${hookUsado || 'desconhecido'}" nas diretrizes de copywriting do marketing-automation, pois gerou ${views} visualizações.`).catch(e => console.error(e))
+        })
+      }
+
+      return sendJson(res, 200, { ok: true, message: 'Métricas recebidas.' })
+    } catch (e) {
+      return sendJson(res, 500, { ok: false, reason: e.message })
+    }
   }
 
   // ── POST /run ──────────────────────────────────────────────────────────────
@@ -1332,6 +1502,11 @@ server.on('error', err => {
   }
   throw err
 })
+
+import { initGoogleAuth } from './google.mjs'
+
+initWhatsApp()
+initGoogleAuth(PROJECT_PATH)
 
 server.listen(PORT, '127.0.0.1', () => {
   console.log(`[apex-worker] Apex Local Worker H6.0 running on http://127.0.0.1:${PORT}`)

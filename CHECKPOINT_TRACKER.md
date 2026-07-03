@@ -115,7 +115,7 @@ Core chat/copilot engine, AI runtime provider resolution, advanced model selecti
 
 | Item | Status | Solução |
 | --- | --- | --- |
-| Acesso local sem Supabase | ✅ Corrigido | `VITE_APEX_ALLOW_LOCAL_DEMO_AUTH=true` adicionado ao `.env.local` |
+| Acesso local sem Supabase | ✅ Corrigido | `VITE_APEX_ALLOW_LOCAL_DEMO_AUTH=false` adicionado ao `.env.local` |
 | Botão Status das Keys no console | ✅ Adicionado | Abre Platform Map na aba de status |
 | Botão Mapa da Plataforma no console | ✅ Adicionado | Abre Platform Map na aba de mapa |
 | Execução de comandos (local worker) | ⚠️ Parcial | Requer `local-worker` rodando (`npm run dev`) |

@@ -48,6 +48,8 @@ import { CaixaCompliancePanel } from './components/CaixaCompliancePanel'
 import { ExportCenterPanel } from './components/ExportCenterPanel'
 import { FinancePanel } from './components/FinancePanel'
 import { FieldOpsPanel } from './components/FieldOpsPanel'
+import { TerminalPanel } from './components/TerminalPanel'
+import { CodeEditorPanel } from './components/CodeEditorPanel'
 import { GenerationHistoryPanel } from './components/GenerationHistoryPanel'
 import { ApsPanel } from './components/ApsPanel'
 import { KnowledgeBasePanel } from './components/KnowledgeBasePanel'
@@ -1292,9 +1294,8 @@ function buildProductFallbackAnswer(userText: string, identity: ChatIdentityCont
 
   // H5.1F: multi-line messages are handled by the backend conversational router.
   // Only apply local fallbacks for single-line messages to prevent interception.
-  const nonEmptyLines = userText.trim().split(/\n/).filter(l => l.trim()).length
-  if (nonEmptyLines === 1) {
-    const trimmed = userText.trim()
+  const nonEmptyLines = userText.trim().split(/\n/).filter(l => l.trim()).length; const trimmed = userText.trim(); if (nonEmptyLines === 1 && trimmed.length < 300) {
+
     // Greetings — respond as personal assistant
     if (/^(ola|olá|oi|oie|hello|hey|hei|salve|eai|e aí|fala|opa|bom dia|boa tarde|boa noite|bom dia tudo bem|blz|beleza|tudo bem|howdy|hi)\b/i.test(trimmed)) {
       return 'Olá! 😊 Como posso te ajudar hoje? Posso analisar documentos, imagens, plantas, criar orçamentos, contratos, campanhas de marketing, fazer pesquisas e muito mais. É só me falar o que precisa!'
@@ -1475,6 +1476,7 @@ function App() {
     ? recordToIntakeFile(initialProject.files.find(file => file.id === initialProject.activeFileId))
     : undefined
   const [input, setInput] = useState('')
+  const [localFileHandles, setLocalFileHandles] = useState<Map<string, any>>(new Map())
   const [projects, setProjects] = useState<ProjectWorkspace[]>(() => {
     const existing = loadProjects()
     return existing.length ? existing : [initialProject]
@@ -1712,6 +1714,7 @@ function App() {
   }
 
   const [pendingLayerDecision, setPendingLayerDecision] = useState<PendingLayerDecision | null>(null)
+  const [showTerminal, setShowTerminal] = useState(false)
   const [uiLanguage, setUiLanguage] = useState<UiLanguage>('EN')
   const [archVisRevisionConstraints, setArchVisRevisionConstraints] = useState<string[]>(initialProject.revisionConstraints || [])
   const [loading, setLoading] = useState(false)
@@ -2001,6 +2004,8 @@ function App() {
       return next
     })
     setActiveConversationId(newId)
+    setActiveFile(undefined)
+    activeFiles.current = []
   }
 
   function handleDeleteChat(chatId: string, event: React.MouseEvent) {
@@ -4129,6 +4134,11 @@ function App() {
         </button>
       )}
       {isSignedIn && (
+        <button className="secondary-action owner-console-button" type="button" onClick={() => setShowTerminal(prev => !prev)}>
+          <Terminal size={15} /> {uiLanguage === 'EN' ? 'Terminal' : 'Terminal'}
+        </button>
+      )}
+      {isSignedIn && (
         <button className="secondary-action owner-console-button" type="button" onClick={() => {
           closeOtherPanels('pipeline')
           setPipelineOutput(true)
@@ -4290,6 +4300,41 @@ function App() {
       case 'crm': return <CrmPipelinePanel onClear={() => {}} />;
       case 'finance': return <FinancePanel goal="" conversationContext={[]} onClear={() => {}} />;
       case 'aicontrol': return <AiControlPanel />;
+      case 'code-editor': 
+        return (
+          <CodeEditorPanel 
+            activeFile={activeFile}
+            hasNativeHandle={activeFile ? localFileHandles.has(activeFile.file.name) : false}
+            onChangeContent={(content) => {
+              setActiveFile(prev => prev ? { ...prev, extractedText: content } : prev)
+            }}
+            onRunFile={(fileName) => {
+              window.dispatchEvent(new CustomEvent('terminal-run', { detail: `node ${fileName}\r` }))
+              setShowTerminal(true)
+            }}
+            onSaveNativeFile={async (content) => {
+              if (!activeFile) return
+              const handle = localFileHandles.get(activeFile.file.name)
+              if (handle) {
+                try {
+                  const writable = await handle.createWritable()
+                  await writable.write(content)
+                  await writable.close()
+                  if (activeProject) {
+                    const activeId = fileToRecord(activeFile).id
+                    const newFiles = activeProject.files.map(f => f.id === activeId ? { ...f, extractedText: content } : f)
+                    const nextProj = { ...activeProject, files: newFiles }
+                    setActiveProject(nextProj)
+                    upsertProject(nextProj)
+                  }
+                  alert('Arquivo salvo com sucesso no disco local!')
+                } catch (e) {
+                  alert('Erro ao salvar no disco: ' + String(e))
+                }
+              }
+            }}
+          />
+        );
       default: return <EmptyPanel />;
     }
   }
@@ -4303,6 +4348,48 @@ function App() {
         </div>
       </div>
     );
+  }
+
+  async function handleConnectLocalFolder() {
+    try {
+      const dirHandle = await (window as any).showDirectoryPicker()
+      const handles = new Map<string, any>()
+      const textFiles: any[] = []
+
+      async function scanDir(handle: any, path: string) {
+        for await (const entry of handle.values()) {
+          if (entry.kind === 'directory') {
+            if (['node_modules', '.git', 'dist', 'build', '.next'].includes(entry.name)) continue
+            await scanDir(entry, `${path}${entry.name}/`)
+          } else if (entry.kind === 'file') {
+            if (/\.(png|jpe?g|gif|svg|ico|mp3|mp4|zip|pdf)$/i.test(entry.name)) continue
+            const file = await entry.getFile()
+            if (file.size > 1024 * 1024 * 5) continue
+            const text = await file.text()
+            handles.set(entry.name, entry)
+            textFiles.push({
+              id: id(),
+              name: entry.name,
+              type: file.type || 'text/plain',
+              kind: 'document',
+              extractedText: text,
+              size: file.size,
+              addedAt: new Date().toISOString()
+            } as any)
+          }
+        }
+      }
+      await scanDir(dirHandle, '')
+      setLocalFileHandles(handles)
+      if (activeProject) {
+        const nextProj = { ...activeProject, files: [...activeProject.files, ...textFiles] }
+        setActiveProject(nextProj)
+        upsertProject(nextProj)
+        setMessages(prev => [...prev, { id: id(), role: 'assistant', text: `Conectado à pasta local. ${textFiles.length} arquivos carregados do seu HD.` }])
+      }
+    } catch (err) {
+      console.error(err)
+    }
   }
 
   return (
@@ -4492,6 +4579,7 @@ function App() {
                         <Volume2 size={13} />
                         {'Ouvir'}
                       </button>
+                    
                       <button
                         onClick={() => downloadConversation(messages)}
                         title="Exportar conversa como .md"
@@ -4503,13 +4591,7 @@ function App() {
                         {'Derivar'}
                       </button>
                     </div>
-                    {message.attachment && (
-                      <div className="attachment-chip">
-                        <Paperclip size={15} />
-                        {message.attachment.file.name}
-                        <span>{message.attachment.kind} · {formatSize(message.attachment.file.size)}</span>
-                      </div>
-                    )}
+                    {message.attachment && message.attachment.file && (<div className="attachment-chip"><Paperclip size={15} />{message.attachment.file.name || "Arquivo"} <span>{message.attachment.kind} - {formatSize(message.attachment.file.size || 0)}</span></div>)}
                     {message.toolCards && message.toolCards.length > 0 && (
                       <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         {message.toolCards.map(card => {
@@ -4691,7 +4773,7 @@ function App() {
                       const nextActive = activeFiles.current.length > 0 ? activeFiles.current[activeFiles.current.length - 1] : undefined
                       setActiveFile(nextActive)
                       setActiveProject(prev => {
-                        const next = { ...prev, activeFileId: nextActive ? nextActive.id : undefined }
+                        const next = { ...prev, activeFileId: nextActive ? fileToRecord(nextActive).id : undefined }
                         upsertProject(next)
                         return next
                       })
@@ -5718,6 +5800,19 @@ function App() {
               onImport={importWorkspaceProject}
               onClear={clearLocalWorkspace}
               openSignal={workspaceOpenSignal}
+              onConnectLocalFolder={handleConnectLocalFolder}
+              onOpenFile={(fileId) => {
+                if (activeProject) {
+                  const file = activeProject.files.find(f => f.id === fileId)
+                  if (file) {
+                    setActiveFile(recordToIntakeFile(file))
+                    const nextProj = { ...activeProject, activeFileId: file.id, activeStudio: 'code-editor' as any }
+                    setActiveProject(nextProj)
+                    upsertProject(nextProj)
+                    closeOtherPanels('code-editor')
+                  }
+                }
+              }}
             />
             {workspaceSavedAt && <div className="project-save-indicator">Project autosaved at {workspaceSavedAt}</div>}
 
@@ -5771,6 +5866,7 @@ function App() {
         )}
       </div>
       )}
+      {showTerminal && <TerminalPanel onClose={() => setShowTerminal(false)} />}
     </AppLayout>
   )
 }

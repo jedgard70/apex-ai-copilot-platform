@@ -235,7 +235,7 @@ AUTENTICAÇÃO E INFRAESTRUTURA
 
 3. PLATFORM STATUS / PROVIDER KEYS
     - Status ao vivo de cada provedor pago
-    - Provedores: OpenAI/Gemini, Anthropic, fal.ai, AI Gateway,
+    - Provedores: Gemini, fal.ai,
       ElevenLabs, Tavily, Stripe, Supabase, GitHub, AuthKey
     - Saldo real quando disponível
     - Link direto para recarregar cada provedor

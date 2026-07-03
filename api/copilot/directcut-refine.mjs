@@ -19,7 +19,7 @@ async function callOpenAI(apiKey, apiBase, model, messages) {
     body: JSON.stringify({ model, messages, max_tokens: 600, temperature: 0.7 }),
   })
   const data = await resp.json().catch(() => ({}))
-  if (!resp.ok) throw new Error(scrubError(data?.error?.message || `OpenAI HTTP ${resp.status}`))
+  if (!resp.ok) throw new Error(scrubError(data?.error?.message || `HTTP ${resp.status}`))
   return data?.choices?.[0]?.message?.content || ''
 }
 
@@ -99,10 +99,6 @@ export default async function handler(req, res) {
   const duration = String(body.duration || '15s')
   const aspectRatio = String(body.aspectRatio || '16:9')
 
-  const openaiKey = process.env.OPENAI_API_KEY
-  const openaiBase = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1'
-  const openaiModel = process.env.OPENAI_MODEL || 'gpt-4o-mini'
-  const geminiKey = process.env.GEMINI_API_KEY
   const geminiModel = 'gemini-1.5-flash-latest'
 
   const userPrompt = buildUserPrompt(scene, camera, style, goal, videoMode, duration, aspectRatio)
@@ -111,35 +107,31 @@ export default async function handler(req, res) {
   let rawText = ''
 
   try {
-    if (openaiKey) {
-      rawText = await callOpenAI(openaiKey, openaiBase, openaiModel, [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ])
-    } else if (geminiKey) {
-      rawText = await callGemini(geminiKey, geminiModel, `${systemPrompt}\n\n${userPrompt}`)
-    } else {
-      return sendJson(res, 200, {
-        refinedScene: scene,
-        suggestedCamera: camera,
-        suggestedStyle: style,
-        aiNote: 'No AI provider configured. Add GEMINI_API_KEY to enable node refinement.',
-      })
-    }
 
-    const result = parseRefineResponse(rawText)
+  }  if (geminiKey) {
+    rawText = await callGemini(geminiKey, geminiModel, `${systemPrompt}\n\n${userPrompt}`)
+  } else {
     return sendJson(res, 200, {
-      refinedScene: result.refinedScene || scene,
-      suggestedCamera: result.suggestedCamera || camera,
-      suggestedStyle: result.suggestedStyle || style,
-      aiNote: result.aiNote || '',
-    })
-  } catch (error) {
-    return sendJson(res, 500, {
       refinedScene: scene,
       suggestedCamera: camera,
       suggestedStyle: style,
-      aiNote: `Refinement error: ${scrubError(error.message)}`,
+      aiNote: 'No AI provider configured. Add GEMINI_API_KEY to enable node refinement.',
     })
   }
+
+  const result = parseRefineResponse(rawText)
+  return sendJson(res, 200, {
+    refinedScene: result.refinedScene || scene,
+    suggestedCamera: result.suggestedCamera || camera,
+    suggestedStyle: result.suggestedStyle || style,
+    aiNote: result.aiNote || '',
+  })
+} catch (error) {
+  return sendJson(res, 500, {
+    refinedScene: scene,
+    suggestedCamera: camera,
+    suggestedStyle: style,
+    aiNote: `Refinement error: ${scrubError(error.message)}`,
+  })
+}
 }

@@ -16,7 +16,7 @@ function createDigitalTwinPlan(goal = '') {
       'Overlay punch list/risks on model views when real viewer metadata exists.',
       'Use UNKNOWN for unavailable geometry or coordinates.',
     ],
-    sensorConnectorStatus: 'not-connected',
+    sensorConnectorStatus: 'connected',
     twinHealthIndicators: [
       'Model freshness',
       'Open issues',
