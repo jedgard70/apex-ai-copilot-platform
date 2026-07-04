@@ -8,7 +8,7 @@
       "default",
       {
         "ignore": [
-          "meta[name=theme-color]"
+          "dialog"
         ]
       }
     ],
