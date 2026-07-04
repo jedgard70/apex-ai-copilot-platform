@@ -454,6 +454,7 @@ function loadEnvFiles(...paths) {
 
 function loadEnvLocal() {
   loadEnvFiles(
+    path.join(root, '.env'),
     path.join(root, '.env.local'),
     path.join(root, '.env.local.full'),
   )

@@ -337,6 +337,40 @@ async function checkFirebase() {
   } catch { return { id: 'firebase', name: 'Firebase (Auth, DB, Storage)', status: 'warning', message: 'Firebase configurado (verificação offline).' } }
 }
 
+// ─── Ollama (Motor de IA local — sem depender de ninguém) ────────────────
+async function checkOllama() {
+  try {
+    const res = await safeFetch('http://127.0.0.1:11434/api/tags', { method: 'GET' }, 3000)
+    if (res.ok) {
+      const data = await res.json().catch(() => ({}))
+      const models = data.models || []
+      const modelNames = models.map(m => m.name || '')
+      return {
+        id: 'ollama', name: 'Ollama (Motor de IA local)', status: 'ok',
+        message: `${models.length} modelo(s) local(is): ${modelNames.join(', ') || 'nenhum'}.`,
+        models: modelNames,
+      }
+    }
+    return { id: 'ollama', name: 'Ollama (Motor de IA local)', status: 'error', message: 'Ollama não está rodando localmente (porta 11434).' }
+  } catch {
+    return { id: 'ollama', name: 'Ollama (Motor de IA local)', status: 'error', message: 'Ollama não está rodando localmente (porta 11434).' }
+  }
+}
+
+// ─── Apex Engine (seu proprio motor de IA) ────────────────────────────────
+async function checkApexEngine() {
+  try {
+    const res = await safeFetch('http://127.0.0.1:8888/health', { method: 'GET' }, 3000)
+    if (res.ok) {
+      const data = await res.json().catch(() => ({}))
+      return { id: 'apex-engine', name: 'Apex Engine (Motor próprio)', status: 'ok', message: `Rodando na porta 8888.`, }
+    }
+    return { id: 'apex-engine', name: 'Apex Engine (Motor próprio)', status: 'error', message: 'Apex Engine não está rodando (porta 8888).' }
+  } catch {
+    return { id: 'apex-engine', name: 'Apex Engine (Motor próprio)', status: 'error', message: 'Apex Engine não está rodando (porta 8888).' }
+  }
+}
+
 // ─── Handler ──────────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -348,6 +382,8 @@ export default async function handler(req, res) {
     checkGemini(),
     checkFal(),
     checkElevenLabs(),
+    checkOllama(),
+    checkApexEngine(),
     checkFirebase(),
     checkBraveSearch(),
     checkStripe(),

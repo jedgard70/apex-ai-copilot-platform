@@ -18,6 +18,8 @@ const PROVIDER_LABELS: Record<string, string> = {
   firebase: 'Firebase', brave: 'Brave Search', stripe: 'Stripe', supabase: 'Supabase',
   authkey: 'AuthKey', github: 'GitHub', ffmpeg: 'FFmpeg', aps: 'Autodesk APS',
   apexOwnEngine: 'Apex AI 2.0 Engine',
+  ollama: 'Ollama (Motor IA local)',
+  'apex-engine': 'Apex Engine (Motor próprio)',
   'deploy-model': 'Deploy Model (HF)',
 }
 

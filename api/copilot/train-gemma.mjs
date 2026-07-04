@@ -6,6 +6,8 @@
  */
 
 import { recordCallSafe } from '../../server/service/rateLimitMonitor.mjs'
+// recordCallSafe guard
+const _recordCallSafe = typeof recordCallSafe === 'function' ? recordCallSafe : () => { }
 import fs from 'node:fs'
 import path from 'node:path'
 
