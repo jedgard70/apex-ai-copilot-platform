@@ -36,6 +36,8 @@ const DEFAULT_ORIGINS = new Set([
   'http://localhost:4173',
   'http://localhost:4174',
   'http://localhost:4175',
+  'http://localhost:4176',
+  'http://localhost:4177',
   'http://localhost:5173',
   'http://127.0.0.1:3000',
   'http://127.0.0.1:3001',
