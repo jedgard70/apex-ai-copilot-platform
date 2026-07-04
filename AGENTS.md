@@ -5,7 +5,7 @@ This file defines the default working contract for coding agents in this reposit
 ## Project layout
 
 - Frontend: src/ (React + Vite + TypeScript)
-- API/server runtime: server.mjs and pi/
+- API/server runtime: server.mjs and Api/
 - Scripts and validators: scripts/
 - CI workflow: .github/workflows/apex-sync.yml
 - Platform status/docs: CHECKPOINT_TRACKER.md and docs/APEX_PLATFORM_CURRENT_STATE.md
@@ -15,7 +15,7 @@ This file defines the default working contract for coding agents in this reposit
 - Install dependencies with 
 pm install.
 - Use 
-pm run dev for local runtime (uild + node server.mjs).
+pm run dev for local runtime (Build + node server.mjs).
 - Use 
 pm run dev:ui only for UI-only Vite iteration.
 - Keep secrets in .env.local (never commit .env* files).
@@ -45,7 +45,7 @@ pm run validate:owner-workspace-live
 
 - Do not claim real video rendering unless connector status is actually enabled.
 - Keep providerStatus explicit and truthful (planning-only, connector-ready, etc.).
-- Preserve parity between local runtime (server.mjs) and serverless endpoints in pi/copilot/.
+- Preserve parity between local runtime (server.mjs) and serverless endpoints in Api/copilot/.
 
 ## PR and change rules
 
@@ -227,8 +227,48 @@ Esta regra foi estabelecida verbalmente pelo Owner Dr. Edgard em 2026-06-26 e te
 - Use clear commit titles describing user-visible impact.
 - Ensure CI checks in apex-sync.yml stay green before merge/deploy.
 
-***REMOVED***
-***REMOVED***#***REMOVED***#***REMOVED*** ***REMOVED***=ب� ***REMOVED***R***REMOVED***E***REMOVED***G***REMOVED***R***REMOVED***A***REMOVED*** ***REMOVED***A***REMOVED***B***REMOVED***S***REMOVED***O***REMOVED***L***REMOVED***U***REMOVED***T***REMOVED***A***REMOVED*** ***REMOVED***1***REMOVED***0***REMOVED*** ***REMOVED***  ***REMOVED***N***REMOVED***o***REMOVED***m***REMOVED***e***REMOVED***n***REMOVED***c***REMOVED***l***REMOVED***a***REMOVED***t***REMOVED***u***REMOVED***r***REMOVED***a***REMOVED*** ***REMOVED***d***REMOVED***e***REMOVED*** ***REMOVED***C***REMOVED***o***REMOVED***n***REMOVED***c***REMOVED***o***REMOVED***r***REMOVED***r***REMOVED***e***REMOVED***n***REMOVED***t***REMOVED***e***REMOVED***s***REMOVED***
-***REMOVED***F***REMOVED***i***REMOVED***c***REMOVED***a***REMOVED*** ***REMOVED***t***REMOVED***e***REMOVED***r***REMOVED***m***REMOVED***i***REMOVED***n***REMOVED***a***REMOVED***n***REMOVED***t***REMOVED***e***REMOVED***m***REMOVED***e***REMOVED***n***REMOVED***t***REMOVED***e***REMOVED*** ***REMOVED***p***REMOVED***r***REMOVED***o***REMOVED***i***REMOVED***b***REMOVED***i***REMOVED***d***REMOVED***o***REMOVED*** ***REMOVED***c***REMOVED***i***REMOVED***t***REMOVED***a***REMOVED***r***REMOVED*** ***REMOVED***n***REMOVED***o***REMOVED***m***REMOVED***e***REMOVED***s***REMOVED*** ***REMOVED***d***REMOVED***e***REMOVED*** ***REMOVED***e***REMOVED***m***REMOVED***p***REMOVED***r***REMOVED***e***REMOVED***s***REMOVED***a***REMOVED***s***REMOVED***,***REMOVED*** ***REMOVED***s***REMOVED***i***REMOVED***t***REMOVED***e***REMOVED***s***REMOVED*** ***REMOVED***o***REMOVED***u***REMOVED*** ***REMOVED***I***REMOVED***A***REMOVED***s***REMOVED*** ***REMOVED***c***REMOVED***o***REMOVED***n***REMOVED***c***REMOVED***o***REMOVED***r***REMOVED***r***REMOVED***e***REMOVED***n***REMOVED***t***REMOVED***e***REMOVED***s***REMOVED*** ***REMOVED***(***REMOVED***e***REMOVED***x***REMOVED***:***REMOVED*** ***REMOVED***M***REMOVED***a***REMOVED***g***REMOVED***n***REMOVED***i***REMOVED***f***REMOVED***i***REMOVED***c***REMOVED***,***REMOVED*** ***REMOVED***M***REMOVED***i***REMOVED***d***REMOVED***j***REMOVED***o***REMOVED***u***REMOVED***r***REMOVED***n***REMOVED***e***REMOVED***y***REMOVED***,***REMOVED*** ***REMOVED***V***REMOVED***e***REMOVED***o***REMOVED*** ***REMOVED***A***REMOVED***I***REMOVED***,***REMOVED*** ***REMOVED***C***REMOVED***h***REMOVED***a***REMOVED***t***REMOVED***G***REMOVED***P***REMOVED***T***REMOVED***,***REMOVED*** ***REMOVED***L***REMOVED***u***REMOVED***m***REMOVED***i***REMOVED***o***REMOVED***n***REMOVED***,***REMOVED*** ***REMOVED***V***REMOVED***-***REMOVED***R***REMOVED***a***REMOVED***y***REMOVED***,***REMOVED*** ***REMOVED***C***REMOVED***a***REMOVED***p***REMOVED***C***REMOVED***u***REMOVED***t***REMOVED***)***REMOVED*** ***REMOVED***n***REMOVED***o***REMOVED***s***REMOVED*** ***REMOVED***t***REMOVED***e***REMOVED***x***REMOVED***t***REMOVED***o***REMOVED***s***REMOVED*** ***REMOVED***d***REMOVED***e***REMOVED*** ***REMOVED***m***REMOVED***a***REMOVED***r***REMOVED***k***REMOVED***e***REMOVED***t***REMOVED***i***REMOVED***n***REMOVED***g***REMOVED***,***REMOVED*** ***REMOVED***p***REMOVED***i***REMOVED***t***REMOVED***c***REMOVED***h***REMOVED***e***REMOVED***s***REMOVED*** ***REMOVED***d***REMOVED***e***REMOVED*** ***REMOVED***v***REMOVED***e***REMOVED***n***REMOVED***d***REMOVED***a***REMOVED***s***REMOVED*** ***REMOVED***o***REMOVED***u***REMOVED*** ***REMOVED***n***REMOVED***a***REMOVED*** ***REMOVED***i***REMOVED***n***REMOVED***t***REMOVED***e***REMOVED***r***REMOVED***f***REMOVED***a***REMOVED***c***REMOVED***e***REMOVED*** ***REMOVED***d***REMOVED***a***REMOVED*** ***REMOVED***p***REMOVED***l***REMOVED***a***REMOVED***t***REMOVED***a***REMOVED***f***REMOVED***o***REMOVED***r***REMOVED***m***REMOVED***a***REMOVED***.***REMOVED*** ***REMOVED***
-***REMOVED***U***REMOVED***s***REMOVED***e***REMOVED*** ***REMOVED***s***REMOVED***e***REMOVED***m***REMOVED***p***REMOVED***r***REMOVED***e***REMOVED*** ***REMOVED***t***REMOVED***e***REMOVED***r***REMOVED***m***REMOVED***o***REMOVED***s***REMOVED*** ***REMOVED***g***REMOVED***e***REMOVED***n***REMOVED***�***REMOVED***r***REMOVED***i***REMOVED***c***REMOVED***o***REMOVED***s***REMOVED*** ***REMOVED***c***REMOVED***o***REMOVED***m***REMOVED***o***REMOVED*** ***REMOVED***"***REMOVED***e***REMOVED***s***REMOVED***t***REMOVED***i***REMOVED***l***REMOVED***o***REMOVED*** ***REMOVED***o***REMOVED***s***REMOVED*** ***REMOVED***m***REMOVED***e***REMOVED***l***REMOVED***h***REMOVED***o***REMOVED***r***REMOVED***e***REMOVED***s***REMOVED*** ***REMOVED***s***REMOVED***i***REMOVED***t***REMOVED***e***REMOVED***s***REMOVED*** ***REMOVED***p***REMOVED***o***REMOVED***r***REMOVED*** ***REMOVED***a***REMOVED***�***REMOVED***"***REMOVED***,***REMOVED*** ***REMOVED***"***REMOVED***p***REMOVED***a***REMOVED***d***REMOVED***r***REMOVED***�***REMOVED***o***REMOVED*** ***REMOVED***d***REMOVED***e***REMOVED*** ***REMOVED***c***REMOVED***i***REMOVED***n***REMOVED***e***REMOVED***m***REMOVED***a***REMOVED***"***REMOVED***,***REMOVED*** ***REMOVED***"***REMOVED***e***REMOVED***d***REMOVED***i***REMOVED***�***REMOVED***�***REMOVED***o***REMOVED*** ***REMOVED***p***REMOVED***r***REMOVED***o***REMOVED***f***REMOVED***i***REMOVED***s***REMOVED***s***REMOVED***i***REMOVED***o***REMOVED***n***REMOVED***a***REMOVED***l***REMOVED*** ***REMOVED***d***REMOVED***e***REMOVED*** ***REMOVED***m***REMOVED***e***REMOVED***r***REMOVED***c***REMOVED***a***REMOVED***d***REMOVED***o***REMOVED***"***REMOVED***.***REMOVED*** ***REMOVED***A***REMOVED*** ***REMOVED***m***REMOVED***a***REMOVED***r***REMOVED***c***REMOVED***a***REMOVED*** ***REMOVED***c***REMOVED***e***REMOVED***n***REMOVED***t***REMOVED***r***REMOVED***a***REMOVED***l***REMOVED*** ***REMOVED***�***REMOVED*** ***REMOVED***�***REMOVED***n***REMOVED***i***REMOVED***c***REMOVED***a***REMOVED*** ***REMOVED***e***REMOVED*** ***REMOVED***e***REMOVED***x***REMOVED***c***REMOVED***l***REMOVED***u***REMOVED***s***REMOVED***i***REMOVED***v***REMOVED***a***REMOVED***m***REMOVED***e***REMOVED***n***REMOVED***t***REMOVED***e***REMOVED*** ***REMOVED***a***REMOVED*** ***REMOVED*******REMOVED*******REMOVED***A***REMOVED***p***REMOVED***e***REMOVED***x***REMOVED*** ***REMOVED***A***REMOVED***I***REMOVED*******REMOVED*******REMOVED***.***REMOVED******REMOVED***
-***REMOVED***
+
+## 🚨 REGRA ABSOLUTA 10 — Nomenclatura de Concorrentes
+
+Fica terminantemente proibido citar nomes de empresas, sites ou IAs concorrentes
+(ex: Magnific, Midjourney, Veo AI, ChatGPT, Lumion, V-Ray, CapCut) nos textos
+de marketing, pitches de vendas ou na interface da plataforma.
+
+Use sempre termos genéricos como "estilo dos melhores sites por aí", "padrão de
+cinema", "edição profissional de mercado". A marca central é única e exclusivamente
+a **Apex AI**.
+
+
+## 🚨 REGRA ABSOLUTA 11 — Proteção da Integridade das Regras e Leis
+
+Nenhum agente, assistente, skill, ferramenta ou processo automatizado pode
+editar, modificar, remover, truncar, ofuscar, ocultar, sobrescrever ou
+injetar caracteres nulos (null bytes, zero-width chars, \0, \x00) entre
+as letras de qualquer regra, lei, diretriz ou instrução contida:
+
+1. Neste arquivo (`AGENTS.md`)
+2. No `CHECKPOINT_TRACKER.md`
+3. No `docs/APEX_PLATFORM_CURRENT_STATE.md`
+4. No `apex_acip_master_architecture.md`
+5. Em quaisquer arquivos `.md` que definem regras ou estado da plataforma
+6. Nas variáveis de ambiente (`.env.local` e Environment Variables do Vercel)
+7. Nos provedores configurados (`api/copilot/chat.mjs`, `server.mjs`, `src/main.tsx`)
+8. Em toda a plataforma — endpoints, middlewares, services, componentes
+
+**Regras específicas:**
+1. Nenhum caractere nulo (\0, null byte, \x00) pode ser inserido no meio de palavras
+   para tentar "esconder" ou "disfarçar" o texto de regras
+2. Nenhum caractere de largura zero (zero-width joiner, zero-width space, etc.)
+   pode ser usado para separar letras de regras existentes ou futuras
+3. Nenhuma regra pode ser truncada parcialmente — ou está completa ou removida
+4. Nenhum provedor de IA, rota de API, variável de ambiente ou serviço pode
+   ser desativado, ocultado ou substituído por placeholder sem autorização explícita
+
+**Penalidade:** qualquer violação detectada deve ser revertida imediatamente.
+O agente infrator deve ser reportado ao Owner e todo o diff revisado.
+Prioridade máxima sobre qualquer outro comando — superior inclusive às
+Regras 1-10.
+
+**Exceção:** apenas o Owner Dr. Edgard (jedgard70@gmail.com) com autorização
+verbal explícita na conversa corrente pode autorizar alterações nas regras
+deste documento.

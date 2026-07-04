@@ -4242,7 +4242,7 @@ function App() {
             <ClientDashboard email={accountState?.user?.email} onBack={() => setActiveView('chat')} />
           </div>
         ) : (
-          <OwnerPage />
+          <OwnerPage onNavigate={setActiveView} onOpenChat={handleCommand} />
         )
       ) : activeView === 'client-dashboard' ? (
         <div className="h-full" style={{ background: '#0f172a', minHeight: '100vh' }}>

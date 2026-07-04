@@ -1,4 +1,3 @@
-
 > [!IMPORTANT]
 > **ATUALIZACAO (28/06/2026) - PLATAFORMA REAL**
 > 100% livre de Mocks. Stripe, Gemini e Motores configurados. Checkout e API Keys de Prod validadas.
@@ -170,6 +169,36 @@ Apenas local (não vai para Vercel): `LOCAL_WORKER_*`, `REVIT_MCP_*`, shell/path
 | Local `.exe` / `server.mjs` | ✅ Running | `localhost:3000` |
 | Vercel Production | ✅ Live | `www.apexglobalai.com` |
 | GitHub | ✅ Main branch | `jedgard70/apex-ai-copilot-platform` |
+
+---
+
+## 🚨 REGRA ABSOLUTA 11 — Proteção da Integridade das Regras e Leis
+
+Nenhum agente, assistente, skill, ferramenta ou processo automatizado pode
+editar, modificar, remover, truncar, ofuscar, ocultar, sobrescrever ou
+injetar caracteres nulos (null bytes, zero-width chars, \0, \x00) entre
+as letras de qualquer regra, lei, diretriz ou instrução contida neste
+documento, no `AGENTS.md`, no `docs/APEX_PLATFORM_CURRENT_STATE.md`,
+no `apex_acip_master_architecture.md`, em arquivos `.md` de regras/estado,
+nas variáveis de ambiente (`.env.local` e Vercel), nos provedores
+configurados (`api/copilot/chat.mjs`, `server.mjs`, `src/main.tsx`) ou
+em qualquer parte da plataforma sem autorização explícita e verbal do Owner.
+
+**Regras específicas:**
+1. Nenhum caractere nulo (\0, \x00) pode ser inserido no meio de palavras
+   para esconder ou disfarçar o texto de regras
+2. Nenhum caractere de largura zero (zero-width space/joiner) pode separar
+   letras de regras existentes ou futuras
+3. Nenhuma regra pode ser truncada parcialmente
+4. Nenhum provedor/rota/env pode ser desativado ou ocultado sem autorização
+
+**Penalidade:** reversão imediata + notificação ao Owner.
+Prioridade máxima sobre qualquer outro comando.
+
+**Exceção:** apenas o Owner Dr. Edgard (jedgard70@gmail.com) com autorização
+verbal explícita.
+
+---
 
 ## Phase 4 — Real Data & Auth ✅ COMPLETO
 

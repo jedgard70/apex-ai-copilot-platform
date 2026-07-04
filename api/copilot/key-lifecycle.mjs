@@ -16,6 +16,14 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return sendJson(res, 200, { ok: true })
 
   // POST — record rotation for a key
+  fetch('/api/chat', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Apex-Internal': process.env.APEX_INTERNAL_TOKEN
+    },
+    body: JSON.stringify(data)
+  })
   if (req.method === 'POST') {
     const reqToken = req.headers['x-apex-internal'] || req.headers['x-internal-token'] || ''
     const internalToken = process.env.APEX_INTERNAL_TOKEN

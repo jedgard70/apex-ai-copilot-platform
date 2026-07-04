@@ -200,7 +200,7 @@ export function OwnerPage({ onNavigate, onOpenChat }: OwnerPageProps) {
           summary: { totalCalls: 0, successRate: 0, avgLatencyMs: 0, windowMinutes: 1440 }
         })
       }
-    } catch { /* silent */ }
+    } catch { /* silent */ } finally { setLoading(false) }
   }, [])
 
   useEffect(() => { refresh(); const t = setInterval(refresh, 60000); return () => clearInterval(t) }, [refresh])

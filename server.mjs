@@ -7075,6 +7075,8 @@ const server = http.createServer(async (req, res) => {
 })
 
 const port = Number(process.env.PORT || 4177)
+console.log('REACHED PORT DEFINITION:', port);
+setInterval(() => { }, 10000);
 server.listen(port, () => {
   console.log(`Apex AI Copilot platform listening on http://127.0.0.1:${port}`)
   attachTerminal(server)
@@ -7090,39 +7092,3 @@ server.listen(port, () => {
     })
   }
 })
-// server.js
-const express = require('express');
-const cors = require('cors');
-require('dotenv').config();
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-// Inicializa a API com a sua chave segura
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-app.post('/gerar-codigo', async (req, res) => {
-  try {
-    const { prompt } = req.body;
-
-    // Escolha o modelo ideal para código
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-    // Instrução para focar apenas em código
-    const promptCompleto = `Aja como um programador sênior. Responda apenas com o código solicitado e breves explicações. Pedido: ${prompt}`;
-
-    const result = await model.generateContent(promptCompleto);
-    const resposta = result.response.text();
-
-    res.json({ codigo: resposta });
-  } catch (erro) {
-    console.error(erro);
-    res.status(500).json({ erro: 'Falha ao gerar o código' });
-  }
-});
-
-app.listen(3000, () => {
-  console.log('Servidor rodando na porta 3000');
-});
