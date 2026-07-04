@@ -878,6 +878,7 @@ function renderMessageText(text: string): React.ReactNode {
   return <>{nodes}</>
 }
 
+
 function isPlatformEngineeringIntent(text: string) {
   const lower = text.toLowerCase()
   const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|checar|check|verificar|verify)\b/i.test(lower)

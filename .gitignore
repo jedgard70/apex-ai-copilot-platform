@@ -27,3 +27,4 @@ cloudflared.exe
 docs/media_output/
 *.gguf
 runtime/models/
+local-worker/.wwebjs_auth/

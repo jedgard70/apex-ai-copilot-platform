@@ -1504,6 +1504,7 @@ server.on('error', err => {
 })
 
 import { initGoogleAuth } from './google.mjs'
+import { initWhatsApp } from './whatsapp.mjs'
 
 initWhatsApp()
 initGoogleAuth(PROJECT_PATH)
