@@ -1803,11 +1803,34 @@ function normalizeIdentityContext(value = {}) {
 }
 
 async function readJsonBody(req) {
-  if (req.body && typeof req.body === 'object') return req.body
-  const chunks = []
-  for await (const chunk of req) chunks.push(Buffer.from(chunk))
-  if (!chunks.length) return {}
-  return JSON.parse(Buffer.concat(chunks).toString('utf8'))
+  // Vercel serverless: body já vem parseado
+  if (req.body && typeof req.body === 'object' && !Buffer.isBuffer(req.body) && !(req.body instanceof ArrayBuffer)) {
+    return req.body
+  }
+
+  // Fallback: ler do stream
+  try {
+    const chunks = []
+    // Vercel Rust runtime pode ter body como string
+    if (typeof req.body === 'string') return JSON.parse(req.body)
+    if (Buffer.isBuffer(req.body)) return JSON.parse(req.body.toString('utf8'))
+
+    for await (const chunk of req) {
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
+    }
+    if (!chunks.length) {
+      // Se ainda estiver vazio, tenta text()
+      if (typeof req.text === 'function') {
+        const text = await req.text()
+        if (text) return JSON.parse(text)
+      }
+      return {}
+    }
+    return JSON.parse(Buffer.concat(chunks).toString('utf8'))
+  } catch (e) {
+    console.error('[readJsonBody] Error parsing body:', e?.message)
+    return {}
+  }
 }
 
 // Build confirmation UI metadata for frontend buttons
@@ -2178,9 +2201,9 @@ export default async function handler(req, res) {
       ? 'apex-local|apex-ai'
       : hasLocalWorker
         ? 'local-worker|apex-ai'
-      : (envDefaultModel && !envDefaultModel.toLowerCase().startsWith('apex-local')
-        ? `gemini|${envDefaultModel}`
-        : 'gemini|gemini-2.5-flash')
+        : (envDefaultModel && !envDefaultModel.toLowerCase().startsWith('apex-local')
+          ? `gemini|${envDefaultModel}`
+          : 'gemini|gemini-2.5-flash')
     const selectedModelRaw = body.model || body.selectedModel || safeDefaultModel
     const selectedModel = splitModelValue ? splitModelValue(selectedModelRaw) : { provider: null, modelId: selectedModelRaw, raw: selectedModelRaw }
     let modelProvider = selectedModel.provider || ''
