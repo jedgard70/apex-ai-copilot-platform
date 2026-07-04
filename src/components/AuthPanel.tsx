@@ -276,13 +276,33 @@ export function AuthPanel({ onClear, onAuthStateChange }: AuthPanelProps) {
         </div>
       )}
 
-      <div className="mt-10 pt-6 border-t border-[#3b494b]/30 flex justify-center">
+      <div className="mt-10 pt-6 border-t border-[#3b494b]/30 flex flex-col items-center gap-6">
         <p className="font-label-caps text-label-caps text-[#b9cacb]">
           {language === 'EN' ? 'New to the environment?' : 'Novo no ambiente?'}
           <a href="#" className="text-[#00f0ff] hover:text-[#dbfcff] ml-1 transition-colors">
             {language === 'EN' ? 'Request Access' : 'Solicitar Acesso'}
           </a>
         </p>
+
+        <div className="flex flex-col items-center w-full gap-3">
+          <p className="font-label-caps text-label-caps text-[#849495]">
+            {language === 'EN' ? 'DOWNLOAD APPS' : 'BAIXAR APLICATIVOS'}
+          </p>
+          <div className="flex gap-2 w-full">
+            <a href="https://github.com/jedgard70/apex-ai-copilot-platform/releases/latest" target="_blank" rel="noreferrer" className="flex-1 flex flex-col items-center justify-center gap-2 py-3 border border-[#273647] bg-[#1c2b3c] hover:bg-[#273647] hover:border-[#00f0ff]/50 transition-all group rounded-lg cursor-pointer">
+              <span className="material-symbols-outlined text-[20px] text-[#849495] group-hover:text-[#00f0ff]">desktop_windows</span>
+              <span className="font-label-caps text-label-caps text-[10px]">Windows</span>
+            </a>
+            <a href="https://github.com/jedgard70/apex-ai-copilot-platform/releases/latest" target="_blank" rel="noreferrer" className="flex-1 flex flex-col items-center justify-center gap-2 py-3 border border-[#273647] bg-[#1c2b3c] hover:bg-[#273647] hover:border-[#00f0ff]/50 transition-all group rounded-lg cursor-pointer">
+              <span className="material-symbols-outlined text-[20px] text-[#849495] group-hover:text-[#00f0ff]">desktop_mac</span>
+              <span className="font-label-caps text-label-caps text-[10px]">Mac</span>
+            </a>
+            <a href="https://github.com/jedgard70/apex-ai-copilot-platform/releases/latest" target="_blank" rel="noreferrer" className="flex-1 flex flex-col items-center justify-center gap-2 py-3 border border-[#273647] bg-[#1c2b3c] hover:bg-[#273647] hover:border-[#00f0ff]/50 transition-all group rounded-lg cursor-pointer">
+              <span className="material-symbols-outlined text-[20px] text-[#849495] group-hover:text-[#00f0ff]">android</span>
+              <span className="font-label-caps text-label-caps text-[10px]">Android</span>
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   )
