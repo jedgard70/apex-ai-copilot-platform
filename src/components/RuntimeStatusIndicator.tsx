@@ -52,9 +52,15 @@ export const RuntimeStatusIndicator: React.FC = () => {
   return (
     <div className="flex items-center" title={getStatusTitle()}>
       {status === 'running' ? (
-        <Cpu size={18} className={`mr-2 ${getStatusColor()}`} />
+        <>
+          <Cpu size={18} className={`mr-2 ${getStatusColor()}`} />
+          <span style={{ fontSize: '12px', fontWeight: 600, color: '#22c55e' }}>Apex AI: Ready</span>
+        </>
       ) : (
-        <ServerOff size={18} className={`mr-2 ${getStatusColor()}`} />
+        <>
+          <ServerOff size={18} className={`mr-2 ${getStatusColor()}`} />
+          <span style={{ fontSize: '12px', fontWeight: 600, color: '#ef4444' }}>Apex AI: Offline</span>
+        </>
       )}
     </div>
   );

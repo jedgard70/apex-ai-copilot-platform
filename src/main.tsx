@@ -1,5 +1,5 @@
-import { loadChatConversationsFromSupabase, saveMessageToSupabase } from './lib/chatHistoryService';
-import { isRevisionIntent, revisionChatLabel, isArchVisIntent, isDirectCutIntent, isDirectVideoNoPanelIntent, isBudgetIntent, isProjectPackageIntent, isGenerationHistoryIntent, isContractsIntent, isResearchIntent, isFieldOpsIntent, isBusinessLayerIntent, isAuthIntent, isCopilotExecutionIntent, suggestLayerOpenDecision, isExplicitPanelOpenRequest, isOwnerConsoleIntent, isStockIntent, isTripIntent, isPipelineIntent, isNRIntent, isAccountingIntent, isPromptLibraryIntent, getPromptLibraryModule, isPermitsIntent, isCheckpointContinuationIntent } from './lib/CopilotEngine';
+import { loadChatConversationsFromSupabase } from './lib/chatHistoryService';
+import { isRevisionIntent, revisionChatLabel, isArchVisIntent, isDirectCutIntent, isDirectVideoNoPanelIntent, isBudgetIntent, isProjectPackageIntent, isGenerationHistoryIntent, isContractsIntent, isResearchIntent, isFieldOpsIntent, isBusinessLayerIntent, isAuthIntent, isCopilotExecutionIntent, isExplicitPanelOpenRequest, isOwnerConsoleIntent, isStockIntent, isTripIntent, isPipelineIntent, isNRIntent, isAccountingIntent, isPromptLibraryIntent, getPromptLibraryModule, isPermitsIntent, isCheckpointContinuationIntent } from './lib/CopilotEngine';
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Analytics } from '@vercel/analytics/react'
@@ -62,7 +62,6 @@ import { NotificationsPanel } from './components/NotificationsPanel'
 import { ProjectPackagePanel } from './components/ProjectPackagePanel'
 import { ProjectWorkspacePanel } from './components/ProjectWorkspacePanel'
 import { PwaMobilePanel } from './components/PwaMobilePanel'
-import { PwaInstallBanner, IosInstallBanner } from './components/PwaInstallBanner'
 import { ResearchPanel } from './components/ResearchPanel'
 import { SaasAdminPanel } from './components/SaasAdminPanel'
 import { SkillExportPanel } from './components/SkillExportPanel'
@@ -89,13 +88,9 @@ import { MarketingAnalyticsPage } from './components/MarketingAnalyticsPage'
 import { PlatformNavigatorPage } from './components/PlatformNavigatorPage'
 import { ModelTrainingPage } from './components/ModelTrainingPage'
 import { TechnicalDocumentationPage } from './components/TechnicalDocumentationPage'
-import { StockMarketPanel } from './components/StockMarketPanel'
-import { TripPlannerPanel } from './components/TripPlannerPanel'
-import { NRCompliancePanel } from './components/NRCompliancePanel'
-import { AccountingPanel } from './components/AccountingPanel'
 import { RuntimeStatusIndicator } from './components/RuntimeStatusIndicator'
 
-import { classifyFile, formatSize, IntakeFile, isVisionReady, readFileAsDataUrl, compressImageAsDataUrl, readImageDimensions } from './lib/fileIntake'
+import { classifyFile, formatSize, IntakeFile, compressImageAsDataUrl, readImageDimensions } from './lib/fileIntake'
 import { extractPdfText } from './lib/pdfExtractor'
 import {
   createProjectProfile,
@@ -127,7 +122,7 @@ import { FieldOpsPlan, FieldRdoContext } from './lib/fieldOpsKnowledge'
 import { ProjectPackagePlan } from './lib/projectPackageKnowledge'
 import { GenerationHistoryEntry } from './lib/generationHistory'
 import { ResearchPlan } from './lib/researchKnowledge'
-import { selectTool, tools } from './lib/toolRegistry'
+import { selectTool } from './lib/toolRegistry'
 import { isAgentIntent } from './lib/apexAgents'
 import { AiCostPlan, isAiCostIntent } from './lib/aiCostKnowledge'
 import { AutoupgradePlan, isAutoupgradeIntent } from './lib/autoupgradeKnowledge'

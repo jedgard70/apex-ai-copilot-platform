@@ -2,6 +2,7 @@
 > [!IMPORTANT]
 > **ATUALIZACAO (28/06/2026) - PLATAFORMA REAL**
 > 100% livre de Mocks. Stripe, Gemini e Motores configurados. Checkout e API Keys de Prod validadas.
+>
 # Apex Module Validation Tracker
 
 > 🚨 REGRA ABSOLUTA — Proteção de Environment Variables
@@ -47,7 +48,8 @@ Last updated: 2026-06-27 (10:00) — 🚀 SESSÃO AGENTES AUTÔNOMOS E INFRAESTR
 • ✅ **App Windows (Electron)** — revisado, server.mjs + local-worker via utilityProcess
 
 📱 **Como instalar no celular:**
-- Android: Acesse www.apexglobalai.com → banner "Instalar" → confirma
+
+- Android: Acesse <www.apexglobalai.com> → banner "Instalar" → confirma
 - iPhone: Safari → Compartilhar (⬆) → "Adicionar à Tela de Início" → Adicionar
 
 🔄 **Auto-update:** PWA atualiza automaticamente quando há novo deploy na Vercel. Service Worker v2 com cache versionado (apex-ai-v2) garante que usuários sempre tenham a versão mais recente.
@@ -282,6 +284,7 @@ Apenas local (não vai para Vercel): `LOCAL_WORKER_*`, `REVIT_MCP_*`, shell/path
 | 3 | Atualização das credenciais GCP no Tracker e infra | ✅ Done |
 
 ## Dados Estratégicos Extraídos: Google Cloud Platform
+
 - **Project ID:** `apex-ai-copilot-platform`
 - **Project Number:** `429362775436`
 - **OAuth Web Client ID (Prefix):** `429362775436-kcj3...` e `429362775436-6bgi...`
@@ -290,12 +293,14 @@ Apenas local (não vai para Vercel): `LOCAL_WORKER_*`, `REVIT_MCP_*`, shell/path
 - **APIs Ativas:** Gemini, Contacts, Cloud Build, Firestore, Workspace, Ads, etc.
 
 ## Sessão Atual — Trip Planner, Seguros e Preparação para Fase 9
+
 | # | Mudança | Status |
 | :--- | :--------- | :-------- |
 | 1 | Trip Planner (Duffel NDC) & Seguros | ⚠️ Manual Owner (Preservado código original s/ Google AI) |
 | 2 | Iniciar Etapa 9 (Relatórios, PDF/CSV e Auth) | ✅ Concluída (Supabase Auth e reportGenerator) |
 
 ## PLANO DE AÇÃO PARA AS PRÓXIMAS SESSÕES (Atualizado conforme Master)
+
 1. **Supply Chain Studio (Módulo 16):** Atualmente em UI Protótipo. Desenvolver o backend para gerenciar cotações reais, fornecedores e controle de suprimentos/estoque da obra.
 2. **Project Package Pipeline (Módulo 11):** Atualmente Parcial. Finalizar o fluxo de integração embrionário que junta contratos, orçamentos e cronogramas num ZIP único.
 3. **BIM 3D Studio (Módulo 7):** Atualmente Parcial. Aprimorar as amarrações do WebGL / IfcOpenShell no front-end para visualização avançada dos modelos.

@@ -57,6 +57,7 @@
     "docx": "^9.7.1",
     "dompurify": "^3.1.6",
     "dotenv": "^17.4.2",
+    "electron-updater": "^6.8.9",
     "express": "^5.2.1",
     "fast-xml-parser": "5.9.3",
     "ffmpeg-static": "^5.3.0",
@@ -101,7 +102,6 @@
     "concurrently": "^10.0.3",
     "electron": "^42.5.0",
     "electron-builder": "^26.15.3",
-    "electron-updater": "^6.8.9",
     "jsdom": "^29.1.1",
     "vite-plugin-static-copy": "^4.1.1",
     "vitest": "^4.1.9"
@@ -122,7 +122,8 @@
       "local-worker/**/*",
       "server.mjs",
       "electron-main.cjs",
-      "package.json"
+      "package.json",
+      "node_modules/**/*"
     ],
     "win": {
       "target": "nsis"

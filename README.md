@@ -27,8 +27,8 @@ Source reference:
 Create `.env.local` locally:
 
 ```env
-[REDACTED]
-OPENAI_MODEL=gpt-4o-mini
+# Apex AI 2.0 - Local Engine Config
+APEX_ENGINE_PORT=11435
 VITE_SENTRY_DSN=
 SENTRY_DSN=
 VITE_SENTRY_ENVIRONMENT=development
@@ -53,12 +53,13 @@ npm start
 - **Platform Status** now reports whether Sentry frontend/backend are configured and whether the runtime is running on Vercel.
 - **Platform Status** also reports whether Gateway and Gemini model paths are actually configured.
 - **Model picker** supports manual advanced provider/model entry for Gateway and Gemini paths.
-- **Local Apex model selection** shows the user-facing Apex local option in the picker and stores it as `apex-local|apex-ai`. That stored value maps to the Ollama model name `apex-ai`, served from `APEX_LOCAL_URL` (default `http://localhost:11434`).
-- **Provisioning the local Apex model** requires creating the Ollama model first. This repository includes the base Ollama definition at `./Modelfile.apex`:
+- **Local Apex model selection** shows the user-facing Apex local option in the picker and stores it as `apex-local|apex-ai`. That stored value maps to the Apex AI 2.0 Engine served from `APEX_LOCAL_URL` (default `http://localhost:11435`).
+- **Provisioning the local Apex model** no longer requires Ollama. The platform now uses its own embedded AI runtime (llama-server) for a true zero-dependency architecture.
+
+To install the Apex AI 2.0 local runtime:
 
 ```bash
-ollama create apex-ai -f ./Modelfile.apex
-ollama serve
+npm run setup:runtime
 ```
 
 - **Field Operations / RDO** now saves to the local Project Workspace and, when Supabase session + tenant bootstrap are ready, syncs the report into `rdos`, `rdo_activities`, `field_issues`, `punch_items`, `field_photos`, `safety_checklists`, `quality_checklists` and `corrective_actions`.

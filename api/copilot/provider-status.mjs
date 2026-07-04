@@ -223,49 +223,21 @@ async function checkAuthKey() {
 
 // ─── FFmpeg local ─────────────────────────────────────────────────────────────
 async function checkFfmpeg() {
-  // 1. Try ffmpeg-static first (npm package with bundled binary)
   try {
     const { createRequire } = await import('node:module')
     const require = createRequire(import.meta.url)
-    const ffmpegPath = require.resolve('ffmpeg-static')
-    if (ffmpegPath) {
-      return { id: 'ffmpeg', name: 'FFmpeg local', status: 'ok', message: 'ffmpeg-static instalado.' }
-    }
-  } catch {
-    // ffmpeg-static not available
-  }
-
-  // 2. Try system ffmpeg via execSync
-  try {
-    const { execSync } = await import('node:child_process')
-    const result = execSync('ffmpeg -version', { encoding: 'utf8', timeout: 5000, stdio: ['pipe', 'pipe', 'pipe'] })
-    if (result && result.toLowerCase().includes('ffmpeg version')) {
-      const versionMatch = result.match(/ffmpeg version ([^\s]+)/i)
-      const version = versionMatch ? versionMatch[1] : 'disponível'
-      return { id: 'ffmpeg', name: 'FFmpeg local', status: 'ok', message: `FFmpeg ${version} no PATH do sistema.` }
-    }
-  } catch {
-    // System ffmpeg not in PATH
-  }
-
-  // 3. Fallback: check common Windows install paths
-  const commonPaths = [
-    'C:\\ffmpeg\\bin\\ffmpeg.exe',
-    'C:\\Program Files\\ffmpeg\\bin\\ffmpeg.exe',
-    'C:\\tools\\ffmpeg\\bin\\ffmpeg.exe',
-    process.env.LOCALAPPDATA + '\\ffmpeg\\ffmpeg.exe',
-  ]
-  for (const p of commonPaths) {
+    const ffmpegPath = require('ffmpeg-static')
+    if (ffmpegPath) return { id: 'ffmpeg', name: 'FFmpeg local', status: 'ok', message: 'ffmpeg-static disponível.' }
+  } catch (err) {
     try {
-      const { accessSync, constants } = await import('node:fs')
-      accessSync(p, constants.X_OK)
-      return { id: 'ffmpeg', name: 'FFmpeg local', status: 'ok', message: `FFmpeg encontrado em ${p}.` }
-    } catch {
-      // not at this path
+      const { execSync } = await import('node:child_process')
+      execSync('ffmpeg -version', { stdio: 'ignore' })
+      return { id: 'ffmpeg', name: 'FFmpeg local', status: 'ok', message: 'FFmpeg disponível no sistema.' }
+    } catch (e) {
+      return { id: 'ffmpeg', name: 'FFmpeg local', status: 'error', message: `ffmpeg não carregou: ${err.message}` }
     }
   }
-
-  return { id: 'ffmpeg', name: 'FFmpeg local', status: 'error', message: 'FFmpeg não encontrado (ffmpeg-static ausente ou ffmpeg não está no PATH).' }
+  return { id: 'ffmpeg', name: 'FFmpeg local', status: 'error', message: 'FFmpeg não encontrado.' }
 }
 
 // ─── Autodesk APS ──────────────────────────────────────────────────────────

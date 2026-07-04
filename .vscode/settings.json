@@ -44,5 +44,11 @@
     "workbench.editor.chatSession": true,
     "default": true
   },
-  "workbench.editor.alwaysShowEditorActions": true
+  "workbench.editor.alwaysShowEditorActions": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "editor.formatOnSave": true,
+  "typescript.updateImportsOnFileMove.enabled": "always"
 }

@@ -249,6 +249,7 @@ app.whenReady().then(async () => {
   if (mainWindow) {
     if (ready) {
       mainWindow.loadURL(`http://127.0.0.1:${APP_PORT}/`);
+      mainWindow.show();
     } else {
       mainWindow.loadURL(startupHtml({
         title: "Erro ao Iniciar o Servidor Local",

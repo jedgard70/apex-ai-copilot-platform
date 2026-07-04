@@ -4,12 +4,11 @@
  * Design system: dark navy (#0b1326), blue primary (#b4c5ff / #2563eb)
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
-  ArrowLeft, ChevronDown, ChevronRight, Download, Grid2x2, Image,
-  ImageIcon, Layers, Maximize2, Plus, RefreshCw,
-  Save, Search, Settings, Share2, Sliders, Sparkles, Sun, Trash2,
-  X, ZoomIn, ZoomOut,
+  ArrowLeft, Download, Grid2x2,
+  ImageIcon, Layers, Plus, RefreshCw,
+  Search, Settings, Sparkles, Sun
 } from 'lucide-react'
 import { IntakeFile } from '../lib/fileIntake'
 

@@ -12,13 +12,13 @@
  * DEPENDÊNCIAS: zero npm packages — usa apenas Node.js nativo + llama-server.exe
  */
 
+import { execSync, spawn } from 'node:child_process'
 import fs from 'node:fs'
-import path from 'node:path'
-import https from 'node:https'
 import http from 'node:http'
-import { spawn, execSync } from 'node:child_process'
+import https from 'node:https'
+import { homedir } from 'node:os'
+import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { homedir, arch, platform } from 'node:os'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -33,8 +33,28 @@ const DATA_DIR = path.join(
     'Apex AI', 'engine'
 )
 const MODEL_DIR = path.join(DATA_DIR, 'models')
-const SERVER_EXE = path.join(DATA_DIR, 'llama-server.exe')
-const MODEL_FILE = path.join(MODEL_DIR, 'apex-gemma.gguf')
+
+const ROOT_DIR = path.resolve(__dirname, '..', '..')
+const LOCAL_RUNTIME_DIR = path.join(ROOT_DIR, 'runtime')
+const localServerExe1 = path.join(LOCAL_RUNTIME_DIR, 'apex-runtime.exe')
+const localServerExe2 = path.join(LOCAL_RUNTIME_DIR, 'llama-server.exe')
+const localModelFile = path.join(LOCAL_RUNTIME_DIR, 'models', 'apex-ai-gemma2b-Q4.gguf')
+
+const appDataServerExe = path.join(DATA_DIR, 'llama-server.exe')
+const appDataModelFile = path.join(MODEL_DIR, 'apex-gemma.gguf')
+
+let SERVER_EXE = process.env.APEX_OWN_RUNTIME_SERVER || ''
+if (!SERVER_EXE) {
+    if (fs.existsSync(localServerExe1)) SERVER_EXE = localServerExe1
+    else if (fs.existsSync(localServerExe2)) SERVER_EXE = localServerExe2
+    else SERVER_EXE = appDataServerExe
+}
+
+let MODEL_FILE = process.env.APEX_OWN_RUNTIME_MODEL || ''
+if (!MODEL_FILE) {
+    if (fs.existsSync(localModelFile)) MODEL_FILE = localModelFile
+    else MODEL_FILE = appDataModelFile
+}
 
 // ─── URLs de download ─────────────────────────────────────────────────────────
 // llama-server.exe — binário pré-compilado do llama.cpp (GitHub Releases)
@@ -266,6 +286,9 @@ export async function startEngine() {
         return false
     }
 
+    log(`Usando SERVER_EXE=${SERVER_EXE}`)
+    log(`Usando MODEL_FILE=${MODEL_FILE}`)
+
     log(`Iniciando Apex AI Engine na porta ${APEX_ENGINE_PORT}...`)
 
     _serverProcess = spawn(SERVER_EXE, [
@@ -276,8 +299,6 @@ export async function startEngine() {
         '--n-predict', '1024',
         '--threads', '4',
         '--chat-template', 'gemma',
-        '--system-prompt',
-        'Você é a Apex AI, assistente profissional de arquitetura, construção, BIM, marketing e gestão. Responda em português de forma direta e técnica.',
         '--log-disable', // Sem logs verbosos
     ], {
         windowsHide: true,

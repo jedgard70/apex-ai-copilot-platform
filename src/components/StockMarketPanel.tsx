@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { DollarSign, TrendingUp, TrendingDown, RefreshCw, X, Search, BarChart3, Bot, Settings, AlertTriangle, ShieldCheck, PlayCircle, StopCircle } from 'lucide-react';
+import { RefreshCw, X, Bot } from 'lucide-react';
 
 type Quote = {
   symbol: string;
@@ -15,13 +15,13 @@ export function StockMarketPanel({ onClear }: { onClear: () => void }) {
   const [activeTab, setActiveTab] = useState<'market' | 'bot'>('bot');
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
+
 
   // Bot State
   const [botStatus, setBotStatus] = useState<any>(null);
-  const [setupCapital, setSetupCapital] = useState(10000);
-  const [setupEquityGuard, setSetupEquityGuard] = useState(30);
-
+  const [message, setMessage] = useState('');
+  const [setupCapital, setSetupCapital] = useState(100000);
+  const [setupEquityGuard, setSetupEquityGuard] = useState(80);
   async function fetchBotStatus() {
     try {
       const res = await fetch('/api/stock/autotrader/status');

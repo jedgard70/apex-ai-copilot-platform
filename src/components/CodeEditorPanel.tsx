@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import Editor from '@monaco-editor/react'
-import { Play, Save } from 'lucide-react'
+import { Play, Save, Wand2, Loader2 } from 'lucide-react'
 import { IntakeFile } from '../lib/fileIntake'
 
 export function CodeEditorPanel({ 
@@ -17,6 +17,7 @@ export function CodeEditorPanel({
   onChangeContent: (content: string) => void
 }) {
   const [content, setContent] = useState('')
+  const [isFixing, setIsFixing] = useState(false)
 
   useEffect(() => {
     if (activeFile) {
@@ -36,6 +37,30 @@ export function CodeEditorPanel({
      if (activeFile) {
        onRunFile(activeFile.file.name)
      }
+  }
+
+  async function handleAIFix() {
+    if (!content) return
+    setIsFixing(true)
+    try {
+      const res = await fetch('/api/copilot/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: `Você é um Code Fixer autônomo. Corrija o código abaixo removendo variáveis não utilizadas e consertando erros do TypeScript. RETORNE APENAS O CÓDIGO FONTE, nada de explicações, nada de blocos markdown, apenas o texto puro:\n\n${content}`
+        })
+      })
+      const data = await res.json()
+      if (data.finalReply) {
+        let fixed = data.finalReply.replace(/```[\w]*\n?/g, '').replace(/```$/g, '').trim()
+        setContent(fixed)
+        onChangeContent(fixed)
+      }
+    } catch (e) {
+      console.error('Code Fixer error', e)
+    } finally {
+      setIsFixing(false)
+    }
   }
 
   function handleChange(val: string | undefined) {
@@ -63,6 +88,10 @@ export function CodeEditorPanel({
          </button>
          <button onClick={handleSave} disabled={!activeFile || !hasNativeHandle} title={!hasNativeHandle ? 'Disponível apenas para arquivos conectados via "Pasta Local"' : 'Salvar direto no seu HD'} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: activeFile && hasNativeHandle ? '#3b82f6' : '#444', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: activeFile && hasNativeHandle ? 'pointer' : 'not-allowed' }}>
            <Save size={14} /> Salvar no Disco
+         </button>
+         <button onClick={handleAIFix} disabled={!activeFile || isFixing} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: activeFile ? '#8b5cf6' : '#444', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: activeFile ? 'pointer' : 'not-allowed', marginLeft: '8px' }}>
+           {isFixing ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />} 
+           {isFixing ? 'Corrigindo...' : 'AI Code Fixer'}
          </button>
          {activeFile && <span style={{ color: '#aaa', fontSize: '12px', alignSelf: 'center', marginLeft: 'auto' }}>{activeFile.file.name}</span>}
        </div>

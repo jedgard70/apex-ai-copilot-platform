@@ -120,7 +120,7 @@ export function AuthPanel({ onClear, onAuthStateChange }: AuthPanelProps) {
   }
 
   return (
-    <div className="w-full max-w-[440px] bg-[#0d1c2d] border border-[#273647] p-10 shadow-2xl relative overflow-hidden">
+    <div className="w-full max-w-[440px] max-h-[95vh] overflow-y-auto bg-[#0d1c2d] border border-[#273647] p-10 shadow-2xl relative scrollbar-thin scrollbar-thumb-[#273647]">
       <div className="absolute top-0 left-0 w-full h-[2px] bg-[#00f0ff]"></div>
 
       {onClear && (

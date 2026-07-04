@@ -40,9 +40,9 @@ Essa arquitetura fecha o ciclo completo de uma **Construtech AutÃ´noma**:
 - **ProduÃ§Ã£o (Render Queue):** O cliente quer maquetes pesadas (Neon/Cycles)? A IA codifica e envia para a fila; a mÃ¡quina trabalha nas sombras enquanto a interface fica livre.
 - **Soberania (Gemma Fine-tuning):** O `gerador_dataset.mjs` pavimenta a estrada para o Endgame, gerando os dados de base para treinar os pesos do nosso prÃ³prio modelo Open-Source local e zerar dependÃªncia de APIs em nuvem.
 
-### Evoluções Adicionadas em 03 de Julho de 2026:
-1. **Trava de Segurança (HITL - Human in the Loop):** Rota /run/approve implementada no local-worker para aprovação de postagens.
-2. **Conectores do Google Cloud (Fase 4):** Criação do local-worker/google.mjs estruturado para receber google-credentials.json.
-3. **Máquina Omnichannel:** Integrados ElevenLabs, FAL.ai e Brave Search.
-4. **Motor Nativo:** Purificação do .env eliminando Ollama, utilizando motor Gemma nativo.
-5. **Arquitetura Event-Driven (n8n + WhatsApp HITL):** A publicação omnichannel agora é terceirizada para o n8n via Webhook. O processo passa obrigatoriamente por uma aprovação ativa do CEO (Modo CEO) no WhatsApp antes do gatilho final, garantindo risco de imagem zero e escalabilidade infinita.
+### Evoluï¿½ï¿½es Adicionadas em 03 de Julho de 2026:
+1. **Trava de Seguranï¿½a (HITL - Human in the Loop):** Rota /run/approve implementada no local-worker para aprovaï¿½ï¿½o de postagens.
+2. **Conectores do Google Cloud (Fase 4):** Criaï¿½ï¿½o do local-worker/google.mjs estruturado para receber google-credentials.json.
+3. **Mï¿½quina Omnichannel:** Integrados ElevenLabs, FAL.ai e Brave Search.
+4. **Motor Nativo:** Purificaï¿½ï¿½o do .env eliminando Ollama, utilizando motor Gemma nativo.
+5. **Arquitetura Event-Driven (n8n + WhatsApp HITL):** A publicaï¿½ï¿½o omnichannel agora ï¿½ terceirizada para o n8n via Webhook. O processo passa obrigatoriamente por uma aprovaï¿½ï¿½o ativa do CEO (Modo CEO) no WhatsApp antes do gatilho final, garantindo risco de imagem zero e escalabilidade infinita.

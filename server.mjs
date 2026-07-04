@@ -1,12 +1,12 @@
-// ═══════════════════════════════════════════════════════════════════════════════
-// ATENÇÃO — PROPRIEDADE DO OWNER (Dr. Edgard)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ATENÃ‡ÃƒO â€” PROPRIEDADE DO OWNER (Dr. Edgard)
 // Nenhum agente, assistente, skill, ferramenta ou processo automatizado pode
-// alterar, modificar, remover ou sobrescrever variáveis no .env.local ou
-// nas Environment Variables do Vercel sem autorização EXPLÍCITA e VERBAL
+// alterar, modificar, remover ou sobrescrever variÃ¡veis no .env.local ou
+// nas Environment Variables do Vercel sem autorizaÃ§Ã£o EXPLÃCITA e VERBAL
 // do Owner (jedgard70@gmail.com / Dr. Edgard).
-// VIOLAÇÕES: qualquer alteração não autorizada deve ser revertida imediatamente
+// VIOLAÃ‡Ã•ES: qualquer alteraÃ§Ã£o nÃ£o autorizada deve ser revertida imediatamente
 // e reportada ao Owner.
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 import './server/env.mjs'
 import http from 'node:http'
@@ -417,7 +417,7 @@ const copilotExecutionCommands = [
   {
     id: 'apex_diag',
     label: 'Windows Diagnostics',
-    description: 'Run a full Windows hardware/software diagnostics — CPU, RAM, disk, top processes, services, startup. Read-only, no system modifications.',
+    description: 'Run a full Windows hardware/software diagnostics â€” CPU, RAM, disk, top processes, services, startup. Read-only, no system modifications.',
     executable: process.platform === 'win32' ? 'powershell' : 'pwsh',
     args: ['-ExecutionPolicy', 'Bypass', '-File', 'scripts/apex-diag.ps1'],
     risk: 'low',
@@ -514,7 +514,7 @@ function scanSkillMarkdown(dir) {
       }
     }
   } catch (err) {
-    console.error(`[server] Erro ao escanear diretório de skills ${dir}:`, err)
+    console.error(`[server] Erro ao escanear diretÃ³rio de skills ${dir}:`, err)
   }
   return results
 }
@@ -538,7 +538,7 @@ function loadDynamicSkills() {
           body: body.trim(),
         })
       } catch (err) {
-        console.error(`[server] Erro ao carregar skill dinâmica ${filepath}:`, err)
+        console.error(`[server] Erro ao carregar skill dinÃ¢mica ${filepath}:`, err)
       }
     }
   }
@@ -580,25 +580,25 @@ function classifySkillUpdate(file, text) {
   if (/(password|api[_-]?key|secret|token|service[_-]?role|private key|BEGIN RSA PRIVATE KEY)/i.test(text)) {
     return { category: 'obsolete-unsafe-ignore', targetDomain: 'security-review', riskLevel: 'high' }
   }
-  if (/(deprecated|obsolete|superseded|não usar|nao usar|ignore this|old version)/i.test(lower)) {
+  if (/(deprecated|obsolete|superseded|nÃ£o usar|nao usar|ignore this|old version)/i.test(lower)) {
     return { category: 'obsolete-unsafe-ignore', targetDomain: 'historical-reference', riskLevel: 'medium' }
   }
   if (/(archvis|render|planta humanizada|humanized floor plan|facade|interior|prompt negativo|negative prompt)/i.test(lower)) {
     return { category: 'archvis-skill', targetDomain: 'archvis', riskLevel: 'low' }
   }
-  if (/(directcut|video|vídeo|roteiro|shot list|storyboard|reels|cinematic)/i.test(lower)) {
+  if (/(directcut|video|vÃ­deo|roteiro|shot list|storyboard|reels|cinematic)/i.test(lower)) {
     return { category: 'directcut-skill', targetDomain: 'directcut', riskLevel: 'low' }
   }
-  if (/(revit|dynamo|pyrevit|shared parameter|par[aâ]metro compartilhado|family|fam[ií]lia|view template|schedule|add-in|addin|ribbon|ifc export|glb export)/i.test(lower)) {
+  if (/(revit|dynamo|pyrevit|shared parameter|par[aÃ¢]metro compartilhado|family|fam[iÃ­]lia|view template|schedule|add-in|addin|ribbon|ifc export|glb export)/i.test(lower)) {
     return { category: 'revit-skill', targetDomain: 'revit-customization', riskLevel: 'low' }
   }
-  if (/(windows|powershell|diagn[oó]stico|diagnostic|cleanup|limpeza|quarantine|quarentena|startup|inicializa[cç][aã]o|malware|performance|pc lento|computador lento)/i.test(lower)) {
+  if (/(windows|powershell|diagn[oÃ³]stico|diagnostic|cleanup|limpeza|quarantine|quarentena|startup|inicializa[cÃ§][aÃ£]o|malware|performance|pc lento|computador lento)/i.test(lower)) {
     return { category: 'windows-coding-skill', targetDomain: 'windows-care-coding', riskLevel: 'medium' }
   }
   if (/(bim|ifc|revit|rvt|dwg|dxf|skp|clash|viewer|3d)/i.test(lower)) {
     return { category: 'bim-3d-skill', targetDomain: 'bim-3d', riskLevel: 'low' }
   }
-  if (/(rdo|di[aá]rio de obra|relat[oó]rio de obra|field operations|jobsite|punch list|checklist de qualidade|checklist de seguran[cç]a|foto de obra|daily report)/i.test(lower)) {
+  if (/(rdo|di[aÃ¡]rio de obra|relat[oÃ³]rio de obra|field operations|jobsite|punch list|checklist de qualidade|checklist de seguran[cÃ§]a|foto de obra|daily report)/i.test(lower)) {
     return { category: 'field-operations-skill', targetDomain: 'field-operations-rdo', riskLevel: 'low' }
   }
   if (/(sql|data|analytics|dashboard|metric|csv|query)/i.test(lower)) {
@@ -607,13 +607,13 @@ function classifySkillUpdate(file, text) {
   if (/(marketing|sales|crm|proposal|proposta|venda|copy|landing)/i.test(lower)) {
     return { category: 'business-marketing', targetDomain: 'business-marketing', riskLevel: 'low' }
   }
-  if (/(negotiation|negociação|negociacao|humanizer|humanizar texto|writing|copywriting)/i.test(lower)) {
+  if (/(negotiation|negociaÃ§Ã£o|negociacao|humanizer|humanizar texto|writing|copywriting)/i.test(lower)) {
     return { category: 'writing-negotiation', targetDomain: 'writing-negotiation', riskLevel: 'low' }
   }
   if (['py', 'js', 'ts', 'tsx'].includes(ext) || /(react|typescript|javascript|python|component|api route|server)/i.test(lower)) {
     return { category: 'code-platform-pattern', targetDomain: 'platform-code', riskLevel: 'medium' }
   }
-  if (/(system prompt|prompt template|template|instruções|instrucoes|instructions)/i.test(lower)) {
+  if (/(system prompt|prompt template|template|instruÃ§Ãµes|instrucoes|instructions)/i.test(lower)) {
     return { category: 'prompt-template', targetDomain: 'prompt-systems', riskLevel: 'low' }
   }
   if (/(rule|regra|always|never|nunca|sempre|policy|hard rule)/i.test(lower)) {
@@ -1117,25 +1117,25 @@ function buildLocalSkillContext(userText, file) {
   if (/(ifc|rvt|dwg|dxf|skp|bim|cad|3d|viewer|clash)/.test(text)) {
     contexts.push('BIM/CAD: Apex-internal first. Never tell the user to leave the platform as the main solution. IFC/GLB/GLTF/OBJ/STL/FBX must open in Apex BIM / 3D Studio. RVT/DWG/DXF/SKP must open an Apex internal conversion/import workflow. For findings, do not say I think/probably/parece/talvez/pode conter/might/may contain. Separate claims into CONFIRMED, ASSUMPTION and UNKNOWN. Do not say use Revit/ArchiCAD/Solibri/Twinmotion/Blender unless Apex has opened the internal studio/import flow, identified a specific limitation, generated a report and produced correction instructions, or unless the user explicitly asks how to do it outside Apex. If parser/viewer fails, show the real error and offer internal next steps: retry viewer, convert to GLB/IFC, prepare import package, extract metadata if available, create technical review plan.')
   }
-  if (/(revit|dynamo|pyrevit|add-?in|plugin|c#|csharp|ribbon|shared parameter|shared parameters|par[aâ]metro|par[aâ]metros compartilhados|view template|template bim|fam[ií]lia|families|ifc export|exportar ifc|glb|manifest|externalcommand|iexternalcommand|iexternalapplication|sheets|pranchas|schedules|quantitativos|qa\/qc|model checking)/.test(text)) {
+  if (/(revit|dynamo|pyrevit|add-?in|plugin|c#|csharp|ribbon|shared parameter|shared parameters|par[aÃ¢]metro|par[aÃ¢]metros compartilhados|view template|template bim|fam[iÃ­]lia|families|ifc export|exportar ifc|glb|manifest|externalcommand|iexternalcommand|iexternalapplication|sheets|pranchas|schedules|quantitativos|qa\/qc|model checking)/.test(text)) {
     contexts.push('Revit customization: answer as a Revit/BIM automation consultant. Distinguish manual Revit setup, Dynamo automation, pyRevit scripts and full C# Revit API add-ins. Cover project setup, templates, families, shared/project parameters, view templates, filters, schedules, sheets/title blocks, BIM standards, IFC/GLB export workflows, model checks, QA/QC, preflight checks and Apex AI Copilot integration. Generate code when requested, show where files go, include .addin manifest/ribbon button structure for C# plugins, and warn that code must be tested inside the matching Revit version. Do not pretend a plugin/script was installed or tested.')
   }
-  if (/(eua|usa|united states|mercado americano|american market|europa|europe|european market|mercado europeu|offshore|d[oó]lar|euro|clientes internacionais|international clients|permit set|permit sets|portfolio americano|linkedin em ingl[eê]s|linkedin|prospec[cç][aã]o|outreach|bim em d[oó]lar|revit em d[oó]lar|opera[cç][aã]o remota|remote operation|residential construction docs|construction documentation)/.test(text)) {
+  if (/(eua|usa|united states|mercado americano|american market|europa|europe|european market|mercado europeu|offshore|d[oÃ³]lar|euro|clientes internacionais|international clients|permit set|permit sets|portfolio americano|linkedin em ingl[eÃª]s|linkedin|prospec[cÃ§][aÃ£]o|outreach|bim em d[oÃ³]lar|revit em d[oÃ³]lar|opera[cÃ§][aÃ£]o remota|remote operation|residential construction docs|construction documentation)/.test(text)) {
     contexts.push('International Market Strategy from Venda EUA Edgard PDF: the fastest entry path is not "architect in the US". Prioritize BIM Specialist, Revit Modeler, Permit Set Designer, Residential Construction Documentation Specialist and offshore BIM/CAD production partner positioning. High-value US/EU paths are permit sets, residential construction docs, Revit modeling, BIM coordination, estimating, technical documentation automation and AI-powered project delivery. Lower priority: render-only, Instagram-only and aesthetics-only positioning. Use Agency -> Platform -> SaaS: sell premium offshore technical production first, automate internally, then productize into AI BIM Operations Platform. For product strategy, do not build the whole enterprise platform first; start with BIM upload, AI issue analysis, permit checklist, issue tracking, executive reports, document intelligence and workflow approvals. Produce actionable business outputs: 90-day roadmap, LinkedIn headline/about, portfolio plan, outreach scripts, service menu, proposal copy and offshore production workflow. Connect Research, Contracts/Permits, BIM/3D, Revit, Budget, DirectCut and Marketing when useful. Do not invent current market data, code requirements, competitor facts or prices without source verification.')
   }
-  if (/(github|repo|repository|branch|pr\b|pull request|supabase|sql|vercel|deploy|deployment|backend|frontend|database|schema|rls|policy|policies|security|seguran[cç]a|vulnerab|refactor|module|m[oó]dulo|code review|auditoria t[eé]cnica|build error|deploy error|secrets?|dependency|depend[eê]ncia|cors|auth|migra[cç][aã]o|migration)/.test(text)) {
+  if (/(github|repo|repository|branch|pr\b|pull request|supabase|sql|vercel|deploy|deployment|backend|frontend|database|schema|rls|policy|policies|security|seguran[cÃ§]a|vulnerab|refactor|module|m[oÃ³]dulo|code review|auditoria t[eÃ©]cnica|build error|deploy error|secrets?|dependency|depend[eÃª]ncia|cors|auth|migra[cÃ§][aÃ£]o|migration)/.test(text)) {
     contexts.push('Platform Engineering / DevOps: act as a senior platform engineer. Review repository structure, frontend, backend, database/schema, Supabase SQL/RLS, Vercel deploy config, build/deploy errors, branch/PR plans, dependency risk and security. Always separate CONFIRMED, ASSUMPTION and NEEDS VERIFICATION. Do not claim GitHub/Vercel/Supabase access or success unless connector/URL/content/local clone/command output proves it. Do not expose secrets. Do not modify production config without explicit instruction. For Supabase, prefer migration-safe SQL and warn about RLS exposure. For Vercel, check env vars, build command, output dir, framework preset and runtime compatibility. For security, flag exposed keys, unsafe localStorage secrets, missing auth/RLS, open CORS, insecure uploads, unsanitized file parsing, dependency risk and broad admin/service-role usage.')
   }
-  if (/(venda|cliente|crm|proposal|proposta|business|marketing|or[cç]amento|budget)/.test(text)) {
+  if (/(venda|cliente|crm|proposal|proposta|business|marketing|or[cÃ§]amento|budget)/.test(text)) {
     contexts.push('Business/sales: produce positioning, client pitch, proposal outline, buyer profile, value proposition, recommended visuals and next commercial action directly.')
   }
-  if (/(code|c[oó]digo|react|typescript|mcp|api|server|platform)/.test(text)) {
+  if (/(code|c[oÃ³]digo|react|typescript|mcp|api|server|platform)/.test(text)) {
     contexts.push('Coding/platform: prefer small scoped changes, keep secrets server-side, separate protocol/validation/execution/evaluation, and produce code directly when requested.')
   }
   if (/(write|escreva|texto|copy|document|doc|humaniz)/.test(text)) {
     contexts.push('Writing: produce the requested artifact directly, match user language/tone and avoid generic boilerplate unless asked.')
   }
-  if (/(docsedgard|reintegrada|skill integrada|skill real|skills importadas|invent[aá]rio de skills|manifesto de skill)/.test(text)) {
+  if (/(docsedgard|reintegrada|skill integrada|skill real|skills importadas|invent[aÃ¡]rio de skills|manifesto de skill)/.test(text)) {
     contexts.push('Docsedgard Integrated Skill: use local runtime command `docsedgard_skill` for operational actions. Available actions: `summary` (totals and top folders), `search:<termo>` (find artifacts by topic/path), and `sync-manifest` (regenerate skill/DOCSEDGARD_SKILL_REINTEGRADA.md from D:\\AI Jedgard\\skill).')
   }
   if (/(negocia|counteroffer|proposta comercial|deal)/.test(text)) {
@@ -1144,22 +1144,22 @@ function buildLocalSkillContext(userText, file) {
   if (/(data|dados|sql|planilha|xlsx|csv|analytics|metric)/.test(text)) {
     contexts.push('Data: do not invent data values; state missing data clearly; produce analysis structure, SQL, spreadsheet logic or metric reasoning.')
   }
-  if (/(rdo|di[aá]rio de obra|relat[oó]rio de obra|andamento da obra|progresso da obra|checklist de qualidade|checklist de seguran[cç]a|equipe de obra|materiais entregues|pend[eê]ncia de obra|punch list|foto de obra|field operations|daily report|jobsite|site report|quality checklist|safety checklist|field photo)/.test(text)) {
+  if (/(rdo|di[aÃ¡]rio de obra|relat[oÃ³]rio de obra|andamento da obra|progresso da obra|checklist de qualidade|checklist de seguran[cÃ§]a|equipe de obra|materiais entregues|pend[eÃª]ncia de obra|punch list|foto de obra|field operations|daily report|jobsite|site report|quality checklist|safety checklist|field photo)/.test(text)) {
     contexts.push('Field Operations / RDO: produce daily reports, progress summaries, crew/material logs, safety/quality checklists, punch lists and client reports. Do not claim field verification unless supported by photo or user field data. User notes are USER_REPORTED. Visible photo items can be PHOTO_CONFIRMED. Unknown items remain UNKNOWN. Do not fake weather or inspection approval.')
   }
-  if (/(crm|lead|cliente|client|vendas|sales|proposta comercial|financeiro|finance|fatura|invoice|pagamento|payment|plano saas|usu[aá]rio|permiss[oõ]es|dashboard admin|dashboard cliente|pipeline|follow-up|cobran[cç]a|contabilidade|contador|documentos cont[aá]beis|relat[oó]rio cont[aá]bil|imposto|nota fiscal|receita|despesa|contas a pagar|contas a receber|accounting|accountant|tax)/.test(text)) {
-    contexts.push('SaaS / CRM / Finance: local-first business layer only. No fake auth, no fake database persistence, no fake payment confirmation, no fake invoice sent, no fake tax filing. Always label Local demo mode — auth/database not connected yet. Client users must not access admin/internal data in the real model. Finance/accounting prepares records, ledgers, reports and accountant handoff packages with USER_ENTERED, SYSTEM_GENERATED, IMPORTED_DOCUMENT, UNKNOWN or NEEDS_ACCOUNTANT_REVIEW evidence.')
+  if (/(crm|lead|cliente|client|vendas|sales|proposta comercial|financeiro|finance|fatura|invoice|pagamento|payment|plano saas|usu[aÃ¡]rio|permiss[oÃµ]es|dashboard admin|dashboard cliente|pipeline|follow-up|cobran[cÃ§]a|contabilidade|contador|documentos cont[aÃ¡]beis|relat[oÃ³]rio cont[aÃ¡]bil|imposto|nota fiscal|receita|despesa|contas a pagar|contas a receber|accounting|accountant|tax)/.test(text)) {
+    contexts.push('SaaS / CRM / Finance: local-first business layer only. No fake auth, no fake database persistence, no fake payment confirmation, no fake invoice sent, no fake tax filing. Always label Local demo mode â€” auth/database not connected yet. Client users must not access admin/internal data in the real model. Finance/accounting prepares records, ledgers, reports and accountant handoff packages with USER_ENTERED, SYSTEM_GENERATED, IMPORTED_DOCUMENT, UNKNOWN or NEEDS_ACCOUNTANT_REVIEW evidence.')
   }
   if (/(agentes|8 agentes|cognitive agents|maestro|bim manager|evm|nr compliance|cost controller|doc manager|scheduler|quality qa|agente cognitivo|agentes cognitivos)/.test(text)) {
     contexts.push('Cognitive Agents: expose the 8-agent Apex layer with honest status. Maestro AI orchestrates studios; BIM Manager connects BIM/3D; EVM Analyst has local-first CP11C support for CPI/SPI/EAC/VAC/TCPI/PV/EV/AC; NR Compliance has local-first CP11C support for NR-6/NR-10/NR-18/NR-33/NR-35; Cost Controller connects Budget/Finance/EVM/SINAPI source confidence; Doc Manager connects Project Workspace/Export Center/docs; Scheduler has local-first CP11C Gantt/milestones/critical path planning; Quality QA connects FieldOps/NR/punch list/NCIs/PBQP-H/ISO awareness. Do not fake external connectors or official completion.')
   }
-  if (/(evm|cpi|spi|eac|vac|tcpi|planned value|earned value|actual cost|cronograma|gantt|caminho cr[ií]tico|atraso|lookahead|cronograma f[ií]sico-financeiro|nr-18|nr-35|nr-10|nr-6|nr-33|seguran[cç]a do trabalho|compliance nr)/.test(text)) {
+  if (/(evm|cpi|spi|eac|vac|tcpi|planned value|earned value|actual cost|cronograma|gantt|caminho cr[iÃ­]tico|atraso|lookahead|cronograma f[iÃ­]sico-financeiro|nr-18|nr-35|nr-10|nr-6|nr-33|seguran[cÃ§]a do trabalho|compliance nr)/.test(text)) {
     contexts.push('CP11C EVM/Scheduler/NR: run local analysis only. Calculate CPI=EV/AC, SPI=EV/PV, CV=EV-AC, SV=EV-PV, EAC/ETC/VAC/TCPI only when inputs exist. Missing PV/EV/AC/BAC stays UNKNOWN. Scheduler is local Gantt/milestone/lookahead planning only, no MS Project integration. NR compliance is GENERAL_GUIDANCE or NEEDS_SAFETY_REVIEW; no official compliance approval or safety certification.')
   }
-  if (/(fornecedor|fornecedores|supply chain|cotação|cotacao|rfq|compra|material|materiais|subcontratado|procurement|supplier)/.test(text)) {
+  if (/(fornecedor|fornecedores|supply chain|cotaÃ§Ã£o|cotacao|rfq|compra|material|materiais|subcontratado|procurement|supplier)/.test(text)) {
     contexts.push('CP11E Supply Chain: local supplier registry, procurement items, RFQs and comparisons only. Do not fake ERP, supplier price, availability or verification. Label data USER_ENTERED, PLACEHOLDER or NEEDS_VERIFICATION.')
   }
-  if (/(alerta|notificação|notificacao|prazo|lembrete|pendência|pendencia|vencimento|atraso crítico|atraso critico|deadline|notification)/.test(text)) {
+  if (/(alerta|notificaÃ§Ã£o|notificacao|prazo|lembrete|pendÃªncia|pendencia|vencimento|atraso crÃ­tico|atraso critico|deadline|notification)/.test(text)) {
     contexts.push('CP11E Notifications: local alerts only. No push, email, SMS or calendar connector is connected unless explicitly verified. Label Local alert only - notification connector not connected yet.')
   }
   if (/(custo de ia|gasto com ia|tokens|observabilidade|ai cost|billing|usage dashboard)/.test(text)) {
@@ -1175,7 +1175,7 @@ function buildLocalSkillContext(userText, file) {
       }
     }
   } catch (err) {
-    console.error('[server] Erro ao carregar skills dinâmicas:', err)
+    console.error('[server] Erro ao carregar skills dinÃ¢micas:', err)
   }
 
   if (!contexts.length) {
@@ -1211,7 +1211,7 @@ function detectLanguage(userText, conversation, preferredLanguage = '') {
   const englishSwitchPattern = /\b(answer in english|speak english|in english|english please)\b/i
   if (englishSwitchPattern.test(userText)) return 'English'
   const isPtLocale = /^pt\b/i.test(String(preferredLanguage || ''))
-  const hasPtKeywords = /\b(o que|vc|você|voce|sabe|fazer|fa[cç]a|crie|criar|gere|gerar|liste|lista|habilidades|capacidades|para mim|me ajude|ajude|planta|projeto|quero|posso|opcoes|opções|mostre|portugu[eê]s|render|or[cç]amento|an[uú]ncio|cliente|contrato|programar|componente|c[oó]digo|traduza|traduzir|quem|sou|verifique|verificar|auditar|auditoria|revisar|revisao|codigo|arquivos|erro|erros|teste|testar|rodar|executar|deploy|branch|main|github|vercel|supabase|sim|nao|não|olá|oi|ola|bom dia|boa tarde|boa noite)\b/i.test(latestUserText) || /[ãõçáéíóú]/i.test(latestUserText)
+  const hasPtKeywords = /\b(o que|vc|vocÃª|voce|sabe|fazer|fa[cÃ§]a|crie|criar|gere|gerar|liste|lista|habilidades|capacidades|para mim|me ajude|ajude|planta|projeto|quero|posso|opcoes|opÃ§Ãµes|mostre|portugu[eÃª]s|render|or[cÃ§]amento|an[uÃº]ncio|cliente|contrato|programar|componente|c[oÃ³]digo|traduza|traduzir|quem|sou|verifique|verificar|auditar|auditoria|revisar|revisao|codigo|arquivos|erro|erros|teste|testar|rodar|executar|deploy|branch|main|github|vercel|supabase|sim|nao|nÃ£o|olÃ¡|oi|ola|bom dia|boa tarde|boa noite)\b/i.test(latestUserText) || /[Ã£ÃµÃ§Ã¡Ã©Ã­Ã³Ãº]/i.test(latestUserText)
   if (isPtLocale || hasPtKeywords) return 'Portuguese'
   return 'English'
 }
@@ -1220,14 +1220,14 @@ function detectIntent(userText) {
   const normalized = String(userText || '').toLowerCase()
   return {
     isHiddenUpload: /^user uploaded this file\./i.test(String(userText || '').trim()),
-    asksForList: /\b(liste|lista|listar|me mostre uma lista|quais op[cç][oõ]es|op[cç][oõ]es|list|show me a list|what options)\b/i.test(normalized),
-    asksCapabilities: /\b(o que (vc|você|voce) sabe fazer|o que (vc|você|voce) sabe|o que pode fazer|liste todas as suas habilidades|suas habilidades|suas capacidades|o que você consegue fazer|o que voce consegue fazer|what can you do|what do you know how to do|your abilities|your capabilities)\b/i.test(normalized),
-    asksExecution: /\b(criar|crie|gera|gerar|gere|montar|monte|preparar|prepare|fazer|fa[cç]a|escreva|me ajude a escrever|ajude a escrever|produza|create|generate|write|help me write|prepare|build|make)\b/i.test(normalized),
+    asksForList: /\b(liste|lista|listar|me mostre uma lista|quais op[cÃ§][oÃµ]es|op[cÃ§][oÃµ]es|list|show me a list|what options)\b/i.test(normalized),
+    asksCapabilities: /\b(o que (vc|vocÃª|voce) sabe fazer|o que (vc|vocÃª|voce) sabe|o que pode fazer|liste todas as suas habilidades|suas habilidades|suas capacidades|o que vocÃª consegue fazer|o que voce consegue fazer|what can you do|what do you know how to do|your abilities|your capabilities)\b/i.test(normalized),
+    asksExecution: /\b(criar|crie|gera|gerar|gere|montar|monte|preparar|prepare|fazer|fa[cÃ§]a|escreva|me ajude a escrever|ajude a escrever|produza|create|generate|write|help me write|prepare|build|make)\b/i.test(normalized),
     asksRenderPrompt: /\b(prompt de render|render prompt|prompt.*render|renderiza|renderizar)\b/i.test(normalized),
-    asksSalesOutput: /\b(vender|venda|sell|sales|comercial|cliente|apresenta[cç][aã]o|presentation)\b/i.test(normalized),
+    asksSalesOutput: /\b(vender|venda|sell|sales|comercial|cliente|apresenta[cÃ§][aÃ£]o|presentation)\b/i.test(normalized),
     asksContractDraft: /\b(contrato simples|contrato|contract draft|simple contract|agreement)\b/i.test(normalized),
-    asksTranslation: /\b(traduza|traduzir|translate|translate this|to english|para ingl[eê]s|para portugu[eê]s)\b/i.test(normalized),
-    asksCodeOutput: /\b(componente react|react component|c[oó]digo|codigo|code|programar|typescript|javascript|jsx|tsx)\b/i.test(normalized),
+    asksTranslation: /\b(traduza|traduzir|translate|translate this|to english|para ingl[eÃª]s|para portugu[eÃª]s)\b/i.test(normalized),
+    asksCodeOutput: /\b(componente react|react component|c[oÃ³]digo|codigo|code|programar|typescript|javascript|jsx|tsx)\b/i.test(normalized),
   }
 }
 
@@ -1253,29 +1253,29 @@ function buildStyleInstruction(userText, file) {
       intent.asksCodeOutput ? 'For code requests, provide the code directly in the user language context, with only minimal usage note if helpful.' : '',
     ].filter(Boolean).join('\n')
   }
-  const asksForStructuredOutput = /\b(report|relatorio|relat[oó]rio|checklist|lista|liste|bullet|tabela|table|format|formato|plano detalhado)\b/i.test(userText)
+  const asksForStructuredOutput = /\b(report|relatorio|relat[oÃ³]rio|checklist|lista|liste|bullet|tabela|table|format|formato|plano detalhado)\b/i.test(userText)
 
-  // ── Detecção de Relatórios da Plataforma Apex ─────────────────
-  const asksPlatformReport = /\b(relat[oó]rio de (status|provedores?|custos?|modelos?|estrat[eé]gico|completo|r[aá]pido|executivo)|an[aá]lise de (custos?|provedores?|benef[ií]cio)|status da plataforma|diagn[oó]stico|resumo executivo|me mostre um relat[oó]rio|catalogo de modelos|cat[aá]logo de modelos|recomenda[cç][oõ]es estrat[eé]gicas?|report|platform status|provider analysis|quick summary|executive summary)\b/i.test(userText)
+  // â”€â”€ DetecÃ§Ã£o de RelatÃ³rios da Plataforma Apex â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const asksPlatformReport = /\b(relat[oÃ³]rio de (status|provedores?|custos?|modelos?|estrat[eÃ©]gico|completo|r[aÃ¡]pido|executivo)|an[aÃ¡]lise de (custos?|provedores?|benef[iÃ­]cio)|status da plataforma|diagn[oÃ³]stico|resumo executivo|me mostre um relat[oÃ³]rio|catalogo de modelos|cat[aÃ¡]logo de modelos|recomenda[cÃ§][oÃµ]es estrat[eÃ©]gicas?|report|platform status|provider analysis|quick summary|executive summary)\b/i.test(userText)
   if (asksPlatformReport) {
     const reportTypes = [
-      { pattern: /(provedores?|custos?|benef[ií]cio)/, endpoint: 'providers', label: 'Análise de Custo-Benefício' },
-      { pattern: /(modelos?|cat[aá]logo)/, endpoint: 'models', label: 'Catálogo de Modelos' },
-      { pattern: /(estrat[eé]gia|recomenda)/, endpoint: 'strategy', label: 'Recomendações Estratégicas' },
-      { pattern: /(r[aá]pido|executivo|resumo)/, endpoint: 'quick', label: 'Resumo Executivo' },
-      { pattern: /(completo|diagn[oó]stico)/, endpoint: 'status', label: 'Relatório Completo' },
+      { pattern: /(provedores?|custos?|benef[iÃ­]cio)/, endpoint: 'providers', label: 'AnÃ¡lise de Custo-BenefÃ­cio' },
+      { pattern: /(modelos?|cat[aÃ¡]logo)/, endpoint: 'models', label: 'CatÃ¡logo de Modelos' },
+      { pattern: /(estrat[eÃ©]gia|recomenda)/, endpoint: 'strategy', label: 'RecomendaÃ§Ãµes EstratÃ©gicas' },
+      { pattern: /(r[aÃ¡]pido|executivo|resumo)/, endpoint: 'quick', label: 'Resumo Executivo' },
+      { pattern: /(completo|diagn[oÃ³]stico)/, endpoint: 'status', label: 'RelatÃ³rio Completo' },
     ]
     const matched = reportTypes.find(r => r.pattern.test(userText))
     const endpoint = matched?.endpoint || 'status'
-    const label = matched?.label || 'Relatório de Status'
+    const label = matched?.label || 'RelatÃ³rio de Status'
     return [
-      `O usuário pediu um relatório da plataforma (${label}).`,
-      `Use fetch('/api/reports/${endpoint}?format=markdown') para obter o relatório.`,
-      `Retorne o conteúdo EXATAMENTE como veio da API, SEM resumir ou modificar.`,
-      `Comece sua resposta com o relatório diretamente.`,
-      `Se quiser adicionar contexto adicional, faça APÓS o relatório.`,
-      `NÃO pergunte nada — o relatório já contém tudo.`,
-      `Mantenha a formatação de bordas (╔╗╚╝) e ícones (✅⚠️❌) da resposta para ficar visual no chat.`,
+      `O usuÃ¡rio pediu um relatÃ³rio da plataforma (${label}).`,
+      `Use fetch('/api/reports/${endpoint}?format=markdown') para obter o relatÃ³rio.`,
+      `Retorne o conteÃºdo EXATAMENTE como veio da API, SEM resumir ou modificar.`,
+      `Comece sua resposta com o relatÃ³rio diretamente.`,
+      `Se quiser adicionar contexto adicional, faÃ§a APÃ“S o relatÃ³rio.`,
+      `NÃƒO pergunte nada â€” o relatÃ³rio jÃ¡ contÃ©m tudo.`,
+      `Mantenha a formataÃ§Ã£o de bordas (â•”â•—â•šâ•) e Ã­cones (âœ…âš ï¸âŒ) da resposta para ficar visual no chat.`,
     ].join('\n')
   }
 
@@ -1293,10 +1293,10 @@ function buildStyleInstruction(userText, file) {
     ? 'There is active uploaded-file context. If the user asks what you can do, answer from this file/project, not from generic capabilities.'
     : 'There is no uploaded-file context. You may explain capabilities briefly, but keep it conversational.'
   return [
-    'Style for this reply: answer like a live, knowledgeable consultant — natural, direct, and professional.',
+    'Style for this reply: answer like a live, knowledgeable consultant â€” natural, direct, and professional.',
     'Use natural language and adapt your style to the question: one paragraph for simple answers, organized sections with bold headers for complex topics, bullet points for lists of features or steps.',
     'When listing capabilities, features or options, use bullet points with bold lead-ins. When explaining a concept, use natural paragraphs.',
-    'Be warm but professional. The user is a professional in architecture, engineering or construction — match their level.',
+    'Be warm but professional. The user is a professional in architecture, engineering or construction â€” match their level.',
     'If an image is supplied, mention 2 to 4 concrete visible details in natural prose before diving into analysis.',
     'Do not end with "How can I help?" or similar if a clear action can be taken.',
     'Do not say "Here are a few observations" or "Aqui estao algumas observacoes". Just answer directly.',
@@ -1318,7 +1318,7 @@ function buildIntentInstruction(userText, file, conversation, preferredLanguage)
   }
   if (intent.asksCapabilities && !file) {
     instructions.push(
-      'Capability rule: the user is asking for your abilities. Respond naturally with organized categories using bold headers and emojis (like 📐 🎨 📊 🔧) to make capabilities scannable.',
+      'Capability rule: the user is asking for your abilities. Respond naturally with organized categories using bold headers and emojis (like ðŸ“ ðŸŽ¨ ðŸ“Š ðŸ”§) to make capabilities scannable.',
       'Make clear that Apex AI Copilot is a full general AI copilot across topics and domains, while using Apex/project/file context when useful.',
       'Include general reasoning, planning, research, construction/architecture/engineering, BIM/CAD/3D/viewer, ArchVis/interior/room design, image/render/visual design, video/DirectCut, website/landing/portfolio, SQL/data analysis, coding/code copilot, academic research, negotiation, tech support, writing/humanizer, business strategy/sales/CRM/proposals, legal/contracts/permits support, field/RDO/quality/safety and exploration.',
       'Do not imply that topics outside construction are secondary or unsupported.',
@@ -1359,7 +1359,7 @@ function buildIntentInstruction(userText, file, conversation, preferredLanguage)
   if (language === 'Portuguese' && intent.asksExecution && intent.asksRenderPrompt && file) {
     instructions.push(
       'Required behavior for Portuguese render-prompt request with image/plan context:',
-      'Start with: "Claro. Aqui está um prompt de render pronto para usar:"',
+      'Start with: "Claro. Aqui estÃ¡ um prompt de render pronto para usar:"',
       'Then write a complete production-grade render prompt immediately, grounded in the visible plan/project context.',
       'Use a copy-ready "Prompt principal:" block, not only a list of attributes.',
       'The render prompt must include project type, view type, architecture style, materials, lighting, landscaping, furniture/interior cues, camera angle, image quality, and photorealism details.',
@@ -1367,7 +1367,7 @@ function buildIntentInstruction(userText, file, conversation, preferredLanguage)
       'Include a negative prompt section that removes low quality, distorted geometry, wrong proportions, extra rooms, bad lighting, blurry textures, warped furniture, unreadable plan elements, people if not requested, and unrealistic materials.',
       'Include optional variants for facade, interior, humanized floor plan, and aerial sales image.',
       'Keep it usable for Midjourney/SDXL/DALL-E style image generation without overexplaining the process.',
-      'End with one short optional adaptation line, such as: "Também posso adaptar esse prompt para fachada, interior, planta humanizada ou vídeo."',
+      'End with one short optional adaptation line, such as: "TambÃ©m posso adaptar esse prompt para fachada, interior, planta humanizada ou vÃ­deo."',
       'Do not answer with "Para gerar um prompt..." or explain how prompt creation works.',
     )
   }
@@ -1409,7 +1409,7 @@ function buildIntentInstruction(userText, file, conversation, preferredLanguage)
 }
 
 function isIdentityQuestionText(text) {
-  return /\b(vc sabe quem sou eu|você sabe quem sou eu|voce sabe quem sou eu|quem sou eu|do you know who i am|who am i)\b/i.test(String(text || '').trim())
+  return /\b(vc sabe quem sou eu|vocÃª sabe quem sou eu|voce sabe quem sou eu|quem sou eu|do you know who i am|who am i)\b/i.test(String(text || '').trim())
 }
 
 function normalizeChatIdentityContext(value) {
@@ -1533,9 +1533,9 @@ function hasIdentityContext(identity) {
 function buildIdentityReply(userText, identity) {
   if (!isIdentityQuestionText(userText)) return ''
   if (!identity.email && !identity.role && !identity.workspaceName && !identity.persistenceMode && !identity.tenantId && !identity.profileName) {
-    return 'Ainda não tenho dados de sessão disponíveis nesta requisição. Não vou inventar nome, email, role ou workspace sem contexto real.'
+    return 'Ainda nÃ£o tenho dados de sessÃ£o disponÃ­veis nesta requisiÃ§Ã£o. NÃ£o vou inventar nome, email, role ou workspace sem contexto real.'
   }
-  const ownerLine = identity.isOwnerAdmin ? ' Você está marcado como owner_admin.' : ''
+  const ownerLine = identity.isOwnerAdmin ? ' VocÃª estÃ¡ marcado como owner_admin.' : ''
   const missing = []
   if (!identity.profileName) missing.push('nome completo/perfil')
   if (!identity.email) missing.push('email')
@@ -1543,19 +1543,19 @@ function buildIdentityReply(userText, identity) {
   if (!identity.workspaceName) missing.push('workspace')
   if (!identity.persistenceMode) missing.push('persistence')
   if (!identity.tenantId) missing.push('tenant/workspace id')
-  const missingLine = missing.length ? ` Dados não disponíveis na sessão: ${missing.join(', ')}.` : ''
-  return `Sim. Você está logado como ${identity.email || 'email não disponível'}, com role ${identity.role || 'não disponível'}, no workspace ${identity.workspaceName || 'não disponível'}, usando persistence ${identity.persistenceMode || 'não disponível'}.${ownerLine}${missingLine} Ainda não vou inventar dados além do que está disponível na sessão.`
+  const missingLine = missing.length ? ` Dados nÃ£o disponÃ­veis na sessÃ£o: ${missing.join(', ')}.` : ''
+  return `Sim. VocÃª estÃ¡ logado como ${identity.email || 'email nÃ£o disponÃ­vel'}, com role ${identity.role || 'nÃ£o disponÃ­vel'}, no workspace ${identity.workspaceName || 'nÃ£o disponÃ­vel'}, usando persistence ${identity.persistenceMode || 'nÃ£o disponÃ­vel'}.${ownerLine}${missingLine} Ainda nÃ£o vou inventar dados alÃ©m do que estÃ¡ disponÃ­vel na sessÃ£o.`
 }
 
 function prefersPortugueseText(text = '', locale = '') {
-  const hasPtSignal = /\b(oi|ola|ol[aá]|bom dia|boa tarde|boa noite|vc|voce|você|quem sou|o que|fale|fala|explique|sobre|vistos|visto|serviços|servicos|preciso|ajuda|ajudar|me ajuda|orçamento|orcamento|consultoria|arquivo|anexar|upload|cronograma|marketing|vendas|construcao|construção|alvara|alvará|contrato|proposta|financeiro|campo|obra|teste|quem é você|quem e voce|quem e vc|quem e apex|quem é a apex)\b|[ãõçáéíóú]/i.test(text)
+  const hasPtSignal = /\b(oi|ola|ol[aÃ¡]|bom dia|boa tarde|boa noite|vc|voce|vocÃª|quem sou|o que|fale|fala|explique|sobre|vistos|visto|serviÃ§os|servicos|preciso|ajuda|ajudar|me ajuda|orÃ§amento|orcamento|consultoria|arquivo|anexar|upload|cronograma|marketing|vendas|construcao|construÃ§Ã£o|alvara|alvarÃ¡|contrato|proposta|financeiro|campo|obra|teste|quem Ã© vocÃª|quem e voce|quem e vc|quem e apex|quem Ã© a apex)\b|[Ã£ÃµÃ§Ã¡Ã©Ã­Ã³Ãº]/i.test(text)
   if (hasPtSignal) return true
   if (locale && String(locale).toLowerCase().startsWith('pt')) return true
   return false
 }
 
 function isCapabilitiesQuestionText(text = '') {
-  return /\b(o que (mais )?(vc|voce|você)?\s*sabe( fazer)?|o que (vc|voce|você)?\s*faz|o que mais (vc|voce|você)?\s*faz|quais (são os )?servi[cç]os|lista de servi[cç]os|seus servi[cç]os|funcionalidades|habilidades|vc sabe responder|voce sabe responder|você sabe responder|capabilities|what else can you do|what can you do|what do you do|features)\b/i.test(text.trim())
+  return /\b(o que (mais )?(vc|voce|vocÃª)?\s*sabe( fazer)?|o que (vc|voce|vocÃª)?\s*faz|o que mais (vc|voce|vocÃª)?\s*faz|quais (sÃ£o os )?servi[cÃ§]os|lista de servi[cÃ§]os|seus servi[cÃ§]os|funcionalidades|habilidades|vc sabe responder|voce sabe responder|vocÃª sabe responder|capabilities|what else can you do|what can you do|what do you do|features)\b/i.test(text.trim())
 }
 
 function isContactQuestionText(text = '') {
@@ -1563,7 +1563,7 @@ function isContactQuestionText(text = '') {
 }
 
 function isVisaQuestionText(text = '') {
-  return /\b(visto|vistos|visa|imigracao|imigração|consulado|turismo|trabalho|estudo)\b/i.test(text.trim())
+  return /\b(visto|vistos|visa|imigracao|imigraÃ§Ã£o|consulado|turismo|trabalho|estudo)\b/i.test(text.trim())
 }
 
 function isUploadQuestionText(text = '') {
@@ -1574,17 +1574,17 @@ function isUploadQuestionText(text = '') {
 
 function isGreetingText(text = '') {
   const trimmed = text.trim()
-  if (/^(ol[aá]|oi|hey|hello|hi|bom dia|boa tarde|boa noite|e a[ií]|eai|e a\?|salve|tudo bem|tudo bom|como vai|como est[aá]|👋|🙏)(\s+apex)?[\s!?,.]*(tudo bem|tudo bom|como vai|como est[aá])?[\s!?,.]*$/i.test(trimmed)) {
+  if (/^(ol[aÃ¡]|oi|hey|hello|hi|bom dia|boa tarde|boa noite|e a[iÃ­]|eai|e a\?|salve|tudo bem|tudo bom|como vai|como est[aÃ¡]|ðŸ‘‹|ðŸ™)(\s+apex)?[\s!?,.]*(tudo bem|tudo bom|como vai|como est[aÃ¡])?[\s!?,.]*$/i.test(trimmed)) {
     return true
   }
-  const shortResponseRegex = /^(boa|tamo junto|valeu|obrigad[oa]|ok|certo|entendi|sim|n[aã]o|pode|t[aá]|ta|blz|bl[ée]z|teste|test)$/i
+  const shortResponseRegex = /^(boa|tamo junto|valeu|obrigad[oa]|ok|certo|entendi|sim|n[aÃ£]o|pode|t[aÃ¡]|ta|blz|bl[Ã©e]z|teste|test)$/i
   const cleaned = trimmed.replace(/[\s!?,.]+$/, '')
   return shortResponseRegex.test(cleaned)
 }
 
 function isAIIdentityQuestionText(text = '') {
   const trimmed = text.trim()
-  return /\b(quem [eé] (voc[eê]|vc|a apex)|o que (voc[eê]|vc) [eé]|quem [eé] apex|who are you|what is apex|quem e voce|quem e vc|o que e a apex)\b/i.test(trimmed)
+  return /\b(quem [eÃ©] (voc[eÃª]|vc|a apex)|o que (voc[eÃª]|vc) [eÃ©]|quem [eÃ©] apex|who are you|what is apex|quem e voce|quem e vc|o que e a apex)\b/i.test(trimmed)
 }
 
 function buildAIIdentityReply(userText, locale = '') {
@@ -1604,30 +1604,30 @@ function buildChatFallbackReply(userText, identity, locale = '') {
   const pt = prefersPortugueseText(userText, locale)
   if (isGreetingText(userText)) {
     return pt
-      ? 'Olá! 😊 Como posso ajudar no seu projeto hoje? Posso analisar plantas e documentos, gerar imagens e vídeos, revisar contratos, preparar orçamentos, criar campanhas de marketing, ou fazer pesquisas de mercado. É só me dizer o que precisa!'
-      : 'Hello! 😊 How can I help with your project today? I can analyze plans and documents, generate images and videos, review contracts, prepare budgets, create marketing campaigns, or do market research. Just let know what you need!'
+      ? 'OlÃ¡! ðŸ˜Š Como posso ajudar no seu projeto hoje? Posso analisar plantas e documentos, gerar imagens e vÃ­deos, revisar contratos, preparar orÃ§amentos, criar campanhas de marketing, ou fazer pesquisas de mercado. Ã‰ sÃ³ me dizer o que precisa!'
+      : 'Hello! ðŸ˜Š How can I help with your project today? I can analyze plans and documents, generate images and videos, review contracts, prepare budgets, create marketing campaigns, or do market research. Just let know what you need!'
   }
   if (isCapabilitiesQuestionText(userText)) {
     return pt
-      ? 'Que ótima pergunta! Tenho várias áreas onde posso ajudar:\n\n**📐 Análise e Leitura** — Plantas, documentos técnicos, contratos, relatórios. Faço análise visual direta, extraio quantitativos, confiro especificações.\n\n**🎨 Geração Visual** — Imagens de fachada, renders de arquitetura, vídeos de tour virtual, pranchas comerciais. É só enviar uma base que eu preparo o briefing.\n\n**📊 Gestão e Negócios** — Orçamentos, cronogramas, contratos, propostas, campanhas de marketing e relatórios de campo.\n\n**🔧 Automações** — Conecto com BIM, DirectCut, CRM e ERP para executar fluxos completos sem você sair daqui.\n\nO que vamos fazer hoje?'
-      : 'Great question! I can help across several areas:\n\n**📐 Analysis & Reading** — Plans, technical documents, contracts, reports. Direct visual analysis, quantity takeoffs, spec checking.\n\n**🎨 Visual Generation** — Facade images, architectural renders, virtual tour videos, commercial boards. Send me a base and I\'ll prepare the brief.\n\n**📊 Business & Management** — Budgets, schedules, contracts, proposals, marketing campaigns, field reports.\n\n**🔧 Automations** — Connected to BIM, DirectCut, CRM and ERP to run complete workflows without leaving here.\n\nWhat shall we work on today?'
+      ? 'Que Ã³tima pergunta! Tenho vÃ¡rias Ã¡reas onde posso ajudar:\n\n**ðŸ“ AnÃ¡lise e Leitura** â€” Plantas, documentos tÃ©cnicos, contratos, relatÃ³rios. FaÃ§o anÃ¡lise visual direta, extraio quantitativos, confiro especificaÃ§Ãµes.\n\n**ðŸŽ¨ GeraÃ§Ã£o Visual** â€” Imagens de fachada, renders de arquitetura, vÃ­deos de tour virtual, pranchas comerciais. Ã‰ sÃ³ enviar uma base que eu preparo o briefing.\n\n**ðŸ“Š GestÃ£o e NegÃ³cios** â€” OrÃ§amentos, cronogramas, contratos, propostas, campanhas de marketing e relatÃ³rios de campo.\n\n**ðŸ”§ AutomaÃ§Ãµes** â€” Conecto com BIM, DirectCut, CRM e ERP para executar fluxos completos sem vocÃª sair daqui.\n\nO que vamos fazer hoje?'
+      : 'Great question! I can help across several areas:\n\n**ðŸ“ Analysis & Reading** â€” Plans, technical documents, contracts, reports. Direct visual analysis, quantity takeoffs, spec checking.\n\n**ðŸŽ¨ Visual Generation** â€” Facade images, architectural renders, virtual tour videos, commercial boards. Send me a base and I\'ll prepare the brief.\n\n**ðŸ“Š Business & Management** â€” Budgets, schedules, contracts, proposals, marketing campaigns, field reports.\n\n**ðŸ”§ Automations** â€” Connected to BIM, DirectCut, CRM and ERP to run complete workflows without leaving here.\n\nWhat shall we work on today?'
   }
   if (isContactQuestionText(userText)) {
     return pt
-      ? 'Claro! Posso ajudar a preparar um pré-cadastro. Para isso, preciso de algumas informações: nome completo, email, telefone, cidade, tipo de projeto (BIM, 3D, contrato, alvará, proposta) e uma breve descrição do que precisa. Quer começar?'
+      ? 'Claro! Posso ajudar a preparar um prÃ©-cadastro. Para isso, preciso de algumas informaÃ§Ãµes: nome completo, email, telefone, cidade, tipo de projeto (BIM, 3D, contrato, alvarÃ¡, proposta) e uma breve descriÃ§Ã£o do que precisa. Quer comeÃ§ar?'
       : 'Sure! I can help prepare a pre-registration. I\'ll need some info: full name, email, phone, city, project type (BIM, 3D, contract, permit, proposal), and a brief description of what you need. Shall we start?'
   }
   if (isVisaQuestionText(userText)) {
     return pt
-      ? 'Vistos são autorizações para entrar, permanecer, estudar, trabalhar ou investir em outro país. Em geral, o caminho depende do país, objetivo da viagem, duração, vínculos financeiros/profissionais e documentos de suporte. Posso te ajudar a comparar tipos de visto, montar checklist de documentos, preparar carta/declaração, organizar um cronograma e revisar riscos antes do envio. Para orientar melhor, me diga o país de destino e o objetivo: turismo, estudo, trabalho, negócios, investimento ou residência.'
+      ? 'Vistos sÃ£o autorizaÃ§Ãµes para entrar, permanecer, estudar, trabalhar ou investir em outro paÃ­s. Em geral, o caminho depende do paÃ­s, objetivo da viagem, duraÃ§Ã£o, vÃ­nculos financeiros/profissionais e documentos de suporte. Posso te ajudar a comparar tipos de visto, montar checklist de documentos, preparar carta/declaraÃ§Ã£o, organizar um cronograma e revisar riscos antes do envio. Para orientar melhor, me diga o paÃ­s de destino e o objetivo: turismo, estudo, trabalho, negÃ³cios, investimento ou residÃªncia.'
       : 'Visas are authorizations to enter, stay, study, work, or invest in another country. The right path depends on destination country, purpose, duration, financial/professional ties, and supporting documents. I can compare visa types, build a document checklist, draft letters, organize a timeline, and review risks before submission. Tell me the destination country and purpose: tourism, study, work, business, investment, or residency.'
   }
   if (isUploadQuestionText(userText)) {
-    return 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar (ícone de clipe). Eu uso o arquivo como contexto e sigo com uma análise direta — sem rodeios!'
+    return 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botÃ£o de anexar (Ã­cone de clipe). Eu uso o arquivo como contexto e sigo com uma anÃ¡lise direta â€” sem rodeios!'
   }
   return pt
-    ? 'Entendido! Estou aqui com tudo pronto — análise de documentos, geração visual, gestão de contratos, automações. Me diga o que precisamos fazer e vamos nessa! 🚀'
-    : 'Got it! I\'m all set — document analysis, visual generation, contract management, automations. Just tell me what we need to do and let\'s go! 🚀'
+    ? 'Entendido! Estou aqui com tudo pronto â€” anÃ¡lise de documentos, geraÃ§Ã£o visual, gestÃ£o de contratos, automaÃ§Ãµes. Me diga o que precisamos fazer e vamos nessa! ðŸš€'
+    : 'Got it! I\'m all set â€” document analysis, visual generation, contract management, automations. Just tell me what we need to do and let\'s go! ðŸš€'
 }
 
 
@@ -1693,7 +1693,7 @@ function buildLiveAgentToolDefinitions() {
       type: 'function',
       function: {
         name: 'execute_terminal_command',
-        description: 'EXECUTA UM COMANDO DIRETAMENTE no terminal do servidor. Use quando o usuario pedir para rodar algo como git status, npm build, node script, etc. EXECUTA DIRETO — não abra painel, não peça confirmacao, apenas execute e mostre o resultado.',
+        description: 'EXECUTA UM COMANDO DIRETAMENTE no terminal do servidor. Use quando o usuario pedir para rodar algo como git status, npm build, node script, etc. EXECUTA DIRETO â€” nÃ£o abra painel, nÃ£o peÃ§a confirmacao, apenas execute e mostre o resultado.',
         parameters: {
           type: 'object',
           additionalProperties: false,
@@ -1808,7 +1808,7 @@ function buildLiveAgentToolDefinitions() {
       type: 'function',
       function: {
         name: 'generate_platform_report',
-        description: 'Generate a structured markdown report about the Apex platform status, providers, models, costs, or strategic recommendations. Use when the user asks for "relatório", "status", "diagnóstico", "análise", "catálogo", "estratégia", "resumo executivo" or similar.',
+        description: 'Generate a structured markdown report about the Apex platform status, providers, models, costs, or strategic recommendations. Use when the user asks for "relatÃ³rio", "status", "diagnÃ³stico", "anÃ¡lise", "catÃ¡logo", "estratÃ©gia", "resumo executivo" or similar.',
         parameters: {
           type: 'object',
           properties: {
@@ -1933,7 +1933,7 @@ async function executeLiveAgentToolCall(toolCall) {
       const { payInvoice } = await import('./server/service/invoice.mjs')
 
       const order = getServiceOrder(args.orderId)
-      if (!order) return { providerStatus: 'error', finalReply: 'Pedido não encontrado.' }
+      if (!order) return { providerStatus: 'error', finalReply: 'Pedido nÃ£o encontrado.' }
 
       updateServiceOrderStatus(args.orderId, 'approved', {
         deliveredAt: new Date().toISOString(),
@@ -1948,11 +1948,11 @@ async function executeLiveAgentToolCall(toolCall) {
       return {
         providerStatus: 'connected',
         finalReply: [
-          `✅ **Pedido ${updated.number} aprovado e finalizado!**`,
+          `âœ… **Pedido ${updated.number} aprovado e finalizado!**`,
           '',
           receipt,
           '',
-          args.deliveryUrl ? `🔗 **Arquivo final:** ${args.deliveryUrl}` : '',
+          args.deliveryUrl ? `ðŸ”— **Arquivo final:** ${args.deliveryUrl}` : '',
           '',
           'Obrigado por contratar a Apex Global!',
         ].filter(Boolean).join('\n'),
@@ -1996,7 +1996,7 @@ async function executeLiveAgentToolCall(toolCall) {
         reportData: reportResult,
       }
     } catch (err) {
-      return { providerStatus: 'error', finalReply: `Erro ao gerar relatório: ${err.message}` }
+      return { providerStatus: 'error', finalReply: `Erro ao gerar relatÃ³rio: ${err.message}` }
     }
   }
 
@@ -2030,7 +2030,7 @@ async function executeLiveAgentToolCall(toolCall) {
     }
   }
 
-  // ── Handler for execute_terminal_command ────────────────────────────────
+  // â”€â”€ Handler for execute_terminal_command â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (name === 'execute_terminal_command') {
     try {
       const args = JSON.parse(toolCall.function.arguments || '{}')
@@ -2170,7 +2170,7 @@ function isLiveAgentOperationalPreflightNeeded(text) {
   const value = String(text || '').toLowerCase().trim()
   if (!value) return false
 
-  return /\b(pr[oó]ximo|proximo|agora|status|plataforma|checkpoint|continua|continuar|seguir|sugere|sugest[aã]o|o que fazer|o que fazemos|tudo certo|ficou certo|pode seguir|fa[cç]a|execute|executa|ok|valida|validar|fechar|finalizar|commitar|commit)\b/i.test(value)
+  return /\b(pr[oÃ³]ximo|proximo|agora|status|plataforma|checkpoint|continua|continuar|seguir|sugere|sugest[aÃ£]o|o que fazer|o que fazemos|tudo certo|ficou certo|pode seguir|fa[cÃ§]a|execute|executa|ok|valida|validar|fechar|finalizar|commitar|commit)\b/i.test(value)
 }
 
 async function buildLiveAgentPreflightContext(userText) {
@@ -2179,7 +2179,7 @@ async function buildLiveAgentPreflightContext(userText) {
   const commandIds = ['git_status', 'git_diff_stat', 'check_server']
   const lower = String(userText || '').toLowerCase()
 
-  if (/\b(build|tudo certo|ficou certo|fechar|finalizar|checkpoint|valida|validar|pode seguir|execute|fa[cç]a|ok)\b/i.test(lower)) {
+  if (/\b(build|tudo certo|ficou certo|fechar|finalizar|checkpoint|valida|validar|pode seguir|execute|fa[cÃ§]a|ok)\b/i.test(lower)) {
     commandIds.push('build')
   }
 
@@ -2287,7 +2287,7 @@ async function handleChat(req, res) {
     console.log('[handleChat] Parsed body', Object.keys(body));
     const identityContext = normalizeChatIdentityContext(body.identityContext)
     let userText = String(body.message || '').slice(0, 12000)
-    // H5.0D: action tools hard-override — disabled when APEX_FREE_AGENT=1
+    // H5.0D: action tools hard-override â€” disabled when APEX_FREE_AGENT=1
     if (!APEX_FREE_AGENT) {
       const _h5ActionTools = new Set(['local_worker.status', 'revit_mcp.status', 'revit_model.status', 'vercel.deploy', 'supabase.migration'])
       const _h5ToolIds = classifyToolExecutionRequest(userText)
@@ -2331,9 +2331,9 @@ async function handleChat(req, res) {
         mode: 'language-switch',
       })
     }
-    if (['pt', 'pt-br', 'portugues', 'português'].includes(languageSwitch)) {
+    if (['pt', 'pt-br', 'portugues', 'portuguÃªs'].includes(languageSwitch)) {
       return chatJson(res, 200, {
-        finalReply: 'Modo em português ativado. Me diga o que você quer criar, revisar ou corrigir.',
+        finalReply: 'Modo em portuguÃªs ativado. Me diga o que vocÃª quer criar, revisar ou corrigir.',
         mode: 'language-switch',
       })
     }
@@ -2468,7 +2468,7 @@ async function handleChat(req, res) {
       }
 
       return chatJson(res, 200, {
-        finalReply: 'Gemini Interactions temporariamente indisponível. Tente novamente ou selecione outro modelo.',
+        finalReply: 'Gemini Interactions temporariamente indisponÃ­vel. Tente novamente ou selecione outro modelo.',
         mode: 'provider-error',
       })
     }
@@ -2513,11 +2513,11 @@ async function handleChat(req, res) {
       'Relevant local skill knowledge:',
       buildLocalSkillContext(userText, file),
       '',
-      'IMPORTANT — You have tools available: read_file, search_code, list_dir, run_safe_local_command, execute_terminal_command, get_platform_status, write_file, edit_file.',
+      'IMPORTANT â€” You have tools available: read_file, search_code, list_dir, run_safe_local_command, execute_terminal_command, get_platform_status, write_file, edit_file.',
       'When the user asks about platform status, provider keys, git state, or system health:',
       '  1. Call get_platform_status FIRST to get real-time git info and provider config',
       '  2. Read the actual .env.local file with read_file if you need specific values',
-      '  3. Do NOT answer from memory — use the tools to get current state.',
+      '  3. Do NOT answer from memory â€” use the tools to get current state.',
       '',
       'IMPORTANT: The provider status below is the ACTUAL current configuration. Do NOT rely on your training data about what keys might be missing. Use the list below as the single source of truth.',
       'Current provider status (env snapshot):',
@@ -2552,7 +2552,7 @@ async function handleChat(req, res) {
       'If the user has not typed a natural-language message yet, use the browser/session language when supplied.',
       'Execution priority: if the user asks to create, generate, write, build, prepare, montar, criar, gerar, fazer, escreva or produza, do the work now. Do not explain the process unless asked.',
       'IDENTITY QUERY DIRECTIVE:',
-      'If the user asks who you are (e.g. "quem é você", "who are you", "what is apex") or what you do, you must reply exactly with:',
+      'If the user asks who you are (e.g. "quem Ã© vocÃª", "who are you", "what is apex") or what you do, you must reply exactly with:',
       '- In Portuguese: "Sou a Apex AI. Como posso te ajudar?"',
       '- In English: "I am Apex AI. How can I help you?"',
       '',
@@ -2564,7 +2564,7 @@ async function handleChat(req, res) {
       'For IFC, GLB, GLTF, OBJ, STL and FBX: answer with what can be viewed, analyzed or reported from the file WITHOUT opening a panel. Use execute_terminal_command to process files when possible.',
       'For RVT, DWG, DXF and SKP: explain that the format needs internal conversion before web visualization, WITHOUT opening a panel.',
       'Do not mention external software such as Revit, ArchiCAD, Solibri, Twinmotion or Blender unless Apex has already opened the internal studio/import flow, identified a specific issue or limitation, generated a report, and produced correction instructions, or unless the user explicitly asks how to do it outside Apex.',
-      'Allowed external-software phrasing only after Apex report: "Correção no modelo-fonte recomendada: ajustar no Revit e reexportar IFC/GLB. Relatório Apex anexado."',
+      'Allowed external-software phrasing only after Apex report: "CorreÃ§Ã£o no modelo-fonte recomendada: ajustar no Revit e reexportar IFC/GLB. RelatÃ³rio Apex anexado."',
       'If a BIM/parser/viewer fails, do not fake a viewer. Show the real limitation and offer internal next steps: retry viewer, convert to GLB/IFC, prepare import package, extract metadata if possible, or create technical review plan.',
       'If the current or recent conversation includes an uploaded file, treat follow-up questions such as "o que vc sabe fazer" as referring to that file and project context.',
       'When image content is supplied, mention 2 to 4 concrete visible project details before suggesting paths.',
@@ -2578,7 +2578,7 @@ async function handleChat(req, res) {
       '  5. After payment, the service is automatically released',
       '',
       'APPROVAL FLOW: After the client reviews the result and says they want it:',
-      '  1. Ask for final confirmation: "Confirma que este resultado está aprovado?"',
+      '  1. Ask for final confirmation: "Confirma que este resultado estÃ¡ aprovado?"',
       '  2. If they confirm, call approve_service_order with the order ID',
       '  3. Send the final delivery URL if available',
       '  4. Thank the client and ask if they need anything else',
@@ -2633,16 +2633,16 @@ async function handleChat(req, res) {
           'The user can talk naturally, like with ChatGPT or Codex. Do not require exact command phrases.',
           'For simple conversation or connection-check prompts, reply directly like a normal assistant and do not add warnings about missing context unless explicitly asked.',
           'You are a full coding copilot with REAL access to this platform repository. You have tools to read files (read_file), list directories (list_dir), search code (search_code), write files (write_file), edit files (edit_file) and run commands (run_command / execute_terminal_command).',
-          'CRITICAL: execute_terminal_command runs commands DIRECTLY in the server terminal. When the user says "roda git status", "executa npm build", "roda node script" or any command — USE execute_terminal_command IMMEDIATELY. Do NOT open a panel. Do NOT ask for confirmation. Just run it and show the output.',
+          'CRITICAL: execute_terminal_command runs commands DIRECTLY in the server terminal. When the user says "roda git status", "executa npm build", "roda node script" or any command â€” USE execute_terminal_command IMMEDIATELY. Do NOT open a panel. Do NOT ask for confirmation. Just run it and show the output.',
           'GENERAL RULE: NEVER open a panel. NEVER say "Abri o painel" or "open the panel". Execute everything inline in the chat. The user can open panels manually if they want. Your job is to do the work directly. If you need to show a document, image or result, explain it in chat or generate a file link.',
           'CRITICAL: You are an autonomous agentic AI. Never describe file contents, directory layouts, or platform status from memory or using static information in the prompt. You MUST call the appropriate tool (list_dir, read_file, search_code, run_safe_local_command, execute_terminal_command) in your first turn to verify the actual files on disk before responding. If the user asks to review, audit, check, verify, update, or edit anything, immediately invoke the tools to perform the actions.',
-          'When the user asks about the code, the platform, or to change/fix/build something, USE these tools to actually inspect and modify the real repository. Do not guess file contents — read them. Do not claim a file exists without checking.',
+          'When the user asks about the code, the platform, or to change/fix/build something, USE these tools to actually inspect and modify the real repository. Do not guess file contents â€” read them. Do not claim a file exists without checking.',
           'Investigate thoroughly: when asked to "analyze your code", "review the platform", or about a feature like auto-upgrade, do NOT stop after reading one file. Use list_dir and search_code to find ALL relevant files, read several of them, and base your answer on what you actually found. For auto-upgrade / self-upgrade questions, call self_upgrade_report.',
           'Never answer about the codebase with a vague generic summary. Cite concrete file paths, function names and findings from the tools.',
           'Work iteratively: explore with read_file/list_dir/search_code, make changes with write_file/edit_file, then verify with execute_terminal_command (e.g. build or tests).',
           'If the user says a prior response felt mechanical or asks what else Apex can do, answer in a live, context-aware way tied to the current project or file instead of giving a canned platform list.',
-          'Never append generic capability menus or autopilot offers such as "Além disso, posso ajudar...", "Também posso..." or "Posso abrir X?" unless the user explicitly asks for options.',
-          'To actually apply code changes that persist (especially in the serverless production runtime where write_file/edit_file may fail with a read-only filesystem), call github_commit_changes with the full new content of each file. It creates a branch, commits, and opens a Pull Request that deploys when merged. When the user says "edit the code", "faça você mesmo", "aplique agora" or "code it yourself", actually CALL github_commit_changes — do not just paste code in the chat. If the user mentions a specific project/repo name, automatically set the repository argument to the matching jedgard70/* repo. If the repo is implied but not explicit, use repositoryHint.',
+          'Never append generic capability menus or autopilot offers such as "AlÃ©m disso, posso ajudar...", "TambÃ©m posso..." or "Posso abrir X?" unless the user explicitly asks for options.',
+          'To actually apply code changes that persist (especially in the serverless production runtime where write_file/edit_file may fail with a read-only filesystem), call github_commit_changes with the full new content of each file. It creates a branch, commits, and opens a Pull Request that deploys when merged. When the user says "edit the code", "faÃ§a vocÃª mesmo", "aplique agora" or "code it yourself", actually CALL github_commit_changes â€” do not just paste code in the chat. If the user mentions a specific project/repo name, automatically set the repository argument to the matching jedgard70/* repo. If the repo is implied but not explicit, use repositoryHint.',
           'Destructive commands (rm -rf, force push, hard reset, disk format) are blocked by the sandbox. Reading/writing secret files (.env, keys) is blocked.',
           'Critical truth rule: only claim you read, edited, created, or ran something if a tool result proves it. If a tool fails, report the real error.',
           'Do not end with vague questions like "what would you like to do next?" when evidence supports a clear next step. Give a decisive recommendation and one practical next action.',
@@ -2653,7 +2653,7 @@ async function handleChat(req, res) {
       messages[messages.length - 1],
     ]
 
-    // ── Provider Router with automatic fallback ─────────────────────────
+    // â”€â”€ Provider Router with automatic fallback â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const isGatewayModel = modelProvider === 'gateway'
     const preferredProvider = isGatewayModel ? 'gateway' : modelProvider
     const preferredModel = model
@@ -2671,7 +2671,7 @@ async function handleChat(req, res) {
     if (!fallbackResult.ok) {
       console.error('[Provider Router] Todos provedores falharam:', fallbackResult.errors?.join(' | '))
       return chatJson(res, 200, {
-        finalReply: 'Desculpe, todos os provedores de IA estão temporariamente indisponíveis. Tente novamente em alguns instantes.',
+        finalReply: 'Desculpe, todos os provedores de IA estÃ£o temporariamente indisponÃ­veis. Tente novamente em alguns instantes.',
         mode: 'provider-error-all-down',
         providerErrors: fallbackResult.errors,
       })
@@ -2741,9 +2741,9 @@ async function handleChat(req, res) {
         }
       }
 
-      // Exceeded max rounds — return the last assistant content if any.
+      // Exceeded max rounds â€” return the last assistant content if any.
       return chatJson(res, 200, {
-        finalReply: sanitizeAssistantReply(currentAssistant.content) || 'Atingi o limite de etapas de ferramentas nesta resposta. Posso continuar se você confirmar.',
+        finalReply: sanitizeAssistantReply(currentAssistant.content) || 'Atingi o limite de etapas de ferramentas nesta resposta. Posso continuar se vocÃª confirmar.',
         mode: 'live-agent-tool-calling-maxed',
         toolCalls: usedToolNames,
       })
@@ -2806,7 +2806,7 @@ async function handleOperatorPreview(req, res) {
       requiresApproval: false,
       proposedExecution: null,
       executedActions: [],
-      finalReply: 'BLOCKED - Apex Operator Runtime falhou com segurança. O chat principal não foi quebrado.',
+      finalReply: 'BLOCKED - Apex Operator Runtime falhou com seguranÃ§a. O chat principal nÃ£o foi quebrado.',
       error: scrubProviderError(error.message || error),
     })
   }
@@ -2830,7 +2830,7 @@ async function handleToolExecute(req, res) {
       executionClasses: [],
       tools: [],
       executions: [],
-      finalReply: 'YELLOW - camada H5 de execução por ferramentas falhou com segurança. Nenhuma mutação foi executada e nenhum segredo foi exposto.',
+      finalReply: 'YELLOW - camada H5 de execuÃ§Ã£o por ferramentas falhou com seguranÃ§a. Nenhuma mutaÃ§Ã£o foi executada e nenhum segredo foi exposto.',
       error: scrubProviderError(error.message || error),
     })
   }
@@ -3464,8 +3464,8 @@ async function handleBimPlan(req, res) {
       animationCameraPath,
       exportRecommendations,
       message: mode === 'viewer'
-        ? 'Abri o BIM / 3D Studio ao lado. Vou visualizar, analisar e gerar relatório técnico dentro da Apex.'
-        : 'Abri o fluxo de importação 3D da Apex. Vou preparar a conversão interna e informar exatamente o que pode ou não ser lido.',
+        ? 'Abri o BIM / 3D Studio ao lado. Vou visualizar, analisar e gerar relatÃ³rio tÃ©cnico dentro da Apex.'
+        : 'Abri o fluxo de importaÃ§Ã£o 3D da Apex. Vou preparar a conversÃ£o interna e informar exatamente o que pode ou nÃ£o ser lido.',
     })
   } catch (error) {
     return json(res, error.status || 500, {
@@ -3923,7 +3923,7 @@ async function handleBudgetPlan(req, res) {
           'Budget Studio generated a preliminary estimate draft.',
           ...knownSources,
           sinapiStatus === 'connected'
-            ? 'SINAPI source: connected — using SINAPI 2024 reference database. Cite connected source values only.'
+            ? 'SINAPI source: connected â€” using SINAPI 2024 reference database. Cite connected source values only.'
             : 'SINAPI source: not connected. No SINAPI or live pricing database is connected in this checkpoint.',
         ].join(' '),
       },
@@ -3943,8 +3943,8 @@ function businessCurrency(value) {
 
 function createBusinessPlanPayload({ goal = '', focus = 'all', currency = 'USD' }) {
   const safeCurrency = businessCurrency(currency)
-  const localNotice = 'Local demo mode — auth/database not connected yet'
-  const paymentNotice = 'Payment connector not connected yet — no real payment was processed or confirmed.'
+  const localNotice = 'Local demo mode â€” auth/database not connected yet'
+  const paymentNotice = 'Payment connector not connected yet â€” no real payment was processed or confirmed.'
   const accountingNotice = 'NEEDS_ACCOUNTANT_REVIEW: Apex prepares documents and reports for accountant review. It does not file taxes or confirm accounting compliance.'
   const pipelineStages = ['New Lead', 'Qualified', 'Discovery', 'Proposal Sent', 'Negotiation', 'Won', 'Lost', 'On Hold']
   const saasPlans = [
@@ -4022,11 +4022,11 @@ function createBusinessPlanPayload({ goal = '', focus = 'all', currency = 'USD' 
       invoices: [],
       payments: [],
       expenses: [],
-      summary: { currency: safeCurrency, revenueSummary: 'No real revenue connected. Enter values manually or connect a finance/payment provider later.', clientBalance: 'Unknown until invoices/payments are user-entered or provider-connected.', accountsReceivable: 'Placeholder only — no payment connector is connected.', accountsPayable: 'Placeholder only — supplier bills/expenses must be user-entered or imported.', projectCostProfit: 'Unknown until project costs and invoices are entered.', paymentConnectorStatus: 'not-connected', warnings: [paymentNotice, 'Do not treat draft invoices as sent or paid.'] },
+      summary: { currency: safeCurrency, revenueSummary: 'No real revenue connected. Enter values manually or connect a finance/payment provider later.', clientBalance: 'Unknown until invoices/payments are user-entered or provider-connected.', accountsReceivable: 'Placeholder only â€” no payment connector is connected.', accountsPayable: 'Placeholder only â€” supplier bills/expenses must be user-entered or imported.', projectCostProfit: 'Unknown until project costs and invoices are entered.', paymentConnectorStatus: 'not-connected', warnings: [paymentNotice, 'Do not treat draft invoices as sent or paid.'] },
       accounting,
     },
     saasPlans,
-    adminDashboard: { usersCount: 3, clientsCount: 1, projectsCount: 1, leadsCount: 0, proposalsCount: 0, revenuePlaceholder: 'Revenue not connected — use Finance Studio with user-entered data only.', usageSummary: ['Local Project Workspace is active.', 'Auth/database/payment connectors are not connected.', 'Client data boundaries are modeled but not enforced by a backend yet.'], moduleUsage: ['Apex Copilot', 'ArchVis', 'DirectCut', 'BIM/3D', 'Budget', 'Contracts', 'FieldOps', 'CRM', 'Finance'], openTasks: ['Connect real auth before production client access.', 'Connect database/RLS before multi-client persistence.', 'Connect payment provider before invoices can be sent/paid.'] },
+    adminDashboard: { usersCount: 3, clientsCount: 1, projectsCount: 1, leadsCount: 0, proposalsCount: 0, revenuePlaceholder: 'Revenue not connected â€” use Finance Studio with user-entered data only.', usageSummary: ['Local Project Workspace is active.', 'Auth/database/payment connectors are not connected.', 'Client data boundaries are modeled but not enforced by a backend yet.'], moduleUsage: ['Apex Copilot', 'ArchVis', 'DirectCut', 'BIM/3D', 'Budget', 'Contracts', 'FieldOps', 'CRM', 'Finance'], openTasks: ['Connect real auth before production client access.', 'Connect database/RLS before multi-client persistence.', 'Connect payment provider before invoices can be sent/paid.'] },
     clientDashboard: { activeProjects: 1, uploadedFiles: 0, generatedOutputs: 0, proposals: 0, invoices: 0, messages: 0, projectStatus: 'New', nextActions: ['Upload project files', 'Confirm scope', 'Review proposal package'] },
     recommendations: [focus === 'finance-accounting' ? 'Prepare accountant handoff package, but keep tax/compliance fields as NEEDS_ACCOUNTANT_REVIEW.' : 'Use local-first scaffolding until auth/database/payment connector is approved.', 'Do not expose admin/internal data to Client role in the future production model.', 'Use Export Center to package only real local project data.'],
     warnings: [localNotice, paymentNotice, accountingNotice, 'No fake login, fake database persistence, fake invoice sent status or fake payment confirmation.'],
@@ -4119,11 +4119,11 @@ function permitPackageForRegion(region, evidenceLevel, jurisdictionLabel) {
   }
   if (region === 'Brazil') {
     return [
-      permitPackageDoc('br-aprovacao', 'Pacote de aprovação municipal / alvará', 'required documents', 'architect/engineer-provided', evidenceLevel, `Checklist geral; confirmar na prefeitura/local authority. ${verifyNote}`),
-      permitPackageDoc('br-art-rrt', 'ART/RRT / responsabilidade técnica', 'required documents', 'architect/engineer-provided', evidenceLevel, `Confirmar responsável técnico e exigência local. ${verifyNote}`),
-      permitPackageDoc('br-projeto', 'Projeto arquitetônico e complementares', 'required documents', 'architect/engineer-provided', evidenceLevel, `Confirmar escopo de pranchas exigidas. ${verifyNote}`),
-      permitPackageDoc('br-bombeiros', 'Checklist Corpo de Bombeiros / fire safety', 'unknown until jurisdiction verified', 'architect/engineer-provided', 'NEEDS_LOCAL_AUTHORITY', `Pode depender de uso, área e estado. ${verifyNote}`),
-      permitPackageDoc('br-habite-se', 'Habite-se / certificado de conclusão', 'required documents', 'authority-provided', evidenceLevel, `Checklist geral de fechamento. ${verifyNote}`),
+      permitPackageDoc('br-aprovacao', 'Pacote de aprovaÃ§Ã£o municipal / alvarÃ¡', 'required documents', 'architect/engineer-provided', evidenceLevel, `Checklist geral; confirmar na prefeitura/local authority. ${verifyNote}`),
+      permitPackageDoc('br-art-rrt', 'ART/RRT / responsabilidade tÃ©cnica', 'required documents', 'architect/engineer-provided', evidenceLevel, `Confirmar responsÃ¡vel tÃ©cnico e exigÃªncia local. ${verifyNote}`),
+      permitPackageDoc('br-projeto', 'Projeto arquitetÃ´nico e complementares', 'required documents', 'architect/engineer-provided', evidenceLevel, `Confirmar escopo de pranchas exigidas. ${verifyNote}`),
+      permitPackageDoc('br-bombeiros', 'Checklist Corpo de Bombeiros / fire safety', 'unknown until jurisdiction verified', 'architect/engineer-provided', 'NEEDS_LOCAL_AUTHORITY', `Pode depender de uso, Ã¡rea e estado. ${verifyNote}`),
+      permitPackageDoc('br-habite-se', 'Habite-se / certificado de conclusÃ£o', 'required documents', 'authority-provided', evidenceLevel, `Checklist geral de fechamento. ${verifyNote}`),
     ]
   }
   return [
@@ -4512,7 +4512,7 @@ function buildResearchFindingsFromSources({ researchType, query, region, checked
       claim: source.title,
       evidence: source.note,
       confidence: source.evidenceLevel,
-      source: `${source.citationId || 'S?'} · ${source.sourceName || source.url || 'live source'}`,
+      source: `${source.citationId || 'S?'} Â· ${source.sourceName || source.url || 'live source'}`,
       date: source.dateChecked,
     })
   }
@@ -4572,7 +4572,7 @@ async function handleResearchPlan(req, res) {
     const region = String(body.region || '')
     const freshness = String(body.freshness || 'Current source required')
     const checked = new Date().toISOString()
-    const sinapiIntent = /sinapi|construction cost source|pricing|pre[cç]o|custo/i.test(`${researchType} ${query}`)
+    const sinapiIntent = /sinapi|construction cost source|pricing|pre[cÃ§]o|custo/i.test(`${researchType} ${query}`)
     const searchQuery = buildResearchSearchQuery(researchType, query, region, freshness)
     let liveSources = []
 
@@ -5122,10 +5122,10 @@ async function handleBackgroundTask(req, res) {
         title: title || 'Nova Tarefa de Agentes',
         description: description || 'Tarefa personalizada agendada pelo operador.',
         status: 'scheduled',
-        scheduledTime: 'Hoje às 23:00',
+        scheduledTime: 'Hoje Ã s 23:00',
         agents: ['Maestro AI', 'BIM Manager Agent', 'Quality QA Agent'],
         progress: 0,
-        logs: ['[23:00:00] [Maestro AI] Tarefa agendada para execução noturna.'],
+        logs: ['[23:00:00] [Maestro AI] Tarefa agendada para execuÃ§Ã£o noturna.'],
         report: null
       }
       serverBackgroundTasks.push(newTask)
@@ -5284,7 +5284,7 @@ async function handleDashboardStatus(req, res) {
 }
 
 async function handleRuntimeStatus(_req, res) {
-  const runtimeUrl = String(process.env.LOCAL_WORKER_URL || '').trim() || 'http://localhost:1337/health'
+  const runtimeUrl = String(process.env.LOCAL_WORKER_URL || '').trim() || 'http://localhost:8888/health'
   try {
     const response = await fetch(runtimeUrl, {
       method: 'GET',
@@ -5456,7 +5456,7 @@ function createAutoupgradePlan(goal = '', projectSummary = null, runtimeSummary 
     `Model: ${modelName}`,
     `Runtime: ${modelState} / ${lastResponseMode}`,
     `Persistence: ${persistenceMode}`,
-    `Files: ${fileCount} · Exports: ${exportCount} · Generations: ${generationCount}`,
+    `Files: ${fileCount} Â· Exports: ${exportCount} Â· Generations: ${generationCount}`,
   ]
   const safeAutomationRules = [
     'Never expose unrestricted public shell from autoupgrade.',
@@ -5467,7 +5467,7 @@ function createAutoupgradePlan(goal = '', projectSummary = null, runtimeSummary 
   const executionQueue = recommendations
     .filter(item => item.status === 'ready-now')
     .sort((a, b) => ['critical', 'high', 'medium'].indexOf(a.priority) - ['critical', 'high', 'medium'].indexOf(b.priority))
-    .map(item => `${item.priority.toUpperCase()} · ${item.title}`)
+    .map(item => `${item.priority.toUpperCase()} Â· ${item.title}`)
   return {
     providerStatus: 'connected',
     generatedAt: new Date().toISOString(),
@@ -6258,7 +6258,7 @@ function validateOwnerCodeCommand(command = '') {
     allowed: true,
     riskLevel: 'LOW',
     requiresOwnerApproval: false,
-    reason: 'Execução livre de comandos ativada.',
+    reason: 'ExecuÃ§Ã£o livre de comandos ativada.',
     ...OWNER_CODE_EXECUTOR_STATUS,
   }
 }
@@ -6275,7 +6275,7 @@ function buildOwnerCodeExecutionPlan({ objective = 'Continue checkpoint safely',
     approvalRequired: false,
     nextSafeAction: 'Executar comando livremente.',
     notes: [
-      'Execução livre de comandos sem restrições.',
+      'ExecuÃ§Ã£o livre de comandos sem restriÃ§Ãµes.',
     ],
     ...OWNER_CODE_EXECUTOR_STATUS,
   }
@@ -6457,6 +6457,11 @@ const server = http.createServer(async (req, res) => {
       handleToolExecute(req, res)
       return
     }
+    if (req.url === '/api/copilot/users' && (req.method === 'GET' || req.method === 'POST')) {
+      const usersHandler = await import('./api/copilot/users.mjs').then(m => m.default)
+      usersHandler(req, res)
+      return
+    }
     if ((req.url === '/api/copilot/learn-url' || req.url.startsWith('/api/copilot/learn-url?')) && (req.method === 'GET' || req.method === 'POST')) {
       const learnUrlHandler = await import('./api/copilot/learn-url.mjs').then(m => m.default)
       learnUrlHandler(req, res)
@@ -6614,14 +6619,14 @@ const server = http.createServer(async (req, res) => {
       return
     }
 
-    // ── Auto-Fix API ───────────────────────────────────────────────────────────
+    // â”€â”€ Auto-Fix API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (req.url?.startsWith('/api/autofix/') && ['GET', 'POST'].includes(req.method)) {
       const { default: handler } = await import('./api/autofix/index.mjs')
       handler(req, res)
       return
     }
 
-    // ── Notification API ────────────────────────────────────────────────────────
+    // â”€â”€ Notification API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (req.url?.startsWith('/api/notification/') && ['GET', 'POST'].includes(req.method)) {
       const { default: handler } = await import('./api/notification/index.mjs')
       handler(req, res)
@@ -6800,7 +6805,7 @@ const server = http.createServer(async (req, res) => {
       return
     }
 
-    // ─── Deploy Model (Hugging Face Inference) ─────────────────────────
+    // â”€â”€â”€ Deploy Model (Hugging Face Inference) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (req.url === '/api/copilot/deploy-model' && (req.method === 'GET' || req.method === 'POST')) {
       const { default: handler } = await import('./api/copilot/deploy-model.mjs')
       handler(req, res)
@@ -6868,70 +6873,70 @@ const server = http.createServer(async (req, res) => {
       return chatJson(res, 200, { ok: true, client, orders, invoices })
     }
 
-    // ── Finance / Controle Financeiro ──────────────────────────────────────────
+    // â”€â”€ Finance / Controle Financeiro â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (req.url?.startsWith('/api/finance/') && ['GET', 'POST'].includes(req.method)) {
       const { default: handler } = await import('./api/finance/index.mjs')
       handler(req, res)
       return
     }
 
-    // ── Stock Market API ───────────────────────────────────────────────────────
+    // â”€â”€ Stock Market API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (req.url?.startsWith('/api/stock/') && ['GET', 'POST'].includes(req.method)) {
       const { default: handler } = await import('./api/stock/index.mjs')
       handler(req, res)
       return
     }
 
-    // ── Trip Planner API ──────────────────────────────────────────────────────
+    // â”€â”€ Trip Planner API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (req.url?.startsWith('/api/trip/') && ['GET', 'POST'].includes(req.method)) {
       const { default: handler } = await import('./api/trip/index.mjs')
       handler(req, res)
       return
     }
 
-    // ── Campaign / Marketing API ─────────────────────────────────────────────────
+    // â”€â”€ Campaign / Marketing API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (req.url?.startsWith('/api/campaign/') && ['GET', 'POST'].includes(req.method)) {
       const { default: handler } = await import('./api/campaign/index.mjs')
       handler(req, res)
       return
     }
 
-    // ── NR Compliance API ───────────────────────────────────────────────────────
+    // â”€â”€ NR Compliance API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (req.url?.startsWith('/api/nr/') && ['GET', 'POST'].includes(req.method)) {
       const { default: handler } = await import('./api/nr/index.mjs')
       handler(req, res)
       return
     }
 
-    // ── Accounting API ──────────────────────────────────────────────────────────
+    // â”€â”€ Accounting API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (req.url?.startsWith('/api/accounting/') && ['GET', 'POST'].includes(req.method)) {
       const { default: handler } = await import('./api/accounting/index.mjs')
       handler(req, res)
       return
     }
 
-    // ── American Permits API ────────────────────────────────────────────────────
+    // â”€â”€ American Permits API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (req.url?.startsWith('/api/permits/') && ['GET', 'POST'].includes(req.method)) {
       const { default: handler } = await import('./api/permits/index.mjs')
       handler(req, res)
       return
     }
 
-    // ── Social / Marketing API (Vercel-style) ─────────────────────────────────────
+    // â”€â”€ Social / Marketing API (Vercel-style) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (req.url?.startsWith('/api/social/') && ['GET', 'POST', 'DELETE'].includes(req.method)) {
       const { default: handler } = await import('./api/social/index.mjs')
       handler(req, res)
       return
     }
 
-    // ── Prompts / Biblioteca de Skills API ────────────────────────────────────────
+    // â”€â”€ Prompts / Biblioteca de Skills API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (req.url?.startsWith('/api/prompts/') && ['GET'].includes(req.method)) {
       const { default: handler } = await import('./api/prompts/index.mjs')
       handler(req, res)
       return
     }
 
-    // ── Docs / Walkthrough & Checkpoint Tracker API ────────────────────────────────
+    // â”€â”€ Docs / Walkthrough & Checkpoint Tracker API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (req.url?.startsWith('/api/docs/') && ['GET'].includes(req.method)) {
       const docName = req.url.replace('/api/docs/', '')
       let filepath = ''
@@ -6959,77 +6964,77 @@ const server = http.createServer(async (req, res) => {
       return
     }
 
-    // ── Reports / Relatórios Inteligentes Apex ────────────────────────────────────
+    // â”€â”€ Reports / RelatÃ³rios Inteligentes Apex â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (req.url?.startsWith('/api/reports/') && ['GET'].includes(req.method)) {
       const { default: handler } = await import('./api/reports/index.mjs')
       handler(req, res)
       return
     }
 
-    // ── DashboardByRole API (ACIP) ────────────────────────────────────────────────
+    // â”€â”€ DashboardByRole API (ACIP) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if ((req.url === '/api/dashboard/roles' || req.url === '/api/dashboard/generate') && ['GET', 'POST'].includes(req.method)) {
       const { default: handler } = await import('./api/dashboard/index.mjs')
       handler(req, res)
       return
     }
 
-    // ── Cognitive Agents API ───────────────────────────────────────────────────────
+    // â”€â”€ Cognitive Agents API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (req.url?.startsWith('/api/agents/') && ['GET', 'POST'].includes(req.method)) {
       const { default: handler } = await import('./api/agents/index.mjs')
       handler(req, res)
       return
     }
 
-    // ── CRM Pipeline API ───────────────────────────────────────────────────────────
+    // â”€â”€ CRM Pipeline API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (req.url?.startsWith('/api/crm-pipeline/') && ['GET', 'POST', 'PATCH', 'DELETE'].includes(req.method)) {
       const { default: handler } = await import('./api/crm-pipeline/index.mjs')
       handler(req, res)
       return
     }
 
-    // ── BIM Clash Detection API (ACIP) ─────────────────────────────────────────────
+    // â”€â”€ BIM Clash Detection API (ACIP) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (req.url?.startsWith('/api/bim-clash/') && ['GET', 'POST', 'PATCH', 'DELETE'].includes(req.method)) {
       const { default: handler } = await import('./api/bim-clash/index.mjs')
       handler(req, res)
       return
     }
 
-    // ── Qualidade / NCIs API (ACIP) ────────────────────────────────────────────────
+    // â”€â”€ Qualidade / NCIs API (ACIP) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (req.url?.startsWith('/api/qualidade/') && ['GET', 'POST', 'PATCH'].includes(req.method)) {
       const { default: handler } = await import('./api/qualidade/index.mjs')
       handler(req, res)
       return
     }
 
-    // ── Workflow Tasks API (ACIP) ──────────────────────────────────────────────────
+    // â”€â”€ Workflow Tasks API (ACIP) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (req.url?.startsWith('/api/workflow/') && ['GET', 'POST', 'PATCH'].includes(req.method)) {
       const { default: handler } = await import('./api/workflow/index.mjs')
       handler(req, res)
       return
     }
 
-    // ── Predictive Analytics API (ACIP) ────────────────────────────────────────────
+    // â”€â”€ Predictive Analytics API (ACIP) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (req.url?.startsWith('/api/predictive/') && ['GET', 'POST'].includes(req.method)) {
       const { default: handler } = await import('./api/predictive/index.mjs')
       handler(req, res)
       return
     }
 
-    // ── Digital Twin IoT API (ACIP) ────────────────────────────────────────────────
+    // â”€â”€ Digital Twin IoT API (ACIP) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (req.url?.startsWith('/api/digital-twin/') && ['GET'].includes(req.method)) {
       const { default: handler } = await import('./api/digital-twin/index.mjs')
       handler(req, res)
       return
     }
 
-    // ── Enterprise Integrations API (ACIP) ──────────────────────────────────────────
+    // â”€â”€ Enterprise Integrations API (ACIP) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (req.url?.startsWith('/api/enterprise/') && ['GET'].includes(req.method)) {
       const { default: handler } = await import('./api/enterprise/index.mjs')
       handler(req, res)
       return
     }
 
-    // ── Pipeline Status API ───────────────────────────────────────────────────────
+    // â”€â”€ Pipeline Status API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (req.url === '/api/pipeline/active' && req.method === 'GET') {
       const ps = await import('./server/service/pipelineStatus.mjs')
       const tasks = ps.listActiveTasks()
@@ -7090,39 +7095,3 @@ server.listen(port, () => {
     })
   }
 })
-// server.js
-const express = require('express');
-const cors = require('cors');
-require('dotenv').config();
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-// Inicializa a API com a sua chave segura
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-app.post('/gerar-codigo', async (req, res) => {
-  try {
-    const { prompt } = req.body;
-
-    // Escolha o modelo ideal para código
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-    // Instrução para focar apenas em código
-    const promptCompleto = `Aja como um programador sênior. Responda apenas com o código solicitado e breves explicações. Pedido: ${prompt}`;
-
-    const result = await model.generateContent(promptCompleto);
-    const resposta = result.response.text();
-
-    res.json({ codigo: resposta });
-  } catch (erro) {
-    console.error(erro);
-    res.status(500).json({ erro: 'Falha ao gerar o código' });
-  }
-});
-
-app.listen(3000, () => {
-  console.log('Servidor rodando na porta 3000');
-});

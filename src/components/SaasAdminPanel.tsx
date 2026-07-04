@@ -33,7 +33,7 @@ export function SaasAdminPanel({ goal, onClear }: SaasAdminPanelProps) {
     setLoading(true)
     setErrorMsg('')
     try {
-      const res = await fetch('http://localhost:3011/api/copilot/users')
+      const res = await fetch('/api/copilot/users')
       const data = await res.json()
       if (!data.ok) throw new Error(data.error || 'Erro ao carregar usuários')
       setUsers(data.users || [])
@@ -54,7 +54,7 @@ export function SaasAdminPanel({ goal, onClear }: SaasAdminPanelProps) {
     setLoading(true)
     setErrorMsg('')
     try {
-      const res = await fetch('http://localhost:3011/api/copilot/users', {
+      const res = await fetch('/api/copilot/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'invite', email: inviteEmail, role: inviteRole })
@@ -73,7 +73,7 @@ export function SaasAdminPanel({ goal, onClear }: SaasAdminPanelProps) {
 
   const handleChangeRole = async (userId: string, newRole: string) => {
     try {
-      const res = await fetch('http://localhost:3011/api/copilot/users', {
+      const res = await fetch('/api/copilot/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'update_role', userId, role: newRole })
@@ -92,7 +92,7 @@ export function SaasAdminPanel({ goal, onClear }: SaasAdminPanelProps) {
   const handleDelete = async (userId: string) => {
     if (!confirm('Deseja realmente remover o acesso deste usuário?')) return
     try {
-      const res = await fetch('http://localhost:3011/api/copilot/users', {
+      const res = await fetch('/api/copilot/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'delete', userId })

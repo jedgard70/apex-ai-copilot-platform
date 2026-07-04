@@ -38,9 +38,18 @@ const isCheck = process.argv.includes('--check')
 // ─── Binário llama.cpp (servidor HTTP OpenAI-compatible) ──────────────────────
 const LLAMA_SERVER = {
     windows: {
-        url: 'https://github.com/ggerganov/llama.cpp/releases/latest/download/llama-b5002-bin-win-avx2-x64.zip',
-        exe: 'llama-server.exe',
-        zipEntry: 'llama-b5002-bin-win-avx2-x64/llama-server.exe',
+        // Usa a API para buscar a versão mais recente do build para windows (CPU x64)
+        getLatestUrl: async () => {
+            const res = await fetch('https://api.github.com/repos/ggerganov/llama.cpp/releases/tags/b9870')
+            const data = await res.json()
+            const asset = data.assets.find(a => a.name.includes('-win-cpu-x64.zip') || a.name.includes('-win-avx2-x64.zip'))
+            if (!asset) throw new Error('Release para Windows não encontrado no GitHub.')
+            return {
+                url: asset.browser_download_url,
+                zipEntry: asset.name.replace('.zip', '') + '/llama-server.exe'
+            }
+        },
+        exe: 'llama-server.exe'
     },
 }
 
@@ -203,16 +212,17 @@ async function main() {
         // Baixa o ZIP e extrai apenas o .exe
         const zipPath = path.join(RUNTIME_DIR, 'llama-server.zip')
         try {
-            await download(LLAMA_SERVER.windows.url, zipPath, 'llama-server.zip')
+            const { url } = await LLAMA_SERVER.windows.getLatestUrl()
+            await download(url, zipPath, 'llama-server.zip')
 
-            // Extrai o .exe do ZIP
+            // Extrai todo o conteúdo do ZIP (agora inclui DLLs)
             try {
-                execSync(`tar -xf "${zipPath}" "${LLAMA_SERVER.windows.zipEntry}" -C "${RUNTIME_DIR}" --strip-components=1`, { stdio: 'pipe' })
+                execSync(`tar -xf "${zipPath}" -C "${RUNTIME_DIR}"`, { stdio: 'pipe' })
                 fs.unlinkSync(zipPath)
-                console.log('✅ llama-server.exe extraído!')
+                console.log('✅ llama-server extraído!')
             } catch (extractErr) {
                 console.log('⚠️  Não foi possível extrair automaticamente.')
-                console.log('   Extraia manualmente o llama-server.exe do ZIP e coloque em:', RUNTIME_DIR)
+                console.log('   Extraia manualmente o conteúdo do ZIP e coloque em:', RUNTIME_DIR)
             }
         } catch (err) {
             console.error('❌ Falha no download:', err.message)
