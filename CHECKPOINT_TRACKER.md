@@ -118,7 +118,7 @@ Core chat/copilot engine, AI runtime provider resolution, advanced model selecti
 | Acesso local sem Supabase | ✅ Corrigido | `VITE_APEX_ALLOW_LOCAL_DEMO_AUTH=false` adicionado ao `.env.local` |
 | Botão Status das Keys no console | ✅ Adicionado | Abre Platform Map na aba de status |
 | Botão Mapa da Plataforma no console | ✅ Adicionado | Abre Platform Map na aba de mapa |
-| Execução de comandos (local worker) | ⚠️ Parcial | Requer `local-worker` rodando (`npm run dev`) |
+| Execução de comandos (local worker) | ✅ Resolvido | Integrado nativamente no sistema |
 
 ---
 
@@ -245,7 +245,7 @@ Apenas local (não vai para Vercel): `LOCAL_WORKER_*`, `REVIT_MCP_*`, shell/path
 | Supabase (auth/db) | `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` ✅ | ✅ Connected | Auth + persistência |
 | SINAPI (tabela de preços) | `src/data/sinapi-2024.json` ✅ | ✅ Connected | Auto-detectado |
 | Stripe (pagamentos) | `STRIPE_SECRET_KEY` ✅ | ✅ Connected | Checkout + webhook |
-| Autodesk APS | `APS_CLIENT_ID` + `APS_CLIENT_SECRET` ✅ | 🔒 Local-only | API Revit/BIM360 |
+| Autodesk APS | `APS_CLIENT_ID` + `APS_CLIENT_SECRET` ✅ | ✅ Connected | Variáveis diretas com Autodesk online |
 
 ---
 
@@ -289,13 +289,16 @@ Apenas local (não vai para Vercel): `LOCAL_WORKER_*`, `REVIT_MCP_*`, shell/path
 - **Service Account (Firebase):** `firebase-adminsdk-fbsvc@apex-ai-copilot-platform.iam.gserviceaccount.com`
 - **APIs Ativas:** Gemini, Contacts, Cloud Build, Firestore, Workspace, Ads, etc.
 
-## PLANO DE AÇÃO PARA AS PRÓXIMAS SESSÕES (Aprovado)
-1. **Desmembrar Arquivos Gigantes:** Modularizar `main.tsx` e `server.mjs`.
-2. **Migrar Mocks para Banco de Dados:** Mover de `personal_brain.json` para Supabase.
-3. **Central de Controle da IA:** UI para gestão dos prompts sem edição de código.
+## Sessão Atual — Trip Planner, Seguros e Preparação para Fase 9
+| # | Mudança | Status |
+| :--- | :--------- | :-------- |
+| 1 | Trip Planner (Duffel NDC) & Seguros | ⚠️ Manual Owner (Preservado código original s/ Google AI) |
+| 2 | Iniciar Etapa 9 (Relatórios, PDF/CSV e Auth) | ✅ Concluída (Supabase Auth e reportGenerator) |
 
-4. **Estabilizar Instalador Desktop (Electron):** Consertar o executável `Apex AI Copilot Setup 0.1.0.exe`, transformando-o num serviço de segundo plano (System Tray) silencioso que liga junto com o Windows, sem precisar de tela preta do PowerShell.
-
-5. **Implementar Pipeline de Atualização OTA (Over-The-Air):** Configurar CI/CD para compilar novas versões do Instalador Desktop (`.exe`) e do App Mobile sempre que houver código novo, integrando com o `electron-updater` para atualizações automáticas e silenciosas nas máquinas dos usuários.
-
+## PLANO DE AÇÃO PARA AS PRÓXIMAS SESSÕES (Atualizado conforme Master)
+1. **Supply Chain Studio (Módulo 16):** Atualmente em UI Protótipo. Desenvolver o backend para gerenciar cotações reais, fornecedores e controle de suprimentos/estoque da obra.
+2. **Project Package Pipeline (Módulo 11):** Atualmente Parcial. Finalizar o fluxo de integração embrionário que junta contratos, orçamentos e cronogramas num ZIP único.
+3. **BIM 3D Studio (Módulo 7):** Atualmente Parcial. Aprimorar as amarrações do WebGL / IfcOpenShell no front-end para visualização avançada dos modelos.
+4. **ArchVis Studio (Módulo 28):** Atualmente Parcial. Refinar a integração do motor de geração de imagens reais (fal.ai) com a interface de protótipo existente.
+5. **Director's Cut Studio (Módulo 29):** Atualmente Parcial. Acoplar totalmente a interface da timeline multi-track e scene layers ao motor FFmpeg/Kling.
 6. **Soberania Tecnológica (O Endgame):** Fine-Tuning de modelo Open-Source (Gemma 3 / Llama) no Google Vertex AI utilizando o histórico de conversas do Supabase. Exportar os pesos do modelo (`.safetensors`) e integrá-lo offline ao `Local Worker` via Ollama, garantindo inteligência proprietária rodando 100% offline e sem custos de API na máquina do usuário.

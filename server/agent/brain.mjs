@@ -5,6 +5,8 @@ import { getProjectStatus } from './tools/projectStatus.mjs'
 import { executeServerCommand } from './tools/serverCommand.mjs'
 import { readRecentEmails, sendEmail } from './tools/email.mjs'
 import { getUpcomingEvents, scheduleMeeting } from './tools/calendar.mjs'
+import { recordUsage } from '../service/aiCost.mjs'
+import { getUpcomingEvents, scheduleMeeting } from './tools/calendar.mjs'
 
 // Simple HTTP client for WhatsApp
 async function sendWhatsAppMessage(toPhoneId, toPhoneNumber, text) {
@@ -50,7 +52,7 @@ export async function processTask(taskId) {
   // Setup Gemini SDK
   const google = createGoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
 
-  const systemPrompt = `Você é o Cérebro Autônomo da Apex AI (Apex Agent).
+  const defaultSystemPrompt = `Você é o Cérebro Autônomo da Apex AI (Apex Agent).
 Sua função primária é ser o braço direito do usuário (jedgard70), analisando intenções em texto natural,
 executando ferramentas no background, e retornando resultados úteis e conversacionais.
 
@@ -78,6 +80,20 @@ Você também opera como o Assistente Jurídico Oficial da Apex AI.
 2. Contratos e Cobranças: Elabore contratos de prestação de serviços (obras, projetos, SaaS) com cláusulas internacionais sólidas.
 3. Resoluções: Pre-escreva contestações e acordos para que os advogados humanos apenas "assinem" ou revisem. Proteja juridicamente a Apex e seus alunos em qualquer transação online ou real.
 ========================================`
+
+  let systemPrompt = defaultSystemPrompt;
+  try {
+    const { data: promptData } = await supabase
+      .from('apex_prompts')
+      .select('content')
+      .eq('prompt_key', 'apex_brain_system')
+      .single()
+    if (promptData && promptData.content) {
+      systemPrompt = promptData.content
+    }
+  } catch (err) {
+    console.warn('[Apex Agent Brain] Could not fetch system prompt from DB, using fallback.')
+  }
 
   try {
     const response = await generateText({
@@ -160,6 +176,23 @@ Você também opera como o Assistente Jurídico Oficial da Apex AI.
     })
 
     const finalAnswer = response.text
+    
+    // Calcula custo aproximado do Gemini Flash
+    // Prompt: $0.075 / 1M tokens, Completion: $0.30 / 1M tokens (estimativa)
+    if (response.usage) {
+      const promptTokens = response.usage.promptTokens || 0
+      const compTokens = response.usage.completionTokens || 0
+      const totalTokens = promptTokens + compTokens
+      const estimatedCost = (promptTokens * 0.075 / 1000000) + (compTokens * 0.30 / 1000000)
+      
+      await recordUsage({
+        module: 'Chat',
+        tokens: totalTokens,
+        cost: estimatedCost,
+        model: 'gemini-2.5-flash',
+        userProject: 'Apex Copilot Chat'
+      }).catch(e => console.error('[aiCost] Error recording usage:', e))
+    }
 
     // Atualiza a tabela
     await supabase.from('agent_tasks').update({

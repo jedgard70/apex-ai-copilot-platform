@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 let _sinapi = null
-function getSinapi() {
+export function getSinapi() {
   if (!_sinapi) {
     const dataPath = resolve(__dirname, '../src/data/sinapi-2024.json')
     _sinapi = JSON.parse(readFileSync(dataPath, 'utf-8'))
@@ -17,7 +17,7 @@ function getSinapi() {
   return _sinapi
 }
 
-function lookup({ q, categoria, regiao = 'SP', limit = 20 }) {
+export function lookup({ q, categoria, regiao = 'SP', limit = 20 }) {
   let results = getSinapi()
 
   if (q) {

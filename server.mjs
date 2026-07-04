@@ -6379,8 +6379,8 @@ const server = http.createServer(async (req, res) => {
       }
       try {
         // Import dynamicly to avoid circular/init issues
-        import('./server/tools/personalAssistantLogic.mjs').then(({ checkDueReminders }) => {
-          const result = checkDueReminders(email)
+        import('./server/tools/personalAssistantLogic.mjs').then(async ({ checkDueReminders }) => {
+          const result = await checkDueReminders(email)
           res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
           res.end(JSON.stringify(result))
         }).catch(err => {

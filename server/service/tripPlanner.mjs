@@ -178,7 +178,7 @@ export async function searchFlights(originIata, destIata, date, travelersCount) 
   }
 }
 
-// O Seguro Viagem permanece em Mock, visto que Seguros via API global são de corretores específicos.
+// O Seguro Viagem permanece em Mock (Simulação Direta com Operadora) conforme preferência do usuário.
 export function searchInsurance(destination, days, travelers) {
   const perDay = 10;
   const totalDays = Math.max(1, days || 7);

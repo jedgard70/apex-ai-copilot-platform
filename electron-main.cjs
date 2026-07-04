@@ -1,4 +1,5 @@
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, Tray, Menu, nativeImage } = require("electron");
+const { autoUpdater } = require("electron-updater");
 const path = require("path");
 const { spawn } = require("child_process");
 const fs = require("fs");
@@ -128,7 +129,16 @@ function createWindow(initialPath = "/") {
     width: 1280, height: 800,
     title: "Apex AI Copilot Platform",
     autoHideMenuBar: true,
+    show: false,
     webPreferences: { nodeIntegration: false, contextIsolation: true },
+  });
+
+  mainWindow.on('close', function (event) {
+    if (!app.isQuiting) {
+      event.preventDefault();
+      mainWindow.hide();
+    }
+    return false;
   });
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -158,8 +168,42 @@ app.whenReady().then(async () => {
   log(`[Apex] Iniciando plataforma. packaged=${app.isPackaged} root=${appRoot}`);
   createWindow("__startup__");
 
+  app.isQuiting = false;
+  const iconPath = path.join(appRoot, "public", "apex-global-logo.png");
+  if (fs.existsSync(iconPath)) {
+    let icon = nativeImage.createFromPath(iconPath);
+    icon = icon.resize({ width: 16, height: 16 });
+    tray = new Tray(icon);
+  } else {
+    tray = new Tray(nativeImage.createEmpty());
+  }
+
+  const contextMenu = Menu.buildFromTemplate([
+    { label: 'Mostrar Aplicativo', click: () => mainWindow.show() },
+    { label: 'Sair', click: () => { app.isQuiting = true; app.quit(); } }
+  ]);
+  tray.setToolTip('Apex AI Copilot Platform');
+  tray.setContextMenu(contextMenu);
+  tray.on('double-click', () => mainWindow.show());
+
   // Inicia motor de IA proprio em background (nao bloqueia)
   apexEngineProcess = startApexEngine(appRoot);
+
+  // Setup auto updater
+  autoUpdater.logger = {
+    info(msg) { log(`[Updater:Info] ${msg}`); },
+    warn(msg) { log(`[Updater:Warn] ${msg}`); },
+    error(msg) { log(`[Updater:Error] ${msg}`); },
+    debug(msg) { log(`[Updater:Debug] ${msg}`); }
+  };
+  autoUpdater.checkForUpdatesAndNotify();
+  autoUpdater.on('update-available', () => log('[Updater] Atualizacao disponivel.'));
+  autoUpdater.on('update-downloaded', () => {
+    log('[Updater] Atualizacao baixada. Instalando em breve...');
+    setTimeout(() => {
+      autoUpdater.quitAndInstall(true, true);
+    }, 5000);
+  });
 
   // Inicia servidor Node.js na porta 3333
   if (!fs.existsSync(serverScript)) {

@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { Bell, Clipboard, Download, Plus, Save, X } from 'lucide-react'
-import { AlertRecord, AlertSeverity, AlertStatus, AlertType, NotificationsPlan, alertTypes, createLocalNotificationsPlan } from '../lib/notificationsKnowledge'
+import { useEffect, useState, useCallback } from 'react'
+import { Bell, Clipboard, Download, Plus, Save, X, RefreshCw } from 'lucide-react'
+import { AlertRecord, AlertSeverity, AlertStatus, AlertType, NotificationsPlan, alertTypes } from '../lib/notificationsKnowledge'
 
 type NotificationsPanelProps = {
   goal: string
@@ -41,9 +41,44 @@ function emptyAlert(): AlertRecord {
 }
 
 export function NotificationsPanel({ goal, conversationContext, onSaveToProject, onClear }: NotificationsPanelProps) {
-  const [plan, setPlan] = useState<NotificationsPlan | null>(null)
+  const [plan, setPlan] = useState<NotificationsPlan>({ providerStatus: 'local-alerts-only', alerts: [], suggestedAlerts: [], message: 'Loading...' })
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+
+  const fetchAlerts = useCallback(async () => {
+    try {
+      setLoading(true)
+      const res = await fetch('/api/notifications')
+      if (res.ok) {
+        const data = await res.json()
+        setPlan(prev => ({ ...prev, providerStatus: data.providerStatus || 'connected', alerts: data.alerts || [], message: 'Alerts loaded' }))
+      }
+    } catch (e) {
+      console.warn('Failed to load alerts', e)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchAlerts()
+  }, [fetchAlerts])
+
+  async function saveAlerts(newAlerts: AlertRecord[]) {
+    try {
+      setLoading(true)
+      const res = await fetch('/api/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ alerts: newAlerts })
+      })
+      if (res.ok) setMessage('Alerts saved successfully.')
+    } catch (e) {
+      setMessage('Failed to save alerts.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   async function generatePlan() {
     setLoading(true)
@@ -56,21 +91,24 @@ export function NotificationsPanel({ goal, conversationContext, onSaveToProject,
       })
       const data = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(data.error || 'Notifications planner failed.')
-      setPlan(data.plan)
-      setMessage(data.plan.message)
+      setMessage(data.plan?.message || 'Generated')
+      await fetchAlerts()
     } catch (error) {
-      const fallback = createLocalNotificationsPlan(goal)
-      setPlan(fallback)
-      setMessage(error instanceof Error ? error.message : fallback.message)
+      setMessage(error instanceof Error ? error.message : 'Error')
     } finally {
       setLoading(false)
     }
   }
 
-  const snapshot = plan || createLocalNotificationsPlan(goal)
+  const snapshot = plan
 
   function updateAlert(index: number, patch: Partial<AlertRecord>) {
-    setPlan({ ...snapshot, alerts: snapshot.alerts.map((alert, alertIndex) => alertIndex === index ? { ...alert, ...patch } : alert) })
+    const updatedAlerts = snapshot.alerts.map((alert, alertIndex) => alertIndex === index ? { ...alert, ...patch } : alert)
+    setPlan({ ...snapshot, alerts: updatedAlerts })
+  }
+  
+  function saveChanges() {
+    saveAlerts(snapshot.alerts)
   }
 
   return (
@@ -78,8 +116,8 @@ export function NotificationsPanel({ goal, conversationContext, onSaveToProject,
       <div className="contracts-heading">
         <div>
           <span><Bell size={16} /> Notifications / Alerts</span>
-          <h2>Local alert center</h2>
-          <p>Local alert only — notification connector not connected yet. No fake push, email or SMS.</p>
+          <h2>Central de Alarmes Integrada</h2>
+          <p>Conectado ao painel executivo (Supabase Real-time).</p>
         </div>
         <button className="ghost-action" type="button" onClick={onClear} aria-label="Close Notifications"><X size={16} /></button>
       </div>
@@ -95,9 +133,10 @@ export function NotificationsPanel({ goal, conversationContext, onSaveToProject,
           <div className="contracts-card">
             <strong>Actions</strong>
             <button type="button" onClick={() => setPlan({ ...snapshot, alerts: [...snapshot.alerts, emptyAlert()] })}><Plus size={15} /> Create alert</button>
+            <button type="button" onClick={saveChanges}><Save size={15} /> Save Changes</button>
+            <button type="button" onClick={fetchAlerts}><RefreshCw size={15} /> Refresh</button>
             <button type="button" onClick={() => copyText(JSON.stringify(snapshot.alerts, null, 2))}><Clipboard size={15} /> Export alerts</button>
             <button type="button" onClick={() => downloadTextFile('apex-alerts.json', JSON.stringify(snapshot, null, 2))}><Download size={15} /> Download JSON</button>
-            <button type="button" onClick={() => onSaveToProject?.(snapshot)}><Save size={15} /> Save to Project Workspace</button>
             {message && <p className="contracts-message">{message}</p>}
           </div>
         </aside>

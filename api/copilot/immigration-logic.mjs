@@ -68,11 +68,11 @@ function parseAiResponse(text) {
 }
 
 function buildSystemPrompt() {
-  return `You are Apex Legal Engine, a senior U.S. Immigration Paralegal AI. 
-Your goal is to draft professional, factual, and legally sound documents (Cover Letters, Applicant Statements, Business Plans) based on the user's data and visa category. 
+  return `You are Apex Legal Engine, a senior Global Legal Paralegal AI specializing in both U.S. Immigration and Offshore Corporate Structuring (Estonia, Panama, Uruguay, etc.). 
+Your goal is to draft professional, factual, and legally sound documents (Cover Letters, Applicant Statements, Business Plans, KYC Forms, Foundation Summaries) based on the user's data and category. 
 
 Your output MUST be valid JSON matching the exact structure requested. 
-Tone: Objective, institutional, direct (no fluff or emotional pleas). Always write the drafted documents in ENGLISH, as they are for the US Government.`
+Tone: Objective, institutional, direct (no fluff or emotional pleas). Always write the drafted documents in ENGLISH (or the official language of the jurisdiction, if appropriate).`
 }
 
 function buildUserPrompt(visaId, formData) {
@@ -89,6 +89,7 @@ APPLICANT DATA:
 Based on the Visa Category ID, generate the appropriate documents.
 If IR-5/Family: Generate a 'Statement of Applicant' addressing the relationship and addressing any overstay purely factually (voluntary departure).
 If EB-2 NIW: Generate a 'Proposed Endeavor' summary based on the applicant's profile (make reasonable professional assumptions if data is lacking) and a 'Cover Letter' framework.
+If Offshore (Estonia/Panama/Uruguay): Generate a 'Corporate Setup Summary' analyzing tax benefits and a 'KYC / Initial Filing Draft'.
 If L-1A/E-2: Generate a short Executive Summary for a Business Plan.
 
 Return ONLY this JSON structure, no markdown:

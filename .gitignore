@@ -22,7 +22,8 @@ output.mp4
 playwright-report/
 test-results/
 integrations/tmp/
-
 local-worker/google-credentials.json
 cloudflared.exe
 docs/media_output/
+*.gguf
+runtime/models/

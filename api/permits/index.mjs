@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   try {
     const body = (req.method === 'POST') ? (typeof req.body === 'object' ? req.body : JSON.parse(req.body || '{}')) : {}
     const path = req.url?.split('?')[0] || ''
-    const mod = await import('../../server/service/americanPermits.mjs')
+    const mod = await import('../../server/service/globalPermits.mjs')
 
     if (path === '/api/permits/create' && req.method === 'POST') {
       return res.status(200).json({ providerStatus: 'connected', project: mod.createPermitProject(body) })

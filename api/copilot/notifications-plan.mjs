@@ -1,3 +1,5 @@
+import { generateAlertFromGoal, addAlert } from '../../server/service/notifications.mjs'
+
 const AUTHKEY = process.env.AUTHKEY_AUTHKEY || ''
 const WHATSAPP_SID = process.env.AUTHKEY_WHATSAPP_SID || ''
 
@@ -18,54 +20,6 @@ async function sendWhatsAppAlert(to, message) {
   } catch { return null }
 }
 
-function createNotificationsPlan(goal = '') {
-  const lower = String(goal || '').toLowerCase()
-  const type = /pagamento|fatura|payment|invoice|cobran/.test(lower)
-    ? 'Payment overdue'
-    : /fornecedor|supplier|material|entrega/.test(lower)
-      ? 'Supplier delay'
-      : /seguran|safety|nr-/.test(lower)
-        ? 'Safety risk'
-        : /custo|cost|budget|or[cç]amento/.test(lower)
-          ? 'Cost deviation'
-          : /cliente|follow/.test(lower)
-            ? 'Client follow-up'
-            : 'Deadline'
-  const severity = /cr[ií]tico|critical|urgente|alto risco/.test(lower) ? 'Critical' : 'High'
-  const alert = {
-    id: `alert-${Date.now()}`,
-    type,
-    title: goal || 'Apex local alert',
-    description: goal || 'Local reminder created from chat intent.',
-    severity,
-    dueDate: '',
-    assignedTo: 'Owner/Admin',
-    status: 'Open',
-    sourceModule: 'Apex Copilot',
-    evidence: 'USER_ENTERED',
-  }
-  const followUp = {
-    id: `alert-followup-${Date.now()}`,
-    type: 'Client follow-up',
-    title: 'Follow up with client',
-    description: 'Suggested local follow-up. No email/SMS/push connector is connected.',
-    severity: 'Medium',
-    dueDate: '',
-    assignedTo: 'Sales / Owner',
-    status: 'Open',
-    sourceModule: 'CRM',
-    evidence: 'SYSTEM_SUGGESTED',
-  }
-  return {
-    providerStatus: (AUTHKEY && WHATSAPP_SID) ? 'authkey-whatsapp' : 'local-alerts-only',
-    alerts: [alert],
-    suggestedAlerts: [alert, followUp],
-    message: (AUTHKEY && WHATSAPP_SID)
-      ? 'WhatsApp alerts enabled via AUTHKEY.'
-      : 'Local alert only — notification connector not connected yet.',
-  }
-}
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST')
@@ -73,12 +27,25 @@ export default async function handler(req, res) {
   }
   try {
     const body = req.body && typeof req.body === 'object' ? req.body : {}
-    const plan = createNotificationsPlan(String(body.goal || ''))
+    const newAlert = generateAlertFromGoal(String(body.goal || ''))
+    
     // Fire-and-forget WhatsApp alert if recipient phone provided
-    if (body.phone && plan.alerts[0]) {
-      sendWhatsAppAlert(body.phone, `[Apex Alert] ${plan.alerts[0].type}: ${plan.alerts[0].title}`)
+    if (body.phone) {
+      sendWhatsAppAlert(body.phone, `[Apex Alert] ${newAlert.type}: ${newAlert.title}`)
         .then(id => id && console.log('[notifications-plan] WA sent:', id))
         .catch(() => {})
+    }
+    
+    // Save to global alerts
+    await addAlert(newAlert)
+    
+    const plan = {
+      providerStatus: (AUTHKEY && WHATSAPP_SID) ? 'authkey-whatsapp' : 'connected',
+      alerts: [newAlert],
+      suggestedAlerts: [],
+      message: (AUTHKEY && WHATSAPP_SID)
+        ? 'WhatsApp alerts enabled via AUTHKEY.'
+        : 'Alert added successfully.',
     }
     return sendJson(res, 200, { plan })
   } catch (error) {

@@ -23,38 +23,38 @@ export default async function handler(req, res) {
 
     // GET /api/crm-pipeline/kpis
     if (path === '/api/crm-pipeline/kpis' && req.method === 'GET') {
-      return res.status(200).json({ providerStatus: 'connected', kpis: mod.getPipelineKPIs() })
+      return res.status(200).json({ providerStatus: 'connected', kpis: await mod.getPipelineKPIs() })
     }
 
     // GET /api/crm-pipeline/stages
     if (path === '/api/crm-pipeline/stages' && req.method === 'GET') {
-      return res.status(200).json({ providerStatus: 'connected', stages: mod.getStages() })
+      return res.status(200).json({ providerStatus: 'connected', stages: await mod.getStages() })
     }
 
     // GET /api/crm-pipeline/leads
     if (path === '/api/crm-pipeline/leads' && req.method === 'GET') {
       const stage = url.searchParams.get('stage')
-      return res.status(200).json({ providerStatus: 'connected', leads: mod.getLeads(stage) })
+      return res.status(200).json({ providerStatus: 'connected', leads: await mod.getLeads(stage) })
     }
 
     // GET /api/crm-pipeline/leads/:id
     if (path?.startsWith('/api/crm-pipeline/leads/') && req.method === 'GET' && !path.includes('/stage')) {
       const id = path.replace('/api/crm-pipeline/leads/', '')
-      const lead = mod.getLead(id)
+      const lead = await mod.getLead(id)
       if (!lead) return res.status(404).json({ error: 'Lead not found' })
       return res.status(200).json({ providerStatus: 'connected', lead })
     }
 
     // POST /api/crm-pipeline/leads
     if (path === '/api/crm-pipeline/leads' && req.method === 'POST') {
-      const lead = mod.createLead(body)
+      const lead = await mod.createLead(body)
       return res.status(200).json({ providerStatus: 'connected', lead })
     }
 
     // PATCH /api/crm-pipeline/leads/:id
     if (path?.startsWith('/api/crm-pipeline/leads/') && req.method === 'PATCH' && !path.includes('/stage')) {
       const id = path.replace('/api/crm-pipeline/leads/', '')
-      const lead = mod.updateLead(id, body)
+      const lead = await mod.updateLead(id, body)
       if (!lead) return res.status(404).json({ error: 'Lead not found' })
       return res.status(200).json({ providerStatus: 'connected', lead })
     }
@@ -62,7 +62,7 @@ export default async function handler(req, res) {
     // PATCH /api/crm-pipeline/leads/:id/stage
     if (path?.includes('/stage') && req.method === 'PATCH') {
       const id = path.replace('/stage', '').replace('/api/crm-pipeline/leads/', '')
-      const lead = mod.updateLeadStage(id, body.stage, body.observacoes)
+      const lead = await mod.updateLeadStage(id, body.stage, body.observacoes)
       if (!lead) return res.status(404).json({ error: 'Lead not found or invalid stage' })
       return res.status(200).json({ providerStatus: 'connected', lead })
     }
@@ -96,7 +96,7 @@ export default async function handler(req, res) {
     // DELETE /api/crm-pipeline/leads/:id
     if (path?.startsWith('/api/crm-pipeline/leads/') && req.method === 'DELETE') {
       const id = path.replace('/api/crm-pipeline/leads/', '')
-      const ok = mod.deleteLead(id)
+      const ok = await mod.deleteLead(id)
       if (!ok) return res.status(404).json({ error: 'Lead not found' })
       return res.status(200).json({ providerStatus: 'connected', deleted: true })
     }
