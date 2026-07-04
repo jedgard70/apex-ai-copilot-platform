@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     }
 
     if (path === '/api/dashboard/generate' && req.method === 'POST') {
-      const dash = mod.generateDashboard(body.roleId, body.context || {})
+      const dash = await mod.generateDashboard(body.roleId, body.context || {})
       if (dash.error) return res.status(400).json({ error: dash.error })
       return res.status(200).json({ providerStatus: 'connected', dashboard: dash })
     }

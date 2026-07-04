@@ -21,7 +21,7 @@ export type ExportScope =
   | 'skill-package'
   | 'custom'
 
-export type ExportFormat = 'json' | 'markdown' | 'txt' | 'csv' | 'zip-json'
+export type ExportFormat = 'json' | 'markdown' | 'txt' | 'csv' | 'pdf' | 'zip-json'
 
 export type ExportCenterRequest = {
   project: ProjectWorkspace
@@ -73,6 +73,7 @@ export const exportFormats: { value: ExportFormat; label: string }[] = [
   { value: 'markdown', label: 'Markdown' },
   { value: 'txt', label: 'TXT' },
   { value: 'csv', label: 'CSV where table data exists' },
+  { value: 'pdf', label: 'PDF Report' },
   { value: 'zip-json', label: 'ZIP-compatible JSON bundle' },
 ]
 

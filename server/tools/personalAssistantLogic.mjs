@@ -1,28 +1,11 @@
-import fs from 'node:fs'
-import path from 'node:path'
+import { createClient } from '@supabase/supabase-js'
 
-const DATA_FILE = path.join(process.cwd(), 'local-worker', 'data', 'personal_brain.json')
+const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
+const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
 
-function initDataFile() {
-  if (!fs.existsSync(path.dirname(DATA_FILE))) {
-    fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true })
-  }
-  if (!fs.existsSync(DATA_FILE)) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify({ users: {} }, null, 2))
-  }
-}
-
-function getUserBrain(email) {
-  initDataFile()
-  const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'))
-  if (!data.users[email]) {
-    data.users[email] = { reminders: [], lists: {} }
-  }
-  return { data, userBrain: data.users[email] }
-}
-
-function saveData(data) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2))
+let supabase = null;
+if (supabaseUrl && supabaseKey) {
+  supabase = createClient(supabaseUrl, supabaseKey)
 }
 
 // === Lembretes ===
@@ -49,7 +32,7 @@ export function checkDueReminders(email) {
     const { data, userBrain } = getUserBrain(email)
     const now = new Date()
     const dueReminders = []
-    
+
     let hasChanges = false
     for (const rem of userBrain.reminders) {
       if (!rem.notified) {
@@ -62,7 +45,7 @@ export function checkDueReminders(email) {
         }
       }
     }
-    
+
     if (hasChanges) {
       saveData(data)
     }

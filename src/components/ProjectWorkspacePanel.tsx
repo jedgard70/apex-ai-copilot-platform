@@ -38,6 +38,8 @@ type ProjectWorkspacePanelProps = {
   onClear: () => void
   onSyncRemote?: () => Promise<string> | string
   openSignal?: string
+  onOpenFile?: (fileId: string) => void
+  onConnectLocalFolder?: () => void
 }
 
 export function ProjectWorkspacePanel({
@@ -54,6 +56,8 @@ export function ProjectWorkspacePanel({
   onClear,
   onSyncRemote,
   openSignal,
+  onOpenFile,
+  onConnectLocalFolder,
 }: ProjectWorkspacePanelProps) {
   const importInput = useRef<HTMLInputElement | null>(null)
   const [name, setName] = useState(project.name)
@@ -139,6 +143,9 @@ export function ProjectWorkspacePanel({
           </label>
 
           <div className="project-summary-grid">
+            <div style={{ cursor: 'pointer', background: '#3b82f6', color: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px', borderRadius: '4px' }} onClick={onConnectLocalFolder}>
+              <strong>+</strong><span style={{color: '#fff'}}>Conectar Pasta</span>
+            </div>
             <div><strong>{summary.files}</strong><span>files</span></div>
             <div><strong>{summary.chatMessages}</strong><span>chat</span></div>
             <div><strong>{summary.archVisOutputs}</strong><span>ArchVis</span></div>
@@ -159,6 +166,24 @@ export function ProjectWorkspacePanel({
             <div><strong>{summary.metricsRecords}</strong><span>metrics</span></div>
             <div><strong>{summary.executionRuns}</strong><span>runs</span></div>
           </div>
+
+          {project.files.length > 0 && (
+            <div style={{ marginTop: '16px', background: 'var(--surface-color, #1e293b)', padding: '12px', borderRadius: '8px' }}>
+              <strong style={{ display: 'block', marginBottom: '8px', fontSize: '12px', color: '#8fa2cf', textTransform: 'uppercase' }}>Arquivos do Projeto</strong>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '150px', overflowY: 'auto' }}>
+                {project.files.map(file => (
+                  <button 
+                    key={file.id} 
+                    onClick={() => onOpenFile && onOpenFile(file.id)}
+                    style={{ background: 'rgba(255,255,255,0.05)', border: 'none', color: '#e2e8f0', textAlign: 'left', padding: '6px 8px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}
+                  >
+                    <FolderOpen size={14} style={{ color: '#8fa2cf' }} />
+                    <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{file.name || (file as any).filename}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="project-profile-card">
           <div className="project-profile-head">

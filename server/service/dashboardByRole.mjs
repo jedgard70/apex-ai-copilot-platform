@@ -6,6 +6,7 @@
  * Diretor Executivo, Engenheiro, Arquiteto, Investidor,
  * Gestor de Obra, Agente de Vendas, Compliance Officer
  */
+import { createClient } from '@supabase/supabase-js'
 
 const ROLES = [
   { id: 'diretor-executivo', name: 'Diretor Executivo', icon: '🎯', description: 'Visão estratégica e financeira da empresa' },
@@ -46,13 +47,39 @@ const MOCK_NCIS = [
  * @param {Object} context - { projects, leads, ncis } opcional
  * @returns {Object}
  */
-export function generateDashboard(roleId, context = {}) {
+export async function generateDashboard(roleId, context = {}) {
   const role = ROLES.find(r => r.id === roleId)
   if (!role) return { error: 'Role não encontrada' }
 
-  const projects = context.projects || MOCK_PROJECTS
-  const leads = context.leads || MOCK_LEADS
-  const ncis = context.ncis || MOCK_NCIS
+  let projects = context.projects
+  let leads = context.leads
+  let ncis = context.ncis
+
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (supabaseUrl && supabaseKey) {
+    try {
+      const supabase = createClient(supabaseUrl, supabaseKey)
+      if (!projects) {
+        const { data } = await supabase.from('projects').select('*').limit(100)
+        if (data && data.length > 0) projects = data
+      }
+      if (!leads) {
+        const { data } = await supabase.from('leads').select('*').limit(100)
+        if (data && data.length > 0) leads = data
+      }
+      if (!ncis) {
+        const { data } = await supabase.from('ncis').select('*').limit(100)
+        if (data && data.length > 0) ncis = data
+      }
+    } catch (err) {
+      console.warn('[Dashboard] Supabase error, using fallback:', err.message)
+    }
+  }
+
+  projects = projects || MOCK_PROJECTS
+  leads = leads || MOCK_LEADS
+  ncis = ncis || MOCK_NCIS
 
   const totalVGV = projects.reduce((s, p) => s + p.vgv, 0)
   const totalCusto = projects.reduce((s, p) => s + p.custoTotal, 0)

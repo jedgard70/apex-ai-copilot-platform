@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { Activity, Clipboard, Download, Plus, Save, X } from 'lucide-react'
-import { AiCostPlan, AiCostRecord, AiCostSourceConfidence, aiCostModules, createLocalAiCostPlan } from '../lib/aiCostKnowledge'
+import { useEffect, useState, useCallback } from 'react'
+import { Activity, Clipboard, Download, Plus, Save, X, RefreshCw } from 'lucide-react'
+import { AiCostPlan, AiCostRecord, AiCostSourceConfidence, aiCostModules } from '../lib/aiCostKnowledge'
 
 type AiCostDashboardPanelProps = {
   goal: string
@@ -41,32 +41,40 @@ function emptyRecord(): AiCostRecord {
 }
 
 export function AiCostDashboardPanel({ goal, conversationContext, onSaveToProject, onCreateThresholdAlert, onClear }: AiCostDashboardPanelProps) {
-  const [plan, setPlan] = useState<AiCostPlan | null>(null)
+  const [plan, setPlan] = useState<AiCostPlan>({
+    providerStatus: 'estimated-local',
+    usageSummary: { totalRequests: 0, totalEstimatedTokens: 0, totalEstimatedCost: 0, sourceConfidence: 'ESTIMATED_LOCAL', warning: '' },
+    moduleBreakdown: [],
+    costWarnings: [],
+    message: 'Loading...'
+  })
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
-  const snapshot = plan || createLocalAiCostPlan(goal)
 
-  async function generatePlan() {
-    setLoading(true)
-    setMessage('')
+  const fetchCostData = useCallback(async () => {
     try {
-      const response = await fetch('/api/copilot/ai-cost-plan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ goal, conversationContext }),
-      })
-      const data = await response.json().catch(() => ({}))
-      if (!response.ok) throw new Error(data.error || 'AI cost planner failed.')
-      setPlan(data.plan)
-      setMessage(data.plan.message)
-    } catch (error) {
-      const fallback = createLocalAiCostPlan(goal)
-      setPlan(fallback)
-      setMessage(error instanceof Error ? error.message : fallback.message)
+      setLoading(true)
+      const res = await fetch('/api/copilot/ai-cost-plan')
+      if (res.ok) {
+        const data = await res.json()
+        if (data.plan) setPlan(data.plan)
+      }
+    } catch (e) {
+      console.warn('Failed to load AI cost', e)
     } finally {
       setLoading(false)
     }
+  }, [])
+
+  useEffect(() => {
+    fetchCostData()
+  }, [fetchCostData])
+
+  async function saveManualRecord() {
+    // optional logic to save manually if needed
   }
+
+  const snapshot = plan
 
   function updateRecord(index: number, patch: Partial<AiCostRecord>) {
     const moduleBreakdown = snapshot.moduleBreakdown.map((record, recordIndex) => recordIndex === index ? { ...record, ...patch } : record)
@@ -81,8 +89,8 @@ export function AiCostDashboardPanel({ goal, conversationContext, onSaveToProjec
       <div className="contracts-heading">
         <div>
           <span><Activity size={16} /> AI Cost / Observability</span>
-          <h2>Estimated local usage dashboard</h2>
-          <p>No fake provider billing. Values are ESTIMATED_LOCAL until a real billing/usage API is connected.</p>
+          <h2>Consumo Real (Supabase Backend)</h2>
+          <p>Valores extraídos das rotas interceptadas do Gemini no servidor (engine.mjs).</p>
         </div>
         <button className="ghost-action" type="button" onClick={onClear} aria-label="Close AI Cost Dashboard"><X size={16} /></button>
       </div>
@@ -96,7 +104,7 @@ export function AiCostDashboardPanel({ goal, conversationContext, onSaveToProjec
             <p>Estimated tokens: {snapshot.usageSummary.totalEstimatedTokens}</p>
             <p>Estimated cost: ${snapshot.usageSummary.totalEstimatedCost.toFixed(4)}</p>
             <small>{snapshot.usageSummary.warning}</small>
-            <button className="contracts-primary" type="button" onClick={generatePlan} disabled={loading}>{loading ? 'Estimating...' : 'Refresh local estimate'}</button>
+            <button className="contracts-primary" type="button" onClick={fetchCostData} disabled={loading}>{loading ? 'Estimating...' : 'Refresh API Usage'}</button>
           </div>
           <div className="contracts-card">
             <strong>Actions</strong>
@@ -112,7 +120,7 @@ export function AiCostDashboardPanel({ goal, conversationContext, onSaveToProjec
         <div className="contracts-main">
           <div className="contracts-card contracts-status-grid">
             <div><span>Total estimated cost</span><strong>${snapshot.usageSummary.totalEstimatedCost.toFixed(4)}</strong><p>{snapshot.usageSummary.sourceConfidence}</p></div>
-            <div><span>Billing source</span><strong>Not connected</strong><p>Never invoice-accurate without provider billing source.</p></div>
+            <div><span>Billing source</span><strong>{snapshot.usageSummary.sourceConfidence}</strong><p>Integrated with agent actions.</p></div>
           </div>
           <div className="contracts-card contracts-table-card">
             <div className="contracts-section-head"><strong>Cost by module / model</strong><span>{snapshot.moduleBreakdown.length} records</span></div>

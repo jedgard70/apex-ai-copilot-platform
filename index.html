@@ -1,30 +1,207 @@
 <!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="theme-color" content="#0b1326" />
-    <meta name="theme-color" content="#6c47ff" />
-    <meta name="description" content="Plataforma de IA para construção civil — orçamento, BIM, contratos, supply chain e mais." />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Metrophobic&family=Sora:wght@400;500;600;700&family=Noto+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="apple-touch-icon" href="/apex-global-logo.png" />
-    <title>Apex AI Copilot Platform</title>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0b1326" />
+  <meta name="theme-color" content="#6c47ff" />
+  <meta name="description"
+    content="Plataforma de IA para construção civil — orçamento, BIM, contratos, supply chain e mais." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Metrophobic&family=Sora:wght@400;500;600;700&family=Noto+Sans+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+    rel="stylesheet" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/apex-global-logo.png" />
+  <title>Apex AI Copilot Platform</title>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
   </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch(() => {})
-        })
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => { })
+      })
+    }
+  </script>
+</body>
+
+</html>
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+  <title>Meu Gerador de Código</title>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+  </head>
+
+<body>
+  <h2>Peça um código para o Gemini</h2>
+
+  <textarea id="pedido" placeholder="Ex: Crie uma função em Python para calcular juros compostos..."></textarea>
+  <br>
+  <button onclick="pedirCodigo()">Gerar Código</button>
+
+  <h3>Resultado:</h3>
+  <!-- Usamos a tag <pre> e <code> para manter a formatação do código -->
+  <pre><code id="resultado">O código aparecerá aqui...</code></pre>
+
+  <script>
+    async function pedirCodigo() {
+      const promptUsuario = document.getElementById('pedido').value;
+      const areaResultado = document.getElementById('resultado');
+
+      areaResultado.innerText = "Pensando...";
+
+      try {
+        // Chama o SEU servidor, não a API do Google diretamente
+        const resposta = await fetch('http://localhost:3000/gerar-codigo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: promptUsuario })
+        });
+
+        const dados = await resposta.json();
+        areaResultado.innerText = dados.codigo; // Exibe o código gerado
+
+      } catch (erro) {
+        areaResultado.innerText = "Ocorreu um erro ao conectar com o servidor.";
       }
-    </script>
-  </body>
+    }
+  </script>
+</body>
+
+</html>
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+  <title>Leitor de Repositório</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #log {
+      margin-top: 20px;
+      background: #f4f4f4;
+      padding: 15px;
+      border-radius: 5px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+    }
+  </style>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+  </head>
+
+<body>
+
+  <h2>Conectar Repositório Local</h2>
+  <button id="btnConectar">Selecionar Pasta do Projeto</button>
+
+  <div id="log">
+    <pre id="saida">Os arquivos lidos aparecerão aqui...</pre>
+  </div>
+
+  <script>
+    const btnConectar = document.getElementById('btnConectar');
+    const saida = document.getElementById('saida');
+
+    // Pastas que o sistema deve pular para não travar o navegador
+    const pastasIgnoradas = ['.git', 'node_modules', 'dist', 'build'];
+
+    // Extensões de arquivo que nos interessam (para não ler imagens, pdfs, etc)
+    const extensoesPermitidas = ['.js', '.jsx', '.ts', '.tsx', '.html', '.css', '.json'];
+
+    btnConectar.addEventListener('click', async () => {
+      try {
+        // 1. Pede ao usuário para selecionar a pasta
+        const diretorioRaiz = await window.showDirectoryPicker();
+        saida.innerText = "Lendo arquivos...\n\n";
+
+        let conteudoDoProjeto = "";
+
+        // 2. Inicia a leitura
+        await lerPasta(diretorioRaiz, "");
+
+        // Função recursiva para ler arquivos e subpastas
+        async function lerPasta(diretorioHandle, caminhoAtual) {
+          for await (const entrada of diretorioHandle.values()) {
+
+            // Se for uma PASTA
+            if (entrada.kind === 'directory') {
+              if (pastasIgnoradas.includes(entrada.name)) {
+                continue; // Pula a pasta se estiver na lista de ignoradas
+              }
+              // Chama a função novamente para ler dentro da subpasta
+              await lerPasta(entrada, `${caminhoAtual}${entrada.name}/`);
+            }
+
+            // Se for um ARQUIVO
+            else if (entrada.kind === 'file') {
+              // Verifica se o arquivo tem uma extensão que queremos ler
+              const extensaoValida = extensoesPermitidas.some(ext => entrada.name.endsWith(ext));
+
+              if (extensaoValida) {
+                const fileHandle = await entrada.getFile();
+                const textoDoArquivo = await fileHandle.text();
+
+                const caminhoCompleto = `${caminhoAtual}${entrada.name}`;
+
+                // Formata o texto para ficar fácil do Gemini entender depois
+                conteudoDoProjeto += `\n--- Arquivo: ${caminhoCompleto} ---\n`;
+                conteudoDoProjeto += textoDoArquivo + "\n";
+
+                // Mostra na tela que leu
+                saida.innerText += `✔️ Lido: ${caminhoCompleto}\n`;
+              }
+            }
+          }
+        }
+
+        saida.innerText += "\n✅ Leitura concluída! O projeto está na memória do navegador.\n";
+
+        // AQUI É ONDE A MÁGICA ACONTECE:
+        // Agora você tem a variável "conteudoDoProjeto" com todo o seu código.
+        // Você pode enviar isso no "body" do seu fetch() para o backend na Vercel!
+        console.log(conteudoDoProjeto);
+
+      } catch (erro) {
+        // O usuário pode cancelar a seleção ou o navegador pode bloquear
+        if (erro.name === 'AbortError') {
+          saida.innerText = "Seleção de pasta cancelada.";
+        } else {
+          saida.innerText = `Erro: ${erro.message}`;
+          console.error(erro);
+        }
+      }
+    });
+  </script>
+</body>
+
 </html>

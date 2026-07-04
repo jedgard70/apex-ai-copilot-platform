@@ -1,4 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
+import { getBrowserSupabaseClient } from '../lib/supabaseClient'
+import { loadSupabaseAccountState } from '../lib/supabaseAuthBootstrap'
 
 type OwnerPageProps = {
   onNavigate?: (view: string) => void
@@ -19,6 +21,25 @@ const PROVIDER_LABELS: Record<string, string> = {
   'deploy-model': 'Deploy Model (HF)',
 }
 
+// 62 modules do Ecossistema Apex
+const MODULES = [
+  'ArchVis', 'DirectCut', 'BIM 3D', 'Field Ops', 'Dashboard', 'Chat',
+  'Owner Console', 'CRM Pipeline', 'Financeiro', 'Budget', 'Contracts',
+  'Research', 'Supply Chain', 'Qualidade', 'Campaign', 'Agents',
+  'Cognitive Agents', 'Digital Twin', 'Metrics', 'Knowledge Base',
+  'Multi-tenant', 'PWA Mobile', 'Notifications', 'AI Cost',
+  'Autoupgrade', 'Platform Map', 'Deployment', 'Governance',
+  'Model Training', 'Technical Docs', 'Marketing Analytics',
+  'Authentication', 'Stock Market', 'Trip Planner', 'Pipeline',
+  'NR Compliance', 'Accounting', 'American Permits', 'BIM Clash',
+  'Workflow', 'EVM Scheduler', 'Avatar Voice', 'Project Package',
+  'Generation History', 'Export Center', 'APS', 'Copilot Execution',
+  'Skill Update', 'Skill Export', 'Provider Detail', 'Auth',
+  'Client Dashboard', 'Platform Navigator', 'Documentation',
+  'Bolsa', 'Viagens', 'Contabilidade', 'CREA/OE', 'Arquitetura',
+  'Render', 'Video', '3D Studio',
+]
+
 const STATUS_COLORS: Record<string, string> = {
   ok: '#22c55e', warning: '#f59e0b', 'needs-topup': '#ef4444', error: '#ef4444', unconfigured: '#6b7280',
 }
@@ -29,26 +50,157 @@ export function OwnerPage({ onNavigate, onOpenChat }: OwnerPageProps) {
   const [keyLifecycle, setKeyLifecycle] = useState<KeyLifecycleEntry[]>([])
   const [loading, setLoading] = useState(true)
 
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({ executive: true, engineering: false, finance: false, legal: false, dev: false })
+  const toggleMenu = (m: string) => setOpenMenus(p => ({ ...p, [m]: !p[m] }))
+
+  const NAV_MODULES = [
+    {
+      id: 'executive',
+      title: 'Controle Executivo',
+      icon: 'dashboard',
+      items: [
+        { label: 'Executive Home', view: 'owner' },
+        { label: 'Platform Map', view: 'navigator' },
+        { label: 'Marketing', view: 'marketing' },
+      ]
+    },
+    {
+      id: 'engineering',
+      title: 'Engenharia & BIM',
+      icon: 'architecture',
+      items: [
+        { label: 'BIM / 3D Studio', view: 'bim' },
+        { label: 'Field Ops', view: 'fieldops' },
+        { label: 'ArchVis Studio', view: 'archvis' },
+        { label: "Director's Cut", view: 'directcut' },
+      ]
+    },
+    {
+      id: 'finance',
+      title: 'CRM & Financeiro',
+      icon: 'payments',
+      items: [
+        { label: 'CRM Pipeline', view: 'crm' },
+        { label: 'Financeiro', view: 'finance' },
+        { label: 'Budget & Cost', view: 'budget' },
+        { label: 'Contracts', view: 'contracts' },
+      ]
+    },
+    {
+      id: 'legal',
+      title: 'Jurídico & Corporate Global',
+      icon: 'gavel',
+      items: [
+        { label: 'Brasil (Corporate, Imigration, Cidadania, Permits, Contratos, Fiscal)', view: 'legal_br' },
+        { label: 'Estados Unidos (Corporate, Imigration, Cidadania, Permits, Contratos, Fiscal)', view: 'legal_us' },
+        { label: 'Europa (Corporate, Imigration, Cidadania, Permits, Contratos, Fiscal)', view: 'legal_eu' },
+        { label: 'Offshore & Nômades (Estônia, Panamá, Uruguai)', view: 'legal_off' },
+        { label: 'General Contracts e Jurídico Geral BR', view: 'contracts_gen' },
+      ]
+    },
+    {
+      id: 'dev',
+      title: 'Developer Tools',
+      icon: 'code',
+      items: [
+        { label: 'Code Editor', view: 'editor' },
+        { label: 'AI Control', view: 'aicontrol' },
+        { label: 'Documentation', view: 'docs' },
+      ]
+    }
+  ]
+
+
   const refresh = useCallback(async () => {
     try {
-      const [psRes, anRes, klRes] = await Promise.all([
+      const { client: supabase } = getBrowserSupabaseClient();
+
+      const [psRes, klRes] = await Promise.all([
         fetch('/api/copilot/provider-status'),
-        fetch('/api/copilot/provider-analytics?window=1440'),
-        fetch('/api/copilot/key-lifecycle'),
-      ])
+        fetch('/api/copilot/key-lifecycle')
+      ]);
+
       if (psRes.ok) {
-        const d = await psRes.json()
-        setProviders(d.providers || [])
-      }
-      if (anRes.ok) {
-        setAnalytics(await anRes.json())
+        const d = await psRes.json();
+        setProviders(d.providers || []);
       }
       if (klRes.ok) {
-        const d = await klRes.json()
-        setKeyLifecycle(d.keys || [])
+        const d = await klRes.json();
+        setKeyLifecycle(d.keys || []);
+      }
+
+      if (supabase) {
+        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+        // Fetch AI Usage
+        const { data: usageData } = await supabase
+          .from('ai_usage_records')
+          .select('*')
+          .gte('created_at', oneDayAgo);
+
+        if (usageData) {
+          const providerMap: Record<string, AnalyticsProvider> = {};
+          let totalCalls = 0;
+          let successfulCalls = 0;
+          let totalLatency = 0;
+          let latencyCount = 0;
+
+          for (const row of usageData) {
+            const p = row.provider || 'unknown';
+            if (!providerMap[p]) {
+              providerMap[p] = { provider: p, calls: 0, successRate: 0, avgLatencyMs: 0, totalTokensIn: 0, totalTokensOut: 0, estimatedCost: 0, modelCount: 0, models: [] };
+            }
+
+            providerMap[p].calls++;
+            totalCalls++;
+
+            if (row.success) {
+              providerMap[p].successRate++; // temp store successes
+              successfulCalls++;
+            }
+
+            if (row.duration_ms) {
+              providerMap[p].avgLatencyMs += row.duration_ms;
+              totalLatency += row.duration_ms;
+              latencyCount++;
+            }
+
+            if (row.tokens_in) providerMap[p].totalTokensIn += row.tokens_in;
+            if (row.tokens_out) providerMap[p].totalTokensOut += row.tokens_out;
+            if (row.cost_usd) providerMap[p].estimatedCost! += row.cost_usd;
+
+            if (row.model && !providerMap[p].models!.includes(row.model)) {
+              providerMap[p].models!.push(row.model);
+            }
+          }
+
+          const providersList = Object.values(providerMap).map(p => {
+            return {
+              ...p,
+              successRate: p.calls > 0 ? Math.round((p.successRate / p.calls) * 100) : 0,
+              avgLatencyMs: p.calls > 0 ? Math.round(p.avgLatencyMs / p.calls) : 0,
+              modelCount: p.models!.length
+            };
+          });
+
+          setAnalytics({
+            providers: providersList,
+            summary: {
+              totalCalls,
+              successRate: totalCalls > 0 ? Math.round((successfulCalls / totalCalls) * 100) : 0,
+              avgLatencyMs: latencyCount > 0 ? Math.round(totalLatency / latencyCount) : 0,
+              windowMinutes: 1440
+            }
+          });
+        }
+      } else {
+        // Mock fallback if supabase not configured
+        setAnalytics({
+          providers: [],
+          summary: { totalCalls: 0, successRate: 0, avgLatencyMs: 0, windowMinutes: 1440 }
+        })
       }
     } catch { /* silent */ }
-    setLoading(false)
   }, [])
 
   useEffect(() => { refresh(); const t = setInterval(refresh, 60000); return () => clearInterval(t) }, [refresh])
@@ -86,9 +238,8 @@ export function OwnerPage({ onNavigate, onOpenChat }: OwnerPageProps) {
             { icon: 'menu_book', label: 'Documentation', active: false, view: 'docs' },
           ].map(item => (
             <button key={item.label} onClick={() => onNavigate?.(item.view)}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all ${
-                item.active ? 'bg-[#6C47FF] text-white' : 'text-[#c6c6ce] hover:text-white hover:bg-white/5'
-              }`}>
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all ${item.active ? 'bg-[#6C47FF] text-white' : 'text-[#c6c6ce] hover:text-white hover:bg-white/5'
+                }`}>
               <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
               <span className="font-label-caps text-xs">{item.label}</span>
             </button>
@@ -156,7 +307,7 @@ export function OwnerPage({ onNavigate, onOpenChat }: OwnerPageProps) {
                         <p className="text-[11px] text-[#c6c6ce] truncate">{p.message?.slice(0, 80)}</p>
                         {p.models && Array.isArray(p.models) && (
                           <div className="text-[9px] text-[#6C47FF] mt-1 truncate max-w-[200px]" title={p.models.join(', ')}>
-                            modelos: {p.models.slice(0,4).join(', ')}{p.models.length > 4 ? `...` : ''}
+                            modelos: {p.models.slice(0, 4).join(', ')}{p.models.length > 4 ? `...` : ''}
                           </div>
                         )}
                       </div>

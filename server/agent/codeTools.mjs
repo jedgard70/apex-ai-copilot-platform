@@ -162,19 +162,68 @@ export function buildCodeToolDefinitions() {
       type: 'function',
       function: {
         name: 'run_command',
-        description: 'Run a shell command inside the platform repository (e.g. git, npm, node, tests, build). Returns stdout/stderr/exit code. Destructive commands are blocked. Use this to verify your work.',
+        description: 'Execute a shell command in the platform repository. Use this to run scripts, start dev servers, run git commands or install packages. Do NOT run destructive commands.',
         parameters: {
           type: 'object',
           additionalProperties: false,
           properties: {
-            command: { type: 'string', description: 'The shell command line to execute.' },
-            cwd: { type: 'string', description: 'Optional repo-relative working directory.' },
+            command: { type: 'string', description: 'Shell command to execute.' },
+            cwd: { type: 'string', description: 'Optional directory path relative to repo root to execute the command in.' },
           },
           required: ['command'],
         },
       },
     })
   }
+
+  // --- External Tools ---
+  tools.push({
+    type: 'function',
+    function: {
+      name: 'search_brave',
+      description: 'Search the live internet using the Brave Search API. Use this to fetch real-time data, documentation, prices (e.g. SINAPI materials), or public bids.',
+      parameters: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          query: { type: 'string', description: 'The search query to look up on the internet.' },
+        },
+        required: ['query'],
+      },
+    },
+  })
+
+  tools.push({
+    type: 'function',
+    function: {
+      name: 'gerar_voz_elevenlabs',
+      description: 'Gera um arquivo de áudio (MP3) com voz humana super-realista a partir de um roteiro de marketing usando ElevenLabs.',
+      parameters: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          texto: { type: 'string', description: 'O texto do roteiro que será narrado.' },
+        },
+        required: ['texto'],
+      },
+    },
+  })
+
+  tools.push({
+    type: 'function',
+    function: {
+      name: 'gerar_imagem_fal',
+      description: 'Gera uma imagem arquitetônica fotorrealista de alto padrão baseada no prompt usando a IA do FAL.ai.',
+      parameters: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          prompt: { type: 'string', description: 'O prompt visual detalhado descrevendo a casa ou ambiente.' },
+        },
+        required: ['prompt'],
+      },
+    },
+  })
 
   tools.push({
     type: 'function',
@@ -430,6 +479,35 @@ export async function executeCodeToolCall(toolCall, rootDir) {
   } catch {
     return { ok: false, error: 'Invalid tool arguments JSON.' }
   }
+async function toolSearchBrave(args) {
+  const query = args.query
+  if (!query) return { ok: false, error: 'Brave Search: missing query' }
+  const apiKey = process.env.BRAVE_SEARCH_API_KEY
+  if (!apiKey) return { ok: false, error: 'Brave Search API key (BRAVE_SEARCH_API_KEY) not configured in .env' }
+
+  try {
+    const res = await fetch(`https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=5`, {
+      headers: {
+        'Accept': 'application/json',
+        'Accept-Encoding': 'gzip',
+        'X-Subscription-Token': apiKey
+      }
+    })
+    if (!res.ok) {
+      return { ok: false, error: `Brave Search failed: ${res.status} ${res.statusText}` }
+    }
+    const data = await res.json()
+    const results = (data.web?.results || []).map(r => ({
+      title: r.title,
+      url: r.url,
+      description: r.description
+    }))
+    return { ok: true, results }
+  } catch (err) {
+    return { ok: false, error: `Brave Search request failed: ${err.message}` }
+  }
+}
+
   try {
     switch (name) {
       case 'read_file': return toolReadFile(rootDir, args)
@@ -437,7 +515,18 @@ export async function executeCodeToolCall(toolCall, rootDir) {
       case 'search_code': return toolSearchCode(rootDir, args)
       case 'write_file': return toolWriteFile(rootDir, args)
       case 'edit_file': return toolEditFile(rootDir, args)
-      case 'run_command': return await toolRunCommand(rootDir, args)
+       case 'run_command': return await toolRunCommand(rootDir, args)
+      case 'search_brave': return await toolSearchBrave(args)
+      case 'gerar_voz_elevenlabs': {
+        const { gerarVozElevenLabs } = await import('../../local-worker/media.mjs')
+        try { const path = await gerarVozElevenLabs(args.texto, rootDir); return { ok: true, path } }
+        catch (e) { return { ok: false, error: e.message } }
+      }
+      case 'gerar_imagem_fal': {
+        const { gerarImagemFAL } = await import('../../local-worker/media.mjs')
+        try { const path = await gerarImagemFAL(args.prompt, rootDir); return { ok: true, path } }
+        catch (e) { return { ok: false, error: e.message } }
+      }
       case 'self_upgrade_report': {
         const result = await runSelfUpgradePlanner(args.topic || undefined)
         return { ok: true, report: buildSelfUpgradePlannerReply(result), connectorConfigured: result.connectorConfigured }

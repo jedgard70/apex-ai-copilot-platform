@@ -1,3 +1,5 @@
+import { loadChatConversationsFromSupabase, saveMessageToSupabase } from './lib/chatHistoryService';
+import { isRevisionIntent, revisionChatLabel, isArchVisIntent, isDirectCutIntent, isDirectVideoNoPanelIntent, isBudgetIntent, isProjectPackageIntent, isGenerationHistoryIntent, isContractsIntent, isResearchIntent, isFieldOpsIntent, isBusinessLayerIntent, isAuthIntent, isCopilotExecutionIntent, suggestLayerOpenDecision, isExplicitPanelOpenRequest, isOwnerConsoleIntent, isStockIntent, isTripIntent, isPipelineIntent, isNRIntent, isAccountingIntent, isPromptLibraryIntent, getPromptLibraryModule, isPermitsIntent, isCheckpointContinuationIntent } from './lib/CopilotEngine';
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Analytics } from '@vercel/analytics/react'
@@ -48,6 +50,8 @@ import { CaixaCompliancePanel } from './components/CaixaCompliancePanel'
 import { ExportCenterPanel } from './components/ExportCenterPanel'
 import { FinancePanel } from './components/FinancePanel'
 import { FieldOpsPanel } from './components/FieldOpsPanel'
+import { TerminalPanel } from './components/TerminalPanel'
+import { CodeEditorPanel } from './components/CodeEditorPanel'
 import { GenerationHistoryPanel } from './components/GenerationHistoryPanel'
 import { ApsPanel } from './components/ApsPanel'
 import { KnowledgeBasePanel } from './components/KnowledgeBasePanel'
@@ -69,7 +73,7 @@ import { PublicVslLandingPage } from './components/PublicVslLandingPage'
 import { UserAccountPanel } from './components/UserAccountPanel'
 import AppLayout from './components/AppLayout'
 import { ClientDashboard } from './components/ClientDashboard'
-import { DashboardPage } from './components/DashboardPage'
+
 import { DashboardByRolePanel } from './components/DashboardByRolePanel'
 import { CrmPipelinePanel } from './components/CrmPipelinePanel'
 import GlobalPermitsPanel from './components/GlobalPermitsPanel'
@@ -91,7 +95,7 @@ import { NRCompliancePanel } from './components/NRCompliancePanel'
 import { AccountingPanel } from './components/AccountingPanel'
 import { RuntimeStatusIndicator } from './components/RuntimeStatusIndicator'
 
-import { classifyFile, formatSize, IntakeFile, isVisionReady, readFileAsDataUrl, readImageDimensions } from './lib/fileIntake'
+import { classifyFile, formatSize, IntakeFile, isVisionReady, readFileAsDataUrl, compressImageAsDataUrl, readImageDimensions } from './lib/fileIntake'
 import { extractPdfText } from './lib/pdfExtractor'
 import {
   createProjectProfile,
@@ -167,7 +171,7 @@ type H7Confirmation = {
   buttons: H7ConfirmationButton[]
 }
 
-type Message = {
+export type Message = {
   id: string
   role: 'user' | 'assistant'
   text: string
@@ -176,7 +180,7 @@ type Message = {
   confirmation?: H7Confirmation | null
 }
 
-type ChatIdentityContext = {
+export type ChatIdentityContext = {
   email?: string
   role?: string
   workspaceName?: string
@@ -249,7 +253,7 @@ type FieldOpsOutput = {
   conversationContext: string[]
 }
 
-type BusinessOutput = {
+export type BusinessOutput = {
   goal: string
   focus: 'admin' | 'crm-sales' | 'finance-accounting' | 'all'
   conversationContext: string[]
@@ -480,18 +484,9 @@ function normalizeRevisionConstraint(text: string) {
   return `Apply this locked revision constraint: ${normalized}`
 }
 
-function isRevisionIntent(text: string) {
-  return /\b(não existe|nao existe|não crie|nao crie|não invente|nao invente|não tem|nao tem|não mude|nao mude|não muda|nao muda|mantenha|preserve|corrigir|correção|correcao|errado|está errado|esta errado|lugar errado|faltou|remove|remova|tira|retira|fica no|fica na|fica ao|corrige|refaz|refaça|regenera|ajuste|arrume|keep|do not|don't|wrong|atrás da suíte|atras da suite|lavanderia|piscina não|pool)\b/i.test(text)
-}
 
-function revisionChatLabel(text: string) {
-  const lower = text.toLowerCase()
-  if (/(não|nao).*(jardim|paisag).*(atr[aá]s).*(su[ií]te|suite)/i.test(lower)) return 'não criar jardim atrás da suíte'
-  if (/(lavanderia|laundry|service).*(canto direito|lado direito)|não mude a lavanderia|nao mude a lavanderia/i.test(lower)) return 'preservar a lavanderia no canto direito'
-  if (/(piscina|pool)/i.test(lower)) return 'manter a piscina no local, tamanho e proporção originais'
-  if (/(banheiro|bathroom)/i.test(lower)) return 'manter o banheiro como está na planta'
-  return text.trim()
-}
+
+
 
 function id() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -730,217 +725,55 @@ function pickCanonicalReply(data: Record<string, unknown>, fallback: string) {
   return typeof reply === 'string' ? reply : fallback
 }
 
-function isArchVisIntent(text: string, attachment?: IntakeFile) {
-  const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|gerar|gere|crie|criar|renderizar|renderize|humanizar|humanize|refazer|refaça|editar|edit|quero|preciso|faça|faca|prepare|monte)\b/i.test(lower)
-  const hasKeyword = /\b(archvis|render|planta humanizada|planta|fachada|interior|imagem|área gourmet|area gourmet|prompt de render)\b/i.test(lower)
-  if (hasVerb && hasKeyword) return true
 
-  if (attachment?.kind === 'image' && !text.trim()) return true
-  if (attachment?.kind !== 'image') return false
-  return /\b(gerar prompt de render|gere um prompt de render|prompt de render|crie uma planta humanizada|criar planta humanizada|planta humanizada|renderizar|renderize|renderize essa|renderizar essa|renderize esta|renderizar esta|área gourmet|area gourmet|refaz|refaça|regenera|regenerate|sem jardim|não crie|nao crie|deixa mais|usa madeira|melhorar imagem|editar imagem|trocar materiais|adicionar paisagismo|criar fachada|criar imagem de venda|humanize|image edit|edit image|render)\b/i.test(text)
-}
 
-function isDirectCutIntent(text: string) {
-  const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|criar|create|gerar|generate|fazer|make|editar|edit|cortar|cut|montar|quero|preciso|faça|faca|prepare)\b/i.test(lower)
-  const hasKeyword = /\b(video|v[ií]deo|directcut|roteiro|reels|apresenta[cç][aã]o|tour|anima[cç][aã]o|v[ií]deo de venda|video de venda|timelapse|shot list|storyboard|cinematic|cinem[aá]tico|transformar imagem em v[ií]deo|imagem em v[ií]deo|image to video|adicionar voz|add voice|mudar luz|alterar luz|relight|melhorar v[ií]deo|improve video|clip editor|editar v[ií]deo|3d scenes|movimento de c[aâ]mera|camera movement)\b/i.test(lower)
-  return hasVerb && hasKeyword
-}
 
-function isDirectVideoNoPanelIntent(text: string) {
-  return /\b(sem directcut|without directcut|sem abrir|without opening|sem painel|sem studio|direto no chat|direct in chat|gerar agora)\b/i.test(text)
-}
 
-function isBudgetIntent(text: string) {
-  const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|gerar|generate|fazer|make|calcular|calculate|estimar|estimate|montar|quero|preciso|faça|faca|prepare)\b/i.test(lower)
-  const hasKeyword = /\b(or[cç]amento|orcamento|quantitativo|estimativa|materiais|proposta|quanto custa|custo de obra|memorial de compra|budget|estimate|quantity|takeoff|materials|proposal|construction cost)\b/i.test(lower)
-  const isShortKeywordOnly = /^\s*(or[cç]amentos?|orcamentos?|budget|estimate|quantitativo|estimativa)\s*$/i.test(lower)
-  return hasKeyword && (hasVerb || isShortKeywordOnly)
-}
 
-function isProjectPackageIntent(text: string) {
-  const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|criar|create|gerar|generate|montar|assemble|preparar|prepare|organizar|build|quero|preciso|faça|faca)\b/i.test(lower)
-  const hasKeyword = /\b(pacote completo|pacote do projeto|project package|complete package|entrega completa|prancha|apresenta[cç][aã]o para cliente|client presentation|cronograma f[ií]sico|cronograma financeiro|cronograma f[ií]sico financeiro|execution docs|documentos de execu[cç][aã]o|contract package|proposal package|full delivery bundle)\b/i.test(lower)
-  return hasVerb && hasKeyword
-}
 
-function isGenerationHistoryIntent(text: string) {
-  const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|listar|list|consultar|check|revisar|review|quero|preciso|faça|faca)\b/i.test(lower)
-  const hasKeyword = /\b(fila de gera[cç][aã]o|historico de gera[cç][aã]o|hist[oó]rico de gera[cç][aã]o|generation queue|generation history|history of generations|fila de render|hist[oó]rico de render|queue de exporta[cç][aã]o|export history)\b/i.test(lower)
-  return hasVerb && hasKeyword
-}
 
-function isContractsIntent(text: string) {
-  const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|revisar|review|criar|create|gerar|generate|analisar|analyze|validar|validate|quero|preciso|faça|faca|prepare|montar)\b/i.test(lower)
-  const hasKeyword = /\b(contrato|contrato simples|revisar contrato|jur[ií]dico|juridico|cl[aá]usula|clausula|proposta jur[ií]dica|memorial|memorial descritivo|alvar[aá]|licen[cç]a|permits?|permits americanos|documentos para aprova[cç][aã]o nos eua|us permits?|european permits?|eu building permit|planning permission|ahj|certificate of occupancy|fire marshal|ada|building control|compliance|endossos|endosso|art|rrt|habite-se|scope agreement|addendum|lawyer|legal|contracts?)\b/i.test(lower)
-  return hasVerb && hasKeyword
-}
 
-function isResearchIntent(text: string) {
-  const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|pesquisar|search|buscar|find|analisar|analyze|investigar|investigate|quero|preciso|faça|faca|prepare)\b/i.test(lower)
-  const hasKeyword = /\b(pesquisa de mercado|pesquisa na internet|faça uma pesquisa|faca uma pesquisa|concorrentes|pre[cç]o atualizado|sinapi|tabela sinapi|proposta comercial com pesquisa|estudo de mercado|market research|competitor|benchmark|pricing research|source check)\b/i.test(lower)
-  return hasVerb && hasKeyword
-}
 
-function isFieldOpsIntent(text: string, attachment?: IntakeFile) {
-  if (attachment?.kind === 'image' && /\b(obra|campo|rdo|di[aá]rio|relat[oó]rio|andamento|progresso|qualidade|seguran[cç]a|punch|pend[eê]ncia|foto de obra)\b/i.test(text)) return true
-  const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|criar|create|gerar|generate|preencher|fill|fazer|make|quero|preciso|faça|faca|prepare)\b/i.test(lower)
-  const hasKeyword = /\b(rdo|di[aá]rio de obra|relat[oó]rio de obra|andamento da obra|progresso da obra|checklist de qualidade|checklist de seguran[cç]a|equipe de obra|materiais entregues|pend[eê]ncia de obra|punch list|foto de obra|field operations?|field.?ops|daily report|jobsite|site report|quality checklist|safety checklist|field photo|construction site|obra|campo)\b/i.test(lower)
-  return hasVerb && hasKeyword
-}
 
-function isBusinessLayerIntent(text: string) {
-  const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|gerar|generate|criar|create|gerenciar|manage)\b/i.test(lower)
-  const hasKeyword = /\b(crm|lead|leads|cliente|clientes|client workspace|vendas|sales|proposta comercial|financeiro|finance|fatura|invoice|pagamento|payment|plano saas|saas plan|dashboard admin|admin dashboard|dashboard cliente|client dashboard|pipeline|follow-up|cobran[cç]a|contabilidade|contador|documentos cont[aá]beis|relat[oó]rio cont[aá]bil|imposto|nota fiscal|receita|despesa|contas a pagar|contas a receber|accounting|accountant|accounts receivable|accounts payable|tax|bookkeeping)\b/i.test(lower)
-  return hasVerb && hasKeyword
-}
 
-function isAuthIntent(text: string) {
-  const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|fazer|do|entrar|login|log in)\b/i.test(lower)
-  const hasKeyword = /\b(login|entrar|cadastro|cadastrar|criar conta|sign in|signup|sign up|usu[aá]rio|usuarios|user account|sess[aã]o|session|permiss[oõ]es|permissions|auth|authentication|supabase)\b/i.test(lower)
-  return hasVerb && hasKeyword
-}
 
-function isCopilotExecutionIntent(text: string) {
-  const lower = text.toLowerCase()
-  const explicitlyOpensPanel = /\b(abrir|abra|abre|open|mostrar|mostre|show|acessar|ativar|ative|launch|iniciar|start)\b/.test(lower)
-  const namesExecutionPanel = /\b(copilot execution|local execution|painel de execu[cç][aã]o|execution panel|platform maintenance|repo checks|build checks|checkpoint manager)\b/i.test(lower)
-  return explicitlyOpensPanel && namesExecutionPanel
-}
 
-function suggestLayerOpenDecision(text: string, attachment?: IntakeFile): PendingLayerDecision | null {
-  if (!text.trim()) return null
-  if (isDirectCutIntent(text)) return { label: 'DirectCut Studio', openCommand: 'abrir directcut studio', goal: text }
-  if (isProjectPackageIntent(text)) return { label: 'Project Package Pipeline', openCommand: 'abrir project package pipeline', goal: text }
-  if (isGenerationHistoryIntent(text)) return { label: 'Generation Queue / History', openCommand: 'abrir generation history panel', goal: text }
-  if (isContractsIntent(text)) return { label: 'Contracts / Permits Studio', openCommand: 'abrir contracts studio', goal: text }
-  if (isBudgetIntent(text)) return { label: 'Budget / Quantity Studio', openCommand: 'abrir budget studio', goal: text }
-  if (isResearchIntent(text)) return { label: 'Research / Market Intelligence Studio', openCommand: 'abrir research studio', goal: text }
-  if (isFieldOpsIntent(text, attachment)) return { label: 'Field Operations / RDO Studio', openCommand: 'abrir field ops studio', goal: text }
-  if (isBusinessLayerIntent(text)) return { label: 'Business Layer', openCommand: 'abrir crm layer', goal: text }
-  if (isEvmSchedulerComplianceIntent(text)) return { label: 'CP11C Agents', openCommand: 'abrir evm scheduler panel', goal: text }
-  if (isSupplyChainIntent(text)) return { label: 'Supply Chain / Suppliers Studio', openCommand: 'abrir supply chain studio', goal: text }
-  if (isNotificationsIntent(text)) return { label: 'Notifications / Alerts Center', openCommand: 'abrir notifications panel', goal: text }
-  if (isAiCostIntent(text)) return { label: 'AI Cost Dashboard', openCommand: 'abrir ai cost dashboard', goal: text }
-  if (isMultiTenantIntent(text)) return { label: 'Multi-tenant Readiness', openCommand: 'abrir multi-tenant panel', goal: text }
-  if (isPwaMobileIntent(text)) return { label: 'PWA / Mobile Field Mode', openCommand: 'abrir pwa panel', goal: text }
-  if (isDigitalTwinIntent(text)) return { label: 'Digital Twin UI', openCommand: 'abrir digital twin panel', goal: text }
-  if (isKnowledgeBaseIntent(text)) return { label: 'Knowledge Base', openCommand: 'abrir knowledge base panel', goal: text }
-  if (isMetricsIntent(text)) return { label: 'Metrics Dashboard', openCommand: 'abrir metrics dashboard', goal: text }
-  if (isCopilotExecutionIntent(text)) return { label: 'Copilot Execution', openCommand: 'abrir copilot execution panel', goal: text }
-  if (isAgentIntent(text)) return { label: 'Cognitive Agents', openCommand: 'abrir agents panel', goal: text }
-  if (isBim3DIntent(text, attachment)) return { label: 'BIM / 3D Studio', openCommand: 'abrir bim 3d studio', goal: text }
-  if (isArchVisIntent(text, attachment)) return { label: 'ArchVis Studio', openCommand: 'abrir archvis studio', goal: text }
-  if (isPromptLibraryIntent(text)) {
-    const module = getPromptLibraryModule(text)
-    return { label: module ? `Prompt Library (${module})` : 'Professional Prompt Library', openCommand: `abrir biblioteca de prompts${module ? ` ${module}` : ''}`, goal: text }
-  }
-  if (isAuthIntent(text)) return { label: 'Auth Panel', openCommand: 'abrir auth panel', goal: text }
-  if (isAutoupgradeIntent(text)) return { label: 'Autoupgrade Center', openCommand: 'abrir autoupgrade center', goal: text }
-  if (isStockIntent(text)) return { label: 'Bolsa de Valores', openCommand: 'abrir bolsa de valores', goal: text }
-  if (isTripIntent(text)) return { label: 'Trip Planner', openCommand: 'abrir trip planner', goal: text }
-  if (isPipelineIntent(text)) return { label: 'Pipeline Status', openCommand: 'abrir pipeline status', goal: text }
-  if (isNRIntent(text)) return { label: 'NR Compliance CREA/OE', openCommand: 'abrir nr compliance', goal: text }
-  if (isAccountingIntent(text)) return { label: 'Contabilidade CRC', openCommand: 'abrir contabilidade', goal: text }
-  if (isPermitsIntent(text)) return { label: 'American Permits', openCommand: 'abrir american permits', goal: text }
-  return null
-}
 
-function isExplicitPanelOpenRequest(text: string) {
-  const lower = text.toLowerCase().trim()
-  const hasOpenVerb = /\b(abrir|abra|abre|open|ativar|ative|activate|launch|iniciar|start)\b/.test(lower)
-  const hasProductionVerb = /\b(renderizar|renderize|renderiza|render|gerar|gere|gera|generate|fazer|faça|faca|faz|criar|crie|cria|create|produzir|produza|prepare|monte|montar|humanizar|humanize|editar|edite|edit|refazer|refaça|regenerar|regenerate|melhorar|melhore|improve|transformar|transforme|converter|converta)\b/.test(lower)
-  const hasKnownLayer = /\b(archvis|directcut|render|planta humanizada|v[ií]deo de venda|video|imagem|fachada|interior|shot list|storyboard|humaniza[cç][aã]o|planta baixa|apresenta[cç][aã]o|tour virtual|anima[cç][aã]o|prompt de render|direct.?cut|bolsa|stock market|a[cç][oõ]es|b3|trip|viagem|pipeline|nr crea|nr compliance|segurança do trabalho|contabilidade|accounting|crc|american permits|building permit|field ops?|fieldops|field.?operations?|obra|campo|rdo|di[aá]rio de obra|or[cç]amento|orcamento|budget|proposta|contratos?|contracts?|permits?|finance?|financeiro|finan[cç]as|financas|marketing|campaign|campanha|deploy|deployment|implanta[cç][aã]o|publica[cç][aã]o|platform engineering|status da plataforma|platform status|pipeline deploy|publicar|publicação)\b/.test(lower)
 
-  if (hasOpenVerb) {
-    const hasPanelWord = /\b(layer|painel|panel|studio|estudio|workspace|m[oó]dulo|modulo|console)\b/.test(lower)
-    return hasPanelWord || hasKnownLayer
-  }
 
-  // Production verbs (renderizar, fazer, criar, etc.) + keyword = intenção clara de usar o estúdio
-  if (hasProductionVerb && hasKnownLayer) return true
 
-  return false
-}
 
-function isOwnerConsoleIntent(text: string) {
-  return /\b(mission control|owner command|owner console|console owner|abrir console owner|abrir owner console)\b/i.test(text)
-}
+
+
+
+
+
+
+
+
+
+
+
 
 // ── Novos módulos profissionais ────────────────────────────────────────────────
 
-function isStockIntent(text: string) {
-  const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|verificar|checar|check)\b/i.test(lower)
-  const hasKeyword = /\b(bolsa|bolsa de valores|a[cç][oõ]es|stock market|stock|ações|acoes|b3|ibovespa|nasdaq|bitcoin|crypto|fii|fiis|fundo imobili[aá]rio|fii|financeiro|mercado financeiro|cota[cç][aã]o|cotações|cotacoes)\b/i.test(lower)
-  return hasVerb && hasKeyword
-}
 
-function isTripIntent(text: string) {
-  const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|planejar|plan|criar|create)\b/i.test(lower)
-  const hasKeyword = /\b(trip|viagem|travel|planejamento de viagem|planejar viagem|destino|destinos|roteiro|itiner[aá]rio|budget de viagem|travel budget|hospedagem|passagem|passagens)\b/i.test(lower)
-  return hasVerb && hasKeyword
-}
 
-function isPipelineIntent(text: string) {
-  const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|verificar|check)\b/i.test(lower)
-  const hasKeyword = /\b(pipeline|progresso|progress|tarefas? em execu[cç][aã]o|tasks? running|status de gera[cç][aã]o|generation status|o que est[aá] rodando|oque esta rodando|andamento|em execu[cç][aã]o|tarefas? ativas?|tasks? active|filas? de gera[cç][aã]o)\b/i.test(lower)
-  return hasVerb && hasKeyword
-}
 
-function isNRIntent(text: string) {
-  const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|gerar|generate|criar|create)\b/i.test(lower)
-  const hasKeyword = /\b(nr compliance|nr crea|norma regulamentadora|normas regulamentadoras|segurança do trabalho|seguranca do trabalho|nr \d+|crea|oe|ordem dos engenheiros|engenharia de seguran[cç]a|documento nr|nr\b|compliance nr)\b/i.test(lower)
-  return hasVerb && hasKeyword
-}
 
-function isAccountingIntent(text: string) {
-  const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|gerar|generate|criar|create)\b/i.test(lower)
-  const hasKeyword = /\b(contabilidade|accounting|crc|contador|cont[aá]bil|dre|balanço|balanco|irpj|imposto de renda|fiscal|obriga[cç][aõ]es fiscais|demonstrativo|demonstra[cç][aã]o cont[aá]bil|escritura[cç][aã]o|lançamento contabil|lancamento contabil|livro caixa|contas a pagar|contas a receber)\b/i.test(lower)
-  return hasVerb && hasKeyword
-}
 
-function isPromptLibraryIntent(text: string) {
-  const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|buscar|search)\b/i.test(lower)
-  const hasLibrary = /\b(biblioteca de prompts|prompt library|biblioteca de skills|skill library|prompts profission|professional prompt|presets?|categoria de prompt|mostrar prompts|ver prompts|buscar prompts)\b/i.test(lower)
-  const hasDirect = /\b(prompt library|professional prompt|biblioteca de prompt)\b/i.test(lower)
-  return hasDirect || (hasVerb && hasLibrary)
-}
 
-function getPromptLibraryModule(text: string): string | undefined {
-  const lower = text.toLowerCase()
-  if (/\b(arquitetura|archvis|architect|render|humaniza|planta)\b/i.test(lower)) return 'archvis'
-  if (/\b(directcut|direct.?cut|cinematogr[aá]fico|cinematic|v[ií]deo|video|film|movie)\b/i.test(lower)) return 'directcut'
-  if (/\b(marketing|campanha|campaign|social media|disparo)\b/i.test(lower)) return 'marketing'
-  if (/\b(contrato|contract|jur[ií]dico|legal)\b/i.test(lower)) return 'contracts'
-  if (/\b(export|canvas|template|design)\b/i.test(lower)) return 'export'
-  return undefined
-}
 
-function isPermitsIntent(text: string) {
-  const lower = text.toLowerCase()
-  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|gerar|generate|criar|create)\b/i.test(lower)
-  const hasKeyword = /\b(american permits?|permits? americanos?|building permits?|us permits?|construction permits?|permits? eua|permits? usa|alvar[aá] americano|licença americana|licenca americana|permit americano|international permits?|exporta[cç][aã]o de serviço|exportacao de servico)\b/i.test(lower)
-  return hasVerb && hasKeyword
-}
 
-function isCheckpointContinuationIntent(text: string) {
-  return /\b(continuar checkpoint)\b/i.test(text)
-}
+
+
+
+
+
+
+
+
+
 
 // H15 — lightweight markdown renderer for chat bubbles
 function renderMessageText(text: string): React.ReactNode {
@@ -1044,6 +877,7 @@ function renderMessageText(text: string): React.ReactNode {
 
   return <>{nodes}</>
 }
+
 
 function isPlatformEngineeringIntent(text: string) {
   const lower = text.toLowerCase()
@@ -1292,9 +1126,8 @@ function buildProductFallbackAnswer(userText: string, identity: ChatIdentityCont
 
   // H5.1F: multi-line messages are handled by the backend conversational router.
   // Only apply local fallbacks for single-line messages to prevent interception.
-  const nonEmptyLines = userText.trim().split(/\n/).filter(l => l.trim()).length
-  if (nonEmptyLines === 1) {
-    const trimmed = userText.trim()
+  const nonEmptyLines = userText.trim().split(/\n/).filter(l => l.trim()).length; const trimmed = userText.trim(); if (nonEmptyLines === 1 && trimmed.length < 300) {
+
     // Greetings — respond as personal assistant
     if (/^(ola|olá|oi|oie|hello|hey|hei|salve|eai|e aí|fala|opa|bom dia|boa tarde|boa noite|bom dia tudo bem|blz|beleza|tudo bem|howdy|hi)\b/i.test(trimmed)) {
       return 'Olá! 😊 Como posso te ajudar hoje? Posso analisar documentos, imagens, plantas, criar orçamentos, contratos, campanhas de marketing, fazer pesquisas e muito mais. É só me falar o que precisa!'
@@ -1419,7 +1252,7 @@ function dataUrlToFile(dataUrl: string, name: string, type: string) {
   return new File([bytes], name, { type: mime })
 }
 
-type ChatConversation = {
+export type ChatConversation = {
   id: string
   title: string
   createdAt: string
@@ -1451,6 +1284,11 @@ function App() {
     if (activeView === 'archvis') { closeOtherPanels('archVis'); setArchVisOutput({ source: null as any, output: '', conversationContext: [] }) }
     else if (activeView === 'directcut') { closeOtherPanels('directCut'); setDirectCutOutput({ goal: 'Novo projeto DirectCut', conversationContext: ['assistant: Ativei o DirectCut Studio.'], initialConfig: { duration: '10', aspectRatio: '16:9', style: 'hyper-real' as any, cameraMovement: 'dolly-in' } }) }
     else if (activeView === 'bim') { closeOtherPanels('bim3D'); setBim3DOutput({ source: null as any }) }
+    else if (activeView === 'legal_us') { closeOtherPanels('permits'); setPermitsOutput({ open: true, region: 'US' }) }
+    else if (activeView === 'legal_br') { closeOtherPanels('permits'); setPermitsOutput({ open: true, region: 'BR' }) }
+    else if (activeView === 'legal_eu') { closeOtherPanels('permits'); setPermitsOutput({ open: true, region: 'EU' }) }
+    else if (activeView === 'legal_off') { closeOtherPanels('permits'); setPermitsOutput({ open: true, region: 'OFF' }) }
+    else if (activeView === 'contracts_gen') { closeOtherPanels('permits'); setPermitsOutput({ open: true, type: 'contract' }) }
     // Inject panel context into chat so AI knows what's happening
     const panelLabels: Record<string, string> = {
       navigator: 'Platform Navigator', governance: 'Governance Hub', training: 'Model Training',
@@ -1475,6 +1313,7 @@ function App() {
     ? recordToIntakeFile(initialProject.files.find(file => file.id === initialProject.activeFileId))
     : undefined
   const [input, setInput] = useState('')
+  const [localFileHandles, setLocalFileHandles] = useState<Map<string, any>>(new Map())
   const [projects, setProjects] = useState<ProjectWorkspace[]>(() => {
     const existing = loadProjects()
     return existing.length ? existing : [initialProject]
@@ -1585,7 +1424,7 @@ function App() {
   const [pipelineActiveCount, setPipelineActiveCount] = useState<number>(0)
   const [nrOutput, setNrOutput] = useState<boolean>(false)
   const [accountingOutput, setAccountingOutput] = useState<boolean>(false)
-  const [permitsOutput, setPermitsOutput] = useState<boolean>(false)
+  const [permitsOutput, setPermitsOutput] = useState<{ open: boolean; region?: string; type?: string } | false>(false)
   const [campaignAutomationOutput, setCampaignAutomationOutput] = useState<SimpleStudioOutput | null>(() => {
     const stored = initialAppState.campaignAutomationOutput as SimpleStudioOutput | undefined
     return stored || null
@@ -1712,55 +1551,46 @@ function App() {
   }
 
   const [pendingLayerDecision, setPendingLayerDecision] = useState<PendingLayerDecision | null>(null)
+  const [showTerminal, setShowTerminal] = useState(false)
   const [uiLanguage, setUiLanguage] = useState<UiLanguage>('EN')
   const [archVisRevisionConstraints, setArchVisRevisionConstraints] = useState<string[]>(initialProject.revisionConstraints || [])
   const [loading, setLoading] = useState(false)
   const [modelRuntimeState, setModelRuntimeState] = useState<'idle' | 'running' | 'ok' | 'fallback'>('idle')
   const [lastResponseMode, setLastResponseMode] = useState('')
-  const [messages, setMessages] = useState<Message[]>(() => {
-    try {
-      const saved = localStorage.getItem('apex_conversations_v1')
-      const activeId = localStorage.getItem('apex_active_conversation_id') || 'default'
-      if (saved) {
-        const parsed = JSON.parse(saved)
-        if (Array.isArray(parsed)) {
-          const active = parsed.find((c: ChatConversation) => c.id === activeId)
-          if (active?.messages?.length) return active.messages
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: id(),
+      role: 'assistant',
+      text: "Sou a Apex AI. Como posso te ajudar?",
+    }
+  ])
+  useEffect(() => {
+    async function loadSupabaseHistory() {
+      const userId = accountState?.user?.id;
+      if (!userId) return;
+      
+      const supaConvs = await loadChatConversationsFromSupabase(userId);
+      if (supaConvs && supaConvs.length > 0) {
+        setConversations(supaConvs);
+        
+        // Ensure active ID exists
+        const activeId = localStorage.getItem('apex_active_conversation_id') || supaConvs[0].id;
+        const active = supaConvs.find(c => c.id === activeId);
+        
+        if (active) {
+          setActiveConversationId(active.id);
+          if (active.messages?.length > 0) setMessages(active.messages);
+        } else {
+          setActiveConversationId(supaConvs[0].id);
+          if (supaConvs[0].messages?.length > 0) setMessages(supaConvs[0].messages);
         }
       }
-    } catch {}
-    return [
-      {
-        id: id(),
-        role: 'assistant',
-        text: "Sou a Apex AI. Como posso te ajudar?",
-      },
-    ]
-  })
+    }
+    loadSupabaseHistory();
+  }, [accountState?.user?.id]);
 
-  const [conversations, setConversations] = useState<ChatConversation[]>(() => {
-    try {
-      const saved = localStorage.getItem('apex_conversations_v1')
-      if (saved) {
-        const parsed = JSON.parse(saved)
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed
-      }
-    } catch {}
-    return [
-      {
-        id: 'default',
-        title: 'Conversa Inicial',
-        createdAt: new Date().toISOString(),
-        messages: [
-          {
-            id: id(),
-            role: 'assistant' as const,
-            text: "Sou a Apex AI. Como posso te ajudar?",
-          },
-        ],
-      },
-    ]
-  })
+
+  const [conversations, setConversations] = useState<ChatConversation[]>([])
   const [activeConversationId, setActiveConversationId] = useState<string>(() => {
     return localStorage.getItem('apex_active_conversation_id') || 'default'
   })
@@ -2001,6 +1831,8 @@ function App() {
       return next
     })
     setActiveConversationId(newId)
+    setActiveFile(undefined)
+    activeFiles.current = []
   }
 
   function handleDeleteChat(chatId: string, event: React.MouseEvent) {
@@ -2486,23 +2318,34 @@ function App() {
 
   async function askCopilot(text = input, attachment = activeFile) {
     const clean = text.trim()
-    if ((!clean && !attachment) || loading) return
-    setActiveFile(undefined)
+    const isUsingActiveFiles = attachment === activeFile
+    const currentFiles = isUsingActiveFiles && activeFiles.current.length > 0 ? [...activeFiles.current] : (attachment ? [attachment] : [])
+    if ((!clean && currentFiles.length === 0) || loading) return
+    if (isUsingActiveFiles) {
+      setActiveFile(undefined)
+      activeFiles.current = []
+    }
     setInput('')
-    const userText = clean || (attachment ? `Uploaded ${attachment.file.name}` : '')
+    const userText = clean || (currentFiles.length > 0 ? `Uploaded ${currentFiles.map(f => f.file.name).join(', ')}` : '')
+    const mainAttachment = currentFiles.find(f => f.kind === 'image') || currentFiles[0]
+
     const panelName = isPanelContextMessage(clean)
     if (panelName) {
-      const userMessage: Message = { id: id(), role: 'user', text: userText, attachment }
+      const userMessage: Message = { id: id(), role: 'user', text: userText, attachment: mainAttachment }
       const reply = buildPanelContextReply(panelName)
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: reply }])
       return
     }
-    const modelText = clean || (attachment
-      ? attachment.extractedText
-        ? `O usuário enviou o arquivo "${attachment.file.name}" (tipo: ${attachment.kind}, extensão: ${attachment.file.name.toLowerCase().split('.').pop() || 'unknown'}). Conteúdo extraído:\n\n${attachment.extractedText}\n\nResponda de forma direta e conversacional com base no conteúdo acima. Não faça relatório nem lista de tópicos.`
-        : 'User uploaded this file. Analyze it as project context and continue naturally in a short conversational reply. Do not write a report, heading, observations list, or capabilities list.'
-      : '')
-    const userMessage: Message = { id: id(), role: 'user', text: userText, attachment }
+
+    const textAttachments = currentFiles.filter(f => f.extractedText).map(f => `[Arquivo: ${f.file.name}]\n${f.extractedText}`).join('\n\n')
+    let modelText = clean
+    if (textAttachments) {
+      modelText = clean ? `${clean}\n\n${textAttachments}` : `Conteúdo extraído dos arquivos:\n\n${textAttachments}\n\nResponda de forma direta e conversacional com base no conteúdo acima.`
+    } else if (!clean && currentFiles.length > 0) {
+      modelText = 'User uploaded file(s). Analyze it as project context and continue naturally in a short conversational reply. Do not write a report, heading, observations list, or capabilities list.'
+    }
+    
+    const userMessage: Message = { id: id(), role: 'user', text: userText, attachment: mainAttachment }
     if (/^(en|english)$/i.test(clean)) {
       setUiLanguage('EN')
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'English mode enabled. Tell me what you want to create, review or fix.' }])
@@ -2558,7 +2401,7 @@ function App() {
     const identityContext = buildChatIdentityContext(accountState)
     const confirmationSignal = /^(sim|ok|pode|confirmo|yes|yep|manda|vai)$/i.test(clean)
     const cancelSignal = /^(nao|não|cancelar|cancela|no|deixa)$/i.test(clean)
-    let routingText = clean
+    let routingText = clean.length < 300 ? clean : ''
     let layerGoalText = clean
     if (pendingLayerDecision && clean) {
       if (confirmationSignal) {
@@ -2605,7 +2448,7 @@ function App() {
       return
     }
     // Let natural conversations go to the server, so they are processed by the live AI agent (or fall back to local answers on failure)
-    const explicitPanelOpen = Boolean(routingText) && isExplicitPanelOpenRequest(routingText)
+    const explicitPanelOpen = Boolean(routingText) && routingText.length < 300 && isExplicitPanelOpenRequest(routingText)
     const archVisIntent = isArchVisIntent(routingText, attachment)
     const directCutIntent = isDirectCutIntent(routingText)
     const openArchVisOrDirect = explicitPanelOpen && (archVisIntent || directCutIntent)
@@ -2614,8 +2457,8 @@ function App() {
     const shouldRenderVideoDirectly = openArchVisOrDirect && directCutIntent && (isDirectVideoNoPanelIntent(routingText) || attachment?.kind === 'image')
     const shouldOpenContracts = explicitPanelOpen && isContractsIntent(routingText)
     const shouldOpenBudget = explicitPanelOpen && isBudgetIntent(routingText)
-    const shouldOpenProjectPackage = isProjectPackageIntent(routingText)
-    const shouldOpenGenerationHistory = isGenerationHistoryIntent(routingText)
+    const shouldOpenProjectPackage = explicitPanelOpen && isProjectPackageIntent(routingText)
+    const shouldOpenGenerationHistory = explicitPanelOpen && isGenerationHistoryIntent(routingText)
     const shouldOpenResearch = explicitPanelOpen && isResearchIntent(routingText)
     const shouldOpenFieldOps = explicitPanelOpen && isFieldOpsIntent(routingText, attachment)
     const shouldOpenAuth = explicitPanelOpen && isAuthIntent(routingText)
@@ -2645,8 +2488,8 @@ function App() {
     const shouldOpenBim3D = explicitPanelOpen && ((attachment?.kind === 'bim-cad') || explicitPanelOpen) && isBim3DIntent(routingText, attachment)
     const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
     const shouldTreatAsConversation = clean && isOperationalGovernancePrompt(clean)
-    const shouldOpenSkillExport = clean && !shouldTreatAsConversation && (isSkillExportIntent(clean) || isSkillExportFactoryAlias(clean))
-    const shouldOpenExportCenter = clean && isExportIntent(clean)
+    const shouldOpenSkillExport = explicitPanelOpen && clean && !shouldTreatAsConversation && (isSkillExportIntent(clean) || isSkillExportFactoryAlias(clean))
+    const shouldOpenExportCenter = explicitPanelOpen && clean && isExportIntent(clean)
     if (shouldOpenProjectPackage) {
       closeOtherPanels('projectPackage')
       setProjectPackageOutput({
@@ -2884,7 +2727,7 @@ function App() {
     if (shouldOpenPermits) {
       closeOtherPanels('permits')
       setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o American Permits ao lado. Disponivel: 8 tipos de permit americano com checklist, fee estimado e formulario padrao.' }])
-      setPermitsOutput(true)
+      setPermitsOutput({ open: true, region: 'US' })
       setInput('')
       return
     }
@@ -3379,7 +3222,7 @@ function App() {
 
   async function handleFile(file: File) {
     const kind = classifyFile(file)
-    const dataUrl = kind === 'image' ? await readFileAsDataUrl(file) : undefined
+    const dataUrl = kind === 'image' ? await compressImageAsDataUrl(file) : undefined
     const previewUrl = kind === 'image' || kind === 'pdf' ? URL.createObjectURL(file) : undefined
     const extension = file.name.toLowerCase().split('.').pop() || ''
 
@@ -4118,6 +3961,11 @@ function App() {
         </button>
       )}
       {isSignedIn && (
+        <button className="secondary-action owner-console-button" type="button" onClick={() => setShowTerminal(prev => !prev)}>
+          <Terminal size={15} /> {uiLanguage === 'EN' ? 'Terminal' : 'Terminal'}
+        </button>
+      )}
+      {isSignedIn && (
         <button className="secondary-action owner-console-button" type="button" onClick={() => {
           closeOtherPanels('pipeline')
           setPipelineOutput(true)
@@ -4279,6 +4127,41 @@ function App() {
       case 'crm': return <CrmPipelinePanel onClear={() => {}} />;
       case 'finance': return <FinancePanel goal="" conversationContext={[]} onClear={() => {}} />;
       case 'aicontrol': return <AiControlPanel />;
+      case 'code-editor': 
+        return (
+          <CodeEditorPanel 
+            activeFile={activeFile}
+            hasNativeHandle={activeFile ? localFileHandles.has(activeFile.file.name) : false}
+            onChangeContent={(content) => {
+              setActiveFile(prev => prev ? { ...prev, extractedText: content } : prev)
+            }}
+            onRunFile={(fileName) => {
+              window.dispatchEvent(new CustomEvent('terminal-run', { detail: `node ${fileName}\r` }))
+              setShowTerminal(true)
+            }}
+            onSaveNativeFile={async (content) => {
+              if (!activeFile) return
+              const handle = localFileHandles.get(activeFile.file.name)
+              if (handle) {
+                try {
+                  const writable = await handle.createWritable()
+                  await writable.write(content)
+                  await writable.close()
+                  if (activeProject) {
+                    const activeId = fileToRecord(activeFile).id
+                    const newFiles = activeProject.files.map(f => f.id === activeId ? { ...f, extractedText: content } : f)
+                    const nextProj = { ...activeProject, files: newFiles }
+                    setActiveProject(nextProj)
+                    upsertProject(nextProj)
+                  }
+                  alert('Arquivo salvo com sucesso no disco local!')
+                } catch (e) {
+                  alert('Erro ao salvar no disco: ' + String(e))
+                }
+              }
+            }}
+          />
+        );
       default: return <EmptyPanel />;
     }
   }
@@ -4292,6 +4175,48 @@ function App() {
         </div>
       </div>
     );
+  }
+
+  async function handleConnectLocalFolder() {
+    try {
+      const dirHandle = await (window as any).showDirectoryPicker()
+      const handles = new Map<string, any>()
+      const textFiles: any[] = []
+
+      async function scanDir(handle: any, path: string) {
+        for await (const entry of handle.values()) {
+          if (entry.kind === 'directory') {
+            if (['node_modules', '.git', 'dist', 'build', '.next'].includes(entry.name)) continue
+            await scanDir(entry, `${path}${entry.name}/`)
+          } else if (entry.kind === 'file') {
+            if (/\.(png|jpe?g|gif|svg|ico|mp3|mp4|zip|pdf)$/i.test(entry.name)) continue
+            const file = await entry.getFile()
+            if (file.size > 1024 * 1024 * 5) continue
+            const text = await file.text()
+            handles.set(entry.name, entry)
+            textFiles.push({
+              id: id(),
+              name: entry.name,
+              type: file.type || 'text/plain',
+              kind: 'document',
+              extractedText: text,
+              size: file.size,
+              addedAt: new Date().toISOString()
+            } as any)
+          }
+        }
+      }
+      await scanDir(dirHandle, '')
+      setLocalFileHandles(handles)
+      if (activeProject) {
+        const nextProj = { ...activeProject, files: [...activeProject.files, ...textFiles] }
+        setActiveProject(nextProj)
+        upsertProject(nextProj)
+        setMessages(prev => [...prev, { id: id(), role: 'assistant', text: `Conectado à pasta local. ${textFiles.length} arquivos carregados do seu HD.` }])
+      }
+    } catch (err) {
+      console.error(err)
+    }
   }
 
   return (
@@ -4317,13 +4242,7 @@ function App() {
             <ClientDashboard email={accountState?.user?.email} onBack={() => setActiveView('chat')} />
           </div>
         ) : (
-          <DashboardPage onNavigate={(view) => {
-            if (view === 'owner' && currentRole !== 'owner' && currentRole !== 'admin') {
-              setAuthOutput({ goal: 'Open client account', conversationContext: [] })
-            } else {
-              setActiveView(view)
-            }
-          }} />
+          <OwnerPage />
         )
       ) : activeView === 'client-dashboard' ? (
         <div className="h-full" style={{ background: '#0f172a', minHeight: '100vh' }}>
@@ -4481,6 +4400,7 @@ function App() {
                         <Volume2 size={13} />
                         {'Ouvir'}
                       </button>
+                    
                       <button
                         onClick={() => downloadConversation(messages)}
                         title="Exportar conversa como .md"
@@ -4492,13 +4412,7 @@ function App() {
                         {'Derivar'}
                       </button>
                     </div>
-                    {message.attachment && (
-                      <div className="attachment-chip">
-                        <Paperclip size={15} />
-                        {message.attachment.file.name}
-                        <span>{message.attachment.kind} · {formatSize(message.attachment.file.size)}</span>
-                      </div>
-                    )}
+                    {message.attachment && message.attachment.file && (<div className="attachment-chip"><Paperclip size={15} />{message.attachment.file.name || "Arquivo"} <span>{message.attachment.kind} - {formatSize(message.attachment.file.size || 0)}</span></div>)}
                     {message.toolCards && message.toolCards.length > 0 && (
                       <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         {message.toolCards.map(card => {
@@ -4634,8 +4548,8 @@ function App() {
             </div>
 
             <div className="composer">
-              {activeFile && (
-                <div className="composer-file" style={{
+              {activeFiles.current.map((fileItem, idx) => (
+                <div key={fileItem.file.name + idx} className="composer-file" style={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
@@ -4647,9 +4561,9 @@ function App() {
                   gap: '12px'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-                    {activeFile.kind === 'image' && activeFile.previewUrl ? (
+                    {fileItem.kind === 'image' && fileItem.previewUrl ? (
                       <img
-                        src={activeFile.previewUrl}
+                        src={fileItem.previewUrl}
                         alt="Attachment Preview"
                         style={{
                           width: '32px',
@@ -4664,21 +4578,26 @@ function App() {
                     )}
                     <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                       <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {activeFile.file.name}
+                        {fileItem.file.name}
                       </span>
                       <span style={{ fontSize: '9px', color: '#8fa2cf' }}>
-                        {activeFile.kind.toUpperCase()} · {formatSize(activeFile.file.size)}
-                        {activeFile.pageCount ? ` · ${activeFile.pageCount} pág.` : ''}
+                        {fileItem.kind.toUpperCase()} · {formatSize(fileItem.file.size)}
+                        {fileItem.pageCount ? ` · ${fileItem.pageCount} pág.` : ''}
                       </span>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => {
-                      const removedName = activeFile.file.name
-                      setActiveFile(undefined)
+                      const removedName = fileItem.file.name
                       activeFiles.current = activeFiles.current.filter(item => item.file.name !== removedName)
-                      setActiveProject(prev => ({ ...prev, activeFileId: undefined }))
+                      const nextActive = activeFiles.current.length > 0 ? activeFiles.current[activeFiles.current.length - 1] : undefined
+                      setActiveFile(nextActive)
+                      setActiveProject(prev => {
+                        const next = { ...prev, activeFileId: nextActive ? fileToRecord(nextActive).id : undefined }
+                        upsertProject(next)
+                        return next
+                      })
                     }}
                     style={{
                       background: 'transparent',
@@ -4697,7 +4616,7 @@ function App() {
                     <X size={12} />
                   </button>
                 </div>
-              )}
+              ))}
               <div className="composer-card" style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -5629,7 +5548,7 @@ function App() {
               >
                 <X size={20} />
               </button>
-              <GlobalPermitsPanel />
+              <GlobalPermitsPanel initialRegion={typeof permitsOutput === 'object' ? permitsOutput.region : undefined} initialType={typeof permitsOutput === 'object' ? permitsOutput.type : undefined} />
             </div>
           )}
 
@@ -5664,10 +5583,10 @@ function App() {
               <button type="button" onClick={() => { setTripOutput(true); setOwnerConsoleOpen(false) }}>Trip Planner</button>
               <button type="button" onClick={() => { setNrOutput(true); setOwnerConsoleOpen(false) }}>NR CREA/OE</button>
               <button type="button" onClick={() => { setAccountingOutput(true); setOwnerConsoleOpen(false) }}>Contabilidade CRC</button>
-              <button type="button" onClick={() => { setPermitsOutput(true); setOwnerConsoleOpen(false) }}>American Permits</button>
+              <button type="button" onClick={() => { setPermitsOutput({ open: true, region: 'US' }); setOwnerConsoleOpen(false) }}>American Permits</button>
               <button type="button" onClick={() => { setNrOutput(true); setOwnerConsoleOpen(false) }}>NR CREA/OE</button>
               <button type="button" onClick={() => { setAccountingOutput(true); setOwnerConsoleOpen(false) }}>Contabilidade CRC</button>
-              <button type="button" onClick={() => { setPermitsOutput(true); setOwnerConsoleOpen(false) }}>American Permits</button>
+              <button type="button" onClick={() => { setPermitsOutput({ open: true, region: 'US' }); setOwnerConsoleOpen(false) }}>American Permits</button>
               <button type="button" onClick={() => { setPlatformMapOutput({ goal: 'mapa da plataforma', conversationContext: [] }); setOwnerConsoleOpen(false) }}>
                 <Compass size={16} /> Mapa da Plataforma
               </button>
@@ -5702,6 +5621,19 @@ function App() {
               onImport={importWorkspaceProject}
               onClear={clearLocalWorkspace}
               openSignal={workspaceOpenSignal}
+              onConnectLocalFolder={handleConnectLocalFolder}
+              onOpenFile={(fileId) => {
+                if (activeProject) {
+                  const file = activeProject.files.find(f => f.id === fileId)
+                  if (file) {
+                    setActiveFile(recordToIntakeFile(file))
+                    const nextProj = { ...activeProject, activeFileId: file.id, activeStudio: 'code-editor' as any }
+                    setActiveProject(nextProj)
+                    upsertProject(nextProj)
+                    closeOtherPanels('code-editor')
+                  }
+                }
+              }}
             />
             {workspaceSavedAt && <div className="project-save-indicator">Project autosaved at {workspaceSavedAt}</div>}
 
@@ -5755,6 +5687,7 @@ function App() {
         )}
       </div>
       )}
+      {showTerminal && <TerminalPanel onClose={() => setShowTerminal(false)} />}
     </AppLayout>
   )
 }

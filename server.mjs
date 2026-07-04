@@ -48,6 +48,7 @@ import * as notificationsService from './server/service/notificationsService.mjs
 import * as crmService from './server/service/crm.mjs'
 import * as ownerCodeExecutorService from './server/service/ownerCodeExecutor.mjs'
 import * as rdoService from './server/service/rdo.mjs'
+import { attachTerminal } from './server/terminal.mjs'
 
 function normalizeEnvironmentAliases() {
   const aliasPairs = [
@@ -6378,8 +6379,8 @@ const server = http.createServer(async (req, res) => {
       }
       try {
         // Import dynamicly to avoid circular/init issues
-        import('./server/tools/personalAssistantLogic.mjs').then(({ checkDueReminders }) => {
-          const result = checkDueReminders(email)
+        import('./server/tools/personalAssistantLogic.mjs').then(async ({ checkDueReminders }) => {
+          const result = await checkDueReminders(email)
           res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
           res.end(JSON.stringify(result))
         }).catch(err => {
@@ -7076,6 +7077,7 @@ const server = http.createServer(async (req, res) => {
 const port = Number(process.env.PORT || 4177)
 server.listen(port, () => {
   console.log(`Apex AI Copilot platform listening on http://127.0.0.1:${port}`)
+  attachTerminal(server)
   // Start auto-fix monitor (local only) - disabled by default to prevent blocking the event loop
   if (process.env.AUTO_FIX_ENABLED === '1') {
     import('./server/service/autoFix.mjs').then(mod => {
@@ -7088,3 +7090,39 @@ server.listen(port, () => {
     })
   }
 })
+// server.js
+const express = require('express');
+const cors = require('cors');
+require('dotenv').config();
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Inicializa a API com a sua chave segura
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+app.post('/gerar-codigo', async (req, res) => {
+  try {
+    const { prompt } = req.body;
+
+    // Escolha o modelo ideal para código
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    // Instrução para focar apenas em código
+    const promptCompleto = `Aja como um programador sênior. Responda apenas com o código solicitado e breves explicações. Pedido: ${prompt}`;
+
+    const result = await model.generateContent(promptCompleto);
+    const resposta = result.response.text();
+
+    res.json({ codigo: resposta });
+  } catch (erro) {
+    console.error(erro);
+    res.status(500).json({ erro: 'Falha ao gerar o código' });
+  }
+});
+
+app.listen(3000, () => {
+  console.log('Servidor rodando na porta 3000');
+});

@@ -1,14 +1,34 @@
 import React, { useState } from 'react';
-import { GlobalImmigrationData, CountryPermits, VisaType } from '../lib/immigrationModel';
+import { GlobalLegalData, LegalJurisdiction, LegalProcess } from '../lib/legalCorporateModel';
 import { ShieldAlert, CheckCircle2, ChevronRight, FileText, ChevronLeft, Globe, FileCheck, Plane } from 'lucide-react';
 
-export default function GlobalPermitsPanel() {
-  const [activeTab, setActiveTab] = useState(0); // 0 = País, 1 = Visto, 2 = Checklist, 3 = Intake, 4 = AI
-  const [selectedCountry, setSelectedCountry] = useState<CountryPermits | null>(null);
-  const [selectedVisaId, setSelectedVisaId] = useState<string>('');
+import { GovFormReplica } from './GovFormReplica';
+
+export default function GlobalPermitsPanel({ initialRegion, initialType }: { initialRegion?: string; initialType?: string }) {
+  const [activeTab, setActiveTab] = useState(initialRegion || initialType ? 1 : 0); // 0 = País, 1 = Visto, 2 = Checklist, 3 = Intake, 4 = AI, 5 = GovFormReplica
+
+  const [selectedCountry, setSelectedCountry] = useState<LegalJurisdiction | null>(null);
+  const [selectedProcessId, setSelectedProcessId] = useState<string>('');
   
   const [aiStatus, setAiStatus] = useState<'idle' | 'analyzing' | 'done'>('idle');
   const [aiResult, setAiResult] = useState<any>(null);
+
+  React.useEffect(() => {
+    if (initialRegion) {
+      const country = GlobalLegalData.find(c => c.countryCode === initialRegion);
+      if (country) {
+        setSelectedCountry(country);
+        if (initialType === 'contract') {
+          // Pre-select contract if we had that logic
+        }
+      }
+    } else if (initialType) {
+      // Find first country that matches type if we want to just show all contracts, 
+      // but for now let's default to US if no region.
+      const us = GlobalLegalData.find(c => c.countryCode === 'US');
+      if (us) setSelectedCountry(us);
+    }
+  }, [initialRegion, initialType]);
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -21,7 +41,7 @@ export default function GlobalPermitsPanel() {
     sponsorJob: ''
   });
 
-  const selectedVisa = selectedCountry?.visas.find(v => v.id === selectedVisaId);
+  const selectedVisa = selectedCountry?.processes.find(v => v.id === selectedProcessId);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -33,7 +53,7 @@ export default function GlobalPermitsPanel() {
       const response = await fetch('/api/copilot/immigration-logic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ visaId: selectedVisaId, formData })
+        body: JSON.stringify({ processId: selectedProcessId, formData })
       });
       const data = await response.json();
       if (data && data.documents) {
@@ -47,7 +67,7 @@ export default function GlobalPermitsPanel() {
   };
 
   const selectCountryAndProceed = (countryCode: string) => {
-    const country = GlobalImmigrationData.find(c => c.countryCode === countryCode);
+    const country = GlobalLegalData.find(c => c.countryCode === countryCode);
     if (country) {
       setSelectedCountry(country);
       setActiveTab(1); // Vai para Vistos
@@ -55,7 +75,7 @@ export default function GlobalPermitsPanel() {
   };
 
   const selectVisaAndProceed = (id: string) => {
-    setSelectedVisaId(id);
+    setSelectedProcessId(id);
     setActiveTab(2); // Vai para Checklist
   };
 
@@ -108,7 +128,7 @@ export default function GlobalPermitsPanel() {
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-white">Selecione o País de Destino</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {GlobalImmigrationData.map((country) => (
+                {GlobalLegalData.map((country) => (
                   <div 
                     key={country.countryCode}
                     onClick={() => selectCountryAndProceed(country.countryCode)}
@@ -117,7 +137,7 @@ export default function GlobalPermitsPanel() {
                     <span className="text-5xl">{country.flag}</span>
                     <div>
                       <h3 className="text-white font-bold text-xl">{country.countryName}</h3>
-                      <p className="text-sm text-on-surface-variant">{country.visas.length} rotas disponíveis</p>
+                      <p className="text-sm text-on-surface-variant">{country.processes.length} rotas disponíveis</p>
                     </div>
                   </div>
                 ))}
@@ -132,7 +152,7 @@ export default function GlobalPermitsPanel() {
                 {selectedCountry.flag} Escolha a Rota para {selectedCountry.countryName}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {selectedCountry.visas.map((visa) => (
+                {selectedCountry.processes.map((visa) => (
                   <div 
                     key={visa.id}
                     onClick={() => selectVisaAndProceed(visa.id)}
@@ -356,7 +376,7 @@ export default function GlobalPermitsPanel() {
                       </div>
                     )}
                     
-                    <div className="mt-8 border-t border-outline-variant/20 pt-6">
+                    <div className="mt-8 border-t border-outline-variant/20 pt-6 flex flex-col gap-3">
                       <button onClick={async () => {
                         alert('Iniciando geração do formulário real em PDF usando pdf-lib...');
                         try {
@@ -378,11 +398,20 @@ export default function GlobalPermitsPanel() {
                       }} className="w-full bg-primary text-on-primary font-bold py-3 px-6 rounded-lg hover:bg-primary/90 transition-colors flex justify-center items-center gap-2">
                         Baixar Formulário Oficial Preenchido (PDF)
                       </button>
+
+                      <button onClick={() => setActiveTab(5)} className="w-full bg-surface-container-highest text-white font-bold py-3 px-6 rounded-lg hover:bg-surface-container-highest/80 transition-colors flex justify-center items-center gap-2 border border-outline-variant/20">
+                        <FileText size={18} />
+                        Visualizar Réplica Interativa do Governo
+                      </button>
                     </div>
 
                   </div>
                 )}
              </div>
+          )}
+
+          {activeTab === 5 && selectedVisa && (
+            <GovFormReplica process={selectedVisa} aiFilledData={aiResult?.extractedData} />
           )}
         </div>
       </div>
