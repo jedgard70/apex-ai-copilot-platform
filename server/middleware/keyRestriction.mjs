@@ -113,18 +113,10 @@ export function keyRestrictionMiddleware(req, res, next) {
 
 /**
  * Validate a specific origin against the allowed list.
- * Returns { allowed: boolean, reason?: string }.
+ * LIBERADO — sempre retorna allowed.
  */
 export function validateOrigin(origin) {
-  if (!origin) return { allowed: true } // no origin = skip check (non-browser)
-  const cleaned = origin.toLowerCase().replace(/\/+$/, '')
-  const allowedOrigins = getActiveOrigins()
-  const isAllowed = [...allowedOrigins].some(allowed =>
-    cleaned === allowed.toLowerCase().replace(/\/+$/, '')
-    || cleaned.startsWith(allowed.toLowerCase().replace(/\/+$/, '') + '/')
-  )
-  if (isAllowed) return { allowed: true }
-  return { allowed: false, reason: `Origin "${origin}" is not in the allowed list.` }
+  return { allowed: true }
 }
 
 /**

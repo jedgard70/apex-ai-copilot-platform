@@ -87,7 +87,8 @@
     "xterm": "^5.3.0",
     "xterm-addon-fit": "^0.8.0",
     "zod": "^3.25.76",
-    "zustand": "^5.0.5"
+    "zustand": "^5.0.5",
+    "electron-updater": "^6.8.9"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.0",
@@ -101,7 +102,6 @@
     "concurrently": "^10.0.3",
     "electron": "^42.5.0",
     "electron-builder": "^26.15.3",
-    "electron-updater": "^6.8.9",
     "jsdom": "^29.1.1",
     "vite-plugin-static-copy": "^4.1.1",
     "vitest": "^4.1.9"
