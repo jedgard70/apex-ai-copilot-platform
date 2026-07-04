@@ -116,6 +116,7 @@
     "buildDependenciesFromSource": false,
     "asar": false,
     "files": [
+      "dist_electron/**/*",
       "dist/**/*",
       "api/**/*",
       "server/**/*",
