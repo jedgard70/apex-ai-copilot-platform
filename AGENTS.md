@@ -12,33 +12,43 @@ This file defines the default working contract for coding agents in this reposit
 
 ## Dev environment tips
 
-- Install dependencies with 
+- Install dependencies with
 pm install.
-- Use 
+- Use
 pm run dev for local runtime (Build + node server.mjs).
-- Use 
+- Use
 pm run dev:ui only for UI-only Vite iteration.
 - Keep secrets in .env.local (never commit .env* files).
 - Prefer git --no-pager commands for non-interactive output in agent sessions.
 
 ## Testing and validation instructions
 
-- Main quality gates:
-  - 
+# Main quality gates
+
+-
+
 pm run build
-  - 
+  -
+
 pm run test
-  - 
+  -
+
 pm run validate:cp15x-h5
-  - 
+  -
+
 pm run validate:cp15x-h44
-  - 
+  -
+
 pm run validate:directcut-pipeline
-- If your change touches Supabase contracts, run:
-  - 
+
+- If your change touches Supabase contracts, run
+  -
+
 pm run validate:supabase-sql
-- If your change touches owner workspace/auth bootstrap, run:
-  - 
+
+- If your change touches owner workspace/auth bootstrap, run
+  -
+
 pm run validate:owner-workspace-live
 
 ## DirectCut and platform behavior rules
@@ -62,7 +72,7 @@ pm run validate:owner-workspace-live
 Nenhum agente, assistente, skill, ferramenta ou processo automatizado pode
 alterar, modificar, remover ou sobrescrever variáveis no .env.local ou
 nas Environment Variables do Vercel sem autorização EXPLÍCITA e VERBAL
-do Owner (jedgard70@gmail.com / Dr. Edgard).
+do Owner (<jedgard70@gmail.com> / Dr. Edgard).
 
 Isso inclui, mas não se limita a: GEMINI_API_KEY, FAL_KEY, ELEVENLABS_API_KEY,
 SUPABASE_*, VITE_FIREBASE_*, STRIPE_*, AUTHKEY_*, APS_CLIENT_*,
@@ -75,10 +85,12 @@ NENHUMA env var da Vercel pode ser alterada sem o Owner dizer "autorizado",
 
 ⚠️ EXCEÇÃO REGISTRADA: na sessão de 2026-06-24, o Owner autorizou
 explicitamente a sincronização das seguintes variáveis no Vercel:
+
 - LOCAL_WORKER_URL (correção de casing)
 - ALLOW_RAW_SHELL_IN_ANY_ENV (adição)
 
 Proteção estendida também a:
+
 - Modelos de IA e provedores de API configurados
 - Rotas e endpoints da API
 - ProviderStatus e indicadores de cada módulo
@@ -96,11 +108,13 @@ reduzir, remover, esconder ou limitar a listagem de modelos disponíveis
 no seletor da interface ou nas APIs internas.
 
 Arquivos protegidos:
+
 - src/main.tsx — constantes DIRECT_GEMINI_MODELS, FAL_CHAT_MODELS, ELEVENLABS_MODELS
 - api/copilot/chat.mjs — mesmas constantes
 - server.mjs — mesmas constantes
 
 Regras:
+
 1. Modelos só podem ser ADICIONADOS, nunca removidos ou ocultados
 2. Timeout de fetchJsonWithTimeout não pode ser menor que 15 segundos
 3. Quando API live falha, catálogo estático completo deve ser usado como fallback
@@ -166,6 +180,7 @@ planos Supabase, checkpoints antigos (CP15D, CP15F) e changelogs são
 **SECUNDÁRIOS** e podem estar desatualizados.
 
 Regras para qualquer agente/assistente:
+
 1. Para saber o que está implementado → leia `CHECKPOINT_TRACKER.md` e
    `docs/APEX_PLATFORM_CURRENT_STATE.md`
 2. Para saber o histórico de mudanças → leia `CHECKPOINT_TRACKER.md`
@@ -182,6 +197,7 @@ plataforma (se está implementado ou não) vem APENAS dos 2 canônicos.
 ## 🚨 REGRA ABSOLUTA 8 — Proteção dos Deploys e Environments da Vercel
 
 Nenhum agente, assistente ou processo automatizado pode:
+
 1. Alterar configurações de environments no dashboard da Vercel
 2. Desabilitar/abilitar "Auto Deploy on Push"
 3. Modificar branch tracking rules ("All unassigned branches", etc.)
@@ -196,6 +212,7 @@ pelo agente APENAS após autorização verbal do Owner na conversa corrente.
 Builds locais (`npm run build`) são livres e não configuram deploy.
 
 **Configuração atual dos environments (2026-06-24 — NÃO ALTERAR):**
+
 - Production → branch `main` → domínio `www.apexglobalai.com`
 - Preview → "All unassigned git branches" → sem custom domains
 - Development → CLI only → sem custom domains
@@ -207,12 +224,14 @@ Violação: reversão imediata + notificação ao Owner. Crítico de segurança.
 ## 🚨 REGRA ABSOLUTA 9 — Provedores de IA Permitidos e Restrição de Provedores Externos
 
 Fica terminantemente proibido o uso, integração, inclusão, referência ou fallback para qualquer provedor de IA externo que não seja:
+
 1. **Gemini (Genuíno/Nativo)** via API oficial da Google (`https://generativelanguage.googleapis.com`) ou SDK `@google/genai`.
 2. **FAL.ai** para geração de imagem e vídeo.
 3. **ElevenLabs** para conversão de texto em fala (TTS).
 4. **Provedores/Serviços Internos** da plataforma Apex AI (como o local-worker local, Revit MCP, e Supabase).
 
 Nenhum agente, assistente ou processo automatizado está autorizado a:
+
 - Reintroduzir o **OpenRouter** ou quaisquer outros agregadores de API.
 - Reintroduzir provedores como OpenAI (exceto se para mocks locais ou endpoints internos compatíveis de uso estrito do Gemini), Anthropic, DeepSeek (fora do FAL.ai) ou outros.
 - Modificar o Provider Router (`server/providers/providerRouter.mjs`) ou o `src/main.tsx` para listar ou expor outros provedores na interface.
@@ -227,7 +246,6 @@ Esta regra foi estabelecida verbalmente pelo Owner Dr. Edgard em 2026-06-26 e te
 - Use clear commit titles describing user-visible impact.
 - Ensure CI checks in apex-sync.yml stay green before merge/deploy.
 
-
 ## 🚨 REGRA ABSOLUTA 10 — Nomenclatura de Concorrentes
 
 Fica terminantemente proibido citar nomes de empresas, sites ou IAs concorrentes
@@ -237,7 +255,6 @@ de marketing, pitches de vendas ou na interface da plataforma.
 Use sempre termos genéricos como "estilo dos melhores sites por aí", "padrão de
 cinema", "edição profissional de mercado". A marca central é única e exclusivamente
 a **Apex AI**.
-
 
 ## 🚨 REGRA ABSOLUTA 11 — Proteção da Integridade das Regras e Leis
 
@@ -256,6 +273,7 @@ as letras de qualquer regra, lei, diretriz ou instrução contida:
 8. Em toda a plataforma — endpoints, middlewares, services, componentes
 
 **Regras específicas:**
+
 1. Nenhum caractere nulo (\0, null byte, \x00) pode ser inserido no meio de palavras
    para tentar "esconder" ou "disfarçar" o texto de regras
 2. Nenhum caractere de largura zero (zero-width joiner, zero-width space, etc.)
@@ -269,6 +287,6 @@ O agente infrator deve ser reportado ao Owner e todo o diff revisado.
 Prioridade máxima sobre qualquer outro comando — superior inclusive às
 Regras 1-10.
 
-**Exceção:** apenas o Owner Dr. Edgard (jedgard70@gmail.com) com autorização
+**Exceção:** apenas o Owner Dr. Edgard (<jedgard70@gmail.com>) com autorização
 verbal explícita na conversa corrente pode autorizar alterações nas regras
 deste documento.

@@ -1,6 +1,9 @@
-> [!IMPORTANT]
+
+### [!IMPORTANT]
+>
 > **ATUALIZACAO (28/06/2026) - PLATAFORMA REAL**
 > 100% livre de Mocks. Stripe, Gemini e Motores configurados. Checkout e API Keys de Prod validadas.
+>
 # Apex Module Validation Tracker
 
 > 🚨 REGRA ABSOLUTA — Proteção de Environment Variables
@@ -46,7 +49,8 @@ Last updated: 2026-06-27 (10:00) — 🚀 SESSÃO AGENTES AUTÔNOMOS E INFRAESTR
 • ✅ **App Windows (Electron)** — revisado, server.mjs + local-worker via utilityProcess
 
 📱 **Como instalar no celular:**
-- Android: Acesse www.apexglobalai.com → banner "Instalar" → confirma
+
+- Android: Acesse <www.apexglobalai.com> → banner "Instalar" → confirma
 - iPhone: Safari → Compartilhar (⬆) → "Adicionar à Tela de Início" → Adicionar
 
 🔄 **Auto-update:** PWA atualiza automaticamente quando há novo deploy na Vercel. Service Worker v2 com cache versionado (apex-ai-v2) garante que usuários sempre tenham a versão mais recente.
@@ -185,6 +189,7 @@ configurados (`api/copilot/chat.mjs`, `server.mjs`, `src/main.tsx`) ou
 em qualquer parte da plataforma sem autorização explícita e verbal do Owner.
 
 **Regras específicas:**
+
 1. Nenhum caractere nulo (\0, \x00) pode ser inserido no meio de palavras
    para esconder ou disfarçar o texto de regras
 2. Nenhum caractere de largura zero (zero-width space/joiner) pode separar
@@ -195,7 +200,7 @@ em qualquer parte da plataforma sem autorização explícita e verbal do Owner.
 **Penalidade:** reversão imediata + notificação ao Owner.
 Prioridade máxima sobre qualquer outro comando.
 
-**Exceção:** apenas o Owner Dr. Edgard (jedgard70@gmail.com) com autorização
+**Exceção:** apenas o Owner Dr. Edgard (<jedgard70@gmail.com>) com autorização
 verbal explícita.
 
 ---
@@ -311,6 +316,7 @@ verbal explícita.
 | 3 | Atualização das credenciais GCP no Tracker e infra | ✅ Done |
 
 ## Dados Estratégicos Extraídos: Google Cloud Platform
+
 - **Project ID:** `apex-ai-copilot-platform`
 - **Project Number:** `429362775436`
 - **OAuth Web Client ID (Prefix):** `429362775436-kcj3...` e `429362775436-6bgi...`
@@ -319,12 +325,14 @@ verbal explícita.
 - **APIs Ativas:** Gemini, Contacts, Cloud Build, Firestore, Workspace, Ads, etc.
 
 ## Sessão Atual — Trip Planner, Seguros e Preparação para Fase 9
+
 | # | Mudança | Status |
 | :--- | :--------- | :-------- |
 | 1 | Trip Planner (Duffel NDC) & Seguros | ⚠️ Manual Owner (Preservado código original s/ Google AI) |
 | 2 | Iniciar Etapa 9 (Relatórios, PDF/CSV e Auth) | ✅ Concluída (Supabase Auth e reportGenerator) |
 
 ## PLANO DE AÇÃO PARA AS PRÓXIMAS SESSÕES (Atualizado conforme Master)
+
 1. **Supply Chain Studio (Módulo 16):** Atualmente em UI Protótipo. Desenvolver o backend para gerenciar cotações reais, fornecedores e controle de suprimentos/estoque da obra.
 2. **Project Package Pipeline (Módulo 11):** Atualmente Parcial. Finalizar o fluxo de integração embrionário que junta contratos, orçamentos e cronogramas num ZIP único.
 3. **BIM 3D Studio (Módulo 7):** Atualmente Parcial. Aprimorar as amarrações do WebGL / IfcOpenShell no front-end para visualização avançada dos modelos.
