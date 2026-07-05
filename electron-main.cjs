@@ -168,7 +168,7 @@ function createWindow(initialPath = "/") {
 process.on('uncaughtException', (err) => {
   const msg = `[Apex] Erro nao capturado: ${err?.message || err}\n${err?.stack || ''}`;
   log(msg);
-  try { dialog.showErrorBox('Apex AI - Erro Inesperado', `${err?.message || err}\n\nO aplicativo sera encerrado.\n\nLog: ${logPath()}`); } catch (_) {}
+  try { dialog.showErrorBox('Apex AI - Erro Inesperado', `${err?.message || err}\n\nO aplicativo sera encerrado.\n\nLog: ${logPath()}`); } catch (_) { }
   app.quit();
 });
 
@@ -270,7 +270,6 @@ app.whenReady().then(async () => {
         title: "Erro ao Iniciar o Servidor Local",
         message: "O servidor da plataforma demorou muito para responder (timeout de 60s). Isso pode ocorrer se alguma porta (3333, 8888) já estiver em uso, se houver um erro no código-fonte, ou se as permissões estiverem bloqueando a execução.",
         detail: `Por favor, verifique o arquivo de log em: ${logPath()}`,
-      mainWindow.show(); // garante que o usuario veja a msg de erro
       }));
       mainWindow.show(); // garante que o usuario veja a msg de erro
       // setTimeout(() => mainWindow?.loadURL("https://www.apexglobalai.com"), 2200);

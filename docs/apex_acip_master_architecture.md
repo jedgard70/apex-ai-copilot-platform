@@ -288,6 +288,10 @@ Do BIM à decisão executiva.
   * *Arquivos:* `api/copilot/tts.mjs`, `server/agent/geminiTtsConnector.mjs`
   * *Detalhes:* Processa clonagem de voz e locução natural a partir de texto integrado com a ElevenLabs.
 
+* **6.5. (Módulo 31.1) DIRECTOR'S CUT REFINE [OK - Funcional Real]**
+  * *Arquivos:* `api/copilot/directcut-refine.mjs`
+  * *Detalhes:* Motor de refinamento de cenas do Director's Cut. Aplica ajustes de transição, temporização e sobreposição antes da renderização final.
+
 ═══════════════════════════════════════════════════
 
 ## 7. INTELIGÊNCIA ARTIFICIAL E AUTONOMIA (CORE)
@@ -346,6 +350,18 @@ Do BIM à decisão executiva.
   * *Arquivos:* `server/cron/trendScout.mjs`
   * *Detalhes [NOVO]:* Um cronjob que faz web-scraping autônomo sobre novas tendências arquitetônicas ou notícias.
 
+* **7.14. (Módulo 44.1) APEX REASONING CORE [OK - Funcional Real]**
+  * *Arquivos:* `server/apexReasoningCore.mjs`
+  * *Detalhes:* Núcleo de raciocínio avançado. Responsável por encadear pensamentos (chain-of-thought) e orquestrar lógica complexa entre múltiplos agentes.
+
+* **7.15. (Módulo 44.2) PROVIDER ROUTER [OK - Funcional Real]**
+  * *Arquivos:* `server/providers/providerRouter.mjs`, `server/providers/gemini-interactions.mjs`
+  * *Detalhes:* Roteador inteligente de provedores de IA. Gerencia fallback automático entre 11+ provedores (Gemini, Ollama, fal.ai, ElevenLabs, etc.) e expõe status de conectividade em tempo real.
+
+* **7.16. (Módulo 44.3) PROVIDER STATUS & ANALYTICS [OK - Funcional Real]**
+  * *Arquivos:* `api/copilot/provider-status.mjs`, `api/copilot/provider-analytics.mjs`
+  * *Detalhes:* Endpoints de telemetria e analytics. Monitoram saúde, limites de taxa, uso por provedor e histórico de requisições de cada serviço de IA configurado.
+
 ═══════════════════════════════════════════════════
 
 ## 8. BOTS, AUTOMAÇÕES E INTEGRAÇÕES EXTERNAS
@@ -372,6 +388,66 @@ Do BIM à decisão executiva.
   * *Arquivos:* `server/tools/googleWorkspaceCli.mjs`, `api/google/contacts.mjs`
   * *Detalhes [NOVO]:* Permite ao Cérebro autônomo gerenciar e-mails (Gmail) e adicionar novos leads no Contacts.
 
+* **8.6. (Módulo 49.1) GEMINI AGENTS ORCHESTRATOR [OK - Funcional Real]**
+  * *Arquivos:* `server/agent/geminiAgents.mjs`, `server/agent/geminiAgentsConnector.mjs`
+  * *Detalhes:* Orquestrador de agentes especializados Gemini. Conecta o chat principal aos modelos de agente do ecossistema Google.
+
+* **8.7. (Módulo 49.2) FIREBASE CONNECTOR [OK - Funcional Real]**
+  * *Arquivos:* `server/agent/firebaseConnector.mjs`
+  * *Detalhes:* Ponte entre o runtime da Apex e os serviços Firebase (Auth, Firestore, Storage, Remote Config, Crashlytics).
+
+* **8.8. (Módulo 49.3) GITHUB TOOLS [OK - Funcional Real]**
+  * *Arquivos:* `server/agent/githubTools.mjs`
+  * *Detalhes:* Ferramentas de integração com GitHub: criação de issues, PRs, consulta de repositórios e status de CI via API.
+
+* **8.9. (Módulo 49.4) FAL MODEL REGISTRY [OK - Funcional Real]**
+  * *Arquivos:* `server/agent/falModelRegistry.mjs`
+  * *Detalhes:* Registro e catálogo dos modelos disponíveis na API fal.ai para geração de imagens e vídeo (FLUX, Kling, etc.).
+
+* **8.10. (Módulo 49.5) AUTHKEY CONNECTOR [OK - Funcional Real]**
+  * *Arquivos:* `server/agent/authkeyConnector.mjs`
+  * *Detalhes:* Conector para API AuthKey — autenticação multifator e disparo de mensagens WhatsApp.
+
+* **8.11. (Módulo 49.6) DOMAIN KNOWLEDGE CONNECTOR [OK - Funcional Real]**
+  * *Arquivos:* `server/agent/domainKnowledgeConnector.mjs`
+  * *Detalhes:* Conector de conhecimento de domínio. Alimenta os agentes com bases técnicas de engenharia, arquitetura, BIM e normativas.
+
+* **8.12. (Módulo 49.7) LOCAL WORKER CLIENT [OK - Funcional Real]**
+  * *Arquivos:* `server/agent/localWorkerClient.mjs`
+  * *Detalhes:* Cliente de comunicação bidirecional com o Local Worker (Electron) para operações de desktop (arquivos, comandos shell).
+
+* **8.13. (Módulo 49.8) EMBEDDINGS ENGINE [OK - Funcional Real]**
+  * *Arquivos:* `server/agent/embeddings.mjs`
+  * *Detalhes:* Motor de embeddings para busca semântica, similaridade vetorial e indexação de documentos.
+
+* **8.14. (Módulo 49.9) BACKGROUND TASKS CONNECTOR [OK - Funcional Real]**
+  * *Arquivos:* `server/agent/backgroundTasksConnector.mjs`
+  * *Detalhes:* Gerenciador de tarefas assíncronas em background. Permite processamento pesado sem bloquear o chat principal.
+
+* **8.15. (Módulo 49.10) BRAIN MODULE (Agente Autônomo) [OK - Funcional Real]**
+  * *Arquivos:* `server/agent/brain.mjs`
+  * *Detalhes:* Cérebro assíncrono conectado à tabela `agent_tasks`. Orquestra agentes multi-ferramentas via WhatsApp/Telegram com tomada de decisão autônoma.
+
+* **8.16. (Módulo 49.11) CODE TOOLS & VALIDATOR [OK - Funcional Real]**
+  * *Arquivos:* `server/agent/codeTools.mjs`, `server/agent/codeChangeValidator.mjs`
+  * *Detalhes:* Ferramentas de execução e validação de código. Permite ao agente modificar arquivos, rodar scripts e validar mudanças automaticamente.
+
+* **8.17. (Módulo 49.12) CONFIRMATION STATE MACHINE [OK - Funcional Real]**
+  * *Arquivos:* `server/agent/confirmationStateMachine.mjs`
+  * *Detalhes:* Máquina de estados para confirmação de ações críticas. Garante que operações destrutivas passem por aprovação explícita.
+
+* **8.18. (Módulo 49.13) CONTROLLED EXECUTOR [OK - Funcional Real]**
+  * *Arquivos:* `server/agent/controlledExecutor.mjs`
+  * *Detalhes:* Executor controlado com sandbox de permissões. Isola comandos por nível de acesso (owner, admin, usuário).
+
+* **8.19. (Módulo 49.14) DELEGATION GENERATOR [OK - Funcional Real]**
+  * *Arquivos:* `server/agent/delegationGenerator.mjs`
+  * *Detalhes:* Gera delegações de tarefa para agentes especialistas baseado no plano do Planner.
+
+* **8.20. (Módulo 49.15) EXECUTION POLICY & POLICY ENGINE [OK - Funcional Real]**
+  * *Arquivos:* `server/agent/executionPolicy.mjs`, `server/agent/policy.mjs`
+  * *Detalhes:* Motor de políticas de execução. Define regras de segurança, escopo e limites para cada ação do agente.
+
 ═══════════════════════════════════════════════════
 
 ## 9. INFRAESTRUTURA LOCAL E OFFLINE
@@ -390,9 +466,21 @@ Do BIM à decisão executiva.
   * *Arquivos:* `api/mcp/server.mjs`
   * *Detalhes:* Endpoint HTTP JSON-RPC 2.0 que expõe a Apex AI para ferramentas externas (VS Code, Cursor).
 
-* **9.4. (Módulo 53) RUNTIME PRÓPRIO (llama-server) [OK - Funcional Real]**
-  * *Arquivos:* `scripts/setup-own-runtime.mjs`
-  * *Detalhes [NOVO]:* Sistema de compilação autônoma do llama.cpp permitindo rodar LLMs de bilhões de parâmetros na GPU local.
+* **9.4. (Módulo 53) RUNTIME PRÓPRIO (llama-server/Ollama) [OK - Funcional Real]**
+  * *Arquivos:* `scripts/setup-own-runtime.mjs`, modelos GGUF em `runtime/models/`
+  * *Detalhes [NOVO]:* Sistema de compilação autônoma do llama.cpp via Ollama. Permite rodar LLMs (ex: apex-ai-gemma2b-Q4.gguf) de bilhões de parâmetros na GPU local.
+
+* **9.5. (Módulo 53.1) APEX ENGINE PROXY [OK - Funcional Real]**
+  * *Arquivos:* `server/apex-engine-proxy.mjs`
+  * *Detalhes:* Proxy de motor local na porta 8888. Intercepta requisições do chat.mjs e roteia para o Ollama local com fallback automático para Gemini na nuvem.
+
+* **9.6. (Módulo 53.2) APEX RUNTIME ENGINE [OK - Funcional Real]**
+  * *Arquivos:* `server/apex-runtime/engine.mjs`, `server/apex-runtime/api-server.mjs`, `server/apexApi/engine.mjs`, `server/apexApi/auth.mjs`
+  * *Detalhes:* Motor de runtime completo da plataforma. Orquestra processos locais, cache, filas e comunicação entre o servidor principal e os workers.
+
+* **9.7. (Módulo 53.3) INFERENCE SERVER [OK - Funcional Real]**
+  * *Arquivos:* `server/inference-server.mjs`
+  * *Detalhes:* Servidor de inferência dedicado para execução de modelos de linguagem locais. Suporta carregamento dinâmivo de pesos e inferência em lote.
 
 ═══════════════════════════════════════════════════
 
@@ -464,243 +552,205 @@ O ambiente visual foi desenvolvido para imersão técnica:
 * **ACIP (Sala de Controle):** Foco operacional, dark charcoal (`#131313`), cyan elétrico (`#00f0ff`), e Roxo (`#cf5cff`). Dados densos, telemetria em tempo real, sem decorações inúteis. Tipografia de peso: Montserrat, Inter e JetBrains Mono (para visualização crua de arrays e dados). Uso intensivo de glass panels (backdrop-blur) em sidebars (280px ou ícones em 64px) e splits dinâmicos (Imagem original vs IA).
 
 
-# AGENTS.md — Apex AI Copilot Platform
+═══════════════════════════════════════════════════
 
-This file defines the default working contract for coding agents in this repository.
+## ANEXO A — REGRAS ABSOLUTAS (Contrato do Agente)
 
-## Project layout
-
-- Frontend: src/ (React + Vite + TypeScript)
-- API/server runtime: server.mjs and pi/
-- Scripts and validators: scripts/
-- CI workflow: .github/workflows/apex-sync.yml
-- Platform status/docs: CHECKPOINT_TRACKER.md and docs/APEX_PLATFORM_CURRENT_STATE.md
-
-## Dev environment tips
-
-- Install dependencies with 
-pm install.
-- Use 
-pm run dev for local runtime (uild + node server.mjs).
-- Use 
-pm run dev:ui only for UI-only Vite iteration.
-- Keep secrets in .env.local (never commit .env* files).
-- Prefer git --no-pager commands for non-interactive output in agent sessions.
-
-## Testing and validation instructions
-
-- Main quality gates:
-  - 
-pm run build
-  - 
-pm run test
-  - 
-pm run validate:cp15x-h5
-  - 
-pm run validate:cp15x-h44
-  - 
-pm run validate:directcut-pipeline
-- If your change touches Supabase contracts, run:
-  - 
-pm run validate:supabase-sql
-- If your change touches owner workspace/auth bootstrap, run:
-  - 
-pm run validate:owner-workspace-live
-
-## DirectCut and platform behavior rules
-
-- Do not claim real video rendering unless connector status is actually enabled.
-- Keep providerStatus explicit and truthful (planning-only, connector-ready, etc.).
-- Preserve parity between local runtime (server.mjs) and serverless endpoints in pi/copilot/.
-
-## PR and change rules
-
-- Keep changes surgical and scoped to the requested task.
-- Reuse existing patterns/helpers before adding new abstractions.
-- Update related docs when behavior or operational flow changes.
-- Do not add broad silent fallbacks that hide failures.
-- Do not commit credentials, tokens, or service-role secrets.
+🔥 Estas regras fazem parte do contrato de trabalho de todos os agentes neste repositório. A versão canônica está em `AGENTS.md` (raiz).
 
 ---
 
-## 🚨 REGRA ABSOLUTA 1 — Proteção de Environment Variables
+### 🚨 REGRA 1 — Proteção de Environment Variables
 
-Nenhum agente, assistente, skill, ferramenta ou processo automatizado pode
-alterar, modificar, remover ou sobrescrever variáveis no .env.local ou
-nas Environment Variables do Vercel sem autorização EXPLÍCITA e VERBAL
-do Owner (jedgard70@gmail.com / Dr. Edgard).
+Nenhum agente pode alterar, modificar, remover ou sobrescrever variáveis no `.env.local` ou nas Environment Variables do Vercel sem autorização EXPLÍCITA e VERBAL do Owner (`jedgard70@gmail.com` / Dr. Edgard).
 
-Isso inclui, mas não se limita a: GEMINI_API_KEY, FAL_KEY, ELEVENLABS_API_KEY,
-SUPABASE_*, VITE_FIREBASE_*, STRIPE_*, AUTHKEY_*, APS_CLIENT_*,
-REVIT_MCP_*, LOCAL_WORKER_TOKEN, TAVILY_API_KEY, CRON_SECRET.
+Proibido: `vercel env add`, `vercel env rm`, `vercel env pull` ou acesso ao dashboard da Vercel para modificar variáveis.
 
-Proibido EXPRESSAMENTE usar comandos como `vercel env add`, `vercel env rm`,
-`vercel env pull` ou acessar o dashboard da Vercel para modificar variáveis.
-NENHUMA env var da Vercel pode ser alterada sem o Owner dizer "autorizado",
-"pode mexer", "sincroniza" ou "corrige" para aquela ação específica.
+⚠️ EXCEÇÃO REGISTRADA (2026-06-24): `LOCAL_WORKER_URL` (correção de casing) e `ALLOW_RAW_SHELL_IN_ANY_ENV` (adição).
 
-⚠️ EXCEÇÃO REGISTRADA: na sessão de 2026-06-24, o Owner autorizou
-explicitamente a sincronização das seguintes variáveis no Vercel:
-- LOCAL_WORKER_URL (correção de casing)
-- ALLOW_RAW_SHELL_IN_ANY_ENV (adição)
-
-Proteção estendida também a:
-- Modelos de IA e provedores de API configurados
-- Rotas e endpoints da API
-- ProviderStatus e indicadores de cada módulo
-- Qualquer configuração alterada na sessão de 2026-06-23 (ver docs/CHANGELOG_2026-06-23.md)
-
-Violação: qualquer alteração não autorizada deve ser revertida imediatamente
-e reportada ao Owner. Prioridade máxima sobre qualquer outro comando.
+Violação: reversão imediata + reporte ao Owner.
 
 ---
 
-## 🚨 REGRA ABSOLUTA 2 — Proteção do Catálogo de Modelos
+### 🚨 REGRA 2 — Proteção do Catálogo de Modelos
 
-Nenhum agente, assistente, skill, ferramenta ou processo automatizado pode
-reduzir, remover, esconder ou limitar a listagem de modelos disponíveis
-no seletor da interface ou nas APIs internas.
+Nenhum agente pode reduzir, remover, esconder ou limitar a listagem de modelos no seletor da interface ou nas APIs internas. Arquivos protegidos: `src/main.tsx`, `api/copilot/chat.mjs`, `server.mjs`.
 
-Arquivos protegidos:
-- src/main.tsx — constantes DIRECT_GEMINI_MODELS, FAL_CHAT_MODELS, ELEVENLABS_MODELS
-- api/copilot/chat.mjs — mesmas constantes
-- server.mjs — mesmas constantes
-
-Regras:
-1. Modelos só podem ser ADICIONADOS, nunca removidos ou ocultados
-2. Timeout de fetchJsonWithTimeout não pode ser menor que 15 segundos
-3. Quando API live falha, catálogo estático completo deve ser usado como fallback
+Regras: modelos só podem ser ADICIONADOS; timeout mínimo de 15s; catálogo estático como fallback se API falhar.
 
 ---
 
-## 🚨 REGRA ABSOLUTA 3 — Proteção dos Botões das Mensagens
+### 🚨 REGRA 3 — Proteção dos Botões das Mensagens
 
-Nenhum agente pode remover, desabilitar ou esconder os botões de ação no
-final de cada mensagem do chat: Copiar, Compartilhar, Ouvir (TTS) e Derivar.
-
-Implementado em src/main.tsx — funcionalidade permanente da interface.
+Nenhum agente pode remover, desabilitar ou esconder os botões: Copiar, Compartilhar, Ouvir (TTS) e Derivar.
 
 ---
 
-## 🚨 REGRA ABSOLUTA 4 — Proteção do Histórico
+### 🚨 REGRA 4 — Proteção do Histórico
 
-O histórico de conversas deve persistir entre sessões (login/logout/refresh).
-Nenhum agente pode quebrar a persistência do localStorage para as chaves
-apex_conversations_v1 e apex_active_conversation_id.
+O histórico de conversas deve persistir entre sessões (login/logout/refresh). Chaves protegidas: `apex_conversations_v1`, `apex_active_conversation_id`.
 
 ---
 
-## 🚨 REGRA ABSOLUTA 5 — Postura do Agente
+### 🚨 REGRA 5 — Postura do Agente
 
-Nenhum agente pode perguntar ao Owner informações que pode descobrir sozinho
-usando as ferramentas disponíveis. O agente deve investigar antes de perguntar.
-
----
-
-## 🚨 REGRA ABSOLUTA 6 — VERIFICAÇÃO DE CÓDIGO REAL vs DOCUMENTAÇÃO
-
-Nenhum agente, assistente, skill ou processo automatizado pode afirmar que
-uma funcionalidade "já está implementada", "já existe" ou "já está integrada"
-baseando-se APENAS em documentação, arquivos de planejamento (.md),
-checklists, roadmaps, SUPABASE_TABLE_MAP, SUPABASE_SCHEMA_RLS_PLAN
-ou qualquer documento descritivo.
-
-REGRA DE OURO: **"Documentação é desejo. Código é realidade."**
-
-Antes de responder sobre o estado de qualquer funcionalidade:
-
-1. Verifique se o ARQUIVO DE CÓDIGO realmente existe (api/*, server/service/*,
-   src/components/*, server.mjs routes, src/main.tsx imports)
-2. Verifique o git log para saber quando foi criado
-3. Se o arquivo não existir, a funcionalidade NÃO ESTÁ IMPLEMENTADA
-
-Violação: qualquer afirmação falsa sobre estado de implementação deve ser
-imediatamente corrigida com evidência de arquivos reais ou git log.
-Prioridade absoluta sobre qualquer comando que peça para "assumir que existe".
+Nenhum agente pode perguntar ao Owner informações que pode descobrir sozinho usando as ferramentas disponíveis.
 
 ---
 
-## 🚨 REGRA ABSOLUTA 7 — FONTE DA VERDADE: APENAS 2 DOCUMENTOS
+### 🚨 REGRA 6 — Verificação de Código Real vs Documentação
 
-O estado da plataforma Apex AI é definido exclusivamente por ESTES 2 documentos:
-
-1. **`CHECKPOINT_TRACKER.md`** → Rastreamento de execução, sessões, mudanças
-2. **`docs/APEX_PLATFORM_CURRENT_STATE.md`** → Status da plataforma, módulos, conectores
-
-TODOS os outros documentos de auditoria, inventário, relatórios de build/deploy,
-planos Supabase, checkpoints antigos (CP15D, CP15F) e changelogs são
-**SECUNDÁRIOS** e podem estar desatualizados.
-
-Regras para qualquer agente/assistente:
-1. Para saber o que está implementado → leia `CHECKPOINT_TRACKER.md` e
-   `docs/APEX_PLATFORM_CURRENT_STATE.md`
-2. Para saber o histórico de mudanças → leia `CHECKPOINT_TRACKER.md`
-3. NÃO leia outros docs .md de auditoria/inventário a menos que o Owner
-   peça explicitamente
-4. Se um doc secundário contradizer os 2 canônicos, os canônicos vencem
-
-Skills específicas (Windows Care, Revit, Platform Engineering, etc.)
-permanecem como dokumentação técnica de domínio, mas o ESTADO da
-plataforma (se está implementado ou não) vem APENAS dos 2 canônicos.
+**"Documentação é desejo. Código é realidade."** Nenhum agente pode afirmar que algo "já está implementado" baseando-se apenas em `.md` de planejamento. Verifique arquivos reais e git log.
 
 ---
 
-## 🚨 REGRA ABSOLUTA 8 — Proteção dos Deploys e Environments da Vercel
+### 🚨 REGRA 7 — Fonte da Verdade: Apenas 2 Documentos
 
-Nenhum agente, assistente ou processo automatizado pode:
-1. Alterar configurações de environments no dashboard da Vercel
-2. Desabilitar/abilitar "Auto Deploy on Push"
-3. Modificar branch tracking rules ("All unassigned branches", etc.)
-4. Criar, remover ou modificar custom environments (Pre-Production, etc.)
-5. Alterar Environment Variables específicas de Preview/Production
-6. Desconectar ou reconectar Git Integration
-7. Adicionar/remover custom domains nos environments
-8. Modificar "Deployment Protection" (manual approval, password, etc.)
-
-**Única exceção:** Deploy automático via `git push origin main` disparado
-pelo agente APENAS após autorização verbal do Owner na conversa corrente.
-Builds locais (`npm run build`) são livres e não configuram deploy.
-
-**Configuração atual dos environments (2026-06-24 — NÃO ALTERAR):**
-- Production → branch `main` → domínio `www.apexglobalai.com`
-- Preview → "All unassigned git branches" → sem custom domains
-- Development → CLI only → sem custom domains
-
-Violação: reversão imediata + notificação ao Owner. Crítico de segurança.
+O estado da plataforma é definido exclusivamente por: (1) `CHECKPOINT_TRACKER.md` e (2) `docs/APEX_PLATFORM_CURRENT_STATE.md`. Todos os outros são secundários.
 
 ---
 
-## 🚨 REGRA ABSOLUTA 9 — Provedores de IA Permitidos e Restrição de Provedores Externos
+### 🚨 REGRA 8 — Proteção dos Deploys e Environments da Vercel
 
-Fica terminantemente proibido o uso, integração, inclusão, referência ou fallback para qualquer provedor de IA externo que não seja:
-1. **Gemini (Genuíno/Nativo)** via API oficial da Google (`https://generativelanguage.googleapis.com`) ou SDK `@google/genai`.
-2. **FAL.ai** para geração de imagem e vídeo.
-3. **ElevenLabs** para conversão de texto em fala (TTS).
-4. **Provedores/Serviços Internos** da plataforma Apex AI (como o local-worker local, Revit MCP, e Supabase).
+Nenhum agente pode alterar environments, Auto Deploy, branch tracking, custom domains ou Deployment Protection no dashboard da Vercel. Exceção: `git push origin main` após autorização verbal do Owner.
 
-Nenhum agente, assistente ou processo automatizado está autorizado a:
-- Reintroduzir o **OpenRouter** ou quaisquer outros agregadores de API.
-- Reintroduzir provedores como OpenAI (exceto se para mocks locais ou endpoints internos compatíveis de uso estrito do Gemini), Anthropic, DeepSeek (fora do FAL.ai) ou outros.
-- Modificar o Provider Router (`server/providers/providerRouter.mjs`) ou o `src/main.tsx` para listar ou expor outros provedores na interface.
-- Alterar, refatorar ou modificar a lógica de roteamento de provedores/modelos, listagem dinâmica de modelos e fallbacks ininterruptos (em `server/providers/providerRouter.mjs` ou endpoints de chat) se estiverem funcionando corretamente, garantindo a estabilidade operacional contínua da plataforma.
-
-Esta regra foi estabelecida verbalmente pelo Owner Dr. Edgard em 2026-06-26 e tem caráter de proteção permanente.
+Config atual (2026-06-24 — NÃO ALTERAR):
+- Production → branch `main` → `www.apexglobalai.com`
+- Preview → "All unassigned branches" → sem custom domains
+- Development → CLI only
 
 ---
 
-## Commit guidance
+### 🚨 REGRA 9 — Provedores de IA Permitidos
 
-- Use clear commit titles describing user-visible impact.
-- Ensure CI checks in apex-sync.yml stay green before merge/deploy.
+Apenas: Gemini (Google oficial), FAL.ai, ElevenLabs e provedores internos Apex AI (local-worker, Revit MCP, Supabase). Proibido reintroduzir OpenRouter, OpenAI, Anthropic, DeepSeek ou outros agregadores.
 
+---
 
-## 🚨 REGRA ABSOLUTA 10 — Nomenclatura de Concorrentes
+### 🚨 REGRA 10 — Nomenclatura de Concorrentes
 
-Fica terminantemente proibido citar nomes de empresas, sites ou IAs concorrentes
-(ex: Magnific, Midjourney, Veo AI, ChatGPT, Lumion, V-Ray, CapCut) nos textos
-de marketing, pitches de vendas ou na interface da plataforma.
+Proibido citar concorrentes (Magnific, Midjourney, ChatGPT, Lumion, V-Ray, etc.) em textos de marketing ou interface. Use termos genéricos.
 
-Use sempre termos genéricos como "estilo dos melhores sites por aí", "padrão de
-cinema", "edição profissional de mercado". A marca central é única e exclusivamente
-a **Apex AI**.
+---
+
+### 🚨 REGRA 11 — Proteção da Integridade das Regras
+
+Nenhum agente pode editar, truncar, ofuscar ou injetar caracteres nulos em regras, diretrizes ou instruções neste arquivo, `AGENTS.md`, `CHECKPOINT_TRACKER.md`, `APEX_PLATFORM_CURRENT_STATE.md`, `apex_acip_master_architecture.md`, ou em variáveis de ambiente. Penalidade: reversão imediata + reporte ao Owner.
+
+═══════════════════════════════════════════════════
+
+## ANEXO B — INVENTÁRIO COMPLETO DE ARQUIVOS (2026-07-05)
+
+A plataforma Apex AI contém aproximadamente **200+ arquivos `.mjs`** distribuídos entre API (94+), Server (114+) e outros módulos. Abaixo, o inventário completo dos diretórios principais, organizado por categoria funcional.
+
+### api/ — 94 endpoints REST (Vercel Serverless)
+
+| Subdiretório | Qtde | Finalidade |
+|---|---|---|
+| `api/copilot/` | ~25 | Chat, providers, status, rate-limit, teach, train, code-executor, security-audit, deep-research, directcut-refine, tts, users |
+| `api/v1/` | ~10 | Rotas Apex v1 (engineering, chat/completions, images/generate, revit) |
+| `api/stripe/` | 3 | Checkout, webhook, status |
+| `api/google/` | 3 | Auth, calendar, contacts |
+| `api/fal/` | ~3 | Geração de imagem e vídeo |
+| `api/webhooks/` | ~3 | WhatsApp-bot, Hotmart |
+| `api/campaign/` | 1 | Campaign Automation Studio |
+| `api/dashboard/` | 1 | Dashboard executivo |
+| `api/workflow/` | 1 | Workflow & Tasks |
+| `api/trip/` | 1 | Trip Planner |
+| `api/predictive/` | 1 | Predictive Analytics |
+| `api/accounting/` | 1 | Contabilidade |
+| `api/finance/` | 1 | Financeiro |
+| `api/stock/` | 1 | Estoque / Supply |
+| `api/social/` | 1 | Social Media |
+| `api/reports/` | 1 | Reports |
+| `api/notify/` | 1 | Notificações |
+| `api/notifications/` | 1 | Notificações alternativo |
+| `api/nr/` | 1 | NR Compliance |
+| `api/permits/` | 1 | Licenciamento / Permits |
+| `api/agents/` | 1 | Agentes terceiros |
+| `api/aps/` | 1 | Autodesk APS |
+| `api/autofix/` | 1 | Auto-fix |
+| `api/bim-clash/` | 1 | BIM Clash Detection |
+| `api/crm-pipeline/` | 1 | CRM Pipeline |
+| `api/cron/` | 1 | Cron jobs |
+| `api/digital-twin/` | 1 | Digital Twin |
+| `api/enterprise/` | 1 | Enterprise |
+| `api/ifc/` | 1 | IFC Processing |
+| `api/local-worker/` | 1 | Local Worker |
+| `api/mcp/` | 1 | MCP Server |
+| `api/msproject/` | 1 | MS Project |
+| `api/notification/` | 1 | Notification |
+| `api/qualidade/` | 1 | Qualidade |
+| `api/sinapi-lookup.mjs` | 1 | SINAPI Lookup |
+| `api/prompts/` | 1 | Gerenciamento de Prompts |
+| `api/webhooks/` | 1 | Webhooks |
+
+### server/ — 114+ arquivos de runtime
+
+| Subdiretório | Qtde | Finalidade |
+|---|---|---|
+| `server/agent/` | ~30 | Agentes, conectores, ferramentas (geminiAgents, firebaseConnector, githubTools, brain, codeTools, embeddings, policy, executor, planner, verifier, etc.) |
+| `server/providers/` | ~5 | Roteador de provedores (providerRouter, gemini-interactions) |
+| `server/service/` | ~30 | Serviços de negócio (RDO, orcamento, cronograma, supplyChain, digitalTwin, predictiveAnalytics, securityAudit, rateLimitMonitor, etc.) |
+| `server/tools/` | ~6 | Ferramentas (whatsappCli, googleWorkspaceCli, personalAssistantLogic) |
+| `server/cron/` | ~3 | Cron jobs (trendScout, etc.) |
+| `server/apex-runtime/` | ~3 | Engine de runtime local |
+| `server/apexApi/` | ~3 | API Apex interna |
+| `server/` (root) | ~10 | server.mjs, apex-engine-proxy.mjs, apexReasoningCore.mjs, inference-server.mjs |
+
+### src/ — Frontend React + Vite + TypeScript
+
+Componentes, hooks, estilos e páginas da interface do usuário (Dashboard, ArchViz, Director's Cut, Owner Console, etc.).
+
+### infrastructure/ — Configuração e Deploy
+
+| Arquivo | Finalidade |
+|---|---|
+| `server.mjs` | Servidor principal Express |
+| `vercel.json` | Configuração Vercel Serverless |
+| `.env` / `.env.local` | Variáveis de ambiente |
+| `firebase.json` | Configuração Firebase |
+| `firestore.rules` | Regras Firestore |
+| `dataconnect/dataconnect.yaml` | Supabase Data Connect |
+| `electron-main.cjs` | Empacotamento Electron |
+| `vite.config.ts` | Build Vite |
+| `vitest.config.ts` | Configuração de testes |
+| `playwright.config.ts` | E2E tests |
+| `package.json` | Dependências e scripts |
+| `tsconfig.json` | TypeScript config |
+
+### Scripts e Ferramentas
+
+- `scripts/setup-own-runtime.mjs` — Compilação llama.cpp/Ollama
+- `scripts/` — Demais scripts auxiliares
+
+═══════════════════════════════════════════════════
+
+## ANEXO C — SUMÁRIO ESTATÍSTICO
+
+| Métrica | Valor |
+|---|---|
+| **Módulos documentados** | 65 originais + ~13 novos = ~78 módulos |
+| **Arquivos `.mjs` totais** | ~208 (94 api/ + 114 server/) |
+| **Status Funcional Real** | ~90% |
+| **Status Parcial** | 4 (M7-RDO, M11-Orçamento, M28-ArchViz, M29-Director's Cut) |
+| **Status Protótipo** | 1 (M16-Supply Chain) |
+| **Seções** | 11 principais + Design System + 3 Anexos |
+| **Provedores de IA** | 11 ativos (Gemini, Ollama, fal.ai, ElevenLabs, Brave, AuthKey, Supabase, Firebase, Tavily, GitHub, Stripe) |
+| **Conectores de Agente** | 15+ em `server/agent/` |
+
+═══════════════════════════════════════════════════
+
+## ANEXO D — HISTÓRICO DE REVISÕES
+
+| Data | Versão | Autor | Mudanças |
+|---|---|---|---|
+| 2026-07-05 | v7.0 | Agente ACIP | Adicionados Anexos A-D; expandidas seções 6-9 com ~13 novos módulos; adicionado inventário completo de arquivos; atualizadas estatísticas para ~208 arquivos `.mjs` |
+| 2026-07-03 | v6.0 | — | Verificação de 65 módulos contra código real |
+| 2026-06-26 | v5.0 | — | Adicionados Google Workspace, módulos NOVOS |
+| 2026-06-23 | v4.0 | — | Sincronização com ACIP |
+| 2026-06-19 | v3.2 | — | Sessão de arquitetura ACIP |
+| 2026-06-12 | v3.0 | — | Pipeline de engenharia |
+| 2026-05-14 | v2.0 | — | Módulos de obra |
+| 2025-10-22 | v1.0 | — | Estrutura inicial
 

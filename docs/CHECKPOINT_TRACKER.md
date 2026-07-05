@@ -324,18 +324,90 @@ verbal explícita.
 - **Service Account (Firebase):** `firebase-adminsdk-fbsvc@apex-ai-copilot-platform.iam.gserviceaccount.com`
 - **APIs Ativas:** Gemini, Contacts, Cloud Build, Firestore, Workspace, Ads, etc.
 
-## Sessão Atual — Trip Planner, Seguros e Preparação para Fase 9
+---
 
-| # | Mudança | Status |
+## 🎯 Sessão 2026-07-05 — Auditoria Arquitetura vs Código Real
+
+| # | Item | Status |
 | :--- | :--------- | :-------- |
-| 1 | Trip Planner (Duffel NDC) & Seguros | ⚠️ Manual Owner (Preservado código original s/ Google AI) |
-| 2 | Iniciar Etapa 9 (Relatórios, PDF/CSV e Auth) | ✅ Concluída (Supabase Auth e reportGenerator) |
+| 1 | Verificação completa dos 65 módulos do `apex_acip_master_architecture.md` contra código real | ✅ Concluída |
+| 2 | **100% dos arquivos mencionados EXISTEM** — Nenhum arquivo faltando | ✅ Verificado |
+| 3 | Catálogo real: ~200 arquivos .mjs (94 em `api/`, 114+ em `server/`) vs ~65 descritos no doc | ✅ Doc atualizado com inventário completo |
+| 4 | Expansão do architecture.md com itens faltantes (Engine Proxy, Runtime, Provider Router, Reasoning Core, DirectCut Refine, ~15 conectores server/agent/) | ✅ Concluída — v7.0, 4 Anexos adicionados |
+| 5 | Sincronização .env = .env.local (Gemini, Supabase, Vercel, Google Project ID) | ✅ Completa |
+| 6 | Ollama + GGUF (apex-ai-gemma2b) rodando local + Apex Engine Proxy na porta 8888 | ✅ Completa |
+| 7 | Provider Status: 11 healthy, 2 warnings (Brave 402, AuthKey 500) | ⚠️ Parcial |
+| 8 | Gemini key 401 (Google policy change June 19/2026) | 🔴 Bloqueado |
+
+### 📐 Fase 2 — Expansão do Architecture.md com Itens Não Documentados
+
+| # | Item | Status |
+| :--- | :--------- | :-------- |
+| 1 | Adicionado **DirectCut Refine** (M31.1) à Seção 6 — Design | ✅ |
+| 2 | Adicionado **Apex Reasoning Core** (M44.1) à Seção 7 — IA Core | ✅ |
+| 3 | Adicionado **Provider Router** (M44.2) à Seção 7 — IA Core | ✅ |
+| 4 | Adicionado **Provider Status & Analytics** (M44.3) à Seção 7 — IA Core | ✅ |
+| 5 | Adicionados **15 conectores/agentes** (M49.1-M49.15) à Seção 8 — Bots | ✅ |
+| 6 | Adicionado **Apex Engine Proxy** (M53.1) à Seção 9 — Infra Local | ✅ |
+| 7 | Adicionado **Apex Runtime Engine** (M53.2) à Seção 9 — Infra Local | ✅ |
+| 8 | Adicionado **Inference Server** (M53.3) à Seção 9 — Infra Local | ✅ |
+| 9 | Substituída duplicação do AGENTS.md por **Anexo A — 11 Regras Absolutas** compactadas | ✅ |
+| 10 | Adicionado **Anexo B — Inventário Completo de Arquivos** (api/, server/, src/, infra) | ✅ |
+| 11 | Adicionado **Anexo C — Sumário Estatístico** (~208 arquivos .mjs, ~78 módulos) | ✅ |
+| 12 | Adicionado **Anexo D — Histórico de Revisões** (v1.0→v7.0) | ✅ |
+| 13 | Atualizadas referências: doc agora cobre ~78 módulos vs 65 originais | ✅ |
+| 14 | Documento atualizado para **v7.0** com data 2026-07-05 | ✅ |
+
+---
+
+## 📋 MÓDULOS [OK - PARCIAL] E [UI - PROTÓTIPO] — PRIORIDADE PARA PRÓXIMA SESSÃO
+
+> **Meta:** Transformar todos os módulos abaixo em ✅ [OK - Funcional Real] antes de expandir para novos módulos.
+
+### 🔶 MÓDULOS [OK - PARCIAL] — 4 módulos
+
+| Módulo | Nome | O que falta | Arquivos-chave |
+|:------:|:----:|:-----------|:---------------|
+| **M7** | **BIM 3D Studio** | Dashboard UI precisa de melhorias. WebGL/IfcOpenShell funciona, mas a interface de visualização 3D no navegador precisa de refino (etiquetas, navegação, camadas). | `api/aps/token.mjs`, `api/aps/manifest.mjs`, `api/ifc/ifcopenshell-status.mjs` |
+| **M11** | **Project Package Pipeline** | Fluxo de integração embrionário. Backend exporta ZIP mas não está conectado ao fluxo do usuário (contratos + orçamentos + cronogramas). | `api/copilot/project-package.mjs` |
+| **M28** | **ArchVis Studio** | Motor fal.ai REAL já gera imagens. UI é protótipo — precisa de: sidebar 280px, Split Slider original/gerado, Revision Constraints, 8 estilos predefinidos funcionando na interface. | `api/v1/apex/images/generate.mjs`, `api/copilot/generate-image.mjs` |
+| **M29** | **Director's Cut Studio** | FFmpeg + fal.ai Kling REAL. UI é protótipo — precisa de: Timeline multi-track 220px, Playhead, Scene Layers (opacidade/blend), sliders Temperature/Preset, Viewport 16:9. | `server/videoRenderPipeline.mjs`, `api/copilot/video-render.mjs` |
+
+### 🔴 MÓDULO [UI - PROTÓTIPO] — 1 módulo
+
+| Módulo | Nome | O que falta | Arquivos-chave |
+|:------:|:----:|:-----------|:---------------|
+| **M16** | **Supply Chain Studio** | Apenas backend existe (`server/service/supplyChain.mjs`). Precisa de interface completa para: cotações, fornecedores, status de estoque, suprimentos de obra. | `server/service/supplyChain.mjs` |
+
+### 📊 RESUMO
+
+| Status | Quantidade |
+|--------|:----------:|
+| ✅ [OK - Funcional Real] | **60** módulos |
+| 🔶 [OK - Parcial] | **4** módulos |
+| 🔴 [UI - Protótipo] | **1** módulo |
+| **Total** | **65** módulos |
+
+---
+
+## 🗺️ ROTEIRO SUGERIDO — PRÓXIMA SESSÃO (ordem sugerida)
+
+```
+1º ▶️ M28 ArchVis Studio (🔶 Parcial) — UI do gerador de imagens
+2º ▶️ M29 Director's Cut Studio (🔶 Parcial) — UI da timeline de vídeo
+3º ▶️ M16 Supply Chain Studio (🔴 Protótipo) — UI completa de suprimentos
+4º ▶️ M7 BIM 3D Studio (🔶 Parcial) — Refino do dashboard 3D
+5º ▶️ M11 Project Package Pipeline (🔶 Parcial) — Fluxo de ZIP completo
+6º ▶️ Soberania Tecnológica: Fine-tuning Gemma/Llama no Vertex AI → Ollama offline
+```
+
+---
 
 ## PLANO DE AÇÃO PARA AS PRÓXIMAS SESSÕES (Atualizado conforme Master)
 
-1. **Supply Chain Studio (Módulo 16):** Atualmente em UI Protótipo. Desenvolver o backend para gerenciar cotações reais, fornecedores e controle de suprimentos/estoque da obra.
-2. **Project Package Pipeline (Módulo 11):** Atualmente Parcial. Finalizar o fluxo de integração embrionário que junta contratos, orçamentos e cronogramas num ZIP único.
-3. **BIM 3D Studio (Módulo 7):** Atualmente Parcial. Aprimorar as amarrações do WebGL / IfcOpenShell no front-end para visualização avançada dos modelos.
-4. **ArchVis Studio (Módulo 28):** Atualmente Parcial. Refinar a integração do motor de geração de imagens reais (fal.ai) com a interface de protótipo existente.
-5. **Director's Cut Studio (Módulo 29):** Atualmente Parcial. Acoplar totalmente a interface da timeline multi-track e scene layers ao motor FFmpeg/Kling.
+1. **Supply Chain Studio (Módulo 16):** 🔴 UI Protótipo. Desenvolver a interface completa para gerenciar cotações reais, fornecedores e controle de suprimentos/estoque da obra.
+2. **Project Package Pipeline (Módulo 11):** 🔶 Parcial. Finalizar o fluxo de integração que junta contratos, orçamentos e cronogramas num ZIP único.
+3. **BIM 3D Studio (Módulo 7):** 🔶 Parcial. Aprimorar as amarrações do WebGL / IfcOpenShell no front-end para visualização avançada dos modelos.
+4. **ArchVis Studio (Módulo 28):** 🔶 Parcial. Refinar a integração do motor de geração de imagens reais (fal.ai) com a interface de protótipo existente.
+5. **Director's Cut Studio (Módulo 29):** 🔶 Parcial. Acoplar totalmente a interface da timeline multi-track e scene layers ao motor FFmpeg/Kling.
 6. **Soberania Tecnológica (O Endgame):** Fine-Tuning de modelo Open-Source (Gemma 3 / Llama) no Google Vertex AI utilizando o histórico de conversas do Supabase. Exportar os pesos do modelo (`.safetensors`) e integrá-lo offline ao `Local Worker` via Ollama, garantindo inteligência proprietária rodando 100% offline e sem custos de API na máquina do usuário.
