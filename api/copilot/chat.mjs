@@ -2258,7 +2258,7 @@ export default async function handler(req, res) {
       modelProvider = 'gemini'
       model = envDefaultModel && !envDefaultModel.toLowerCase().startsWith('apex-local')
         ? envDefaultModel
-        : 'gemini-2.5-flash'
+        : 'gemini-3.5-flash'
     }
 
     // local-worker provider — usa o servidor Apex AI do PC do Owner
@@ -2295,7 +2295,7 @@ export default async function handler(req, res) {
       } catch (_) { /* fallthrough para Gemini */ }
       // Fallback para Gemini se local-worker falhar
       modelProvider = 'gemini'
-      model = 'gemini-2.5-flash'
+      model = 'gemini-3.5-flash'
     }
 
     if (!modelProvider && String(selectedModel.raw || '').trim().toLowerCase() === 'apex-local') {
