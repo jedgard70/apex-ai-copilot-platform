@@ -42,7 +42,7 @@ const TOOL_DEFINITIONS = [
             type: 'object',
             properties: {
                 message: { type: 'string', description: 'A pergunta ou tarefa para a Apex AI' },
-                model: { type: 'string', description: 'Modelo a usar (padrão: gemini|gemini-2.5-flash)', default: 'gemini|gemini-2.5-flash' },
+                model: { type: 'string', description: 'Modelo a usar (padrão: gemini|gemini-3.5-flash)', default: 'gemini|gemini-3.5-flash' },
                 context: { type: 'string', description: 'Contexto adicional (opcional)' },
             },
             required: ['message'],
@@ -100,7 +100,7 @@ function checkAuth(req) {
     return validTokens.some(t => t === token)
 }
 
-async function callApexChat(message, model = 'gemini|gemini-2.5-flash', context = '') {
+async function callApexChat(message, model = 'gemini|gemini-3.5-flash', context = '') {
     const baseUrl = process.env.APEX_SELF_URL || 'https://www.apexglobalai.com'
     const fullMessage = context ? `${context}\n\n${message}` : message
     const res = await fetch(`${baseUrl}/api/copilot/chat`, {

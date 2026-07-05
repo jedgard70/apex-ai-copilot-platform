@@ -97,7 +97,7 @@ async function askApexAI(userMessage, phone) {
         const chatUrl = `${CHAT_API_BASE}/api/copilot/chat`
         const payload = {
             message: userMessage,
-            model: 'gemini|gemini-2.5-flash',
+            model: 'gemini|gemini-3.5-flash',
             locale: 'pt-BR',
             // Injeta contexto do WhatsApp no sistema
             messages: [

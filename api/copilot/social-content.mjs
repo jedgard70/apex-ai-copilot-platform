@@ -224,7 +224,7 @@ export default async function handler(req, res) {
         { role: 'user', content: buildUserPrompt(goal, offer, audience, channel) },
       ])
     } else if (geminiKey) {
-      rawText = await callGemini(geminiKey, 'gemini-1.5-flash-latest', `${buildSystemPrompt()}\n\n${buildUserPrompt(goal, offer, audience, channel)}`)
+      rawText = await callGemini(geminiKey, 'gemini-3.5-flash', `${buildSystemPrompt()}\n\n${buildUserPrompt(goal, offer, audience, channel)}`)
     }
   } catch {
     return sendJson(res, 200, fallback)

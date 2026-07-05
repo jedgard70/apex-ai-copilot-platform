@@ -99,7 +99,7 @@ export default async function handler(req, res) {
   const duration = String(body.duration || '15s')
   const aspectRatio = String(body.aspectRatio || '16:9')
 
-  const geminiModel = 'gemini-1.5-flash-latest'
+  const geminiModel = 'gemini-3.5-flash'
 
   const userPrompt = buildUserPrompt(scene, camera, style, goal, videoMode, duration, aspectRatio)
   const systemPrompt = buildSystemPrompt()

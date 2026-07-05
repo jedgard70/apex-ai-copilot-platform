@@ -71,7 +71,7 @@ async function fetchProviderStatus() {
     const mockRes = {
       status() { return this },
       json(d) { result = d },
-      setHeader() {},
+      setHeader() { },
     }
     await handler({ method: 'GET', headers: {} }, mockRes)
     return result
@@ -236,7 +236,7 @@ function buildModelCatalog(gm, fi) {
     '╚════════════════════════════════════════════════╝',
     '',
     `🔷 Gemini API: ${gm?.total || 0} modelos (TODOS gratuitos)`,
-    '   Flash: gemini-2.5-flash, gemini-3.5-flash, gemini-3-flash-preview',
+    '   Flash: gemini-3.5-flash ★, gemini-3.1-flash-lite, gemini-3-flash-preview, gemini-2.5-flash',
     '   Pro: gemini-2.5-pro, gemini-3.1-pro-preview, gemini-3-pro-preview',
     '   Imagem: gemini-3.1-flash-image, gemini-2.5-flash-image, gemini-3-pro-image',
     '   TTS: gemini-3.1-flash-tts, gemini-2.5-flash-tts, gemini-2.5-pro-tts',

@@ -83,34 +83,34 @@ function getModelProviderDiagnostics() {
 }
 
 const DIRECT_GEMINI_MODELS = [
-  // Flash models (free, 60 RPM) — use for 90% of chat
-  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (gratuito)' },
-  { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite (gratuito)' },
-  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash (gratuito)' },
-  { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview (gratuito)' },
-  { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash Lite (gratuito)' },
+  // ═══ CURRENT GA — RECOMENDADO ═══
+  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash (gratuito, 60 RPM) ★' },
+  { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash Lite (gratuito, 60 RPM)' },
+  { id: 'gemini-3.1-flash-image', name: 'Gemini 3.1 Flash Image (gratuito)' },
+  { id: 'gemini-3-pro-image', name: 'Gemini 3 Pro Image (gratuito)' },
 
-  // Pro models (10 RPM) — use for complex reasoning
-  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro (gratuito)' },
+  // ═══ PREVIEW ═══
   { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview (gratuito)' },
+  { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview (gratuito)' },
   { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro Preview (gratuito)' },
 
-  // Music generation models (Lyria 3 — gratuito)
+  // ═══ MÚSICA (Lyria 3) ═══
   { id: 'lyria-3-clip-preview', name: 'Lyria 3 Clip (música, gratuito)' },
   { id: 'lyria-3-pro-preview', name: 'Lyria 3 Pro (música, gratuito)' },
 
-  // Image models (gratuito)
-  { id: 'gemini-3.1-flash-image', name: 'Gemini 3.1 Flash Image (gratuito)' },
+  // ═══ DEPRECATING Oct 2026 — still functional ═══
+  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (gratuito, 60 RPM)' },
+  { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite (gratuito)' },
+  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro (gratuito, 10 RPM)' },
   { id: 'gemini-2.5-flash-image', name: 'Gemini 2.5 Flash Image (gratuito)' },
-  { id: 'gemini-3-pro-image', name: 'Gemini 3 Pro Image (gratuito)' },
 
-  // TTS models (gratuito)
+  // ═══ TTS / ÁUDIO ═══
   { id: 'gemini-3.1-flash-tts-preview', name: 'Gemini 3.1 Flash TTS (gratuito)' },
   { id: 'gemini-2.5-flash-preview-tts', name: 'Gemini 2.5 Flash TTS (gratuito)' },
   { id: 'gemini-2.5-pro-preview-tts', name: 'Gemini 2.5 Pro TTS (gratuito)' },
   { id: 'gemini-2.5-flash-native-audio-preview-12-2025', name: 'Gemini 2.5 Native Audio (gratuito)' },
 
-  // Gemma — open-source (Google) — treino aberto
+  // ═══ GEMMA — open-source (Google) ═══
   { id: 'gemma-4-31b-it', name: 'Gemma 4 31B Instruct (Open-Source) (gratuito)' },
   { id: 'gemma-4-26b-a4b-it', name: 'Gemma 4 26B A4B (Open-Source) (gratuito)' },
 ]
@@ -2249,7 +2249,7 @@ export default async function handler(req, res) {
         ? 'local-worker|apex-ai'
         : (envDefaultModel && !envDefaultModel.toLowerCase().startsWith('apex-local')
           ? `gemini|${envDefaultModel}`
-          : 'gemini|gemini-2.5-flash')
+          : 'gemini|gemini-3.5-flash')
     const selectedModelRaw = body.model || body.selectedModel || safeDefaultModel
     const selectedModel = splitModelValue ? splitModelValue(selectedModelRaw) : { provider: null, modelId: selectedModelRaw, raw: selectedModelRaw }
     let modelProvider = selectedModel.provider || ''
@@ -2700,7 +2700,7 @@ STYLE & FORMATTING:
     const provider = getChatProvider()
     const chatSource = 'gemini'
     let finalModel = model
-    const isDirectGeminiModelInPayload = ['gemini-3.5-flash', 'gemini-3.1-pro-preview', 'gemini-3.1-flash-lite', 'gemini-3.1-flash-image', 'gemini-3.1-flash-tts-preview', 'gemma-4-31b-it', 'gemma-4-26b-a4b-it'].includes(model)
+    const isDirectGeminiModelInPayload = ['gemini-3.5-flash', 'gemini-3.1-pro-preview', 'gemini-3.1-flash-lite', 'gemini-3.1-flash-image', 'gemini-3.1-flash-tts-preview', 'gemini-3-pro-image', 'gemini-3-flash-preview', 'gemini-3-pro-preview', 'gemini-2.5-flash', 'gemini-2.5-pro', 'gemma-4-31b-it', 'gemma-4-26b-a4b-it'].includes(model)
 
     // Gemini endpoint via v1/interactions
     const requestPayload = {

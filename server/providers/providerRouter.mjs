@@ -81,7 +81,7 @@ const providerOrder = [
 ]
 
 function prioritizeGeminiModels(modelsList) {
-  const priority = ["gemini-3.1-flash-lite", "gemini-1.5-flash"]
+  const priority = ["gemini-3.5-flash", "gemini-3.1-pro-preview"]
   const uniqueList = Array.from(new Set([...priority, ...modelsList]))
   return uniqueList
 }
@@ -107,14 +107,19 @@ export async function getProviderChain(options = {}) {
   const falKey = (process.env.FAL_KEY || process.env.FAL_API_KEY || "").trim()
 
   const GEMINI_STATIC_FALLBACKS = [
+    // Current GA — recommended
+    "gemini-3.5-flash",
     "gemini-3.1-flash-lite",
-    "gemini-1.5-flash",
+    "gemini-3.1-flash-image",
+    "gemini-3-pro-image",
+    // Preview models
+    "gemini-3.1-pro-preview",
+    "gemini-3-flash-preview",
+    "gemini-3-pro-preview",
+    // Deprecating Oct 2026 — still functional
     "gemini-2.5-flash",
     "gemini-2.5-flash-lite",
-    "gemini-3.5-flash",
     "gemini-2.5-pro",
-    "gemini-3.1-pro-preview",
-    "gemini-1.5-pro",
     // Gemma — open-source (treino aberto)
     "gemma-4-31b-it",
     "gemma-4-26b-a4b-it"
@@ -142,7 +147,7 @@ export async function getProviderChain(options = {}) {
     const models = skipDynamicFetch ? [] : await getGeminiModels(geminiKey)
     const rawList = models.length > 0 ? models.map(m => m.id) : GEMINI_STATIC_FALLBACKS
     const geminiModelsList = prioritizeGeminiModels(rawList)
-    const defaultModel = preferredModel && preferredModel.startsWith("gemini") ? preferredModel : (geminiModelsList[0] || "gemini-3.1-flash-lite")
+    const defaultModel = preferredModel && preferredModel.startsWith("gemini") ? preferredModel : (geminiModelsList[0] || "gemini-3.5-flash")
     chain.push({
       name: "gemini",
       baseUrl: chatBase,

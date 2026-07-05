@@ -9,8 +9,8 @@ function scrubError(value) {
     .slice(0, 800)
 }
 
-async function callGemini(apiKey, model, prompt) { 
-  if (!model) model = 'gemini-2.5-flash'
+async function callGemini(apiKey, model, prompt) {
+  if (!model) model = 'gemini-3.5-flash'
   const resp = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
     {
@@ -187,7 +187,7 @@ export default async function handler(req, res) {
     const body = req.body && typeof req.body === 'object' ? req.body : {}
     const visaId = String(body.visaId || 'ir5-military')
     const formData = body.formData || {}
-    
+
     const geminiKey = process.env.GEMINI_API_KEY
     const fallback = getLocalFallback(visaId)
     const prompt = buildUserPrompt(visaId, formData)
@@ -199,7 +199,7 @@ export default async function handler(req, res) {
     }
 
     if (geminiKey) {
-      const rawText = await callGemini(geminiKey, 'gemini-2.5-flash', `${buildSystemPrompt()}\n\n${prompt}`)
+      const rawText = await callGemini(geminiKey, 'gemini-3.5-flash', `${buildSystemPrompt()}\n\n${prompt}`)
       const aiData = parseAiResponse(rawText)
       if (aiData) {
         return sendJson(res, 200, { documents: aiData, providerStatus: 'gemini' })

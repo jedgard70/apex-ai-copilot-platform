@@ -303,29 +303,29 @@ const APEX_OWN_MODELS = [
 ]
 
 const DIRECT_GEMINI_MODELS = [
-  // Flash (gratuito, 60 RPM) — padrão
+  // ═══ CURRENT GA — RECOMENDADO ═══
+  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash ★' },
+  { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash Lite' },
+  { id: 'gemini-3.1-flash-image', name: 'Gemini 3.1 Flash Image' },
+  { id: 'gemini-3-pro-image', name: 'Gemini 3 Pro Image' },
+  // ═══ PREVIEW ═══
+  { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview' },
+  { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview' },
+  { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro Preview' },
+  // ═══ DEPRECATING Oct 2026 ═══
   { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
   { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite' },
-  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash' },
-  { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview' },
-  { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash Lite' },
-  // Pro (10 RPM)
   { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro' },
-  { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview' },
-  { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro Preview' },
-  // Imagem (gratuito)
-  { id: 'gemini-3.1-flash-image', name: 'Gemini 3.1 Flash Image' },
   { id: 'gemini-2.5-flash-image', name: 'Gemini 2.5 Flash Image' },
-  { id: 'gemini-3-pro-image', name: 'Gemini 3 Pro Image' },
-  // TTS / Áudio (gratuito)
+  // ═══ TTS / ÁUDIO ═══
   { id: 'gemini-3.1-flash-tts-preview', name: 'Gemini 3.1 Flash TTS' },
   { id: 'gemini-2.5-flash-preview-tts', name: 'Gemini 2.5 Flash TTS' },
   { id: 'gemini-2.5-pro-preview-tts', name: 'Gemini 2.5 Pro TTS' },
   { id: 'gemini-2.5-flash-native-audio-preview-12-2025', name: 'Gemini 2.5 Native Audio' },
-  // Gemma — open-source (Google)
+  // ═══ GEMMA — open-source (Google) ═══
   { id: 'gemma-4-31b-it', name: 'Gemma 4 31B Instruct (Open-Source)' },
   { id: 'gemma-4-26b-a4b-it', name: 'Gemma 4 26B A4B (Open-Source)' },
-    { id: 'gemma-4-31b-it-apex', name: 'Gemma 4 31B Apex (Fine-Tuned)' },
+  { id: 'gemma-4-31b-it-apex', name: 'Gemma 4 31B Apex (Fine-Tuned)' },
 ]
 
 const INTERACTION_MODELS = [
