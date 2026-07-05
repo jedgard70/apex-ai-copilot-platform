@@ -424,7 +424,7 @@ export function OwnerPage({ onNavigate, onOpenChat }: OwnerPageProps) {
             ].map(a => (
               <button key={a.view || a.action} onClick={() => {
                 if (a.action === 'colab') {
-                  window.open('https://colab.research.google.com/github/jedgard70/apex-ai-copilot-platform/blob/main/notebooks/fine_tune_gemma_apex_colab.ipynb', '_blank')
+                  window.open('https://colab.research.google.com/github/jedgard70/apex-ai-copilot-platform/blob/main/notebooks/real_finetune_gemma_apex_colab.ipynb', '_blank')
                 } else if (a.action === 'deploy') {
                   window.open('https://huggingface.co/new', '_blank')
                 } else if (a.view) {

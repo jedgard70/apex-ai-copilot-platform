@@ -6801,6 +6801,51 @@ const server = http.createServer(async (req, res) => {
       return
     }
 
+    // ─── Ollama Chat (modelo local — sem depender de API) ─────────────
+    if (req.url === '/api/ollama/chat' && req.method === 'POST') {
+      try {
+        const body = await readJson(req)
+        const ollamaRes = await fetch('http://127.0.0.1:11434/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: body.model || 'gemma2:2b',
+            messages: body.messages || [],
+            stream: body.stream ?? false,
+            options: { temperature: body.temperature ?? 0.7 },
+          }),
+        })
+        if (!ollamaRes.ok) {
+          const errText = await ollamaRes.text().catch(() => 'unknown error')
+          res.status(502).json({ error: `Ollama error: ${ollamaRes.status}`, detail: errText.substring(0, 200) })
+          return
+        }
+        const data = await ollamaRes.json()
+        res.status(200).json(data)
+      } catch (err) {
+        const msg = err?.message || 'Ollama connection error'
+        if (msg.includes('ECONNREFUSED') || msg.includes('econnrefused')) {
+          res.status(503).json({ error: 'Ollama not running', detail: 'Ollama nao esta rodando na porta 11434. Execute: ollama serve' })
+        } else {
+          res.status(502).json({ error: 'Ollama proxy error', detail: msg.substring(0, 300) })
+        }
+      }
+      return
+    }
+
+    // ─── Ollama Status (modelos locais disponiveis) ────────────────────
+    if (req.url === '/api/ollama/status' && req.method === 'GET') {
+      try {
+        const tagRes = await fetch('http://127.0.0.1:11434/api/tags', { signal: AbortSignal.timeout(3000) })
+        if (!tagRes.ok) { res.status(502).json({ error: 'Ollama not responding' }); return }
+        const data = await tagRes.json()
+        res.status(200).json({ running: true, models: (data.models || []).map(m => m.name) })
+      } catch {
+        res.status(200).json({ running: false, models: [] })
+      }
+      return
+    }
+
     // ─── Deploy Model (Hugging Face Inference) ─────────────────────────
     if (req.url === '/api/copilot/deploy-model' && (req.method === 'GET' || req.method === 'POST')) {
       const { default: handler } = await import('./api/copilot/deploy-model.mjs')
