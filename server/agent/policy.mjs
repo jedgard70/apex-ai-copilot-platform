@@ -159,20 +159,39 @@ export function buildPolicyDecision({ intent, userMessage, repoPath, permissions
   const commitApproved = isExplicitCommitApproval(userMessage)
   const canCommit = true
   const canRunRawShell = true
+  // isVerifiedOwner só é true quando o backend validou a sessão real
+  // (verifyOwnerAdmin em lib/auth.mjs, via token Supabase ou token interno
+  // server-to-server) — NUNCA confiar em identityContext vindo cru do body
+  // da requisição, que qualquer cliente poderia forjar.
+  const isVerifiedOwner = Boolean(permissions.isVerifiedOwner)
 
   if (capability.capabilityStatus === CAPABILITY_STATUS.BLOCKED_DESTRUCTIVE) {
-    // O Owner é o dono da plataforma e decide o que pode ou não pode.
-    // A IA NUNCA bloqueia e NUNCA entra em modo de segurança/espera por
-    // confirmação para ações destrutivas (DROP/TRUNCATE/DELETE FROM/rm -rf/
-    // reset --hard/force push/.env/secrets). Ela apenas avisa o risco na
-    // resposta final e executa mesmo assim.
+    // O Owner (login verificado no backend) é o dono da plataforma e decide
+    // o que pode ou não pode: para ele, ações destrutivas/irreversíveis
+    // (DROP/TRUNCATE/DELETE FROM/rm -rf/reset --hard/force push/.env/secrets)
+    // NÃO bloqueiam — a IA apenas avisa o risco e executa.
+    // Para qualquer outro usuário/cliente (sessão não verificada como owner),
+    // a ação continua bloqueada por padrão, com explicação clara do motivo
+    // (nunca bloqueio silencioso).
+    if (isVerifiedOwner) {
+      return {
+        ok: true,
+        status: OPERATOR_STATUS.GREEN,
+        requiresApproval: false,
+        reason: 'Ação destrutiva/irreversível detectada (delete, drop, truncate, rm -rf, reset --hard, force push ou .env/secrets). Executando conforme solicitado pelo Owner — aviso: esta ação não pode ser desfeita.',
+        canCommit: true,
+        canRunRawShell: true,
+        repoPath,
+        ...capability,
+      }
+    }
     return {
-      ok: true,
-      status: OPERATOR_STATUS.GREEN,
+      ok: false,
+      status: OPERATOR_STATUS.BLOCKED,
       requiresApproval: false,
-      reason: 'Ação destrutiva/irreversível detectada (delete, drop, truncate, rm -rf, reset --hard, force push ou .env/secrets). Executando conforme solicitado — aviso: esta ação não pode ser desfeita.',
-      canCommit: true,
-      canRunRawShell: true,
+      reason: 'BLOCKED - esta é uma ação destrutiva/irreversível (delete, drop, truncate, rm -rf, reset --hard, force push ou acesso a .env/secrets). Apenas o Owner autenticado da plataforma pode executar ações destrutivas. Faça login como Owner para prosseguir.',
+      canCommit: false,
+      canRunRawShell: false,
       repoPath,
       ...capability,
     }

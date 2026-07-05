@@ -8,6 +8,7 @@ import { collectProductionOperatorStatus } from '../../server/agent/productionSt
 import { classifyToolExecutionRequest, routeToolExecution, routeH6ActionRequest } from '../../server/agent/toolExecutionRouter.mjs'
 import { runApexOperatorProductionSafe } from '../../server/agent/apexOperatorRuntime.mjs'
 import { isConfirmationSignal, isCancelSignal, hasPendingAction } from '../../server/agent/confirmationStateMachine.mjs'
+import { verifyOwnerAdmin } from '../../lib/auth.mjs'
 let _interactionsModels = null
 let _isInteractionModel = null
 let _interactionsPromise = null
@@ -2008,6 +2009,14 @@ export default async function handler(req, res) {
     const body = await readJsonBody(req)
     const userMessage = String(body.message || '').slice(0, 12000)
 
+    // Verificação REAL de identidade Owner (nunca confiar em body.identityContext
+    // sozinho — qualquer requisição poderia mandar isOwnerAdmin:true no body).
+    // verifyOwnerAdmin valida o token Bearer contra a sessão real do Supabase
+    // (user_metadata.role === 'owner_admin') ou o token interno server-to-server.
+    // Usado para decidir se ações destrutivas podem ser liberadas sem bloqueio.
+    const ownerAuth = await verifyOwnerAdmin(req).catch(() => ({ authorized: false }))
+    const isVerifiedOwner = Boolean(ownerAuth?.authorized)
+
     // Security audit: record incoming chat request
     recordAuditEvent({
       provider: 'chat-api',
@@ -2127,7 +2136,7 @@ export default async function handler(req, res) {
         identityContext: normalizeIdentityContext(body.identityContext || {}),
         workspaceContext: body.workspaceContext || {},
         repoPath: process.cwd(),
-        permissions: {},
+        permissions: { isVerifiedOwner },
         productionStatus,
         clientMemory,
         messages: Array.isArray(body.messages) ? body.messages.slice(-10) : [],
