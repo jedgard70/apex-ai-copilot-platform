@@ -2432,7 +2432,33 @@ export default async function handler(req, res) {
         } catch (_) { /* local-worker unavailable */ }
       }
 
-      // Motor Apex indisponivel neste runtime: continue conversacional sem expor detalhes internos.
+      // ── Motor Apex indisponivel ~ fallback transparente para Gemini ──────
+      const geminiApiKey = process.env.GEMINI_API_KEY
+      if (geminiApiKey) {
+        try {
+          const geminiResult = await callGeminiChat('gemini-3.5-flash', [
+            { role: 'system', content: 'Você é a Apex AI, plataforma profissional de arquitetura, construção, BIM, orçamentos, marketing e gestão. Responda em português, de forma técnica e direta, sem inventar dados ou integrações que não existem.' },
+            ...(Array.isArray(body.messages) ? body.messages.slice(-10) : []),
+            { role: 'user', content: userMessage },
+          ], geminiApiKey)
+          if (geminiResult.response.ok) {
+            const reply = geminiResult.data.choices?.[0]?.message?.content || ''
+            if (reply) {
+              recordCallSafe({ provider: 'apex-local-gemini-fallback', model: 'gemini-3.5-flash', latencyMs: Date.now() - t0, success: true })
+              return sendJson(res, 200, {
+                finalReply: reply,
+                reply,
+                mode: 'apex-local-gemini-fallback',
+                provider: 'apex-local (via Gemini)',
+                confirmation: null,
+                productionStatus,
+              })
+            }
+          }
+        } catch (_) { /* Gemini fallback também falhou */ }
+      }
+
+      // Nenhum motor disponivel: resposta conversacional amigavel
       const offlineMsg = buildChatFallbackReply(userMessage, identityContext, body.file || null, locale)
       return sendJson(res, 200, {
         finalReply: offlineMsg,

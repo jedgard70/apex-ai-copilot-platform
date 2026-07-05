@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Tray, Menu, nativeImage } = require("electron");
+const { app, BrowserWindow, Tray, Menu, nativeImage, dialog } = require("electron");
 const { autoUpdater } = require("electron-updater");
 const path = require("path");
 const { spawn } = require("child_process");
@@ -133,6 +133,8 @@ function createWindow(initialPath = "/") {
     webPreferences: { nodeIntegration: false, contextIsolation: true },
   });
 
+  mainWindow.once('ready-to-show', () => mainWindow.show());
+
   mainWindow.on('close', function (event) {
     if (!app.isQuiting) {
       event.preventDefault();
@@ -161,6 +163,18 @@ function createWindow(initialPath = "/") {
     mainWindow.loadURL(`http://127.0.0.1:${APP_PORT}${initialPath}`);
   }
 }
+
+// === Global error handlers ===
+process.on('uncaughtException', (err) => {
+  const msg = `[Apex] Erro nao capturado: ${err?.message || err}\n${err?.stack || ''}`;
+  log(msg);
+  try { dialog.showErrorBox('Apex AI - Erro Inesperado', `${err?.message || err}\n\nO aplicativo sera encerrado.\n\nLog: ${logPath()}`); } catch (_) {}
+  app.quit();
+});
+
+process.on('unhandledRejection', (reason) => {
+  log(`[Apex] Rejeicao nao tratada: ${reason?.message || reason || 'sem detalhes'}`);
+});
 
 app.whenReady().then(async () => {
   const appRoot = getAppRoot();
@@ -214,6 +228,7 @@ app.whenReady().then(async () => {
         message: "Servidor local não foi encontrado no pacote. Abrindo a versão web de produção.",
         detail: "fallback=https://www.apexglobalai.com",
       }));
+      mainWindow.show();
       setTimeout(() => mainWindow?.loadURL("https://www.apexglobalai.com"), 1800);
     }
     return;
@@ -249,12 +264,15 @@ app.whenReady().then(async () => {
   if (mainWindow) {
     if (ready) {
       mainWindow.loadURL(`http://127.0.0.1:${APP_PORT}/`);
+      mainWindow.show(); // garante exibicao apos navegacao
     } else {
       mainWindow.loadURL(startupHtml({
         title: "Erro ao Iniciar o Servidor Local",
         message: "O servidor da plataforma demorou muito para responder (timeout de 60s). Isso pode ocorrer se alguma porta (3333, 8888) já estiver em uso, se houver um erro no código-fonte, ou se as permissões estiverem bloqueando a execução.",
         detail: `Por favor, verifique o arquivo de log em: ${logPath()}`,
+      mainWindow.show(); // garante que o usuario veja a msg de erro
       }));
+      mainWindow.show(); // garante que o usuario veja a msg de erro
       // setTimeout(() => mainWindow?.loadURL("https://www.apexglobalai.com"), 2200);
     }
   }

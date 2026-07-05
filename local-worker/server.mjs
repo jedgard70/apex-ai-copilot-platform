@@ -1152,7 +1152,7 @@ async function freezeExecution(taskId, description) {
   return new Promise((resolve) => {
     console.log(`\n⚠️ [HITL] Execução PAUSADA (Task: ${taskId}). Aguardando aprovação humana...`)
     console.log(`Descrição: ${description}`)
-    
+
     pendingApprovals.set(taskId, {
       description,
       resolve,
@@ -1239,39 +1239,39 @@ async function handleRequest(req, res) {
     })
   }
 
-// ──────────────── FILA DE RENDERIZAÇÃO NATIVA ─────────────────────────────
-const renderQueue = []
-let isRendering = false
+  // ──────────────── FILA DE RENDERIZAÇÃO NATIVA ─────────────────────────────
+  const renderQueue = []
+  let isRendering = false
 
-async function processRenderQueue() {
-  if (isRendering || renderQueue.length === 0) return
-  isRendering = true
+  async function processRenderQueue() {
+    if (isRendering || renderQueue.length === 0) return
+    isRendering = true
 
-  const task = renderQueue.shift()
-  console.log(`\n🎬 [Render Queue] Iniciando renderização do vídeo: ${task.nomeArquivo}`)
+    const task = renderQueue.shift()
+    console.log(`\n🎬 [Render Queue] Iniciando renderização do vídeo: ${task.nomeArquivo}`)
 
-  try {
-    const { exec } = await import('node:child_process')
-    const util = await import('node:util')
-    const execAsync = util.promisify(exec)
+    try {
+      const { exec } = await import('node:child_process')
+      const util = await import('node:util')
+      const execAsync = util.promisify(exec)
 
-    // await execAsync(`blender --background --python ${task.scriptPath}`)
-    await new Promise(res => setTimeout(res, 5000))
-    console.log(`✅ [Render Queue] Renderização de ${task.nomeArquivo} concluída!`)
+      // await execAsync(`blender --background --python ${task.scriptPath}`)
+      await new Promise(res => setTimeout(res, 5000))
+      console.log(`✅ [Render Queue] Renderização de ${task.nomeArquivo} concluída!`)
 
-    if (task.telefone) {
-      await enviarParaCliente(task.telefone, `Seu vídeo animado ${task.nomeArquivo} acabou de renderizar!`)
+      if (task.telefone) {
+        await enviarParaCliente(task.telefone, `Seu vídeo animado ${task.nomeArquivo} acabou de renderizar!`)
+      }
+
+    } catch (error) {
+      console.error(`❌ [Render Queue] Erro ao renderizar ${task.nomeArquivo}:`, error)
+    } finally {
+      isRendering = false
+      processRenderQueue()
     }
-
-  } catch (error) {
-    console.error(`❌ [Render Queue] Erro ao renderizar ${task.nomeArquivo}:`, error)
-  } finally {
-    isRendering = false
-    processRenderQueue()
   }
-}
 
-// ── POST /render/enqueue ───────────────────────────────────────────────────────────
+  // ── POST /render/enqueue ───────────────────────────────────────────────────────────
   if (req.method === 'POST' && path === '/render/enqueue') {
     const auth = checkAuth(req)
     if (!auth.ok) return sendJson(res, auth.status, { ok: false, reason: auth.reason })
@@ -1291,7 +1291,7 @@ async function processRenderQueue() {
     }
   }
 
-// ── POST /whatsapp/send ────────────────────────────────────────────────────────────
+  // ── POST /whatsapp/send ────────────────────────────────────────────────────────────
   if (req.method === 'POST' && path === '/whatsapp/send') {
     const auth = checkAuth(req)
     if (!auth.ok) return sendJson(res, auth.status, { ok: false, reason: auth.reason })
@@ -1308,7 +1308,7 @@ async function processRenderQueue() {
     }
   }
 
-// ── POST /novo-projeto ────────────────────────────────────────────────────────────
+  // ── POST /novo-projeto ────────────────────────────────────────────────────────────
   if (req.method === 'POST' && path === '/novo-projeto') {
     res.setHeader('Access-Control-Allow-Origin', '*')
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
@@ -1320,7 +1320,7 @@ async function processRenderQueue() {
       if (!descricao || !telefoneCliente) return sendJson(res, 400, { ok: false, reason: 'descricao e telefoneCliente são obrigatórios.' })
 
       console.log(`\n📦 Novo projeto recebido: ${descricao}`)
-      
+
       const { createClient } = await import('@supabase/supabase-js')
       const supabase = createClient(process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL, process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY)
 
@@ -1344,10 +1344,10 @@ async function processRenderQueue() {
             vendedor_id: vendedor_id,
             valor_comissao: valorComissao
           })
-        
+
         console.log(`💰 Comissão de R$ ${valorComissao} gerada para ${vendedor_id}`)
         const { data: vendedor } = await supabase.from('usuarios').select('telefone, nome').eq('id', vendedor_id).single()
-        
+
         if (vendedor?.telefone) {
           const mensagem = `🎉 Olá *${vendedor.nome}*! Excelente notícia!\n\nO cliente que você indicou acabou de aprovar o orçamento para: *${descricao}*.\n\nSua comissão de *R$ ${valorComissao}* já foi garantida e registrada no seu painel. Continue acelerando as vendas! 🚀🏗️`
           await enviarParaCliente(vendedor.telefone, mensagem)
@@ -1363,11 +1363,11 @@ async function processRenderQueue() {
   // ── POST /webhook/social-metrics ──────────────────────────────────────────
   if (req.method === 'POST' && path === '/webhook/social-metrics') {
     res.setHeader('Access-Control-Allow-Origin', '*')
-    
+
     try {
       const body = await readBody(req)
       const { platform, views, hookUsado, mediaUrl } = body
-      
+
       console.log(`\n📈 [Social Webhook] Pico detectado no ${platform || 'Instagram'}! Visualizações: ${views}`)
 
       if (views >= 10000) {
@@ -1455,8 +1455,12 @@ async function processRenderQueue() {
       }
     }
 
-    const reply = 'Apex AI 2.0 esta ativa em modo controlado. Posso analisar, planejar e preparar a execucao com seguranca; acoes de escrita exigem confirmacao explicita.'
-    return sendJson(res, 200, { ok: true, provider: 'apex-ai-controlled', model: 'apex-ai', finalReply: reply, reply })
+    // Nenhum engine disponivel — retorna 502 para que o caller (chat.mjs) possa fallback ao Gemini
+    return sendJson(res, 502, {
+      ok: false,
+      reason: 'Apex Own Engine nao disponivel — use Gemini como fallback',
+      provider: 'apex-ai-unavailable',
+    })
   }
 
   // ── GET /ai/status ────────────────────────────────────────────────────────
