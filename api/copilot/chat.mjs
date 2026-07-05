@@ -444,7 +444,11 @@ function isCodeExecutionQuestionText(text = '') {
 }
 
 function isConnectorOrApiQuestionText(text = '') {
-  return /\b(api apex|apex api|api key|escopos|scopes|billing|usage|meter|revit|bim|hotmart|auto[- ]?fix|auto[- ]?upgrade|personal assistant|trip planner|vistos|ir-5|military|pip|conector|connector)\b/i.test(String(text || ''))
+  // "vistos" removido daqui: colidia com isVisaQuestionText() e fazia
+  // perguntas reais sobre vistos (ex: "vistos americanos") caírem numa
+  // resposta genérica de "operação da plataforma Apex" em vez da resposta
+  // específica sobre vistos.
+  return /\b(api apex|apex api|api key|escopos|scopes|billing|usage|meter|revit|bim|hotmart|auto[- ]?fix|auto[- ]?upgrade|personal assistant|trip planner|ir-5|military|pip|conector|connector)\b/i.test(String(text || ''))
 }
 
 function buildChatFallbackReply(userText, identity, file = null, locale = '') {
@@ -2375,11 +2379,14 @@ export default async function handler(req, res) {
           const engineToken = process.env.APEX_API_TOKEN || process.env.LOCAL_WORKER_TOKEN || ''
           const headers = { 'Content-Type': 'application/json' }
           if (engineToken) headers.Authorization = `Bearer ${engineToken}`
+          // Timeout curto (6s): se o motor local não responder rapido, cai
+          // para o proximo motor/Gemini em vez de travar o usuario por 30s
+          // por tentativa (ate 90s de espera com 3 URLs configuradas).
           const engineRes = await fetch(`${String(engineUrl).replace(/\/$/, '')}/ai/chat`, {
             method: 'POST',
             headers,
             body: JSON.stringify({ model: model || 'apex-ai', messages: apexMessages }),
-            signal: AbortSignal.timeout(30000),
+            signal: AbortSignal.timeout(6000),
           })
           if (engineRes.ok) {
             const engineData = await engineRes.json().catch(() => ({}))
@@ -2421,7 +2428,7 @@ export default async function handler(req, res) {
               ],
               model: 'apex-ai',
             }),
-            signal: AbortSignal.timeout(30000),
+            signal: AbortSignal.timeout(6000),
           })
           if (lwRes.ok) {
             const lwData = await lwRes.json()
@@ -2442,16 +2449,28 @@ export default async function handler(req, res) {
       }
 
       // ── Motor Apex indisponivel ~ fallback transparente para Gemini ──────
+      // Usa o MESMO pipeline completo de tool-calling (callGeminiNative +
+      // buildLiveAgentToolDefinitions) que o provider "gemini" usa, em vez de
+      // uma chamada simples sem ferramentas. Isso garante que a Apex AI
+      // continue com acesso a todos os módulos/ferramentas da plataforma
+      // mesmo quando o motor próprio local está fora do ar.
       const geminiApiKey = process.env.GEMINI_API_KEY
       if (geminiApiKey) {
         try {
-          const geminiResult = await callGeminiChat('gemini-3.5-flash', [
-            { role: 'system', content: 'Você é a Apex AI, plataforma profissional de arquitetura, construção, BIM, orçamentos, marketing e gestão. Responda em português, de forma técnica e direta, sem inventar dados ou integrações que não existem.' },
-            ...(Array.isArray(body.messages) ? body.messages.slice(-10) : []),
-            { role: 'user', content: userMessage },
-          ], geminiApiKey)
-          if (geminiResult.response.ok) {
-            const reply = geminiResult.data.choices?.[0]?.message?.content || ''
+          const nativeResult = await callGeminiNative({
+            model: 'gemini-3.5-flash',
+            messages: [
+              { role: 'system', content: 'Você é a Apex AI, plataforma profissional de arquitetura, construção, BIM, orçamentos, marketing e gestão. Responda em português, de forma técnica e direta, sem inventar dados ou integrações que não existem.' },
+              ...(Array.isArray(body.messages) ? body.messages.slice(-10) : []),
+              { role: 'user', content: userMessage },
+            ],
+            tools: buildLiveAgentToolDefinitions(),
+            tool_choice: 'auto',
+            temperature: 0.72,
+            max_tokens: 900,
+          }, { apiKey: geminiApiKey })
+          if (nativeResult.response.ok) {
+            const reply = nativeResult.data.choices?.[0]?.message?.content || ''
             if (reply) {
               recordCallSafe({ provider: 'apex-local-gemini-fallback', model: 'gemini-3.5-flash', latencyMs: Date.now() - t0, success: true })
               return sendJson(res, 200, {
@@ -2464,7 +2483,36 @@ export default async function handler(req, res) {
               })
             }
           }
-        } catch (_) { /* Gemini fallback também falhou */ }
+        } catch (_) { /* Gemini native fallback também falhou, tenta multi-provider abaixo */ }
+
+        // Multi-provider fallback (Gemini variantes, FAL, etc) antes de desistir
+        try {
+          const { chatWithFallback: autoFallback } = await import('../../server/providers/providerRouter.mjs')
+          const fbResult = await autoFallback({
+            messages: [
+              { role: 'system', content: 'Você é a Apex AI, plataforma profissional de arquitetura, construção, BIM, orçamentos, marketing e gestão. Responda em português, de forma técnica e direta.' },
+              ...(Array.isArray(body.messages) ? body.messages.slice(-10) : []),
+              { role: 'user', content: userMessage },
+            ],
+            tools: buildLiveAgentToolDefinitions(),
+            temperature: 0.72,
+            maxTokens: 900,
+          })
+          if (fbResult.ok) {
+            const fbReply = fbResult.data?.choices?.[0]?.message?.content || ''
+            if (fbReply) {
+              recordCallSafe({ provider: fbResult.provider || 'apex-local-multi-fallback', model: fbResult.data?.model || 'gemini-3.5-flash', latencyMs: Date.now() - t0, success: true })
+              return sendJson(res, 200, {
+                finalReply: fbReply,
+                reply: fbReply,
+                mode: 'apex-local-multi-fallback',
+                provider: fbResult.provider || 'apex-local (fallback)',
+                confirmation: null,
+                productionStatus,
+              })
+            }
+          }
+        } catch (_) { /* multi-provider fallback também esgotado */ }
       }
 
       // Nenhum motor disponivel: resposta conversacional amigavel
