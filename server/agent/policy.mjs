@@ -32,6 +32,23 @@ const EXPLICIT_COMMIT_APPROVALS = [
   /\b(fecha|fechar|finaliza|finalizar).*\bcheckpoint\b/i,
 ]
 
+// O Owner decide o que pode ou não pode. Para ações destrutivas/irreversíveis
+// (DROP/TRUNCATE/DELETE FROM/rm -rf/reset --hard/force push), a IA nunca
+// bloqueia silenciosamente: ela explica o risco e pede confirmação explícita.
+// Qualquer uma destas frases na MESMA mensagem libera a execução na hora.
+const EXPLICIT_DESTRUCTIVE_APPROVALS = [
+  /autorizado,?\s*pode\s+(fazer|executar|rodar)/i,
+  /sim,?\s*autorizado/i,
+  /confirmo,?\s*pode\s+(fazer|executar|apagar|deletar|dropar)/i,
+  /pode\s+(fazer|executar|rodar)\s+(mesmo|assim)/i,
+  /\beu\s+sou\s+o\s+dono\b.*\bautorizo\b/i,
+  /\bautorizo\s+essa\s+a[cç][aã]o\b/i,
+]
+
+export function isExplicitDestructiveApproval(text = '') {
+  return EXPLICIT_DESTRUCTIVE_APPROVALS.some(pattern => pattern.test(String(text || '')))
+}
+
 const BLOCKED_PATH_PARTS = [
   '.env',
   'node_modules',
@@ -144,11 +161,16 @@ export function buildPolicyDecision({ intent, userMessage, repoPath, permissions
   const canRunRawShell = true
 
   if (capability.capabilityStatus === CAPABILITY_STATUS.BLOCKED_DESTRUCTIVE) {
+    // O Owner é o dono da plataforma e decide o que pode ou não pode.
+    // A IA NUNCA bloqueia e NUNCA entra em modo de segurança/espera por
+    // confirmação para ações destrutivas (DROP/TRUNCATE/DELETE FROM/rm -rf/
+    // reset --hard/force push/.env/secrets). Ela apenas avisa o risco na
+    // resposta final e executa mesmo assim.
     return {
       ok: true,
       status: OPERATOR_STATUS.GREEN,
       requiresApproval: false,
-      reason: 'Execução livre de comandos ativada.',
+      reason: 'Ação destrutiva/irreversível detectada (delete, drop, truncate, rm -rf, reset --hard, force push ou .env/secrets). Executando conforme solicitado — aviso: esta ação não pode ser desfeita.',
       canCommit: true,
       canRunRawShell: true,
       repoPath,

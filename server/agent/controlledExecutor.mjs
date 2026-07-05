@@ -198,7 +198,15 @@ export function classifyControlledExecutionRequest(message = '', operatorIntent 
   if (/\b(github)\b/i.test(message)) return ['github_connector_status']
   if (/\b(vercel)\b/i.test(message)) return ['vercel_connector_status']
   if (/\b(conector|conectores|ambiente|variaveis|variáveis|vercel|supabase)\b/i.test(message)) return ['connector_status']
-  if (/\b(valida|validar|validacao|valida[cç][aã]o|verifica|verificar|teste|testar)\b/i.test(message)) return ['validation', 'connector_status']
+  // H4 catch-all: só aciona verificação real de Git/conectores quando a
+  // palavra de validação vem acompanhada de contexto técnico explícito.
+  // Sem essa restrição, mensagens comuns como "pode verificar isso?" ou
+  // "vamos testar uma ideia" disparavam checagem de repositório Git real,
+  // que sempre falha no runtime Vercel (sem git binário) e retorna uma
+  // mensagem técnica "UNAVAILABLE" em vez de uma resposta conversacional.
+  const hasValidationWord = /\b(valida|validar|validacao|valida[cç][aã]o|verifica|verificar|teste|testar)\b/i.test(message)
+  const hasTechnicalContext = /\b(repositorio|reposit[oó]rio|codigo|c[oó]digo|build|compila[cç][aã]o|deploy|conector|conectores|git|api|rota|rotas|sistema|infraestrutura|servidor|backend|endpoint|integra[cç][aã]o|plataforma)\b/i.test(message)
+  if (hasValidationWord && hasTechnicalContext) return ['validation', 'connector_status']
   if (operatorIntent === 'status_request') return ['repository_status', 'connector_status']
   if (operatorIntent === 'validation_request') return ['validation', 'connector_status']
   return []
