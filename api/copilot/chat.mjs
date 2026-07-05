@@ -392,7 +392,7 @@ function shouldForceLiveAgentToolUse(text = '') {
     return false
   }
 
-  return /\b(implementar|corrigir|editar|alterar|ajustar|criar|gerar|build|testar|validar|commit|push|deploy|migration|supabase|vercel|github|executar|execute|rodar|run|aplicar|verificar|checar|revisar|revisao|auditar|auditoria|atualizar|codigo|arquivo|arquivos|repositorio|modulo|modulos|integracao|mostrar|mostra|ver|analisar|analise|mcp|conector|conectores|git|status|branch|projeto|plataforma|habilidade|habilidades|capacidade|capacidades|fazer|faz)\b/.test(value)
+  return /\b(implementar|corrigir|editar|alterar|ajustar|criar|gerar|build|testar|validar|commit|push|deploy|migration|supabase|vercel|github|executar|execute|rodar|run|aplicar|verificar|checar|revisar|revisao|auditar|auditoria|atualizar|codigo|arquivo|arquivos|repositorio|modulo|modulos|integracao|mostrar|mostra|ver|analisar|analise|mcp|conector|conectores|git|status|branch|projeto|plataforma|habilidade|habilidades|capacidade|capacidades|fazer|faz|chame|chamo|nome)\b/.test(value)
 }
 
 function isVercelRuntime() {
@@ -1803,8 +1803,28 @@ function normalizeIdentityContext(value = {}) {
 }
 
 async function readJsonBody(req) {
-  // ⚠️ NUNCA acessar req.body — o Rust runtime da Vercel tem um getter
-  // que LANÇA ERRO se o JSON for inválido. Usar SEMPRE ondata.
+  // ⚠️ NUNCA acessar req.body direto — o Rust runtime da Vercel tem um getter
+  // que LANÇA ERRO se o JSON for inválido. Preferir SEMPRE ondata.
+  //
+  // Mas se req já veio com body parsed (ex: invocação direta sem passar
+  // pelo runtime Vercel), usamos ele como fallback para evitar depender
+  // de EventEmitter que pode não existir no objeto.
+  if (typeof req.on !== 'function') {
+    // Contexto sem stream (in-memory, script, teste real, etc.)
+    try {
+      if (typeof req.body === 'string') return JSON.parse(req.body) || {}
+      if (req.body && typeof req.body === 'object') return req.body
+    } catch (_) {
+      // Se body getter lançar (ex: Vercel em modo parcial), ignora
+    }
+    // Se body for inválido ou não existir, tenta readable web stream
+    if (typeof req.body === 'object' && typeof req.body?.getReader === 'function') {
+      return readWebStream(req.body)
+    }
+    return {}
+  }
+
+  // Contexto com stream EventEmitter (runtime Vercel, Node http.IncomingMessage, Express)
   return await new Promise((resolve) => {
     const chunks = []
     let settled = false
@@ -1819,7 +1839,7 @@ async function readJsonBody(req) {
       if (settled) return
       settled = true
 
-      // Tenta concatener chunks do stream
+      // Tenta concatenar chunks do stream
       if (chunks.length) {
         try {
           const json = JSON.parse(Buffer.concat(chunks).toString('utf8'))
@@ -1840,6 +1860,23 @@ async function readJsonBody(req) {
       if (!settled) { settled = true; resolve({}) }
     }, 8000)
   })
+}
+
+// Lê um ReadableStream web (ex: fetch API, runtime moderno)
+async function readWebStream(stream) {
+  try {
+    const reader = stream.getReader()
+    const decoder = new TextDecoder()
+    let result = ''
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      result += decoder.decode(value, { stream: true })
+    }
+    result += decoder.decode()
+    if (result.trim()) return JSON.parse(result) || {}
+  } catch (_) { }
+  return {}
 }
 
 // Build confirmation UI metadata for frontend buttons
@@ -1996,7 +2033,7 @@ export default async function handler(req, res) {
     )
     const looksLikeDocSummary = hasReadyText && PDF_SUMMARY_PATTERN.test(routingMessage || '')
 
-    const locale = body.language || body.locale || req.headers['accept-language'] || ''
+    const locale = body.language || body.locale || req.headers?.['accept-language'] || ''
 
     // Fast-path: AI identity question
     const aiIdentityReply = buildAIIdentityReply(userMessage, locale)

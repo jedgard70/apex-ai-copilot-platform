@@ -251,6 +251,34 @@ export async function renderVideoPayload(payload = {}) {
       }
     }
 
+    // Pré-verificação real: detecta se algum provider de render está disponível
+    // antes de tentar executar e cair no catch com 500.
+    let hasFfmpeg = false
+    try {
+      const ffmpegPath = require('ffmpeg-static')
+      // Verifica se o binário realmente existe no disco (ffmpeg-static pode
+      // resolver um caminho mas o .exe pode não estar presente).
+      if (ffmpegPath) {
+        await fs.access(ffmpegPath)
+        hasFfmpeg = true
+      }
+    } catch (_) { /* ffmpeg-static não instalado ou binário ausente */ }
+
+    const hasFalKey = !!process.env.FAL_KEY
+    const hasAiGateway = !!process.env.AI_GATEWAY_API_KEY
+    const hasMediaConvert = !!(
+      process.env.MEDIACONVERT_ENDPOINT
+      && process.env.MEDIACONVERT_ROLE_ARN
+      && process.env.DIRECTCUT_S3_OUTPUT_URI
+    )
+
+    if (!hasFfmpeg && !hasFalKey && !hasAiGateway && !hasMediaConvert) {
+      return {
+        providerStatus: 'blocked',
+        message: 'Nenhum provider de render disponível. ffmpeg-static não encontrado, FAL_KEY não definido, AI_GATEWAY_API_KEY não definido, e MediaConvert não configurado.',
+      }
+    }
+
     if (process.env.FAL_KEY) {
       const falResult = await generateWithFal({
         modelId: model,
@@ -281,7 +309,16 @@ export async function renderVideoPayload(payload = {}) {
     const mediaConvertResult = await queueMediaConvertJob({ duration, aspectRatio, sourceS3Uri })
     if (mediaConvertResult) return mediaConvertResult
 
-    return await renderWithFfmpeg({ sourceImageDataUrl: sourceImageDataUrl || finalImageDataUrl, duration, aspectRatio, finalImageDataUrl: sourceImageDataUrl && finalImageDataUrl ? finalImageDataUrl : undefined })
+    // Último recurso: FFmpeg local. Se falhar (binário ausente, etc.),
+    // retorna blocked em vez de error para evitar HTTP 500.
+    try {
+      return await renderWithFfmpeg({ sourceImageDataUrl: sourceImageDataUrl || finalImageDataUrl, duration, aspectRatio, finalImageDataUrl: sourceImageDataUrl && finalImageDataUrl ? finalImageDataUrl : undefined })
+    } catch (ffmpegError) {
+      return {
+        providerStatus: 'blocked',
+        message: `FFmpeg local indisponível: ${scrubError(ffmpegError?.message || ffmpegError)}. Nenhum provider de render conseguiu processar.`,
+      }
+    }
   } catch (error) {
     return {
       providerStatus: 'error',

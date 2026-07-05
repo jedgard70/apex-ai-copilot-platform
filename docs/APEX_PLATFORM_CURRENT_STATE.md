@@ -9,7 +9,7 @@ Last update: 2026-06-26 (11:50)
 
 ## Canonical rule
 
-The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.md` for execution tracking and `docs/APEX_MODULE_INVENTORY_REPORT.md` for the full capability inventory.
+The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.md` for execution tracking and `docs/apex_acip_master_architecture.md` for the full capability inventory.
 
 ## Executive status
 
@@ -179,7 +179,7 @@ e reportada ao Owner. Esta regra está documentada em:
 | `VITE_SUPABASE_ANON_KEY` | Supabase client |
 | `STRIPE_SECRET_KEY` | Stripe payments |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook |
-| `TAVILY_API_KEY` | Web research |
+| `Bravo_API_KEY` | Web research |
 | `GITHUB_TOKEN` | GitHub API |
 | `VERCEL_TOKEN` | Vercel API |
 | `VERCEL_PROJECT_ID` | Vercel project |
