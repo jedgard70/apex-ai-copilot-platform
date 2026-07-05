@@ -1509,7 +1509,7 @@ server.on('error', err => {
 
 import { initGoogleAuth } from './google.mjs'
 
-initWhatsApp()
+// initWhatsApp() // TODO: implement WhatsApp integration
 initGoogleAuth(PROJECT_PATH)
 
 server.listen(PORT, '127.0.0.1', () => {
