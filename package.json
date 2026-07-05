@@ -116,6 +116,9 @@
     "buildDependenciesFromSource": false,
     "asar": false,
     "files": [
+      "!**/*.test.*",
+      "!**/*.spec.*",
+      "!**/__tests__/**",
       "dist_electron/**/*",
       "dist/**/*",
       "api/**/*",
@@ -143,11 +146,6 @@
     }
   },
   "description": "Clean rebuild of the Apex AI Copilot platform.",
-  "directories": {
-    "doc": "docs",
-    "example": "examples",
-    "lib": "lib"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jedgard70/apex-ai-copilot-platform.git"
