@@ -235,11 +235,12 @@ export async function chatWithFallback(params) {
           }
           let apiModel = model
           if (apiModel.startsWith('gemini-3.')) {
-            if (apiModel.includes('flash-lite')) apiModel = 'gemini-2.5-flash-lite'
-            else if (apiModel.includes('pro')) apiModel = 'gemini-2.5-pro'
-            else apiModel = 'gemini-2.5-flash'
+            if (apiModel.includes('flash-8b')) apiModel = 'gemini-1.5-flash-8b'
+            else if (apiModel.includes('flash-lite')) apiModel = 'gemini-1.5-flash-8b'
+            else if (apiModel.includes('pro')) apiModel = 'gemini-1.5-pro'
+            else apiModel = 'gemini-1.5-flash'
           } else if (apiModel.startsWith('gemini-3-')) {
-            apiModel = apiModel.includes('pro') ? 'gemini-2.5-pro' : 'gemini-2.5-flash'
+            apiModel = apiModel.includes('pro') ? 'gemini-1.5-pro' : 'gemini-1.5-flash'
           }
           const headers = { 'X-goog-api-key': provider.apiKey, 'Content-Type': 'application/json' }
           response = await fetch(`${provider.baseUrl}/models/${apiModel}:generateContent`, {

@@ -1312,11 +1312,12 @@ async function callGeminiNative(requestPayload, overrideConfig) {
   const providerLabel = 'gemini'
   let modelName = requestPayload.model || 'unknown'
   if (modelName.startsWith('gemini-3.')) {
-    if (modelName.includes('flash-lite')) modelName = 'gemini-2.5-flash-lite'
-    else if (modelName.includes('pro')) modelName = 'gemini-2.5-pro'
-    else modelName = 'gemini-2.5-flash'
+    if (modelName.includes('flash-8b')) modelName = 'gemini-1.5-flash-8b'
+    else if (modelName.includes('flash-lite')) modelName = 'gemini-1.5-flash-8b'
+    else if (modelName.includes('pro')) modelName = 'gemini-1.5-pro'
+    else modelName = 'gemini-1.5-flash'
   } else if (modelName.startsWith('gemini-3-')) {
-    modelName = modelName.includes('pro') ? 'gemini-2.5-pro' : 'gemini-2.5-flash'
+    modelName = modelName.includes('pro') ? 'gemini-1.5-pro' : 'gemini-1.5-flash'
   }
   
   const isLegacyUrl = rawApiBase && (rawApiBase.includes('/models/') || rawApiBase.includes(':generateContent'))
