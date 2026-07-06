@@ -40,7 +40,7 @@ export function buildProjectPackage(data) {
     checks: [
       { label: 'briefing', value: profile.brief ? 'saved in workspace' : 'missing', status: profile.brief ? 'READY' : 'PARTIAL' },
       { label: 'project type', value: profile.projectType || 'missing', status: profile.projectType ? 'READY' : 'PARTIAL' },
-      { label: 'files', value: `${files.length} file(s) / kinds: ${fileKinds.join(', ') || 'none'}`, status: files.length ? 'READY' : 'BLOCKED' },
+      { label: 'files', value: `${files.length} file(s) / kinds: ${fileKinds.join(', ') || 'none'}`, status: files.length ? 'READY' : 'MISSING' },
     ],
     summary: files.length
       ? 'Apex can structure the review package, board narrative and drawing handoff from the current workspace evidence.'

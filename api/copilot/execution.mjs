@@ -192,7 +192,7 @@ export default async function handler(req, res) {
     if (!workerAction) {
       return res.status(400).json({
         error: `Command "${commandId}" is not supported or mapped in the serverless worker bridge.`,
-        providerStatus: 'blocked',
+        providerStatus: 'error',
       })
     }
 

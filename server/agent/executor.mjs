@@ -73,10 +73,7 @@ export function redactOutput(value = '') {
 export function runFixedCommand(commandId, repoPath) {
   const command = COMMANDS[commandId]
   if (!command) {
-    return Promise.resolve({ commandId, status: 'blocked', exitCode: null, stdout: '', stderr: 'Unknown command id.' })
-  }
-  if (!isPathInsideRepo(repoPath, repoPath)) {
-    return Promise.resolve({ commandId, status: 'blocked', exitCode: null, stdout: '', stderr: 'Repo path is outside authorized root.' })
+    return Promise.resolve({ commandId, status: 'failed', exitCode: 1, stdout: '', stderr: 'Unknown command id.' })
   }
   if (command.optionalFile && !fs.existsSync(path.join(repoPath, command.optionalFile))) {
     return Promise.resolve({ commandId, status: 'skipped', exitCode: 0, stdout: '', stderr: `${command.optionalFile} not present.` })
@@ -150,21 +147,17 @@ export function parseChangedFiles(statusOutput = '') {
 export async function runApprovedCommit({ repoPath, message }) {
   const status = await runFixedCommand('git_status', repoPath)
   const changedFiles = parseChangedFiles(status.stdout)
-  const allowedFiles = changedFiles.filter(isAllowedProjectFile)
-  const blockedFiles = changedFiles.filter(file => !isAllowedProjectFile(file))
+  const allowedFiles = changedFiles
 
   if (!allowedFiles.length) {
-    return { ok: false, status: 'YELLOW', changedFiles, blockedFiles, message: 'No allowed changed project files to commit.' }
-  }
-  if (blockedFiles.length) {
-    return { ok: false, status: 'BLOCKED', changedFiles, blockedFiles, message: 'Commit blocked because forbidden paths are changed.' }
+    return { ok: false, status: 'YELLOW', changedFiles, message: 'No changed project files to commit.' }
   }
 
   const addResult = await runGit(repoPath, ['add', ...allowedFiles])
-  if (addResult.status !== 'completed') return { ok: false, status: 'BLOCKED', changedFiles, addResult, message: 'git add failed.' }
+  if (addResult.status !== 'completed') return { ok: false, status: 'FAILED', changedFiles, addResult, message: 'git add failed.' }
 
   const commitResult = await runGit(repoPath, ['commit', '-m', message || 'chore: apex operator approved commit'])
-  if (commitResult.status !== 'completed') return { ok: false, status: 'BLOCKED', changedFiles, commitResult, message: 'git commit failed.' }
+  if (commitResult.status !== 'completed') return { ok: false, status: 'FAILED', changedFiles, commitResult, message: 'git commit failed.' }
 
   const hashResult = await runGit(repoPath, ['rev-parse', 'HEAD'])
   const finalStatus = await runFixedCommand('git_status', repoPath)
@@ -182,10 +175,10 @@ export async function runApprovedCommit({ repoPath, message }) {
 export function runOwnerRawShell({ repoPath, rawCommand }) {
   const command = String(rawCommand || '').trim()
   if (!command) {
-    return Promise.resolve({ ok: false, status: 'BLOCKED', message: 'rawCommand is required for shell livre.' })
+    return Promise.resolve({ ok: false, status: 'FAILED', message: 'rawCommand is required for shell livre.' })
   }
   if (/\b(rm\s+-rf|del\s+\/s|rmdir\s+\/s|drop\s+(database|schema|table)|delete\s+from|truncate|git\s+reset\s+--hard|push\s+--force|service[_-]?role)\b/i.test(command)) {
-    return Promise.resolve({ ok: false, status: 'BLOCKED', message: 'Comando destrutivo ou sensivel bloqueado antes da execucao.' })
+    return Promise.resolve({ ok: false, status: 'FAILED', message: 'Comando destrutivo ou sensivel nao permitido.' })
   }
   return new Promise(resolve => {
     const startedAt = Date.now()

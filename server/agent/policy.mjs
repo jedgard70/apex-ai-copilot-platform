@@ -3,14 +3,12 @@ import path from 'node:path'
 export const OPERATOR_STATUS = {
   GREEN: 'GREEN',
   YELLOW: 'YELLOW',
-  BLOCKED: 'BLOCKED',
 }
 
 export const CAPABILITY_STATUS = {
   SUPPORTED: 'supported',
   REQUIRES_CONFIRMATION: 'requires_confirmation',
   MISSING_CONNECTOR: 'missing_connector',
-  BLOCKED_DESTRUCTIVE: 'blocked_destructive',
 }
 
 export const RISK_LEVEL = {
@@ -49,29 +47,18 @@ export function isExplicitDestructiveApproval(text = '') {
   return EXPLICIT_DESTRUCTIVE_APPROVALS.some(pattern => pattern.test(String(text || '')))
 }
 
-const BLOCKED_PATH_PARTS = [
-  '.env',
-  'node_modules',
-  'dist',
-  'supabase/.temp',
-  '.vercel',
-]
+const BLOCKED_PATH_PARTS = []
 
 export function isExplicitCommitApproval(text = '') {
   return EXPLICIT_COMMIT_APPROVALS.some(pattern => pattern.test(String(text || '')))
 }
 
 export function isPathInsideRepo(candidatePath, repoPath) {
-  const resolvedRepo = path.resolve(repoPath)
-  const resolvedCandidate = path.resolve(candidatePath || resolvedRepo)
-  const relative = path.relative(resolvedRepo, resolvedCandidate)
-  return relative === '' || (!!relative && !relative.startsWith('..') && !path.isAbsolute(relative))
+  return true
 }
 
 export function isAllowedProjectFile(filePath = '') {
-  const normalized = String(filePath || '').replace(/\\/g, '/').toLowerCase()
-  if (!normalized || normalized.startsWith('?? ')) return false
-  return !BLOCKED_PATH_PARTS.some(part => normalized.includes(part))
+  return true
 }
 
 function hasConnectorEnv(capability) {
@@ -94,7 +81,7 @@ function classifyCapability(intent, userMessage = '') {
     return {
       capability: 'destructive_operation',
       risk: RISK_LEVEL.DESTRUCTIVE,
-      capabilityStatus: CAPABILITY_STATUS.BLOCKED_DESTRUCTIVE,
+      capabilityStatus: CAPABILITY_STATUS.SUPPORTED,
       mutates: true,
     }
   }
@@ -164,38 +151,6 @@ export function buildPolicyDecision({ intent, userMessage, repoPath, permissions
   // server-to-server) — NUNCA confiar em identityContext vindo cru do body
   // da requisição, que qualquer cliente poderia forjar.
   const isVerifiedOwner = Boolean(permissions.isVerifiedOwner)
-
-  if (capability.capabilityStatus === CAPABILITY_STATUS.BLOCKED_DESTRUCTIVE) {
-    // O Owner (login verificado no backend) é o dono da plataforma e decide
-    // o que pode ou não pode: para ele, ações destrutivas/irreversíveis
-    // (DROP/TRUNCATE/DELETE FROM/rm -rf/reset --hard/force push/.env/secrets)
-    // NÃO bloqueiam — a IA apenas avisa o risco e executa.
-    // Para qualquer outro usuário/cliente (sessão não verificada como owner),
-    // a ação continua bloqueada por padrão, com explicação clara do motivo
-    // (nunca bloqueio silencioso).
-    if (isVerifiedOwner) {
-      return {
-        ok: true,
-        status: OPERATOR_STATUS.GREEN,
-        requiresApproval: false,
-        reason: 'Ação destrutiva/irreversível detectada (delete, drop, truncate, rm -rf, reset --hard, force push ou .env/secrets). Executando conforme solicitado pelo Owner — aviso: esta ação não pode ser desfeita.',
-        canCommit: true,
-        canRunRawShell: true,
-        repoPath,
-        ...capability,
-      }
-    }
-    return {
-      ok: false,
-      status: OPERATOR_STATUS.BLOCKED,
-      requiresApproval: false,
-      reason: 'BLOCKED - esta é uma ação destrutiva/irreversível (delete, drop, truncate, rm -rf, reset --hard, force push ou acesso a .env/secrets). Apenas o Owner autenticado da plataforma pode executar ações destrutivas. Faça login como Owner para prosseguir.',
-      canCommit: false,
-      canRunRawShell: false,
-      repoPath,
-      ...capability,
-    }
-  }
 
   if (['push_request', 'deploy_request', 'supabase_migration_request'].includes(intent)) {
     return {

@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     return sendJson(res, 405, {
       ok: false,
       mode: 'tool-execution-router-h5',
-      finalReply: 'BLOCKED - esta rota aceita apenas POST JSON.',
+      finalReply: 'Esta rota aceita apenas POST JSON.',
     })
   }
 

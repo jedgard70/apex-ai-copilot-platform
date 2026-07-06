@@ -13,7 +13,7 @@ export default async function handler(req, res) {
   const body = req.body && typeof req.body === 'object' ? req.body : {}
   const result = await renderVideoPayload(body)
   if (result.providerStatus === 'error') return sendJson(res, 500, result)
-  if (result.providerStatus === 'blocked') return sendJson(res, 403, result)
+  if (result.providerStatus === 'error') return sendJson(res, 400, result)
   return sendJson(res, 200, result)
 }
 

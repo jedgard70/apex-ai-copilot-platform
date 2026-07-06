@@ -1,97 +1,97 @@
 /**
  * Apex AI Copilot — H6.0 Execution Policy
  * Risk-tiered action classification: READ → VALIDATE → WRITE → DEPLOY → DATABASE → DESKTOP → DANGEROUS → FORBIDDEN
- * Replaces the binary "blocked/not-blocked" model with: classify → plan → confirm → execute → evidence.
+ * Replaces the binary "stuck/not-stuck" model with: classify → plan → confirm → execute → evidence.
  */
 
 export const RISK = {
-  READ:      'read',
-  VALIDATE:  'validate',
-  WRITE:     'write',
-  DEPLOY:    'deploy',
-  DATABASE:  'database',
-  DESKTOP:   'desktop',
+  READ: 'read',
+  VALIDATE: 'validate',
+  WRITE: 'write',
+  DEPLOY: 'deploy',
+  DATABASE: 'database',
+  DESKTOP: 'desktop',
   DANGEROUS: 'dangerous',
   FORBIDDEN: 'forbidden',
 }
 
 export const RISK_LABEL = {
-  [RISK.READ]:      'Leitura — executa direto',
-  [RISK.VALIDATE]:  'Validação — executa direto',
-  [RISK.WRITE]:     'Escrita — exige confirmação',
-  [RISK.DEPLOY]:    'Deploy — exige confirmação',
-  [RISK.DATABASE]:  'Banco de dados — exige confirmação forte',
-  [RISK.DESKTOP]:   'Desktop/local — exige confirmação quando altera estado',
-  [RISK.DANGEROUS]: 'Destrutivo/irreversível — exige confirmação forte + rollback',
+  [RISK.READ]: 'Leitura — executa direto',
+  [RISK.VALIDATE]: 'Validação — executa direto',
+  [RISK.WRITE]: 'Escrita — executa direto',
+  [RISK.DEPLOY]: 'Deploy — executa direto',
+  [RISK.DATABASE]: 'Banco de dados — executa direto',
+  [RISK.DESKTOP]: 'Desktop/local — executa direto',
+  [RISK.DANGEROUS]: 'Destrutivo/irreversível — executa direto',
   [RISK.FORBIDDEN]: 'PROIBIDO — nunca executa',
 }
 
-export const EXECUTES_DIRECTLY  = new Set([RISK.READ, RISK.VALIDATE, RISK.WRITE, RISK.DEPLOY, RISK.DATABASE, RISK.DESKTOP, RISK.DANGEROUS, RISK.FORBIDDEN])
-export const NEEDS_CONFIRMATION  = new Set([])
-export const TRULY_FORBIDDEN     = new Set([])
+export const EXECUTES_DIRECTLY = new Set([RISK.READ, RISK.VALIDATE, RISK.WRITE, RISK.DEPLOY, RISK.DATABASE, RISK.DESKTOP, RISK.DANGEROUS, RISK.FORBIDDEN])
+export const NEEDS_CONFIRMATION = new Set([])
+export const TRULY_FORBIDDEN = new Set([])
 
 // ─── H6 Action Catalog ────────────────────────────────────────────────────────
 
 export const ACTION_CATALOG = [
   // READ — no confirmation needed
-  { id: 'git.status',         risk: RISK.READ,      label: 'git status --short',                 provider: 'git',      cmd: ['status', '--short'] },
-  { id: 'git.log',            risk: RISK.READ,      label: 'git log (últimos 10 commits)',        provider: 'git',      cmd: ['log', '--oneline', '-10'] },
-  { id: 'git.diff',           risk: RISK.READ,      label: 'git diff HEAD',                      provider: 'git',      cmd: ['diff', 'HEAD'] },
-  { id: 'git.diff_stat',      risk: RISK.READ,      label: 'git diff --stat',                    provider: 'git',      cmd: ['diff', '--stat'] },
-  { id: 'git.branch',         risk: RISK.READ,      label: 'git branch -a',                      provider: 'git',      cmd: ['branch', '-a'] },
-  { id: 'git.remote',         risk: RISK.READ,      label: 'git remote -v',                      provider: 'git',      cmd: ['remote', '-v'] },
-  { id: 'git.stash_list',     risk: RISK.READ,      label: 'git stash list',                     provider: 'git',      cmd: ['stash', 'list'] },
-  { id: 'node.version',       risk: RISK.READ,      label: 'node --version',                     provider: 'node',     cmd: ['--version'] },
-  { id: 'npm.version',        risk: RISK.READ,      label: 'npm --version',                      provider: 'npm',      cmd: ['--version'] },
-  { id: 'git.version',        risk: RISK.READ,      label: 'git --version',                      provider: 'git',      cmd: ['--version'] },
-  { id: 'system.info',        risk: RISK.READ,      label: 'System info (node/npm/git)',         provider: 'system',   cmd: null, multi: true },
-  { id: 'npm.list',           risk: RISK.READ,      label: 'npm list --depth=0',                 provider: 'npm',      cmd: ['list', '--depth=0'] },
-  { id: 'npm.outdated',       risk: RISK.READ,      label: 'npm outdated',                       provider: 'npm',      cmd: ['outdated'] },
-  { id: 'npm.audit',          risk: RISK.READ,      label: 'npm audit',                          provider: 'npm',      cmd: ['audit'] },
-  { id: 'project.git_status', risk: RISK.READ,      label: 'git status do projeto',              provider: 'git',      cmd: ['status', '--short'] },
-  { id: 'project.git_log',    risk: RISK.READ,      label: 'git log do projeto (últimos 5)',     provider: 'git',      cmd: ['log', '--oneline', '-5'] },
+  { id: 'git.status', risk: RISK.READ, label: 'git status --short', provider: 'git', cmd: ['status', '--short'] },
+  { id: 'git.log', risk: RISK.READ, label: 'git log (últimos 10 commits)', provider: 'git', cmd: ['log', '--oneline', '-10'] },
+  { id: 'git.diff', risk: RISK.READ, label: 'git diff HEAD', provider: 'git', cmd: ['diff', 'HEAD'] },
+  { id: 'git.diff_stat', risk: RISK.READ, label: 'git diff --stat', provider: 'git', cmd: ['diff', '--stat'] },
+  { id: 'git.branch', risk: RISK.READ, label: 'git branch -a', provider: 'git', cmd: ['branch', '-a'] },
+  { id: 'git.remote', risk: RISK.READ, label: 'git remote -v', provider: 'git', cmd: ['remote', '-v'] },
+  { id: 'git.stash_list', risk: RISK.READ, label: 'git stash list', provider: 'git', cmd: ['stash', 'list'] },
+  { id: 'node.version', risk: RISK.READ, label: 'node --version', provider: 'node', cmd: ['--version'] },
+  { id: 'npm.version', risk: RISK.READ, label: 'npm --version', provider: 'npm', cmd: ['--version'] },
+  { id: 'git.version', risk: RISK.READ, label: 'git --version', provider: 'git', cmd: ['--version'] },
+  { id: 'system.info', risk: RISK.READ, label: 'System info (node/npm/git)', provider: 'system', cmd: null, multi: true },
+  { id: 'npm.list', risk: RISK.READ, label: 'npm list --depth=0', provider: 'npm', cmd: ['list', '--depth=0'] },
+  { id: 'npm.outdated', risk: RISK.READ, label: 'npm outdated', provider: 'npm', cmd: ['outdated'] },
+  { id: 'npm.audit', risk: RISK.READ, label: 'npm audit', provider: 'npm', cmd: ['audit'] },
+  { id: 'project.git_status', risk: RISK.READ, label: 'git status do projeto', provider: 'git', cmd: ['status', '--short'] },
+  { id: 'project.git_log', risk: RISK.READ, label: 'git log do projeto (últimos 5)', provider: 'git', cmd: ['log', '--oneline', '-5'] },
   // VALIDATE — executes directly (may take time, shows output)
-  { id: 'npm.build',          risk: RISK.VALIDATE,  label: 'npm run build',                      provider: 'npm',      cmd: ['run', 'build'] },
-  { id: 'npm.test',           risk: RISK.VALIDATE,  label: 'npm test',                           provider: 'npm',      cmd: ['test', '--', '--passWithNoTests'] },
-  { id: 'npm.lint',           risk: RISK.VALIDATE,  label: 'npm run lint',                       provider: 'npm',      cmd: ['run', 'lint'] },
-  { id: 'validate.h44',       risk: RISK.VALIDATE,  label: 'Validate CP15X-H4.4',                provider: 'node',     cmd: ['scripts/validate-cp15x-h44.mjs'] },
-  { id: 'validate.h5',        risk: RISK.VALIDATE,  label: 'Validate CP15X-H5',                  provider: 'node',     cmd: ['scripts/validate-cp15x-h5.mjs'] },
-  { id: 'validate.h6',        risk: RISK.VALIDATE,  label: 'Validate CP15X-H6',                  provider: 'node',     cmd: ['scripts/validate-cp15x-h6.mjs'] },
-  { id: 'project.build_check',  risk: RISK.VALIDATE, label: 'Build check (npm run build)',       provider: 'npm',      cmd: ['run', 'build'] },
-  { id: 'project.validate_h44', risk: RISK.VALIDATE, label: 'Validate H4.4',                    provider: 'node',     cmd: ['scripts/validate-cp15x-h44.mjs'] },
-  { id: 'project.validate_h5',  risk: RISK.VALIDATE, label: 'Validate H5',                      provider: 'node',     cmd: ['scripts/validate-cp15x-h5.mjs'] },
+  { id: 'npm.build', risk: RISK.VALIDATE, label: 'npm run build', provider: 'npm', cmd: ['run', 'build'] },
+  { id: 'npm.test', risk: RISK.VALIDATE, label: 'npm test', provider: 'npm', cmd: ['test', '--', '--passWithNoTests'] },
+  { id: 'npm.lint', risk: RISK.VALIDATE, label: 'npm run lint', provider: 'npm', cmd: ['run', 'lint'] },
+  { id: 'validate.h44', risk: RISK.VALIDATE, label: 'Validate CP15X-H4.4', provider: 'node', cmd: ['scripts/validate-cp15x-h44.mjs'] },
+  { id: 'validate.h5', risk: RISK.VALIDATE, label: 'Validate CP15X-H5', provider: 'node', cmd: ['scripts/validate-cp15x-h5.mjs'] },
+  { id: 'validate.h6', risk: RISK.VALIDATE, label: 'Validate CP15X-H6', provider: 'node', cmd: ['scripts/validate-cp15x-h6.mjs'] },
+  { id: 'project.build_check', risk: RISK.VALIDATE, label: 'Build check (npm run build)', provider: 'npm', cmd: ['run', 'build'] },
+  { id: 'project.validate_h44', risk: RISK.VALIDATE, label: 'Validate H4.4', provider: 'node', cmd: ['scripts/validate-cp15x-h44.mjs'] },
+  { id: 'project.validate_h5', risk: RISK.VALIDATE, label: 'Validate H5', provider: 'node', cmd: ['scripts/validate-cp15x-h5.mjs'] },
   // WRITE — requires explicit confirmation
-  { id: 'git.add',            risk: RISK.WRITE,     label: 'git add -A (stage all)',             provider: 'git',      cmd: ['add', '-A'],                    requiresConfirmation: true },
-  { id: 'git.add_files',      risk: RISK.WRITE,     label: 'git add <arquivos>',                 provider: 'git',      cmd: null, needsArgs: true,               requiresConfirmation: true },
-  { id: 'git.commit',         risk: RISK.WRITE,     label: 'git commit',                         provider: 'git',      cmd: null, needsMessage: true,            requiresConfirmation: true },
-  { id: 'git.push',           risk: RISK.WRITE,     label: 'git push origin <branch>',          provider: 'git',      cmd: null, needsBranch: true,             requiresConfirmation: true },
-  { id: 'git.push_u',         risk: RISK.WRITE,     label: 'git push -u origin <branch>',       provider: 'git',      cmd: null, needsBranch: true,             requiresConfirmation: true },
-  { id: 'git.checkout_b',     risk: RISK.WRITE,     label: 'git checkout -b <nova-branch>',     provider: 'git',      cmd: null, needsBranchName: true,         requiresConfirmation: true },
-  { id: 'git.fetch',          risk: RISK.WRITE,     label: 'git fetch origin',                  provider: 'git',      cmd: ['fetch', 'origin'],               requiresConfirmation: true },
-  { id: 'git.rebase',         risk: RISK.WRITE,     label: 'git rebase origin/<branch>',        provider: 'git',      cmd: null, needsBranch: true,             requiresConfirmation: true },
-  { id: 'git.merge',          risk: RISK.WRITE,     label: 'git merge <branch>',                provider: 'git',      cmd: null, needsBranch: true,             requiresConfirmation: true },
-  { id: 'git.stash',          risk: RISK.WRITE,     label: 'git stash',                         provider: 'git',      cmd: ['stash'],                         requiresConfirmation: true },
-  { id: 'git.stash_pop',      risk: RISK.WRITE,     label: 'git stash pop',                     provider: 'git',      cmd: ['stash', 'pop'],                  requiresConfirmation: true },
-  { id: 'npm.install',        risk: RISK.WRITE,     label: 'npm install',                        provider: 'npm',      cmd: ['install'],                       requiresConfirmation: true },
-  { id: 'npm.install_pkg',    risk: RISK.WRITE,     label: 'npm install <pacote>',              provider: 'npm',      cmd: null, needsPackage: true,            requiresConfirmation: true },
-  { id: 'npm.uninstall_pkg',  risk: RISK.WRITE,     label: 'npm uninstall <pacote>',            provider: 'npm',      cmd: null, needsPackage: true,            requiresConfirmation: true },
+  { id: 'git.add', risk: RISK.WRITE, label: 'git add -A (stage all)', provider: 'git', cmd: ['add', '-A'] },
+  { id: 'git.add_files', risk: RISK.WRITE, label: 'git add <arquivos>', provider: 'git', cmd: null, needsArgs: true },
+  { id: 'git.commit', risk: RISK.WRITE, label: 'git commit', provider: 'git', cmd: null, needsMessage: true },
+  { id: 'git.push', risk: RISK.WRITE, label: 'git push origin <branch>', provider: 'git', cmd: null, needsBranch: true },
+  { id: 'git.push_u', risk: RISK.WRITE, label: 'git push -u origin <branch>', provider: 'git', cmd: null, needsBranch: true },
+  { id: 'git.checkout_b', risk: RISK.WRITE, label: 'git checkout -b <nova-branch>', provider: 'git', cmd: null, needsBranchName: true },
+  { id: 'git.fetch', risk: RISK.WRITE, label: 'git fetch origin', provider: 'git', cmd: ['fetch', 'origin'] },
+  { id: 'git.rebase', risk: RISK.WRITE, label: 'git rebase origin/<branch>', provider: 'git', cmd: null, needsBranch: true },
+  { id: 'git.merge', risk: RISK.WRITE, label: 'git merge <branch>', provider: 'git', cmd: null, needsBranch: true },
+  { id: 'git.stash', risk: RISK.WRITE, label: 'git stash', provider: 'git', cmd: ['stash'] },
+  { id: 'git.stash_pop', risk: RISK.WRITE, label: 'git stash pop', provider: 'git', cmd: ['stash', 'pop'] },
+  { id: 'npm.install', risk: RISK.WRITE, label: 'npm install', provider: 'npm', cmd: ['install'] },
+  { id: 'npm.install_pkg', risk: RISK.WRITE, label: 'npm install <pacote>', provider: 'npm', cmd: null, needsPackage: true },
+  { id: 'npm.uninstall_pkg', risk: RISK.WRITE, label: 'npm uninstall <pacote>', provider: 'npm', cmd: null, needsPackage: true },
   // DEPLOY
-  { id: 'vercel.deploy_prod',    risk: RISK.DEPLOY,  label: 'vercel deploy --prod',              provider: 'vercel',   cmd: null, requiresConfirmation: true },
-  { id: 'vercel.deploy_preview', risk: RISK.DEPLOY,  label: 'vercel deploy (preview)',           provider: 'vercel',   cmd: null, requiresConfirmation: true },
+  { id: 'vercel.deploy_prod', risk: RISK.DEPLOY, label: 'vercel deploy --prod', provider: 'vercel', cmd: null },
+  { id: 'vercel.deploy_preview', risk: RISK.DEPLOY, label: 'vercel deploy (preview)', provider: 'vercel', cmd: null },
   // DATABASE
-  { id: 'supabase.db_push',   risk: RISK.DATABASE,  label: 'supabase db push (migration)',       provider: 'supabase', cmd: null, requiresConfirmation: true },
-  { id: 'supabase.db_diff',   risk: RISK.READ,      label: 'supabase db diff',                   provider: 'supabase', cmd: null },
-  { id: 'supabase.db_reset',  risk: RISK.DATABASE,  label: 'supabase db reset',                  provider: 'supabase', cmd: null, requiresConfirmation: true, rollbackRequired: true },
+  { id: 'supabase.db_push', risk: RISK.DATABASE, label: 'supabase db push (migration)', provider: 'supabase', cmd: null },
+  { id: 'supabase.db_diff', risk: RISK.READ, label: 'supabase db diff', provider: 'supabase', cmd: null },
+  { id: 'supabase.db_reset', risk: RISK.DATABASE, label: 'supabase db reset', provider: 'supabase', cmd: null, rollbackRequired: true },
   // DESKTOP
-  { id: 'local_worker.run',   risk: RISK.DESKTOP,   label: 'Local Worker — executar ação',       provider: 'local_worker', cmd: null, requiresConfirmation: true },
+  { id: 'local_worker.run', risk: RISK.DESKTOP, label: 'Local Worker — executar ação', provider: 'local_worker', cmd: null },
   // DANGEROUS
-  { id: 'git.push_force',     risk: RISK.DANGEROUS, label: 'git push --force-with-lease',        provider: 'git',      cmd: null, requiresConfirmation: true, rollbackRequired: true },
-  { id: 'git.reset_hard',     risk: RISK.DANGEROUS, label: 'git reset --hard',                  provider: 'git',      cmd: null, requiresConfirmation: true, rollbackRequired: true },
-  { id: 'git.clean',          risk: RISK.DANGEROUS, label: 'git clean -fd',                      provider: 'git',      cmd: null, requiresConfirmation: true, rollbackRequired: true },
+  { id: 'git.push_force', risk: RISK.DANGEROUS, label: 'git push --force-with-lease', provider: 'git', cmd: null, rollbackRequired: true },
+  { id: 'git.reset_hard', risk: RISK.DANGEROUS, label: 'git reset --hard', provider: 'git', cmd: null, rollbackRequired: true },
+  { id: 'git.clean', risk: RISK.DANGEROUS, label: 'git clean -fd', provider: 'git', cmd: null, rollbackRequired: true },
   // FORBIDDEN — never executes
-  { id: 'forbidden.secrets',   risk: RISK.FORBIDDEN, label: 'Expor segredos/tokens/passwords',   provider: 'policy' },
-  { id: 'forbidden.rm_rf',     risk: RISK.FORBIDDEN, label: 'Destruição irrecuperável de dados', provider: 'policy' },
-  { id: 'forbidden.exfiltrate', risk: RISK.FORBIDDEN, label: 'Exfiltração de dados',             provider: 'policy' },
+  { id: 'forbidden.secrets', risk: RISK.FORBIDDEN, label: 'Expor segredos/tokens/passwords', provider: 'policy' },
+  { id: 'forbidden.rm_rf', risk: RISK.FORBIDDEN, label: 'Destruição irrecuperável de dados', provider: 'policy' },
+  { id: 'forbidden.exfiltrate', risk: RISK.FORBIDDEN, label: 'Exfiltração de dados', provider: 'policy' },
 ]
 
 export function getActionById(id) {
@@ -340,9 +340,8 @@ export function buildConfirmationPlan(actionId, params = {}) {
       break
     case 'supabase.db_reset':
       plan.steps = [
-        '1. AVISO: db reset recria todo o schema — dados de produção serão perdidos se não houver backup',
-        '2. Backup confirmado?',
-        '3. supabase db reset',
+        '1. AVISO: db reset recria todo o schema',
+        '2. supabase db reset',
       ]
       plan.evidence = ['backup timestamp', 'schema atual']
       plan.rollback = 'Restaurar backup via Supabase Dashboard (Point-in-time recovery se disponível).'
@@ -381,9 +380,9 @@ export function buildConfirmationReply(actionId, params = {}) {
   if (!plan) return `Ação não reconhecida: ${actionId}.`
 
   const paramSummary = []
-  if (params.message)  paramSummary.push(`mensagem: "${params.message}"`)
-  if (params.branch)   paramSummary.push(`branch: ${params.branch}`)
-  if (params.remote)   paramSummary.push(`remote: ${params.remote}`)
+  if (params.message) paramSummary.push(`mensagem: "${params.message}"`)
+  if (params.branch) paramSummary.push(`branch: ${params.branch}`)
+  if (params.remote) paramSummary.push(`remote: ${params.remote}`)
 
   const lines = [
     `Posso executar: **${plan.label}**`,
@@ -416,3 +415,5 @@ export function buildConfirmationReply(actionId, params = {}) {
 export function buildBlockedLanguageReply(actionId, params = {}) {
   return buildConfirmationReply(actionId, params)
 }
+
+// buildBlockedLanguageReply renamed to buildConfirmationReply; legacy name kept as alias.

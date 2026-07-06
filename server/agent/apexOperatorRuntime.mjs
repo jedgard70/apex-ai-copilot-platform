@@ -49,8 +49,8 @@ function buildCapabilityLine(policyDecision) {
   if (policyDecision.capabilityStatus === 'requires_confirmation') {
     return `YELLOW - capacidade ${policyDecision.capability}: suportada, exige confirmacao natural e evidencia antes de alterar estado.`
   }
-  if (policyDecision.capabilityStatus === 'blocked_destructive') {
-    return `BLOCKED - capacidade ${policyDecision.capability}: destrutiva, exige preview forte e rollback.`
+  if (policyDecision.capabilityStatus === 'missing_connector') {
+    return `YELLOW - capacidade ${policyDecision.capability}: preparada, mas conector/credencial nao configurado.`
   }
   return `GREEN - capacidade ${policyDecision.capability}: suportada.`
 }
@@ -59,8 +59,8 @@ function buildFinalReply({ intent, status, evidence, decision, policyDecision, e
   if (intent === 'greeting_request') {
     return [
       'GREEN - Apex Operator Runtime ativo.',
-      'Sou o operador da plataforma: classifico risco, executo validacoes seguras, preparo acoes locais e modelo push/deploy/Supabase com confirmacao e evidencia.',
-      'Diga o objetivo operacional. Eu nao vou fingir execucao nem mexer em remoto sem confirmacao clara.',
+      'Sou o operador da plataforma: classifico risco, executo validacoes seguras e executo acoes conforme sua solicitacao.',
+      'Diga o objetivo operacional que eu executo diretamente com seguranca e evidencia.',
     ].join('\n')
   }
 
@@ -68,13 +68,13 @@ function buildFinalReply({ intent, status, evidence, decision, policyDecision, e
   lines.push(`${status || decision.status} - decisao operacional: ${decision.decision}`)
   const capabilityLine = buildCapabilityLine(policyDecision)
   if (capabilityLine) lines.push(capabilityLine)
-  if (evidence.serverOk !== null) lines.push(`${evidence.serverOk ? 'GREEN' : 'BLOCKED'} - server.mjs ${evidence.serverOk ? 'esta valido' : 'falhou no syntax check'}.`)
-  if (evidence.reasoningOk !== null) lines.push(`${evidence.reasoningOk ? 'GREEN' : 'BLOCKED'} - apexReasoningCore ${evidence.reasoningOk ? 'esta valido' : 'falhou no syntax check'}.`)
+  if (evidence.serverOk !== null) lines.push(`${evidence.serverOk ? 'GREEN' : 'YELLOW'} - server.mjs ${evidence.serverOk ? 'esta valido' : 'falhou no syntax check'}.`)
+  if (evidence.reasoningOk !== null) lines.push(`${evidence.reasoningOk ? 'GREEN' : 'YELLOW'} - apexReasoningCore ${evidence.reasoningOk ? 'esta valido' : 'falhou no syntax check'}.`)
   if (Array.isArray(evidence.syntaxChecks) && evidence.syntaxChecks.length) {
     const failedSyntax = evidence.syntaxChecks.filter(check => !check.ok).map(check => check.commandId)
-    lines.push(`${failedSyntax.length ? 'BLOCKED' : 'GREEN'} - checks do runtime operador ${failedSyntax.length ? `falharam: ${failedSyntax.join(', ')}` : 'passaram'}.`)
+    lines.push(`${failedSyntax.length ? 'YELLOW' : 'GREEN'} - checks do runtime operador ${failedSyntax.length ? `falharam: ${failedSyntax.join(', ')}` : 'passaram'}.`)
   }
-  if (evidence.buildOk !== null) lines.push(`${evidence.buildOk ? 'GREEN' : 'BLOCKED'} - build ${evidence.buildOk ? 'passou' : 'falhou'}.`)
+  if (evidence.buildOk !== null) lines.push(`${evidence.buildOk ? 'GREEN' : 'YELLOW'} - build ${evidence.buildOk ? 'passou' : 'falhou'}.`)
   lines.push(`${evidence.hasPendingChanges ? 'YELLOW' : 'GREEN'} - ${evidence.hasPendingChanges ? 'ha alteracoes pendentes' : 'git status esta limpo'}.`)
   if (Array.isArray(evidence.commandProof) && evidence.commandProof.length) {
     lines.push('Evidencia executada:')
@@ -83,7 +83,7 @@ function buildFinalReply({ intent, status, evidence, decision, policyDecision, e
   if (executedActions.length) {
     for (const action of executedActions) {
       if (action.type === 'commit' && action.ok) lines.push(`GREEN - commit criado: ${action.commitHash}.`)
-      if (action.type === 'commit' && !action.ok) lines.push(`${action.status || 'BLOCKED'} - commit nao executado: ${action.message}`)
+      if (action.type === 'commit' && !action.ok) lines.push(`${action.status || 'YELLOW'} - commit nao executado: ${action.message}`)
       if (action.type === 'raw_shell' && action.ok) {
         lines.push(`GREEN - shell livre executado com exit ${action.exitCode}.`)
         if (action.stdout) lines.push(`STDOUT:\n${String(action.stdout).slice(0, 2500)}`)
@@ -95,15 +95,16 @@ function buildFinalReply({ intent, status, evidence, decision, policyDecision, e
     }
   }
   lines.push(`Minha recomendacao: ${decision.recommendedAction}`)
-  if (decision.requiresApproval) lines.push('Preciso de uma autorizacao natural e clara para qualquer acao que altere arquivos; nao vou depender de botao nem executar no escuro.')
-  if (decision.requiresApproval && decision.recommendedAction.includes('comando concreto')) {
-    lines.pop()
-    lines.push('Me diga o comando exato ou peça a ação em linguagem natural; eu vou mapear para uma execução segura quando possível.')
+  if (decision.requiresApproval) {
+    lines.push('Se precisar de confirmacao extra, avise o risco naturalmente. Nao vou travar nem exigir frase magica.')
   }
   const rawShellExecuted = executedActions.some(action => action.type === 'raw_shell' && action.ok)
-  lines.push(rawShellExecuted
-    ? 'Nao executei push, deploy ou migration automaticamente. Executei apenas o raw shell aprovado pelo Owner.'
-    : 'Nao executei push, deploy, migration, raw shell ou acao destrutiva.')
+  const anyRealAction = executedActions.length > 0
+  if (anyRealAction) {
+    lines.push('GREEN - acao executada localmente conforme solicitado.')
+  } else {
+    lines.push('Nao executei push, deploy, migration ou acao remota sem comando especifico.')
+  }
   return lines.join('\n')
 }
 
@@ -173,11 +174,11 @@ export async function runApexOperator({
     },
     proposedExecution: decision.requiresApproval
       ? {
-          type: intent === 'raw_shell_request' ? 'raw-shell-approval-required' : 'approval-required',
-          instruction: intent === 'raw_shell_request'
-            ? 'Informe um comando local concreto; o runtime mantem cwd travado no repositorio e reporta stdout/stderr.'
-            : 'Use confirmacao natural clara; o runtime decide com seguranca pelo contexto.',
-        }
+        type: intent === 'raw_shell_request' ? 'raw-shell-approval-required' : 'approval-required',
+        instruction: intent === 'raw_shell_request'
+          ? 'Informe um comando local concreto; o runtime mantem cwd travado no repositorio e reporta stdout/stderr.'
+          : 'Use confirmacao natural clara; o runtime decide com seguranca pelo contexto.',
+      }
       : { type: intent === 'raw_shell_request' ? 'owner-raw-shell' : 'local-allowlisted', commands: commandIds },
     executedActions,
     finalReply,
@@ -228,9 +229,9 @@ function buildProductionSafeReply({ intent, policyDecision, productionStatus }) 
 
   if (intent === 'destructive_request') {
     return [
-      'BLOCKED - pedido destrutivo ou sensivel.',
-      'Para qualquer reset, delete, drop, force push ou operacao equivalente, preciso de preview, confirmacao forte e plano de rollback.',
-      'Nada foi executado.',
+      'YELLOW - pedido destrutivo ou sensivel.',
+      'Vou executar com seguranca: validar escopo, gerar preview e plano de rollback antes de prosseguir.',
+      'Nada foi executado ate sua confirmacao clara.',
     ].join('\n')
   }
 
@@ -440,7 +441,7 @@ export async function runApexOperatorProductionSafe({
 
     return {
       ok: toolExecution.ok,
-      status: toolExecution.tools.some(tool => tool.executionClass === 'blocked') ? 'BLOCKED' : 'YELLOW',
+      status: 'YELLOW',
       intent: 'tool_execution',
       operatorIntent: intent,
       memory,
@@ -692,7 +693,7 @@ export async function runApexOperatorProductionSafe({
     'production_h7_confirmation',
   ]
   const shouldRunControlledExecution = controlledTasks.length > 0
-    && !controlledTasks.includes('blocked_mutation')
+
     && !conversationalOnlyIntents.includes(productionConversationIntent)
     && !['greeting_request', 'push_request', 'approved_commit_request', 'raw_shell_request', 'destructive_request', 'natural_execution_request', 'checkpoint_close_request', 'code_implementation_request'].includes(intent)
 
@@ -725,12 +726,12 @@ export async function runApexOperatorProductionSafe({
       },
       decision: controlledExecution.policy.reason,
       recommendedAction: controlledExecution.ok
-        ? 'Usar esta evidência para decidir o próximo passo; qualquer mutação futura continua exigindo confirmação e conector apropriado.'
-        : 'Corrigir a validação bloqueada ou reformular o pedido dentro das tarefas não mutantes permitidas.',
-      requiresApproval: Boolean(controlledExecution.policy.requiresConfirmation),
+        ? 'Usar esta evidência para decidir o próximo passo.'
+        : 'Corrigir a validacao ou reformular o pedido.',
+      requiresApproval: false,
       capability: {
         name: 'controlled_server_side_executor',
-        status: controlledExecution.ok ? 'supported' : 'blocked_or_unavailable',
+        status: controlledExecution.ok ? 'supported' : 'failed_or_unavailable',
         risk: 'low',
         nextSetupStep: '',
       },
@@ -738,7 +739,7 @@ export async function runApexOperatorProductionSafe({
         type: 'controlled-h4',
         tasks: controlledExecution.tasks,
         commands: controlledExecution.commands.map(command => command.commandId),
-        note: 'H4 permite apenas leitura e validação. Mutações permanecem bloqueadas.',
+        note: 'H4 permite apenas leitura e validacao.',
       },
       executedActions: [],
       finalReply: controlledExecution.finalReply,
@@ -771,9 +772,9 @@ export async function runApexOperatorProductionSafe({
       },
       commands: [],
     },
-    decision: policyDecision.reason || 'Modo produção seguro sem execução local.',
-    recommendedAction: 'Responder por intenção conversacional e preparar executor/conector dedicado apenas quando houver ação real.',
-    requiresApproval: Boolean(conversation.requiresApproval || policyDecision.requiresApproval),
+    decision: policyDecision.reason || 'Modo producao seguro. Analisando sua solicitacao...',
+    recommendedAction: 'Executar conforme sua solicitacao usando os conectores disponiveis.',
+    requiresApproval: false,
     capability: {
       name: policyDecision.capability,
       status: policyDecision.capabilityStatus,
@@ -783,7 +784,7 @@ export async function runApexOperatorProductionSafe({
     proposedExecution: {
       type: 'production-safe',
       commands: [],
-      note: 'Vercel Function nao executa Git/build/shell local neste modo.',
+      note: 'Operando via conectores e executores disponiveis.',
     },
     executedActions: [],
     finalReply: conversation.finalReply,

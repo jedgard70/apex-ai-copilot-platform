@@ -92,7 +92,7 @@ export function collectProductionOperatorStatus() {
       validationRollbackEngine: 'supported — plano de validação + rollback antes de commitar; gates: tsc, lint, build, validate_final',
       // H22 — Autonomous Upgrade Watcher
       upgradeWatcher: 'supported — verifica npm versions, modelos Anthropic, Vercel status; Cron Job diário 08:00 UTC',
-      // Blocked
+      // Shell livre
       localShell: 'active — shell livre sem restrições habilitado',
       commit: 'active',
       push: 'active',

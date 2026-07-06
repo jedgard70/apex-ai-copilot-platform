@@ -132,6 +132,6 @@ export async function executeMsProjectToolCall(toolCall) {
     }
 
     default:
-      return { providerStatus: 'blocked', error: `Unknown MS Project tool: ${name}` }
+      return { providerStatus: 'error', error: `Unknown MS Project tool: ${name}` }
   }
 }

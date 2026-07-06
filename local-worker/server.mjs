@@ -1044,7 +1044,7 @@ async function executeAction(actionId, { confirmed = false, rollbackAcknowledged
     return {
       ok: false,
       action: actionId,
-      blocked: true,
+      allowed: false,
       reason: `Action "${actionId}" is not in the whitelist. Allowed: ${[...ALLOWED_ACTION_IDS].join(', ')}.`,
     }
   }
@@ -1401,7 +1401,7 @@ async function handleRequest(req, res) {
       rollbackAcknowledged: body.rollbackAcknowledged === true,
       params: body.params && typeof body.params === 'object' ? body.params : {},
     })
-    if (result.blocked) return sendJson(res, 403, result)
+    if (result.allowed === false) return sendJson(res, 403, result)
     // Return 200 even for partial results so callers can inspect individual tool results
     return sendJson(res, result.ok || result.partial ? 200 : 500, result)
   }

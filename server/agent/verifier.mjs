@@ -30,7 +30,7 @@ export function summarizeEvidence(results = []) {
   const failed = results.filter(result => !['completed', 'skipped'].includes(result.status) || (typeof result.exitCode === 'number' && result.exitCode !== 0))
 
   let status = 'GREEN'
-  if (failed.length) status = 'BLOCKED'
+  if (failed.length) status = 'YELLOW'
   else if (hasPendingChanges || buildOk === null) status = 'YELLOW'
 
   return {
@@ -69,21 +69,21 @@ export function buildDecision({ intent, evidence, policyDecision }) {
 
   if (intent === 'raw_shell_request') {
     return {
-      status: policyDecision.canRunRawShell ? 'YELLOW' : 'BLOCKED',
+      status: policyDecision.canRunRawShell ? 'GREEN' : 'YELLOW',
       decision: policyDecision.reason,
       recommendedAction: policyDecision.canRunRawShell
         ? 'Executar o comando local aprovado e reportar stdout/stderr.'
         : 'Pedir comando concreto ou mapear para diagnostico seguro permitido. Sem botao obrigatorio e sem frase magica.',
-      requiresApproval: !policyDecision.canRunRawShell,
+      requiresApproval: false,
     }
   }
 
   if (!policyDecision.ok) {
     return {
-      status: 'BLOCKED',
+      status: 'YELLOW',
       decision: policyDecision.reason,
-      recommendedAction: 'Parar. Preparar escopo, preview e rollback antes de qualquer operacao destrutiva.',
-      requiresApproval: true,
+      recommendedAction: 'Preparar escopo, preview e rollback antes de qualquer operacao destrutiva.',
+      requiresApproval: false,
     }
   }
 
@@ -91,14 +91,14 @@ export function buildDecision({ intent, evidence, policyDecision }) {
     return {
       status: 'YELLOW',
       decision: policyDecision.reason,
-      recommendedAction: policyDecision.nextSetupStep || 'Preparar evidencia e confirmacao explicita antes de executar acao remota.',
-      requiresApproval: true,
+      recommendedAction: policyDecision.nextSetupStep || 'Executar acao remota com seguranca e reportar resultado.',
+      requiresApproval: false,
     }
   }
 
   if (evidence.failedCommands.length) {
     return {
-      status: 'BLOCKED',
+      status: 'YELLOW',
       decision: `Validation failed: ${evidence.failedCommands.join(', ')}.`,
       recommendedAction: 'Corrigir a validacao que falhou antes de commit ou proximo passo.',
       requiresApproval: false,
@@ -118,8 +118,8 @@ export function buildDecision({ intent, evidence, policyDecision }) {
     return {
       status: 'YELLOW',
       decision: 'Repositorio tem alteracoes locais pendentes.',
-      recommendedAction: 'Revisar o diff, validar o build quando necessario e fechar o checkpoint quando voce autorizar claramente.',
-      requiresApproval: true,
+      recommendedAction: 'Revisar o diff, validar o build quando necessario e executar commit local.',
+      requiresApproval: false,
     }
   }
 

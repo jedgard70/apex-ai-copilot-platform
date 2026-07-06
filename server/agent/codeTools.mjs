@@ -60,7 +60,7 @@ function resolveInsideRoot(rootDir, relPath) {
   const root = path.resolve(rootDir)
   const target = path.resolve(root, String(relPath || '.'))
   const rel = path.relative(root, target)
-  if (rel === '' ) return { ok: true, target, root }
+  if (rel === '') return { ok: true, target, root }
   if (rel.startsWith('..') || path.isAbsolute(rel)) {
     return { ok: false, error: `Path "${relPath}" escapes the authorized repository root.` }
   }
@@ -258,7 +258,7 @@ function toolReadFile(rootDir, args) {
   const resolved = resolveInsideRoot(rootDir, args.path)
   if (!resolved.ok) return { ok: false, error: resolved.error }
   if (SECRET_FILE_PATTERN.test(args.path || '')) {
-    return { ok: false, error: 'Reading secret/credential files is blocked.' }
+    return { ok: false, error: 'Cannot read secret/credential files via this tool.' }
   }
   if (!fs.existsSync(resolved.target)) return { ok: false, error: `File not found: ${args.path}` }
   const stat = fs.statSync(resolved.target)
@@ -375,7 +375,7 @@ function toolWriteFile(rootDir, args) {
   const resolved = resolveInsideRoot(rootDir, args.path)
   if (!resolved.ok) return { ok: false, error: resolved.error }
   if (SECRET_FILE_PATTERN.test(args.path || '')) {
-    return { ok: false, error: 'Writing secret/credential files is blocked.' }
+    return { ok: false, error: 'Writing secret/credential files is not allowed via this tool.' }
   }
   try {
     const dir = path.dirname(resolved.target)
@@ -399,7 +399,7 @@ function toolEditFile(rootDir, args) {
   const resolved = resolveInsideRoot(rootDir, args.path)
   if (!resolved.ok) return { ok: false, error: resolved.error }
   if (SECRET_FILE_PATTERN.test(args.path || '')) {
-    return { ok: false, error: 'Editing secret/credential files is blocked.' }
+    return { ok: false, error: 'Editing secret/credential files is not allowed via this tool.' }
   }
   if (!fs.existsSync(resolved.target)) return { ok: false, error: `File not found: ${args.path}` }
   const original = fs.readFileSync(resolved.target, 'utf8')
@@ -479,34 +479,34 @@ export async function executeCodeToolCall(toolCall, rootDir) {
   } catch {
     return { ok: false, error: 'Invalid tool arguments JSON.' }
   }
-async function toolSearchBrave(args) {
-  const query = args.query
-  if (!query) return { ok: false, error: 'Brave Search: missing query' }
-  const apiKey = process.env.BRAVE_SEARCH_API_KEY
-  if (!apiKey) return { ok: false, error: 'Brave Search API key (BRAVE_SEARCH_API_KEY) not configured in .env' }
+  async function toolSearchBrave(args) {
+    const query = args.query
+    if (!query) return { ok: false, error: 'Brave Search: missing query' }
+    const apiKey = process.env.BRAVE_SEARCH_API_KEY
+    if (!apiKey) return { ok: false, error: 'Brave Search API key (BRAVE_SEARCH_API_KEY) not configured in .env' }
 
-  try {
-    const res = await fetch(`https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=5`, {
-      headers: {
-        'Accept': 'application/json',
-        'Accept-Encoding': 'gzip',
-        'X-Subscription-Token': apiKey
+    try {
+      const res = await fetch(`https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=5`, {
+        headers: {
+          'Accept': 'application/json',
+          'Accept-Encoding': 'gzip',
+          'X-Subscription-Token': apiKey
+        }
+      })
+      if (!res.ok) {
+        return { ok: false, error: `Brave Search failed: ${res.status} ${res.statusText}` }
       }
-    })
-    if (!res.ok) {
-      return { ok: false, error: `Brave Search failed: ${res.status} ${res.statusText}` }
+      const data = await res.json()
+      const results = (data.web?.results || []).map(r => ({
+        title: r.title,
+        url: r.url,
+        description: r.description
+      }))
+      return { ok: true, results }
+    } catch (err) {
+      return { ok: false, error: `Brave Search request failed: ${err.message}` }
     }
-    const data = await res.json()
-    const results = (data.web?.results || []).map(r => ({
-      title: r.title,
-      url: r.url,
-      description: r.description
-    }))
-    return { ok: true, results }
-  } catch (err) {
-    return { ok: false, error: `Brave Search request failed: ${err.message}` }
   }
-}
 
   try {
     switch (name) {
@@ -515,7 +515,7 @@ async function toolSearchBrave(args) {
       case 'search_code': return toolSearchCode(rootDir, args)
       case 'write_file': return toolWriteFile(rootDir, args)
       case 'edit_file': return toolEditFile(rootDir, args)
-       case 'run_command': return await toolRunCommand(rootDir, args)
+      case 'run_command': return await toolRunCommand(rootDir, args)
       case 'search_brave': return await toolSearchBrave(args)
       case 'gerar_voz_elevenlabs': {
         const { gerarVozElevenLabs } = await import('../../local-worker/media.mjs')

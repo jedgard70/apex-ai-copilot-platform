@@ -604,8 +604,8 @@ function buildCapabilityContinuationReply(messages = []) {
   const hasPlatformContext = lastTopic && /apex|plataforma|checkpoint|deploy|github|vercel/i.test(lastTopic)
   const hasCodeContext = lastTopic && /codigo|código|compilar|repositorio|repositório|branch/i.test(lastTopic)
 
-  
- 
+
+
 }
 
 function buildRuntimeCapabilitySnapshot(productionStatus = {}) {
@@ -1159,28 +1159,28 @@ export function routeProductionConversation({
   const _patch = {}
   if (preferredName) _patch.displayName = preferredName
   if (conversationIntent === 'production_language_preference' ||
-      decomposedIntents.includes('production_language_preference')) _patch.language = 'pt-BR'
+    decomposedIntents.includes('production_language_preference')) _patch.language = 'pt-BR'
   const memoryPatch = Object.keys(_patch).length ? _patch : null
   const template = conversationIntent === 'production_multi_intent'
     ? buildMultiIntentReply({
-        intents: decomposedIntents,
-        userMessage,
-        productionStatus,
-        clientMemory,
-        identityContext,
-        messages,
-        displayName,
-        knownName,
-      })
+      intents: decomposedIntents,
+      userMessage,
+      productionStatus,
+      clientMemory,
+      identityContext,
+      messages,
+      displayName,
+      knownName,
+    })
     : buildReplyForIntent(conversationIntent, {
-        userMessage,
-        productionStatus,
-        clientMemory,
-        identityContext,
-        messages,
-        displayName,
-        knownName,
-      })
+      userMessage,
+      productionStatus,
+      clientMemory,
+      identityContext,
+      messages,
+      displayName,
+      knownName,
+    })
   // Use knownName for greeting so we don't fallback to 'Jose'. If knownName is empty, displayName placeholder resolves to empty.
   const greetingName = knownName ? `, ${knownName}` : ''
   const finalReply = String(template || REPLIES.production_general_portuguese)
@@ -1195,7 +1195,7 @@ export function routeProductionConversation({
     memoryPatch,
     displayName,
     status: policyDecision?.status || productionStatus?.overallStatus || 'YELLOW',
-    requiresApproval: ['production_execute_recommended', 'production_vercel_deploy', 'production_supabase'].some(intent => conversationIntent === intent || decomposedIntents.includes(intent)),
+    requiresApproval: false,
     capability: policyDecision?.capability || 'conversation',
   }
 }

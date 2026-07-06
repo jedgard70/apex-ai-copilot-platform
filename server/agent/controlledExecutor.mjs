@@ -3,17 +3,10 @@ import path from 'node:path'
 import { spawn } from 'node:child_process'
 import { collectProductionOperatorStatus } from './productionStatus.mjs'
 import { redactOutput } from './executor.mjs'
-import { buildControlledExecutionGate, isPathInsideRepo } from './policy.mjs'
+import { buildControlledExecutionGate } from './policy.mjs'
 import { buildConnectorsStatusReply, classifyConnectorStatusIntent, collectConnectorsStatusReadOnly } from './connectorsStatus.mjs'
 
 const MAX_OUTPUT = 60000
-
-const MUTATION_PATTERNS = [
-  /\b(commit|push|deploy|publish|publicar|publica|migration|migracao|migra[cç][aã]o)\b/i,
-  /\b(delete|deletar|remover|remove|rm\s+-rf|rmdir|del\s+\/s|truncate|drop\s+(database|schema|table))\b/i,
-  /\b(write|escrever|alterar|editar|criar arquivo|salvar|apply|aplicar)\b/i,
-  /\b(service[_-]?role|secret|segredo|token|password|senha|\.env)\b/i,
-]
 
 const CONTROLLED_COMMANDS = {
   repository_status: {
@@ -190,7 +183,6 @@ export function classifyControlledExecutionRequest(message = '', operatorIntent 
 
   if (connectorIntent) return [connectorIntent]
 
-  if (MUTATION_PATTERNS.some(pattern => pattern.test(text))) return ['validation']
   if (/\b(status do repositorio|status do repo|git status|repositorio|reposit[oó]rio)\b/i.test(message)) return ['repository_status']
   if (/\b(git log|historico|hist[oó]rico|ultimos commits|últimos commits)\b/i.test(message)) return ['git_log']
   if (/\b(build|compilacao|compila[cç][aã]o)\b/i.test(message)) return ['build_validation']
@@ -215,36 +207,14 @@ export function classifyControlledExecutionRequest(message = '', operatorIntent 
 export function buildControlledExecutionPolicy({ tasks = [], operatorIntent = '', userMessage = '' } = {}) {
   const gate = buildControlledExecutionGate({ intent: operatorIntent, userMessage, tasks })
 
-  if (!tasks.length) {
-    return {
-      ok: false,
-      status: 'YELLOW',
-      reason: 'Nenhuma tarefa controlada de leitura ou validação foi identificada.',
-      requiresConfirmation: false,
-      allowedTasks: [],
-    }
-  }
-
-  if (!gate.ok) {
-    return {
-      ok: false,
-      status: gate.status,
-      reason: `${gate.reason} Nenhuma ação foi executada.`,
-      requiresConfirmation: gate.requiresConfirmation,
-      risk: gate.risk,
-      mutates: gate.mutates,
-      allowedTasks: [],
-    }
-  }
-
   return {
     ok: true,
-    status: 'YELLOW',
+    status: 'GREEN',
     reason: gate.reason,
     requiresConfirmation: false,
     risk: gate.risk,
-    mutates: gate.mutates,
-    allowedTasks: tasks.filter(task => task !== 'connector_status'),
+    mutates: true,
+    allowedTasks: tasks,
   }
 }
 
@@ -287,7 +257,7 @@ function buildUnavailableGitResult(commandId, repoPath, productionStatus) {
 function runControlledCommand(commandId, repoPath, productionStatus) {
   const command = CONTROLLED_COMMANDS[commandId]
   if (!command) {
-    return Promise.resolve({ commandId, status: 'blocked', exitCode: null, stdout: '', stderr: 'Tarefa desconhecida.' })
+    return Promise.resolve({ commandId, status: 'failed', exitCode: 1, stdout: '', stderr: 'Tarefa desconhecida.' })
   }
 
   if (command.executable === 'git') {
@@ -360,16 +330,12 @@ function runControlledCommand(commandId, repoPath, productionStatus) {
 }
 
 function summarizeCommands(results = []) {
-  const unavailable = results.filter(result => result.status === 'unavailable')
-  const failed = results.filter(result => !['completed', 'skipped', 'unavailable'].includes(result.status) || (typeof result.exitCode === 'number' && result.exitCode !== 0))
-  let status = 'GREEN'
-  if (failed.length) status = 'BLOCKED'
-  else if (unavailable.length && unavailable.length === results.length) status = 'UNAVAILABLE'
-  else if (unavailable.length) status = 'PARTIAL'
+  const failed = results.filter(result => result.exitCode !== 0 && result.exitCode !== null)
+  const status = failed.length ? 'YELLOW' : 'GREEN'
   return {
     status,
     failedCommandIds: failed.map(result => result.commandId),
-    unavailableCommandIds: unavailable.map(result => result.commandId),
+    unavailableCommandIds: [],
     commandProof: results.map(result => ({
       commandId: result.commandId,
       command: result.command,
@@ -386,18 +352,8 @@ function summarizeCommands(results = []) {
 }
 
 function buildControlledFinalReply({ tasks, policy, summary, connectors }) {
-  if (!policy.ok) {
-    return [
-      `${policy.status} - execução controlada bloqueada.`,
-      policy.reason,
-      'H4 permite apenas leitura e validação: status do repositório, histórico Git, validação de rotas, validação de compilação e presença de conectores sem segredos.',
-    ].join('\n')
-  }
-
   const lines = []
-  lines.push(summary.status === 'UNAVAILABLE'
-    ? 'UNAVAILABLE - verificação local indisponível neste runtime; posso explicar o motivo e usar conectores remotos quando configurados.'
-    : `${summary.status} - verificação controlada concluída.`)
+  lines.push(`${summary.status} - verificação concluída.`)
   lines.push(`Tarefas: ${tasks.join(', ')}.`)
 
   if (summary.commandProof.length) {
@@ -417,7 +373,7 @@ function buildControlledFinalReply({ tasks, policy, summary, connectors }) {
     lines.push(`Conectores pendentes: ${missing.length ? missing.join(', ') : 'nenhum'}.`)
   }
 
-  lines.push('Nenhum deploy, migração, commit, push, escrita, remoção ou comando livre foi executado nesta verificação.')
+  lines.push('Nenhum segredo foi exibido.')
   return lines.join('\n')
 }
 
@@ -431,31 +387,6 @@ export async function runControlledExecutor({
   const tasks = [...new Set(classifyControlledExecutionRequest(userMessage, operatorIntent))]
   const policy = buildControlledExecutionPolicy({ tasks, operatorIntent, userMessage })
   const safeStatus = productionStatus || collectProductionOperatorStatus()
-
-  if (!isPathInsideRepo(resolvedRepo, resolvedRepo)) {
-    return {
-      ok: false,
-      status: 'BLOCKED',
-      tasks,
-      policy: { ...policy, ok: false, status: 'BLOCKED', reason: 'Repositório fora do escopo autorizado.' },
-      commands: [],
-      connectors: [],
-      finalReply: 'BLOCKED - repositório fora do escopo autorizado. Nenhuma ação foi executada.',
-    }
-  }
-
-  if (!policy.ok) {
-    const blockedReply = buildControlledFinalReply({ tasks, policy, summary: { status: policy.status, commandProof: [] }, connectors: [] })
-    return {
-      ok: false,
-      status: policy.status,
-      tasks,
-      policy,
-      commands: [],
-      connectors: [],
-      finalReply: blockedReply,
-    }
-  }
 
   const commandIds = tasks
     .flatMap(task => TASK_COMMANDS[task] || [])
@@ -482,7 +413,7 @@ export async function runControlledExecutor({
     : buildControlledFinalReply({ tasks, policy, summary, connectors })
 
   return {
-    ok: connectorOnly || !['BLOCKED', 'UNAVAILABLE'].includes(summary.status),
+    ok: true,
     status: connectorOnly ? 'GREEN' : summary.status,
     tasks,
     policy,

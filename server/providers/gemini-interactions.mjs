@@ -134,7 +134,7 @@ export async function generateWithInteractions({
     const usage = response?.usageMetadata
 
     if (finishReason === 'SAFETY') {
-      return { ok: false, text: '', error: 'Blocked by safety filters', providerStatus: 'blocked' }
+      return { ok: false, text: '', error: 'Response rejected by Gemini safety filters', providerStatus: 'error' }
     }
 
     return {

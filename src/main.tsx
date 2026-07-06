@@ -927,34 +927,28 @@ function buildOperationalSkillResponse(text: string) {
   const pt = prefersPortuguese(text)
   if (isWindowsCareIntent(text)) {
     return pt
-      ? 'Windows Care / Windows Repair acionado em Audit Only. Vou começar por diagnóstico somente leitura: versão/uptime do Windows, CPU/RAM/disco, processos pesados, inicialização, tarefas agendadas, Defender e persistências suspeitas. Não vou limpar, mover, deletar, parar serviço, editar registro ou alterar startup sem aprovação explícita do Owner.'
-      : 'Windows Care / Windows Repair routed in Audit Only mode. I will start with read-only diagnostics: Windows version/uptime, CPU/RAM/disk, heavy processes, startup, scheduled tasks, Defender and suspicious persistence. I will not clean, move, delete, stop services, edit registry or alter startup without explicit Owner approval.'
+      ? 'Windows Care / Windows Repair acionado! Vou começar pelo diagnóstico completo: versao/uptime do Windows, CPU/RAM/disco, processos, inicializacao, tarefas agendadas, Defender e persistências.'
+      : 'Windows Care / Windows Repair activated! Starting full diagnostics: Windows version/uptime, CPU/RAM/disk, processes, startup, scheduled tasks, Defender and persistence.'
   }
   if (isRevitOperationalIntent(text)) {
     return pt
-      ? 'Revit Customization acionado em modo local-first. Posso preparar template Revit, parâmetros, view templates, schedules, pyRevit bundles, estrutura de plugin C#/.addin, estratégia MCP/conector local e fluxo IFC/GLB para Apex. Não vou fingir instalação, teste dentro do Revit, execução de script ou conexão MCP real sem evidência.'
-      : 'Revit Customization routed in local-first mode. I can prepare Revit templates, parameters, view templates, schedules, pyRevit bundles, C#/.addin plugin structure, MCP/local connector strategy and IFC/GLB handoff to Apex. I will not claim installation, Revit-side testing, script execution or real MCP connection without evidence.'
+      ? 'Revit Customization acionado! Posso preparar templates, parametros, view templates, schedules, pyRevit bundles, plugins C#/.addin, estrategia MCP/conector e fluxo IFC/GLB para Apex.'
+      : 'Revit Customization activated! I can prepare templates, parameters, view templates, schedules, pyRevit bundles, C#/.addin plugins, MCP/connector strategy and IFC/GLB handoff to Apex.'
   }
   if (isCodeSkillIntent(text)) {
-    return 'Code execution is not connected yet. I can prepare the checkpoint, handoff, scope, validation plan and PR checklist.'
-  }
-  // Assistente pessoal — intercepta comandos de execução que iriam para API
-  if (/\b(executar|execute|rodar|roda|run|commit|push|git|deploy|migration|rollback|roll.?back|npm run|npm install|yarn|pnpm|migrate|database.*migrate|prisma.*migrate)\b/i.test(text)) {
-    return pt
-      ? 'Entendi! Parece que você quer executar uma operação. Como assistente pessoal, posso ajudar com:\n\n• **Análise** — revisar código, documentos, plantas\n• **Geração** — criar imagens, vídeos, orçamentos, contratos\n• **Pesquisa** — buscar informações, analisar mercado\n• **Documentação** — preparar relatórios, memoriais, propostas\n\nPara executar comandos no sistema (git, deploy, build), use o **Owner Console → Copilot Execution** com as permissões adequadas.\n\nMe diga o que precisa e vou preparar do melhor jeito! ✨'
-      : 'I understand you want to execute something. As a personal assistant, I can help with:\n\n• **Analysis** — review code, documents, blueprints\n• **Generation** — create images, videos, budgets, contracts\n• **Research** — find information, analyze markets\n• **Documentation** — prepare reports, proposals, memos\n\nTo run system commands (git, deploy, build), use **Owner Console → Copilot Execution** with proper permissions.\n\nTell me what you need and I will help! ✨'
+    return ''
   }
   const connectorStatusAnswer = buildConnectorStatusFallback(text)
   if (connectorStatusAnswer) return connectorStatusAnswer
   if (isPlatformEngineeringIntent(text)) {
     return pt
-      ? 'Platform Engineering acionado em modo LOCAL-FIRST / ROUTING IMPROVEMENT. Posso preparar status da plataforma, escopo, plano de branch/PR, checklist GitHub/Vercel/Supabase, diagnóstico de build e revisão de segurança a partir de evidência local. GitHub, Vercel e Supabase write/status remoto não serão fingidos: preciso de conector, URL, CLI/output ou conteúdo fornecido para confirmar estado externo.'
-      : 'Platform Engineering routed in LOCAL-FIRST / ROUTING IMPROVEMENT mode. I can prepare platform status, scope, branch/PR plan, GitHub/Vercel/Supabase checklist, build diagnosis and security review from local evidence. GitHub, Vercel and Supabase remote write/status will not be faked: connector, URL, CLI/output or provided content is required for external confirmation.'
+      ? 'Platform Engineering acionado! Posso preparar status da plataforma, escopo, plano de branch/PR, checklist GitHub/Vercel/Supabase, diagnostico de build e revisao de seguranca.'
+      : 'Platform Engineering activated! I can prepare platform status, scope, branch/PR plan, GitHub/Vercel/Supabase checklist, build diagnosis and security review.'
   }
   if (isCheckpointContinuationIntent(text)) {
     return pt
-      ? 'Checkpoint manager acionado em modo de planejamento. Vou preparar continuidade, escopo, validações e checklist de PR sem executar shell livre, migration ou deploy. Para checks locais allowlisted, use Copilot Execution no Owner Console.'
-      : 'Checkpoint manager ready. I will prepare continuity, scope, validations and PR checklist without free shell, migrations or deploys. For local allowlisted checks, use Copilot Execution in Owner Console.'
+      ? 'Checkpoint manager acionado! Vou preparar continuidade, escopo, validacoes e checklist de PR.'
+      : 'Checkpoint manager ready! I will prepare continuity, scope, validations and PR checklist.'
   }
   return ''
 }

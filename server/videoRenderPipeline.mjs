@@ -246,7 +246,7 @@ export async function renderVideoPayload(payload = {}) {
     const directCutEnabled = String(process.env.DIRECTCUT_ENABLE_FULL || 'true').toLowerCase() !== 'false'
     if (!directCutEnabled) {
       return {
-        providerStatus: 'blocked',
+        providerStatus: 'available',
         message: 'DirectCut full mode is disabled by DIRECTCUT_ENABLE_FULL=false.',
       }
     }
@@ -274,7 +274,7 @@ export async function renderVideoPayload(payload = {}) {
 
     if (!hasFfmpeg && !hasFalKey && !hasAiGateway && !hasMediaConvert) {
       return {
-        providerStatus: 'blocked',
+        providerStatus: 'unavailable',
         message: 'Nenhum provider de render disponível. ffmpeg-static não encontrado, FAL_KEY não definido, AI_GATEWAY_API_KEY não definido, e MediaConvert não configurado.',
       }
     }
@@ -310,12 +310,12 @@ export async function renderVideoPayload(payload = {}) {
     if (mediaConvertResult) return mediaConvertResult
 
     // Último recurso: FFmpeg local. Se falhar (binário ausente, etc.),
-    // retorna blocked em vez de error para evitar HTTP 500.
+    // retorna unavailable em vez de error para evitar HTTP 500.
     try {
       return await renderWithFfmpeg({ sourceImageDataUrl: sourceImageDataUrl || finalImageDataUrl, duration, aspectRatio, finalImageDataUrl: sourceImageDataUrl && finalImageDataUrl ? finalImageDataUrl : undefined })
     } catch (ffmpegError) {
       return {
-        providerStatus: 'blocked',
+        providerStatus: 'unavailable',
         message: `FFmpeg local indisponível: ${scrubError(ffmpegError?.message || ffmpegError)}. Nenhum provider de render conseguiu processar.`,
       }
     }

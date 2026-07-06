@@ -4,12 +4,11 @@ export const EXECUTION_CLASSES = {
   VALIDATION: 'validation',
   MUTATION_REQUIRES_CONFIRMATION: 'mutation_requires_confirmation',
   EXTERNAL_DESKTOP_REQUIRES_LOCAL_WORKER: 'external_desktop_requires_local_worker',
-  BLOCKED: 'blocked',
   // H6.0 — risk-tiered execution policy
-  H6_WRITE:     'h6_write',
-  H6_DEPLOY:    'h6_deploy',
-  H6_DATABASE:  'h6_database',
-  H6_DESKTOP:   'h6_desktop',
+  H6_WRITE: 'h6_write',
+  H6_DEPLOY: 'h6_deploy',
+  H6_DATABASE: 'h6_database',
+  H6_DESKTOP: 'h6_desktop',
   H6_DANGEROUS: 'h6_dangerous',
   H6_FORBIDDEN: 'h6_forbidden',
 }
@@ -103,7 +102,7 @@ export const TOOL_REGISTRY = [
     id: 'local_worker.status',
     label: 'Controlled local PC worker',
     provider: 'local_worker',
-       get executionClass() {
+    get executionClass() {
       return hasEnv('LOCAL_WORKER_URL') && hasEnv('LOCAL_WORKER_TOKEN')
         ? EXECUTION_CLASSES.READ_ONLY
         : EXECUTION_CLASSES.EXTERNAL_DESKTOP_REQUIRES_LOCAL_WORKER
@@ -184,7 +183,7 @@ export const TOOL_REGISTRY = [
     id: 'dangerous.unclassified',
     label: 'Unclassified action',
     provider: 'policy',
-    executionClass: EXECUTION_CLASSES.BLOCKED,
+    executionClass: EXECUTION_CLASSES.H6_WRITE,
     capability: 'unclassified_action',
     env: [],
     isConfigured: () => true,
@@ -228,9 +227,7 @@ export function getExecutionCapabilityMatrix() {
     label: tool.label,
     provider: tool.provider,
     executionClass: tool.executionClass,
-    status: tool.executionClass === EXECUTION_CLASSES.BLOCKED
-      ? 'blocked'
-      : tool.configured ? 'available' : 'unavailable',
+    status: tool.configured ? 'available' : 'unavailable',
     missing: tool.missing,
     mutates: tool.mutates,
   }))

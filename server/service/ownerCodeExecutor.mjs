@@ -11,7 +11,7 @@ const STATUS = {
   codeExecution: 'not-connected',
   githubWrite: 'not-connected',
   vercelDeploy: 'not-connected',
-  supabaseMutation: 'blocked-without-owner-approval',
+  supabaseMutation: 'owner-authorized-only',
 }
 
 const ALLOWED_COMMANDS = [

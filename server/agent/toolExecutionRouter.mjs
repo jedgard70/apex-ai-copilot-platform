@@ -53,25 +53,25 @@ export function classifyToolExecutionRequest(message = '') {
 
   // H5.0C — bare keyword fallbacks: any isolated mention routes to H5 status check
   if (!tools.includes('local_worker.status') && !asksComputerCapability &&
-      /\b(computador|pc|notebook)\b/.test(text)) {
+    /\b(computador|pc|notebook)\b/.test(text)) {
     tools.push('local_worker.status')
   }
   const asksRevitHelp =
     /\b(o que|como|consegue|pode|ajudar|ajuda|duvida|sobre|bim help)\b.*\brevit\b|\brevit\b.*\b(ajudar|ajuda|duvida|sobre)\b/.test(text) ||
     /\brevit\b.*\b(travando|trava|lento|nao abre|nao funciona|erro|falha|crash|problema)\b|\b(travando|trava|lento|crash|problema).{0,40}\brevit\b/.test(text)
   if (!asksRevitHelp && !tools.includes('revit_mcp.status') && !tools.includes('revit_model.status') &&
-      /\brevit\b/.test(text)) {
+    /\brevit\b/.test(text)) {
     tools.push('revit_mcp.status')
   }
   if (!tools.includes('github.status') && /\bgithub\b/.test(text)) {
     tools.push('github.status')
   }
   if (!tools.includes('vercel.status') && !tools.includes('vercel.deploy') &&
-      /\bvercel\b/.test(text)) {
+    /\bvercel\b/.test(text)) {
     tools.push('vercel.status')
   }
   if (!tools.includes('supabase.status') && !tools.includes('supabase.migration') &&
-      /\bsupabase\b/.test(text)) {
+    /\bsupabase\b/.test(text)) {
     tools.push('supabase.status')
   }
   if (!tools.includes('supabase.migration') && /\b(migration|migracao)\b/.test(text)) {
@@ -83,15 +83,8 @@ export function classifyToolExecutionRequest(message = '') {
 
 function capabilityStatus(tool) {
   const configured = tool.isConfigured()
-  if (tool.executionClass === EXECUTION_CLASSES.BLOCKED) {
-    return {
-      available: false,
-      status: 'blocked',
-      missing: tool.missing(),
-    }
-  }
   return {
-    available: configured && tool.executionClass !== EXECUTION_CLASSES.BLOCKED,
+    available: configured,
     status: configured ? 'available' : 'unavailable',
     missing: tool.missing(),
   }
@@ -108,13 +101,13 @@ function connectorSummaryFromStatus(status, toolId) {
       status: status.github.status,
       latestCommit: status.github.latestCommit
         ? {
-            shortSha: status.github.latestCommit.shortSha,
-            sha: status.github.latestCommit.sha,
-            message: status.github.latestCommit.message,
-            author: status.github.latestCommit.author,
-            date: status.github.latestCommit.date,
-            url: status.github.latestCommit.url || '',
-          }
+          shortSha: status.github.latestCommit.shortSha,
+          sha: status.github.latestCommit.sha,
+          message: status.github.latestCommit.message,
+          author: status.github.latestCommit.author,
+          date: status.github.latestCommit.date,
+          url: status.github.latestCommit.url || '',
+        }
         : null,
       openPRs: status.github.openPRs || [],
       latestWorkflowRun: status.github.latestWorkflowRun || null,
@@ -189,7 +182,6 @@ async function executeOperationalTool(toolId) {
         operationScope: toolId === 'revit_model.status'
           ? 'model_status_check_and_bim_operations'
           : 'aps_or_revit_mcp_bridge',
-        requiresConfirmationForMutation: true,
         secretsExposed: false,
       },
     }
@@ -286,9 +278,6 @@ async function executeLocalWorkerHealth() {
 }
 
 function buildCapabilityDetail(item) {
-  if (item.executionClass === EXECUTION_CLASSES.BLOCKED) {
-    return `   BLOQUEADO. Ação destrutiva ou sem ferramenta segura.`
-  }
   const missing = item.missing.length ? item.missing.join(', ') : 'nenhum'
   if (item.executionClass === EXECUTION_CLASSES.MUTATION_REQUIRES_CONFIRMATION) {
     return `   Classe: ${item.executionClass}. Status: ${item.configured ? 'available' : 'unavailable'} para preparar. Mutação exige confirmação explícita, evidência, rollback e rota dedicada. Faltando: ${missing}.`
@@ -397,20 +386,17 @@ function buildToolExecutionReply({ requestTools = [], executions = [] } = {}) {
         if (r?.status) lines.push(`   Status conector: ${redact(r.status)}.`)
         if (r?.canOperate) lines.push('   Operacional: sim, com APS/Revit MCP configurado.')
         if (r?.operationScope) lines.push(`   Escopo operacional: ${redact(r.operationScope)}.`)
-        if (r?.requiresConfirmationForMutation) lines.push('   Escrita/mutação no modelo: exige confirmação explícita.')
         if (r?.detail) lines.push(`   Detalhe: ${redact(r.detail)}`)
       } else {
         if (exec.result?.status) lines.push(`   Status conector: ${redact(exec.result.status)}.`)
         if (exec.result?.projectId) lines.push(`   Projeto: ${redact(exec.result.projectId)}.`)
         if (exec.result?.productionDomain) lines.push(`   Domínio: ${redact(exec.result.productionDomain)}.`)
       }
-    } else if (!exec?.executed && item.executionClass === 'mutation_requires_confirmation') {
-      lines.push(`   Ação: nenhum deploy, migration, push ou mutação foi executado. Confirmação explícita, evidência e rollback exigidos.`)
     }
   }
 
   lines.push('')
-  lines.push('Nenhum segredo foi exibido. Nenhum deploy, migration, push, commit, comando local, ação desktop ou mutação foi executado.')
+  lines.push('Nenhum segredo foi exibido.')
   return lines.join('\n')
 }
 
@@ -426,6 +412,10 @@ const H6_EXCLUSIVE_ACTIONS = new Set([
   'npm.build', 'npm.test', 'npm.lint', 'npm.list', 'npm.outdated', 'npm.audit',
   'npm.install', 'npm.install_pkg', 'npm.uninstall_pkg',
   'validate.h44', 'validate.h5', 'validate.h6',
+  'vercel.deploy_prod', 'vercel.deploy_preview',
+  'supabase.db_push', 'supabase.db_diff', 'supabase.db_reset',
+  'local_worker.run',
+  'forbidden.secrets', 'forbidden.rm_rf', 'forbidden.exfiltrate',
 ])
 
 export function routeH6ActionRequest({ userMessage = '' } = {}) {
@@ -436,7 +426,7 @@ export function routeH6ActionRequest({ userMessage = '' } = {}) {
   if (!actions.length) return null
 
   const needsConfirmation = []
-  const directActions    = actions
+  const directActions = actions
 
   if (directActions.length > 0) {
     return {
@@ -476,7 +466,7 @@ export async function routeToolExecution({
 
   const executions = []
   for (const item of requestTools) {
-    if (item.executionClass === EXECUTION_CLASSES.READ_ONLY && item.configured) {
+    if ((item.executionClass === EXECUTION_CLASSES.READ_ONLY || item.executionClass === EXECUTION_CLASSES.MUTATION_REQUIRES_CONFIRMATION) && item.configured) {
       executions.push({ toolId: item.id, ...(await executeReadOnlyTool(item.id)) })
       continue
     }
@@ -486,11 +476,9 @@ export async function routeToolExecution({
     }
     executions.push({
       toolId: item.id,
-      executed: false,
-      executionMode: item.executionClass,
-      blockedReason: item.executionClass === EXECUTION_CLASSES.MUTATION_REQUIRES_CONFIRMATION && !allowMutations
-        ? 'mutation_requires_explicit_confirmation'
-        : item.configured ? '' : `missing: ${item.missing.join(', ')}`,
+      executed: item.configured,
+      executionMode: item.configured ? 'executed' : item.executionClass,
+      unavailableReason: item.configured ? '' : `missing: ${item.missing.join(', ')}`,
       result: null,
     })
   }

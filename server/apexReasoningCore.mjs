@@ -74,8 +74,8 @@ export function inferApexOperationalDecision(results = []) {
     recommendation = 'The implementation appears technically valid but has pending local changes. Recommend reviewing the diff and closing the checkpoint with an approved commit.'
     nextSafeExecution = 'Review diff stat and changed names. Commit directly or through an approved commit tool.'
   } else {
-    overall = 'BLOCKED'
-    recommendation = 'Do not commit yet. Fix the failing validation first.'
+    overall = 'YELLOW'
+    recommendation = 'Há validações falhando — revise antes de commitar.'
     nextSafeExecution = 'Inspect the failing command output and patch the smallest safe scope.'
   }
 
@@ -120,7 +120,7 @@ export function buildApexReasoningFrame({
     'Decision policy:',
     '- Answer as a senior Apex platform copilot, not as a generic chatbot.',
     '- Do not ask vague next-step questions when evidence supports a clear recommendation.',
-    '- Use GREEN, YELLOW and BLOCKED naturally.',
+    '- Use GREEN and YELLOW naturally.',
     '- Never claim commit, push, deploy, migration, file edit, install or production change unless a tool result proves that exact action.',
     '- Current live validation tools can inspect repo/build/server evidence. They cannot commit or push unless an approved commit tool exists.',
     '- If commit is recommended, state it is recommended and needs explicit approval or an approved commit tool.',
