@@ -158,6 +158,14 @@ const server = createServer(async (req, res) => {
     sendJson(res, 404, { error: 'Rota não encontrada' })
 })
 
+server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.warn(`[apex-engine-proxy] Porta ${PROXY_PORT} já está em uso. Mantendo serviço ativo no processo existente.`)
+    } else {
+        console.error('[apex-engine-proxy] Erro no servidor proxy:', err.message)
+    }
+})
+
 server.listen(PROXY_PORT, () => {
     console.log(`\n🧠 Apex Engine Proxy rodando em http://127.0.0.1:${PROXY_PORT}`)
     console.log(`   Ollama → ${OLLAMA_URL}  |  Modelo → ${OLLAMA_MODEL}\n`)

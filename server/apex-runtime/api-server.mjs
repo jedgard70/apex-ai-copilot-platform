@@ -223,6 +223,14 @@ async function main() {
         })
     })
 
+    server.on('error', (err) => {
+        if (err.code === 'EADDRINUSE') {
+            log(`⚠️  Porta ${PORT} já em uso. Mantendo o motor de IA rodando no processo existente.`)
+        } else {
+            console.error('Erro no servidor API:', err)
+        }
+    })
+
     server.listen(PORT, '0.0.0.0', () => {
         log(`\n✅ Apex AI API Server rodando na porta ${PORT}`)
         log(`   Local:    http://localhost:${PORT}`)

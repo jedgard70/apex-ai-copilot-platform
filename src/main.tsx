@@ -4687,22 +4687,29 @@ function App() {
                     <button 
                       type="button" 
                       onClick={() => fileInput.current?.click()} 
-                      title={uiLanguage === 'EN' ? 'Attach file' : 'Anexar arquivo'}
+                      aria-label={uiLanguage === 'EN' ? 'Attach file' : 'Anexar arquivo / planta'} 
+                      title={uiLanguage === 'EN' ? 'Attach file' : 'Anexar arquivo / planta'}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        width: '32px',
-                        height: '32px',
+                        width: '34px',
+                        height: '34px',
                         borderRadius: '50%',
-                        background: '#f1f5f9',
-                        border: 'none',
-                        color: '#475569',
+                        background: 'rgba(255, 255, 255, 0.08)',
+                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                        color: '#e2e8f0',
                         cursor: 'pointer',
-                        transition: 'background 0.2s'
+                        transition: 'all 0.2s ease'
                       }}
-                      onMouseEnter={e => e.currentTarget.style.background = '#e2e8f0'}
-                      onMouseLeave={e => e.currentTarget.style.background = '#f1f5f9'}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                        e.currentTarget.style.color = '#ffffff';
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                        e.currentTarget.style.color = '#e2e8f0';
+                      }}
                     >
                       <Paperclip size={16} />
                     </button>
@@ -4714,19 +4721,19 @@ function App() {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        height: '32px',
-                        padding: '0 10px',
-                        borderRadius: '16px',
-                        background: '#f1f5f9',
-                        border: 'none',
-                        color: '#475569',
+                        height: '34px',
+                        padding: '0 12px',
+                        borderRadius: '17px',
+                        background: 'rgba(56, 189, 248, 0.12)',
+                        border: '1px solid rgba(56, 189, 248, 0.3)',
+                        color: '#38bdf8',
                         fontSize: '11px',
                         fontWeight: 'bold',
                         cursor: 'pointer',
-                        transition: 'background 0.2s'
+                        transition: 'all 0.2s ease'
                       }}
-                      onMouseEnter={e => e.currentTarget.style.background = '#e2e8f0'}
-                      onMouseLeave={e => e.currentTarget.style.background = '#f1f5f9'}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(56, 189, 248, 0.22)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'rgba(56, 189, 248, 0.12)'}
                     >
                       {uiLanguage}
                     </button>
@@ -4744,30 +4751,30 @@ function App() {
                             display: 'flex',
                             alignItems: 'center',
                             gap: '6px',
-                            height: '32px',
+                            height: '34px',
                             padding: '0 12px',
-                            background: '#f1f5f9',
-                            color: '#334155',
-                            border: '1px solid #cbd5e1',
-                            borderRadius: '16px',
+                            background: 'rgba(37, 99, 235, 0.15)',
+                            color: '#60a5fa',
+                            border: '1px solid rgba(96, 165, 250, 0.3)',
+                            borderRadius: '17px',
                             fontSize: '11px',
                             fontWeight: 600,
                             cursor: 'pointer',
-                            transition: 'all 0.2s',
+                            transition: 'all 0.2s ease',
                             outline: 'none',
                             maxWidth: '220px'
                           }}
-                          onMouseEnter={e => e.currentTarget.style.background = '#e2e8f0'}
-                          onMouseLeave={e => e.currentTarget.style.background = '#f1f5f9'}
+                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(37, 99, 235, 0.25)'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'rgba(37, 99, 235, 0.15)'}
                         >
                           {selectedModelInfo.provider === 'gemini' || selectedModelInfo.provider === 'gemini-interactions' ? (
-                            <Sparkles size={12} style={{ color: '#2563eb' }} />
+                            <Sparkles size={13} style={{ color: '#60a5fa' }} />
                           ) : selectedModelInfo.provider === 'fal' ? (
-                            <Cpu size={12} style={{ color: '#d97706' }} />
+                            <Cpu size={13} style={{ color: '#fbbf24' }} />
                           ) : selectedModelInfo.provider === 'elevenlabs' ? (
-                            <Volume2 size={12} style={{ color: '#059669' }} />
+                            <Volume2 size={13} style={{ color: '#34d399' }} />
                           ) : (
-                            <Bot size={12} style={{ color: '#7c3aed' }} />
+                            <Bot size={13} style={{ color: '#a78bfa' }} />
                           )}
                           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {selectedModelInfo.name || selectedModelInfo.modelId}
@@ -4952,17 +4959,22 @@ function App() {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        width: '32px',
-                        height: '32px',
+                        width: '34px',
+                        height: '34px',
                         borderRadius: '50%',
-                        background: isRecording ? '#ef4444' : '#f1f5f9',
-                        border: 'none',
-                        color: isRecording ? '#ffffff' : '#475569',
+                        background: isRecording ? '#ef4444' : 'rgba(255, 255, 255, 0.08)',
+                        border: isRecording ? '1px solid #dc2626' : '1px solid rgba(255, 255, 255, 0.15)',
+                        color: isRecording ? '#ffffff' : '#e2e8f0',
                         cursor: 'pointer',
-                        transition: 'background 0.2s'
+                        boxShadow: isRecording ? '0 0 12px rgba(239, 68, 68, 0.5)' : 'none',
+                        transition: 'all 0.2s ease'
                       }}
-                      onMouseEnter={e => e.currentTarget.style.background = isRecording ? '#dc2626' : '#e2e8f0'}
-                      onMouseLeave={e => e.currentTarget.style.background = isRecording ? '#ef4444' : '#f1f5f9'}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.background = isRecording ? '#dc2626' : 'rgba(255, 255, 255, 0.15)';
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.background = isRecording ? '#ef4444' : 'rgba(255, 255, 255, 0.08)';
+                      }}
                     >
                       <Mic size={16} />
                     </button>
@@ -4976,23 +4988,27 @@ function App() {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        width: '32px',
-                        height: '32px',
+                        width: '34px',
+                        height: '34px',
                         borderRadius: '50%',
-                        background: (!loading && !input.trim() && !activeFile) ? '#cbd5e1' : '#2563eb',
-                        border: 'none',
-                        color: '#ffffff',
+                        background: (!loading && !input.trim() && !activeFile)
+                          ? 'rgba(255, 255, 255, 0.05)'
+                          : 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+                        border: (!loading && !input.trim() && !activeFile)
+                          ? '1px solid rgba(255, 255, 255, 0.08)'
+                          : '1px solid rgba(96, 165, 250, 0.5)',
                         cursor: (!loading && !input.trim() && !activeFile) ? 'not-allowed' : 'pointer',
-                        transition: 'background 0.2s'
+                        boxShadow: (!loading && !input.trim() && !activeFile) ? 'none' : '0 0 12px rgba(37, 99, 235, 0.4)',
+                        transition: 'all 0.2s ease'
                       }}
                       onMouseEnter={e => {
                         if (!(!loading && !input.trim() && !activeFile)) {
-                          e.currentTarget.style.background = '#1d4ed8';
+                          e.currentTarget.style.background = 'linear-gradient(135deg, #1d4ed8, #1e40af)';
                         }
                       }}
                       onMouseLeave={e => {
                         if (!(!loading && !input.trim() && !activeFile)) {
-                          e.currentTarget.style.background = '#2563eb';
+                          e.currentTarget.style.background = 'linear-gradient(135deg, #2563eb, #1d4ed8)';
                         }
                       }}
                     >
