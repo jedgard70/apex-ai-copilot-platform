@@ -106,8 +106,9 @@ function isEngineReady() {
 // Inicia o motor de IA proprio da Apex
 function startApexEngine(appRoot) {
   const engineScript = path.join(appRoot, "server", "apex-runtime", "api-server.mjs");
-  if (!fs.existsSync(engineScript)) {
-    log("[Apex] Motor proprio nao encontrado. Chat usara Gemini API.");
+  const localExe = path.join(app.getPath("userData"), "..", "Apex AI", "engine", "llama-server.exe");
+  if (!fs.existsSync(engineScript) || !fs.existsSync(localExe)) {
+    log("[Apex] Motor próprio local não instalado. Usando inteligência Google Gemini Nativo.");
     return null;
   }
   log("[Apex] Iniciando motor de IA proprio...");
