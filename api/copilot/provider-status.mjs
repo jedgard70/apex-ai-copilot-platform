@@ -107,6 +107,7 @@ async function checkBraveSearch() {
     if (res.ok) return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'ok', message: 'Chave válida e API respondendo.' }
     if (res.status === 401 || res.status === 403) return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'error', message: 'Chave inválida ou expirada.', topUpUrl: 'https://brave.com/search/api/' }
     if (res.status === 429) { recordRateLimit({ provider: 'brave', endpoint: 'search', statusCode: 429 }); return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'needs-topup', message: 'Quota mensal atingida.', topUpUrl: 'https://brave.com/search/api/' } }
+    if (res.status === 402) return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'unconfigured', message: 'Plano gratuito expirado ou inválido (HTTP 402).', topUpUrl: 'https://brave.com/search/api/' }
     return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'warning', message: `Status ${res.status}.`, topUpUrl: 'https://brave.com/search/api/' }
   } catch (err) {
     return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'error', message: `Erro: ${scrub(err?.message)}`, topUpUrl: 'https://brave.com/search/api/' }
@@ -215,6 +216,9 @@ async function checkAuthKey() {
     if (text.includes('203') || text.includes('expired') || text.includes('invalid')) {
       return { id: 'authkey', name: 'AuthKey (WhatsApp / SMS)', status: 'error', message: 'Chave expirada ou inválida no servidor AuthKey.', topUpUrl: 'https://authkey.io/dashboard' }
     }
+    if (text.includes('500') || text.toLowerCase().includes('internal server error')) {
+      return { id: 'authkey', name: 'AuthKey (WhatsApp / SMS)', status: 'unconfigured', message: 'Serviço da AuthKey indisponível (HTTP 500).', topUpUrl: 'https://authkey.io/dashboard' }
+    }
     return { id: 'authkey', name: 'AuthKey (WhatsApp / SMS)', status: 'warning', message: `Resposta: ${text.substring(0, 60)}.`, topUpUrl: 'https://authkey.io/dashboard' }
   } catch (err) {
     return { id: 'authkey', name: 'AuthKey (WhatsApp / SMS)', status: 'error', message: `Erro de rede: ${scrub(err?.message)}`, topUpUrl: 'https://authkey.io/dashboard' }
@@ -265,7 +269,9 @@ async function checkFfmpeg() {
     }
   }
 
-  return { id: 'ffmpeg', name: 'FFmpeg local', status: 'error', message: 'FFmpeg não encontrado (ffmpeg-static ausente ou ffmpeg não está no PATH).' }
+  }
+
+  return { id: 'ffmpeg', name: 'FFmpeg local', status: 'unconfigured', message: 'Módulo de vídeo opcional não está no PATH (ffmpeg-static ausente).' }
 }
 
 // ─── Autodesk APS ──────────────────────────────────────────────────────────
@@ -365,9 +371,9 @@ async function checkApexEngine() {
       const data = await res.json().catch(() => ({}))
       return { id: 'apex-engine', name: 'Apex Engine (Motor próprio)', status: 'ok', message: `Rodando na porta 8888.`, }
     }
-    return { id: 'apex-engine', name: 'Apex Engine (Motor próprio)', status: 'error', message: 'Apex Engine não está rodando (porta 8888).' }
+    return { id: 'apex-engine', name: 'Apex Engine (Motor próprio)', status: 'unconfigured', message: 'Motor local em standby (porta 8888 livre).' }
   } catch {
-    return { id: 'apex-engine', name: 'Apex Engine (Motor próprio)', status: 'error', message: 'Apex Engine não está rodando (porta 8888).' }
+    return { id: 'apex-engine', name: 'Apex Engine (Motor próprio)', status: 'unconfigured', message: 'Motor local em standby (porta 8888 livre).' }
   }
 }
 

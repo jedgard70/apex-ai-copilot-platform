@@ -1124,7 +1124,7 @@ function buildProductFallbackAnswer(userText: string, identity: ChatIdentityCont
   const nonEmptyLines = userText.trim().split(/\n/).filter(l => l.trim()).length; const trimmed = userText.trim(); if (nonEmptyLines === 1 && trimmed.length < 300) {
 
     // Greetings — respond as personal assistant
-    if (/^(ola|olá|oi|oie|hello|hey|hei|salve|eai|e aí|fala|opa|bom dia|boa tarde|boa noite|bom dia tudo bem|blz|beleza|tudo bem|howdy|hi)\b/i.test(trimmed)) {
+    if (/^(ola|olá|oi|oie|hello|hey|hei|salve|eai|e aí|opa|bom dia|boa tarde|boa noite|bom dia tudo bem|blz|beleza|tudo bem|howdy|hi)\b/i.test(trimmed)) {
       return 'Olá! 😊 Como posso te ajudar hoje? Posso analisar documentos, imagens, plantas, criar orçamentos, contratos, campanhas de marketing, fazer pesquisas e muito mais. É só me falar o que precisa!'
     }
     const aiIdentityAnswer = buildAIIdentityAnswer(userText)

@@ -483,11 +483,7 @@ function buildChatFallbackReply(userText, identity, file = null, locale = '') {
       ? 'Sim, posso trabalhar no código. Para leitura e validacao, executo direto. Para escrita, commit, push, deploy e acoes no repositorio, verifico sua intencao e executo com seguranca. O runtime do site consegue executar comandos locais quando o servidor esta ativo.'
       : 'Yes, I can work on code. I run read/validation directly. For writes, commits, pushes, and deploy, I verify your intent and execute safely.'
   }
-  if (isConnectorOrApiQuestionText(userText)) {
-    return pt
-      ? 'Entendi o assunto. Vou usar os conectores disponiveis para executar a operacao. Se algo estiver indisponivel, aviso claramente e sigo pelo melhor caminho.'
-      : 'Understood. I will use available connectors to execute the operation. If something is unavailable, I will state it clearly and continue with what is possible.'
-  }
+
   if (isContactQuestionText(userText)) {
     return pt
       ? 'Posso ajudar a preparar a consulta. Envie nome, email, telefone, cidade, tipo de projeto e o que precisa: BIM, 3D, contrato, alvará, proposta, financeiro, marketing ou operação de campo.'
@@ -504,9 +500,7 @@ function buildChatFallbackReply(userText, identity, file = null, locale = '') {
     }
     return 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar. Eu uso o arquivo como contexto e continuo com a ação em vez de parar para explicar o processo.'
   }
-  return pt
-    ? 'Entendi. Vou processar sua solicitacao e responder com o que for possivel executar agora. Se algo depender de conector especifico, aviso claramente.'
-    : 'Understood. I will process your request and respond with what can be executed now. If something depends on a specific connector, I will state it clearly.'
+  return ''
 }
 
 function buildLocalDocSummary(fileName, pageCount, extractedText, fileKind) {
