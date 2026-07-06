@@ -2260,21 +2260,7 @@ export default async function handler(req, res) {
       })
     }
 
-    // If the message appears to be a short summary request and the request
-    // included a ready document with extractedText, avoid routing through the production
-    // operator which may classify very short inputs as ambiguous. Instead, allow the
-    // conversational flow below to handle the request with file context.
-    const fileCandidate2 = body.file || null
-    const looksLikeDocSummary2 = Boolean(fileCandidate2 && fileCandidate2.extractionStatus === 'ready' && String(fileCandidate2.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize|analise o arquivo|resuma o arquivo|analise este arquivo|resuma este arquivo|explique o arquivo|explique este arquivo)\b/i.test(userMessage || ''))
-    if (!APEX_FREE_AGENT && !looksLikeDocSummary2 && !body.file) {
-      const fallbackText = buildChatFallbackReply(userMessage, { locale }, null)
-      return sendJson(res, 200, {
-        finalReply: fallbackText,
-        reply: fallbackText,
-        mode: 'local-fallback',
-        productionStatus,
-      })
-    }
+    // Conversational/Natural Flow: Fall through to Live Gemini AI completions
 
     // Conversational/Natural Flow: Fall through to Gemini completions
     const identityContext = normalizeIdentityContext(body.identityContext || {})

@@ -236,7 +236,9 @@ export default function AppLayout({
               {avatarUrl ? (
                 <img className="w-full h-full object-cover" src={avatarUrl} alt="avatar" />
               ) : (
-                <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: isMobile ? '16px' : '18px' }}>account_circle</span>
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold text-[11px] tracking-wider rounded-full shadow-inner">
+                  ED
+                </div>
               )}
             </div>
             {/* Profile dropdown menu */}

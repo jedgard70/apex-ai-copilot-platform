@@ -141,12 +141,8 @@ function createWindow(initialPath = "/") {
     mainWindow.focus();
   });
 
-  mainWindow.on('close', function (event) {
-    if (!app.isQuiting) {
-      event.preventDefault();
-      mainWindow.hide();
-    }
-    return false;
+  mainWindow.on('close', function () {
+    app.isQuiting = true;
   });
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -270,7 +266,11 @@ app.whenReady().then(async () => {
   if (mainWindow) {
     if (ready) {
       mainWindow.loadURL(`http://127.0.0.1:${APP_PORT}/`);
-      mainWindow.show(); // garante exibicao apos navegacao
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.show();
+      mainWindow.focus();
+      mainWindow.setAlwaysOnTop(true);
+      mainWindow.setAlwaysOnTop(false);
     } else {
       mainWindow.loadURL(startupHtml({
         title: "Erro ao Iniciar o Servidor Local",
