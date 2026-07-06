@@ -179,10 +179,10 @@ function splitModelValue(value) {
 
 function buildStaticModelCatalog() {
   return [
-    ...APEX_LOCAL_MODELS.map(model => ({
-      id: composeModelValue('apex-local', model.id),
+    ...DIRECT_GEMINI_MODELS.map(model => ({
+      id: composeModelValue('gemini', model.id),
       modelId: model.id,
-      provider: 'apex-local',
+      provider: 'gemini',
       name: model.name,
     })),
     ...(_interactionsModels || []).map(model => ({
@@ -191,10 +191,10 @@ function buildStaticModelCatalog() {
       provider: 'gemini-interactions',
       name: model.name,
     })),
-    ...DIRECT_GEMINI_MODELS.map(model => ({
-      id: composeModelValue('gemini', model.id),
+    ...APEX_LOCAL_MODELS.map(model => ({
+      id: composeModelValue('apex-local', model.id),
       modelId: model.id,
-      provider: 'gemini',
+      provider: 'apex-local',
       name: model.name,
     })),
     ...FAL_CHAT_MODELS.map(model => ({
@@ -1310,7 +1310,15 @@ async function callGeminiNative(requestPayload, overrideConfig) {
   const rawApiBase = overrideConfig?.apiBase || resolved.apiBase
   const apiKey = overrideConfig?.apiKey || resolved.apiKey
   const providerLabel = 'gemini'
-  const modelName = requestPayload.model || 'unknown'
+  let modelName = requestPayload.model || 'unknown'
+  if (modelName.startsWith('gemini-3.')) {
+    if (modelName.includes('flash-lite')) modelName = 'gemini-2.5-flash-lite'
+    else if (modelName.includes('pro')) modelName = 'gemini-2.5-pro'
+    else modelName = 'gemini-2.5-flash'
+  } else if (modelName.startsWith('gemini-3-')) {
+    modelName = modelName.includes('pro') ? 'gemini-2.5-pro' : 'gemini-2.5-flash'
+  }
+  
   const isLegacyUrl = rawApiBase && (rawApiBase.includes('/models/') || rawApiBase.includes(':generateContent'))
   const apiBase = isLegacyUrl ? 'https://generativelanguage.googleapis.com/v1beta' : rawApiBase
   const geminiBase = apiBase.includes('/openai') ? 'https://generativelanguage.googleapis.com/v1beta' : apiBase

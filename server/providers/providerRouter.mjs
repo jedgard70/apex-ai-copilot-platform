@@ -233,8 +233,16 @@ export async function chatWithFallback(params) {
             ).join('\n')
             geminiBody.system_instruction = { parts: [{ text: joinedSystem }] }
           }
+          let apiModel = model
+          if (apiModel.startsWith('gemini-3.')) {
+            if (apiModel.includes('flash-lite')) apiModel = 'gemini-2.5-flash-lite'
+            else if (apiModel.includes('pro')) apiModel = 'gemini-2.5-pro'
+            else apiModel = 'gemini-2.5-flash'
+          } else if (apiModel.startsWith('gemini-3-')) {
+            apiModel = apiModel.includes('pro') ? 'gemini-2.5-pro' : 'gemini-2.5-flash'
+          }
           const headers = { 'X-goog-api-key': provider.apiKey, 'Content-Type': 'application/json' }
-          response = await fetch(`${provider.baseUrl}/models/${model}:generateContent`, {
+          response = await fetch(`${provider.baseUrl}/models/${apiModel}:generateContent`, {
             method: 'POST', headers, body: JSON.stringify(geminiBody), signal: AbortSignal.timeout(15000)
           })
           if (response.ok) {
