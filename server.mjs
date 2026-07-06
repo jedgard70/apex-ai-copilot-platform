@@ -6452,6 +6452,11 @@ const server = http.createServer(async (req, res) => {
       lifecycleHandler(req, res)
       return
     }
+        if (requestUrl.pathname === '/api/copilot/training-webhook' && (req.method === 'GET' || req.method === 'POST')) {
+      const webhookHandler = await import('./api/copilot/training-webhook.mjs').then(m => m.default)
+      return webhookHandler(req, res)
+    }
+
     if (req.url === '/api/copilot/tool-execute' && req.method === 'POST') {
       handleToolExecute(req, res)
       return
