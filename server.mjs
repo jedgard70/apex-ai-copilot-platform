@@ -2371,7 +2371,15 @@ async function handleChat(req, res) {
     let apiBase = process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta'
 
     const envDefaultModel = String(process.env.GEMINI_MODEL || '').trim()
-    const safeDefaultModel = envDefaultModel.toLowerCase().startsWith('apex-local') ? envDefaultModel : 'apex-local|apex-ai'
+    const hasLocalWorker = Boolean(!process.env.VERCEL && process.env.LOCAL_WORKER_URL && process.env.LOCAL_WORKER_TOKEN)
+    const hasApexOwnEngine = Boolean(process.env.APEX_OWN_ENGINE_URL || process.env.APEX_API_URL || process.env.APEX_RUNTIME_ENABLED)
+    const safeDefaultModel = hasApexOwnEngine
+      ? 'apex-local|apex-ai'
+      : hasLocalWorker
+        ? 'local-worker|apex-ai'
+        : (envDefaultModel && !envDefaultModel.toLowerCase().startsWith('apex-local')
+          ? `gemini|${envDefaultModel}`
+          : 'gemini|gemini-3.5-flash')
     const selectedModelRaw = body.model || body.selectedModel || safeDefaultModel
     const selectedModel = splitModelValue(selectedModelRaw)
     let modelProvider = selectedModel.provider
