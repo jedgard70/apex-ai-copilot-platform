@@ -2142,11 +2142,11 @@ function App() {
     })
 
     const { client } = getBrowserSupabaseClient()
-    const subscription = client?.auth.onAuthStateChange((_event: unknown, session: unknown) => {
+    const subscription = client ? client.auth.onAuthStateChange((_event: unknown, session: unknown) => {
       if (!mounted) return
       if (!session) clearProtectedPanels()
       refreshAuthState()
-    }).data.subscription
+    })?.data?.subscription : null
 
     return () => {
       mounted = false

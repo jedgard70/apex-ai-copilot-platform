@@ -9,7 +9,10 @@ export type ChatConversation = {
 }
 
 export async function loadChatConversationsFromSupabase(userId: string): Promise<ChatConversation[]> {
-  const { data, error } = await getBrowserSupabaseClient().client!
+  const client = getBrowserSupabaseClient().client
+  if (!client) return []
+
+  const { data, error } = await client
     .from('chat_history')
     .select('*')
     .eq('user_id', userId)
@@ -55,7 +58,10 @@ export async function loadChatConversationsFromSupabase(userId: string): Promise
 }
 
 export async function saveMessageToSupabase(userId: string, sessionId: string, message: Message) {
-  const { error } = await getBrowserSupabaseClient().client!
+  const client = getBrowserSupabaseClient().client
+  if (!client) return
+
+  const { error } = await client
     .from('chat_history')
     .insert({
       id: message.id.length === 36 ? message.id : undefined, // fallback to UUID generation if id is not UUID

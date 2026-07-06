@@ -23,10 +23,10 @@ export function AIControlCenter() {
   async function fetchPrompts() {
     try {
       setLoading(true)
-      const supabase = getBrowserSupabaseClient()
-      if (!supabase) throw new Error("Supabase not configured")
+      const { client: supabaseClient } = getBrowserSupabaseClient()
+      if (!supabaseClient) throw new Error("Supabase not configured")
 
-      const { data, error } = await supabase.client
+      const { data, error } = await supabaseClient
         .from('apex_prompts')
         .select('*')
         .order('department', { ascending: true })
@@ -43,10 +43,10 @@ export function AIControlCenter() {
 
   async function handleSave(id: string) {
     try {
-      const supabase = getBrowserSupabaseClient()
-      if (!supabase) return
+      const { client: supabaseClient } = getBrowserSupabaseClient()
+      if (!supabaseClient) return
 
-      const { error } = await supabase.client
+      const { error } = await supabaseClient
         .from('apex_prompts')
         .update({ content: editContent, updated_at: new Date().toISOString() })
         .eq('id', id)
