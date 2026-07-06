@@ -135,26 +135,21 @@ export async function getProviderChain(options = {}) {
     "fal-ai/qwen-2.5-72b"
   ]
 
-  // Gemini — usa /openai para compatibilidade com chat/completions
+  // Gemini — API nativa com X-goog-api-key
   if (geminiKey) {
-    // Sanitiza GEMINI_API_BASE: se estiver configurado como URL legacy generateContent
-    // (ex: .../models/model:generateContent), usa o endpoint OpenAI-compatible correto.
-    const rawBase = process.env.GEMINI_API_BASE || ""
-    const isLegacyUrl = rawBase && (rawBase.includes('/models/') || rawBase.includes(':generateContent'))
-    const chatBase = isLegacyUrl || !rawBase
-      ? "https://generativelanguage.googleapis.com/v1beta/openai"
-      : rawBase
+    const geminiBase = process.env.GEMINI_API_BASE || "https://generativelanguage.googleapis.com/v1beta"
     const models = skipDynamicFetch ? [] : await getGeminiModels(geminiKey)
     const rawList = models.length > 0 ? models.map(m => m.id) : GEMINI_STATIC_FALLBACKS
     const geminiModelsList = prioritizeGeminiModels(rawList)
     const defaultModel = preferredModel && preferredModel.startsWith("gemini") ? preferredModel : (geminiModelsList[0] || "gemini-3.5-flash")
     chain.push({
       name: "gemini",
-      baseUrl: chatBase,
+      baseUrl: geminiBase,
       apiKey: geminiKey,
       model: defaultModel,
       label: "Gemini FREE",
-      models: geminiModelsList
+      models: geminiModelsList,
+      nativeGemini: true,  // usa X-goog-api-key + /models/{model}:generateContent
     })
   }
 
@@ -202,10 +197,61 @@ export async function chatWithFallback(params) {
       triedModelSet.add(modelKey)
       try {
         console.log(`[chatWithFallback] Trying ${provider.name} with model ${model}...`);
-        const body = { model, messages, temperature: toolRound > 0 ? 0.45 : temperature, max_tokens: toolRound > 0 ? 1500 : maxTokens }
-        if (tools && toolRound === 0) { body.tools = tools; body.tool_choice = "auto"; }
-        const headers = { Authorization: `Bearer ${provider.apiKey}`, "Content-Type": "application/json" }
-        const response = await fetch(`${provider.baseUrl}/chat/completions`, { method: "POST", headers, body: JSON.stringify(body), signal: AbortSignal.timeout(15000) })
+        let response
+        if (provider.nativeGemini) {
+          // API nativa Gemini: X-goog-api-key + /models/{model}:generateContent
+          function toGeminiParts(content) {
+            if (typeof content === 'string') return [{ text: content || '' }]
+            if (Array.isArray(content)) {
+              return content.map(part => {
+                if (part.type === 'text') return { text: part.text || '' }
+                if (part.type === 'image_url') {
+                  const dataUrl = part.image_url?.url || ''
+                  const m = dataUrl.match(/^data:(image\/\w+);base64,(.+)$/)
+                  if (m) return { inline_data: { mime_type: m[1], data: m[2] } }
+                  return { text: '[imagem]' }
+                }
+                return { text: JSON.stringify(part) }
+              })
+            }
+            return [{ text: String(content || '') }]
+          }
+          const contents = (messages || []).filter(m => m.role !== 'system').map(m => ({
+            role: m.role === 'assistant' ? 'model' : 'user',
+            parts: toGeminiParts(m.content)
+          }))
+          const systemMessages = (messages || []).filter(m => m.role === 'system')
+          const geminiBody = {
+            contents,
+            generationConfig: { temperature: toolRound > 0 ? 0.45 : temperature, maxOutputTokens: toolRound > 0 ? 1500 : maxTokens }
+          }
+          if (systemMessages.length > 0) {
+            const joinedSystem = systemMessages.map(m =>
+              typeof m.content === 'string' ? m.content :
+                Array.isArray(m.content) ? m.content.map(p => p.text || '').join('\n') :
+                  String(m.content || '')
+            ).join('\n')
+            geminiBody.system_instruction = { parts: [{ text: joinedSystem }] }
+          }
+          const headers = { 'X-goog-api-key': provider.apiKey, 'Content-Type': 'application/json' }
+          response = await fetch(`${provider.baseUrl}/models/${model}:generateContent`, {
+            method: 'POST', headers, body: JSON.stringify(geminiBody), signal: AbortSignal.timeout(15000)
+          })
+          if (response.ok) {
+            const geminiData = await response.json()
+            const text = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || ''
+            const data = {
+              choices: [{ message: { role: 'assistant', content: text } }]
+            }
+            return { ok: true, data, model, provider: provider.name, providerLabel: provider.label, usedFallback: triedModelSet.size > 1 }
+          }
+        } else {
+          // OpenAI-compatible API: Authorization Bearer + /chat/completions
+          const body = { model, messages, temperature: toolRound > 0 ? 0.45 : temperature, max_tokens: toolRound > 0 ? 1500 : maxTokens }
+          if (tools && toolRound === 0) { body.tools = tools; body.tool_choice = "auto"; }
+          const headers = { Authorization: `Bearer ${provider.apiKey}`, "Content-Type": "application/json" }
+          response = await fetch(`${provider.baseUrl}/chat/completions`, { method: "POST", headers, body: JSON.stringify(body), signal: AbortSignal.timeout(15000) })
+        }
         console.log(`[chatWithFallback] Response for ${model}: ${response.status}`);
         if (response.ok) {
           const data = await response.json()
