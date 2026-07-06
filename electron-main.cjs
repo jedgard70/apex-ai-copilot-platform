@@ -185,22 +185,6 @@ app.whenReady().then(async () => {
   createWindow("__startup__");
 
   app.isQuiting = false;
-  const iconPath = path.join(appRoot, "public", "apex-global-logo.png");
-  if (fs.existsSync(iconPath)) {
-    let icon = nativeImage.createFromPath(iconPath);
-    icon = icon.resize({ width: 16, height: 16 });
-    tray = new Tray(icon);
-  } else {
-    tray = new Tray(nativeImage.createEmpty());
-  }
-
-  const contextMenu = Menu.buildFromTemplate([
-    { label: 'Mostrar Aplicativo', click: () => mainWindow.show() },
-    { label: 'Sair', click: () => { app.isQuiting = true; app.quit(); } }
-  ]);
-  tray.setToolTip('Apex AI Copilot Platform');
-  tray.setContextMenu(contextMenu);
-  tray.on('double-click', () => mainWindow.show());
 
   // Inicia motor de IA proprio em background (nao bloqueia)
   apexEngineProcess = startApexEngine(appRoot);
