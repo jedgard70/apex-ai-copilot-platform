@@ -4690,19 +4690,19 @@ function App() {
                         width: '34px',
                         height: '34px',
                         borderRadius: '50%',
-                        background: 'rgba(255, 255, 255, 0.08)',
-                        border: '1px solid rgba(255, 255, 255, 0.15)',
-                        color: '#e2e8f0',
+                        background: 'rgba(15, 23, 42, 0.04)',
+                        border: '1px solid rgba(15, 23, 42, 0.1)',
+                        color: '#475569',
                         cursor: 'pointer',
                         transition: 'all 0.2s ease'
                       }}
                       onMouseEnter={e => {
-                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
-                        e.currentTarget.style.color = '#ffffff';
+                        e.currentTarget.style.background = 'rgba(15, 23, 42, 0.08)';
+                        e.currentTarget.style.color = '#0f172a';
                       }}
                       onMouseLeave={e => {
-                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
-                        e.currentTarget.style.color = '#e2e8f0';
+                        e.currentTarget.style.background = 'rgba(15, 23, 42, 0.04)';
+                        e.currentTarget.style.color = '#475569';
                       }}
                     >
                       <Paperclip size={16} />
@@ -4956,18 +4956,20 @@ function App() {
                         width: '34px',
                         height: '34px',
                         borderRadius: '50%',
-                        background: isRecording ? '#ef4444' : 'rgba(255, 255, 255, 0.08)',
-                        border: isRecording ? '1px solid #dc2626' : '1px solid rgba(255, 255, 255, 0.15)',
-                        color: isRecording ? '#ffffff' : '#e2e8f0',
+                        background: isRecording ? '#ef4444' : 'rgba(15, 23, 42, 0.04)',
+                        border: isRecording ? '1px solid #dc2626' : '1px solid rgba(15, 23, 42, 0.1)',
+                        color: isRecording ? '#ffffff' : '#475569',
                         cursor: 'pointer',
                         boxShadow: isRecording ? '0 0 12px rgba(239, 68, 68, 0.5)' : 'none',
                         transition: 'all 0.2s ease'
                       }}
                       onMouseEnter={e => {
-                        e.currentTarget.style.background = isRecording ? '#dc2626' : 'rgba(255, 255, 255, 0.15)';
+                        e.currentTarget.style.background = isRecording ? '#dc2626' : 'rgba(15, 23, 42, 0.08)';
+                        if (!isRecording) e.currentTarget.style.color = '#0f172a';
                       }}
                       onMouseLeave={e => {
-                        e.currentTarget.style.background = isRecording ? '#ef4444' : 'rgba(255, 255, 255, 0.08)';
+                        e.currentTarget.style.background = isRecording ? '#ef4444' : 'rgba(15, 23, 42, 0.04)';
+                        if (!isRecording) e.currentTarget.style.color = '#475569';
                       }}
                     >
                       <Mic size={16} />
@@ -4986,11 +4988,14 @@ function App() {
                         height: '34px',
                         borderRadius: '50%',
                         background: (!loading && !input.trim() && !activeFile)
-                          ? 'rgba(255, 255, 255, 0.05)'
+                          ? 'rgba(15, 23, 42, 0.04)'
                           : 'linear-gradient(135deg, #2563eb, #1d4ed8)',
                         border: (!loading && !input.trim() && !activeFile)
-                          ? '1px solid rgba(255, 255, 255, 0.08)'
+                          ? '1px solid rgba(15, 23, 42, 0.1)'
                           : '1px solid rgba(96, 165, 250, 0.5)',
+                        color: (!loading && !input.trim() && !activeFile)
+                          ? '#94a3b8'
+                          : '#ffffff',
                         cursor: (!loading && !input.trim() && !activeFile) ? 'not-allowed' : 'pointer',
                         boxShadow: (!loading && !input.trim() && !activeFile) ? 'none' : '0 0 12px rgba(37, 99, 235, 0.4)',
                         transition: 'all 0.2s ease'
