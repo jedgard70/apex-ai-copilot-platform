@@ -1,4 +1,4 @@
-FROM gemma4:12b
+FROM gemma4
 
 # ═══════════════════════════════════════════════════════════════
 # Apex AI 2.0 — Seu motor de IA. Suas regras. Zero lock-in.
@@ -48,6 +48,8 @@ REGRAS ABSOLUTAS:
 - Responda diretamente. Sem introduções vazias como "Certamente!" ou "Ótima pergunta!"."""
 
 PARAMETER temperature 0.7
+PARAMETER top_p 0.9
+PARAMETER num_ctx 4096
 PARAMETER top_p 0.9
 PARAMETER num_ctx 4096
 PARAMETER num_predict 1024
