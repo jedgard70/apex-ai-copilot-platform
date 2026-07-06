@@ -337,7 +337,7 @@ verbal explícita.
 | 5 | Sincronização .env = .env.local (Gemini, Supabase, Vercel, Google Project ID) | ✅ Completa |
 | 6 | Ollama + GGUF (apex-ai-gemma2b) rodando local + Apex Engine Proxy na porta 8888 | ✅ Completa |
 | 7 | Provider Status: 11 healthy, 2 warnings (Brave 402, AuthKey 500) | ⚠️ Parcial |
-| 8 | Gemini key 401 (Google policy change June 19/2026) | 🔴 Bloqueado |
+| 8 | Gemini key 401 (Google policy change June 19/2026) | ✅ Resolvido (Reversão para API Nativa generateContent, em conformidade com Regra 12) |
 
 ### 📐 Fase 2 — Expansão do Architecture.md com Itens Não Documentados
 

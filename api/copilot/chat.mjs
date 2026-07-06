@@ -1227,96 +1227,88 @@ async function callGeminiChat(model, messages, apiKey) {
 }
 
 /**
- * Convert standard chat messages (system/user/assistant/tool) to Interactions API input steps.
- * System messages are extracted separately for system_instruction.
+ * Convert standard chat messages (system/user/assistant/tool) to Gemini API format.
  */
-function convertToInteractionInput(messages) {
+function toGeminiParts(content) {
+  if (Array.isArray(content)) {
+    return content.map(part => {
+      if (part.type === 'text') return { text: part.text }
+      if (part.type === 'image_url' && part.image_url?.url) {
+        const dataUrl = part.image_url.url
+        const m = dataUrl.match(/^data:(image\/\w+);base64,(.+)$/)
+        if (m) return { inline_data: { mime_type: m[1], data: m[2] } }
+        return { text: '[imagem]' }
+      }
+      return { text: JSON.stringify(part) }
+    })
+  }
+  return [{ text: String(content || '') }]
+}
+
+function convertToGeminiContent(messages) {
+  const contents = []
   const systemParts = []
-  const steps = []
-  if (!Array.isArray(messages)) return { systemText: '', steps }
+  
+  if (!Array.isArray(messages)) return { systemText: '', contents }
 
   for (const msg of messages) {
     if (msg.role === 'system') {
       systemParts.push(typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content))
     } else if (msg.role === 'tool' || msg.role === 'function') {
-      const toolName = msg.name || 'unknown_tool'
-      const resultText = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content || '')
-      steps.push({
-        type: 'function_result',
-        name: toolName,
-        result: resultText,
-        call_id: msg.tool_call_id || `call_${steps.length}_${Date.now()}`,
+      contents.push({
+        role: 'user',
+        parts: [{
+          functionResponse: {
+            name: msg.name || 'unknown_tool',
+            response: typeof msg.content === 'string' ? JSON.parse(msg.content || '{}') : msg.content
+          }
+        }]
       })
     } else if (msg.role === 'assistant') {
-      const content = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content || '')
-      steps.push({
-        type: 'model_output',
-        content: [{ type: 'text', text: content }],
-      })
-      // Include tool_calls if present
+      const parts = []
+      if (msg.content) parts.push({ text: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content) })
       if (Array.isArray(msg.tool_calls)) {
         for (const tc of msg.tool_calls) {
           let args = {}
           try { args = JSON.parse(tc.function?.arguments || '{}') } catch { }
-          steps.push({
-            type: 'function_call',
-            name: tc.function?.name || 'unknown',
-            arguments: args,
-            id: tc.id || `call_${steps.length}_${Date.now()}`,
+          parts.push({
+            functionCall: {
+              name: tc.function?.name || 'unknown',
+              args: args
+            }
           })
         }
       }
+      contents.push({ role: 'model', parts })
     } else {
-      // user role — content can be string or array of parts (OpenAI format)
-      const contentArray = []
-      if (typeof msg.content === 'string') {
-        contentArray.push({ type: 'text', text: msg.content })
-      } else if (Array.isArray(msg.content)) {
-        for (const part of msg.content) {
-          if (part.type === 'text' && part.text) {
-            contentArray.push({ type: 'text', text: part.text })
-          } else if (part.type === 'image_url' && part.image_url?.url) {
-            contentArray.push({
-              type: 'image_url',
-              image_url: { url: part.image_url.url },
-            })
-          }
-        }
-      } else if (msg.content) {
-        // fallback for any other type
-        contentArray.push({ type: 'text', text: JSON.stringify(msg.content) })
-      }
-      steps.push({
-        type: 'user_input',
-        content: contentArray.length > 0 ? contentArray : [{ type: 'text', text: '' }],
-      })
+      // user role
+      contents.push({ role: 'user', parts: toGeminiParts(msg.content) })
     }
   }
-  return { systemText: systemParts.join('\n'), steps }
+  return { systemText: systemParts.join('\n'), contents }
 }
 
 /**
- * Convert tool definitions to Interactions API tool format.
+ * Convert tool definitions to Gemini API tool format.
  */
-function convertToInteractionTools(tools) {
+function convertToGeminiTools(tools) {
   if (!Array.isArray(tools) || tools.length === 0) return undefined
-  const result = []
+  const declarations = []
   for (const tool of tools) {
     const fn = tool.function || tool
     if (!fn.name) continue
-    result.push({
-      type: 'function',
+    declarations.push({
       name: fn.name,
       description: fn.description || '',
       parameters: fn.parameters || { type: 'object', properties: {} },
     })
   }
-  return result.length ? result : undefined
+  return declarations.length ? [{ function_declarations: declarations }] : undefined
 }
 
 /**
- * Call Gemini Interactions API (POST /v1/interactions) — the official Gemini chat endpoint.
- * Uses x-goog-api-key header.
+ * Call Gemini Native API (generateContent) — the official Gemini chat endpoint.
+ * Uses x-goog-api-key header. Compliant with Rule 12.
  */
 async function callGeminiNative(requestPayload, overrideConfig) {
   const startTime = Date.now()
@@ -1325,36 +1317,32 @@ async function callGeminiNative(requestPayload, overrideConfig) {
   const apiKey = overrideConfig?.apiKey || resolved.apiKey
   const providerLabel = 'gemini'
   const modelName = requestPayload.model || 'unknown'
-  // Sanitiza: se a URL for legacy generateContent ou OpenAI-compat, normaliza para v1beta puro
   const isLegacyUrl = rawApiBase && (rawApiBase.includes('/models/') || rawApiBase.includes(':generateContent'))
   const apiBase = isLegacyUrl ? 'https://generativelanguage.googleapis.com/v1beta' : rawApiBase
-  // Use standard Gemini API base, not OpenAI-compatible, for native generateContent
   const geminiBase = apiBase.includes('/openai') ? 'https://generativelanguage.googleapis.com/v1beta' : apiBase
-  // Interactions API lives at /v1/interactions, NOT /v1beta/interactions
-  const endpoint = `${geminiBase.replace(/\/v1beta\/?$/, '/v1')}/interactions`
+  const endpoint = `${geminiBase}/models/${modelName}:generateContent`
 
   let success = false
   let data = null
   let errorMsg = null
 
   try {
-    const { systemText, steps } = convertToInteractionInput(requestPayload.messages)
-    const tools = convertToInteractionTools(requestPayload.tools)
+    const { systemText, contents } = convertToGeminiContent(requestPayload.messages)
+    const geminiTools = convertToGeminiTools(requestPayload.tools)
 
     const body = {
-      model: modelName,
-      input: steps,
-      generation_config: {
+      contents,
+      generationConfig: {
         temperature: requestPayload.temperature ?? 0.72,
-        max_output_tokens: requestPayload.max_tokens ?? 900,
+        maxOutputTokens: requestPayload.max_tokens ?? 900,
       },
     }
 
     if (systemText) {
-      body.system_instruction = systemText
+      body.system_instruction = { parts: [{ text: systemText }] }
     }
-    if (tools) {
-      body.tools = tools
+    if (geminiTools) {
+      body.tools = geminiTools
     }
 
     const primaryResponse = await fetch(endpoint, {
@@ -1367,25 +1355,23 @@ async function callGeminiNative(requestPayload, overrideConfig) {
       signal: AbortSignal.timeout(12000),
     })
 
-    const interactionData = await primaryResponse.json().catch(() => ({}))
+    const responseData = await primaryResponse.json().catch(() => ({}))
 
-    if (primaryResponse.ok && interactionData?.steps?.length > 0) {
-      // Extract model output text
-      const modelOutputStep = interactionData.steps.find(s => s.type === 'model_output')
-      const replyText = modelOutputStep?.content?.map(c => c.text || '').filter(Boolean).join('') || ''
-
-      // Extract function calls
-      const functionCallSteps = interactionData.steps.filter(s => s.type === 'function_call')
-      const toolCalls = functionCallSteps.map(fc => ({
-        id: fc.id,
+    if (primaryResponse.ok && responseData?.candidates?.length > 0) {
+      const candidate = responseData.candidates[0]
+      const parts = candidate?.content?.parts || []
+      
+      const replyText = parts.filter(p => p.text).map(p => p.text).join('') || ''
+      const functionCalls = parts.filter(p => p.functionCall).map(p => ({
+        id: `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         type: 'function',
         function: {
-          name: fc.name,
-          arguments: JSON.stringify(fc.arguments || {}),
+          name: p.functionCall.name,
+          arguments: JSON.stringify(p.functionCall.args || {}),
         },
       }))
 
-      const usage = interactionData.usage || {}
+      const usage = responseData.usageMetadata || {}
 
       data = {
         choices: [{
@@ -1393,32 +1379,30 @@ async function callGeminiNative(requestPayload, overrideConfig) {
           message: {
             role: 'assistant',
             content: replyText,
-            tool_calls: toolCalls.length ? toolCalls : undefined,
+            tool_calls: functionCalls.length ? functionCalls : undefined,
           },
-          finish_reason: toolCalls.length ? 'TOOL_CALLS' : 'STOP',
+          finish_reason: functionCalls.length ? 'tool_calls' : (candidate.finishReason === 'STOP' ? 'stop' : 'length'),
         }],
         usage: {
-          prompt_tokens: usage.total_input_tokens || 0,
-          completion_tokens: usage.total_output_tokens || 0,
-          total_tokens: usage.total_tokens || 0,
+          prompt_tokens: usage.promptTokenCount || 0,
+          completion_tokens: usage.candidatesTokenCount || 0,
+          total_tokens: usage.totalTokenCount || 0,
         },
         model: modelName,
       }
 
-      // If there are no tool calls and no text, something is off
-      if (!replyText && !toolCalls.length) {
-        errorMsg = 'Empty response from Interactions API'
-        console.error('[callGeminiNative]', errorMsg, JSON.stringify(interactionData).slice(0, 300))
+      if (!replyText && !functionCalls.length) {
+        errorMsg = 'Empty response from Gemini API'
+        console.error('[callGeminiNative]', errorMsg, JSON.stringify(responseData).slice(0, 300))
       } else {
         success = true
       }
     } else {
-      const apiErr = interactionData?.error?.message || JSON.stringify(interactionData).slice(0, 200)
+      const apiErr = responseData?.error?.message || JSON.stringify(responseData).slice(0, 200)
       errorMsg = `HTTP ${primaryResponse.status}: ${apiErr}`
       success = false
       data = null
       console.error('[callGeminiNative] Primary failed:', errorMsg)
-      // SEM FALLBACK — erro honesto. O usuário vê o erro e troca de provedor se quiser.
     }
   } catch (err) {
     errorMsg = err.message
