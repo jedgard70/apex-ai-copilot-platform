@@ -2492,7 +2492,7 @@ export default async function handler(req, res) {
       // uma chamada simples sem ferramentas. Isso garante que a Apex AI
       // continue com acesso a todos os módulos/ferramentas da plataforma
       // mesmo quando o motor próprio local está fora do ar.
-      const geminiApiKey = process.env.GEMINI_API_KEY
+      const geminiApiKey = process.env.GEMINI_API_KEY?.replace(/['"]/g, '')
       if (geminiApiKey) {
         try {
           const nativeResult = await callGeminiNative({
@@ -2617,7 +2617,7 @@ export default async function handler(req, res) {
       resolvedApiKey = process.env.VITE_FIREBASE_API_KEY || ''
     } else if (isGeminiProvider && process.env.GEMINI_API_KEY) {
       apiBase = process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta'
-      resolvedApiKey = process.env.GEMINI_API_KEY
+      resolvedApiKey = process.env.GEMINI_API_KEY?.replace(/['"]/g, '')
     }
 
     const apiKey = resolvedApiKey

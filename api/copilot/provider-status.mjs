@@ -295,7 +295,7 @@ async function checkAps() {
 
 // ─── Gemini (dedicated) ──────────────────────────────────────────────────────
 async function checkGemini() {
-  const key = process.env.GEMINI_API_KEY
+  const key = process.env.GEMINI_API_KEY?.replace(/['"]/g, '')
   if (!key) return { id: 'gemini', name: 'Gemini (Chat, multimodal, TTS, image)', status: 'unconfigured', message: 'GEMINI_API_KEY não configurado.', topUpUrl: 'https://aistudio.google.com/apikey' }
   try {
     const res = await safeFetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=100', {
