@@ -6747,6 +6747,18 @@ const server = http.createServer(async (req, res) => {
       handler(req, res)
       return
     }
+    // ── Deploy Hook API ────────────────────────────────────────────────────────
+    if (req.url === '/api/deploy-hook/trigger' && req.method === 'POST') {
+      const { default: handler } = await import('./api/deploy-hook/trigger.mjs')
+      handler(req, res)
+      return
+    }
+    // ── Cron: Nightly Deploy ───────────────────────────────────────────────────
+    if (req.url === '/api/cron/deploy-nightly' && req.method === 'GET') {
+      const { default: handler } = await import('./api/cron/deploy-nightly.mjs')
+      handler(req, res)
+      return
+    }
     if (req.url === "/api/supabase/migrate" && req.method === "POST") {
       const { default: handler } = await import("./api/supabase/migrate.mjs")
       handler(req, res)

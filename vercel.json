@@ -15,6 +15,7 @@
     { "source": "/api/copilot/bim-tour-plan", "destination": "/api/copilot/plan" },
     { "source": "/api/prompts/:path*", "destination": "/api/prompts/index.mjs" },
     { "source": "/api/reports/:path*", "destination": "/api/reports/index.mjs" },
+    { "source": "/api/deploy-hook/:path*", "destination": "/api/deploy-hook/:path*" },
     { "source": "/v1/:path*", "destination": "/api/v1/:path*" },
     { "source": "/premium", "destination": "/premium.html" },
     { "source": "/(.*)", "destination": "/index.html" }
@@ -23,6 +24,10 @@
     {
       "path": "/api/cron/upgrade-check",
       "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/deploy-nightly",
+      "schedule": "0 6 * * *"
     }
   ]
 }

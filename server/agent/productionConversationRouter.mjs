@@ -991,6 +991,44 @@ function buildOwnerAssertionReply(identityContext = {}) {
   return 'Perfeito. Registro você como owner nesta conversa. Vou responder no modo execução direta, sem resposta mecânica.'
 }
 
+/**
+ * buildDeployReply — dispara o Deploy Hook da Vercel quando o usuário
+ * pede "faz deploy", "publica as alterações", etc.
+ *
+ * Se VERCEL_DEPLOY_HOOK estiver configurado, executa o deploy real
+ * de forma assíncrona (fire-and-forget) e retorna mensagem de sucesso.
+ * Caso contrário, retorna mensagem orientando a configuração.
+ */
+function buildDeployReply() {
+  const hookUrl = process.env.VERCEL_DEPLOY_HOOK || ''
+
+  if (!hookUrl) {
+    return (
+      '🚀 **Publicação na Vercel**\n\n'
+      + 'O Deploy Hook não está configurado. Peça ao admin para definir '
+      + 'a variável `VERCEL_DEPLOY_HOOK` no ambiente da Vercel '
+      + 'com a URL do Deploy Hook.\n\n'
+      + 'Enquanto isso, você pode fazer deploy manualmente via:\n'
+      + '```\nnpx vercel deploy --prod\n```'
+    )
+  }
+
+  // Dispara o deploy em background (fire-and-forget)
+  fetch(hookUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+    .then(res => {
+      if (res.ok) console.log('[deploy] ✅ Deploy disparado com sucesso via chat')
+      else console.warn(`[deploy] ⚠️ Resposta inesperada: HTTP ${res.status}`)
+    })
+    .catch(err => console.error('[deploy] ❌ Erro ao disparar deploy:', err.message))
+
+  return (
+    '🚀 **Deploy iniciado!**\n\n'
+    + 'O deploy foi disparado e está em execução na Vercel.\n'
+    + 'Acompanhe em: https://vercel.com/Apex-Global-LLC/apex-ai-copilot-platform/deployments\n'
+    + '\n_Em alguns minutos o site estará atualizado em www.apexglobalai.com._'
+  )
+}
+
 function sectionTitleForIntent(intent, index) {
   const titles = {
     production_display_name_preference: 'Nome definido',
@@ -1053,6 +1091,7 @@ function buildReplyForIntent(intent, {
   if (intent === 'production_github_connector_status') return buildConnectorsStatusReply(productionStatus.connectorStatus, 'github')
   if (intent === 'production_vercel_connector_status') return buildConnectorsStatusReply(productionStatus.connectorStatus, 'vercel')
   if (intent === 'production_connector_status') return buildConnectorsStatusReply(productionStatus.connectorStatus, 'all')
+  if (intent === 'production_vercel_deploy') return buildDeployReply()
   if (intent === 'production_revit_bim_help') return buildRevitBimHelpReply()
   if (intent === 'production_computer_help') return buildComputerHelpReply()
   if (intent === 'production_user_confusion') return buildConfusionReply(messages, { multiQuestionContext })
@@ -1124,11 +1163,7 @@ const REPLIES = {
   production_who_am_i: '',
   production_computer_help: '',
   production_multi_intent: '',
-  production_vercel_deploy: [
-    'Capacidade de publicação preparada.',
-    'Para publicar na Vercel, preciso de conector Vercel ou variáveis operacionais configuradas no servidor, escopo confirmado, evidência de compilação e alvo de publicação definido.',
-    'Não publiquei e não vou simular publicação.',
-  ].join('\n'),
+  production_vercel_deploy: '', // tratado por buildDeployReply()
   production_supabase: [
     'Capacidade Supabase preparada.',
     'Aplicar migração exige credencial ou conector Supabase, SQL revisado, confirmação clara, plano de reversão e validação depois da aplicação.',
