@@ -266,8 +266,6 @@ async function checkFfmpeg() {
     }
   }
 
-  }
-
   return { id: 'ffmpeg', name: 'FFmpeg local', status: 'unconfigured', message: 'Módulo de vídeo opcional não está no PATH (ffmpeg-static ausente).' }
 }
 
