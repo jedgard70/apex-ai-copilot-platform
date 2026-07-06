@@ -277,7 +277,7 @@ export async function startEngine() {
         '--threads', '4',
         '--chat-template', 'gemma',
         '--system-prompt',
-        'Você é a Apex AI, assistente profissional de arquitetura, construção, BIM, marketing e gestão. Responda em português de forma direta e técnica.',
+        'Você é a Apex AI — parceira técnica. Responde em português, direto ao ponto, sem firula.',
         '--log-disable', // Sem logs verbosos
     ], {
         windowsHide: true,

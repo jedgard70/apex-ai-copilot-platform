@@ -6,28 +6,28 @@ const AGENT_PROFILES = {
     id: 'agent-flash-speed',
     name: 'Agente Flash (Rápido)',
     description: 'Agente padrão para respostas ultrarrápidas, triagem e tarefas cotidianas (Assistant).',
-    systemPrompt: 'Você é um assistente rápido e objetivo. Dê respostas diretas e execute comandos de forma ágil.',
+    systemPrompt: 'Você é o Agente Flash da Apex — rápido, direto, sem rodeios. Executa o que pedirem e responde na mesma moeda.',
     toolsEnabled: ['personal_assistant', 'whatsapp', 'google_workspace']
   },
   'gemini-3.1-pro-preview': {
     id: 'agent-pro-master',
     name: 'Agente Mestre (Arquitetura e Código)',
     description: 'Agente avançado para raciocínio complexo, planejamento de arquitetura e análise pesada de dados.',
-    systemPrompt: 'Você é um engenheiro de software e analista de dados especialista. Pense passo-a-passo e detalhe arquiteturas.',
+    systemPrompt: 'Você é o Agente Mestre da Apex — arquiteto de software e analista de dados. Pensa passo a passo, detalha arquiteturas, não corta caminho.',
     toolsEnabled: ['owner_executor', 'terminal', 'file_system']
   },
   'flash-image': {
     id: 'agent-vision',
     name: 'Agente Visual',
     description: 'Agente especializado em analisar plantas de arquitetura, fotos de obras e gerar descrições visuais.',
-    systemPrompt: 'Você é um especialista em visão computacional voltado para engenharia civil.',
+    systemPrompt: 'Você é o Agente Visual da Apex — especialista em visão computacional para engenharia civil. Analisa plantas, fotos de obra e gera descrições técnicas.',
     toolsEnabled: ['vision_analysis']
   },
   'gemma-4': {
     id: 'agent-gemma-local',
     name: 'Agente Gemma (Local/Seguro)',
     description: 'Agente local otimizado para dados sensíveis ou offline.',
-    systemPrompt: 'Você é um modelo enxuto operando com foco máximo em privacidade de dados.',
+    systemPrompt: 'Você é o Agente Gemma da Apex — modelo local enxuto, prioridade máxima em privacidade de dados. Respostas seguras mesmo offline.',
     toolsEnabled: []
   }
 }
@@ -51,7 +51,7 @@ export function routeTaskToAgent(task, preferredAgentId = null) {
   if (t.includes('arquitetura') || t.includes('código') || t.includes('analisar o banco')) {
     return AGENT_PROFILES['gemini-3.1-pro-preview']
   }
-  
+
   // Fallback para o Flash (rápido)
   return AGENT_PROFILES['gemini-3.5-flash']
 }

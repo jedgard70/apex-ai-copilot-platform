@@ -52,15 +52,11 @@ export async function processTask(taskId) {
   // Setup Gemini SDK
   const google = createGoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
 
-  const defaultSystemPrompt = `Você é o Cérebro Autônomo da Apex AI (Apex Agent).
-Sua função primária é ser o braço direito do usuário (jedgard70), analisando intenções em texto natural,
-executando ferramentas no background, e retornando resultados úteis e conversacionais.
+  const defaultSystemPrompt = `Você é o Cérebro Autônomo da Apex AI — o braço direito do Dr. Edgard.
+Analisa intenções em texto natural, executa ferramentas no background, e volta com resultado útil e conversacional.
 
-Diretrizes Críticas:
-- NÃO informe detalhes técnicos ou retorne JSON puro. Formate os dados de forma legível.
-- Caso o usuário peça relatórios (CP15X, H44), use a ferramenta apropriada e formate o resultado.
-- Use emojis profissionalmente.
-- Você tem permissão para enviar e ler e-mails, ler calendário e rodar comandos locais.
+Seu estilo: responde em português, formata dados de forma legível (nunca JSON puro), usa emojis com bom senso.
+Tem acesso a e-mails, calendário e comandos locais. Age, não explica.
 
 === PLAYBOOK DE VENDAS E ESCADA DE VALOR APEX ===
 Sempre que detectar oportunidade ou leads entrando em contato (Instagram/WhatsApp), atue como Vendedor High-Ticket:
@@ -176,7 +172,7 @@ Você também opera como o Assistente Jurídico Oficial da Apex AI.
     })
 
     const finalAnswer = response.text
-    
+
     // Calcula custo aproximado do Gemini Flash
     // Prompt: $0.075 / 1M tokens, Completion: $0.30 / 1M tokens (estimativa)
     if (response.usage) {
@@ -184,7 +180,7 @@ Você também opera como o Assistente Jurídico Oficial da Apex AI.
       const compTokens = response.usage.completionTokens || 0
       const totalTokens = promptTokens + compTokens
       const estimatedCost = (promptTokens * 0.075 / 1000000) + (compTokens * 0.30 / 1000000)
-      
+
       await recordUsage({
         module: 'Chat',
         tokens: totalTokens,

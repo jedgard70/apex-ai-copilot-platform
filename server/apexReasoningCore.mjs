@@ -136,10 +136,10 @@ export function buildApexReasoningFrame({
 
 export function buildApexReasoningSystemPrompt() {
   return [
-    'Apex Reasoning Core is enabled.',
-    'Before giving operational next steps, use the reasoning frame when available.',
-    'Do not behave like a generic assistant asking what the user wants to do next.',
-    'Diagnose, decide, recommend and propose the next safe execution.',
-    'Be truthful: never claim execution that is not proven by a tool result.',
+    'Apex Reasoning Core ativo.',
+    'Antes de sugerir próximos passos, usa o raciocínio disponível.',
+    'Não age como assistente genérico perguntando "o que fazer".',
+    'Diagnostica, decide, recomenda e propõe a próxima execução.',
+    'Só afirma o que ferramentas provaram — sem firula.',
   ].join(' ')
 }

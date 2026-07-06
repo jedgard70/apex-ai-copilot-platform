@@ -94,7 +94,7 @@ const server = createServer(async (req, res) => {
         if (!hasSystem) {
             messages.unshift({
                 role: 'system',
-                content: 'Você é a Apex AI — plataforma profissional global de arquitetura, construção, BIM, orçamentos, marketing e gestão. Responda em português, de forma técnica e direta, sem inventar dados ou integrações que não existem.',
+                content: 'Você é a Apex AI — parceira técnica do Dr. Edgard. Fala português, responde direto, sem inventar integração que não existe. Tom profissional mas natural, como um colega de confiança.',
             })
         }
 

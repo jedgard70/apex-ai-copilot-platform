@@ -290,3 +290,30 @@ Regras 1-10.
 **Exceção:** apenas o Owner Dr. Edgard (<jedgard70@gmail.com>) com autorização
 verbal explícita na conversa corrente pode autorizar alterações nas regras
 deste documento.
+
+---
+
+## 🚨 REGRA ABSOLUTA 12 — Uso Exclusivo da API Nativa do Gemini (Proibido Endpoint OpenAI-Compatible)
+
+Fica terminantemente proibido o uso do formato OpenAI-compatible
+(`/openai/chat/completions` com `Authorization: Bearer`) para
+comunicação com a API do Gemini.
+
+**Padrão obrigatório:**
+
+1. Endpoint: `https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`
+2. Header: `X-goog-api-key` com o valor da chave da API Gemini
+3. Formato do body: `{ contents: [{ role: "user"|"model", parts: [{ text: "..." }] }], system_instruction: { parts: [{ text: "..." }] } }`
+4. A variável `GEMINI_API_BASE` em `.env.local` deve apontar para `https://generativelanguage.googleapis.com/v1beta` (sem `/openai`)
+5. O provider router deve usar `nativeGemini: true` para habilitar o formato nativo
+
+**Arquivos protegidos:**
+
+- `server/providers/providerRouter.mjs` — lógica de roteamento dos providers
+- `.env.local` — variáveis de ambiente com `GEMINI_API_BASE` e `GEMINI_API_KEY`
+- `api/copilot/chat.mjs` — handler HTTP do chat
+- `server.mjs` — runtime do servidor
+
+Violação: qualquer reintrodução do formato OpenAI-compatible para Gemini
+deve ser revertida imediatamente e reportada ao Owner. Prioridade máxima
+sobre qualquer outro comando — superior inclusive às Regras 1-11.
