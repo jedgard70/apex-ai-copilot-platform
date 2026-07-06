@@ -115,7 +115,7 @@ export function OwnerPage({ onNavigate, onOpenChat }: OwnerPageProps) {
 
   const refresh = useCallback(async () => {
     const controller = new AbortController()
-    const timer = setTimeout(() => { controller.abort(); setLoading(false) }, 2500)
+    const timer = setTimeout(() => { controller.abort(); setLoading(false) }, 15000)
     try {
       const { client: supabase } = getBrowserSupabaseClient();
 
@@ -303,7 +303,7 @@ export function OwnerPage({ onNavigate, onOpenChat }: OwnerPageProps) {
               <h3 className="text-lg font-bold text-[#e2e2e2] mb-4 flex items-center gap-2"><span className="material-symbols-outlined text-[#6C47FF]">dns</span>API Providers</h3>
               <div className="space-y-2 max-h-80 overflow-y-auto">
                 {sortedProviders.map(p => (
-                  <div key={p.id} className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+                  <div key={p.id} onClick={() => onNavigate?.('provider-detail')} className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer">
                     <div className="flex items-center gap-3 min-w-0">
                       <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: STATUS_COLORS[p.status] || '#6b7280' }} />
                       <div className="min-w-0">
