@@ -1980,11 +1980,19 @@ async function callGemmaApexVertex(messages, overrideConfig) {
 }
 
 export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Apex-Internal')
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end()
+  }
+
   if (req.method === 'GET') {
     return handleModelsList(res)
   }
   if (req.method !== 'POST') {
-    res.setHeader('Allow', 'GET, POST')
+    res.setHeader('Allow', 'GET, POST, OPTIONS')
     return sendJson(res, 405, {
       error: 'Method not allowed',
       finalReply: 'BLOCKED - esta rota aceita apenas GET (models) ou POST JSON (chat).',

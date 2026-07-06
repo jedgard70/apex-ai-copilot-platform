@@ -129,11 +129,17 @@ function createWindow(initialPath = "/") {
     width: 1280, height: 800,
     title: "Apex AI Copilot Platform",
     autoHideMenuBar: true,
-    show: false,
+    show: true,
+    center: true,
     webPreferences: { nodeIntegration: false, contextIsolation: true },
   });
 
-  mainWindow.once('ready-to-show', () => mainWindow.show());
+  mainWindow.focus();
+  mainWindow.once('ready-to-show', () => {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.show();
+    mainWindow.focus();
+  });
 
   mainWindow.on('close', function (event) {
     if (!app.isQuiting) {
