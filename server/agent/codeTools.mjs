@@ -480,10 +480,17 @@ export async function executeCodeToolCall(toolCall, rootDir) {
     return { ok: false, error: 'Invalid tool arguments JSON.' }
   }
   async function toolSearchBrave(args) {
-    const query = args.query
+    const { query } = args
     if (!query) return { ok: false, error: 'Brave Search: missing query' }
     const apiKey = process.env.BRAVE_SEARCH_API_KEY
     if (!apiKey) return { ok: false, error: 'Brave Search API key (BRAVE_SEARCH_API_KEY) not configured in .env' }
+    
+    // REGISTRO DE LOG DA PESQUISA
+    try {
+      const { appendFileSync } = await import('node:fs')
+      const logEntry = JSON.stringify({ timestamp: new Date().toISOString(), provider: 'Brave Search', query }) + '\n'
+      appendFileSync('data/search_history.jsonl', logEntry, 'utf8')
+    } catch (e) { console.error('Erro ao gravar log de pesquisa:', e) }
 
     try {
       const res = await fetch(`https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=5`, {

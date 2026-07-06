@@ -90,27 +90,17 @@ async function checkElevenLabs() {
   }
 }
 
-// ─── Brave Search (Web Search) — API correta: GET + X-Subscription-Token ─────
+// ─── Brave Search (Web Search) — Validação Local para evitar queima de cota ──
 async function checkBraveSearch() {
   const key = process.env.BRAVE_SEARCH_API_KEY
   if (!key) return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'unconfigured', message: 'BRAVE_SEARCH_API_KEY não configurado.', topUpUrl: 'https://brave.com/search/api/' }
-  try {
-    // Brave Search API — GET request com X-Subscription-Token
-    const res = await safeFetch('https://api.search.brave.com/res/v1/web/search?q=test&count=1', {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Accept-Encoding': 'gzip',
-        'X-Subscription-Token': key,
-      },
-    }, 8000)
-    if (res.ok) return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'ok', message: 'Chave válida e API respondendo.' }
-    if (res.status === 401 || res.status === 403) return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'error', message: 'Chave inválida ou expirada.', topUpUrl: 'https://brave.com/search/api/' }
-    if (res.status === 429) { recordRateLimit({ provider: 'brave', endpoint: 'search', statusCode: 429 }); return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'needs-topup', message: 'Quota mensal atingida.', topUpUrl: 'https://brave.com/search/api/' } }
-    if (res.status === 402) return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'unconfigured', message: 'Plano gratuito expirado ou inválido (HTTP 402).', topUpUrl: 'https://brave.com/search/api/' }
-    return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'warning', message: `Status ${res.status}.`, topUpUrl: 'https://brave.com/search/api/' }
-  } catch (err) {
-    return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'error', message: `Erro: ${scrub(err?.message)}`, topUpUrl: 'https://brave.com/search/api/' }
+  
+  // Para evitar que o dashboard drene as 1000 pesquisas gratuitas fazendo polling, 
+  // validamos apenas o formato da chave (chaves Brave costumam ter +30 chars e começar com BSA).
+  if (key.length > 20) {
+    return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'ok', message: 'Chave configurada (validação local para economizar cota).' }
+  } else {
+    return { id: 'brave', name: 'Brave Search (Pesquisa Web)', status: 'error', message: 'Formato de chave inválido.', topUpUrl: 'https://brave.com/search/api/' }
   }
 }
 

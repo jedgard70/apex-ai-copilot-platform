@@ -1770,7 +1770,15 @@ async function executeLiveAgentToolCall(toolCall) {
 }
 
 function sendJson(res, status, body) {
-  res.writeHead(status, { 'Content-Type': 'application/json' }).end(JSON.stringify(body))
+  if (typeof res.status === 'function' && typeof res.json === 'function') {
+    res.status(status).json(body)
+  } else if (typeof res.writeHead === 'function') {
+    res.writeHead(status, { 'Content-Type': 'application/json' }).end(JSON.stringify(body))
+  } else {
+    // Ultimate fallback se o objeto res estiver incompleto no teste
+    res._status = status
+    if (typeof res.end === 'function') res.end(JSON.stringify(body))
+  }
 }
 
 function normalizeIdentityContext(value = {}) {
