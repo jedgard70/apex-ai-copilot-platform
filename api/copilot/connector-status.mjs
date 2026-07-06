@@ -4,7 +4,7 @@ import {
 } from '../../server/agent/connectorsStatus.mjs'
 
 function sendJson(res, status, body) {
-  if (typeof res.status === 'function') return res.status(status).json(body)
+  if (typeof res.status === 'function') return res.writeHead(status, { 'Content-Type': 'application/json' }).end(JSON.stringify(body))
   res.statusCode = status
   res.setHeader?.('Content-Type', 'application/json; charset=utf-8')
   res.end(JSON.stringify(body))

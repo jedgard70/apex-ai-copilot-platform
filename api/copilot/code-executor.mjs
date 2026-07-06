@@ -11,27 +11,27 @@ export default async function handler(req, res) {
   if (path === '/api/copilot/code-executor/plan' && req.method === 'POST') {
     try {
       const { buildOwnerCodeExecutionPlan } = await import('../../server/service/ownerCodeExecutor.mjs')
-      return res.status(200).json(buildOwnerCodeExecutionPlan(body || {}))
+      return res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify(buildOwnerCodeExecutionPlan(body || {})))
     } catch (error) {
-      return res.status(500).json({ error: error.message, providerStatus: 'error' })
+      return res.writeHead(500, { 'Content-Type': 'application/json' }).end(JSON.stringify({ error: error.message, providerStatus: 'error' }))
     }
   }
 
   if (path === '/api/copilot/code-executor/validate-command' && req.method === 'POST') {
     try {
       const { validateOwnerCodeCommand } = await import('../../server/service/ownerCodeExecutor.mjs')
-      return res.status(200).json(validateOwnerCodeCommand(String(body.command || '')))
+      return res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify(validateOwnerCodeCommand(String(body.command || ''))))
     } catch (error) {
-      return res.status(500).json({ error: error.message, providerStatus: 'error' })
+      return res.writeHead(500, { 'Content-Type': 'application/json' }).end(JSON.stringify({ error: error.message, providerStatus: 'error' }))
     }
   }
 
   if (path === '/api/copilot/code-executor/status' && (req.method === 'POST' || req.method === 'GET')) {
     try {
       const { getOwnerCodeExecutorStatus } = await import('../../server/service/ownerCodeExecutor.mjs')
-      return res.status(200).json(getOwnerCodeExecutorStatus())
+      return res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify(getOwnerCodeExecutorStatus()))
     } catch (error) {
-      return res.status(500).json({ error: error.message, providerStatus: 'error' })
+      return res.writeHead(500, { 'Content-Type': 'application/json' }).end(JSON.stringify({ error: error.message, providerStatus: 'error' }))
     }
   }
 
@@ -39,11 +39,11 @@ export default async function handler(req, res) {
     try {
       const { appendExecutionLog } = await import('../../server/service/ownerCodeExecutor.mjs')
       const result = appendExecutionLog(body)
-      return res.status(200).json(result)
+      return res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify(result))
     } catch (error) {
-      return res.status(500).json({ error: error.message, providerStatus: 'error' })
+      return res.writeHead(500, { 'Content-Type': 'application/json' }).end(JSON.stringify({ error: error.message, providerStatus: 'error' }))
     }
   }
 
-  return res.status(404).json({ error: 'Not found' })
+  return res.writeHead(404, { 'Content-Type': 'application/json' }).end(JSON.stringify({ error: 'Not found' }))
 }

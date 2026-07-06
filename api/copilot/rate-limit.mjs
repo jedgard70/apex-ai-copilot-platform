@@ -4,7 +4,7 @@
 import { getRateLimitEvents } from '../../server/service/rateLimitMonitor.mjs'
 
 function sendJson(res, status, body) {
-  res.status(status).json(body)
+  res.writeHead(status, { 'Content-Type': 'application/json' }).end(JSON.stringify(body))
 }
 
 export default async function handler(req, res) {

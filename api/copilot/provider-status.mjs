@@ -4,7 +4,7 @@
 import { recordRateLimit } from '../../server/service/rateLimitMonitor.mjs'
 
 function sendJson(res, status, body) {
-  res.status(status).json(body)
+  res.writeHead(status, { 'Content-Type': 'application/json' }).end(JSON.stringify(body))
 }
 
 function scrub(val) {
@@ -377,7 +377,7 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 
   if (req.method === 'OPTIONS') {
-    return res.status(200).end()
+    return res.writeHead(200).end()
   }
 
   if (req.method !== 'GET' && req.method !== 'POST') {

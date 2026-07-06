@@ -143,15 +143,15 @@ export default async function handler(req, res) {
   const action = req.query?.action || urlObj.searchParams.get('action') || ''
 
   if (action === 'commands') {
-    return res.status(200).json({
+    return res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify({
       providerStatus: 'local-execution-v0',
       commands: copilotExecutionCommands,
-    })
+    }))
   }
 
   if (action === 'run') {
     if (req.method !== 'POST') {
-      return res.status(405).json({ error: 'Method not allowed' })
+      return res.writeHead(405, { 'Content-Type': 'application/json' }).end(JSON.stringify({ error: 'Method not allowed' }))
     }
 
     const { commandId, cwd, rawCommand } = req.body || {}
@@ -190,10 +190,10 @@ export default async function handler(req, res) {
     }
 
     if (!workerAction) {
-      return res.status(400).json({
+      return res.writeHead(400, { 'Content-Type': 'application/json' }).end(JSON.stringify({
         error: `Command "${commandId}" is not supported or mapped in the serverless worker bridge.`,
         providerStatus: 'error',
-      })
+      }))
     }
 
     const startedAt = new Date().toISOString()
@@ -206,10 +206,10 @@ export default async function handler(req, res) {
       const durationMs = Date.now() - startedAtMs
 
       if (!result.reachable) {
-        return res.status(500).json({
+        return res.writeHead(500, { 'Content-Type': 'application/json' }).end(JSON.stringify({
           error: `Local Worker is offline or unreachable. Reason: ${result.reason || 'Network error'}`,
           providerStatus: 'local-execution-v0',
-        })
+        }))
       }
 
       const cmdDef = copilotExecutionCommands.find(c => c.id === commandId)
@@ -238,17 +238,17 @@ export default async function handler(req, res) {
         redactedOutput: false,
       }
 
-      return res.status(200).json({
+      return res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify({
         providerStatus: 'local-execution-v0',
         result: executionResult,
-      })
+      }))
     } catch (err) {
-      return res.status(500).json({
+      return res.writeHead(500, { 'Content-Type': 'application/json' }).end(JSON.stringify({
         error: `Internal serverless execution router error: ${err.message || String(err)}`,
         providerStatus: 'local-execution-v0',
-      })
+      }))
     }
   }
 
-  return res.status(400).json({ error: `Invalid or missing action "${action}"` })
+  return res.writeHead(400, { 'Content-Type': 'application/json' }).end(JSON.stringify({ error: `Invalid or missing action "${action}"` }))
 }

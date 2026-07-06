@@ -12,7 +12,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 function sendJson(res, status, body) {
-    res.status(status).json(body)
+    res.writeHead(status, { 'Content-Type': 'application/json' }).end(JSON.stringify(body))
 }
 
 function countDatasetExamples() {

@@ -2,7 +2,7 @@
 // Used by CampaignAutomationPanel to generate ready-to-publish social content
 
 function sendJson(res, status, body) {
-  res.status(status).json(body)
+  res.writeHead(status, { 'Content-Type': 'application/json' }).end(JSON.stringify(body))
 }
 
 function scrubError(value) {

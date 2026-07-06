@@ -4,7 +4,7 @@ const AUTHKEY = process.env.AUTHKEY_AUTHKEY || ''
 const WHATSAPP_SID = process.env.AUTHKEY_WHATSAPP_SID || ''
 
 function sendJson(res, status, body) {
-  res.status(status).json(body)
+  res.writeHead(status, { 'Content-Type': 'application/json' }).end(JSON.stringify(body))
 }
 
 async function sendWhatsAppAlert(to, message) {

@@ -5,7 +5,7 @@
  */
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+  if (req.method !== 'POST') return res.writeHead(405, { 'Content-Type': 'application/json' }).end(JSON.stringify({ error: 'Method not allowed' }))
 
   try {
     const body = typeof req.body === 'object' ? req.body : {}
@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     const goal = String(body.goal || 'Complete project package').trim()
 
     if (!project || typeof project !== 'object' || !project.name) {
-      return res.status(400).json({ error: 'Valid project state is required for project package pipeline.' })
+      return res.writeHead(400, { 'Content-Type': 'application/json' }).end(JSON.stringify({ error: 'Valid project state is required for project package pipeline.' }))
     }
 
     const exportsList = Array.isArray(project.exports) ? project.exports : []
@@ -43,8 +43,8 @@ export default async function handler(req, res) {
       pendingContractQuestions: Array.isArray(latestContracts?.plan?.pendingQuestions) ? latestContracts.plan.pendingQuestions.length : 0,
       profile: project.projectProfile && typeof project.projectProfile === 'object' ? project.projectProfile : {},
     })
-    return res.status(200).json(result)
+    return res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify(result))
   } catch (error) {
-    return res.status(500).json({ error: error.message })
+    return res.writeHead(500, { 'Content-Type': 'application/json' }).end(JSON.stringify({ error: error.message }))
   }
 }

@@ -2,7 +2,7 @@
 // Provider priority: 1) fal.ai flux → 2) Gemini → 3) not-configured message
 
 function sendJson(res, status, body) {
-  res.status(status).json(body)
+  res.writeHead(status, { 'Content-Type': 'application/json' }).end(JSON.stringify(body))
 }
 
 function scrubProviderError(value) {

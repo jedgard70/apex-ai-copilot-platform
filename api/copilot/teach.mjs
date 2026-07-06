@@ -27,7 +27,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, '../..')
 
 function sendJson(res, status, body) {
-    res.status(status).json(body)
+    res.writeHead(status, { 'Content-Type': 'application/json' }).end(JSON.stringify(body))
 }
 
 function isOwner(req) {
@@ -67,7 +67,7 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
     res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type')
 
-    if (req.method === 'OPTIONS') return res.status(200).end()
+    if (req.method === 'OPTIONS') return res.writeHead(200).end()
 
     // GET /api/copilot/teach → retorna o resumo da memória atual
     if (req.method === 'GET') {

@@ -1,13 +1,13 @@
 import { getAiCostDashboard, saveRecords } from '../../server/service/aiCost.mjs'
 
 function sendJson(res, status, body) {
-  res.status(status).json(body)
+  res.writeHead(status, { 'Content-Type': 'application/json' }).end(JSON.stringify(body))
 }
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-  if (req.method === 'OPTIONS') return res.status(200).end()
+  if (req.method === 'OPTIONS') return res.writeHead(200).end()
 
   try {
     if (req.method === 'POST' && req.body && req.body.records) {

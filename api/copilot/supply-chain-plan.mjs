@@ -2,7 +2,7 @@ import { lookup } from '../sinapi-lookup.mjs'
 import { GoogleGenAI } from '@google/genai'
 
 function sendJson(res, status, body) {
-  res.status(status).json(body)
+  res.writeHead(status, { 'Content-Type': 'application/json' }).end(JSON.stringify(body))
 }
 
 const ai = process.env.GEMINI_API_KEY ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }) : null

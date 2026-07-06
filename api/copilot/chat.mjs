@@ -1776,7 +1776,7 @@ async function executeLiveAgentToolCall(toolCall) {
 }
 
 function sendJson(res, status, body) {
-  res.status(status).json(body)
+  res.writeHead(status, { 'Content-Type': 'application/json' }).end(JSON.stringify(body))
 }
 
 function normalizeIdentityContext(value = {}) {
@@ -1969,7 +1969,7 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Apex-Internal')
 
   if (req.method === 'OPTIONS') {
-    return res.status(200).end()
+    return res.writeHead(200).end()
   }
 
   if (req.method === 'GET') {

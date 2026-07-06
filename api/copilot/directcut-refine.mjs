@@ -2,7 +2,7 @@
 // Used by the Node Board to improve individual scenes without regenerating the full plan
 
 function sendJson(res, status, body) {
-  res.status(status).json(body)
+  res.writeHead(status, { 'Content-Type': 'application/json' }).end(JSON.stringify(body))
 }
 
 function scrubError(value) {
