@@ -114,20 +114,22 @@ export function OwnerPage({ onNavigate, onOpenChat }: OwnerPageProps) {
 
 
   const refresh = useCallback(async () => {
+    const controller = new AbortController()
+    const timer = setTimeout(() => { controller.abort(); setLoading(false) }, 2500)
     try {
       const { client: supabase } = getBrowserSupabaseClient();
 
       const [psRes, klRes] = await Promise.all([
-        fetch('/api/copilot/provider-status'),
-        fetch('/api/copilot/key-lifecycle')
+        fetch('/api/copilot/provider-status', { signal: controller.signal }).catch(() => null),
+        fetch('/api/copilot/key-lifecycle', { signal: controller.signal }).catch(() => null)
       ]);
 
-      if (psRes.ok) {
-        const d = await psRes.json();
+      if (psRes && psRes.ok) {
+        const d = await psRes.json().catch(() => ({}));
         setProviders(d.providers || []);
       }
-      if (klRes.ok) {
-        const d = await klRes.json();
+      if (klRes && klRes.ok) {
+        const d = await klRes.json().catch(() => ({}));
         setKeyLifecycle(d.keys || []);
       }
 
@@ -202,7 +204,7 @@ export function OwnerPage({ onNavigate, onOpenChat }: OwnerPageProps) {
           summary: { totalCalls: 0, successRate: 0, avgLatencyMs: 0, windowMinutes: 1440 }
         })
       }
-    } catch { /* silent */ } finally { setLoading(false) }
+    } catch { /* silent */ } finally { clearTimeout(timer); setLoading(false) }
   }, [])
 
   useEffect(() => { refresh(); const t = setInterval(refresh, 60000); return () => clearInterval(t) }, [refresh])
