@@ -278,17 +278,19 @@ async function executeLocalWorkerHealth() {
 }
 
 function buildCapabilityDetail(item) {
-  const missing = item.missing.length ? item.missing.join(', ') : 'nenhum'
   if (item.executionClass === EXECUTION_CLASSES.MUTATION_REQUIRES_CONFIRMATION) {
-    return `   Classe: ${item.executionClass}. Status: ${item.configured ? 'available' : 'unavailable'} para preparar. Mutação exige confirmação explícita, evidência, rollback e rota dedicada. Faltando: ${missing}.`
+    if (!item.configured) {
+      return `   Classe: ${item.executionClass}. Status: unavailable. Mutação exige confirmação explícita, evidência, rollback e rota dedicada. Nenhum deploy disponível para preparar.`
+    }
+    return `   Classe: ${item.executionClass}. Status: available para preparar. Mutação exige confirmação explícita, evidência, rollback e rota dedicada.`
   }
   if (item.executionClass === EXECUTION_CLASSES.OPERATIONAL_CONNECTED) {
-    return `   Classe: ${item.executionClass}. Status: ${item.configured ? 'operational' : 'unavailable'}. Operação conectada disponível; alterações no modelo exigem confirmação explícita. Faltando: ${missing}.`
+    return `   Classe: ${item.executionClass}. Status: ${item.configured ? 'operational' : 'unavailable'}. Operação conectada disponível; alterações no modelo exigem confirmação explícita.`
   }
   if (item.executionClass === EXECUTION_CLASSES.EXTERNAL_DESKTOP_REQUIRES_LOCAL_WORKER) {
-    return `   Classe: ${item.executionClass}. Status: ${item.configured ? 'available' : 'unavailable'}. Faltando: ${missing}.`
+    return `   Classe: ${item.executionClass}. Status: ${item.configured ? 'available' : 'unavailable'}.`
   }
-  return `   Classe: ${item.executionClass}. Status: ${item.configured ? 'available' : 'unavailable'}. Faltando: ${missing}.`
+  return `   Classe: ${item.executionClass}. Status: ${item.configured ? 'available' : 'unavailable'}.`
 }
 
 function buildGithubDetail(result) {
@@ -396,7 +398,7 @@ function buildToolExecutionReply({ requestTools = [], executions = [] } = {}) {
   }
 
   lines.push('')
-  lines.push('Nenhum segredo foi exibido.')
+  lines.push('Nenhum segredo foi exibido. Nenhum deploy, migration, push, commit, comando local, ação desktop ou mutação foi executado.')
   return lines.join('\n')
 }
 
