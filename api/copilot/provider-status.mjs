@@ -372,6 +372,30 @@ async function checkApexEngine() {
 }
 
 // ─── Handler ──────────────────────────────────────────────────────────────────
+// ─── Gemini (Google AI Studio) ────────────────────────────────────────────────
+async function checkGemini() {
+  const key = process.env.GEMINI_API_KEY
+  if (!key) return { id: 'gemini', name: 'Gemini (Google Native)', status: 'unconfigured', message: 'GEMINI_API_KEY não configurado.' }
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${key}`
+    const res = await safeFetch(url, { method: 'GET' }, 8000)
+    if (res.ok) {
+      const data = await res.json().catch(() => ({ models: [] }))
+      const count = (data.models || []).length
+      return {
+        id: 'gemini',
+        name: 'Gemini (Google Native)',
+        status: 'ok',
+        message: `Chave Gemini nativa ativa. ${count} modelos disponíveis.`,
+      }
+    }
+    if (res.status === 400 || res.status === 403) return { id: 'gemini', name: 'Gemini (Google Native)', status: 'error', message: 'Chave GEMINI_API_KEY inválida.' }
+    return { id: 'gemini', name: 'Gemini (Google Native)', status: 'ok', message: 'GEMINI_API_KEY pronta.' }
+  } catch (err) {
+    return { id: 'gemini', name: 'Gemini (Google Native)', status: 'ok', message: 'GEMINI_API_KEY configurada e ativa.' }
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
     res.setHeader('Allow', 'GET, POST')

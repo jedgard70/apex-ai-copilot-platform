@@ -137,6 +137,7 @@ import { DigitalTwinPlan, isDigitalTwinIntent } from './lib/digitalTwinKnowledge
 import { EvmSchedulerCompliancePlan, isEvmSchedulerComplianceIntent } from './lib/evmSchedulerComplianceKnowledge'
 import { KnowledgeBasePlan, isKnowledgeBaseIntent } from './lib/knowledgeBaseKnowledge'
 import { MetricsPlan, isMetricsIntent } from './lib/metricsKnowledge'
+import { UserProfileModal } from './components/UserProfileModal'
 import { MultiTenantPlan, isMultiTenantIntent } from './lib/multiTenantKnowledge'
 import { isNotificationsIntent, NotificationsPlan } from './lib/notificationsKnowledge'
 import { createPlatformMapSummary, isPlatformMapIntent } from './lib/platformMapKnowledge'
@@ -1277,6 +1278,7 @@ function App() {
   const [authLoading, setAuthLoading] = useState(isSupabaseConfigured || !localDemoAuthAllowed)
   const [authMessage, setAuthMessage] = useState(supabaseProvider.message)
   const [activeView, setActiveView] = useState('dashboard')
+  const [isUserProfileOpen, setIsUserProfileOpen] = useState(false)
   /* A11.0 — Dashboard studio card + sidebar routing: directly opens panels instead of sending chat commands */
   useEffect(() => {
     // Full-page views: dashboard, owner, chat. Everything else goes to split layout.
@@ -1289,6 +1291,14 @@ function App() {
     else if (activeView === 'legal_eu') { closeOtherPanels('permits'); setPermitsOutput({ open: true, region: 'EU' }) }
     else if (activeView === 'legal_off') { closeOtherPanels('permits'); setPermitsOutput({ open: true, region: 'OFF' }) }
     else if (activeView === 'contracts_gen') { closeOtherPanels('permits'); setPermitsOutput({ open: true, type: 'contract' }) }
+    else if (activeView === 'crm') { closeOtherPanels('pipeline'); setPipelineOutput(true) }
+    else if (activeView === 'finance') { closeOtherPanels('accounting'); setAccountingOutput(true) }
+    else if (activeView === 'marketing') { closeOtherPanels('campaignAutomation'); setCampaignAutomationOutput({ goal: 'Campanha de Marketing', conversationContext: [] }) }
+    else if (activeView === 'fieldops') { closeOtherPanels('fieldOps'); setFieldOpsOutput({ goal: 'Operações de Campo / RDO', conversationContext: [] }) }
+    else if (activeView === 'budget') { closeOtherPanels('budget'); setBudgetOutput({ goal: 'Orçamento SINAPI', conversationContext: [] }) }
+    else if (activeView === 'contracts') { closeOtherPanels('contracts'); setContractsOutput({ goal: 'Gestão de Contratos', conversationContext: [] }) }
+    else if (activeView === 'research') { closeOtherPanels('research'); setResearchOutput({ goal: 'Pesquisa Mercadológica', conversationContext: [] }) }
+    else if (activeView === 'settings' || activeView === 'profile' || activeView === 'user-profile') { setIsUserProfileOpen(true) }
     // Inject panel context into chat so AI knows what's happening
     const panelLabels: Record<string, string> = {
       navigator: 'Platform Navigator', governance: 'Governance Hub', training: 'Model Training',
@@ -4226,13 +4236,7 @@ function App() {
       projectName="Apex Platform"
       projectStatus={accountState?.providerStatus === 'supabase-connected' ? 'Live' : 'Ready'}
       providerLeds={providerLedStatuses}
-      onProfileClick={() => {
-        if (currentRole === 'owner' || currentRole === 'admin') {
-          setActiveView('owner')
-        } else {
-          setAuthOutput({ goal: 'Open client account', conversationContext: [] })
-        }
-      }}
+      onProfileClick={() => setIsUserProfileOpen(true)}
       avatarUrl={(accountState as any)?.user?.user_metadata?.avatar_url}
       userRole={currentRole}
     >
@@ -5688,6 +5692,12 @@ function App() {
       </div>
       )}
       {showTerminal && <TerminalPanel onClose={() => setShowTerminal(false)} />}
+      <UserProfileModal
+        isOpen={isUserProfileOpen}
+        onClose={() => setIsUserProfileOpen(false)}
+        currentUserEmail={accountState?.user?.email}
+        currentUserRole={currentRole}
+      />
     </AppLayout>
   )
 }

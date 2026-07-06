@@ -1808,28 +1808,23 @@ function normalizeIdentityContext(value = {}) {
 }
 
 async function readJsonBody(req) {
-  // ⚠️ NUNCA acessar req.body direto — o Rust runtime da Vercel tem um getter
-  // que LANÇA ERRO se o JSON for inválido. Preferir SEMPRE ondata.
-  //
-  // Mas se req já veio com body parsed (ex: invocação direta sem passar
-  // pelo runtime Vercel), usamos ele como fallback para evitar depender
-  // de EventEmitter que pode não existir no objeto.
+  // 1. Se req.body já estiver populado (ex: middleware, Express, Vercel helper, invocação direta), usa diretamente
+  try {
+    if (typeof req.body === 'string' && req.body.trim()) return JSON.parse(req.body) || {}
+    if (req.body && typeof req.body === 'object' && Object.keys(req.body).length > 0) return req.body
+  } catch (_) {
+    // Se req.body lançar exceção no Vercel runtime (getter estrito em JSON inválido), ignora e lê o stream
+  }
+
+  // 2. Se req não tiver EventEmitter (.on), não há stream de Node.js para escutar
   if (typeof req.on !== 'function') {
-    // Contexto sem stream (in-memory, script, teste real, etc.)
-    try {
-      if (typeof req.body === 'string') return JSON.parse(req.body) || {}
-      if (req.body && typeof req.body === 'object') return req.body
-    } catch (_) {
-      // Se body getter lançar (ex: Vercel em modo parcial), ignora
-    }
-    // Se body for inválido ou não existir, tenta readable web stream
     if (typeof req.body === 'object' && typeof req.body?.getReader === 'function') {
       return readWebStream(req.body)
     }
-    return {}
+    return req.body && typeof req.body === 'object' ? req.body : {}
   }
 
-  // Contexto com stream EventEmitter (runtime Vercel, Node http.IncomingMessage, Express)
+  // 3. Contexto de stream Node.js (Vercel serverless raw stream / http.IncomingMessage)
   return await new Promise((resolve) => {
     const chunks = []
     let settled = false
@@ -2039,6 +2034,17 @@ export default async function handler(req, res) {
     const clientMemory = body.clientMemory || {}
     const productionStatus = collectProductionOperatorStatus()
     const fileCandidate = body.file || null
+
+    // Role-based restriction: Non-owner logins cannot execute software engineering/code requests
+    const isProgrammingQuery = /\b(programar|programaç[aã]o|escreva um c[oó]digo|crie um c[oó]digo|modifique o c[oó]digo|altere o c[oó]digo|refatorar|fun[çc][aã]o typescript|script python|comando de terminal|git push|npm install|deploy vercel|mudar arquivo|criar componente|bug no c[oó]digo)\b/i.test(routingMessage)
+    if (!isVerifiedOwner && isProgrammingQuery) {
+      return sendJson(res, 200, {
+        finalReply: "Olá! Como usuário da plataforma Apex AI, estou à sua disposição para todas as suas necessidades de negócios, automação de marketing, contratos, orçamentos SINAPI e projetos BIM. As funções de engenharia de software, programação e modificação da estrutura da plataforma são exclusivas do Owner Admin (Dr. Edgard).",
+        model: body.model || 'gemini-2.5-flash',
+        providerStatus: 'connected',
+        provider: 'apex-guard'
+      })
+    }
     const hasReadyText = Boolean(
       fileCandidate &&
       fileCandidate.extractionStatus === 'ready' &&
