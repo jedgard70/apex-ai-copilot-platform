@@ -1291,10 +1291,24 @@ function convertToGeminiTools(tools) {
   for (const tool of tools) {
     const fn = tool.function || tool
     if (!fn.name) continue
+    let params = fn.parameters || { type: 'object', properties: {} }
+    // Gemini API rejects "additionalProperties" in JSON schema. Must recursively strip it.
+    const stripProps = (obj) => {
+      if (Array.isArray(obj)) {
+        obj.forEach(stripProps)
+      } else if (typeof obj === 'object' && obj !== null) {
+        delete obj.additionalProperties
+        Object.values(obj).forEach(stripProps)
+      }
+    }
+    // deep clone to avoid mutating the original definition
+    params = JSON.parse(JSON.stringify(params))
+    stripProps(params)
+
     declarations.push({
       name: fn.name,
       description: fn.description || '',
-      parameters: fn.parameters || { type: 'object', properties: {} },
+      parameters: params,
     })
   }
   return declarations.length ? [{ function_declarations: declarations }] : undefined
