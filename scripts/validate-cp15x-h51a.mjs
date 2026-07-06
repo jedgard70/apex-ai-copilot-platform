@@ -101,9 +101,19 @@ const mockReq1 = {
 }
 const mockRes1 = {
   _status: null,
+  _headers: {},
   status(code) { this._status = code; return this },
   json(body) { httpBody1 = body },
-  setHeader() {},
+  setHeader(name, val) { this._headers[name] = val },
+  writeHead(code, headers) {
+    this._status = code
+    Object.assign(this._headers, headers || {})
+    return this
+  },
+  end(bodyStr) {
+    if (bodyStr) httpBody1 = JSON.parse(bodyStr)
+    return this
+  }
 }
 await chatHandler(mockReq1, mockRes1)
 assert.equal(mockRes1._status, 200)
@@ -123,9 +133,19 @@ const mockReq2 = {
 }
 const mockRes2 = {
   _status: null,
+  _headers: {},
   status(code) { this._status = code; return this },
   json(body) { httpBody2 = body },
-  setHeader() {},
+  setHeader(name, val) { this._headers[name] = val },
+  writeHead(code, headers) {
+    this._status = code
+    Object.assign(this._headers, headers || {})
+    return this
+  },
+  end(bodyStr) {
+    if (bodyStr) httpBody2 = JSON.parse(bodyStr)
+    return this
+  }
 }
 await chatHandler(mockReq2, mockRes2)
 assert.equal(mockRes2._status, 200)

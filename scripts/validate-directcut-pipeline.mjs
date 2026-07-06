@@ -39,6 +39,15 @@ const res = {
   setHeader(name, value) {
     this._headers[name] = value
   },
+  writeHead(code, headers) {
+    statusCode = code
+    Object.assign(this._headers, headers)
+    return this
+  },
+  end(bodyStr) {
+    if (bodyStr) responseBody = JSON.parse(bodyStr)
+    return this
+  }
 }
 
 await handler(req, res)
@@ -86,6 +95,15 @@ const renderRes = {
   setHeader(name, value) {
     this._headers[name] = value
   },
+  writeHead(code, headers) {
+    renderStatusCode = code
+    Object.assign(this._headers, headers || {})
+    return this
+  },
+  end(bodyStr) {
+    if (bodyStr) renderResponseBody = JSON.parse(bodyStr)
+    return this
+  }
 }
 
 await renderHandler(renderReq, renderRes)

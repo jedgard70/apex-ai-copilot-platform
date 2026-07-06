@@ -4,7 +4,14 @@
 import { recordRateLimit } from '../../server/service/rateLimitMonitor.mjs'
 
 function sendJson(res, status, body) {
-  res.writeHead(status, { 'Content-Type': 'application/json' }).end(JSON.stringify(body))
+  if (typeof res.status === 'function' && typeof res.json === 'function') {
+    res.status(status).json(body)
+  } else if (typeof res.writeHead === 'function') {
+    res.writeHead(status, { 'Content-Type': 'application/json' }).end(JSON.stringify(body))
+  } else {
+    res._status = status
+    if (typeof res.end === 'function') res.end(JSON.stringify(body))
+  }
 }
 
 function scrub(val) {
