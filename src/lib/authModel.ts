@@ -17,9 +17,11 @@ export type ApexRoleId =
   | 'modelador_bim'
   | 'social_media'
   | 'web_designer'
-  | 'cliente_a'
-  | 'cliente_b'
-  | 'cliente_c'
+  | 'arquiteto_engenheiro'
+  | 'cliente_simples'
+  | 'cliente_vip'
+  | 'cliente_pro'
+  | 'cliente_senior'
 
 export type PermissionGroup =
   | 'project.read'
@@ -201,22 +203,34 @@ export const apexRoles: ApexRole[] = [
     permissions: ['module.vsl.read', 'module.archvis.read'] as any
   },
   {
-    id: 'cliente_a',
-    label: 'Cliente - Premium (Categoria A)',
-    description: 'Acesso completo ao projeto, câmeras em tempo real, orçamentos, contratos e suporte.',
-    permissions: ['project.read', 'files.read', 'files.write', 'archvis.read', 'directcut.read', 'bim.read', 'budget.read', 'contracts.read', 'fieldops.read'],
+    id: 'arquiteto_engenheiro',
+    label: 'Arquiteto / Engenheiro',
+    description: 'Acesso a projetos, RDO, BIM e documentação técnica.',
+    permissions: ['project.read', 'project.write', 'files.read', 'files.write', 'bim.read', 'bim.write', 'fieldops.read', 'fieldops.write'],
   },
   {
-    id: 'cliente_b',
-    label: 'Cliente - Standard (Categoria B)',
-    description: 'Acesso restrito ao projeto, andamento da obra (RDO) e aprovação de imagens.',
+    id: 'cliente_senior',
+    label: 'Cliente Sênior',
+    description: 'Acesso total premium (projetos, contratos, orçamentos avançados).',
+    permissions: ['project.read', 'files.read', 'archvis.read', 'directcut.read', 'bim.read', 'budget.read', 'contracts.read', 'fieldops.read'],
+  },
+  {
+    id: 'cliente_pro',
+    label: 'Cliente Pro',
+    description: 'Acesso avançado com visualização de cronogramas e orçamentos.',
+    permissions: ['project.read', 'files.read', 'archvis.read', 'bim.read', 'budget.read', 'fieldops.read'],
+  },
+  {
+    id: 'cliente_vip',
+    label: 'Cliente VIP',
+    description: 'Acesso a andamento da obra (RDO), imagens e câmeras.',
     permissions: ['project.read', 'files.read', 'archvis.read', 'bim.read', 'fieldops.read'],
   },
   {
-    id: 'cliente_c',
-    label: 'Cliente - Basic (Categoria C)',
-    description: 'Visualizador simples, status financeiro próprio e notificações do projeto.',
-    permissions: ['project.read', 'files.read', 'finance.read'],
+    id: 'cliente_simples',
+    label: 'Cliente Simples',
+    description: 'Visualizador simples e status do projeto.',
+    permissions: ['project.read', 'files.read'],
   },
 ]
 

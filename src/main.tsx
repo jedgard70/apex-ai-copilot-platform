@@ -1922,12 +1922,12 @@ function App() {
     && (accountState?.role === 'owner_admin' || accountState?.role === 'admin' || accountState?.role === 'developer')
     && (isSupabaseConfigured || isLocalDemoOwner)
   )
-  const isInternalUser = isOwnerUser || accountState?.role === 'Internal Team' || accountState?.role === 'Finance' || accountState?.role === 'Sales' || accountState?.user?.email?.includes('apexglobal') || accountState?.user?.email === 'jedgard70@gmail.com'
+  const isInternalUser = isOwnerUser || (accountState?.role && !accountState.role.startsWith('cliente_')) || accountState?.role === 'Internal Team' || accountState?.role === 'Finance' || accountState?.role === 'Sales' || accountState?.user?.email?.includes('apexglobal') || accountState?.user?.email === 'jedgard70@gmail.com'
 
   const currentRole = (() => {
     if (!accountState?.user) return 'owner';
     if (accountState?.user?.email === 'jedgard70@gmail.com') return 'owner';
-    return accountState?.role || 'cliente_c';
+    return accountState?.role || 'cliente_simples';
   })();
 
   async function refreshAuthState() {

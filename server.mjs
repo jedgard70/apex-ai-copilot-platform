@@ -6508,6 +6508,7 @@ const server = http.createServer(async (req, res) => {
       req.method === 'GET' &&
       (
         req.url === '/api/copilot/models' ||
+        req.url === '/api/v1/models' ||
         (requestUrl.pathname === '/api/copilot/chat' && requestUrl.searchParams.get('models') === '1')
       )
     ) {
@@ -6518,9 +6519,24 @@ const server = http.createServer(async (req, res) => {
       handleChat(req, res)
       return
     }
+    if (requestUrl.pathname === '/api/v1/chat/completions' && req.method === 'POST') {
+      const v1ChatHandler = await import('./api/v1/chat/completions.mjs').then(m => m.default)
+      v1ChatHandler(req, res)
+      return
+    }
+    if (requestUrl.pathname.startsWith('/api/tenant/users')) {
+      const tenantUsersHandler = await import('./api/tenant/users.mjs').then(m => m.default)
+      tenantUsersHandler(req, res)
+      return
+    }
     if (requestUrl.pathname.startsWith('/api/copilot/squads')) {
       const squadsHandler = await import('./api/copilot/squads.mjs').then(m => m.default)
       squadsHandler(req, res)
+      return
+    }
+    if (requestUrl.pathname.startsWith('/api/mcp')) {
+      const mcpHandler = await import('./api/copilot/mcp.mjs').then(m => m.default)
+      mcpHandler(req, res)
       return
     }
     if (requestUrl.pathname === '/api/copilot/fs/list' && req.method === 'GET') {

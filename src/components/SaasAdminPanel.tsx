@@ -27,15 +27,15 @@ export function SaasAdminPanel({ goal, onClear }: SaasAdminPanelProps) {
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [inviteEmail, setInviteEmail] = useState('')
-  const [inviteRole, setInviteRole] = useState<ApexRoleId>('cliente_c')
+  const [inviteRole, setInviteRole] = useState<ApexRoleId>('cliente_simples')
 
   const fetchUsers = async () => {
     setLoading(true)
     setErrorMsg('')
     try {
-      const res = await fetch('http://localhost:3011/api/copilot/users')
+      const res = await fetch('/api/tenant/users')
       const data = await res.json()
-      if (!data.ok) throw new Error(data.error || 'Erro ao carregar usuários')
+      if (!res.ok) throw new Error(data.error || 'Erro ao carregar usuários')
       setUsers(data.users || [])
     } catch (err: any) {
       setErrorMsg(err.message || 'Falha na conexão com a API')
@@ -54,13 +54,13 @@ export function SaasAdminPanel({ goal, onClear }: SaasAdminPanelProps) {
     setLoading(true)
     setErrorMsg('')
     try {
-      const res = await fetch('http://localhost:3011/api/copilot/users', {
+      const res = await fetch('/api/tenant/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'invite', email: inviteEmail, role: inviteRole })
+        body: JSON.stringify({ email: inviteEmail, role: inviteRole })
       })
       const data = await res.json()
-      if (!data.ok) throw new Error(data.error || 'Erro ao convidar usuário')
+      if (!res.ok) throw new Error(data.error || 'Erro ao convidar usuário')
       
       setInviteEmail('')
       fetchUsers() // recarrega a lista
@@ -73,13 +73,13 @@ export function SaasAdminPanel({ goal, onClear }: SaasAdminPanelProps) {
 
   const handleChangeRole = async (userId: string, newRole: string) => {
     try {
-      const res = await fetch('http://localhost:3011/api/copilot/users', {
-        method: 'POST',
+      const res = await fetch('/api/tenant/users', {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'update_role', userId, role: newRole })
+        body: JSON.stringify({ id: userId, role: newRole })
       })
       const data = await res.json()
-      if (data.ok) {
+      if (res.ok) {
         setUsers(users.map(u => u.id === userId ? { ...u, role: newRole as ApexRoleId } : u))
       } else {
         alert(data.error || 'Erro ao atualizar cargo')
@@ -92,13 +92,13 @@ export function SaasAdminPanel({ goal, onClear }: SaasAdminPanelProps) {
   const handleDelete = async (userId: string) => {
     if (!confirm('Deseja realmente remover o acesso deste usuário?')) return
     try {
-      const res = await fetch('http://localhost:3011/api/copilot/users', {
-        method: 'POST',
+      const res = await fetch('/api/tenant/users', {
+        method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete', userId })
+        body: JSON.stringify({ id: userId })
       })
       const data = await res.json()
-      if (data.ok) {
+      if (res.ok) {
         setUsers(users.filter(u => u.id !== userId))
       } else {
         alert(data.error || 'Erro ao remover usuário')
