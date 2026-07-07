@@ -18,6 +18,7 @@ const sidebarItems = [
   { icon: 'photo_camera', label: 'ArchVis Studio', id: 'archvis' },
   { icon: 'movie_edit', label: "Director's Cut", id: 'directcut' },
   { icon: 'manage_accounts', label: 'Owner Console', id: 'owner' },
+  { icon: 'admin_panel_settings', label: 'SaaS Admin', id: 'saasadmin' },
   { icon: 'rocket_launch', label: 'Deployment', id: 'deployment' },
   { icon: 'explore', label: 'Platform Map', id: 'navigator' },
   { icon: 'school', label: 'Training', id: 'training' },
@@ -76,7 +77,7 @@ const roleSidebarMap: Record<string, string[]> = {
   owner_admin: [
     'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
     'research', 'crm', 'finance', 'governance', 'marketing', 'archvis',
-    'directcut', 'owner', 'deployment', 'navigator', 'training', 'docs', 'aicontrol', 'caixa_mcmv', 'code-editor'
+    'directcut', 'owner', 'saasadmin', 'deployment', 'navigator', 'training', 'docs', 'aicontrol', 'caixa_mcmv', 'code-editor'
   ],
   internal_team: [
     'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',

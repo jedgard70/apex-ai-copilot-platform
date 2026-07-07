@@ -75,7 +75,7 @@ export type ProjectWorkspace = {
   preferences: unknown[]
   activeTool?: string
   activeFileId?: string
-  activeStudio?: 'archvis' | 'directcut' | 'bim3d' | 'budget' | 'contracts' | 'research' | 'fieldops' | 'business' | 'project-package' | 'generation-history' | 'aps' | 'agents' | 'cognitive-agents' | 'dashboard-by-role' | 'bim-clash' | 'qualidade' | 'workflow' | 'evm-scheduler-compliance' | 'supply-chain' | 'notifications' | 'ai-cost' | 'multi-tenant' | 'pwa-mobile' | 'digital-twin' | 'knowledge-base' | 'metrics-dashboard' | 'platform-map' | 'autoupgrade' | 'avatar-voice' | 'stock' | 'trip' | 'pipeline' | 'nr' | 'accounting' | 'permits' | 'export-center' | 'campaign-automation' | 'copilot-execution' | 'auth' | 'code-editor' | null
+  activeStudio?: 'archvis' | 'directcut' | 'bim3d' | 'budget' | 'contracts' | 'research' | 'fieldops' | 'business' | 'project-package' | 'generation-history' | 'aps' | 'agents' | 'cognitive-agents' | 'dashboard-by-role' | 'apex-squads' | 'crm-pipeline' | 'bim-clash' | 'qualidade' | 'workflow' | 'evm-scheduler-compliance' | 'supply-chain' | 'notifications' | 'ai-cost' | 'multi-tenant' | 'pwa-mobile' | 'digital-twin' | 'knowledge-base' | 'metrics-dashboard' | 'platform-map' | 'autoupgrade' | 'avatar-voice' | 'stock' | 'trip' | 'pipeline' | 'nr' | 'accounting' | 'permits' | 'export-center' | 'campaign-automation' | 'copilot-execution' | 'auth' | 'code-editor' | null
   appState?: Record<string, unknown>
 }
 

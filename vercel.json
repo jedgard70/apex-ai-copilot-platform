@@ -13,6 +13,8 @@
     { "source": "/api/copilot/research-plan", "destination": "/api/copilot/plan" },
     { "source": "/api/copilot/knowledge-plan", "destination": "/api/copilot/plan" },
     { "source": "/api/copilot/bim-tour-plan", "destination": "/api/copilot/plan" },
+    { "source": "/api/mcp/:path*", "destination": "/api/copilot/mcp.mjs" },
+    { "source": "/api/mcp", "destination": "/api/copilot/mcp.mjs" },
     { "source": "/api/prompts/:path*", "destination": "/api/prompts/index.mjs" },
     { "source": "/api/reports/:path*", "destination": "/api/reports/index.mjs" },
     { "source": "/api/deploy-hook/:path*", "destination": "/api/deploy-hook/:path*" },

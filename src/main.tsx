@@ -4266,6 +4266,10 @@ function App() {
         <OwnerPage onNavigate={setActiveView} onOpenChat={handleCommand} />
       ) : activeView === 'provider-detail' ? (
         <ProviderDetailPanel onClear={() => setActiveView('dashboard')} />
+      ) : activeView === 'saasadmin' ? (
+        <div className="h-full w-full" style={{ background: '#0f172a', overflow: 'hidden' }}>
+          <SaasAdminPanel goal="Acesso Direto" onClear={() => setActiveView('dashboard')} />
+        </div>
       ) : (
         // ── Split 70/30 — Painel + Chat lado a lado ──
         <div className="h-full" style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow: 'hidden', height: '100%' }}>

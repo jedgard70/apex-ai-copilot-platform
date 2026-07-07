@@ -107,6 +107,15 @@ export async function loadSupabaseAccountState(): Promise<SupabaseAccountState> 
     }
   }
 
+  // Primeiro tenta buscar na nova tabela tenant_users
+  const tenantUsersResult = await client
+    .from('tenant_users')
+    .select('role, status')
+    .eq('auth_user_id', user.id)
+    .eq('status', 'active')
+    .maybeSingle()
+
+  // Depois busca na tenant_members legada para pegar informações do tenant
   const membershipResult = await client
     .from('tenant_members')
     .select('role,tenant_id,tenants(id,name,slug)')
@@ -129,6 +138,8 @@ export async function loadSupabaseAccountState(): Promise<SupabaseAccountState> 
       message: `Tenant membership lookup failed: ${membershipResult.error.message}`,
     }
   }
+
+  const realRole = tenantUsersResult.data?.role || membershipResult.data?.role || null
 
   const tenantRow = membershipResult.data?.tenants
   const tenant = Array.isArray(tenantRow) ? tenantRow[0] : tenantRow
@@ -154,7 +165,7 @@ export async function loadSupabaseAccountState(): Promise<SupabaseAccountState> 
     user: userPayload(user),
     profile: profileResult.data,
     tenant,
-    role: membershipResult.data.role,
+    role: realRole,
     permissions: [],
     persistenceMode: 'hybrid-sync',
     bootstrapStatus: 'ready',
