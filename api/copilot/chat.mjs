@@ -2223,7 +2223,8 @@ export default async function handler(req, res) {
         messages: Array.isArray(body.messages) ? body.messages.slice(-10) : [],
       })
 
-      if (opResult.intent !== 'production_general' && opResult.intent !== 'production_general_portuguese') {
+      const isControlledOrConfirmation = opResult.intent === 'controlled_execution' || opResult.intent === 'production_h7_confirmation'
+      if (isControlledOrConfirmation) {
         return sendJson(res, 200, {
           finalReply: opResult.finalReply,
           reply: opResult.finalReply,
