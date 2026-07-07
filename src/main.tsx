@@ -1,5 +1,5 @@
 import { loadChatConversationsFromSupabase, saveMessageToSupabase } from './lib/chatHistoryService';
-import { isRevisionIntent, revisionChatLabel, isArchVisIntent, isDirectCutIntent, isDirectVideoNoPanelIntent, isBudgetIntent, isProjectPackageIntent, isGenerationHistoryIntent, isContractsIntent, isResearchIntent, isFieldOpsIntent, isBusinessLayerIntent, isAuthIntent, isCopilotExecutionIntent, suggestLayerOpenDecision, isExplicitPanelOpenRequest, isOwnerConsoleIntent, isStockIntent, isTripIntent, isPipelineIntent, isNRIntent, isAccountingIntent, isPromptLibraryIntent, getPromptLibraryModule, isPermitsIntent, isCheckpointContinuationIntent } from './lib/CopilotEngine';
+import { isRevisionIntent, revisionChatLabel, isArchVisIntent, isDirectCutIntent, isDirectVideoNoPanelIntent, isBudgetIntent, isProjectPackageIntent, isGenerationHistoryIntent, isContractsIntent, isResearchIntent, isFieldOpsIntent, isBusinessLayerIntent, isAuthIntent, isCopilotExecutionIntent, suggestLayerOpenDecision, isExplicitPanelOpenRequest, isOwnerConsoleIntent, isStockIntent, isTripIntent, isPipelineIntent, isNRIntent, isAccountingIntent, isPromptLibraryIntent, getPromptLibraryModule, isPermitsIntent, isCheckpointContinuationIntent, isApexSquadsIntent } from './lib/CopilotEngine';
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Analytics } from '@vercel/analytics/react'
@@ -81,6 +81,7 @@ import GlobalPermitsPanel from './components/GlobalPermitsPanel'
 import { BimClashPanel } from './components/BimClashPanel'
 import { QualidadeNCIsPanel } from './components/QualidadeNCIsPanel'
 import { WorkflowTasksPanel } from './components/WorkflowTasksPanel'
+import { ApexSquadsPanel } from './components/ApexSquadsPanel'
 import { OwnerPage } from './components/OwnerPage'
 import { ProviderDetailPanel } from './components/ProviderDetailPanel'
 import { ProfessionalPromptPanel } from './components/ProfessionalPromptPanel'
@@ -1366,6 +1367,8 @@ function App() {
   })
   const [cognitiveAgentsOutput, setCognitiveAgentsOutput] = useState<boolean>(false)
   const [dashboardByRoleOutput, setDashboardByRoleOutput] = useState<boolean>(false)
+  const [apexSquadsOutput, setApexSquadsOutput] = useState<boolean>(false)
+  const [crmPipelineOutput, setCrmPipelineOutput] = useState<boolean>(false)
   const [bimClashOutput, setBimClashOutput] = useState<boolean>(false)
   const [qualidadeOutput, setQualidadeOutput] = useState<boolean>(false)
   const [workflowOutput, setWorkflowOutput] = useState<boolean>(false)
@@ -1990,6 +1993,8 @@ function App() {
     setAuthOutput(null)
     setExportCenterOpen(false)
     setDashboardByRoleOutput(false)
+    setApexSquadsOutput(false)
+    setCrmPipelineOutput(false)
     setBimClashOutput(false)
     setQualidadeOutput(false)
     setWorkflowOutput(false)
@@ -2169,7 +2174,7 @@ function App() {
           activeRecord,
         ]
       : activeProject.files
-    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : fieldOpsOutput ? 'fieldops' : businessOutput ? 'business' : projectPackageOutput ? 'project-package' : generationHistoryOpen ? 'generation-history' : apsOpen ? 'aps' : agentsOutput ? 'agents' : cognitiveAgentsOutput ? 'cognitive-agents' : dashboardByRoleOutput ? 'dashboard-by-role' : bimClashOutput ? 'bim-clash' : qualidadeOutput ? 'qualidade' : workflowOutput ? 'workflow' : evmSchedulerComplianceOutput ? 'evm-scheduler-compliance' : supplyChainOutput ? 'supply-chain' : notificationsOutput ? 'notifications' : aiCostOutput ? 'ai-cost' : multiTenantOutput ? 'multi-tenant' : pwaMobileOutput ? 'pwa-mobile' : digitalTwinOutput ? 'digital-twin' : knowledgeBaseOutput ? 'knowledge-base' : metricsOutput ? 'metrics-dashboard' : avatarVoiceOutput ? 'avatar-voice' : autoupgradeOutput ? 'autoupgrade' : platformMapOutput ? 'platform-map' : stockOutput ? 'stock' : tripOutput ? 'trip' : pipelineOutput ? 'pipeline' : campaignAutomationOutput ? 'campaign-automation' : copilotExecutionOutput ? 'copilot-execution' : authOutput ? 'auth' : undefined
+    const activeStudio: ProjectWorkspace['activeStudio'] = archVisOutput ? 'archvis' : directCutOutput ? 'directcut' : bim3DOutput ? 'bim3d' : budgetOutput ? 'budget' : contractsOutput ? 'contracts' : researchOutput ? 'research' : fieldOpsOutput ? 'fieldops' : businessOutput ? 'business' : projectPackageOutput ? 'project-package' : generationHistoryOpen ? 'generation-history' : apsOpen ? 'aps' : agentsOutput ? 'agents' : cognitiveAgentsOutput ? 'cognitive-agents' : dashboardByRoleOutput ? 'dashboard-by-role' : apexSquadsOutput ? 'apex-squads' : crmPipelineOutput ? 'crm-pipeline' : bimClashOutput ? 'bim-clash' : qualidadeOutput ? 'qualidade' : workflowOutput ? 'workflow' : evmSchedulerComplianceOutput ? 'evm-scheduler-compliance' : supplyChainOutput ? 'supply-chain' : notificationsOutput ? 'notifications' : aiCostOutput ? 'ai-cost' : multiTenantOutput ? 'multi-tenant' : pwaMobileOutput ? 'pwa-mobile' : digitalTwinOutput ? 'digital-twin' : knowledgeBaseOutput ? 'knowledge-base' : metricsOutput ? 'metrics-dashboard' : avatarVoiceOutput ? 'avatar-voice' : autoupgradeOutput ? 'autoupgrade' : platformMapOutput ? 'platform-map' : stockOutput ? 'stock' : tripOutput ? 'trip' : pipelineOutput ? 'pipeline' : campaignAutomationOutput ? 'campaign-automation' : copilotExecutionOutput ? 'copilot-execution' : authOutput ? 'auth' : undefined
     return {
       ...activeProject,
       language: navigator.language || activeProject.language,
@@ -2456,6 +2461,8 @@ function App() {
     const explicitPanelOpen = Boolean(routingText) && routingText.length < 300 && isExplicitPanelOpenRequest(routingText)
     const archVisIntent = isArchVisIntent(routingText, attachment)
     const directCutIntent = isDirectCutIntent(routingText)
+    const pipelineIntent = isPipelineIntent(routingText)
+    const apexSquadsIntent = isApexSquadsIntent(routingText)
     const openArchVisOrDirect = explicitPanelOpen && (archVisIntent || directCutIntent)
     const shouldOpenArchVis = openArchVisOrDirect && archVisIntent
     const shouldOpenDirectCut = openArchVisOrDirect && directCutIntent
@@ -2483,7 +2490,8 @@ function App() {
     const shouldOpenAvatarVoice = explicitPanelOpen && isAvatarVoiceIntent(routingText)
     const shouldOpenStock = explicitPanelOpen && isStockIntent(routingText)
     const shouldOpenTrip = explicitPanelOpen && isTripIntent(routingText)
-    const shouldOpenPipeline = explicitPanelOpen && isPipelineIntent(routingText)
+    const shouldOpenPipeline = explicitPanelOpen && pipelineIntent
+    const shouldOpenApexSquads = explicitPanelOpen && apexSquadsIntent
     const shouldOpenNR = explicitPanelOpen && isNRIntent(routingText)
     const shouldOpenAccounting = explicitPanelOpen && isAccountingIntent(routingText)
     const shouldOpenPermits = explicitPanelOpen && isPermitsIntent(routingText)
@@ -2596,6 +2604,13 @@ function App() {
       setAuthOutput({ goal: layerGoalText, conversationContext: context })
       if (isOwnerUser) openOwnerConsole()
       setMessages(prev => [...prev, userMessage])
+      setInput('')
+      return
+    }
+    if (shouldOpenApexSquads) {
+      closeOtherPanels('apexSquads')
+      setApexSquadsOutput(true)
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Apex Squads (Multi-Agent). Crie ou inicie um squad no painel ao lado.' }])
       setInput('')
       return
     }
@@ -3042,7 +3057,7 @@ function App() {
     }
     // Fallback: se o comando começa com "abrir" mas não tem handler específico
     if (explicitPanelOpen) {
-      const hasAnyHandler = shouldOpenContracts || shouldOpenBudget || shouldOpenResearch || shouldOpenFieldOps || shouldOpenBusiness || shouldOpenControlsAgents || shouldOpenArchVis || shouldOpenDirectCut || shouldOpenBim3D || shouldOpenCampaignAutomation || shouldOpenSupplyChain || shouldOpenNotifications || shouldOpenAiCost || shouldOpenMultiTenant || shouldOpenPwaMobile || shouldOpenDigitalTwin || shouldOpenKnowledgeBase || shouldOpenAps || shouldOpenMetrics || shouldOpenPlatformMap || shouldOpenAutoupgrade || shouldOpenAvatarVoice || shouldOpenStock || shouldOpenTrip || shouldOpenPipeline || shouldOpenNR || shouldOpenAccounting || shouldOpenPermits || shouldOpenCopilotExecution || shouldOpenAgents || shouldOpenProjectPackage || shouldOpenGenerationHistory || shouldOpenAuth
+      const hasAnyHandler = shouldOpenContracts || shouldOpenBudget || shouldOpenResearch || shouldOpenFieldOps || shouldOpenBusiness || shouldOpenControlsAgents || shouldOpenArchVis || shouldOpenDirectCut || shouldOpenBim3D || shouldOpenCampaignAutomation || shouldOpenSupplyChain || shouldOpenNotifications || shouldOpenAiCost || shouldOpenMultiTenant || shouldOpenPwaMobile || shouldOpenDigitalTwin || shouldOpenKnowledgeBase || shouldOpenAps || shouldOpenMetrics || shouldOpenPlatformMap || shouldOpenAutoupgrade || shouldOpenAvatarVoice || shouldOpenStock || shouldOpenTrip || shouldOpenPipeline || shouldOpenNR || shouldOpenAccounting || shouldOpenPermits || shouldOpenCopilotExecution || shouldOpenAgents || shouldOpenProjectPackage || shouldOpenGenerationHistory || shouldOpenAuth || shouldOpenApexSquads
       if (!hasAnyHandler) {
         const panelName = clean?.replace(/\b(abrir|abra|abre|open|ativar|ative|activate|launch|iniciar|start|o |a |painel|panel|studio|estudio|layer|workspace|modulo|módulo)\b/gi, '').trim() || 'solicitado'
         setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: `Abri o painel "${panelName}" ao lado. Use a navegação lateral para explorar as ferramentas disponíveis ou me diga exatamente o que precisa fazer.` }])
@@ -5584,6 +5599,18 @@ function App() {
 
           {dashboardByRoleOutput && (
             <DashboardByRolePanel onClear={() => setDashboardByRoleOutput(false)} />
+          )}
+
+          {apexSquadsOutput && (
+            <div className="absolute inset-0 bg-slate-900 z-[100] overflow-auto">
+              <button
+                onClick={() => setApexSquadsOutput(false)}
+                className="absolute top-4 right-4 text-slate-400 hover:text-white"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <ApexSquadsPanel />
+            </div>
           )}
 
           {bimClashOutput && (

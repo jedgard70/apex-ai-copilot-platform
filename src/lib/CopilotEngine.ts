@@ -144,6 +144,7 @@ export function suggestLayerOpenDecision(text: string, attachment?: IntakeFile):
   if (isAgentIntent(text)) return { label: 'Cognitive Agents', openCommand: 'abrir agents panel', goal: text }
   if (isBim3DIntent(text, attachment)) return { label: 'BIM / 3D Studio', openCommand: 'abrir bim 3d studio', goal: text }
   if (isArchVisIntent(text, attachment)) return { label: 'ArchVis Studio', openCommand: 'abrir archvis studio', goal: text }
+  if (isApexSquadsIntent(text)) return { label: 'Apex Squads (Multi-Agent)', openCommand: 'abrir apex squads', goal: text }
   if (isPromptLibraryIntent(text)) {
     const module = getPromptLibraryModule(text)
     return { label: module ? `Prompt Library (${module})` : 'Professional Prompt Library', openCommand: `abrir biblioteca de prompts${module ? ` ${module}` : ''}`, goal: text }
@@ -242,4 +243,11 @@ export function isPermitsIntent(text: string) {
 
 export function isCheckpointContinuationIntent(text: string) {
   return /\b(continuar checkpoint)\b/i.test(text)
+}
+
+export function isApexSquadsIntent(text: string) {
+  const lower = text.toLowerCase()
+  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|gerar|generate|fazer|make)\b/i.test(lower)
+  const hasKeyword = /\b(apex squads|squads|multi agente|multi-agent|marketing squads)\b/i.test(lower)
+  return hasVerb && hasKeyword
 }
