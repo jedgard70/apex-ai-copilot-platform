@@ -1556,36 +1556,27 @@ function prefersPortugueseText(text = '', locale = '') {
 }
 
 function isCapabilitiesQuestionText(text = '') {
-  return /\b(o que (mais )?(vc|voce|você)?\s*sabe( fazer)?|o que (vc|voce|você)?\s*faz|o que mais (vc|voce|você)?\s*faz|quais (são os )?servi[cç]os|lista de servi[cç]os|seus servi[cç]os|funcionalidades|habilidades|vc sabe responder|voce sabe responder|você sabe responder|capabilities|what else can you do|what can you do|what do you do|features)\b/i.test(text.trim())
+  return false
 }
 
 function isContactQuestionText(text = '') {
-  return /\b(como entrar em contato|falar com o suporte|falar com a equipe|telefone de contato|e-mail de contato|consultoria de contato|falar com|contact information|how to contact|contact support)\b/i.test(text.trim())
+  return false
 }
 
 function isVisaQuestionText(text = '') {
-  return /\b(visto|vistos|visa|imigracao|imigração|consulado|turismo|trabalho|estudo)\b/i.test(text.trim())
+  return false
 }
 
 function isUploadQuestionText(text = '') {
-  const trimmed = text.trim()
-  if (/\b(pdf\.js|pdfjs|pdf-js)\b/i.test(trimmed)) return false
-  return /\b(upload|arquivo|anexar|mandar imagem|enviar arquivo|screenshot|planta|pdf|file|attach)\b/i.test(trimmed)
+  return false
 }
 
 function isGreetingText(text = '') {
-  const trimmed = text.trim()
-  if (/^(ol[aá]|oi|hey|hello|hi|bom dia|boa tarde|boa noite|e a[ií]|eai|e a\?|salve|tudo bem|tudo bom|como vai|como est[aá]|👋|🙏)(\s+apex)?[\s!?,.]*(tudo bem|tudo bom|como vai|como est[aá])?[\s!?,.]*$/i.test(trimmed)) {
-    return true
-  }
-  const shortResponseRegex = /^(boa|tamo junto|valeu|obrigad[oa]|ok|certo|entendi|sim|n[aã]o|pode|t[aá]|ta|blz|bl[ée]z|teste|test)$/i
-  const cleaned = trimmed.replace(/[\s!?,.]+$/, '')
-  return shortResponseRegex.test(cleaned)
+  return false
 }
 
 function isAIIdentityQuestionText(text = '') {
-  const trimmed = text.trim()
-  return /\b(quem [eé] (voc[eê]|vc|a apex)|o que (voc[eê]|vc) [eé]|quem [eé] apex|who are you|what is apex|quem e voce|quem e vc|o que e a apex)\b/i.test(trimmed)
+  return false
 }
 
 function buildAIIdentityReply(userText, locale = '') {
@@ -2895,6 +2886,46 @@ async function handleImageEditPlan(req, res) {
       providerStatus: 'connected',
       message: error.message || 'Could not prepare image edit plan.',
     })
+  }
+}
+
+async function handleFsList(req, res) {
+  try {
+    const cwd = process.cwd()
+    const readDirRecursive = (dir, base = '') => {
+      let results = []
+      const entries = fs.readdirSync(dir, { withFileTypes: true })
+      for (const entry of entries) {
+        if (entry.name === 'node_modules' || entry.name === '.git' || entry.name === 'dist' || entry.name === '.next' || entry.name === '.gemini' || entry.name === 'brain') continue
+        const relPath = path.join(base, entry.name)
+        if (entry.isDirectory()) {
+          results.push({ name: entry.name, path: relPath.replace(/\\/g, '/'), isDir: true })
+          results = results.concat(readDirRecursive(path.join(dir, entry.name), relPath))
+        } else {
+          results.push({ name: entry.name, path: relPath.replace(/\\/g, '/'), isDir: false })
+        }
+      }
+      return results
+    }
+    const files = readDirRecursive(cwd)
+    return json(res, 200, { ok: true, files })
+  } catch (error) {
+    return json(res, 500, { ok: false, error: error.message })
+  }
+}
+
+async function handleFsRead(req, res) {
+  try {
+    const url = new URL(req.url, `http://${req.headers.host}`)
+    const targetPath = url.searchParams.get('path')
+    if (!targetPath) return json(res, 400, { ok: false, error: 'path is required' })
+    const fullPath = path.join(process.cwd(), targetPath)
+    if (!fullPath.startsWith(process.cwd())) return json(res, 403, { ok: false, error: 'access denied' })
+    if (!fs.existsSync(fullPath)) return json(res, 404, { ok: false, error: 'file not found' })
+    const content = fs.readFileSync(fullPath, 'utf8')
+    return json(res, 200, { ok: true, content })
+  } catch (error) {
+    return json(res, 500, { ok: false, error: error.message })
   }
 }
 
@@ -6452,7 +6483,8 @@ const server = http.createServer(async (req, res) => {
       lifecycleHandler(req, res)
       return
     }
-        if (requestUrl.pathname === '/api/copilot/training-webhook' && (req.method === 'GET' || req.method === 'POST')) {
+    const requestUrl = new URL(req.url, 'http://127.0.0.1')
+    if (requestUrl.pathname === '/api/copilot/training-webhook' && (req.method === 'GET' || req.method === 'POST')) {
       const webhookHandler = await import('./api/copilot/training-webhook.mjs').then(m => m.default)
       return webhookHandler(req, res)
     }
@@ -6471,7 +6503,6 @@ const server = http.createServer(async (req, res) => {
       researchHandler(req, res)
       return
     }
-    const requestUrl = new URL(req.url, 'http://127.0.0.1')
     if (
       req.method === 'GET' &&
       (
@@ -6484,6 +6515,14 @@ const server = http.createServer(async (req, res) => {
     }
     if (requestUrl.pathname === '/api/copilot/chat' && req.method === 'POST') {
       handleChat(req, res)
+      return
+    }
+    if (requestUrl.pathname === '/api/copilot/fs/list' && req.method === 'GET') {
+      handleFsList(req, res)
+      return
+    }
+    if (requestUrl.pathname === '/api/copilot/fs/read' && req.method === 'GET') {
+      handleFsRead(req, res)
       return
     }
     if (req.url === '/api/webhooks/hotmart' && req.method === 'POST') {

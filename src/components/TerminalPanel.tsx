@@ -3,7 +3,7 @@ import { Terminal } from 'xterm'
 import { FitAddon } from 'xterm-addon-fit'
 import 'xterm/css/xterm.css'
 
-export function TerminalPanel({ onClose }: { onClose: () => void }) {
+export function TerminalPanel({ onClose, embedded = false }: { onClose?: () => void, embedded?: boolean }) {
   const terminalRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -65,14 +65,14 @@ export function TerminalPanel({ onClose }: { onClose: () => void }) {
 
   return (
     <div style={{
-      position: 'fixed',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      height: '350px',
+      position: embedded ? 'relative' : 'fixed',
+      bottom: embedded ? undefined : 0,
+      left: embedded ? undefined : 0,
+      right: embedded ? undefined : 0,
+      height: embedded ? '100%' : '350px',
       backgroundColor: '#1e1e1e',
       borderTop: '1px solid #333',
-      zIndex: 9999,
+      zIndex: embedded ? 1 : 9999,
       display: 'flex',
       flexDirection: 'column'
     }}>

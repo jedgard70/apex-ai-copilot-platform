@@ -18,7 +18,7 @@ function scrub(val) {
   return String(val || '').replace(/sk-[A-Za-z0-9_-]+/g, '[key]').replace(/Key_[A-Za-z0-9_-]+/g, '[key]').slice(0, 400)
 }
 
-async function safeFetch(url, opts, timeoutMs = 8000) {
+async function safeFetch(url, opts, timeoutMs = 15000) {
   const ctrl = new AbortController()
   const timer = setTimeout(() => ctrl.abort(), timeoutMs)
   try {
@@ -54,6 +54,7 @@ async function checkFal() {
       id: 'fal', name: 'fal.ai (Kling Video / Flux Image)', status: 'ok',
       message: `${rawModels.length} modelos: ${imageModels} img, ${videoModels} video, ${audioModels} audio. Billing: https://fal.ai/dashboard`,
       models: modelNames,
+      capabilities: ['Image Generation', 'Video Generation', 'Audio'],
       topUpUrl: 'https://fal.ai/dashboard/billing',
     }
   } catch (err) {
@@ -87,6 +88,7 @@ async function checkElevenLabs() {
           ? `Plano: ${tier}. Caracteres: ${used.toLocaleString()} / ${limit.toLocaleString()} usados (${pct}%). Restam: ${remaining.toLocaleString()}.`
           : `Plano: ${tier}. Chave válida.`,
         balance: remaining !== null ? `${remaining.toLocaleString()} chars` : null,
+        capabilities: ['Text-to-Speech', 'Voice Cloning'],
         topUpUrl: 'https://elevenlabs.io/subscription',
       }
     }
@@ -318,6 +320,7 @@ async function checkGemini() {
       status: 'ok',
       message: `${geminiModels.length} modelos disponíveis.`,
       models: modelNames.slice(0, 10), // top 10 models
+      capabilities: ['Multimodal', 'Function Calling', 'Vision', 'Voice'],
       topUpUrl: 'https://aistudio.google.com/apikey',
     }
   } catch (err) {

@@ -6,14 +6,21 @@ export function attachTerminal(server) {
   const wss = new WebSocketServer({ server, path: '/terminal' });
   
   wss.on('connection', (ws) => {
-    const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
-    const ptyProcess = pty.spawn(shell, [], {
-      name: 'xterm-color',
-      cols: 80,
-      rows: 24,
-      cwd: process.cwd(),
-      env: process.env
-    });
+    let ptyProcess;
+    try {
+      const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
+      ptyProcess = pty.spawn(shell, [], {
+        name: 'xterm-color',
+        cols: 80,
+        rows: 24,
+        cwd: process.cwd(),
+        env: process.env
+      });
+    } catch (err) {
+      console.error('[Terminal] Failed to spawn node-pty:', err);
+      ws.send(`\r\n\x1b[31m[Erro do Servidor] Falha ao iniciar terminal local: ${err.message}\x1b[0m\r\n`);
+      return;
+    }
 
     ptyProcess.onData((data) => {
       if (ws.readyState === ws.OPEN) {

@@ -374,13 +374,7 @@ function isUploadQuestionText(text = '') {
 }
 
 function isGreetingText(text = '') {
-  const trimmed = text.trim()
-  if (/^(ol[aá]|oi|hey|hello|hi|bom dia|boa tarde|boa noite|e a[ií]|eai|e a\?|salve|tudo bem|tudo bom|como vai|como est[aá]|👋|🙏)(\s+apex)?[\s!?,.]*(tudo bem|tudo bom|como vai|como est[aá])?[\s!?,.]*$/i.test(trimmed)) {
-    return true
-  }
-  const shortResponseRegex = /^(boa|tamo junto|valeu|obrigad[oa]|ok|certo|entendi|sim|n[aã]o|pode|t[aá]|ta|blz|bl[ée]z|teste|test)$/i
-  const cleaned = trimmed.replace(/[\s!?,.]+$/, '')
-  return shortResponseRegex.test(cleaned)
+  return false
 }
 
 function shouldForceLiveAgentToolUse(text = '') {
@@ -401,16 +395,7 @@ function isVercelRuntime() {
 }
 
 function shouldUseProductionOperator(text = '') {
-  const value = String(text || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-
-  if (!shouldForceLiveAgentToolUse(value)) return false
-  if (/^\s*(responda|responder|explique|me explique|conte|diga|fale|qual|quais|quem|onde|quando|por que|porque|como)\b/.test(value)) {
-    return /\b(verifique|cheque|status|conector|conectores|github|vercel|deploy|supabase|validar|validacao|build|commit|push|git|revit|mcp)\b/.test(value)
-  }
-  return true
+  return false
 }
 
 function isIdentityQuestionText(text) {
@@ -418,8 +403,7 @@ function isIdentityQuestionText(text) {
 }
 
 function isAIIdentityQuestionText(text = '') {
-  const trimmed = text.trim()
-  return /\b(quem [eé] (voc[eê]|vc|a apex)|o que (voc[eê]|vc) [eé]|quem [eé] apex|who are you|what is apex|quem e voce|quem e vc|o que e a apex)\b/i.test(trimmed)
+  return false
 }
 
 function buildAIIdentityReply(userText, locale = '') {
@@ -1311,7 +1295,7 @@ function convertToGeminiTools(tools) {
       parameters: params,
     })
   }
-  return declarations.length ? [{ function_declarations: declarations }] : undefined
+  return declarations.length ? [{ functionDeclarations: declarations }] : undefined
 }
 
 /**
@@ -1356,7 +1340,7 @@ async function callGeminiNative(requestPayload, overrideConfig) {
     }
 
     if (systemText) {
-      body.system_instruction = { parts: [{ text: systemText }] }
+      body.systemInstruction = { parts: [{ text: systemText }] }
     }
     if (geminiTools) {
       body.tools = geminiTools
@@ -1425,6 +1409,7 @@ async function callGeminiNative(requestPayload, overrideConfig) {
     errorMsg = err.message
     success = false
     data = null
+    console.error('[callGeminiNative] Exception:', err)
   }
 
   const duration = Date.now() - startTime
@@ -2103,7 +2088,7 @@ export default async function handler(req, res) {
     }
 
     // Fast-path: System Verification / Status (desbloqueado e live)
-    const isSystemCheck = /verificar\s+o?\s*sistema|status\s+do\s+sistema|checar\s+sistema|como\s+est[aá]\s+o\s+sistema/i.test(routingMessage)
+    const isSystemCheck = false; // /verificar\s+o?\s*sistema|status\s+do\s+sistema|checar\s+sistema|como\s+est[aá]\s+o\s+sistema/i.test(routingMessage)
     if (isSystemCheck) {
       const reply = `✅ **Status do Sistema Apex AI — Operacional & Desbloqueado 100% LIVE**\n\n` +
         `• **Modelo IA Ativo**: Google Gemini 2.5 Native (Genuíno Google API, alta velocidade e contexto integral)\n` +
@@ -2126,7 +2111,7 @@ export default async function handler(req, res) {
     }
 
     // Fast-path: US Visa & Global Permits Intelligence
-    const isVisaQuery = /visto(s)?\s*(americano(s)?|para\s*eua|usa)?|sobre\s+vistos|consultoria\s+de\s+visto|eb-?1|eb-?2|niw|o-?1|l-?1|e-?2|b1\/?b2/i.test(routingMessage)
+    const isVisaQuery = false; // /visto(s)?\s*(americano(s)?|para\s*eua|usa)?|sobre\s+vistos|consultoria\s+de\s+visto|eb-?1|eb-?2|niw|o-?1|l-?1|e-?2|b1\/?b2/i.test(routingMessage)
     if (isVisaQuery) {
       const reply = `🏛️ **Apex AI Global Permits — Módulo Especializado em Vistos Americanos & Imigração**\n\n` +
         `Olá, Dr. Edgard! A plataforma Apex AI possui uma inteligência dedicada para estruturação e assessoria de **Vistos Americanos**, especialmente voltada para Executivos, Engenheiros, Arquitetos, Investidores e Profissionais de Tecnologia.\n\n` +

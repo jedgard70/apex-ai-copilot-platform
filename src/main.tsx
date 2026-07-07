@@ -42,6 +42,7 @@ import { CampaignAutomationPanel } from './components/CampaignAutomationPanel'
 import { PipelineProgressPanel } from './components/PipelineProgressPanel'
 import { ContractsPanel } from './components/ContractsPanel'
 import { CopilotExecutionPanel } from './components/CopilotExecutionPanel'
+import { WorkspaceFileTree } from './components/WorkspaceFileTree'
 import { CrmPanel } from './components/CrmPanel'
 import { DigitalTwinPanel } from './components/DigitalTwinPanel'
 import { DirectCutInitialConfig, DirectCutPanel } from './components/DirectCutPanel'
@@ -4270,7 +4271,7 @@ function App() {
           )}
           {/* Chat — 30% when panel open, 100% when chat-only mode, support mobile */}
           {(activeView === 'chat' || !isMobile || hasOperationalPanel) && (
-          <section className="chat-shell" aria-label="Apex AI Copilot chat" style={{ flex: (activeView === 'chat' && !hasOperationalPanel) ? '1 1 100%' : '0 0 30%', display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, minWidth: 0, borderLeft: (activeView === 'chat' && !hasOperationalPanel) ? 'none' : '1px solid rgba(150, 164, 195, 0.15)' }}>
+          <section className="chat-shell" aria-label="Apex AI Copilot chat" style={{ flex: (activeView === 'chat' && !hasOperationalPanel) ? (isMobile ? '1 1 100%' : '1 1 60%') : '0 0 30%', display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, minWidth: 0, borderLeft: (activeView === 'chat' && !hasOperationalPanel) ? 'none' : '1px solid rgba(150, 164, 195, 0.15)' }}>
             {/* ── Top Bar: Actions ── */}
             <div style={{ padding: '8px 12px', borderBottom: '1px solid rgba(150, 164, 195, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#121a2f', flexShrink: 0, minHeight: 40 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -5055,6 +5056,57 @@ function App() {
             )}
           </div>
           )}
+        </section>
+        )}
+
+        {/* AI Execution & Terminal Panel — visible only when chat is the main view on desktop */}
+        {activeView === 'chat' && !hasOperationalPanel && !isMobile && (
+        <section className="execution-shell" style={{ flex: '1 1 40%', display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, minWidth: 0, borderLeft: '1px solid rgba(150, 164, 195, 0.15)', background: '#0a0f1c' }}>
+          <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'row', borderBottom: '1px solid rgba(150, 164, 195, 0.15)' }}>
+            <div style={{ flex: '0 0 35%', borderRight: '1px solid rgba(150, 164, 195, 0.15)' }}>
+              <WorkspaceFileTree />
+            </div>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              <CodeEditorPanel 
+                activeFile={activeFile}
+                hasNativeHandle={activeFile ? localFileHandles.has(activeFile.file.name) : false}
+                onChangeContent={(content) => {
+                  setActiveFile(prev => prev ? { ...prev, extractedText: content } : prev)
+                }}
+                onRunFile={(fileName) => {
+                  window.dispatchEvent(new CustomEvent('terminal-run', { detail: `node ${fileName}\r` }))
+                  setShowTerminal(true)
+                }}
+                onSaveNativeFile={async (content) => {
+                  if (!activeFile) return
+                  const handle = localFileHandles.get(activeFile.file.name)
+                  if (handle) {
+                    try {
+                      const writable = await handle.createWritable()
+                      await writable.write(content)
+                      await writable.close()
+                      if (activeProject) {
+                        const activeId = fileToRecord(activeFile).id
+                        const newFiles = activeProject.files.map(f => f.id === activeId ? { ...f, extractedText: content } : f)
+                        const nextProj = { ...activeProject, files: newFiles }
+                        setActiveProject(nextProj)
+                        upsertProject(nextProj)
+                      }
+                      alert('Arquivo salvo com sucesso no disco local!')
+                    } catch (e) {
+                      alert('Erro ao salvar no disco: ' + String(e))
+                    }
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '8px 16px', backgroundColor: '#2d2d2d', color: '#fff', fontSize: '12px', fontFamily: 'sans-serif', borderBottom: '1px solid #333' }}>
+              Terminal Integrado
+            </div>
+            <TerminalPanel embedded={true} onClose={() => {}} />
+          </div>
         </section>
         )}
 

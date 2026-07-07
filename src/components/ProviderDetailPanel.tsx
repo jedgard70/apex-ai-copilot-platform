@@ -7,6 +7,7 @@ type ProviderDetail = {
   message: string
   balance?: string | null
   topUpUrl?: string
+  capabilities?: string[]
 }
 
 type AnalyticsRecord = {
@@ -113,6 +114,17 @@ export function ProviderDetailPanel({ onClear }: ProviderDetailPanelProps) {
                     {a.totalTokensIn > 0 && <span style={{ fontSize: 10, color: textDim }}>📥 {a.totalTokensIn} tokens in</span>}
                     {a.totalTokensOut > 0 && <span style={{ fontSize: 10, color: textDim }}>📤 {a.totalTokensOut} tokens out</span>}
                     {a.models.length > 0 && <span style={{ fontSize: 10, color: textDim }}>🧠 {a.modelCount} modelos</span>}
+                  </div>
+                )}
+
+                {/* Capabilities badges */}
+                {p.capabilities && p.capabilities.length > 0 && (
+                  <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {p.capabilities.map(cap => (
+                      <span key={cap} style={{ fontSize: 9, fontWeight: 600, color: '#f1f5f9', background: '#3b82f640', border: '1px solid #3b82f680', padding: '2px 6px', borderRadius: 4, letterSpacing: '0.02em', textTransform: 'uppercase' }}>
+                        {cap}
+                      </span>
+                    ))}
                   </div>
                 )}
 

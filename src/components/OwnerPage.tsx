@@ -105,7 +105,7 @@ export function OwnerPage({ onNavigate, onOpenChat }: OwnerPageProps) {
       title: 'Developer Tools',
       icon: 'code',
       items: [
-        { label: 'Code Editor', view: 'editor' },
+        { label: 'Code Editor', view: 'code-editor' },
         { label: 'AI Control', view: 'aicontrol' },
         { label: 'Documentation', view: 'docs' },
       ]
@@ -115,7 +115,7 @@ export function OwnerPage({ onNavigate, onOpenChat }: OwnerPageProps) {
 
   const refresh = useCallback(async () => {
     const controller = new AbortController()
-    const timer = setTimeout(() => { controller.abort(); setLoading(false) }, 15000)
+    const timer = setTimeout(() => { controller.abort(); setLoading(false) }, 20000)
     try {
       const { client: supabase } = getBrowserSupabaseClient();
 

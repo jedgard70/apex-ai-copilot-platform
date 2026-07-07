@@ -216,41 +216,107 @@ export async function chatWithFallback(params) {
             }
             return [{ text: String(content || '') }]
           }
-          const contents = (messages || []).filter(m => m.role !== 'system').map(m => ({
-            role: m.role === 'assistant' ? 'model' : 'user',
-            parts: toGeminiParts(m.content)
-          }))
-          const systemMessages = (messages || []).filter(m => m.role === 'system')
+
+          const geminiContents = []
+          for (const m of (messages || [])) {
+            if (m.role === 'system') continue
+            if (m.role === 'tool' || m.role === 'function') {
+              let responseObj = {}
+              try { responseObj = typeof m.content === 'string' ? JSON.parse(m.content || '{}') : m.content } catch { responseObj = { result: m.content } }
+              geminiContents.push({
+                role: 'user',
+                parts: [{
+                  functionResponse: {
+                    name: m.name || m.tool_call_id || 'unknown_tool',
+                    response: responseObj
+                  }
+                }]
+              })
+            } else if (m.role === 'assistant') {
+              const parts = []
+              if (m.content) parts.push({ text: typeof m.content === 'string' ? m.content : JSON.stringify(m.content) })
+              if (Array.isArray(m.tool_calls)) {
+                for (const tc of m.tool_calls) {
+                  let args = {}
+                  try { args = JSON.parse(tc.function?.arguments || '{}') } catch { }
+                  parts.push({ functionCall: { name: tc.function?.name || 'unknown', args } })
+                }
+              }
+              if (parts.length === 0) parts.push({ text: '' })
+              geminiContents.push({ role: 'model', parts })
+            } else {
+              geminiContents.push({ role: 'user', parts: toGeminiParts(m.content) })
+            }
+          }
+
           const geminiBody = {
-            contents,
+            contents: geminiContents,
             generationConfig: { temperature: toolRound > 0 ? 0.45 : temperature, maxOutputTokens: toolRound > 0 ? 1500 : maxTokens }
           }
+
+          if (tools && toolRound === 0) {
+            const declarations = []
+            for (const tool of tools) {
+              const fn = tool.function || tool
+              if (!fn.name) continue
+              let params = fn.parameters || { type: 'object', properties: {} }
+              const stripProps = (obj) => {
+                if (Array.isArray(obj)) obj.forEach(stripProps)
+                else if (typeof obj === 'object' && obj !== null) {
+                  delete obj.additionalProperties
+                  Object.values(obj).forEach(stripProps)
+                }
+              }
+              params = JSON.parse(JSON.stringify(params))
+              stripProps(params)
+              declarations.push({ name: fn.name, description: fn.description || '', parameters: params })
+            }
+            if (declarations.length) {
+              geminiBody.tools = geminiBody.tools || []
+              geminiBody.tools.push({ functionDeclarations: declarations })
+            }
+          }
+
+          // Enable Gemini Native Features (Google Search Grounding)
+          geminiBody.tools = geminiBody.tools || []
+          geminiBody.tools.push({ googleSearch: {} })
+
+          const systemMessages = (messages || []).filter(m => m.role === 'system')
           if (systemMessages.length > 0) {
             const joinedSystem = systemMessages.map(m =>
               typeof m.content === 'string' ? m.content :
                 Array.isArray(m.content) ? m.content.map(p => p.text || '').join('\n') :
                   String(m.content || '')
             ).join('\n')
-            geminiBody.system_instruction = { parts: [{ text: joinedSystem }] }
+            geminiBody.systemInstruction = { parts: [{ text: joinedSystem }] }
           }
           let apiModel = model
-          if (apiModel.startsWith('gemini-3.')) {
-            if (apiModel.includes('flash-8b')) apiModel = 'gemini-1.5-flash-8b'
-            else if (apiModel.includes('flash-lite')) apiModel = 'gemini-1.5-flash-8b'
-            else if (apiModel.includes('pro')) apiModel = 'gemini-1.5-pro'
-            else apiModel = 'gemini-1.5-flash'
-          } else if (apiModel.startsWith('gemini-3-')) {
-            apiModel = apiModel.includes('pro') ? 'gemini-1.5-pro' : 'gemini-1.5-flash'
-          }
           const headers = { 'X-goog-api-key': provider.apiKey, 'Content-Type': 'application/json' }
           response = await fetch(`${provider.baseUrl}/models/${apiModel}:generateContent`, {
             method: 'POST', headers, body: JSON.stringify(geminiBody), signal: AbortSignal.timeout(15000)
           })
           if (response.ok) {
             const geminiData = await response.json()
-            const text = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || ''
+            const candidate = geminiData?.candidates?.[0]
+            const parts = candidate?.content?.parts || []
+            const text = parts.filter(p => p.text).map(p => p.text).join('') || ''
+            const functionCalls = parts.filter(p => p.functionCall).map(p => ({
+              id: `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              type: 'function',
+              function: {
+                name: p.functionCall.name,
+                arguments: JSON.stringify(p.functionCall.args || {}),
+              },
+            }))
             const data = {
-              choices: [{ message: { role: 'assistant', content: text } }]
+              choices: [{
+                message: {
+                  role: 'assistant',
+                  content: text,
+                  tool_calls: functionCalls.length > 0 ? functionCalls : undefined,
+                },
+                finish_reason: functionCalls.length > 0 ? 'tool_calls' : (candidate?.finishReason === 'STOP' ? 'stop' : 'length'),
+              }]
             }
             return { ok: true, data, model, provider: provider.name, providerLabel: provider.label, usedFallback: triedModelSet.size > 1 }
           }
