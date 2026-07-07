@@ -2362,7 +2362,7 @@ async function handleChat(req, res) {
     let apiBase = process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta'
 
     const envDefaultModel = String(process.env.GEMINI_MODEL || '').trim()
-    const hasLocalWorker = Boolean(!process.env.VERCEL && process.env.LOCAL_WORKER_URL && process.env.LOCAL_WORKER_TOKEN)
+    const hasLocalWorker = Boolean((!process.env.VERCEL || allowRawShellInAnyEnv) && process.env.LOCAL_WORKER_URL && process.env.LOCAL_WORKER_TOKEN)
     const hasApexOwnEngine = Boolean(process.env.APEX_OWN_ENGINE_URL || process.env.APEX_API_URL || process.env.APEX_RUNTIME_ENABLED)
     const safeDefaultModel = hasApexOwnEngine
       ? 'apex-local|apex-ai'
