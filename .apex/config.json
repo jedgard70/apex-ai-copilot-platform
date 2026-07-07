@@ -20,9 +20,7 @@
   "security": {
     "encryptWebhooks": true,
     "requireAuthentication": true
-  }
-}
-{
+  },
   "remote-Apex": {
     "url": "http://localhost:3000/api/mcp"
   }
