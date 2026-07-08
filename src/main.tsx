@@ -96,6 +96,7 @@ import { TripPlannerPanel } from './components/TripPlannerPanel'
 import { NRCompliancePanel } from './components/NRCompliancePanel'
 import { AccountingPanel } from './components/AccountingPanel'
 import { RuntimeStatusIndicator } from './components/RuntimeStatusIndicator'
+import { AiThinkingSteps, ThinkingStep } from './components/AiThinkingSteps'
 
 import { classifyFile, formatSize, IntakeFile, isVisionReady, readFileAsDataUrl, compressImageAsDataUrl, readImageDimensions } from './lib/fileIntake'
 import { extractPdfText } from './lib/pdfExtractor'
@@ -1582,6 +1583,7 @@ function App() {
   const [uiLanguage, setUiLanguage] = useState<UiLanguage>('EN')
   const [archVisRevisionConstraints, setArchVisRevisionConstraints] = useState<string[]>(initialProject.revisionConstraints || [])
   const [loading, setLoading] = useState(false)
+  const [thinkingSteps, setThinkingSteps] = useState<ThinkingStep[]>([])
   const [modelRuntimeState, setModelRuntimeState] = useState<'idle' | 'running' | 'ok' | 'fallback'>('idle')
   const [lastResponseMode, setLastResponseMode] = useState('')
   const [messages, setMessages] = useState<Message[]>([
@@ -1598,26 +1600,47 @@ function App() {
       
       const supaConvs = await loadChatConversationsFromSupabase(userId);
       if (supaConvs && supaConvs.length > 0) {
-        setConversations(supaConvs);
+        // Merge: keep localStorage conversations + add any from Supabase not already present
+        setConversations(prev => {
+          const existingIds = new Set(prev.map(c => c.id))
+          const newFromSupa = supaConvs.filter((c: ChatConversation) => !existingIds.has(c.id))
+          const merged = [...prev, ...newFromSupa]
+          localStorage.setItem('apex_conversations_v1', JSON.stringify(merged))
+          return merged
+        });
         
-        // Ensure active ID exists
+        // Restore last active conversation
         const activeId = localStorage.getItem('apex_active_conversation_id') || supaConvs[0].id;
-        const active = supaConvs.find(c => c.id === activeId);
-        
-        if (active) {
-          setActiveConversationId(active.id);
-          if (active.messages?.length > 0) setMessages(active.messages);
-        } else {
-          setActiveConversationId(supaConvs[0].id);
-          if (supaConvs[0].messages?.length > 0) setMessages(supaConvs[0].messages);
-        }
+        setConversations(prev => {
+          const active = prev.find(c => c.id === activeId) || prev[0]
+          if (active) {
+            setActiveConversationId(active.id);
+            if (active.messages?.length > 0) setMessages(active.messages);
+          }
+          return prev
+        })
       }
     }
     loadSupabaseHistory();
   }, [accountState?.user?.id]);
 
 
-  const [conversations, setConversations] = useState<ChatConversation[]>([])
+  const [conversations, setConversations] = useState<ChatConversation[]>(() => {
+    // ═══ REGRA ABSOLUTA 4: histórico sempre persiste ═══
+    try {
+      const saved = localStorage.getItem('apex_conversations_v1')
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed
+      }
+    } catch {}
+    return [{
+      id: 'default',
+      title: 'Conversa Inicial',
+      createdAt: new Date().toISOString(),
+      messages: [{ id: `m-${Date.now()}`, role: 'assistant' as const, text: 'Sou a Apex AI. Como posso te ajudar?' }]
+    }]
+  })
   const [activeConversationId, setActiveConversationId] = useState<string>(() => {
     return localStorage.getItem('apex_active_conversation_id') || 'default'
   })
@@ -1943,9 +1966,12 @@ function App() {
   )
   const isInternalUser = isOwnerUser || (accountState?.role && !accountState.role.startsWith('cliente_')) || accountState?.role === 'Internal Team' || accountState?.role === 'Finance' || accountState?.role === 'Sales' || accountState?.user?.email?.includes('apexglobal') || accountState?.user?.email === 'jedgard70@gmail.com'
 
+  // ═══ OWNER EMAILS (protegido pela Regra Absoluta 5) ═══
+  const OWNER_EMAILS = ['jedgard70@gmail.com', 'owner@apexglobalai.co', 'edgard@apexglobalai.co']
   const currentRole = (() => {
     if (!accountState?.user) return 'owner';
-    if (accountState?.user?.email === 'jedgard70@gmail.com') return 'owner';
+    if (OWNER_EMAILS.includes(accountState?.user?.email?.toLowerCase() || '')) return 'owner';
+    if (accountState?.role === 'owner' || accountState?.role === 'owner_admin') return 'owner';
     return accountState?.role || 'cliente_simples';
   })();
 
@@ -3103,6 +3129,15 @@ function App() {
     setInput('')
     setLoading(true)
     setModelRuntimeState('running')
+    // ─── AI Thinking Steps: mostra progresso em tempo real ───
+    const stepId = () => `s-${Date.now()}-${Math.random().toString(36).slice(2,5)}`
+    setThinkingSteps([
+      { id: stepId(), type: 'thinking', label: 'Analisando sua mensagem...', ts: Date.now() },
+    ])
+    setTimeout(() => setThinkingSteps(prev => [
+      ...prev,
+      { id: stepId(), type: 'calling', label: 'Chamando Gemini API', detail: selectedModel.split(':')[1] || selectedModel, ts: Date.now() }
+    ]), 400)
     try {
       const workspaceContext = {
         projectId: activeProject.id,
@@ -3254,6 +3289,13 @@ function App() {
       }
     } finally {
       setLoading(false)
+      // Marca step final como concluído
+      setThinkingSteps(prev => prev.length > 0 ? [
+        ...prev,
+        { id: `s-done-${Date.now()}`, type: 'done', label: 'Resposta gerada', ts: Date.now(), done: true }
+      ] : [])
+      // Limpa os steps após 6 segundos (o componente auto-colapsa em 2.5s)
+      setTimeout(() => setThinkingSteps([]), 8000)
     }
   }
 
@@ -5055,7 +5097,13 @@ function App() {
                   </div>
                 </div>
               </div>
-              {loading && (
+              {(loading || thinkingSteps.length > 0) && (
+                <AiThinkingSteps
+                  steps={thinkingSteps}
+                  isActive={loading}
+                />
+              )}
+              {loading && thinkingSteps.length === 0 && (
                 <div className="model-working-inline">
                   <span className="runtime-dot" />
                   {uiLanguage === 'EN' ? 'Model is processing your request...' : 'Modelo está processando sua solicitação...'}

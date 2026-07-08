@@ -58,12 +58,21 @@ type SceneLayer = {
 
 type TimelineClip = {
   id: string
-  track: TrackType
+  track?: TrackType
   label: string
   startPct: number
   widthPct: number
+  color: string
   thumbnail?: string
   status?: 'ready' | 'syncing' | 'error'
+}
+
+type TimelineTrack = {
+  id: string
+  label: string
+  iconName: string
+  clips: TimelineClip[]
+  height: number
 }
 
 type RenderJob = {
@@ -145,10 +154,11 @@ function IconSidebar({ tab, onTab, onClose }: { tab: DCTab; onTab: (t: DCTab) =>
 
 // ─── Scene Layers Panel ───────────────────────────────────────────────────────
 
-function SceneLayers({ layers, onToggle, onAdd }: {
+function SceneLayers({ layers, onToggle, onAdd, onUpdateLayer }: {
   layers: SceneLayer[]
   onToggle: (id: string) => void
   onAdd: () => void
+  onUpdateLayer: (id: string, updates: Partial<SceneLayer>) => void
 }) {
   const ICONS: Record<string, React.ReactNode> = {
     image: <span style={{ fontSize: 14 }}>🖼️</span>,
@@ -166,23 +176,40 @@ function SceneLayers({ layers, onToggle, onAdd }: {
       </div>
       <div style={{ flex: 1, overflowY: 'auto', padding: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
         {layers.map(layer => (
-          <div key={layer.id}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 8, padding: '7px 8px', borderRadius: 4, cursor: 'pointer',
-              background: layer.active ? D.surfaceContainerHigh : 'transparent',
-              border: `1px solid ${layer.active ? `${D.primaryContainer}40` : 'transparent'}`,
-              transition: 'all 0.1s',
-            }}>
-            <span style={{ color: layer.active ? D.primaryContainer : D.onSurfaceVariant, flexShrink: 0 }}>{ICONS[layer.type]}</span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: D.onSurface, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{layer.name}</div>
-              <div style={{ fontSize: 9, color: D.onSurfaceVariant }}>{layer.blendMode ? `${layer.blendMode} • ` : 'Visible • '}{layer.opacity}%</div>
+          <div key={layer.id} style={{ display: 'flex', flexDirection: 'column' }}>
+            <div
+              onClick={() => onUpdateLayer(layer.id, { active: !layer.active })}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8, padding: '7px 8px', borderRadius: 4, cursor: 'pointer',
+                background: layer.active ? D.surfaceContainerHigh : 'transparent',
+                border: `1px solid ${layer.active ? `${D.primaryContainer}40` : 'transparent'}`,
+                transition: 'all 0.1s',
+              }}>
+              <span style={{ color: layer.active ? D.primaryContainer : D.onSurfaceVariant, flexShrink: 0, opacity: layer.visible ? 1 : 0.4 }}>{ICONS[layer.type]}</span>
+              <div style={{ flex: 1, minWidth: 0, opacity: layer.visible ? 1 : 0.4 }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: D.onSurface, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{layer.name}</div>
+                <div style={{ fontSize: 9, color: D.onSurfaceVariant }}>{layer.blendMode || 'Normal'} • {layer.opacity}%</div>
+              </div>
+              <button onClick={(e) => { e.stopPropagation(); onToggle(layer.id) }} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: layer.visible ? 0 : 1, color: layer.visible ? D.onSurfaceVariant : D.error, fontSize: 12, padding: 0 }}
+                onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+                onMouseLeave={e => (e.currentTarget.style.opacity = layer.visible ? '0' : '1')}>
+                {layer.visible ? '👁' : '🚫'}
+              </button>
             </div>
-            <button onClick={() => onToggle(layer.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0, color: D.onSurfaceVariant, fontSize: 12, padding: 0 }}
-              onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
-              onMouseLeave={e => (e.currentTarget.style.opacity = '0')}>
-              👁
-            </button>
+            {layer.active && (
+              <div style={{ padding: '8px 8px 8px 30px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 9, color: D.onSurfaceVariant, width: 35 }}>Opac</span>
+                  <input type="range" min={0} max={100} value={layer.opacity} onChange={e => onUpdateLayer(layer.id, { opacity: Number(e.target.value) })} style={{ flex: 1, accentColor: D.primaryContainer, cursor: 'pointer' }} />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 9, color: D.onSurfaceVariant, width: 35 }}>Blend</span>
+                  <select value={layer.blendMode || 'Normal'} onChange={e => onUpdateLayer(layer.id, { blendMode: e.target.value })} style={{ flex: 1, fontSize: 10, background: D.surfaceContainerHighest, color: D.onSurface, border: `1px solid ${D.outlineVariant}`, borderRadius: 3, padding: 2, outline: 'none', cursor: 'pointer' }}>
+                    {['Normal', 'Multiply', 'Screen', 'Overlay', 'Darken', 'Lighten'].map(m => <option key={m} value={m === 'Normal' ? '' : m}>{m}</option>)}
+                  </select>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -488,53 +515,21 @@ function AIGenerationPanel({ onGenerate, loading, source, initialImage, setIniti
 
 // ─── Multi-Track Timeline ─────────────────────────────────────────────────────
 
-function MultiTrackTimeline({ timecode, onSeek }: { timecode: string; onSeek?: (pct: number) => void }) {
+function MultiTrackTimeline({ tracks, timecode, onSeek }: { tracks: any[]; timecode: string; onSeek?: (pct: number) => void }) {
   const [playheadPct, setPlayheadPct] = useState(27)
   const [playing, setPlaying] = useState(false)
   const timelineRef = useRef<HTMLDivElement>(null)
 
-  const tracks = [
-    {
-      id: 'video2', label: 'V2 (Overlay)', icon: <Layers size={14} />,
-      clips: [
-        { id: 'v2_1', label: 'LENS_FLARE.mov', startPct: 20, widthPct: 15, color: D.secondaryContainer, status: 'ready' },
-        { id: 'v2_2', label: 'TEXT_INTRO.png', startPct: 5, widthPct: 10, color: D.primaryContainer, status: 'ready' },
-      ],
-      height: 30,
-    },
-    {
-      id: 'video1', label: 'V1 (Primary)', icon: <Video size={14} />,
-      clips: [
-        { id: 'v1_1', label: 'B_ROLL_DRONE_PAN.mp4', startPct: 0, widthPct: 28, color: D.primary, status: 'ready' },
-        { id: 'v1_2', label: 'DETAIL_MACRO.mp4', startPct: 28, widthPct: 30, color: D.primary, status: 'ready' },
-        { id: 'v1_3', label: '⟳ Generating AI clip', startPct: 58, widthPct: 20, color: D.primaryContainer, status: 'syncing' },
-      ],
-      height: 48,
-    },
-    {
-      id: 'fx', label: 'FX / Presets', icon: <Sparkles size={14} />,
-      clips: [
-        { id: 'fx1', label: 'Cinematic Color Grade', startPct: 0, widthPct: 58, color: D.tertiary, status: 'ready' },
-        { id: 'fx2', label: 'Slow Zoom (Ecossistema IA)', startPct: 58, widthPct: 20, color: D.tertiaryContainer, status: 'ready' },
-        { id: 'fx3', label: 'Deforum Morph (Ecossistema IA)', startPct: 78, widthPct: 22, color: D.tertiaryContainer, status: 'syncing' },
-      ],
-      height: 24,
-    },
-    {
-      id: 'audio1', label: 'A1 (Dialogue)', icon: <Mic size={14} />,
-      clips: [
-        { id: 'a1_1', label: 'VOICE_OVER_AI.wav', startPct: 0, widthPct: 40, color: D.outline, status: 'ready' },
-      ],
-      height: 30,
-    },
-    {
-      id: 'audio2', label: 'A2 (SFX/Music)', icon: <Volume2 size={14} />,
-      clips: [
-        { id: 'a2_1', label: 'AMBIENT_STREET_01.wav', startPct: 0, widthPct: 80, color: D.outline, status: 'ready' },
-      ],
-      height: 30,
-    },
-  ]
+  const getIcon = (name: string) => {
+    switch (name) {
+      case 'Layers': return <Layers size={14} />
+      case 'Video': return <Video size={14} />
+      case 'Sparkles': return <Sparkles size={14} />
+      case 'Mic': return <Mic size={14} />
+      case 'Volume2': return <Volume2 size={14} />
+      default: return <Video size={14} />
+    }
+  }
 
   function handleTimelineClick(e: React.MouseEvent<HTMLDivElement>) {
     const rect = e.currentTarget.getBoundingClientRect()
@@ -583,12 +578,12 @@ function MultiTrackTimeline({ timecode, onSeek }: { timecode: string; onSeek?: (
             <div key={track.id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 5 }}>
               {/* Track label */}
               <div style={{ width: 100, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: D.onSurfaceVariant, paddingLeft: 12 }}>
-                {track.icon}
+                {getIcon(track.iconName)}
                 <span>{track.label}</span>
               </div>
               {/* Clips */}
-              <div style={{ flex: 1, height: track.height, position: 'relative', background: `${D.surfaceContainer}40`, borderRadius: 3 }}>
-                {track.clips.map(clip => (
+              <div style={{ flex: 1, position: 'relative', height: track.height, background: D.surfaceContainerHighest, borderRadius: 4, overflow: 'hidden' }}>
+                {track.clips.map((clip: any) => (
                   <div key={clip.id} style={{
                     position: 'absolute', top: 0, height: '100%',
                     left: `${clip.startPct}%`, width: `${clip.widthPct}%`,
@@ -673,6 +668,47 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
     { id: uid(), name: 'Revit_Render_Final', type: 'render', visible: true, opacity: 100, active: false },
   ])
 
+  const [tracks, setTracks] = useState<TimelineTrack[]>(() => [
+    {
+      id: 'video2', label: 'V2 (Overlay)', iconName: 'Layers',
+      clips: [
+        { id: 'v2_1', label: 'LENS_FLARE.mov', startPct: 20, widthPct: 15, color: D.secondaryContainer, status: 'ready' },
+        { id: 'v2_2', label: 'TEXT_INTRO.png', startPct: 5, widthPct: 10, color: D.primaryContainer, status: 'ready' },
+      ],
+      height: 30,
+    },
+    {
+      id: 'video1', label: 'V1 (Primary)', iconName: 'Video',
+      clips: [
+        { id: 'v1_1', label: 'B_ROLL_DRONE_PAN.mp4', startPct: 0, widthPct: 28, color: D.primary, status: 'ready' },
+        { id: 'v1_2', label: 'DETAIL_MACRO.mp4', startPct: 28, widthPct: 30, color: D.primary, status: 'ready' },
+      ],
+      height: 48,
+    },
+    {
+      id: 'fx', label: 'FX / Presets', iconName: 'Sparkles',
+      clips: [
+        { id: 'fx1', label: 'Cinematic Color Grade', startPct: 0, widthPct: 58, color: D.tertiary, status: 'ready' },
+        { id: 'fx2', label: 'Slow Zoom (Ecossistema IA)', startPct: 58, widthPct: 20, color: D.tertiaryContainer, status: 'ready' },
+      ],
+      height: 24,
+    },
+    {
+      id: 'audio1', label: 'A1 (Dialogue)', iconName: 'Mic',
+      clips: [
+        { id: 'a1_1', label: 'VOICE_OVER_AI.wav', startPct: 0, widthPct: 40, color: D.outline, status: 'ready' },
+      ],
+      height: 30,
+    },
+    {
+      id: 'audio2', label: 'A2 (SFX/Music)', iconName: 'Volume2',
+      clips: [
+        { id: 'a2_1', label: 'AMBIENT_STREET_01.wav', startPct: 0, widthPct: 80, color: D.outline, status: 'ready' },
+      ],
+      height: 30,
+    },
+  ])
+
   useEffect(() => { fetch('/api/fal/models').then(r => r.json()).then(setModels).catch(() => null) }, [])
   useEffect(() => { fetch('/api/prompts/module/directcut').then(r => r.json()).then(d => { if (d?.presets) setCinematicPresets(d.presets) }).catch(() => {}) }, [])
   useEffect(() => { return () => { Object.values(pollTimers.current).forEach(clearInterval) } }, [])
@@ -687,6 +723,9 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
 
   function toggleLayer(id: string) {
     setLayers(prev => prev.map(l => l.id === id ? { ...l, visible: !l.visible } : l))
+  }
+  function updateLayer(id: string, updates: Partial<SceneLayer>) {
+    setLayers(prev => prev.map(l => l.id === id ? { ...l, ...updates } : (updates.active !== undefined && updates.active ? { ...l, active: false } : l)))
   }
   function addLayer() {
     setLayers(prev => [...prev, { id: uid(), name: `Layer_${prev.length + 1}`, type: 'image', visible: true, opacity: 100, active: false }])
@@ -703,12 +742,23 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
           clearInterval(pollTimers.current[jobId])
           delete pollTimers.current[jobId]
           setRenderJobs(prev => prev.map(j => j.id !== jobId ? j : { ...j, status: 'done', progress: 100, videoUrl: data.videoUrl, imageUrl: data.imageUrl }))
+          setTracks(prev => prev.map(t => {
+            if (t.id === 'video1') {
+              const clips = t.clips.map(c => c.id === jobId ? { ...c, status: 'ready' as const } : c)
+              return { ...t, clips }
+            }
+            return t
+          }))
           if (data.videoUrl) setCurrentVideo(data.videoUrl)
           setLoading(false)
         } else if (data.status === 'error') {
           clearInterval(pollTimers.current[jobId])
           delete pollTimers.current[jobId]
           setRenderJobs(prev => prev.map(j => j.id !== jobId ? j : { ...j, status: 'error', error: data.error || 'Erro.' }))
+          setTracks(prev => prev.map(t => {
+            if (t.id === 'video1') return { ...t, clips: t.clips.map(c => c.id === jobId ? { ...c, status: 'error' as const } : c) }
+            return t
+          }))
           setLoading(false)
         } else {
           setRenderJobs(prev => prev.map(j => j.id !== jobId ? j : { ...j, status: 'generating', progress: Math.min(90, attempts * 3) }))
@@ -717,6 +767,10 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
           clearInterval(pollTimers.current[jobId])
           delete pollTimers.current[jobId]
           setRenderJobs(prev => prev.map(j => j.id !== jobId ? j : { ...j, status: 'error', error: 'Timeout 10min.' }))
+          setTracks(prev => prev.map(t => {
+            if (t.id === 'video1') return { ...t, clips: t.clips.map(c => c.id === jobId ? { ...c, status: 'error' as const } : c) }
+            return t
+          }))
           setLoading(false)
         }
       } catch { /* hiccup */ }
@@ -732,6 +786,13 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
       startedAt: new Date().toISOString(),
     }
     setRenderJobs(prev => [job, ...prev])
+    setTracks(prev => prev.map(t => {
+      if (t.id === 'video1') {
+        const newClip = { id: jobId, label: '🎬 ' + activeModel.label, startPct: 58, widthPct: 20, color: D.primaryContainer, status: 'syncing' as const }
+        return { ...t, clips: [...t.clips, newClip] }
+      }
+      return t
+    }))
     setLoading(true)
 
     try {
@@ -746,11 +807,18 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
           modelId: activeModel.id,
           sourceImageDataUrl: initialImage,
           finalImageDataUrl: finalImage,
+          intensity: settings.intensity,
+          temperature: settings.temperature,
+          style: style,
         }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
         setRenderJobs(prev => prev.map(j => j.id !== jobId ? j : { ...j, status: 'error', error: data?.message || 'Render failed.' }))
+        setTracks(prev => prev.map(t => {
+          if (t.id === 'video1') return { ...t, clips: t.clips.map(c => c.id === jobId ? { ...c, status: 'error' as const } : c) }
+          return t
+        }))
         setLoading(false)
         return
       }
@@ -760,12 +828,20 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
       } else {
         const videoUrl = data?.videoDataUrl || data?.videoUrl
         setRenderJobs(prev => prev.map(j => j.id !== jobId ? j : { ...j, status: 'done', progress: 100, videoUrl }))
+        setTracks(prev => prev.map(t => {
+          if (t.id === 'video1') return { ...t, clips: t.clips.map(c => c.id === jobId ? { ...c, status: 'ready' as const } : c) }
+          return t
+        }))
         if (videoUrl) setCurrentVideo(videoUrl)
         setLoading(false)
-      onRecordGeneration?.({ item: { id: jobId, modelId: job.modelId, modelLabel: job.modelLabel, status: 'done', videoUrl, startedAt: job.startedAt } })
+        onRecordGeneration?.({ item: { id: jobId, modelId: job.modelId, modelLabel: job.modelLabel, status: 'done', videoUrl, startedAt: job.startedAt } })
       }
     } catch (err) {
       setRenderJobs(prev => prev.map(j => j.id !== jobId ? j : { ...j, status: 'error', error: err instanceof Error ? err.message : 'Error' }))
+      setTracks(prev => prev.map(t => {
+        if (t.id === 'video1') return { ...t, clips: t.clips.map(c => c.id === jobId ? { ...c, status: 'error' as const } : c) }
+        return t
+      }))
       setLoading(false)
     }
   }
@@ -863,7 +939,7 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
           {tab === 'storyboard' && (
             <>
               <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-                <SceneLayers layers={layers} onToggle={toggleLayer} onAdd={addLayer} />
+                <SceneLayers layers={layers} onToggle={toggleLayer} onAdd={addLayer} onUpdateLayer={updateLayer} />
                 <CentralCanvas
                   source={source}
                   currentImage={doneJob?.videoUrl ? undefined : currentImage}
@@ -882,7 +958,7 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
                   setFinalImage={setFinalImage}
                 />
               </div>
-              <MultiTrackTimeline timecode={timecode} />
+              <MultiTrackTimeline tracks={tracks} timecode={timecode} onSeek={pct => console.log('seek', pct)} />
             </>
           )}
 
@@ -891,7 +967,7 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
               <div style={{ flex: 1, overflow: 'hidden' }}>
                 <CentralCanvas source={source} currentImage={currentImage} currentVideo={currentVideo} timecode={timecode} fps={24} loading={loading} />
               </div>
-              <MultiTrackTimeline timecode={timecode} />
+              <MultiTrackTimeline tracks={tracks} timecode={timecode} onSeek={pct => console.log('seek', pct)} />
             </div>
           )}
 

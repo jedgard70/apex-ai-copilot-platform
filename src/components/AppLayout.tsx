@@ -70,6 +70,9 @@ const normalizeRole = (role: string | null | undefined): string => {
   if (!role) return 'owner_admin'
   const normalized = role.toLowerCase().replace(/\s+/g, '_')
   if (normalized === 'owner/admin') return 'owner_admin'
+  if (normalized === 'owner') return 'owner_admin'   // owner sempre tem acesso total
+  if (normalized === 'cliente_simples' || normalized === 'cliente_pro') return 'client'
+  if (normalized === 'internal_team' || normalized === 'internal team') return 'internal_team'
   return normalized
 }
 

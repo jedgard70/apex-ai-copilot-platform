@@ -287,6 +287,11 @@ export async function renderVideoPayload(payload = {}) {
         duration: parseDurationSeconds(duration),
         imageUrl: sourceImageDataUrl || undefined,
         finalImageUrl: finalImageDataUrl || undefined,
+        extraFields: {
+          intensity: payload.intensity,
+          temperature: payload.temperature,
+          style: payload.style,
+        }
       })
       if (falResult.ok) {
         return {

@@ -27,6 +27,21 @@ const EmptyPanel = () => (
   </div>
 )
 
+const OwnerOnlyPanel = () => (
+  <div style={{
+    height: '100%', display: 'flex', flexDirection: 'column',
+    alignItems: 'center', justifyContent: 'center', gap: '16px',
+    background: '#0d1117', color: '#94a3b8',
+  }}>
+    <div style={{ fontSize: '48px' }}>🔒</div>
+    <div style={{ fontSize: '18px', fontWeight: 700, color: '#e2e8f0' }}>Acesso Restrito</div>
+    <div style={{ fontSize: '14px', maxWidth: '320px', textAlign: 'center' }}>
+      Este painel é exclusivo do <strong style={{ color: '#a78bfa' }}>Owner Admin</strong>.<br />
+      Somente o Dr. Edgard tem permissão para acessá-lo.
+    </div>
+  </div>
+)
+
 export type MainPanelsRouterProps = {
   panelView: string;
   setActiveView: (view: string) => void;
@@ -114,8 +129,13 @@ export function MainPanelsRouter(props: MainPanelsRouterProps) {
     case 'research': return <ResearchPanel goal="" conversationContext={[]} onClear={() => {}} />;
     case 'crm': return <CrmPipelinePanel onClear={() => {}} />;
     case 'finance': return <FinancePanel goal="" conversationContext={[]} onClear={() => {}} />;
-    case 'aicontrol': return <AiControlPanel />;
-    case 'code-editor': 
+    case 'aicontrol': {
+      const isOwner = props.currentRole === 'owner' || props.currentRole === 'owner_admin'
+      return isOwner ? <AiControlPanel /> : <OwnerOnlyPanel />
+    }
+    case 'code-editor': {
+      const isOwner = props.currentRole === 'owner' || props.currentRole === 'owner_admin'
+      if (!isOwner) return <OwnerOnlyPanel />
       return (
         <CodeEditorPanel 
           activeFile={props.activeFile}
@@ -150,14 +170,18 @@ export function MainPanelsRouter(props: MainPanelsRouterProps) {
           }}
         />
       );
+    }
 
-    case 'editor':
+    case 'editor': {
+      const isOwner = props.currentRole === 'owner' || props.currentRole === 'owner_admin'
+      if (!isOwner) return <OwnerOnlyPanel />
       return <CodeEditorPanel 
         onRunFile={() => {}} 
         hasNativeHandle={false} 
         onSaveNativeFile={() => {}} 
         onChangeContent={() => {}} 
       />
+    }
     case 'permits':
       return <GlobalPermitsPanel />
     case 'owner':

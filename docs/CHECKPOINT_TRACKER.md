@@ -403,7 +403,7 @@ verbal explícita.
 
 ```
 1º ▶️ M28 ArchVis Studio (✅ Funcional Real) — UI do gerador de imagens
-2º ▶️ M29 Director's Cut Studio (🔶 Parcial) — UI da timeline de vídeo
+2º ▶️ M29 Director's Cut Studio (✅ Funcional Real) — UI refinada, timeline base construída, conectores de IA e FFmpeg ativados
 3º ▶️ M16 Supply Chain Studio (🔴 Protótipo) — UI completa de suprimentos
 4º ▶️ M7 BIM 3D Studio (🔶 Parcial) — Refino do dashboard 3D
 5º ▶️ M11 Project Package Pipeline (🔶 Parcial) — Fluxo de ZIP completo
