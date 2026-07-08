@@ -286,8 +286,10 @@ export async function chatWithFallback(params) {
           }
 
           // Enable Gemini Native Features (Google Search Grounding)
-          geminiBody.tools = geminiBody.tools || []
-          geminiBody.tools.push({ googleSearch: {} })
+          // Only if no function declarations are present, otherwise it requires tool_config to be valid.
+          if (!geminiBody.tools || geminiBody.tools.length === 0) {
+            geminiBody.tools = [{ googleSearch: {} }]
+          }
 
           const systemMessages = (messages || []).filter(m => m.role === 'system')
           if (systemMessages.length > 0) {

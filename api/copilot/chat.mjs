@@ -2892,8 +2892,10 @@ STYLE & FORMATTING:
         if (fbResult.ok) {
           const fbData = fbResult.data
           const fbAssistant = fbData?.choices?.[0]?.message || {}
+          const hasToolCalls = fbAssistant.tool_calls && fbAssistant.tool_calls.length > 0
           const fbReply = fbAssistant.content || fbAssistant.reasoning_content || ''
-          if (fbReply) {
+          
+          if (fbReply && !hasToolCalls) {
             return sendJson(res, 200, {
               finalReply: fbReply,
               reply: fbReply,
@@ -2904,17 +2906,25 @@ STYLE & FORMATTING:
               confirmation: null,
               productionStatus,
             })
+          } else if (hasToolCalls) {
+            // Re-assign data so the tool loop can handle it
+            data.choices = fbData.choices
+            response.ok = true
+            model = fbData.model || model
           }
         }
       } catch (_) { /* all fallbacks exhausted, continue to local fallback */ }
-      const fallbackText = buildChatFallbackReply(userMessage, identityContext, file)
-      return sendJson(res, 200, {
-        finalReply: fallbackText,
-        reply: fallbackText,
-        mode: 'local-fallback',
-        confirmation: null,
-        productionStatus,
-      })
+      
+      if (!response.ok) {
+        const fallbackText = buildChatFallbackReply(userMessage, identityContext, file)
+        return sendJson(res, 200, {
+          finalReply: fallbackText,
+          reply: fallbackText,
+          mode: 'local-fallback',
+          confirmation: null,
+          productionStatus,
+        })
+      }
     }
 
     // ─── Tool-calling loop (Gemini native API) ───
