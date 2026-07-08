@@ -7187,7 +7187,7 @@ const server = http.createServer(async (req, res) => {
     if (!res.headersSent) {
       json(res, 500, {
         error: 'Unexpected server error.',
-        detail: normalized.message,
+        detail: error.stack || normalized.message,
         providerStatus: 'SERVER_ERROR_CAPTURED',
       })
     } else {

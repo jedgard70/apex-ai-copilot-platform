@@ -1,13 +1,14 @@
 import os from 'os';
 import { WebSocketServer } from 'ws';
-import pty from 'node-pty';
+
 
 export function attachTerminal(server) {
   const wss = new WebSocketServer({ server, path: '/terminal' });
   
-  wss.on('connection', (ws) => {
+  wss.on('connection', async (ws) => {
     let ptyProcess;
     try {
+      const pty = (await import('node-pty')).default;
       const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
       ptyProcess = pty.spawn(shell, [], {
         name: 'xterm-color',

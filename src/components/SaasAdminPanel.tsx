@@ -133,7 +133,7 @@ export function SaasAdminPanel({ goal, onClear }: SaasAdminPanelProps) {
             placeholder="e-mail do cliente ou funcionário..." 
             value={inviteEmail} 
             onChange={(e) => setInviteEmail(e.target.value)}
-            style={{ flex: 1, padding: '8px 12px', background: '#1c1c1c', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+            style={{ flex: 1, minWidth: '250px', padding: '8px 12px', background: '#1c1c1c', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
             required
           />
           <select 
