@@ -16,6 +16,18 @@ A base do processo é a mesma, mas no final você pode escolher como exportar o 
 import subprocess, sys, os, json, glob, shutil
 import torch
 import gc
+import requests
+import traceback
+
+TELEMETRY_URL = "https://apexglobalai.com/api/copilot/colab-webhook"
+
+def send_telemetry(status, details=""):
+    try:
+        requests.post(TELEMETRY_URL, json={"status": status, "details": details}, timeout=5)
+    except:
+        pass
+
+send_telemetry("STARTING", "Inicializando ambiente no Colab")
 
 def pip_install(pkgs):
     subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-U", *pkgs], check=False)
@@ -155,7 +167,13 @@ trainer = SFTTrainer(
 )
 
 print("🚀 Iniciando treinamento...")
-trainer.train()
+send_telemetry("TRAINING", "Iniciando treinamento com SFTTrainer")
+try:
+    trainer.train()
+    send_telemetry("SUCCESS", "Treinamento concluído com sucesso")
+except Exception as e:
+    send_telemetry("ERROR", f"Erro no treinamento: {str(e)}")
+    raise e
 
 """# 🏁 FINALIZAÇÃO: Escolha seu Caminho de Exportação
 

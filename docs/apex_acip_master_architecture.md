@@ -272,7 +272,6 @@ Do BIM à decisão executiva.
 
 ═══════════════════════════════════════════════════
 
-* **6.1. (Módulo 28) ARCHVIS STUDIO [OK - Parcial (Motor Real, UI Protótipo)]**
   * *Arquivos:* `api/v1/apex/images/generate.mjs`, `api/copilot/generate-image.mjs`
   * *Detalhes:* Editor de Prompt com 8 estilos predefinidos (humanized floor plan, photorealistic facade). Motor de API fal.ai gerando entre 1 a 4 imagens usando Fidelity Slider. UI conta com Sidebar esquerda (280px), Split Slider original/gerado, e "Revision Constraints".
 
@@ -829,4 +828,5 @@ Componentes, hooks, estilos e páginas da interface do usuário (Dashboard, Arch
 | 2025-10-22 | v1.0 | — | Estrutura inicial
 
 
-* **6.1. (M�dulo 6) SOBERANIA TECNOL�GICA (OFFLINE GGUF) [OK - Funcional Real]**
+
+* **6.1. (Módulo 6.1) SOBERANIA TECNOLÓGICA (OFFLINE GGUF) [OK - Funcional Real]**

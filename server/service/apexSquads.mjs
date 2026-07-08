@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { execSync } from 'child_process';
 
 // Engine de Orquestração Multi-Agente (Apex Squads)
 // Inspirado na lógica do OpenSquad, mas white-label e integrado ao ecosistema Apex AI.
@@ -55,7 +56,7 @@ export function generateModuleSquads() {
   const content = fs.readFileSync(archPath, 'utf-8');
   // Match lines like: * **1.1. (Módulo 1) STOCK MARKET ANALYTICS [OK - Funcional Real]**
   // as well as: * **6. (Módulo 6) CRM & PIPELINE DE VENDAS [OK - Funcional Real]**
-  const regex = /\*\s\*\*\d+(?:\.\d+)?\.?\s*\(Módulo ([\d.]+)\)\s*(.*?)\s*\[(.*?)\]\*\*/g;
+  const regex = /\*\s\*\*\d+(?:\.\d+)?\.?\s*\([^\)]*?\s([\d.]+)\)\s*(.*?)\s*\[(.*?)\]\*\*/g;
   let match;
   let added = false;
 
@@ -134,13 +135,43 @@ export function runSquadStep(squadId) {
     ) {
       updatedSquad.status = 'checkpoint_waiting';
       const isDeployNext = currentAgent.id === 'agt_qa';
+      
+      let checkpointMessage = `O ${currentAgent.role} finalizou sua parte. Deseja aprovar e seguir para o próximo agente?`;
+      if (isDeployNext) {
+        checkpointMessage = `O ${currentAgent.role} aprovou os testes. ATENÇÃO: O próximo passo é o DEPLOY EM PRODUÇÃO. Deseja aprovar a modificação e autorizar o commit/deploy?`;
+        
+        // Verifica telemetria do Colab
+        const colabTelemetryPath = path.join(process.cwd(), '.data', 'colab-telemetry.json');
+        if (fs.existsSync(colabTelemetryPath)) {
+          try {
+            const telemetry = JSON.parse(fs.readFileSync(colabTelemetryPath, 'utf-8'));
+            const errors = telemetry.filter(t => t.status === 'ERROR');
+            if (errors.length > 0) {
+              checkpointMessage = `⚠️ ALERTA DO QA: Foram detectados ERROS no treinamento do Colab! Último erro: ${errors[errors.length-1].details}. Corrija os erros e teste novamente antes de prosseguir com o deploy.`;
+            } else {
+              checkpointMessage = `✅ QA: Nenhum erro de treinamento detectado no Colab. ` + checkpointMessage;
+            }
+          } catch (e) {
+            console.error("Erro ao ler telemetria:", e);
+          }
+        }
+      }
+      
       updatedSquad.checkpoints.push({
         step: updatedSquad.currentStep,
-        message: isDeployNext 
-          ? `O ${currentAgent.role} aprovou os testes. ATENÇÃO: O próximo passo é o DEPLOY EM PRODUÇÃO. Deseja aprovar a modificação e autorizar o commit/deploy?`
-          : `O ${currentAgent.role} finalizou sua parte. Deseja aprovar e seguir para o próximo agente?`
+        message: checkpointMessage
       });
     } else {
+      // If it's agt_release, we perform the auto-deploy
+      if (currentAgent.id === 'agt_release') {
+        try {
+          // Rule 8 allows "git push origin main" for Vercel auto deploy
+          execSync('git push origin main', { stdio: 'inherit' });
+          currentAgent.output += `\n[DEPLOY] Sucesso! "git push origin main" acionado para deploy no Vercel.`;
+        } catch (err) {
+          currentAgent.output += `\n[DEPLOY ERROR] Falha ao acionar deploy: ${err.message}`;
+        }
+      }
       updatedSquad.currentStep += 1;
       if (updatedSquad.currentStep >= updatedSquad.agents.length) {
         updatedSquad.status = 'completed';

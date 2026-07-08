@@ -6895,6 +6895,12 @@ const server = http.createServer(async (req, res) => {
       return
     }
 
+    if (req.url === '/api/copilot/colab-webhook' && req.method === 'POST') {
+      const { default: handler } = await import('./api/copilot/colab-webhook.mjs')
+      handler(req, res)
+      return
+    }
+
     // ─── Ollama Chat (modelo local — sem depender de API) ─────────────
     if (req.url === '/api/ollama/chat' && req.method === 'POST') {
       try {
