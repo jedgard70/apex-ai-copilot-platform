@@ -586,6 +586,8 @@ server.mjs — mesmas constantes
 Modelos só podem ser ADICIONADOS, nunca removidos ou ocultados
 O tempo limite de fetchJsonWithTimeout não pode ser menor que 60 segundos
 API live, usar sempre live nunca fallback, pode trocar automaticamente o modelo
+
+
 🚨 REGRA ABSOLUTA 3 — Proteção dos Botões das Mensagens
 Nenhum agente pode remover, desabilitar ou ocultar os botões de ação no final de cada mensagem do chat: Copiar, Compartilhar, Ouvir (TTS) e Derivar.
 
