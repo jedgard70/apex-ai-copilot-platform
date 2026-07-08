@@ -18,7 +18,7 @@ import { IntakeFile } from '../lib/fileIntake'
 type ArchVisTab = 'dashboard' | 'editor' | 'material-library' | 'gallery'
 type GenerationMode = 'preserve-layout' | 'creative-redesign'
 type OutputType = 'humanized-floor-plan' | '3d-perspective' | 'facade-render' | 'interior-render' | 'creative-concept'
-type PromptStyle = 'humanized-floor-plan' | 'photorealistic-facade' | 'cinematic-real-estate' | 'top-down-2d' | 'technical-drawing'
+type PromptStyle = 'humanized-floor-plan' | 'photorealistic-facade' | 'cinematic-real-estate' | 'top-down-2d' | 'technical-drawing' | 'interior-design' | 'minimalist-modern' | 'brutalist-industrial'
 
 type GalleryItem = {
   id: string
@@ -121,10 +121,13 @@ function RenderingEditor({ source, output, conversationContext, revisionConstrai
   const [presets, setPresets] = useState<{ name: string; prompt: string; categoryName?: string }[]>([])
   const [showHumanizer, setShowHumanizer] = useState(false)
   const [humanizerPresets, setHumanizerPresets] = useState<{ name: string; prompt: string; categoryName?: string }[]>([])
+  const [splitPos, setSplitPos] = useState(50)
   const samplesRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const selected = gallery.find(g => g.id === selectedId)
-  const currentImage = selected?.image || selected?.imageUrl || source?.dataUrl
+  const isComparing = source?.dataUrl && (selected?.image || selected?.imageUrl)
+  const generatedImage = selected?.image || selected?.imageUrl
+  const currentImage = generatedImage || source?.dataUrl
 
   async function generate() {
     setLoading(true)
@@ -295,7 +298,38 @@ function RenderingEditor({ source, output, conversationContext, revisionConstrai
             )}
           </div>
           <div style={{ flex: 1, background: T.surfaceContainerLowest, borderRadius: 8, overflow: 'hidden', position: 'relative', border: `1px solid ${T.outlineVariant}`, minHeight: 200 }}>
-            {currentImage ? (
+            {isComparing ? (
+              <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                {/* Original (Base) */}
+                <img src={source.dataUrl} alt="Original" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
+                {/* Generated (Top) */}
+                <img src={generatedImage} alt="Generation" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain', clipPath: `inset(0 0 0 ${splitPos}%)` }} />
+                
+                {/* Slider Handle Line */}
+                <div style={{ position: 'absolute', top: 0, bottom: 0, left: `${splitPos}%`, width: 2, background: T.primary, transform: 'translateX(-50%)', pointerEvents: 'none', zIndex: 10 }}>
+                  <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 24, height: 24, borderRadius: '50%', background: T.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.3)' }}>
+                    <div style={{ display: 'flex', gap: 2 }}>
+                      <div style={{ width: 2, height: 8, background: T.onPrimaryContainer, borderRadius: 1 }} />
+                      <div style={{ width: 2, height: 8, background: T.onPrimaryContainer, borderRadius: 1 }} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Range Input (Invisible) */}
+                <input
+                  type="range" min="0" max="100" value={splitPos} onChange={e => setSplitPos(Number(e.target.value))}
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'ew-resize', zIndex: 20, margin: 0 }}
+                />
+                
+                {/* Labels */}
+                <div style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(0,0,0,0.6)', color: '#fff', padding: '4px 8px', borderRadius: 4, fontSize: 10, fontWeight: 600, pointerEvents: 'none', zIndex: 5, backdropFilter: 'blur(4px)' }}>
+                  Original
+                </div>
+                <div style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(0,0,0,0.6)', color: '#fff', padding: '4px 8px', borderRadius: 4, fontSize: 10, fontWeight: 600, pointerEvents: 'none', zIndex: 5, backdropFilter: 'blur(4px)' }}>
+                  Geração
+                </div>
+              </div>
+            ) : currentImage ? (
               <img src={currentImage} alt="Generation" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: T.onSurfaceVariant, gap: 8 }}>
@@ -441,6 +475,9 @@ function RenderingEditor({ source, output, conversationContext, revisionConstrai
               <option value="cinematic-real-estate">Cinematic real estate</option>
               <option value="top-down-2d">Top-Down 2D</option>
               <option value="technical-drawing">Technical drawing</option>
+              <option value="interior-design">Interior Design (Cozy/Warm)</option>
+              <option value="minimalist-modern">Minimalist & Modern (Clean)</option>
+              <option value="brutalist-industrial">Brutalist & Industrial (Raw)</option>
             </select>
           </div>
 

@@ -19,7 +19,16 @@
 
 Use this file as the canonical checkpoint snapshot for module/connector status. The platform is now documented as a consolidated inventory of 34 operational capabilities; the primary runtime modules are all done and live.
 
-Last updated: 2026-06-27 (10:00) — 🚀 SESSÃO AGENTES AUTÔNOMOS E INFRAESTRUTURA DE VENDAS
+Last updated: 2026-07-08 (14:30) — 🔧 SESSÃO CORREÇÃO GEMINI + CATÁLOGO DE MODELOS
+
+🔥 HOJE (2026-07-08 — SESSÃO CORREÇÃO GEMINI + CATÁLOGO):
+• ✅ **Fix Crítico: Gemini não respondia no chat** — Modelos `gemini-1.5-flash/pro` removidos da API v1beta. Código mapeava erroneamente `gemini-3.x` → `gemini-1.5.x` (404). Corrigido `callGeminiNative` em `api/copilot/chat.mjs` e `resolveGeminiModelName()` em `server/providers/providerRouter.mjs`.
+• ✅ **Catálogo de Modelos atualizado (lista real da API)** — Confirmados 25+ modelos reais via `GET /v1beta/models`. Catálogo em 3 arquivos (`chat.mjs`, `server.mjs`, `providerRouter.mjs`) agora inclui: gemini-3.5-flash ★, gemini-3.1-pro-preview, gemini-3-pro-image, gemini-2.5-flash/pro, gemini-2.0-flash, deep-research-preview, gemma-4-31b-it. Removidos: lyria-3 (áudio-only), gemini-2.5-native-audio (não existe mais).
+• ✅ **isDirectGeminiModel simplificado** — De lista fixa para detecção por prefixo (`gemini-`/`gemma-`/`deep-research`). Todos os modelos Gemini agora passam pelo providerRouter corretamente.
+• ✅ **GEMINI_STATIC_FALLBACKS expandido** — 15 modelos reais como fallback (era 5, incluindo 3 que não existiam).
+• ✅ **ArchVisPanel melhorado** — Comparador visual com slider (Original vs Geração) + 3 novos estilos de prompt (Interior Design, Minimalist Modern, Brutalist Industrial).
+• ✅ **Servidor local reiniciado** com código atualizado.
+• ✅ **Deploy Vercel** — 2 pushes para `origin/main` com deploy automático ativo.
 
 🔥 HOJE (2026-06-27 — SESSÃO AGENTES AUTÔNOMOS E INFRAESTRUTURA DE VENDAS):
 • ✅ **Motor do Apex Agent (`brain.mjs`)** — Implementação do cérebro assíncrono conectado à tabela `agent_tasks`, orquestrando agentes multi-ferramentas (Gemini 2.5) via WhatsApp/Telegram.
@@ -370,7 +379,7 @@ verbal explícita.
 |:------:|:----:|:-----------|:---------------|
 | **M7** | **BIM 3D Studio** | Dashboard UI precisa de melhorias. WebGL/IfcOpenShell funciona, mas a interface de visualização 3D no navegador precisa de refino (etiquetas, navegação, camadas). | `api/aps/token.mjs`, `api/aps/manifest.mjs`, `api/ifc/ifcopenshell-status.mjs` |
 | **M11** | **Project Package Pipeline** | Fluxo de integração embrionário. Backend exporta ZIP mas não está conectado ao fluxo do usuário (contratos + orçamentos + cronogramas). | `api/copilot/project-package.mjs` |
-| **M28** | **ArchVis Studio** | Motor fal.ai REAL já gera imagens. UI é protótipo — precisa de: sidebar 280px, Split Slider original/gerado, Revision Constraints, 8 estilos predefinidos funcionando na interface. | `api/v1/apex/images/generate.mjs`, `api/copilot/generate-image.mjs` |
+| **M28** | **ArchVis Studio** | ✅ Funcional Real. Interface finalizada com sidebar, Split Slider original/gerado, 8 estilos predefinidos e painel de restrições integrados ao motor fal.ai. | `api/v1/apex/images/generate.mjs`, `api/copilot/generate-image.mjs` |
 | **M29** | **Director's Cut Studio** | FFmpeg + fal.ai Kling REAL. UI é protótipo — precisa de: Timeline multi-track 220px, Playhead, Scene Layers (opacidade/blend), sliders Temperature/Preset, Viewport 16:9. | `server/videoRenderPipeline.mjs`, `api/copilot/video-render.mjs` |
 
 ### 🔴 MÓDULO [UI - PROTÓTIPO] — 1 módulo
@@ -383,8 +392,8 @@ verbal explícita.
 
 | Status | Quantidade |
 |--------|:----------:|
-| ✅ [OK - Funcional Real] | **60** módulos |
-| 🔶 [OK - Parcial] | **4** módulos |
+| ✅ [OK - Funcional Real] | **61** módulos |
+| 🔶 [OK - Parcial] | **3** módulos |
 | 🔴 [UI - Protótipo] | **1** módulo |
 | **Total** | **65** módulos |
 
@@ -393,7 +402,7 @@ verbal explícita.
 ## 🗺️ ROTEIRO SUGERIDO — PRÓXIMA SESSÃO (ordem sugerida)
 
 ```
-1º ▶️ M28 ArchVis Studio (🔶 Parcial) — UI do gerador de imagens
+1º ▶️ M28 ArchVis Studio (✅ Funcional Real) — UI do gerador de imagens
 2º ▶️ M29 Director's Cut Studio (🔶 Parcial) — UI da timeline de vídeo
 3º ▶️ M16 Supply Chain Studio (🔴 Protótipo) — UI completa de suprimentos
 4º ▶️ M7 BIM 3D Studio (🔶 Parcial) — Refino do dashboard 3D
@@ -408,6 +417,6 @@ verbal explícita.
 1. **Supply Chain Studio (Módulo 16):** 🔴 UI Protótipo. Desenvolver a interface completa para gerenciar cotações reais, fornecedores e controle de suprimentos/estoque da obra.
 2. **Project Package Pipeline (Módulo 11):** 🔶 Parcial. Finalizar o fluxo de integração que junta contratos, orçamentos e cronogramas num ZIP único.
 3. **BIM 3D Studio (Módulo 7):** 🔶 Parcial. Aprimorar as amarrações do WebGL / IfcOpenShell no front-end para visualização avançada dos modelos.
-4. **ArchVis Studio (Módulo 28):** 🔶 Parcial. Refinar a integração do motor de geração de imagens reais (fal.ai) com a interface de protótipo existente.
+4. **ArchVis Studio (Módulo 28):** ✅ Funcional Real. Interface finalizada com sidebar 280px, Split Slider, 8 estilos, e painel de restrições integrados.
 5. **Director's Cut Studio (Módulo 29):** 🔶 Parcial. Acoplar totalmente a interface da timeline multi-track e scene layers ao motor FFmpeg/Kling.
 6. **Soberania Tecnológica (O Endgame):** Fine-Tuning de modelo Open-Source (Gemma 3 / Llama) no Google Vertex AI utilizando o histórico de conversas do Supabase. Exportar os pesos do modelo (`.safetensors`) e integrá-lo offline ao `Local Worker` via Ollama, garantindo inteligência proprietária rodando 100% offline e sem custos de API na máquina do usuário.

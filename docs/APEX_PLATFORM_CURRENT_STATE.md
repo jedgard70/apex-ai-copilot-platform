@@ -5,7 +5,7 @@
 # APEX Platform — Unified Current State
 
 Checkpoint: CP-LIVE-FINAL — 62 capabilities documentadas + PWA/Mobile
-Last update: 2026-06-26 (11:50)
+Last update: 2026-07-08 (14:30)
 
 ## Canonical rule
 
@@ -226,6 +226,17 @@ e reportada ao Owner. Esta regra está documentada em:
 | Digital Twin | Relatório estático → dinâmico com dados reais do projeto | `7efb721` |
 | SINAPI | `not-connected` fixo → auto-detecta `src/data/sinapi-2024.json` | `8104021` |
 | planning-only removido | `ownerCodeExecutor.ts` + `digitalTwinKnowledge.ts` | `4d6bb62` |
+## Correções da Sessão (2026-07-08 — Fix Gemini + Catálogo de Modelos)
+
+| Correção | Descrição | Commit |
+| :---------- | :----------- | :-------- |
+| Fix Gemini chat morto | `callGeminiNative` mapeava gemini-3.x → gemini-1.5.x (removido da API). Corrigido para passar modelo as-is, remapeando apenas gemini-1.5.x → gemini-2.5 | `417a6eb` |
+| Catálogo de modelos real | 25+ modelos confirmados via API. 3 arquivos atualizados com lista verificada: gemini-3.5-flash ★, gemini-2.5-flash/pro, gemini-2.0-flash, deep-research, gemma-4 | `438e283` |
+| isDirectGeminiModel | Lista fixa → detecção por prefixo (`gemini-`/`gemma-`/`deep-research`) | `438e283` |
+| GEMINI_STATIC_FALLBACKS | Expandido de 5 (3 inexistentes) para 15 modelos reais verificados | `438e283` |
+| resolveGeminiModelName | Removido remapeamento de gemini-3.x (existem). Mantém apenas gemini-1.5.x → 2.5 | `438e283` |
+| ArchVisPanel slider | Comparador visual Original vs Geração + 3 novos estilos (Interior, Minimalist, Brutalist) | pendente |
+
 ## Correções da Sessão (2026-06-26 — Estabilização e UX)
 
 | Correção | Descrição | Commit |
@@ -264,8 +275,8 @@ Todos os provedores abaixo estão **configurados e operacionais** (chaves no `.e
 | Stripe | `STRIPE_SECRET_KEY` | ✅ Connected | Checkout + Webhook |
 | Autodesk APS | `APS_CLIENT_ID` + `APS_CLIENT_SECRET` | 🔒 Local-only | API Revit/BIM360 |
 
-*Last updated: 2026-06-26 (23:45)*
-*Status: ALL 52 MODULES DONE (42 Apex + 10 ACIP) — 10 PROVEDORES ATIVOS — 14 CONECTORES — ENV SYNC AUDITADO — Deploy LIVE*
+*Last updated: 2026-07-08 (14:30)*
+*Status: ALL 52 MODULES DONE (42 Apex + 10 ACIP) — 10 PROVEDORES ATIVOS — 14 CONECTORES — ENV SYNC AUDITADO — Deploy LIVE — Catálogo de modelos verificado com API real*
 
 ## Validation baseline in this checkpoint
 
