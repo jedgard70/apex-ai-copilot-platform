@@ -31,3 +31,7 @@ cloudflared.exe
 docs/media_output/
 *.gguf
 runtime/models/
+
+# Sensitive project docs with API keys
+Gemini geral.txt
+*.txt.bak
