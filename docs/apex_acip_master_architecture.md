@@ -665,6 +665,8 @@ Esta regra foi estabelecida verbalmente pelo Proprietário Dr. Edgard em 26/06/2
 Orientação sobre compromisso
 Use títulos de commits claros que descrevam o impacto visível para o usuário e valide-os.
 Certifique-se de que as verificações de CI em apex-sync.yml permaneçam verdes antes de mesclar/implantar.
+
+
 🚨 REGRA ABSOLUTA 10 — Nomenclatura de Concorrentes
 Fica terminantemente proibido incluir no códigos nomes de empresas, sites ou IAs concorrentes (ex: Magnific, Midjourney, Veo AI, ChatGPT, Lumion, V-Ray, CapCut) nos textos de marketing, pitches de vendas ou na interface da plataforma.
 
