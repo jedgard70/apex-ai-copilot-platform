@@ -64,11 +64,29 @@ function normalizeEnvironmentAliases() {
 }
 
 const DIRECT_GEMINI_MODELS = [
-  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash' },
+  // ═══ GEMINI 3.x — MAIS RECENTES (confirmados na API 2026-07-08) ═══
+  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash ★' },
   { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview' },
   { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash Lite' },
   { id: 'gemini-3.1-flash-image', name: 'Gemini 3.1 Flash Image' },
+  { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro Preview' },
+  { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview' },
+  { id: 'gemini-3-pro-image', name: 'Gemini 3 Pro Image' },
+  // ═══ GEMINI 2.5 — ESTÁVEL ═══
+  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
+  { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite' },
+  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro' },
+  { id: 'gemini-2.5-flash-image', name: 'Gemini 2.5 Flash Image' },
+  // ═══ GEMINI 2.0 ═══
+  { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
+  { id: 'gemini-2.0-flash-lite', name: 'Gemini 2.0 Flash Lite' },
+  // ═══ TTS / ÁUDIO ═══
   { id: 'gemini-3.1-flash-tts-preview', name: 'Gemini 3.1 Flash TTS' },
+  { id: 'gemini-2.5-flash-preview-tts', name: 'Gemini 2.5 Flash TTS' },
+  { id: 'gemini-2.5-pro-preview-tts', name: 'Gemini 2.5 Pro TTS' },
+  // ═══ DEEP RESEARCH ═══
+  { id: 'deep-research-preview-04-2026', name: 'Deep Research Preview' },
+  // ═══ GEMMA — open-source ═══
   { id: 'gemma-4-31b-it', name: 'Gemma 4 31B IT' },
   { id: 'gemma-4-26b-a4b-it', name: 'Gemma 4 26B A4B IT' },
 ]
@@ -2388,7 +2406,7 @@ async function handleChat(req, res) {
     const isFalProvider = modelProvider === 'fal'
     const isElevenLabs = modelProvider === 'elevenlabs'
     const isFirebase = modelProvider === 'firebase'
-    const isDirectGeminiModel = ['gemini-3.5-flash', 'gemini-3.1-pro-preview', 'gemini-3.1-flash-lite', 'gemini-3.1-flash-image', 'gemini-3.1-flash-tts-preview', 'gemma-4-31b-it', 'gemma-4-26b-a4b-it'].includes(model)
+    const isDirectGeminiModel = model.startsWith('gemini-') || model.startsWith('gemma-') || model.startsWith('deep-research')
 
     if (isApexLocal) {
       const systemText = 'Voce e a Apex AI, plataforma profissional de arquitetura, construcao, BIM, orcamentos, marketing e gestao. Responda em portugues, de forma tecnica e direta, sem inventar dados ou integracoes que nao existem.'

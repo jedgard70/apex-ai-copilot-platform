@@ -82,38 +82,37 @@ function getModelProviderDiagnostics() {
     interactionsConfigured: Boolean(process.env.GEMINI_API_KEY),
   }
 }
-
 const DIRECT_GEMINI_MODELS = [
-  // ═══ CURRENT GA — RECOMENDADO ═══
-  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash (gratuito, 60 RPM) ★' },
-  { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash Lite (gratuito, 60 RPM)' },
-  { id: 'gemini-3.1-flash-image', name: 'Gemini 3.1 Flash Image (gratuito)' },
-  { id: 'gemini-3-pro-image', name: 'Gemini 3 Pro Image (gratuito)' },
-
-  // ═══ PREVIEW ═══
+  // ═══ GEMINI 3.x — MAIS RECENTES (confirmados na API 2026-07-08) ═══
+  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash ★ (gratuito)' },
   { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview (gratuito)' },
-  { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview (gratuito)' },
+  { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash Lite (gratuito)' },
+  { id: 'gemini-3.1-flash-image', name: 'Gemini 3.1 Flash Image (imagem+chat)' },
   { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro Preview (gratuito)' },
+  { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview (gratuito)' },
+  { id: 'gemini-3-pro-image', name: 'Gemini 3 Pro Image (imagem+chat)' },
 
-  // ═══ MÚSICA (Lyria 3) ═══
-  { id: 'lyria-3-clip-preview', name: 'Lyria 3 Clip (música, gratuito)' },
-  { id: 'lyria-3-pro-preview', name: 'Lyria 3 Pro (música, gratuito)' },
-
-  // ═══ DEPRECATING Oct 2026 — still functional ═══
+  // ═══ GEMINI 2.5 — ESTÁVEL ═══
   { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (gratuito, 60 RPM)' },
   { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite (gratuito)' },
   { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro (gratuito, 10 RPM)' },
-  { id: 'gemini-2.5-flash-image', name: 'Gemini 2.5 Flash Image (gratuito)' },
+  { id: 'gemini-2.5-flash-image', name: 'Gemini 2.5 Flash Image (imagem+chat)' },
+
+  // ═══ GEMINI 2.0 ═══
+  { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash (gratuito)' },
+  { id: 'gemini-2.0-flash-lite', name: 'Gemini 2.0 Flash Lite (gratuito)' },
 
   // ═══ TTS / ÁUDIO ═══
-  { id: 'gemini-3.1-flash-tts-preview', name: 'Gemini 3.1 Flash TTS (gratuito)' },
-  { id: 'gemini-2.5-flash-preview-tts', name: 'Gemini 2.5 Flash TTS (gratuito)' },
-  { id: 'gemini-2.5-pro-preview-tts', name: 'Gemini 2.5 Pro TTS (gratuito)' },
-  { id: 'gemini-2.5-flash-native-audio-preview-12-2025', name: 'Gemini 2.5 Native Audio (gratuito)' },
+  { id: 'gemini-3.1-flash-tts-preview', name: 'Gemini 3.1 Flash TTS Preview (áudio)' },
+  { id: 'gemini-2.5-flash-preview-tts', name: 'Gemini 2.5 Flash TTS (áudio)' },
+  { id: 'gemini-2.5-pro-preview-tts', name: 'Gemini 2.5 Pro TTS (áudio)' },
+
+  // ═══ DEEP RESEARCH ═══
+  { id: 'deep-research-preview-04-2026', name: 'Deep Research Preview (pesquisa profunda)' },
 
   // ═══ GEMMA — open-source (Google) ═══
-  { id: 'gemma-4-31b-it', name: 'Gemma 4 31B Instruct (Open-Source) (gratuito)' },
-  { id: 'gemma-4-26b-a4b-it', name: 'Gemma 4 26B A4B (Open-Source) (gratuito)' },
+  { id: 'gemma-4-31b-it', name: 'Gemma 4 31B Instruct (Open-Source)' },
+  { id: 'gemma-4-26b-a4b-it', name: 'Gemma 4 26B A4B (Open-Source)' },
 ]
 
 const FAL_CHAT_MODELS = [
@@ -1309,12 +1308,9 @@ async function callGeminiNative(requestPayload, overrideConfig) {
   const apiKey = overrideConfig?.apiKey || resolved.apiKey
   const providerLabel = 'gemini'
   let modelName = requestPayload.model || 'unknown'
-  // Map fictitious gemini-3.x / gemini-3-x names to real models available in v1beta API.
-  // gemini-1.5-flash and gemini-1.5-pro were removed from v1beta; use gemini-2.5-flash/pro.
-  if (modelName.startsWith('gemini-3.')) {
-    if (modelName.includes('pro')) modelName = 'gemini-2.5-pro'
-    else modelName = 'gemini-2.5-flash'
-  } else if (modelName.startsWith('gemini-3-')) {
+  // Only remap gemini-1.5.x models which were removed from v1beta API.
+  // All gemini-2.x, gemini-3.x models exist and must be passed as-is.
+  if (modelName.startsWith('gemini-1.5')) {
     modelName = modelName.includes('pro') ? 'gemini-2.5-pro' : 'gemini-2.5-flash'
   }
   

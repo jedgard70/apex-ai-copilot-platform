@@ -80,22 +80,17 @@ const providerOrder = [
   { name: "fal", label: "FAL.ai" },
 ]
 
-// Maps fictitious gemini-3.x / gemini-3-x UI names to real API model IDs.
-// The UI catalog uses marketing names; the API only accepts real model IDs.
+// Maps model names to real API IDs.
+// Only gemini-1.5.x was removed from v1beta; all other models (gemini-2.x, gemini-3.x) exist.
 function resolveGeminiModelName(model) {
   if (!model) return 'gemini-2.5-flash'
-  if (model.startsWith('gemini-3.') || model.startsWith('gemini-3-')) {
-    return model.includes('pro') ? 'gemini-2.5-pro' : 'gemini-2.5-flash'
-  }
   if (model.startsWith('gemini-1.5')) {
-    // gemini-1.5-x removed from v1beta — remap to 2.5
     return model.includes('pro') ? 'gemini-2.5-pro' : 'gemini-2.5-flash'
   }
   return model
 }
 
 function prioritizeGeminiModels(modelsList) {
-  // Keep the list as-is; gemini-2.5-flash is always first in STATIC_FALLBACKS
   return Array.from(new Set(modelsList))
 }
 
@@ -106,13 +101,23 @@ export async function getProviderChain(options = {}) {
   const geminiKey = (process.env.GEMINI_API_KEY || "").trim()
   const falKey = (process.env.FAL_KEY || process.env.FAL_API_KEY || "").trim()
 
-  // Only real models that exist in v1beta API (tested 2026-07-08)
+  // Real models confirmed via API list on 2026-07-08
   const GEMINI_STATIC_FALLBACKS = [
+    "gemini-3.5-flash",
+    "gemini-3.1-pro-preview",
+    "gemini-3.1-flash-lite",
+    "gemini-3.1-flash-image",
+    "gemini-3-pro-preview",
+    "gemini-3-flash-preview",
+    "gemini-3-pro-image",
     "gemini-2.5-flash",
-    "gemini-2.5-pro",
     "gemini-2.5-flash-lite",
-    "gemma-3-27b-it",
-    "gemma-3-12b-it",
+    "gemini-2.5-pro",
+    "gemini-2.5-flash-image",
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-lite",
+    "gemma-4-31b-it",
+    "gemma-4-26b-a4b-it",
   ]
 
   const FAL_STATIC_FALLBACKS = [
