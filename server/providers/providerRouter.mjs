@@ -80,10 +80,23 @@ const providerOrder = [
   { name: "fal", label: "FAL.ai" },
 ]
 
+// Maps fictitious gemini-3.x / gemini-3-x UI names to real API model IDs.
+// The UI catalog uses marketing names; the API only accepts real model IDs.
+function resolveGeminiModelName(model) {
+  if (!model) return 'gemini-2.5-flash'
+  if (model.startsWith('gemini-3.') || model.startsWith('gemini-3-')) {
+    return model.includes('pro') ? 'gemini-2.5-pro' : 'gemini-2.5-flash'
+  }
+  if (model.startsWith('gemini-1.5')) {
+    // gemini-1.5-x removed from v1beta — remap to 2.5
+    return model.includes('pro') ? 'gemini-2.5-pro' : 'gemini-2.5-flash'
+  }
+  return model
+}
+
 function prioritizeGeminiModels(modelsList) {
-  const priority = ["gemini-3.5-flash", "gemini-3.1-pro-preview"]
-  const uniqueList = Array.from(new Set([...priority, ...modelsList]))
-  return uniqueList
+  // Keep the list as-is; gemini-2.5-flash is always first in STATIC_FALLBACKS
+  return Array.from(new Set(modelsList))
 }
 
 export async function getProviderChain(options = {}) {
@@ -93,23 +106,13 @@ export async function getProviderChain(options = {}) {
   const geminiKey = (process.env.GEMINI_API_KEY || "").trim()
   const falKey = (process.env.FAL_KEY || process.env.FAL_API_KEY || "").trim()
 
+  // Only real models that exist in v1beta API (tested 2026-07-08)
   const GEMINI_STATIC_FALLBACKS = [
-    // Current GA — recommended
-    "gemini-3.5-flash",
-    "gemini-3.1-flash-lite",
-    "gemini-3.1-flash-image",
-    "gemini-3-pro-image",
-    // Preview models
-    "gemini-3.1-pro-preview",
-    "gemini-3-flash-preview",
-    "gemini-3-pro-preview",
-    // Deprecating Oct 2026 — still functional
     "gemini-2.5-flash",
-    "gemini-2.5-flash-lite",
     "gemini-2.5-pro",
-    // Gemma — open-source (treino aberto)
-    "gemma-4-31b-it",
-    "gemma-4-26b-a4b-it"
+    "gemini-2.5-flash-lite",
+    "gemma-3-27b-it",
+    "gemma-3-12b-it",
   ]
 
   const FAL_STATIC_FALLBACKS = [
@@ -290,7 +293,8 @@ export async function chatWithFallback(params) {
             ).join('\n')
             geminiBody.systemInstruction = { parts: [{ text: joinedSystem }] }
           }
-          let apiModel = model
+          // Resolve fictitious UI model names to real API model IDs before calling
+          let apiModel = resolveGeminiModelName(model)
           const headers = { 'X-goog-api-key': provider.apiKey, 'Content-Type': 'application/json' }
           response = await fetch(`${provider.baseUrl}/models/${apiModel}:generateContent`, {
             method: 'POST', headers, body: JSON.stringify(geminiBody), signal: AbortSignal.timeout(15000)
