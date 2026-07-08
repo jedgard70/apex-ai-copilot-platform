@@ -31,7 +31,8 @@
     "train": "node scripts/train-apex-ai.mjs",
     "train:dry": "node scripts/train-apex-ai.mjs --dry-run",
     "setup:runtime": "node scripts/setup-own-runtime.mjs",
-    "setup:runtime:check": "node scripts/setup-own-runtime.mjs --check"
+    "setup:runtime:check": "node scripts/setup-own-runtime.mjs --check",
+    "setup:soberania": "node scripts/setup-soberania.mjs"
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.19.0",
@@ -58,6 +59,7 @@
     "docx": "^9.7.1",
     "dompurify": "^3.1.6",
     "dotenv": "^17.4.2",
+    "electron-updater": "^6.8.9",
     "express": "^5.2.1",
     "fast-xml-parser": "5.9.3",
     "ffmpeg-static": "^5.3.0",
@@ -66,6 +68,7 @@
     "genkit": "^1.37.0",
     "googleapis": "^173.0.0",
     "jspdf": "^4.2.1",
+    "jszip": "^3.10.1",
     "lucide-react": "^0.511.0",
     "mcp-handler": "^1.1.0",
     "mdn-data": "^2.28.1",
@@ -88,8 +91,7 @@
     "xterm": "^5.3.0",
     "xterm-addon-fit": "^0.8.0",
     "zod": "^3.25.76",
-    "zustand": "^5.0.5",
-    "electron-updater": "^6.8.9"
+    "zustand": "^5.0.5"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.0",
@@ -141,7 +143,7 @@
     },
     "publish": {
       "provider": "github",
-      "owner": "jedgard70",
+      "owner": "Apex-Global-LLC",
       "repo": "apex-ai-copilot-platform",
       "releaseType": "release"
     }

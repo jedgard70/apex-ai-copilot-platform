@@ -219,13 +219,18 @@ function SceneLayers({ layers, onToggle, onAdd, onUpdateLayer }: {
 
 // ─── Central Canvas ────────────────────────────────────────────────────────────
 
-function CentralCanvas({ source, currentImage, currentVideo, timecode, fps, loading }: {
+function CentralCanvas({ source, currentImage, currentVideo, timecode, fps, loading, videoRef, onTimeUpdate, onLoadedMetadata, onPlay, onPause }: {
   source?: IntakeFile
   currentImage?: string
   currentVideo?: string
   timecode: string
   fps: number
   loading: boolean
+  videoRef?: React.RefObject<HTMLVideoElement | null>
+  onTimeUpdate?: () => void
+  onLoadedMetadata?: () => void
+  onPlay?: () => void
+  onPause?: () => void
 }) {
   const [zoom, setZoom] = useState(85)
   const displayImg = currentImage || source?.dataUrl
@@ -248,7 +253,16 @@ function CentralCanvas({ source, currentImage, currentVideo, timecode, fps, load
           transform: `scale(${zoom / 100})`, transition: 'transform 0.2s',
         }}>
           {currentVideo ? (
-            <video controls autoPlay loop src={currentVideo} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <video
+              ref={videoRef}
+              src={currentVideo}
+              onTimeUpdate={onTimeUpdate}
+              onLoadedMetadata={onLoadedMetadata}
+              onPlay={onPlay}
+              onPause={onPause}
+              controls
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
           ) : displayImg ? (
             <img src={displayImg} alt="Canvas" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
@@ -515,9 +529,16 @@ function AIGenerationPanel({ onGenerate, loading, source, initialImage, setIniti
 
 // ─── Multi-Track Timeline ─────────────────────────────────────────────────────
 
-function MultiTrackTimeline({ tracks, timecode, onSeek }: { tracks: any[]; timecode: string; onSeek?: (pct: number) => void }) {
-  const [playheadPct, setPlayheadPct] = useState(27)
-  const [playing, setPlaying] = useState(false)
+function MultiTrackTimeline({
+  tracks, timecode, playing, playheadPct, onSeek, onTogglePlay
+}: {
+  tracks: any[]
+  timecode: string
+  playing: boolean
+  playheadPct: number
+  onSeek: (pct: number) => void
+  onTogglePlay: () => void
+}) {
   const timelineRef = useRef<HTMLDivElement>(null)
 
   const getIcon = (name: string) => {
@@ -531,11 +552,18 @@ function MultiTrackTimeline({ tracks, timecode, onSeek }: { tracks: any[]; timec
     }
   }
 
-  function handleTimelineClick(e: React.MouseEvent<HTMLDivElement>) {
-    const rect = e.currentTarget.getBoundingClientRect()
-    const pct = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100))
-    setPlayheadPct(pct)
-    onSeek?.(pct)
+  function handlePointer(e: React.PointerEvent<HTMLDivElement>) {
+    if (e.buttons > 0 || e.type === 'pointerdown') {
+      const rect = e.currentTarget.getBoundingClientRect()
+      const offsetLeft = 112
+      const usableWidth = rect.width - offsetLeft
+      const x = e.clientX - rect.left - offsetLeft
+      const pct = Math.max(0, Math.min(100, (x / usableWidth) * 100))
+      onSeek(pct)
+      if (e.type === 'pointerdown') {
+        e.currentTarget.setPointerCapture(e.pointerId)
+      }
+    }
   }
 
   const timeMarkers = ['00:00:00', '00:00:05', '00:00:10', '00:00:15', '00:00:20', '00:00:25', '00:00:30', '00:00:35', '00:00:40']
@@ -550,7 +578,7 @@ function MultiTrackTimeline({ tracks, timecode, onSeek }: { tracks: any[]; timec
             <span>⏱</span> {timecode}
           </div>
           <div style={{ display: 'flex', gap: 4 }}>
-            <button onClick={() => setPlaying(!playing)}
+            <button onClick={onTogglePlay}
               style={{ background: D.surfaceContainerHigh, border: `1px solid ${D.outlineVariant}`, borderRadius: 3, padding: '2px 6px', cursor: 'pointer', color: D.onSurface, display: 'flex', alignItems: 'center', gap: 3 }}>
               {playing ? <Pause size={12} /> : <Play size={12} />}
             </button>
@@ -565,7 +593,8 @@ function MultiTrackTimeline({ tracks, timecode, onSeek }: { tracks: any[]; timec
 
       {/* Tracks area */}
       <div style={{ flex: 1, overflowX: 'auto', overflowY: 'hidden' }}>
-        <div ref={timelineRef} style={{ minWidth: 1400, position: 'relative', padding: '6px 0' }} onClick={handleTimelineClick}>
+        <div ref={timelineRef} style={{ minWidth: 1400, position: 'relative', padding: '6px 0', cursor: 'text' }}
+             onPointerDown={handlePointer} onPointerMove={handlePointer}>
           {/* Time markers */}
           <div style={{ display: 'flex', marginLeft: 112, marginBottom: 4 }}>
             {timeMarkers.map(m => (
@@ -649,7 +678,6 @@ function RenderHistory({ jobs }: { jobs: RenderJob[] }) {
 
 export function DirectCutPanel({ source, goal, conversationContext, initialConfig, onRecordGeneration, onClear }: DirectCutPanelProps) {
   const [tab, setTab] = useState<DCTab>('storyboard')
-  const [timecode, setTimecode] = useState('00:04:12:08')
   const [loading, setLoading] = useState(false)
   const [currentImage, setCurrentImage] = useState<string | undefined>(source?.dataUrl)
   const [currentVideo, setCurrentVideo] = useState<string | undefined>()
@@ -661,6 +689,12 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
   const [cinematicPresets, setCinematicPresets] = useState<{ name: string; prompt: string; categoryName?: string }[]>([])
   const [showDCPresets, setShowDCPresets] = useState(false)
   const pollTimers = useRef<Record<string, ReturnType<typeof setInterval>>>({})
+
+  // Timeline / Video Sync state
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const [playing, setPlaying] = useState(false)
+  const [playheadPct, setPlayheadPct] = useState(0)
+  const [duration, setDuration] = useState(8) // Default 8s, updates on video load
 
   const [layers, setLayers] = useState<SceneLayer[]>(() => [
     { id: uid(), name: source?.file.name || 'Photo_Background_01', type: 'image', visible: true, opacity: 100, active: true },
@@ -796,6 +830,12 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
     setLoading(true)
 
     try {
+      const savedProfileStr = localStorage.getItem('apex_user_profile_data')
+      let voiceId = undefined
+      if (savedProfileStr) {
+        try { voiceId = JSON.parse(savedProfileStr).voiceId } catch (_) {}
+      }
+
       const res = await fetch('/api/copilot/video-render', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -810,6 +850,7 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
           intensity: settings.intensity,
           temperature: settings.temperature,
           style: style,
+          voiceId, // Clone voice from user profile
         }),
       })
       const data = await res.json().catch(() => ({}))
@@ -847,6 +888,52 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
   }
 
   const doneJob = renderJobs.find(j => j.status === 'done' && j.videoUrl)
+
+  // Auto-playhead for when there is no video loaded yet, or to keep timeline moving
+  useEffect(() => {
+    if (!currentVideo && playing) {
+      const interval = setInterval(() => {
+        setPlayheadPct(p => {
+          if (p >= 100) {
+            setPlaying(false)
+            return 100
+          }
+          return p + (100 / (duration * 24)) // ~24fps fallback
+        })
+      }, 1000 / 24)
+      return () => clearInterval(interval)
+    }
+  }, [currentVideo, playing, duration])
+
+  // Sync callbacks
+  const handleTimeUpdate = () => {
+    if (videoRef.current) setPlayheadPct((videoRef.current.currentTime / videoRef.current.duration) * 100 || 0)
+  }
+  const handleLoadedMetadata = () => {
+    if (videoRef.current) setDuration(videoRef.current.duration)
+  }
+  const handleSeek = (pct: number) => {
+    setPlayheadPct(pct)
+    if (videoRef.current) {
+      videoRef.current.currentTime = (pct / 100) * duration
+    }
+  }
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (playing) videoRef.current.pause()
+      else videoRef.current.play()
+    } else {
+      setPlaying(!playing)
+    }
+  }
+
+  // Calculate Timecode
+  const currentSeconds = (playheadPct / 100) * duration || 0
+  const hh = String(Math.floor(currentSeconds / 3600)).padStart(2, '0')
+  const mm = String(Math.floor((currentSeconds % 3600) / 60)).padStart(2, '0')
+  const ss = String(Math.floor(currentSeconds % 60)).padStart(2, '0')
+  const ff = String(Math.floor((currentSeconds % 1) * 24)).padStart(2, '0')
+  const calculatedTimecode = `${hh}:${mm}:${ss}:${ff}`
 
   return (
     <div style={{
@@ -942,11 +1029,16 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
                 <SceneLayers layers={layers} onToggle={toggleLayer} onAdd={addLayer} onUpdateLayer={updateLayer} />
                 <CentralCanvas
                   source={source}
-                  currentImage={doneJob?.videoUrl ? undefined : currentImage}
+                  currentImage={currentImage}
                   currentVideo={currentVideo}
-                  timecode={timecode}
+                  timecode={calculatedTimecode}
                   fps={24}
                   loading={loading}
+                  videoRef={videoRef}
+                  onTimeUpdate={handleTimeUpdate}
+                  onLoadedMetadata={handleLoadedMetadata}
+                  onPlay={() => setPlaying(true)}
+                  onPause={() => setPlaying(false)}
                 />
                 <AIGenerationPanel
                   onGenerate={handleGenerate}
@@ -958,16 +1050,42 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
                   setFinalImage={setFinalImage}
                 />
               </div>
-              <MultiTrackTimeline tracks={tracks} timecode={timecode} onSeek={pct => console.log('seek', pct)} />
+              <MultiTrackTimeline
+                tracks={tracks}
+                timecode={calculatedTimecode}
+                playing={playing}
+                playheadPct={playheadPct}
+                onSeek={handleSeek}
+                onTogglePlay={togglePlay}
+              />
             </>
           )}
 
           {tab === '3d-workspace' && (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
               <div style={{ flex: 1, overflow: 'hidden' }}>
-                <CentralCanvas source={source} currentImage={currentImage} currentVideo={currentVideo} timecode={timecode} fps={24} loading={loading} />
+                <CentralCanvas
+                  source={source}
+                  currentImage={currentImage}
+                  currentVideo={currentVideo}
+                  timecode={calculatedTimecode}
+                  fps={24}
+                  loading={loading}
+                  videoRef={videoRef}
+                  onTimeUpdate={handleTimeUpdate}
+                  onLoadedMetadata={handleLoadedMetadata}
+                  onPlay={() => setPlaying(true)}
+                  onPause={() => setPlaying(false)}
+                />
               </div>
-              <MultiTrackTimeline tracks={tracks} timecode={timecode} onSeek={pct => console.log('seek', pct)} />
+              <MultiTrackTimeline
+                tracks={tracks}
+                timecode={calculatedTimecode}
+                playing={playing}
+                playheadPct={playheadPct}
+                onSeek={handleSeek}
+                onTogglePlay={togglePlay}
+              />
             </div>
           )}
 

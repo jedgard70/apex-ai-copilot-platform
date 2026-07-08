@@ -340,7 +340,6 @@ const DIRECT_GEMINI_MODELS = [
   // ═══ GEMMA — open-source (Google) ═══
   { id: 'gemma-4-31b-it', name: 'Gemma 4 31B Instruct (Open-Source)' },
   { id: 'gemma-4-26b-a4b-it', name: 'Gemma 4 26B A4B (Open-Source)' },
-  { id: 'gemma-4-31b-it-apex', name: 'Gemma 4 31B Apex (Fine-Tuned)' },
 ]
 
 const INTERACTION_MODELS = [
@@ -589,15 +588,13 @@ async function copyToClipboard(text: string) {
   }
 }
 
-let currentSpeech: SpeechSynthesisUtterance | null = null
+let currentAudio: HTMLAudioElement | null = null
 
-function speakMessage(text: string, messageId: string) {
-  if (!('speechSynthesis' in window)) return
-
+async function speakMessage(text: string, messageId: string) {
   // Stop current speech if same message clicked again
-  if (currentSpeech && window.speechSynthesis.speaking) {
-    window.speechSynthesis.cancel()
-    currentSpeech = null
+  if (currentAudio) {
+    currentAudio.pause()
+    currentAudio = null
     return
   }
 
@@ -613,26 +610,39 @@ function speakMessage(text: string, messageId: string) {
 
   if (!cleanText) return
 
-  const utterance = new SpeechSynthesisUtterance(cleanText)
-  utterance.rate = 1.1
-  utterance.pitch = 1.0
-  utterance.volume = 1.0
+  try {
+    const savedProfileStr = localStorage.getItem('apex_user_profile_data')
+    let voiceId = undefined
+    if (savedProfileStr) {
+      try { voiceId = JSON.parse(savedProfileStr).voiceId } catch (_) {}
+    }
 
-  // Try to use a Portuguese voice if available
-  const voices = window.speechSynthesis.getVoices()
-  const ptVoice = voices.find(v => v.lang.startsWith('pt'))
-  if (ptVoice) utterance.voice = ptVoice
-  else utterance.lang = 'pt-BR'
+    const res = await fetch('/api/copilot/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: cleanText,
+        voiceId,
+      })
+    })
 
-  utterance.onend = () => { currentSpeech = null }
-  utterance.onerror = () => { currentSpeech = null }
-
-  currentSpeech = utterance
-  window.speechSynthesis.speak(utterance)
+    if (res.ok) {
+      const data = await res.json()
+      if (data.audio) {
+        const audioSrc = `data:${data.mimeType || 'audio/mpeg'};base64,${data.audio}`
+        currentAudio = new Audio(audioSrc)
+        currentAudio.onended = () => { currentAudio = null }
+        currentAudio.onerror = () => { currentAudio = null }
+        await currentAudio.play()
+      }
+    }
+  } catch (error) {
+    console.error('TTS falhou:', error)
+  }
 }
 
 function isSpeaking() {
-  return currentSpeech !== null && window.speechSynthesis.speaking
+  return currentAudio !== null && !currentAudio.paused
 }
 
 async function shareMessage(text: string) {
@@ -698,25 +708,6 @@ function isDebugEnabled() {
     return localStorage.getItem('apex_debug') === 'true' || import.meta.env.VITE_APEX_DEBUG === 'true'
   } catch {
     return import.meta.env.VITE_APEX_DEBUG === 'true'
-  }
-}
-
-function isLocalDemoAuthAllowed() {
-  return import.meta.env.VITE_APEX_ALLOW_LOCAL_DEMO_AUTH === 'true'
-}
-
-function buildLocalDemoOwnerState(): SupabaseAccountState {
-  return {
-    providerStatus: 'supabase-not-configured',
-    sessionStatus: 'signed-in',
-    user: { id: 'local-demo-user', email: 'owner@apexglobalai.co' },
-    profile: { id: 'local-demo-user', email: 'owner@apexglobalai.co', full_name: 'Owner Admin (Local)' },
-    tenant: { id: 'local-demo-tenant', name: 'Apex Local Workspace' },
-    role: 'owner_admin',
-    permissions: ['*'],
-    persistenceMode: 'localStorage',
-    bootstrapStatus: 'ready',
-    message: 'Local demo mode enabled by VITE_APEX_ALLOW_LOCAL_DEMO_AUTH.',
   }
 }
 
@@ -1286,12 +1277,8 @@ function App() {
   const messagesEnd = useRef<HTMLDivElement | null>(null)
   const supabaseProvider = useMemo(() => getSupabaseProviderStatus(), [])
   const isSupabaseConfigured = supabaseProvider.providerStatus === 'supabase-connected'
-  const localDemoAuthAllowed = useMemo(() => isLocalDemoAuthAllowed(), [])
-  const [accountState, setAccountState] = useState<SupabaseAccountState | null>(() => {
-    if (!isSupabaseConfigured && localDemoAuthAllowed) return buildLocalDemoOwnerState()
-    return null
-  })
-  const [authLoading, setAuthLoading] = useState(isSupabaseConfigured || !localDemoAuthAllowed)
+  const [accountState, setAccountState] = useState<SupabaseAccountState | null>(null)
+  const [authLoading, setAuthLoading] = useState(true)
   const [authMessage, setAuthMessage] = useState(supabaseProvider.message)
   const [activeView, setActiveView] = useState('dashboard')
   const [isUserProfileOpen, setIsUserProfileOpen] = useState(false)
@@ -1953,6 +1940,23 @@ function App() {
     upgradePlans: activeProject.upgradePlans.length,
     executionRuns: executionRuns.length,
   }), [activeProject, archVisOutput, archVisRevisionConstraints.length, bim3DOutput, directCutOutput, executionRuns.length, messages.length])
+
+  // --- Local Demo Auth Definitions ---
+  const localDemoAuthAllowed = true
+  const buildLocalDemoOwnerState = (): SupabaseAccountState => ({
+    providerStatus: 'supabase-not-configured',
+    sessionStatus: 'signed-in',
+    user: { id: 'local-owner-123', email: 'jedgard70@gmail.com' },
+    profile: { id: 'local-owner-123', email: 'jedgard70@gmail.com', full_name: 'Dr. Edgard (Local)', default_tenant_id: 'local-tenant-123' },
+    tenant: { id: 'local-tenant-123', name: 'Apex Local Environment', slug: 'apex-local' },
+    role: 'owner_admin',
+    permissions: ['all'],
+    persistenceMode: 'localStorage',
+    bootstrapStatus: 'ready',
+    message: 'Local Demo Mode Active',
+  })
+  // -----------------------------------
+
 
   const isSignedIn = accountState?.sessionStatus === 'signed-in'
   const authShellStatus = accountState?.bootstrapStatus || (isSupabaseConfigured ? 'needs-login' : 'local-demo')

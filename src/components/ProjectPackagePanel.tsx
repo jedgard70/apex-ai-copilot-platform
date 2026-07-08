@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Clipboard, Download, FileJson, PackageCheck, Save, X } from 'lucide-react'
+import { Clipboard, Download, FileJson, PackageCheck, Save, X, FileArchive } from 'lucide-react'
+import JSZip from 'jszip'
 import { ProjectWorkspace } from '../lib/projectWorkspace'
 import { ProjectPackagePlan } from '../lib/projectPackageKnowledge'
 
@@ -108,6 +109,52 @@ export function ProjectPackagePanel({ project, goal, conversationContext, onSave
     }
   }
 
+  async function downloadZipPackage() {
+    if (!plan) return
+    const zip = new JSZip()
+    
+    // Add summary
+    zip.file('apex-project-package.txt', packageText(plan))
+    zip.file('apex-project-package.json', JSON.stringify(plan, null, 2))
+    
+    // Add raw exports
+    const exportsFolder = zip.folder('Exports')
+    if (exportsFolder && Array.isArray(project.exports)) {
+      project.exports.forEach((exp: any, index: number) => {
+        if (!exp) return
+        const type = exp.type || 'unknown'
+        const timestamp = exp.timestamp ? exp.timestamp.replace(/:/g, '-') : `item-${index}`
+        let content = ''
+        let ext = 'json'
+        
+        if (exp.plan) {
+          content = JSON.stringify(exp.plan, null, 2)
+        } else if (exp.text) {
+          content = exp.text
+          ext = 'txt'
+        } else if (exp.markdown) {
+          content = exp.markdown
+          ext = 'md'
+        } else {
+          content = JSON.stringify(exp, null, 2)
+        }
+        
+        exportsFolder.file(`${type}_${timestamp}.${ext}`, content)
+      })
+    }
+    
+    // Generate and download
+    const blob = await zip.generateAsync({ type: 'blob' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `apex-package-${project.name.replace(/\s+/g, '-').toLowerCase()}.zip`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <section className="contracts-studio" aria-label="Project package pipeline">
       <div className="contracts-heading">
@@ -189,6 +236,7 @@ export function ProjectPackagePanel({ project, goal, conversationContext, onSave
                 <button type="button" onClick={() => copyText(packageText(plan))}><Clipboard size={15} /> Copy package text</button>
                 <button type="button" onClick={() => downloadTextFile('apex-project-package.txt', packageText(plan))}><Download size={15} /> Export TXT</button>
                 <button type="button" onClick={() => downloadTextFile('apex-project-package.json', JSON.stringify(plan, null, 2), 'application/json;charset=utf-8')}><FileJson size={15} /> Export JSON</button>
+                <button type="button" onClick={downloadZipPackage}><FileArchive size={15} /> Export ZIP Bundle</button>
                 <button type="button" onClick={() => onSaveToProject?.(plan)}><Save size={15} /> Save to Project Workspace</button>
               </div>
             </>

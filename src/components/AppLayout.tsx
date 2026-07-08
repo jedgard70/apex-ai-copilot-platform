@@ -84,38 +84,38 @@ const roleSidebarMap: Record<string, string[]> = {
   ],
   internal_team: [
     'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
-    'crm', 'archvis', 'directcut', 'training', 'docs', 'caixa_mcmv'
+    'crm', 'archvis', 'directcut', 'training', 'docs', 'caixa_mcmv', 'code-editor'
   ],
   client: [
     'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
-    'archvis', 'directcut', 'caixa_mcmv'
+    'archvis', 'directcut', 'caixa_mcmv', 'code-editor'
   ],
   partner: [
     'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
-    'archvis', 'directcut'
+    'archvis', 'directcut', 'code-editor'
   ],
   viewer: [
     'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
-    'archvis', 'directcut'
+    'archvis', 'directcut', 'code-editor'
   ],
   contractor: [
-    'dashboard', 'chat', 'fieldops', 'contracts'
+    'dashboard', 'chat', 'fieldops', 'contracts', 'code-editor'
   ],
   finance: [
-    'dashboard', 'chat', 'budget', 'finance', 'contracts'
+    'dashboard', 'chat', 'budget', 'finance', 'contracts', 'code-editor'
   ],
   sales: [
-    'dashboard', 'chat', 'crm', 'contracts', 'budget'
+    'dashboard', 'chat', 'crm', 'contracts', 'budget', 'code-editor'
   ],
   field: [
-    'dashboard', 'chat', 'fieldops'
+    'dashboard', 'chat', 'fieldops', 'code-editor'
   ],
   bim_manager: [
-    'dashboard', 'chat', 'bim', 'archvis', 'directcut', 'budget'
+    'dashboard', 'chat', 'bim', 'archvis', 'directcut', 'budget', 'code-editor'
   ],
   project_manager: [
     'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
-    'crm', 'finance', 'governance', 'marketing', 'archvis', 'directcut'
+    'crm', 'finance', 'governance', 'marketing', 'archvis', 'directcut', 'code-editor'
   ]
 }
 

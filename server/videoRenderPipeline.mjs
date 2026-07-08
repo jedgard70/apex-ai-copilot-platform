@@ -291,6 +291,7 @@ export async function renderVideoPayload(payload = {}) {
           intensity: payload.intensity,
           temperature: payload.temperature,
           style: payload.style,
+          voiceId: payload.voiceId, // <--- Added Voice ID support
         }
       })
       if (falResult.ok) {

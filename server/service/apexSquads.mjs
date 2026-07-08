@@ -46,6 +46,50 @@ export function createSquad({ name, goal, skill }) {
   return newSquad;
 }
 
+export function generateModuleSquads() {
+  const db = readDb();
+  // Check if we already generated the module squads
+  if (db.squads.some(s => s.isSystemModule)) return db.squads;
+
+  const archPath = path.join(process.cwd(), 'docs', 'apex_acip_master_architecture.md');
+  if (!fs.existsSync(archPath)) return db.squads;
+
+  const content = fs.readFileSync(archPath, 'utf-8');
+  // Match lines like: * **1.1. (Módulo 1) STOCK MARKET ANALYTICS [OK - Funcional Real]**
+  const regex = /\*\s\*\*\d+\.\d+\.?\s*\(Módulo ([\d.]+)\)\s*(.*?)\s*\[(.*?)\]\*\*/g;
+  let match;
+  let added = false;
+
+  while ((match = regex.exec(content)) !== null) {
+    const moduleId = match[1];
+    const moduleName = match[2].trim();
+    
+    // Create the 4 agents for each module
+    const moduleSquad = {
+      id: `sqd_mod_${moduleId.replace('.', '_')}`,
+      name: `Squad do Módulo ${moduleId}: ${moduleName}`,
+      goal: `Desenvolver, testar e publicar o módulo ${moduleName}`,
+      skill: 'module-deployment',
+      status: 'idle',
+      isSystemModule: true,
+      createdAt: new Date().toISOString(),
+      agents: [
+        { id: 'agt_pm_mkt', role: 'Product/Marketing Manager', status: 'pending', output: null },
+        { id: 'agt_architect', role: 'Arquiteto/Engenheiro de Software', status: 'pending', output: null },
+        { id: 'agt_qa', role: 'Validador/QA', status: 'pending', output: null },
+        { id: 'agt_release', role: 'Release Manager (Deployer)', status: 'pending', output: null }
+      ],
+      currentStep: 0,
+      checkpoints: []
+    };
+    db.squads.push(moduleSquad);
+    added = true;
+  }
+
+  if (added) writeDb(db);
+  return db.squads;
+}
+
 export function getSquads() {
   return readDb().squads;
 }
@@ -79,12 +123,20 @@ export function runSquadStep(squadId) {
     updatedSquad.agents[updatedSquad.currentStep].status = 'completed';
     updatedSquad.agents[updatedSquad.currentStep].output = `[Output do ${currentAgent.role}] Tarefa concluída para o objetivo: ${squad.goal}`;
     
-    // Define a checkpoint if it's the strategist or copywriter
-    if (currentAgent.id === 'agt_estrategista' || currentAgent.id === 'agt_copywriter') {
+    // Define a checkpoint if it's the strategist, copywriter, architect, or qa
+    if (
+      currentAgent.id === 'agt_estrategista' || 
+      currentAgent.id === 'agt_copywriter' ||
+      currentAgent.id === 'agt_architect' ||
+      currentAgent.id === 'agt_qa'
+    ) {
       updatedSquad.status = 'checkpoint_waiting';
+      const isDeployNext = currentAgent.id === 'agt_qa';
       updatedSquad.checkpoints.push({
         step: updatedSquad.currentStep,
-        message: `O ${currentAgent.role} finalizou sua parte. Deseja aprovar e seguir para o próximo agente?`
+        message: isDeployNext 
+          ? `O ${currentAgent.role} aprovou os testes. ATENÇÃO: O próximo passo é o DEPLOY EM PRODUÇÃO. Deseja aprovar a modificação e autorizar o commit/deploy?`
+          : `O ${currentAgent.role} finalizou sua parte. Deseja aprovar e seguir para o próximo agente?`
       });
     } else {
       updatedSquad.currentStep += 1;

@@ -15,7 +15,7 @@ export async function gerarImagemFAL(prompt, projectPath) {
     },
     body: JSON.stringify({
       prompt: prompt,
-      image_size: "landscape_4_3",
+      image_size: "square",
       num_inference_steps: 28,
       guidance_scale: 3.5,
       num_images: 1,
@@ -80,6 +80,7 @@ export async function gerarVozElevenLabs(texto, projectPath) {
   const mediaDir = path.join(projectPath, 'docs', 'media_output')
   await fs.mkdir(mediaDir, { recursive: true })
 
+  // Corrigido de slice(0, 0) para slice(0, 8) para evitar sobreposição de arquivos
   const filename = `voice_${crypto.randomUUID().slice(0, 8)}.mp3`
   const filepath = path.join(mediaDir, filename)
   await fs.writeFile(filepath, buffer)

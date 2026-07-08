@@ -1648,7 +1648,34 @@ textarea {
 .bim3d-tour-grid p,
 .bim3d-work-card p,
 .bim3d-work-card small {
-  color: #aebce0;
+  color: #a3b3d1;
+}
+
+.ifc-mesh-tooltip {
+  background: rgba(8, 10, 22, 0.9);
+  border: 1px solid rgba(150, 164, 195, 0.3);
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: white;
+  font-size: 12px;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+}
+.ifc-mesh-tooltip strong {
+  font-weight: 600;
+  color: #6da8ff;
+  font-size: 13px;
+}
+.ifc-mesh-tooltip span {
+  color: #eaf0ff;
+}
+.ifc-mesh-tooltip small {
+  color: #a3b3d1;
 }
 
 .bim3d-meta strong,

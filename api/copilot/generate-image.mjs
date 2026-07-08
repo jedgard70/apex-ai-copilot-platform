@@ -134,6 +134,58 @@ async function generateWithFal({ falKey, safePrompt, sourceImage, outputCount, m
   }
 }
 
+// ─── Provider: Gemini Interactions (Fallback) ───────────────────────────────
+async function generateWithGeminiInteractions({ safePrompt, outputCount }) {
+  const apiKey = (process.env.GEMINI_API_KEY || '').replace(/['"]/g, '')
+  if (!apiKey) throw new Error('GEMINI_API_KEY missing for fallback')
+
+  // Calling Imagen 3 API via Gemini
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`
+  
+  const payload = {
+    instances: [{ prompt: safePrompt }],
+    parameters: {
+      sampleCount: Math.min(outputCount, 4),
+      outputOptions: { mimeType: 'image/jpeg' },
+      // mode preserve-layout could be somewhat handled by providing an image, but imagen-3 doesn't support image-to-image out of the box in the public API yet, so we do text-to-image as fallback
+    }
+  }
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new Error(`Gemini Fallback failed: ${response.status} ${errorText}`)
+  }
+
+  const data = await response.json()
+  const predictions = data.predictions || []
+  if (predictions.length === 0) {
+    throw new Error('Gemini returned no images.')
+  }
+
+  const geminiImages = predictions.map(p => {
+    return {
+      url: `data:image/jpeg;base64,${p.bytesBase64Encoded}`,
+      width: 1024,
+      height: 1024,
+      content_type: 'image/jpeg'
+    }
+  })
+
+  return {
+    providerStatus: 'connected',
+    image: geminiImages[0],
+    images: geminiImages,
+    model: 'imagen-3.0-generate-002',
+    mode: 'text-to-image'
+  }
+}
+
 // ─── Main handler ────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -242,8 +294,18 @@ export default async function handler(req, res) {
 
     // Primary provider: fal.ai
     if (falKey) {
-      const result = await generateWithFal({ falKey, safePrompt, sourceImage, outputCount, mode, size })
-      return sendJson(res, 200, result)
+      try {
+        const result = await generateWithFal({ falKey, safePrompt, sourceImage, outputCount, mode, size })
+        return sendJson(res, 200, result)
+      } catch (falError) {
+        console.error('FAL failed, triggering fallback to Gemini Interactions:', falError.message)
+        if (process.env.GEMINI_API_KEY) {
+          const fallbackResult = await generateWithGeminiInteractions({ safePrompt, outputCount })
+          return sendJson(res, 200, fallbackResult)
+        } else {
+          throw falError // No gemini key, throw original error
+        }
+      }
     }
 
     return sendJson(res, 200, {

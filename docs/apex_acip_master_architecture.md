@@ -207,7 +207,7 @@ Do BIM à decisão executiva.
   * *Arquivos:* `api/nr/index.mjs`, `server/service/nrCompliance.mjs`
   * *Detalhes [NOVO]:* Auditoria contínua de canteiro baseada nas Normas Regulamentadoras Brasileiras e Internacionais.
 
-* **3.5. (Módulo 16) SUPPLY CHAIN STUDIO [UI - Protótipo]**
+* **3.5. (Módulo 16) SUPPLY CHAIN STUDIO [OK - Funcional Real]**
   * *Arquivos:* `server/service/supplyChain.mjs`
   * *Detalhes:* Tela para exibir cotações, gerenciar fornecedores, e status de estoque e suprimentos de obra.
 
@@ -808,7 +808,7 @@ Componentes, hooks, estilos e páginas da interface do usuário (Dashboard, Arch
 | **Arquivos `.mjs` totais** | ~208 (94 api/ + 114 server/) |
 | **Status Funcional Real** | ~90% |
 | **Status Parcial** | 4 (M7-RDO, M11-Orçamento, M28-ArchViz, M29-Director's Cut) |
-| **Status Protótipo** | 1 (M16-Supply Chain) |
+| **Status Protótipo** | 0 |
 | **Seções** | 11 principais + Design System + 3 Anexos |
 | **Provedores de IA** | 11 ativos (Gemini, Ollama, fal.ai, ElevenLabs, Brave, AuthKey, Supabase, Firebase, Tavily, GitHub, Stripe) |
 | **Conectores de Agente** | 15+ em `server/agent/` |

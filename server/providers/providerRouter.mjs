@@ -150,7 +150,7 @@ export async function getProviderChain(options = {}) {
 
   // Injeta o Apex Runtime local se estiver habilitado (Agora como motor SECUNDÁRIO/Fallback)
   if (process.env.APEX_RUNTIME_ENABLED === 'true') {
-    const localModels = ["gemma-2b-it-gguf", "phi-3-mini-gguf"];
+    const localModels = ["apex-ai-2.0", "gemma-2b-it-gguf", "phi-3-mini-gguf"];
     chain.push({
       name: "apex-runtime",
       baseUrl: "http://localhost:1337/v1", // OpenAI-compatible API

@@ -1,6 +1,3 @@
-// Gemini TTS API — Text-to-Speech via Gemini Interactions
-// POST /api/copilot/tts — { text: string, model?: string, voice?: string }
-
 import { generateSpeech, isGeminiTtsAvailable } from '../../server/agent/geminiTtsConnector.mjs'
 
 function sendJson(res, status, body) {
@@ -23,7 +20,38 @@ export default async function handler(req, res) {
     const text = String(body.text || '').trim()
     if (!text) return sendJson(res, 400, { ok: false, error: 'text is required' })
 
-    const result = await generateSpeech(text, { model: body.model, voice: body.voice })
+    const customVoiceId = body.voiceId || body.voice
+    const isElevenLabs = String(body.model || '').includes('elevenlabs') || (customVoiceId && process.env.ELEVENLABS_API_KEY)
+    
+    if (isElevenLabs && process.env.ELEVENLABS_API_KEY) {
+      const voiceId = customVoiceId && customVoiceId.length > 5 ? customVoiceId : "EXAVITQu4vr4xnSDxMaL"
+      const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'audio/mpeg',
+          'xi-api-key': process.env.ELEVENLABS_API_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          text,
+          model_id: "eleven_multilingual_v2",
+          voice_settings: { stability: 0.5, similarity_boost: 0.5 }
+        })
+      })
+
+      if (response.ok) {
+        const arrayBuffer = await response.arrayBuffer()
+        const buffer = Buffer.from(arrayBuffer)
+        return sendJson(res, 200, {
+          ok: true,
+          audio: buffer.toString('base64'),
+          mimeType: 'audio/mpeg',
+          provider: 'elevenlabs',
+        })
+      }
+    }
+
+    const result = await generateSpeech(text, { model: body.model, voice: customVoiceId })
     if (!result.ok) return sendJson(res, 502, result)
 
     return sendJson(res, 200, {

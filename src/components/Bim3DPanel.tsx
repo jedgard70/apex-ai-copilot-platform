@@ -703,7 +703,13 @@ export function Bim3DPanel({ source, externalCommand, onSendTourToDirectCut, onS
         {ext === 'ifc' ? (
           <Suspense fallback={<div className="bim3d-viewer-shell"><Box size={42} /><span>Carregando IFC…</span></div>}>
             <Suspense fallback={<div>Loading 3D viewer...</div>}>
-              <IfcViewer file={source.file} />
+              <IfcViewer 
+                file={source.file} 
+                viewerCommand={externalCommand}
+                activeControls={selectedControls}
+                selectedView={selectedView}
+                corrections={corrections}
+              />
             </Suspense>
           </Suspense>
         ) : (

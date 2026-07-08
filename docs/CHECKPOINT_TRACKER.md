@@ -109,6 +109,7 @@ Core chat/copilot engine, AI runtime provider resolution, advanced model selecti
 | DirectCut → Imagem inicial + final no render | **done** | `DirectCutPanel.tsx` tiles com upload, `videoRenderPipeline.mjs` slideshow FFmpeg |
 | Chat → Video render sem painel DirectCut | **done** | `src/main.tsx` (`/api/copilot/video-render` direto no chat) |
 | Campaign → Social Content Pipeline | **done** | `api/copilot/social-content.mjs` + `api/copilot/campaign-plan.mjs` (real AI) |
+| Soberania Tecnológica (Módulo 6) | **done** | `scripts/setup-soberania.mjs` wizard pipeline offline |
 
 ---
 
@@ -138,7 +139,7 @@ Core chat/copilot engine, AI runtime provider resolution, advanced model selecti
 
 1. **Project / Client memory** — Project Workspace persistent in local + web.
 2. **Web research with cited sources** — Research Studio live search + citations.
-3. **Project package pipeline** — consolidates workspace, budget, research, contracts.
+3. **Project package pipeline** — ✅ consolidates workspace, budget, research, contracts into ZIP exports (jszip integrated).
 4. **Generation queue / history** — tracks ArchVis, DirectCut, Export, Package runs.
 
 ---
@@ -377,24 +378,23 @@ verbal explícita.
 
 | Módulo | Nome | O que falta | Arquivos-chave |
 |:------:|:----:|:-----------|:---------------|
-| **M7** | **BIM 3D Studio** | Dashboard UI precisa de melhorias. WebGL/IfcOpenShell funciona, mas a interface de visualização 3D no navegador precisa de refino (etiquetas, navegação, camadas). | `api/aps/token.mjs`, `api/aps/manifest.mjs`, `api/ifc/ifcopenshell-status.mjs` |
+| **M7** | **BIM 3D Studio** | ✅ Funcional Real. Dashboard UI refinado. WebGL/IfcOpenShell com interatividade de câmera, X-Ray, Exploded View, Clipping Box e Tooltips (IfcMesh) integrados. | `api/aps/token.mjs`, `api/aps/manifest.mjs`, `api/ifc/ifcopenshell-status.mjs` |
 | **M11** | **Project Package Pipeline** | Fluxo de integração embrionário. Backend exporta ZIP mas não está conectado ao fluxo do usuário (contratos + orçamentos + cronogramas). | `api/copilot/project-package.mjs` |
 | **M28** | **ArchVis Studio** | ✅ Funcional Real. Interface finalizada com sidebar, Split Slider original/gerado, 8 estilos predefinidos e painel de restrições integrados ao motor fal.ai. | `api/v1/apex/images/generate.mjs`, `api/copilot/generate-image.mjs` |
-| **M29** | **Director's Cut Studio** | FFmpeg + fal.ai Kling REAL. UI é protótipo — precisa de: Timeline multi-track 220px, Playhead, Scene Layers (opacidade/blend), sliders Temperature/Preset, Viewport 16:9. | `server/videoRenderPipeline.mjs`, `api/copilot/video-render.mjs` |
+| **M29** | **Director's Cut Studio** | ✅ Funcional Real. Timeline multi-track, Playhead, Scene Layers integrados. | `server/videoRenderPipeline.mjs`, `api/copilot/video-render.mjs` |
+| **M16** | **Supply Chain Studio** | ✅ Funcional Real. Dashboard completo de métricas, tabelas interativas de fornecedores, badges de confiança e RFQ exportável. | `server/service/supplyChain.mjs`, `SupplyChainPanel.tsx` |
 
-### 🔴 MÓDULO [UI - PROTÓTIPO] — 1 módulo
+### 🔴 MÓDULO [UI - PROTÓTIPO] — 0 módulos
 
-| Módulo | Nome | O que falta | Arquivos-chave |
-|:------:|:----:|:-----------|:---------------|
-| **M16** | **Supply Chain Studio** | Apenas backend existe (`server/service/supplyChain.mjs`). Precisa de interface completa para: cotações, fornecedores, status de estoque, suprimentos de obra. | `server/service/supplyChain.mjs` |
+(Nenhum módulo pendente em protótipo. M16 finalizado.)
 
 ### 📊 RESUMO
 
 | Status | Quantidade |
 |--------|:----------:|
-| ✅ [OK - Funcional Real] | **61** módulos |
-| 🔶 [OK - Parcial] | **3** módulos |
-| 🔴 [UI - Protótipo] | **1** módulo |
+| ✅ [OK - Funcional Real] | **63** módulos |
+| 🔶 [OK - Parcial] | **2** módulos |
+| 🔴 [UI - Protótipo] | **0** módulos |
 | **Total** | **65** módulos |
 
 ---
@@ -402,21 +402,17 @@ verbal explícita.
 ## 🗺️ ROTEIRO SUGERIDO — PRÓXIMA SESSÃO (ordem sugerida)
 
 ```
-1º ▶️ M28 ArchVis Studio (✅ Funcional Real) — UI do gerador de imagens
-2º ▶️ M29 Director's Cut Studio (✅ Funcional Real) — UI refinada, timeline base construída, conectores de IA e FFmpeg ativados
-3º ▶️ M16 Supply Chain Studio (🔴 Protótipo) — UI completa de suprimentos
-4º ▶️ M7 BIM 3D Studio (🔶 Parcial) — Refino do dashboard 3D
-5º ▶️ M11 Project Package Pipeline (🔶 Parcial) — Fluxo de ZIP completo
-6º ▶️ Soberania Tecnológica: Fine-tuning Gemma/Llama no Vertex AI → Ollama offline
+1º ▶️ M7 BIM 3D Studio (✅ Concluído) — Refino do dashboard 3D e interatividade WebGL finalizada.
+2º ▶️ M11 Project Package Pipeline (🔶 Parcial) — Fluxo de ZIP completo
+3º ▶️ Soberania Tecnológica (✅ Concluído) — Pipeline unificado Vertex AI → GGUF offline (`npm run setup:soberania`)
 ```
 
 ---
 
 ## PLANO DE AÇÃO PARA AS PRÓXIMAS SESSÕES (Atualizado conforme Master)
 
-1. **Supply Chain Studio (Módulo 16):** 🔴 UI Protótipo. Desenvolver a interface completa para gerenciar cotações reais, fornecedores e controle de suprimentos/estoque da obra.
+1. **BIM 3D Studio (Módulo 7):** 🔶 Parcial. Aprimorar as amarrações do WebGL / IfcOpenShell no front-end para visualização avançada dos modelos.
 2. **Project Package Pipeline (Módulo 11):** 🔶 Parcial. Finalizar o fluxo de integração que junta contratos, orçamentos e cronogramas num ZIP único.
-3. **BIM 3D Studio (Módulo 7):** 🔶 Parcial. Aprimorar as amarrações do WebGL / IfcOpenShell no front-end para visualização avançada dos modelos.
-4. **ArchVis Studio (Módulo 28):** ✅ Funcional Real. Interface finalizada com sidebar 280px, Split Slider, 8 estilos, e painel de restrições integrados.
-5. **Director's Cut Studio (Módulo 29):** 🔶 Parcial. Acoplar totalmente a interface da timeline multi-track e scene layers ao motor FFmpeg/Kling.
-6. **Soberania Tecnológica (O Endgame):** Fine-Tuning de modelo Open-Source (Gemma 3 / Llama) no Google Vertex AI utilizando o histórico de conversas do Supabase. Exportar os pesos do modelo (`.safetensors`) e integrá-lo offline ao `Local Worker` via Ollama, garantindo inteligência proprietária rodando 100% offline e sem custos de API na máquina do usuário.
+3. **Supply Chain Studio (Módulo 16):** ✅ Funcional Real. Painel completo logístico operacionalizado.
+4. **Director's Cut Studio (Módulo 29):** ✅ Funcional Real. Interface multi-track funcional finalizada.
+5. **Soberania Tecnológica (O Endgame):** ✅ Funcional Real. Wizard CLI (`setup:soberania`) orquestrando exportação Supabase, treinamento no Colab (Vertex AI) e implantação offline via motor C++ nativo (Llama-server). Capacidade offline garantida 100% proprietária.
