@@ -325,6 +325,17 @@ const DIRECT_GEMINI_MODELS = [
   { id: 'gemini-2.5-flash-preview-tts', name: 'Gemini 2.5 Flash TTS' },
   { id: 'gemini-2.5-pro-preview-tts', name: 'Gemini 2.5 Pro TTS' },
   { id: 'gemini-2.5-flash-native-audio-preview-12-2025', name: 'Gemini 2.5 Native Audio' },
+  // ═══ DEEP RESEARCH & AGENTS (Interactions API — autorizado 2026-07-08) ═══
+  { id: 'deep-research-preview-04-2026', name: 'Deep Research Preview' },
+  { id: 'deep-research-max-preview-04-2026', name: 'Deep Research Max Preview' },
+  { id: 'antigravity-preview-05-2026', name: 'Antigravity Preview' },
+  { id: 'veo-3.1', name: 'Veo 3.1 (vídeo)' },
+  { id: 'nano-banana-2', name: 'Nano Banana 2 (imagem/UI)' },
+  { id: 'nano-banana-pro', name: 'Nano Banana Pro (imagem/UI)' },
+  { id: 'gemini-robotics', name: 'Gemini Robotics' },
+  // ═══ LYRIA / MÚSÍCA ═══
+  { id: 'lyria-3-pro-preview', name: 'Lyria 3 Pro (geração musical)' },
+  { id: 'lyria-3-clip-preview', name: 'Lyria 3 Clip (geração musical)' },
   // ═══ GEMMA — open-source (Google) ═══
   { id: 'gemma-4-31b-it', name: 'Gemma 4 31B Instruct (Open-Source)' },
   { id: 'gemma-4-26b-a4b-it', name: 'Gemma 4 26B A4B (Open-Source)' },
@@ -342,6 +353,14 @@ const INTERACTION_MODELS = [
   { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro (Interactions)' },
   { id: 'lyria-3-clip-preview', name: 'Lyria 3 Clip (Interactions)' },
   { id: 'lyria-3-pro-preview', name: 'Lyria 3 Pro (Interactions)' },
+  // ═══ NOVOS AGENTES (autorizado 2026-07-08) ═══
+  { id: 'deep-research-preview-04-2026', name: 'Deep Research Preview (Interactions)' },
+  { id: 'deep-research-max-preview-04-2026', name: 'Deep Research Max (Interactions)' },
+  { id: 'antigravity-preview-05-2026', name: 'Antigravity Preview (Interactions)' },
+  { id: 'veo-3.1', name: 'Veo 3.1 (Interactions)' },
+  { id: 'nano-banana-2', name: 'Nano Banana 2 (Interactions)' },
+  { id: 'nano-banana-pro', name: 'Nano Banana Pro (Interactions)' },
+  { id: 'gemini-robotics', name: 'Gemini Robotics (Interactions)' },
 ]
 
 function composeModelValue(provider: string, modelId: string) {

@@ -301,7 +301,7 @@ Fica terminantemente proibido o uso do formato OpenAI-compatible
 (`/openai/chat/completions` com `Authorization: Bearer`) para
 comunicação com a API do Gemini.
 
-**Padrão obrigatório:**
+**Padrão obrigatório (chat e geração de conteúdo):**
 
 1. Endpoint: `https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`
 2. Header: `X-goog-api-key` com o valor da chave da API Gemini
@@ -309,9 +309,39 @@ comunicação com a API do Gemini.
 4. A variável `GEMINI_API_BASE` em `.env.local` deve apontar para `https://generativelanguage.googleapis.com/v1beta` (sem `/openai`)
 5. O provider router deve usar `nativeGemini: true` para habilitar o formato nativo
 
+**⚡ EXCEÇÕES AUTORIZADAS PELO OWNER (Dr. Edgard — 2026-07-08):**
+
+As seguintes integrações de serviços e APIs do ecossistema Google/Gemini são
+PERMITIDAS e devem ser integradas como conectores paralelos, sem substituir
+o endpoint `generateContent` para modelos compatíveis:
+
+1. **API Interactions (`/v1beta/interactions`)** — Autorizada para uso exclusivo
+   com os novos agentes nativos do Google que não suportam `generateContent`:
+   - `deep-research-preview-04-2026`, `deep-research-max-preview-04-2026`
+   - `antigravity-preview-05-2026`, `veo-3.1`, `nano-banana-2`, `nano-banana-pro`
+   - `lyria-3-pro-preview`, `lyria-3-clip-preview`, `gemini-robotics`
+   - Conector: `server/providers/interactionsConnector.mjs`
+   - Header obrigatório: `X-goog-api-key` (nunca `Authorization: Bearer`)
+
+2. **Google Maps Platform** — API Key: `CHAVE_OCULTADA_EM_ENV_LOCAL`
+   - Componente UI: `src/components/MapPlacePicker.tsx`
+   - Tool invocável pela IA via `functionDeclarations` no chat
+
+3. **Firebase AI Logic / Firebase Admin** — Via SDK oficial (`firebase-admin`)
+   - Arquivo: `server/lib/firebaseAdmin.mjs`
+   - Requer: `FIREBASE_SERVICE_ACCOUNT` no ambiente
+
+4. **Vertex AI Agent Engine** (`aiplatform.googleapis.com`) — Via ADC
+   (Application Default Credentials) no backend local
+
+5. **Qualquer serviço ou produto do ecossistema Google/Gemini** que melhore
+   a plataforma pode ser integrado, desde que use autenticação `X-goog-api-key`
+   ou ADC (nunca `Authorization: Bearer` com formato OpenAI-compat)
+
 **Arquivos protegidos:**
 
 - `server/providers/providerRouter.mjs` — lógica de roteamento dos providers
+- `server/providers/interactionsConnector.mjs` — conector da API Interactions
 - `.env.local` — variáveis de ambiente com `GEMINI_API_BASE` e `GEMINI_API_KEY`
 - `api/copilot/chat.mjs` — handler HTTP do chat
 - `server.mjs` — runtime do servidor

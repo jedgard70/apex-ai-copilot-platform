@@ -107,8 +107,18 @@ const DIRECT_GEMINI_MODELS = [
   { id: 'gemini-2.5-flash-preview-tts', name: 'Gemini 2.5 Flash TTS (áudio)' },
   { id: 'gemini-2.5-pro-preview-tts', name: 'Gemini 2.5 Pro TTS (áudio)' },
 
-  // ═══ DEEP RESEARCH ═══
+  // ═══ DEEP RESEARCH & AGENTS ═══
   { id: 'deep-research-preview-04-2026', name: 'Deep Research Preview (pesquisa profunda)' },
+  { id: 'deep-research-max-preview-04-2026', name: 'Deep Research Max Preview' },
+  { id: 'antigravity-preview-05-2026', name: 'Antigravity Preview' },
+  { id: 'veo-3.1', name: 'Veo 3.1 (vídeo)' },
+  { id: 'nano-banana-2', name: 'Nano Banana 2 (imagem/ui)' },
+  { id: 'nano-banana-pro', name: 'Nano Banana Pro (imagem/ui)' },
+  { id: 'gemini-robotics', name: 'Gemini Robotics (controle físico)' },
+
+  // ═══ AUDIO / LYRIA ═══
+  { id: 'lyria-3-pro-preview', name: 'Lyria 3 Pro (geração musical)' },
+  { id: 'lyria-3-clip-preview', name: 'Lyria 3 Clip (geração musical)' },
 
   // ═══ GEMMA — open-source (Google) ═══
   { id: 'gemma-4-31b-it', name: 'Gemma 4 31B Instruct (Open-Source)' },
@@ -1317,101 +1327,127 @@ async function callGeminiNative(requestPayload, overrideConfig) {
   const isLegacyUrl = rawApiBase && (rawApiBase.includes('/models/') || rawApiBase.includes(':generateContent'))
   const apiBase = isLegacyUrl ? 'https://generativelanguage.googleapis.com/v1beta' : rawApiBase
   const geminiBase = apiBase.includes('/openai') ? 'https://generativelanguage.googleapis.com/v1beta' : apiBase
-  const endpoint = `${geminiBase}/models/${modelName}:generateContent`
+
+  // Fallback chain: if primary model is overloaded, try these in order.
+  // Stable models are preferred; they respond reliably even under load.
+  const FALLBACK_CHAIN = [
+    modelName,
+    ...(modelName !== 'gemini-2.5-flash' ? ['gemini-2.5-flash'] : []),
+    ...(modelName !== 'gemini-2.5-pro' ? ['gemini-2.5-pro'] : []),
+    ...(modelName !== 'gemini-3.1-flash-lite' ? ['gemini-3.1-flash-lite'] : []),
+  ]
 
   let success = false
   let data = null
   let errorMsg = null
+  let usedModel = modelName
 
-  try {
-    const { systemText, contents } = convertToGeminiContent(requestPayload.messages)
-    const geminiTools = convertToGeminiTools(requestPayload.tools)
+  for (const attemptModel of FALLBACK_CHAIN) {
+    const endpoint = `${geminiBase}/models/${attemptModel}:generateContent`
+    try {
+      const { systemText, contents } = convertToGeminiContent(requestPayload.messages)
+      const geminiTools = convertToGeminiTools(requestPayload.tools)
 
-    const body = {
-      contents,
-      generationConfig: {
-        temperature: requestPayload.temperature ?? 0.72,
-        maxOutputTokens: requestPayload.max_tokens ?? 900,
-      },
-    }
-
-    if (systemText) {
-      body.systemInstruction = { parts: [{ text: systemText }] }
-    }
-    if (geminiTools) {
-      body.tools = geminiTools
-    }
-
-    const primaryResponse = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': apiKey,
-      },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(12000),
-    })
-
-    const responseData = await primaryResponse.json().catch(() => ({}))
-
-    if (primaryResponse.ok && responseData?.candidates?.length > 0) {
-      const candidate = responseData.candidates[0]
-      const parts = candidate?.content?.parts || []
-      
-      const replyText = parts.filter(p => p.text).map(p => p.text).join('') || ''
-      const functionCalls = parts.filter(p => p.functionCall).map(p => ({
-        id: `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        type: 'function',
-        function: {
-          name: p.functionCall.name,
-          arguments: JSON.stringify(p.functionCall.args || {}),
+      const body = {
+        contents,
+        generationConfig: {
+          temperature: requestPayload.temperature ?? 0.72,
+          maxOutputTokens: requestPayload.max_tokens ?? 900,
         },
-      }))
+      }
 
-      const usage = responseData.usageMetadata || {}
+      if (systemText) {
+        body.systemInstruction = { parts: [{ text: systemText }] }
+      }
+      if (geminiTools) {
+        body.tools = geminiTools
+      }
 
-      data = {
-        choices: [{
-          index: 0,
-          message: {
-            role: 'assistant',
-            content: replyText,
-            tool_calls: functionCalls.length ? functionCalls : undefined,
+      const primaryResponse = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
+        },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(60000),
+      })
+
+      const responseData = await primaryResponse.json().catch(() => ({}))
+
+      if (primaryResponse.ok && responseData?.candidates?.length > 0) {
+        const candidate = responseData.candidates[0]
+        const parts = candidate?.content?.parts || []
+        
+        const replyText = parts.filter(p => p.text).map(p => p.text).join('') || ''
+        const functionCalls = parts.filter(p => p.functionCall).map(p => ({
+          id: `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          type: 'function',
+          function: {
+            name: p.functionCall.name,
+            arguments: JSON.stringify(p.functionCall.args || {}),
           },
-          finish_reason: functionCalls.length ? 'tool_calls' : (candidate.finishReason === 'STOP' ? 'stop' : 'length'),
-        }],
-        usage: {
-          prompt_tokens: usage.promptTokenCount || 0,
-          completion_tokens: usage.candidatesTokenCount || 0,
-          total_tokens: usage.totalTokenCount || 0,
-        },
-        model: modelName,
-      }
+        }))
 
-      if (!replyText && !functionCalls.length) {
-        errorMsg = 'Empty response from Gemini API'
-        console.error('[callGeminiNative]', errorMsg, JSON.stringify(responseData).slice(0, 300))
+        const usage = responseData.usageMetadata || {}
+
+        data = {
+          choices: [{
+            index: 0,
+            message: {
+              role: 'assistant',
+              content: replyText,
+              tool_calls: functionCalls.length ? functionCalls : undefined,
+            },
+            finish_reason: functionCalls.length ? 'tool_calls' : (candidate.finishReason === 'STOP' ? 'stop' : 'length'),
+          }],
+          usage: {
+            prompt_tokens: usage.promptTokenCount || 0,
+            completion_tokens: usage.candidatesTokenCount || 0,
+            total_tokens: usage.totalTokenCount || 0,
+          },
+          model: attemptModel,
+        }
+
+        if (!replyText && !functionCalls.length) {
+          errorMsg = `Empty response from model ${attemptModel}`
+          console.warn('[callGeminiNative]', errorMsg, JSON.stringify(responseData).slice(0, 200))
+          // Try next model in chain
+          continue
+        } else {
+          success = true
+          usedModel = attemptModel
+          break
+        }
       } else {
-        success = true
+        const httpStatus = primaryResponse.status
+        const apiErr = responseData?.error?.message || JSON.stringify(responseData).slice(0, 200)
+        errorMsg = `HTTP ${httpStatus}: ${apiErr}`
+        success = false
+        data = null
+        console.warn(`[callGeminiNative] ${attemptModel} failed (${httpStatus}), trying next...`)
+        // 400 means bad request (not overloaded) — do not retry
+        if (httpStatus === 400 || httpStatus === 401 || httpStatus === 403) break
+        // 503/429 means overloaded — try next model
+        continue
       }
-    } else {
-      const apiErr = responseData?.error?.message || JSON.stringify(responseData).slice(0, 200)
-      errorMsg = `HTTP ${primaryResponse.status}: ${apiErr}`
+    } catch (err) {
+      errorMsg = err.message
       success = false
       data = null
-      console.error('[callGeminiNative] Primary failed:', errorMsg)
+      console.warn(`[callGeminiNative] ${attemptModel} exception: ${err.message}, trying next...`)
+      continue
     }
-  } catch (err) {
-    errorMsg = err.message
-    success = false
-    data = null
-    console.error('[callGeminiNative] Exception:', err)
+  }
+
+  if (!success) {
+    console.error('[callGeminiNative] All models in fallback chain failed. Last error:', errorMsg)
   }
 
   const duration = Date.now() - startTime
   recordCallSafe({
     provider: providerLabel,
-    model: modelName,
+    model: usedModel,
     latencyMs: duration,
     success,
     tokensIn: data?.usage?.prompt_tokens || 1,
@@ -1423,7 +1459,7 @@ async function callGeminiNative(requestPayload, overrideConfig) {
     provider: providerLabel,
     response: success ? { ok: true, status: 200 } : { ok: false, status: data ? 500 : 0 },
     data: data || {},
-    usedFallback: false,
+    usedFallback: usedModel !== modelName,
   }
 }
 
@@ -2828,7 +2864,7 @@ STYLE & FORMATTING:
     const provider = getChatProvider()
     const chatSource = 'gemini'
     let finalModel = model
-    const isDirectGeminiModelInPayload = ['gemini-3.5-flash', 'gemini-3.1-pro-preview', 'gemini-3.1-flash-lite', 'gemini-3.1-flash-image', 'gemini-3.1-flash-tts-preview', 'gemini-3-pro-image', 'gemini-3-flash-preview', 'gemini-3-pro-preview', 'gemini-2.5-flash', 'gemini-2.5-pro', 'gemma-4-31b-it', 'gemma-4-26b-a4b-it'].includes(model)
+    const isDirectGeminiModelInPayload = ['gemini-3.5-flash', 'gemini-3.1-pro-preview', 'gemini-3.1-flash-lite', 'gemini-3.1-flash-image', 'gemini-3.1-flash-tts-preview', 'gemini-3-pro-image', 'gemini-3-flash-preview', 'gemini-3-pro-preview', 'gemini-2.5-flash', 'gemini-2.5-pro', 'gemma-4-31b-it', 'gemma-4-26b-a4b-it', 'deep-research-preview-04-2026', 'deep-research-max-preview-04-2026', 'antigravity-preview-05-2026', 'veo-3.1', 'nano-banana-2', 'nano-banana-pro', 'gemini-robotics', 'lyria-3-pro-preview', 'lyria-3-clip-preview'].includes(model)
 
     // Gemini endpoint via v1/interactions
     const requestPayload = {
