@@ -48,42 +48,44 @@ export function createSquad({ name, goal, skill }) {
 
 export function generateModuleSquads() {
   const db = readDb();
-  // Check if we already generated the module squads
-  if (db.squads.some(s => s.isSystemModule)) return db.squads;
 
   const archPath = path.join(process.cwd(), 'docs', 'apex_acip_master_architecture.md');
   if (!fs.existsSync(archPath)) return db.squads;
 
   const content = fs.readFileSync(archPath, 'utf-8');
   // Match lines like: * **1.1. (Módulo 1) STOCK MARKET ANALYTICS [OK - Funcional Real]**
-  const regex = /\*\s\*\*\d+\.\d+\.?\s*\(Módulo ([\d.]+)\)\s*(.*?)\s*\[(.*?)\]\*\*/g;
+  // as well as: * **6. (Módulo 6) CRM & PIPELINE DE VENDAS [OK - Funcional Real]**
+  const regex = /\*\s\*\*\d+(?:\.\d+)?\.?\s*\(Módulo ([\d.]+)\)\s*(.*?)\s*\[(.*?)\]\*\*/g;
   let match;
   let added = false;
 
   while ((match = regex.exec(content)) !== null) {
     const moduleId = match[1];
     const moduleName = match[2].trim();
+    const squadId = `sqd_mod_${moduleId.replace('.', '_')}`;
     
-    // Create the 4 agents for each module
-    const moduleSquad = {
-      id: `sqd_mod_${moduleId.replace('.', '_')}`,
-      name: `Squad do Módulo ${moduleId}: ${moduleName}`,
-      goal: `Desenvolver, testar e publicar o módulo ${moduleName}`,
-      skill: 'module-deployment',
-      status: 'idle',
-      isSystemModule: true,
-      createdAt: new Date().toISOString(),
-      agents: [
-        { id: 'agt_pm_mkt', role: 'Product/Marketing Manager', status: 'pending', output: null },
-        { id: 'agt_architect', role: 'Arquiteto/Engenheiro de Software', status: 'pending', output: null },
-        { id: 'agt_qa', role: 'Validador/QA', status: 'pending', output: null },
-        { id: 'agt_release', role: 'Release Manager (Deployer)', status: 'pending', output: null }
-      ],
-      currentStep: 0,
-      checkpoints: []
-    };
-    db.squads.push(moduleSquad);
-    added = true;
+    // Create the 4 agents for each module if it doesn't exist
+    if (!db.squads.some(s => s.id === squadId)) {
+      const moduleSquad = {
+        id: squadId,
+        name: `Squad do Módulo ${moduleId}: ${moduleName}`,
+        goal: `Desenvolver, testar e publicar o módulo ${moduleName}`,
+        skill: 'module-deployment',
+        status: 'idle',
+        isSystemModule: true,
+        createdAt: new Date().toISOString(),
+        agents: [
+          { id: 'agt_pm_mkt', role: 'Product/Marketing Manager', status: 'pending', output: null },
+          { id: 'agt_architect', role: 'Arquiteto/Engenheiro de Software', status: 'pending', output: null },
+          { id: 'agt_qa', role: 'Validador/QA', status: 'pending', output: null },
+          { id: 'agt_release', role: 'Release Manager (Deployer)', status: 'pending', output: null }
+        ],
+        currentStep: 0,
+        checkpoints: []
+      };
+      db.squads.push(moduleSquad);
+      added = true;
+    }
   }
 
   if (added) writeDb(db);

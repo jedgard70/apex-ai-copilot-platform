@@ -828,3 +828,5 @@ Componentes, hooks, estilos e páginas da interface do usuário (Dashboard, Arch
 | 2026-05-14 | v2.0 | — | Módulos de obra |
 | 2025-10-22 | v1.0 | — | Estrutura inicial
 
+
+* **6.1. (M�dulo 6) SOBERANIA TECNOL�GICA (OFFLINE GGUF) [OK - Funcional Real]**
