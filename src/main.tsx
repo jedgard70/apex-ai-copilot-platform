@@ -2444,7 +2444,7 @@ function App() {
       setInput('')
       return
     }
-    if (!isSignedIn) {
+    if (!isOwnerUser) {
       setMessages(prev => [
         ...prev,
         userMessage,

@@ -2302,7 +2302,7 @@ async function handleChat(req, res) {
     const body = await readJson(req)
     console.log('[handleChat] Parsed body', Object.keys(body));
     const identityContext = normalizeChatIdentityContext(body.identityContext)
-    let userText = String(body.message || '').slice(0, 12000)
+    let userText = String(body.message || (Array.isArray(body.messages) && body.messages.length ? (body.messages[body.messages.length - 1].text || body.messages[body.messages.length - 1].content || '') : '')).slice(0, 12000)
     // H5.0D: action tools hard-override — disabled when APEX_FREE_AGENT=1
     if (!APEX_FREE_AGENT) {
       const _h5ActionTools = new Set(['local_worker.status', 'revit_mcp.status', 'revit_model.status', 'vercel.deploy', 'supabase.migration'])

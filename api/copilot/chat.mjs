@@ -2040,7 +2040,7 @@ export default async function handler(req, res) {
 
   try {
     const body = await readJsonBody(req)
-    const userMessage = String(body.message || '').slice(0, 12000)
+    const userMessage = String(body.message || (Array.isArray(body.messages) && body.messages.length ? (body.messages[body.messages.length - 1].text || body.messages[body.messages.length - 1].content || '') : '')).slice(0, 12000)
 
     // Verificação REAL de identidade Owner (nunca confiar em body.identityContext
     // sozinho — qualquer requisição poderia mandar isOwnerAdmin:true no body).
