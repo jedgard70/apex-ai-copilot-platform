@@ -1,3 +1,4 @@
+// Build trigger: env-sync 2026-07-09T01:48Z (VITE_SUPABASE_* production fix)
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
