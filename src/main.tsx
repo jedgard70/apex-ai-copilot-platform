@@ -1961,12 +1961,9 @@ function App() {
   const isSignedIn = accountState?.sessionStatus === 'signed-in'
   const authShellStatus = accountState?.bootstrapStatus || (isSupabaseConfigured ? 'needs-login' : 'local-demo')
   const workspaceAuthReady = accountState?.bootstrapStatus === 'ready'
-  const isLocalDemoOwner = !isSupabaseConfigured && localDemoAuthAllowed && workspaceAuthReady
+  const isLocalDemoOwner = !isSupabaseConfigured && localDemoAuthAllowed
   const isOwnerUser = Boolean(
-    isSignedIn
-    && workspaceAuthReady
-    && (accountState?.role === 'owner_admin' || accountState?.role === 'admin' || accountState?.role === 'developer')
-    && (isSupabaseConfigured || isLocalDemoOwner)
+    (isSignedIn && workspaceAuthReady && (accountState?.role === 'owner_admin' || accountState?.role === 'admin' || accountState?.role === 'developer')) || isLocalDemoOwner
   )
   const isInternalUser = isOwnerUser || (accountState?.role && !accountState.role.startsWith('cliente_')) || accountState?.role === 'Internal Team' || accountState?.role === 'Finance' || accountState?.role === 'Sales' || accountState?.user?.email?.includes('apexglobal') || accountState?.user?.email === 'jedgard70@gmail.com'
 
