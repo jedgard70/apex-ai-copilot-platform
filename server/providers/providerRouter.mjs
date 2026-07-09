@@ -304,7 +304,7 @@ export async function chatWithFallback(params) {
           let apiModel = resolveGeminiModelName(model)
           const headers = { 'X-goog-api-key': provider.apiKey, 'Content-Type': 'application/json' }
           response = await fetch(`${provider.baseUrl}/models/${apiModel}:generateContent`, {
-            method: 'POST', headers, body: JSON.stringify(geminiBody), signal: AbortSignal.timeout(15000)
+            method: 'POST', headers, body: JSON.stringify(geminiBody), signal: AbortSignal.timeout(60000)
           })
           if (response.ok) {
             const geminiData = await response.json()
@@ -336,7 +336,7 @@ export async function chatWithFallback(params) {
           const body = { model, messages, temperature: toolRound > 0 ? 0.45 : temperature, max_tokens: toolRound > 0 ? 1500 : maxTokens }
           if (tools && toolRound === 0) { body.tools = tools; body.tool_choice = "auto"; }
           const headers = { Authorization: `Bearer ${provider.apiKey}`, "Content-Type": "application/json" }
-          response = await fetch(`${provider.baseUrl}/chat/completions`, { method: "POST", headers, body: JSON.stringify(body), signal: AbortSignal.timeout(15000) })
+          response = await fetch(`${provider.baseUrl}/chat/completions`, { method: "POST", headers, body: JSON.stringify(body), signal: AbortSignal.timeout(60000) })
         }
         console.log(`[chatWithFallback] Response for ${model}: ${response.status}`);
         if (response.ok) {

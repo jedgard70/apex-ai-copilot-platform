@@ -2673,7 +2673,7 @@ async function handleChat(req, res) {
       preferredProvider,
       preferredModel,
       temperature: 0.72,
-      maxTokens: 900,
+      maxTokens: 8192,
     })
 
     if (!fallbackResult.ok) {

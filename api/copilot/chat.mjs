@@ -1352,7 +1352,7 @@ async function callGeminiNative(requestPayload, overrideConfig) {
         contents,
         generationConfig: {
           temperature: requestPayload.temperature ?? 0.72,
-          maxOutputTokens: requestPayload.max_tokens ?? 900,
+          maxOutputTokens: requestPayload.max_tokens ?? 8192,
         },
       }
 
@@ -2548,7 +2548,7 @@ export default async function handler(req, res) {
             tools: buildLiveAgentToolDefinitions(),
             tool_choice: 'auto',
             temperature: 0.72,
-            max_tokens: 900,
+            max_tokens: 8192,
           }, { apiKey: geminiApiKey })
           if (nativeResult.response.ok) {
             const reply = nativeResult.data.choices?.[0]?.message?.content || ''
@@ -2874,7 +2874,7 @@ STYLE & FORMATTING:
       tool_choice: 'auto',
       temperature: 0.72,
       frequency_penalty: 0.2,
-      max_tokens: 900,
+      max_tokens: 8192,
     }
 
     if (!provider) {
