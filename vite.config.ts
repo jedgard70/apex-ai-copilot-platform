@@ -49,6 +49,9 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       }
+    },
+    watch: {
+      ignored: ['**/runtime/**', '**/dist/**', '**/dist_electron/**']
     }
   },
   build: {
