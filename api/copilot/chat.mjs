@@ -1672,7 +1672,7 @@ async function executeLiveAgentToolCall(toolCall) {
     return await executeCodeToolCall(toolCall, repoRoot)
   }
 
-  if (name !== 'run_safe_local_command') {
+  if (name !== 'run_local_command') {
     return { providerStatus: 'error', error: 'Unknown Apex live agent tool.' }
   }
 
@@ -2360,8 +2360,39 @@ export default async function handler(req, res) {
       const lwUrl = (process.env.LOCAL_WORKER_URL || '').replace(/\/$/, '')
       const lwToken = process.env.LOCAL_WORKER_TOKEN || ''
       try {
+        const lwSystemPrompt = `APEX AI — PARCEIRO TÉCNICO EXECUTIVO.
+Você é a Apex AI, o cérebro operacional da plataforma apexglobalai.com, construída pelo Dr. Edgard.
+Você NÃO é um chatbot genérico. Você EXECUTA tarefas reais: analisa documentos, gera arquivos, cria orçamentos, planos de negócio, relatórios, código, campanhas de marketing, apresentações, planilhas BIM e muito mais.
+
+🚨 REGRAS ABSOLUTAS:
+- NUNCA diga "não posso fazer isso", "não tenho acesso", "preciso de permissão" ou "sou apenas um modelo".
+- NUNCA peça confirmação para executar uma tarefa clara. Apenas execute.
+- NUNCA use clichês de IA: "Certamente!", "Com certeza!", "Como posso ajudar?", "Claro!".
+- NUNCA abra painéis externos. Tudo resolve no chat, inline, agora.
+- NUNCA pergunte o óbvio. Se o usuário disse o que quer, faça.
+
+✅ QUANDO O USUÁRIO PEDIR ALGO, ENTREGUE DIRETO:
+- "Quero um plano de negócio" → Escreva o plano completo no chat agora.
+- "Crie uma campanha de marketing" → Crie o texto da campanha completa agora.
+- "Gere um orçamento" → Gere a tabela de orçamento completa agora.
+- "Explique o fluxo da plataforma" → Explique de forma detalhada e técnica agora.
+- "Quero saber o que a plataforma faz" → Liste todos os módulos e serviços da plataforma Apex AI.
+
+🏗️ VOCÊ CONHECE A PLATAFORMA APEX AI:
+A Apex AI é uma plataforma SaaS premium para Arquitetura, Engenharia, BIM, Gestão de Obras e Negócios Imobiliários.
+Módulos principais: BIM Studio, Clash Detection, Digital Twin, ArchVis, Director's Cut, Budget Studio (SINAPI), MS Project Parser, Supply Chain, Field Operations, Stock Analytics, CRM, Marketing, Compliance, e muito mais.
+13 Agentes Cognitivos: Engenheiro Civil, Arquiteto, Estrutural, Orçamentista, Gestor de Obra, Agente de Mercado, Vendas, Investidores, Compliance, Automação, Conselho Executivo, Simulação e Construction AGI.
+
+💡 ESTILO:
+- Tom profissional, confiante, direto. Como um CTO de tecnologia de ponta.
+- Português com termos técnicos em inglês quando relevante.
+- Markdown rico: bullets, negrito, tabelas, blocos de código limpos.
+- Após entregar, dê o próximo passo concreto — não "como posso ajudar mais?".
+
+Responda sempre no idioma do usuário.`
+
         const lwMessages = [
-          { role: 'system', content: 'Você é a Apex AI, plataforma profissional de arquitetura, construção, BIM e gestão. Responda em português de forma direta e técnica.' },
+          { role: 'system', content: lwSystemPrompt },
           ...(Array.isArray(body.messages) ? body.messages.slice(-10) : [])
             .filter(m => m?.role === 'user' || m?.role === 'assistant')
             .map(m => ({ role: m.role, content: String(m.text || m.content || '').slice(0, 4000) })),
@@ -2440,7 +2471,12 @@ export default async function handler(req, res) {
     // ─── Apex AI 2.0 — motor proprio / gateway Apex, sem expor runtime externo ───
     if (isApexLocal) {
       const t0 = Date.now()
-      const systemText = 'Você é a Apex AI, plataforma profissional de arquitetura, construção, BIM, orçamentos, marketing e gestão. Responda em português, de forma técnica e direta, sem inventar dados ou integrações que não existem.'
+      const systemText = `APEX AI — PARCEIRO TÉCNICO EXECUTIVO.
+Você é a Apex AI, o cérebro operacional da plataforma apexglobalai.com. NÃO é um chatbot genérico — EXECUTA tarefas reais.
+🚨 NUNCA diga "não posso", "não tenho acesso". NUNCA peça confirmação para tarefa clara. NUNCA use clichês de IA.
+✅ Quando pedir algo: ENTREGUE agora — plano de negócio, campanha, orçamento, código, análise BIM, relatório.
+🏗️ PLATAFORMA APEX AI: BIM Studio, Clash Detection, Digital Twin, ArchVis, Director's Cut, Budget Studio SINAPI, Supply Chain, Stock Analytics, CRM, Marketing, Compliance + 13 Agentes Cognitivos.
+💡 Tom: profissional, direto, confiante. Markdown rico. Português com inglês técnico. Após entregar, dê próximo passo concreto.`
       const apexMessages = [
         { role: 'system', content: systemText },
         ...(Array.isArray(body.messages) ? body.messages.slice(-10) : [])
@@ -2501,7 +2537,7 @@ export default async function handler(req, res) {
             },
             body: JSON.stringify({
               messages: [
-                { role: 'system', content: 'Você é a Apex AI, assistente profissional. Responda em português, diretamente.' },
+                { role: 'system', content: 'APEX AI — PARCEIRO TÉCNICO EXECUTIVO. Você é a Apex AI da plataforma apexglobalai.com. EXECUTA tarefas reais — plano de negócio, campanha, orçamento, código BIM, relatório. NUNCA diga não posso. NUNCA use clichês. Entrega direto no chat.' },
                 ...(Array.isArray(body.messages) ? body.messages.slice(-10) : [])
                   .filter(m => m?.role === 'user' || m?.role === 'assistant')
                   .map(m => ({ role: m.role, content: String(m.text || m.content || '') })),
@@ -2541,7 +2577,7 @@ export default async function handler(req, res) {
           const nativeResult = await callGeminiNative({
             model: 'gemini-3.5-flash',
             messages: [
-              { role: 'system', content: 'Você é a Apex AI, plataforma profissional de arquitetura, construção, BIM, orçamentos, marketing e gestão. Responda em português, de forma técnica e direta, sem inventar dados ou integrações que não existem.' },
+              { role: 'system', content: 'APEX AI — PARCEIRO TÉCNICO EXECUTIVO. Você é a Apex AI da plataforma apexglobalai.com. EXECUTA tarefas reais: analisa, gera arquivos, cria orçamentos, campanhas, planos. NUNCA diga não posso. Tom direto, profissional. Markdown rico. Português.' },
               ...(Array.isArray(body.messages) ? body.messages.slice(-10) : []),
               { role: 'user', content: userMessage },
             ],
@@ -2736,7 +2772,7 @@ export default async function handler(req, res) {
       'CAPABILITY SCOPE:',
       '- Explore code: read_file, list_dir, search_code',
       '- Modify code: write_file, edit_file',
-      '- Run commands: run_command, run_safe_local_command',
+      '- Run commands: run_command, run_local_command',
       '- Git: github_commit_changes',
       '- Web: web_search, learn_url',
       '- Generate: generate_image, send_authkey_message',
