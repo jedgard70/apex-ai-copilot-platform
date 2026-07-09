@@ -231,7 +231,7 @@ app.whenReady().then(async () => {
       // Motor proprio Apex
       APEX_OWN_ENGINE_URL: "http://127.0.0.1:8888",
       APEX_API_URL: "http://127.0.0.1:8888",
-      APEX_RUNTIME_ENABLED: "true",
+      APEX_RUNTIME_ENABLED: "false",
       LOCAL_WORKER_URL: "http://127.0.0.1:8787",
     },
     stdio: ["ignore", "pipe", "pipe"],
