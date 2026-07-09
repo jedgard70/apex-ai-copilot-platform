@@ -154,7 +154,7 @@ export function UserProfileModal({ isOpen, onClose, currentUserEmail, currentUse
               </p>
               <div className="pt-1 flex flex-wrap gap-2 justify-center sm:justify-start">
                 <span className="text-[11px] px-2.5 py-1 bg-slate-800 border border-slate-700 text-slate-300 rounded-md font-mono">
-                  {profile.subscriptionPlan}
+                  {isOwner ? 'Plano Enterprise Owner (Ilimitado)' : profile.subscriptionPlan}
                 </span>
               </div>
             </div>
