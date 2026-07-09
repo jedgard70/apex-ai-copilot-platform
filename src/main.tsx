@@ -5150,7 +5150,7 @@ function App() {
         )}
 
         {/* AI Execution & Terminal Panel — visible only when chat is the main view on desktop */}
-        {activeView === 'chat' && !hasOperationalPanel && !isMobile && (
+        {activeView === 'chat' && !hasOperationalPanel && !isMobile && isOwnerUser && (
         <section className="execution-shell" style={{ flex: '1 1 40%', display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, minWidth: 0, borderLeft: '1px solid rgba(150, 164, 195, 0.15)', background: '#0a0f1c' }}>
           <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'row', borderBottom: '1px solid rgba(150, 164, 195, 0.15)' }}>
             <div style={{ flex: '0 0 35%', borderRight: '1px solid rgba(150, 164, 195, 0.15)' }}>

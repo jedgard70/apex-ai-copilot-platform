@@ -65,11 +65,29 @@ async function waitForServer(port, timeoutMs = 60000) {
 }
 
 function buildNodeChildEnv(extra = {}) {
-  return {
+  const env = {
     ...process.env,
     ELECTRON_RUN_AS_NODE: "1",
     ...extra,
   };
+  try {
+    const envPath = path.join(getAppRoot(), ".env.local");
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, "utf8");
+      content.split("\n").forEach(line => {
+        const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+        if (match) {
+          const key = match[1];
+          let val = match[2] || "";
+          if ((val.startsWith("'") && val.endsWith("'")) || (val.startsWith('"') && val.endsWith('"'))) {
+            val = val.slice(1, -1);
+          }
+          if (!env[key]) env[key] = val;
+        }
+      });
+    }
+  } catch (e) { }
+  return env;
 }
 
 function startupHtml({ title = "Apex AI Copilot", message = "Iniciando plataforma local...", detail = "" } = {}) {
@@ -105,18 +123,24 @@ function isEngineReady() {
 
 // Inicia o motor de IA proprio da Apex
 function startApexEngine(appRoot) {
-  const engineScript = path.join(appRoot, "server", "apex-runtime", "api-server.mjs");
-  const localExe = path.join(app.getPath("userData"), "..", "Apex AI", "engine", "llama-server.exe");
-  if (!fs.existsSync(engineScript) || !fs.existsSync(localExe)) {
-    log("[Apex] Motor próprio local não instalado. Usando inteligência Google Gemini Nativo.");
+  const localExe = path.join(appRoot, "runtime", "apex-runtime.exe");
+  const modelPath = path.join(appRoot, "runtime", "models", "apex-ai.gguf");
+  
+  if (!fs.existsSync(localExe) || fs.statSync(localExe).size < 1024) {
+    log("[Apex] apex-runtime.exe não encontrado ou é um placeholder. O motor local não será iniciado.");
     return null;
   }
-  log("[Apex] Iniciando motor de IA proprio...");
-  const proc = spawn(process.execPath, [engineScript], {
-    cwd: appRoot,
+  if (!fs.existsSync(modelPath)) {
+    log("[Apex] Modelo apex-ai.gguf não encontrado em runtime/models/. O motor local não será iniciado.");
+    return null;
+  }
+
+  log("[Apex] Iniciando motor de IA próprio do diretório runtime/...");
+  const proc = spawn(localExe, ["-m", modelPath, "-c", "2048", "--port", "1337", "-ngl", "33"], {
+    cwd: path.join(appRoot, "runtime"),
     windowsHide: true,
     stdio: "pipe",
-    env: buildNodeChildEnv({ APEX_ENGINE_PORT: String(APEX_ENGINE_PORT), APEX_API_PORT: "8888" }),
+    env: buildNodeChildEnv(),
   });
   proc.stdout.on("data", d => { const m = d.toString().trim(); if (m) log(`[engine] ${m.slice(0, 300)}`); });
   proc.stderr.on("data", d => { const m = d.toString().trim(); if (m && !m.includes("Warning")) log(`[engine] ${m.slice(0, 300)}`); });

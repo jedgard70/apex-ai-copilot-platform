@@ -1578,23 +1578,29 @@ function isCapabilitiesQuestionText(text = '') {
 }
 
 function isContactQuestionText(text = '') {
-  return false
+  const norm = text.trim().toLowerCase()
+  return /\b(contato|falar com|whatsapp|telefone|email|suporte)\b/i.test(norm)
 }
 
 function isVisaQuestionText(text = '') {
-  return false
+  const norm = text.trim().toLowerCase()
+  return /\b(visto|visa|imigra|eb2|eb1)\b/i.test(norm)
 }
 
 function isUploadQuestionText(text = '') {
-  return false
+  const norm = text.trim().toLowerCase()
+  return /\b(upload|enviar arquivo|pdf|anexo|mandar documento)\b/i.test(norm)
 }
 
 function isGreetingText(text = '') {
-  return false
+  const norm = text.trim().toLowerCase()
+  if (!norm) return false
+  return /^(ola|olá|oi|oii|oie|hello|hi|hey|bom dia|boa tarde|boa noite|tudo bem|tudo bom)(\s|!|\?|,|\.)*$/i.test(norm)
 }
 
 function isAIIdentityQuestionText(text = '') {
-  return false
+  const norm = text.trim().toLowerCase()
+  return /(quem [eé] (voc[eê]|vc)|who are you|o que [eé] (a |)apex|quem [eé] a apex|voc[eê] [eé] quem|quem fala)/i.test(norm)
 }
 
 function buildAIIdentityReply(userText, locale = '') {

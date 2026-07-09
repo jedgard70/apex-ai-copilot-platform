@@ -22,7 +22,7 @@ const APEX_RUNTIME_COMMANDS = [
 ]
 
 const COLAB_URL =
-  'https://colab.research.google.com/github/jedgard70/apex-ai-copilot-platform/blob/main/notebooks/fine_tune_gemma_apex_colab.ipynb'
+  'https://colab.research.google.com/github/jedgard70/apex-ai-copilot-platform/blob/main/notebooks/apex_master_finetune_colab.ipynb'
 
 export function ModelTrainingPage() {
   const [status, setStatus] = useState<TrainStatus | null>(null)
@@ -69,7 +69,7 @@ export function ModelTrainingPage() {
     {
       icon: 'rocket_launch',
       title: '2. Treinar no Google Colab (grátis, GPU T4)',
-      body: 'Abre o notebook fine_tune_gemma_apex_colab.ipynb no Colab. Faz LoRA no Gemma 2 2B usando uma base ABERTA (sem token, sem lock-in).',
+      body: 'Abre o notebook apex_master_finetune_colab.ipynb no Colab. Faz LoRA no Gemma 2 2B usando uma base ABERTA (sem token, sem lock-in).',
       done: false,
     },
     {

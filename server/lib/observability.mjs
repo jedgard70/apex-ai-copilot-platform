@@ -42,11 +42,15 @@ export function isServerObservabilityEnabled() {
 
 if (!globalThis.__APEX_SERVER_OBSERVABILITY_HANDLERS__) {
   process.on('unhandledRejection', reason => {
+    console.error('UNHANDLED REJECTION:', reason)
     captureServerException(reason, { source: 'process.unhandledRejection' })
+    process.exit(1)
   })
 
   process.on('uncaughtException', error => {
+    console.error('UNCAUGHT EXCEPTION:', error)
     captureServerException(error, { source: 'process.uncaughtException' })
+    process.exit(1)
   })
 
   globalThis.__APEX_SERVER_OBSERVABILITY_HANDLERS__ = true

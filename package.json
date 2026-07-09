@@ -129,7 +129,8 @@
       "local-worker/**/*",
       "server.mjs",
       "electron-main.cjs",
-      "package.json"
+      "package.json",
+      ".env.local"
     ],
     "win": {
       "target": "nsis"

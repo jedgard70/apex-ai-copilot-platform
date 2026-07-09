@@ -1,0 +1,3296 @@
+{
+  "squads": [
+    {
+      "id": "sqd_1783547155457",
+      "name": "Lançamento do E-book",
+      "goal": "Criar estratégia de tráfego pago, funil de vendas, cópias para anúncios e sequências de e-mail marketing para o novo e-book da plataforma.",
+      "skill": "marketing-automation",
+      "status": "idle",
+      "createdAt": "2026-07-08T21:45:55.457Z",
+      "agents": [
+        {
+          "id": "agt_investigador",
+          "role": "Investigador de Tendências",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_estrategista",
+          "role": "Estrategista de Campanhas",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_copywriter",
+          "role": "Copywriter & Roteirista",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_revisor",
+          "role": "Revisor de Qualidade",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_1",
+      "name": "Squad do Módulo 1: STOCK MARKET ANALYTICS",
+      "goal": "Desenvolver, testar e publicar o módulo STOCK MARKET ANALYTICS",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.768Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_2",
+      "name": "Squad do Módulo 2: AUTOTRADER BOT",
+      "goal": "Desenvolver, testar e publicar o módulo AUTOTRADER BOT",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_3",
+      "name": "Squad do Módulo 3: ACCOUNTING & CONTABILIDADE (CRC)",
+      "goal": "Desenvolver, testar e publicar o módulo ACCOUNTING & CONTABILIDADE (CRC)",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_4",
+      "name": "Squad do Módulo 4: CONTRACTS STUDIO (Rascunho Jurídico)",
+      "goal": "Desenvolver, testar e publicar o módulo CONTRACTS STUDIO (Rascunho Jurídico)",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_5",
+      "name": "Squad do Módulo 5: PERMITS & OFFSHORE",
+      "goal": "Desenvolver, testar e publicar o módulo PERMITS & OFFSHORE",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_6",
+      "name": "Squad do Módulo 6: CRM & PIPELINE DE VENDAS",
+      "goal": "Desenvolver, testar e publicar o módulo CRM & PIPELINE DE VENDAS",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_7",
+      "name": "Squad do Módulo 7: BIM 3D STUDIO (WebGL / IfcOpenShell)",
+      "goal": "Desenvolver, testar e publicar o módulo BIM 3D STUDIO (WebGL / IfcOpenShell)",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_8",
+      "name": "Squad do Módulo 8: BIM CLASH DETECTION",
+      "goal": "Desenvolver, testar e publicar o módulo BIM CLASH DETECTION",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_9",
+      "name": "Squad do Módulo 9: MS PROJECT PARSER",
+      "goal": "Desenvolver, testar e publicar o módulo MS PROJECT PARSER",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_10",
+      "name": "Squad do Módulo 10: BUDGET & QUANTITY STUDIO (SINAPI)",
+      "goal": "Desenvolver, testar e publicar o módulo BUDGET & QUANTITY STUDIO (SINAPI)",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_11",
+      "name": "Squad do Módulo 11: PROJECT PACKAGE PIPELINE",
+      "goal": "Desenvolver, testar e publicar o módulo PROJECT PACKAGE PIPELINE",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_12",
+      "name": "Squad do Módulo 12: FIELD OPS STUDIO",
+      "goal": "Desenvolver, testar e publicar o módulo FIELD OPS STUDIO",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_13",
+      "name": "Squad do Módulo 13: RDO (Diário de Obras Digital)",
+      "goal": "Desenvolver, testar e publicar o módulo RDO (Diário de Obras Digital)",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_14",
+      "name": "Squad do Módulo 14: QUALIDADE E NCIs",
+      "goal": "Desenvolver, testar e publicar o módulo QUALIDADE E NCIs",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_15",
+      "name": "Squad do Módulo 15: NR COMPLIANCE",
+      "goal": "Desenvolver, testar e publicar o módulo NR COMPLIANCE",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_16",
+      "name": "Squad do Módulo 16: SUPPLY CHAIN STUDIO",
+      "goal": "Desenvolver, testar e publicar o módulo SUPPLY CHAIN STUDIO",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_17",
+      "name": "Squad do Módulo 17: DIGITAL TWIN OPs",
+      "goal": "Desenvolver, testar e publicar o módulo DIGITAL TWIN OPs",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_18",
+      "name": "Squad do Módulo 18: IoT TELEMETRY",
+      "goal": "Desenvolver, testar e publicar o módulo IoT TELEMETRY",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_19",
+      "name": "Squad do Módulo 19: PREDICTIVE ANALYTICS",
+      "goal": "Desenvolver, testar e publicar o módulo PREDICTIVE ANALYTICS",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_20",
+      "name": "Squad do Módulo 20: WORKFLOW & TASKS (Gantt)",
+      "goal": "Desenvolver, testar e publicar o módulo WORKFLOW & TASKS (Gantt)",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_21",
+      "name": "Squad do Módulo 21: FOLHA DE PAGAMENTO AUTOMATIZADA",
+      "goal": "Desenvolver, testar e publicar o módulo FOLHA DE PAGAMENTO AUTOMATIZADA",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_22",
+      "name": "Squad do Módulo 22: TRIP PLANNER",
+      "goal": "Desenvolver, testar e publicar o módulo TRIP PLANNER",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_23",
+      "name": "Squad do Módulo 23: VSL LANDING PAGE",
+      "goal": "Desenvolver, testar e publicar o módulo VSL LANDING PAGE",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_24",
+      "name": "Squad do Módulo 24: STRIPE CHECKOUT",
+      "goal": "Desenvolver, testar e publicar o módulo STRIPE CHECKOUT",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_25",
+      "name": "Squad do Módulo 25: STRIPE WEBHOOKS",
+      "goal": "Desenvolver, testar e publicar o módulo STRIPE WEBHOOKS",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_26",
+      "name": "Squad do Módulo 26: CAMPAIGN AUTOMATION STUDIO",
+      "goal": "Desenvolver, testar e publicar o módulo CAMPAIGN AUTOMATION STUDIO",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_27",
+      "name": "Squad do Módulo 27: HOTMART WEBHOOK",
+      "goal": "Desenvolver, testar e publicar o módulo HOTMART WEBHOOK",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_28",
+      "name": "Squad do Módulo 28: ARCHVIS STUDIO",
+      "goal": "Desenvolver, testar e publicar o módulo ARCHVIS STUDIO",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_29",
+      "name": "Squad do Módulo 29: DIRECTOR'S CUT STUDIO",
+      "goal": "Desenvolver, testar e publicar o módulo DIRECTOR'S CUT STUDIO",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_30",
+      "name": "Squad do Módulo 30: AVATAR PIPELINE",
+      "goal": "Desenvolver, testar e publicar o módulo AVATAR PIPELINE",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_31",
+      "name": "Squad do Módulo 31: VOICE TTS PIPELINE (ElevenLabs)",
+      "goal": "Desenvolver, testar e publicar o módulo VOICE TTS PIPELINE (ElevenLabs)",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_31_1",
+      "name": "Squad do Módulo 31.1: DIRECTOR'S CUT REFINE",
+      "goal": "Desenvolver, testar e publicar o módulo DIRECTOR'S CUT REFINE",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_32",
+      "name": "Squad do Módulo 32: CHAT PRINCIPAL (Apex AI)",
+      "goal": "Desenvolver, testar e publicar o módulo CHAT PRINCIPAL (Apex AI)",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_33",
+      "name": "Squad do Módulo 33: COGNITIVE AGENTS HUB",
+      "goal": "Desenvolver, testar e publicar o módulo COGNITIVE AGENTS HUB",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_34",
+      "name": "Squad do Módulo 34: AGENT PLANNER",
+      "goal": "Desenvolver, testar e publicar o módulo AGENT PLANNER",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_35",
+      "name": "Squad do Módulo 35: AGENT EXECUTOR",
+      "goal": "Desenvolver, testar e publicar o módulo AGENT EXECUTOR",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_36",
+      "name": "Squad do Módulo 36: AGENT VERIFIER",
+      "goal": "Desenvolver, testar e publicar o módulo AGENT VERIFIER",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_37",
+      "name": "Squad do Módulo 37: TOOL REGISTRY",
+      "goal": "Desenvolver, testar e publicar o módulo TOOL REGISTRY",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_38",
+      "name": "Squad do Módulo 38: APEX MEMORY (Memória de Longo Prazo)",
+      "goal": "Desenvolver, testar e publicar o módulo APEX MEMORY (Memória de Longo Prazo)",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_39",
+      "name": "Squad do Módulo 39: PERSONAL ASSISTANT LOGIC",
+      "goal": "Desenvolver, testar e publicar o módulo PERSONAL ASSISTANT LOGIC",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_40",
+      "name": "Squad do Módulo 40: TEACH API",
+      "goal": "Desenvolver, testar e publicar o módulo TEACH API",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_41",
+      "name": "Squad do Módulo 41: TRAIN GEMMA (Motor de Re-treino)",
+      "goal": "Desenvolver, testar e publicar o módulo TRAIN GEMMA (Motor de Re-treino)",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_42",
+      "name": "Squad do Módulo 42: SELF UPGRADE",
+      "goal": "Desenvolver, testar e publicar o módulo SELF UPGRADE",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_43",
+      "name": "Squad do Módulo 43: DEEP RESEARCH STUDIO",
+      "goal": "Desenvolver, testar e publicar o módulo DEEP RESEARCH STUDIO",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_44",
+      "name": "Squad do Módulo 44: TREND SCOUT AGENT (Radar 24/7)",
+      "goal": "Desenvolver, testar e publicar o módulo TREND SCOUT AGENT (Radar 24/7)",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_44_1",
+      "name": "Squad do Módulo 44.1: APEX REASONING CORE",
+      "goal": "Desenvolver, testar e publicar o módulo APEX REASONING CORE",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_44_2",
+      "name": "Squad do Módulo 44.2: PROVIDER ROUTER",
+      "goal": "Desenvolver, testar e publicar o módulo PROVIDER ROUTER",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_44_3",
+      "name": "Squad do Módulo 44.3: PROVIDER STATUS & ANALYTICS",
+      "goal": "Desenvolver, testar e publicar o módulo PROVIDER STATUS & ANALYTICS",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_45",
+      "name": "Squad do Módulo 45: WHATSAPP BOT WEBHOOK",
+      "goal": "Desenvolver, testar e publicar o módulo WHATSAPP BOT WEBHOOK",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_46",
+      "name": "Squad do Módulo 46: WHATSAPP CLI TOOL",
+      "goal": "Desenvolver, testar e publicar o módulo WHATSAPP CLI TOOL",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_47",
+      "name": "Squad do Módulo 47: GOOGLE AUTH",
+      "goal": "Desenvolver, testar e publicar o módulo GOOGLE AUTH",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_48",
+      "name": "Squad do Módulo 48: GOOGLE CALENDAR BOT",
+      "goal": "Desenvolver, testar e publicar o módulo GOOGLE CALENDAR BOT",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_49",
+      "name": "Squad do Módulo 49: GOOGLE WORKSPACE CLI",
+      "goal": "Desenvolver, testar e publicar o módulo GOOGLE WORKSPACE CLI",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_49_1",
+      "name": "Squad do Módulo 49.1: GEMINI AGENTS ORCHESTRATOR",
+      "goal": "Desenvolver, testar e publicar o módulo GEMINI AGENTS ORCHESTRATOR",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_49_2",
+      "name": "Squad do Módulo 49.2: FIREBASE CONNECTOR",
+      "goal": "Desenvolver, testar e publicar o módulo FIREBASE CONNECTOR",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_49_3",
+      "name": "Squad do Módulo 49.3: GITHUB TOOLS",
+      "goal": "Desenvolver, testar e publicar o módulo GITHUB TOOLS",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_49_4",
+      "name": "Squad do Módulo 49.4: FAL MODEL REGISTRY",
+      "goal": "Desenvolver, testar e publicar o módulo FAL MODEL REGISTRY",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_49_5",
+      "name": "Squad do Módulo 49.5: AUTHKEY CONNECTOR",
+      "goal": "Desenvolver, testar e publicar o módulo AUTHKEY CONNECTOR",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_49_6",
+      "name": "Squad do Módulo 49.6: DOMAIN KNOWLEDGE CONNECTOR",
+      "goal": "Desenvolver, testar e publicar o módulo DOMAIN KNOWLEDGE CONNECTOR",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_49_7",
+      "name": "Squad do Módulo 49.7: LOCAL WORKER CLIENT",
+      "goal": "Desenvolver, testar e publicar o módulo LOCAL WORKER CLIENT",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_49_8",
+      "name": "Squad do Módulo 49.8: EMBEDDINGS ENGINE",
+      "goal": "Desenvolver, testar e publicar o módulo EMBEDDINGS ENGINE",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_49_9",
+      "name": "Squad do Módulo 49.9: BACKGROUND TASKS CONNECTOR",
+      "goal": "Desenvolver, testar e publicar o módulo BACKGROUND TASKS CONNECTOR",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_49_10",
+      "name": "Squad do Módulo 49.10: BRAIN MODULE (Agente Autônomo)",
+      "goal": "Desenvolver, testar e publicar o módulo BRAIN MODULE (Agente Autônomo)",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_49_11",
+      "name": "Squad do Módulo 49.11: CODE TOOLS & VALIDATOR",
+      "goal": "Desenvolver, testar e publicar o módulo CODE TOOLS & VALIDATOR",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_49_12",
+      "name": "Squad do Módulo 49.12: CONFIRMATION STATE MACHINE",
+      "goal": "Desenvolver, testar e publicar o módulo CONFIRMATION STATE MACHINE",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_49_13",
+      "name": "Squad do Módulo 49.13: CONTROLLED EXECUTOR",
+      "goal": "Desenvolver, testar e publicar o módulo CONTROLLED EXECUTOR",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_49_14",
+      "name": "Squad do Módulo 49.14: DELEGATION GENERATOR",
+      "goal": "Desenvolver, testar e publicar o módulo DELEGATION GENERATOR",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_49_15",
+      "name": "Squad do Módulo 49.15: EXECUTION POLICY & POLICY ENGINE",
+      "goal": "Desenvolver, testar e publicar o módulo EXECUTION POLICY & POLICY ENGINE",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_50",
+      "name": "Squad do Módulo 50: LOCAL WORKER (Electron)",
+      "goal": "Desenvolver, testar e publicar o módulo LOCAL WORKER (Electron)",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_51",
+      "name": "Squad do Módulo 51: OFFLINE GATEWAY",
+      "goal": "Desenvolver, testar e publicar o módulo OFFLINE GATEWAY",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_52",
+      "name": "Squad do Módulo 52: MCP SERVER (Model Context Protocol)",
+      "goal": "Desenvolver, testar e publicar o módulo MCP SERVER (Model Context Protocol)",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_53",
+      "name": "Squad do Módulo 53: RUNTIME PRÓPRIO (llama-server/Ollama)",
+      "goal": "Desenvolver, testar e publicar o módulo RUNTIME PRÓPRIO (llama-server/Ollama)",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_53_1",
+      "name": "Squad do Módulo 53.1: APEX ENGINE PROXY",
+      "goal": "Desenvolver, testar e publicar o módulo APEX ENGINE PROXY",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_53_2",
+      "name": "Squad do Módulo 53.2: APEX RUNTIME ENGINE",
+      "goal": "Desenvolver, testar e publicar o módulo APEX RUNTIME ENGINE",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_53_3",
+      "name": "Squad do Módulo 53.3: INFERENCE SERVER",
+      "goal": "Desenvolver, testar e publicar o módulo INFERENCE SERVER",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_54",
+      "name": "Squad do Módulo 54: DASHBOARD / HOME",
+      "goal": "Desenvolver, testar e publicar o módulo DASHBOARD / HOME",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_55",
+      "name": "Squad do Módulo 55: OWNER CONSOLE",
+      "goal": "Desenvolver, testar e publicar o módulo OWNER CONSOLE",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_56",
+      "name": "Squad do Módulo 56: PLATFORM MAP / MANUAL INTERATIVO",
+      "goal": "Desenvolver, testar e publicar o módulo PLATFORM MAP / MANUAL INTERATIVO",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_57",
+      "name": "Squad do Módulo 57: PROJECT WORKSPACE",
+      "goal": "Desenvolver, testar e publicar o módulo PROJECT WORKSPACE",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_58",
+      "name": "Squad do Módulo 58: AUTH SERVER",
+      "goal": "Desenvolver, testar e publicar o módulo AUTH SERVER",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_59",
+      "name": "Squad do Módulo 59: MULTI-TENANT RLS (Supabase)",
+      "goal": "Desenvolver, testar e publicar o módulo MULTI-TENANT RLS (Supabase)",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_60",
+      "name": "Squad do Módulo 60: PWA (Progressive Web App)",
+      "goal": "Desenvolver, testar e publicar o módulo PWA (Progressive Web App)",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_61",
+      "name": "Squad do Módulo 61: AUTO-UPDATE (OTA)",
+      "goal": "Desenvolver, testar e publicar o módulo AUTO-UPDATE (OTA)",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_62",
+      "name": "Squad do Módulo 62: PLATFORM STATUS (Telemetria)",
+      "goal": "Desenvolver, testar e publicar o módulo PLATFORM STATUS (Telemetria)",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_63",
+      "name": "Squad do Módulo 63: CODE EXECUTOR (Terminal Web)",
+      "goal": "Desenvolver, testar e publicar o módulo CODE EXECUTOR (Terminal Web)",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_64",
+      "name": "Squad do Módulo 64: RATE LIMIT MONITOR",
+      "goal": "Desenvolver, testar e publicar o módulo RATE LIMIT MONITOR",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_65",
+      "name": "Squad do Módulo 65: SECURITY AUDIT",
+      "goal": "Desenvolver, testar e publicar o módulo SECURITY AUDIT",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T22:01:02.769Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    },
+    {
+      "id": "sqd_mod_6_1",
+      "name": "Squad do Módulo 6.1: SOBERANIA TECNOLÓGICA (OFFLINE GGUF)",
+      "goal": "Desenvolver, testar e publicar o módulo SOBERANIA TECNOLÓGICA (OFFLINE GGUF)",
+      "skill": "module-deployment",
+      "status": "idle",
+      "isSystemModule": true,
+      "createdAt": "2026-07-08T23:13:46.829Z",
+      "agents": [
+        {
+          "id": "agt_pm_mkt",
+          "role": "Product/Marketing Manager",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_architect",
+          "role": "Arquiteto/Engenheiro de Software",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_qa",
+          "role": "Validador/QA",
+          "status": "pending",
+          "output": null
+        },
+        {
+          "id": "agt_release",
+          "role": "Release Manager (Deployer)",
+          "status": "pending",
+          "output": null
+        }
+      ],
+      "currentStep": 0,
+      "checkpoints": []
+    }
+  ]
+}

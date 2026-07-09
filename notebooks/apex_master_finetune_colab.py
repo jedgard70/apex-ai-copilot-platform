@@ -51,7 +51,11 @@ REPO_RAW = "https://raw.githubusercontent.com/jedgard70/apex-ai-copilot-platform
 
 def load_jsonl(fname):
     if not os.path.exists(fname) or os.path.getsize(fname) == 0: return []
-    with open(fname, "r", encoding="utf-8") as f: return [json.loads(l) for l in f if l.strip()]
+    try:
+        with open(fname, "r", encoding="utf-8") as f: return [json.loads(l) for l in f if l.strip()]
+    except Exception:
+        if os.path.exists(fname): os.remove(fname)
+        return []
 
 def remove_empty_file(fname):
     if os.path.exists(fname) and os.path.getsize(fname) == 0: os.remove(fname)
