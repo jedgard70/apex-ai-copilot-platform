@@ -32,16 +32,16 @@ export function buildProjectPackage(data) {
     profile = {},
   } = data
 
-  const fileKinds = Array.from(new Set(files.map(f => String(f?.kind || 'unknown'))))
+  const checksMapped = [
+    `Briefing: ${profile.brief ? 'saved' : 'missing'}`,
+    `Project type: ${profile.projectType || 'missing'}`,
+    `Files: ${files.length}`
+  ]
 
   const designArtifact = buildArtifact({
     id: 'design-review',
     title: 'Design review and board package',
-    checks: [
-      { label: 'briefing', value: profile.brief ? 'saved in workspace' : 'missing', status: profile.brief ? 'READY' : 'PARTIAL' },
-      { label: 'project type', value: profile.projectType || 'missing', status: profile.projectType ? 'READY' : 'PARTIAL' },
-      { label: 'files', value: `${files.length} file(s) / kinds: ${fileKinds.join(', ') || 'none'}`, status: files.length ? 'READY' : 'MISSING' },
-    ],
+    checks: checksMapped,
     summary: files.length
       ? 'Apex can structure the review package, board narrative and drawing handoff from the current workspace evidence.'
       : 'No source files are attached yet, so the board package cannot move past planning status.',
@@ -50,23 +50,32 @@ export function buildProjectPackage(data) {
       : 'Upload the base plan, facade, BIM or reference files first.',
   })
 
+  // Transforma checks[] em evidence[] para bater com o front
+  designArtifact.evidence = designArtifact.checks
+
+  const packageStatus = exportsList.length > 0 ? 'READY' : 'PARTIAL'
+
   return {
     providerStatus: 'connected',
-    packageId: `pkg-${Date.now()}`,
-    createdAt: new Date().toISOString(),
-    summary: {
-      projectName,
-      goal,
-      totalExports: exportsList.length,
-      totalFiles: files.length,
-      budgetEstimate: { total: budgetTotal, currency: budgetCurrency },
-      researchSources,
-      contractPermits: { permitItems, pendingQuestions: pendingContractQuestions },
+    goal,
+    projectName,
+    clientName: profile.clientName || 'Not Set',
+    packageStatus,
+    executiveSummary: `Project package contains ${exportsList.length} exports and ${files.length} files.`,
+    outputs: {
+      designReview: files.length ? 'Ready for review' : 'Missing files',
+      boardPackage: exportsList.length ? 'Boards available' : 'No exports available',
+      quantityAndBudget: budgetTotal > 0 ? `Budget: ${budgetTotal} ${budgetCurrency}` : 'No budget data',
+      clientPresentation: 'Draft',
+      executionDocs: permitItems > 0 ? `${permitItems} permit items` : 'No execution docs',
+      contractAndFinance: 'Draft',
+      physicalFinancialSchedule: 'Not available'
     },
     artifacts: [designArtifact],
-    exportReadiness: exportsList.length > 0 ? 'READY' : 'MISSING',
+    missingInputs: files.length === 0 ? ['Source files'] : [],
+    nextActions: ['Review the generated package', 'Export the ZIP bundle'],
     message: exportsList.length > 0
-      ? `Package built with ${exportsList.length} export(s) and ${files.length} file(s). Research sources: ${researchSources}. Contracts: ${permitItems} items with ${pendingContractQuestions} questions pending.`
+      ? `Package built with ${exportsList.length} export(s) and ${files.length} file(s).`
       : 'No exports yet — generate something first (ArchVis, Budget, Research, etc).',
   }
 }

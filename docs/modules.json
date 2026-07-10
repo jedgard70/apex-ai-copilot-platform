@@ -1,0 +1,350 @@
+[
+  {
+    "id": "stock_market_analytics",
+    "title": "STOCK MARKET ANALYTICS"
+  },
+  {
+    "id": "autotrader_bot",
+    "title": "AUTOTRADER BOT"
+  },
+  {
+    "id": "accounting_and_contabilidade_crc",
+    "title": "ACCOUNTING & CONTABILIDADE (CRC)"
+  },
+  {
+    "id": "contracts_studio_rascunho_jurídico",
+    "title": "CONTRACTS STUDIO (Rascunho Jurídico)"
+  },
+  {
+    "id": "permits_and_offshore",
+    "title": "PERMITS & OFFSHORE"
+  },
+  {
+    "id": "crm_and_pipeline_de_vendas",
+    "title": "CRM & PIPELINE DE VENDAS"
+  },
+  {
+    "id": "bim_3d_studio_webgl___ifcopenshell",
+    "title": "BIM 3D STUDIO (WebGL / IfcOpenShell)"
+  },
+  {
+    "id": "bim_clash_detection",
+    "title": "BIM CLASH DETECTION"
+  },
+  {
+    "id": "ms_project_parser",
+    "title": "MS PROJECT PARSER"
+  },
+  {
+    "id": "budget_and_quantity_studio_sinapi",
+    "title": "BUDGET & QUANTITY STUDIO (SINAPI)"
+  },
+  {
+    "id": "project_package_pipeline",
+    "title": "PROJECT PACKAGE PIPELINE"
+  },
+  {
+    "id": "field_ops_studio",
+    "title": "FIELD OPS STUDIO"
+  },
+  {
+    "id": "rdo_diário_de_obras_digital",
+    "title": "RDO (Diário de Obras Digital)"
+  },
+  {
+    "id": "qualidade_e_ncis",
+    "title": "QUALIDADE E NCIs"
+  },
+  {
+    "id": "nr_compliance",
+    "title": "NR COMPLIANCE"
+  },
+  {
+    "id": "supply_chain_studio",
+    "title": "SUPPLY CHAIN STUDIO"
+  },
+  {
+    "id": "digital_twin_ops",
+    "title": "DIGITAL TWIN OPs"
+  },
+  {
+    "id": "iot_telemetry",
+    "title": "IoT TELEMETRY"
+  },
+  {
+    "id": "predictive_analytics",
+    "title": "PREDICTIVE ANALYTICS"
+  },
+  {
+    "id": "workflow_and_tasks_gantt",
+    "title": "WORKFLOW & TASKS (Gantt)"
+  },
+  {
+    "id": "folha_de_pagamento_automatizada",
+    "title": "FOLHA DE PAGAMENTO AUTOMATIZADA"
+  },
+  {
+    "id": "trip_planner",
+    "title": "TRIP PLANNER"
+  },
+  {
+    "id": "vsl_landing_page",
+    "title": "VSL LANDING PAGE"
+  },
+  {
+    "id": "stripe_checkout",
+    "title": "STRIPE CHECKOUT"
+  },
+  {
+    "id": "stripe_webhooks",
+    "title": "STRIPE WEBHOOKS"
+  },
+  {
+    "id": "campaign_automation_studio",
+    "title": "CAMPAIGN AUTOMATION STUDIO"
+  },
+  {
+    "id": "hotmart_webhook",
+    "title": "HOTMART WEBHOOK"
+  },
+  {
+    "id": "director's_cut_studio",
+    "title": "DIRECTOR'S CUT STUDIO"
+  },
+  {
+    "id": "avatar_pipeline",
+    "title": "AVATAR PIPELINE"
+  },
+  {
+    "id": "voice_tts_pipeline_elevenlabs",
+    "title": "VOICE TTS PIPELINE (ElevenLabs)"
+  },
+  {
+    "id": "director's_cut_refine",
+    "title": "DIRECTOR'S CUT REFINE"
+  },
+  {
+    "id": "chat_principal_apex_ai",
+    "title": "CHAT PRINCIPAL (Apex AI)"
+  },
+  {
+    "id": "cognitive_agents_hub",
+    "title": "COGNITIVE AGENTS HUB"
+  },
+  {
+    "id": "agent_planner",
+    "title": "AGENT PLANNER"
+  },
+  {
+    "id": "agent_executor",
+    "title": "AGENT EXECUTOR"
+  },
+  {
+    "id": "agent_verifier",
+    "title": "AGENT VERIFIER"
+  },
+  {
+    "id": "tool_registry",
+    "title": "TOOL REGISTRY"
+  },
+  {
+    "id": "apex_memory_memória_de_longo_prazo",
+    "title": "APEX MEMORY (Memória de Longo Prazo)"
+  },
+  {
+    "id": "personal_assistant_logic",
+    "title": "PERSONAL ASSISTANT LOGIC"
+  },
+  {
+    "id": "teach_api",
+    "title": "TEACH API"
+  },
+  {
+    "id": "train_gemma_motor_de_re-treino",
+    "title": "TRAIN GEMMA (Motor de Re-treino)"
+  },
+  {
+    "id": "self_upgrade",
+    "title": "SELF UPGRADE"
+  },
+  {
+    "id": "deep_research_studio",
+    "title": "DEEP RESEARCH STUDIO"
+  },
+  {
+    "id": "trend_scout_agent_radar_24_7",
+    "title": "TREND SCOUT AGENT (Radar 24/7)"
+  },
+  {
+    "id": "apex_reasoning_core",
+    "title": "APEX REASONING CORE"
+  },
+  {
+    "id": "provider_router",
+    "title": "PROVIDER ROUTER"
+  },
+  {
+    "id": "provider_status_and_analytics",
+    "title": "PROVIDER STATUS & ANALYTICS"
+  },
+  {
+    "id": "whatsapp_bot_webhook",
+    "title": "WHATSAPP BOT WEBHOOK"
+  },
+  {
+    "id": "whatsapp_cli_tool",
+    "title": "WHATSAPP CLI TOOL"
+  },
+  {
+    "id": "google_auth",
+    "title": "GOOGLE AUTH"
+  },
+  {
+    "id": "google_calendar_bot",
+    "title": "GOOGLE CALENDAR BOT"
+  },
+  {
+    "id": "google_workspace_cli",
+    "title": "GOOGLE WORKSPACE CLI"
+  },
+  {
+    "id": "gemini_agents_orchestrator",
+    "title": "GEMINI AGENTS ORCHESTRATOR"
+  },
+  {
+    "id": "firebase_connector",
+    "title": "FIREBASE CONNECTOR"
+  },
+  {
+    "id": "github_tools",
+    "title": "GITHUB TOOLS"
+  },
+  {
+    "id": "fal_model_registry",
+    "title": "FAL MODEL REGISTRY"
+  },
+  {
+    "id": "authkey_connector",
+    "title": "AUTHKEY CONNECTOR"
+  },
+  {
+    "id": "domain_knowledge_connector",
+    "title": "DOMAIN KNOWLEDGE CONNECTOR"
+  },
+  {
+    "id": "local_worker_client",
+    "title": "LOCAL WORKER CLIENT"
+  },
+  {
+    "id": "embeddings_engine",
+    "title": "EMBEDDINGS ENGINE"
+  },
+  {
+    "id": "background_tasks_connector",
+    "title": "BACKGROUND TASKS CONNECTOR"
+  },
+  {
+    "id": "brain_module_agente_autônomo",
+    "title": "BRAIN MODULE (Agente Autônomo)"
+  },
+  {
+    "id": "code_tools_and_validator",
+    "title": "CODE TOOLS & VALIDATOR"
+  },
+  {
+    "id": "confirmation_state_machine",
+    "title": "CONFIRMATION STATE MACHINE"
+  },
+  {
+    "id": "controlled_executor",
+    "title": "CONTROLLED EXECUTOR"
+  },
+  {
+    "id": "delegation_generator",
+    "title": "DELEGATION GENERATOR"
+  },
+  {
+    "id": "execution_policy_and_policy_engine",
+    "title": "EXECUTION POLICY & POLICY ENGINE"
+  },
+  {
+    "id": "local_worker_electron",
+    "title": "LOCAL WORKER (Electron)"
+  },
+  {
+    "id": "offline_gateway",
+    "title": "OFFLINE GATEWAY"
+  },
+  {
+    "id": "mcp_server_model_context_protocol",
+    "title": "MCP SERVER (Model Context Protocol)"
+  },
+  {
+    "id": "runtime_próprio_llama-server_ollama",
+    "title": "RUNTIME PRÓPRIO (llama-server/Ollama)"
+  },
+  {
+    "id": "apex_engine_proxy",
+    "title": "APEX ENGINE PROXY"
+  },
+  {
+    "id": "apex_runtime_engine",
+    "title": "APEX RUNTIME ENGINE"
+  },
+  {
+    "id": "inference_server",
+    "title": "INFERENCE SERVER"
+  },
+  {
+    "id": "soberania_tecnológica_offline_gguf",
+    "title": "SOBERANIA TECNOLÓGICA (OFFLINE GGUF)"
+  },
+  {
+    "id": "dashboard___home",
+    "title": "DASHBOARD / HOME"
+  },
+  {
+    "id": "owner_console",
+    "title": "OWNER CONSOLE"
+  },
+  {
+    "id": "platform_map___manual_interativo",
+    "title": "PLATFORM MAP / MANUAL INTERATIVO"
+  },
+  {
+    "id": "project_workspace",
+    "title": "PROJECT WORKSPACE"
+  },
+  {
+    "id": "auth_server",
+    "title": "AUTH SERVER"
+  },
+  {
+    "id": "multi-tenant_rls_supabase",
+    "title": "MULTI-TENANT RLS (Supabase)"
+  },
+  {
+    "id": "pwa_progressive_web_app",
+    "title": "PWA (Progressive Web App)"
+  },
+  {
+    "id": "auto-update_ota",
+    "title": "AUTO-UPDATE (OTA)"
+  },
+  {
+    "id": "platform_status_telemetria",
+    "title": "PLATFORM STATUS (Telemetria)"
+  },
+  {
+    "id": "code_executor_terminal_web",
+    "title": "CODE EXECUTOR (Terminal Web)"
+  },
+  {
+    "id": "rate_limit_monitor",
+    "title": "RATE LIMIT MONITOR"
+  },
+  {
+    "id": "security_audit",
+    "title": "SECURITY AUDIT"
+  }
+]

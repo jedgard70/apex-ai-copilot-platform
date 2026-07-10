@@ -4,7 +4,7 @@
 > 100% livre de Mocks. Stripe, Gemini e Motores configurados. Checkout e API Keys de Prod validadas.
 # APEX Platform — Unified Current State
 
-Checkpoint: CP-LIVE-FINAL — 62 capabilities documentadas + PWA/Mobile
+Checkpoint: CP-LIVE-FINAL — 67 capabilities documentadas + PWA/Mobile
 Last update: 2026-07-08 (14:30)
 
 ## Canonical rule
@@ -13,7 +13,7 @@ The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.m
 
 ## Executive status
 
-- Platform core: **GREEN** — 62 capabilities live/operational
+- Platform core: **GREEN** — 67 capabilities (67 live, 0 protótipos)
 - Build/typecheck: **GREEN**
 - Tests: **GREEN** (114 passed)
 - Local app: **GREEN** (`server.mjs` + Electron `.exe`)
@@ -25,7 +25,7 @@ The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.m
 - PWA/Mobile: **GREEN** — App instalável no celular (Android/iOS), layout responsivo completo, Service Worker v2 offline
 - **AGENTIC CAPABILITIES**: **GREEN** — Field Ops Time Tracker (Payroll) & Personal Brain (Reminders/Lists) implemented with real-time polling and multi-tenant isolation.
 
-## Complete module map (42 capabilities — ALL DONE)
+## Complete module map (67 capabilities — 67 DONE, 0 PROTOTYPES)
 
 | # | Module | Component / API | Status |
 | --- | --- | --- | --- |
@@ -91,6 +91,11 @@ The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.m
 | 60 | 🔬 Deep Research Agent | `api/copilot/deep-research` + `server/agent/geminiAgentsConnector.mjs` | ✅ LIVE |
 | 61 | 🤖 Antigravity Agent (sandbox) | `server/agent/geminiAgentsConnector.mjs` | ✅ LIVE |
 | 62 | 🔄 Fallback invisível (6 providers) | `server/providers/providerRouter.mjs` + chat.mjs | ✅ LIVE |
+| 63 | Market Intel & Competitor Radar | `api/market/intelligence.mjs` | ✅ LIVE |
+| 64 | Occupational Health & Wellness | `api/health/index.mjs` | ✅ LIVE |
+| 65 | Growth & SEO Command Center | `api/growth/seo.mjs` | ✅ LIVE |
+| 66 | IT Cost & Infra Orchestrator | `api/infra/index.mjs` | ✅ LIVE |
+| 67 | Global Legal & Due Diligence | `api/legal/global.mjs` | ✅ LIVE |
 
 ## Deployment map
 

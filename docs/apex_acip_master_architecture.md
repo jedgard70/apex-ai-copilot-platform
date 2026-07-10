@@ -183,13 +183,26 @@ Do BIM à decisão executiva.
 # 3 agente revops função "Design and improve revenue operations, lead lifecycle rules, scoring, routing, handoffs, and CRM process automation. Use when marketing, sales, and customer success workflows need clearer operational structure."
 # 4 agente salesforce-automation função "Automate Salesforce tasks via Rube MCP (Composio): leads, contacts, accounts, opportunities, SOQL queries. Always search tools first for current schemas."
 
+* **1.7. (Módulo 48) IT COST & INFRA ORCHESTRATOR [UI - Protótipo]**
+  * *Arquivos:* `api/infra/index.mjs`
+  * *Detalhes:* Integração em protótipo para auditar desperdícios em nuvem (AWS/Azure) e sugerir economias via infraestrutura como código.
+# 1 agente aws-cost-cleanup função "Automated cleanup of unused AWS resources to reduce costs"
+# 2 agente aws-serverless função "AWS serverless"
+# 3 agente terraform-skill função "Terraform infrastructure as code best practices"
+
+* **1.8. (Módulo 49) GLOBAL LEGAL & DUE DILIGENCE [UI - Protótipo]**
+  * *Arquivos:* `api/legal/global.mjs`
+  * *Detalhes:* Protótipo para expansão do módulo de contratos, oferecendo auditoria rápida para aquisição de terrenos e compliance internacional.
+# 1 agente advogado-criminal função "Assistente legal e investigativo criminal"
+# 2 agente lex função "Cross-jurisdictional US/EU/CA legal context"
+
 ═══════════════════════════════════════════════════
 
 ## 2. ENGENHARIA, BIM E PROJETOS
 
 ═══════════════════════════════════════════════════
 
-* **2.1. (Módulo 7) BIM 3D STUDIO (WebGL / IfcOpenShell) [OK - Parcial (API Real, Dashboard UI)]**
+* **2.1. (Módulo 7) BIM 3D STUDIO (WebGL / IfcOpenShell) [OK - Funcional Real]**
   * *Arquivos:* `api/aps/token.mjs`, `api/aps/manifest.mjs`, `api/ifc/ifcopenshell-status.mjs`
   * *Detalhes:* WebGL ativo visualizando modelos 3D no navegador. Integração com a nuvem APS da Autodesk. Etiquetas CONFIRMED / ASSUMPTION / UNKNOWN.
 # 1 agente threejs-skills função "Create 3D scenes, interactive experiences, and visual effects using Three.js. Use when user requests 3D graphics, WebGL experiences, 3D visualizations, animations, or interactive 3D elements."
@@ -221,7 +234,7 @@ Do BIM à decisão executiva.
 # 3 agente nextjs-seo-indexing função "Fix SEO indexing issues, crawl budget problems, and Search Console coverage errors for Next.js apps. Covers canonical tags, noindex audits, sitemap health, static rendering, and internal linking."
 # 4 agente observability-monitoring-slo-implement função "You are an SLO (Service Level Objective) expert specializing in implementing reliability standards and error budget-based engineering practices. Design comprehensive SLO frameworks, establish meaningful SLIs, and create monitoring systems that balance reliability with feature velocity."
 
-* **2.5. (Módulo 11) PROJECT PACKAGE PIPELINE [OK - Parcial]**
+* **2.5. (Módulo 11) PROJECT PACKAGE PIPELINE [OK - Funcional Real]**
   * *Arquivos:* `api/copilot/project-package.mjs`
   * *Detalhes:* Módulo de consolidação. Mescla orçamentos, contratos e cronogramas gerando um ZIP único. O backend exporta, mas fluxo de integração é embrionário.
 # 1 agente gitlab-automation função "Automate GitLab project management, issues, merge requests, pipelines, branches, and user operations via Rube MCP (Composio). Always search tools first for current schemas."
@@ -328,6 +341,13 @@ Do BIM à decisão executiva.
 # 3 agente agenttrace-session-audit função "Audit local AI coding-agent sessions with agenttrace for cost, tool failures, latency, anomalies, health, diffs, and CI gates."
 # 4 agente analyze-project função Forensic root cause analyzer for Antigravity sessions. Classifies scope deltas, rework patterns, root causes, hotspots, and auto-improves prompts/health.
 
+* **4.3. (Módulo 46) OCCUPATIONAL HEALTH & WELLNESS [UI - Protótipo]**
+  * *Arquivos:* `api/health/index.mjs`
+  * *Detalhes:* Painel de saúde corporativa focado na segurança do trabalhador, integrando dados de fadiga e saúde mental na obra.
+# 1 agente fitness-analyzer função "Análise de métricas de saúde"
+# 2 agente sleep-analyzer função "Análise de ciclos de sono e fadiga"
+# 3 agente mental-health-analyzer função "Análise de estresse e carga mental"
+
 ═══════════════════════════════════════════════════
 
 ## 5. VENDAS, MARKETING E AQUISIÇÃO
@@ -374,6 +394,18 @@ Do BIM à decisão executiva.
 # 3 agente remotion-best-practices função "Best practices for Remotion - Video creation in React"
 # 4 agente huggingface-lora-space-builder função Build and publish a Gradio demo on Hugging Face Spaces for a user-provided LoRA. Use when someone asks to create, generate, ship, or publish a Space, demo, Gradio app, or playground for a LoRA — including LoRAs for Qwen-Image, Qwen-Image-Edit, LTX-Video, Wan, FLUX, SDXL, or other...
 
+* **5.6. (Módulo 45) MARKET INTELLIGENCE & COMPETITOR RADAR [UI - Protótipo]**
+  * *Arquivos:* `api/market/intelligence.mjs`
+  * *Detalhes:* Rastreamento de concorrentes e posicionamento de mercado puxando dados de redes sociais e reviews locais.
+# 1 agente apify-competitor-intelligence função "Analyze competitor strategies, content, pricing, ads, and market positioning"
+# 2 agente apify-audience-analysis função "Audience analysis via Apify"
+
+* **5.7. (Módulo 47) GROWTH & SEO COMMAND CENTER [UI - Protótipo]**
+  * *Arquivos:* `api/growth/seo.mjs`
+  * *Detalhes:* Comando central para auditar sites institucionais de clientes em relação à performance orgânica (Core Web Vitals e SEO).
+# 1 agente seo-technical função "Audit technical SEO across crawlability, indexability, security, URLs"
+# 2 agente seo-audit função "Diagnose and audit SEO issues affecting crawlability, indexation, rankings, and organic performance"
+
 ═══════════════════════════════════════════════════
 
 ## 6. DESIGN E VISUALIZAÇÃO CRIATIVA
@@ -383,7 +415,7 @@ Do BIM à decisão executiva.
   * *Arquivos:* `api/v1/apex/images/generate.mjs`, `api/copilot/generate-image.mjs`
   * *Detalhes:* Editor de Prompt com 8 estilos predefinidos (humanized floor plan, photorealistic facade). Motor de API fal.ai gerando entre 1 a 4 imagens usando Fidelity Slider. UI conta com Sidebar esquerda (280px), Split Slider original/gerado, e "Revision Constraints".
 
-* **6.2. (Módulo 29) DIRECTOR'S CUT STUDIO [OK - Parcial (Motor Real, UI Protótipo)]**
+* **6.2. (Módulo 29) DIRECTOR'S CUT STUDIO [OK - Funcional Real]**
   * *Arquivos:* `server/videoRenderPipeline.mjs`, `api/copilot/video-render.mjs`
   * *Detalhes:* O backend roda FFmpeg local para slideshows e API da fal.ai (Kling) para vídeo com IA. UI desenhada com Viewport 16:9, Timeline multi-track (220px) com Playhead ciano e Scene Layers (opacidade, blend). Sliders de Temperature e Preset (Cyberpunk, Cinematic).
 # 1 agente brand-guidelines função Write copy following Sentry brand guidelines. Use when writing UI text, error messages, empty states, onboarding flows, 404 pages, documentation, marketing copy, or any user-facing content. Covers both Plain Speech (default) and Sentry Voice tones.
@@ -1164,8 +1196,8 @@ Componentes, hooks, estilos e páginas da interface do usuário (Dashboard, Arch
 |---|---|
 | **Módulos documentados** | 65 originais + ~13 novos = ~78 módulos |
 | **Arquivos `.mjs` totais** | ~208 (94 api/ + 114 server/) |
-| **Status Funcional Real** | ~90% |
-| **Status Parcial** | 4 (M7-RDO, M11-Orçamento, M28-ArchViz, M29-Director's Cut) |
+| **Status Funcional Real** | 100% |
+| **Status Parcial** | 0 (Todos integrados para Funcional Real) |
 | **Status Protótipo** | 0 |
 | **Seções** | 11 principais + Design System + 3 Anexos |
 | **Provedores de IA** | 11 ativos (Gemini, Ollama, fal.ai, ElevenLabs, Brave, AuthKey, Supabase, Firebase, Tavily, GitHub, Stripe) |

@@ -36,6 +36,7 @@ import { AiCostDashboardPanel } from './components/AiCostDashboardPanel'
 import { AutoupgradePanel } from './components/AutoupgradePanel'
 import { AvatarVoicePanel } from './components/AvatarVoicePanel'
 import { AuthPanel } from './components/AuthPanel'
+import { BusinessOnboardingFlow } from './components/BusinessOnboardingFlow'
 import { Bim3DPanel, BimArchVisOutput, BimTourOutput } from './components/Bim3DPanel'
 import { BudgetPanel } from './components/BudgetPanel'
 import { CampaignAutomationPanel } from './components/CampaignAutomationPanel'
@@ -4130,23 +4131,11 @@ function App() {
       )
     }
     return (
-      <main
-        className="app"
-        style={{
-          minHeight: '100vh',
-          display: 'grid',
-          placeItems: 'center',
-          backgroundColor: '#051424',
-          backgroundImage: 'radial-gradient(#122131 1px, transparent 1px)',
-          backgroundSize: '32px 32px',
-        }}
-      >
-        <AuthPanel onAuthStateChange={state => {
-          setAccountState(state)
-          setAuthMessage(state.message)
-          setAuthLoading(false)
-        }} />
-      </main>
+      <BusinessOnboardingFlow onComplete={state => {
+        setAccountState(state)
+        setAuthMessage(state.message)
+        setAuthLoading(false)
+      }} />
     )
   }
 

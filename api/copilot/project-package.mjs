@@ -43,7 +43,7 @@ export default async function handler(req, res) {
       pendingContractQuestions: Array.isArray(latestContracts?.plan?.pendingQuestions) ? latestContracts.plan.pendingQuestions.length : 0,
       profile: project.projectProfile && typeof project.projectProfile === 'object' ? project.projectProfile : {},
     })
-    return res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify(result))
+    return res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify({ plan: result }))
   } catch (error) {
     return res.writeHead(500, { 'Content-Type': 'application/json' }).end(JSON.stringify({ error: error.message }))
   }

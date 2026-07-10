@@ -5,6 +5,7 @@ import { getBrowserSupabaseClient, getSupabaseProviderStatus } from '../lib/supa
 type AuthPanelProps = {
   onClear?: () => void
   onAuthStateChange?: (state: SupabaseAccountState) => void
+  contextMetadata?: Record<string, any>
 }
 
 const logoSrc = '/apex-global-logo.png'
@@ -52,7 +53,7 @@ const copy = {
   },
 }
 
-export function AuthPanel({ onClear, onAuthStateChange }: AuthPanelProps) {
+export function AuthPanel({ onClear, onAuthStateChange, contextMetadata }: AuthPanelProps) {
   const provider = useMemo(() => getSupabaseProviderStatus(), [])
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [language, setLanguage] = useState<'EN' | 'PT'>('EN')
@@ -108,7 +109,11 @@ export function AuthPanel({ onClear, onAuthStateChange }: AuthPanelProps) {
     try {
       const result = mode === 'login'
         ? await client.auth.signInWithPassword({ email, password })
-        : await client.auth.signUp({ email, password })
+        : await client.auth.signUp({ 
+            email, 
+            password, 
+            options: contextMetadata ? { data: contextMetadata } : undefined 
+          })
       if (result.error) setStatusText(result.error.message)
       else {
         setStatusText(mode === 'login' ? labels.statusReady : labels.signupSuccess)
