@@ -27,6 +27,7 @@ import { collectProductionOperatorStatus } from './server/agent/productionStatus
 import { classifyToolExecutionRequest, routeToolExecution } from './server/agent/toolExecutionRouter.mjs'
 import { defaultTasks } from './server/agent/backgroundTasksConnector.mjs'
 import { buildCodeToolDefinitions, executeCodeToolCall, CODE_TOOL_NAMES } from './server/agent/codeTools.mjs'
+import { buildGithubToolDefinitions, executeGithubToolCall, GITHUB_TOOL_NAMES } from './server/agent/githubTools.mjs'
 import { validateOrigin, getKeyRestrictionConfig } from './server/middleware/keyRestriction.mjs'
 import { renderVideoPayload } from './server/videoRenderPipeline.mjs'
 import {
@@ -1854,6 +1855,7 @@ function buildLiveAgentToolDefinitions() {
       },
     },
     ...buildCodeToolDefinitions(),
+    ...buildGithubToolDefinitions(),
   ]
 }
 
@@ -1870,6 +1872,11 @@ async function executeLiveAgentToolCall(toolCall) {
   // Real code/filesystem/command tools (read/list/search/write/edit/run).
   if (CODE_TOOL_NAMES.has(name)) {
     return await executeCodeToolCall(toolCall, authorizedExecutionCwd)
+  }
+
+  // GitHub integration (commit, pr)
+  if (GITHUB_TOOL_NAMES.has(name)) {
+    return await executeGithubToolCall(toolCall)
   }
 
   if (name === 'get_platform_status') {
