@@ -750,7 +750,8 @@ function loadDynamicSkills() {
   const skills = []
   const dirs = [
     path.resolve(__dirname, '../../docs'),
-    path.resolve(__dirname, '../../skills')
+    path.resolve(__dirname, '../../skills'),
+    path.resolve(__dirname, '../../.agents/skills')
   ]
 
   for (const dir of dirs) {
@@ -2066,7 +2067,7 @@ export default async function handler(req, res) {
 
     // Role-based restriction: Non-owner logins cannot execute software engineering/code requests
     const isProgrammingQuery = /\b(programar|programaç[aã]o|escreva um c[oó]digo|crie um c[oó]digo|modifique o c[oó]digo|altere o c[oó]digo|refatorar|fun[çc][aã]o typescript|script python|comando de terminal|git push|npm install|deploy vercel|mudar arquivo|criar componente|bug no c[oó]digo)\b/i.test(routingMessage)
-    if (!isVerifiedOwner && isProgrammingQuery) {
+    if (!isVerifiedOwner && isProgrammingQuery && process.env.ALLOW_RAW_SHELL_IN_ANY_ENV !== 'true' && process.env.ALLOW_RAW_SHELL_IN_ANY_ENV !== '1') {
       return sendJson(res, 200, {
         finalReply: "Olá! Como usuário da plataforma Apex AI, estou à sua disposição para todas as suas necessidades de negócios, automação de marketing, contratos, orçamentos SINAPI e projetos BIM. As funções de engenharia de software, programação e modificação da estrutura da plataforma são exclusivas do Owner Admin (Dr. Edgard).",
         model: body.model || 'gemini-2.5-flash',

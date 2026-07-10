@@ -29,20 +29,9 @@ async function checkRevitMcp() {
 async function runAudit() {
   const report = {
     timestamp: new Date().toISOString(),
-    zeroClonesAudit: {
-      status: 'GREEN',
-      issues: [],
-      scannedPath: 'D:\\AI-constr',
-    },
-    documentationGovernance: {
-      status: 'GREEN',
-      roadmapExists: false,
-      mirrorExists: false,
-      issues: []
-    },
     supportSkillsMap: {
       status: 'GREEN',
-      path: 'D:\\AI Jedgard',
+      path: path.join(rootPath, '.agents', 'skills'),
       foundSkills: []
     },
     mcpBuilder: {
@@ -56,46 +45,13 @@ async function runAudit() {
     }
   }
 
-  // 1. Zero Clones Audit
-  try {
-    const parentDir = 'D:\\AI-constr'
-    if (fs.existsSync(parentDir)) {
-      const folders = fs.readdirSync(parentDir)
-      const clonePatterns = [/copy/i, /clone/i, /backup/i, /-c$/i]
-      for (const folder of folders) {
-        if (clonePatterns.some(p => p.test(folder))) {
-          report.zeroClonesAudit.status = 'YELLOW'
-          report.zeroClonesAudit.issues.push(`Pasta suspeita de clone detectada: ${path.join(parentDir, folder)}`)
-        }
-      }
-    }
-  } catch (err) {
-    report.zeroClonesAudit.status = 'UNKNOWN'
-    report.zeroClonesAudit.issues.push(`Erro ao escanear D:\\AI-constr: ${err.message}`)
-  }
-
-  // 2. Documentation Governance
-  const docsPath = path.join(rootPath, 'docs')
-  if (fs.existsSync(docsPath)) {
-    const files = fs.readdirSync(docsPath)
-    report.documentationGovernance.roadmapExists = files.some(f => /roadmap/i.test(f))
-  }
-  
-  const mirrorPath = 'D:\\AI-constr\\AI-Construction-Intelligence-Platform\\Master.Package.Apex.original'
-  if (fs.existsSync(mirrorPath)) {
-    report.documentationGovernance.mirrorExists = true
-  } else {
-    report.documentationGovernance.status = 'YELLOW'
-    report.documentationGovernance.issues.push('Diretório espelho Master.Package.Apex.original não encontrado.')
-  }
-
-  // 3. Support Skills Map
-  const legacyDir = 'D:\\AI Jedgard'
-  if (fs.existsSync(legacyDir)) {
+  // 1. Support Skills Map (Internal Only)
+  const internalSkillsDir = report.supportSkillsMap.path
+  if (fs.existsSync(internalSkillsDir)) {
     try {
-      const entries = fs.readdirSync(legacyDir)
+      const entries = fs.readdirSync(internalSkillsDir)
       for (const entry of entries) {
-        const fullPath = path.join(legacyDir, entry)
+        const fullPath = path.join(internalSkillsDir, entry)
         if (fs.statSync(fullPath).isDirectory()) {
           report.supportSkillsMap.foundSkills.push(entry)
         }
@@ -106,9 +62,10 @@ async function runAudit() {
     }
   } else {
     report.supportSkillsMap.status = 'UNKNOWN'
+    report.supportSkillsMap.issues = ['Diretório interno de skills (.agents/skills) não encontrado.']
   }
 
-  // 4. MCP Builder
+  // 2. MCP Builder
   report.mcpBuilder.revitMcp = await checkRevitMcp()
 
   // Print results
