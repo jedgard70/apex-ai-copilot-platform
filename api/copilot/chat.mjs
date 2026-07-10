@@ -384,7 +384,8 @@ function isUploadQuestionText(text = '') {
 }
 
 function isGreetingText(text = '') {
-  return false
+  const normalized = String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
+  return /^(oi|ola|bom dia|boa tarde|boa noite|hello|hi|hey|test|teste|oola|oii|olaa+)([\s!.,?]*)$/.test(normalized)
 }
 
 function shouldForceLiveAgentToolUse(text = '') {
@@ -393,7 +394,7 @@ function shouldForceLiveAgentToolUse(text = '') {
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
 
-  if (/^(oi|ola|bom dia|boa tarde|boa noite|hello|hi|hey|test|teste)[\s!.,?]*$/.test(value)) {
+  if (/^(oi|ola|bom dia|boa tarde|boa noite|hello|hi|hey|test|teste|oola|oii|olaa+)[\s!.,?]*$/.test(value)) {
     return false
   }
 
@@ -413,7 +414,7 @@ function isIdentityQuestionText(text) {
 }
 
 function isAIIdentityQuestionText(text = '') {
-  return false
+  return /\b(quem [eé] (voc[eê]|vc|a apex)|o que (voc[eê]|vc) [eé]|quem [eé] apex|who are you|what is apex|quem e voce|quem e vc|o que e a apex)\b/i.test(String(text || '').trim())
 }
 
 function buildAIIdentityReply(userText, locale = '') {
@@ -1130,7 +1131,6 @@ function buildLiveAgentToolDefinitions() {
       },
     },
     ...buildCodeToolDefinitions(),
-    ...buildGithubToolDefinitions(),
   ]
 }
 

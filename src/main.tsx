@@ -3208,6 +3208,20 @@ function App() {
         throw new Error('Chat runtime unavailable.')
       }
       const data = await response.json().catch(() => ({}))
+      
+      if (Array.isArray(data?.toolCalls) && data.toolCalls.length > 0) {
+        setThinkingSteps(prev => {
+          const toolSteps = data.toolCalls.map((t: string, idx: number) => ({
+             id: `s-tool-${Date.now()}-${idx}`,
+             type: 'calling' as const,
+             label: `Executou ferramenta: ${t}`,
+             ts: Date.now(),
+             done: true
+          }))
+          return prev.length > 0 ? [ ...prev, ...toolSteps ] : toolSteps
+        })
+      }
+
       // H5.0D: log response mode so version is visible in browser console
       if (data?.mode) console.log('[Apex H5] response mode:', data.mode)
       if (data?.provider) console.log('[Apex H5] provider:', data.provider)
@@ -5153,7 +5167,25 @@ function App() {
         <section className="execution-shell" style={{ flex: '1 1 40%', display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, minWidth: 0, borderLeft: '1px solid rgba(150, 164, 195, 0.15)', background: '#0a0f1c' }}>
           <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'row', borderBottom: '1px solid rgba(150, 164, 195, 0.15)' }}>
             <div style={{ flex: '0 0 35%', borderRight: '1px solid rgba(150, 164, 195, 0.15)' }}>
-              <WorkspaceFileTree />
+              <WorkspaceFileTree
+                onFileSelect={async (path, name) => {
+                  try {
+                    const res = await fetch('/api/copilot/fs/read?path=' + encodeURIComponent(path))
+                    const data = await res.json()
+                    if (data.ok) {
+                      setActiveFile({
+                        file: { name: path, type: 'text/plain', size: data.content.length } as any,
+                        kind: 'document',
+                        extractedText: data.content,
+                      })
+                    } else {
+                      alert('Erro ao carregar arquivo: ' + data.error)
+                    }
+                  } catch (e) {
+                    console.error(e)
+                  }
+                }}
+              />
             </div>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
               <CodeEditorPanel 
@@ -5184,6 +5216,29 @@ function App() {
                       alert('Arquivo salvo com sucesso no disco local!')
                     } catch (e) {
                       alert('Erro ao salvar no disco: ' + String(e))
+                    }
+                  } else {
+                    try {
+                      const res = await fetch('/api/copilot/fs/write', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ path: activeFile.file.name, content })
+                      })
+                      const data = await res.json()
+                      if (data.ok) {
+                        alert('Arquivo salvo com sucesso via API local!')
+                        if (activeProject) {
+                          const activeId = fileToRecord(activeFile).id
+                          const newFiles = activeProject.files.map(f => f.id === activeId ? { ...f, extractedText: content } : f)
+                          const nextProj = { ...activeProject, files: newFiles }
+                          setActiveProject(nextProj)
+                          upsertProject(nextProj)
+                        }
+                      } else {
+                        alert('Erro ao salvar arquivo: ' + data.error)
+                      }
+                    } catch (e) {
+                      alert('Erro ao salvar via API: ' + String(e))
                     }
                   }
                 }}
