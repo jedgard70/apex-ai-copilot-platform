@@ -48,16 +48,16 @@ export function PublicVslLandingPage() {
   const config = useMemo(() => {
     const params = new URLSearchParams(window.location.search)
     const brand = params.get('brand') || 'Apex AI Copilot'
-    const headline = params.get('headline') || 'Transforme sua apresentação técnica em uma página VSL pronta para conversão.'
-    const subheadline = params.get('subheadline') || 'Vídeo acima da dobra, CTA claro, prova, termos e rastreamento preservado para campanhas reais.'
-    const urgency = params.get('urgency') || 'APRESENTAÇÃO DISPONÍVEL NESTA JANELA DE CAMPANHA'
+    const headline = params.get('headline') || 'Escale seus Negócios com o Ecossistema Inteligente da Apex AI.'
+    const subheadline = params.get('subheadline') || 'Automação Contábil Integrada, Agentes Especialistas de Marketing e Ferramentas Avançadas de Engenharia em uma única plataforma.'
+    const urgency = params.get('urgency') || 'OFERTA DE LANÇAMENTO EXCLUSIVA PARA NOVOS PARCEIROS'
     const video = params.get('video') || ''
-    const ctaLabel = params.get('ctaLabel') || 'QUERO GARANTIR MINHA VAGA'
-    const cta = buildCtaUrl(params.get('cta') || (import.meta.env.VITE_VSL_PRIMARY_CTA_URL || ''), params)
-    const proof = params.get('proof') || 'Vídeo-first page com CTA persistente, preservação de UTM e estrutura pronta para Hotmart, Stripe, WhatsApp ou booking.'
+    const ctaLabel = params.get('ctaLabel') || 'QUERO EXPLORAR O ECOSSISTEMA'
+    const cta = buildCtaUrl(params.get('cta') || (import.meta.env.VITE_VSL_PRIMARY_CTA_URL || '#'), params)
+    const proof = params.get('proof') || 'Acesso instantâneo a agentes de IA que automatizam horas de trabalho manual todos os dias.'
     const terms = params.get('terms') || '#'
     const privacy = params.get('privacy') || '#'
-    const support = params.get('support') || 'Suporte e contato via Apex'
+    const support = params.get('support') || 'Suporte 24/7 via Apex'
     return {
       brand,
       headline,
