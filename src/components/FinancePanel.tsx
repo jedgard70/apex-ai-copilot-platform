@@ -116,17 +116,40 @@ export function FinancePanel({ onClear }: FinancePanelProps) {
 
   return (
     <section className="business-studio contracts-studio" style={{ overflow: 'auto', maxHeight: 'calc(100vh - 60px)' }}>
-      {/* Header */}
-      <div className="contracts-heading">
-        <div>
-          <span><DollarSign size={16} /> Controle Financeiro</span>
-          <h2>Receitas, despesas, MRR e contabilidade</h2>
-          <p style={{ fontSize: '12px', color: '#6b7280' }}>{localDemoModeNotice}</p>
+      {/* Premium Hero Header (Mirror Effect from VSL) */}
+      <div style={{
+        position: 'relative', overflow: 'hidden', padding: '32px 24px', borderRadius: '12px', marginBottom: '24px',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+        border: '1px solid rgba(255, 255, 255, 0.1)', boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+      }}>
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
+          backgroundImage: 'url(/assets/vsl/vsl_accounting_dashboard.png), linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
+          backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.4,
+          filter: 'blur(2px) brightness(0.8)'
+        }} />
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1,
+          background: 'linear-gradient(to right, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.4) 100%)'
+        }} />
+        
+        <div style={{ position: 'relative', zIndex: 2 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <span style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa', padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <DollarSign size={14} /> Controle Financeiro Corporativo
+            </span>
+            <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: 10, background: 'rgba(16, 185, 129, 0.2)', color: '#34d399', fontWeight: 700, letterSpacing: '0.05em', border: '1px solid rgba(16, 185, 129, 0.3)' }}>ATIVO</span>
+          </div>
+          <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#ffffff', margin: '0 0 8px 0', letterSpacing: '-0.02em', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>Receitas, despesas, MRR e contabilidade</h2>
+          <p style={{ fontSize: '13px', color: '#94a3b8', maxWidth: '600px', lineHeight: 1.5 }}>
+            {localDemoModeNotice}
+          </p>
         </div>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
-          <button onClick={exportCSV} disabled={loading}><Download size={15} /> Exportar CSV</button>
-          <button onClick={fetchAll} disabled={loading}><RefreshCw size={16} className={loading ? 'spin-icon' : ''} /> {loading ? '...' : 'Atualizar'}</button>
-          {onClear && <button className="ghost-action" type="button" onClick={onClear}><X size={16} /></button>}
+
+        <div style={{ position: 'relative', zIndex: 2, display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0, background: 'rgba(15, 23, 42, 0.6)', padding: '8px', borderRadius: '8px', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <button onClick={exportCSV} disabled={loading} style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s' }} onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.2)')} onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}><Download size={14} /> Exportar CSV</button>
+          <button onClick={fetchAll} disabled={loading} style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, transition: 'all 0.2s' }} onMouseEnter={e => (e.currentTarget.style.background = '#2563eb')} onMouseLeave={e => (e.currentTarget.style.background = '#3b82f6')}><RefreshCw size={14} className={loading ? 'spin-icon' : ''} /> {loading ? 'Calculando...' : 'Atualizar Dados'}</button>
+          {onClear && <button type="button" onClick={onClear} style={{ background: 'transparent', color: '#94a3b8', border: 'none', cursor: 'pointer', padding: '4px' }}><X size={16} /></button>}
         </div>
       </div>
 

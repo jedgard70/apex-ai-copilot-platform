@@ -196,71 +196,210 @@ export function PublicVslLandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Bento Box 1 */}
-            <div className="lg:col-span-2 bg-gradient-to-br from-[#161616] to-[#0a0a0a] border border-white/5 rounded-3xl p-10 hover:border-indigo-500/30 transition-colors group">
-              <div className="bg-indigo-500/10 w-16 h-16 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
-                <Building className="w-8 h-8 text-indigo-400" />
-              </div>
-              <h3 className="text-3xl font-bold mb-4 text-white">Engenharia, BIM e Obras</h3>
-              <p className="text-lg text-slate-400 leading-relaxed mb-8 max-w-xl">
-                Extraia quantitativos, leia memoriais descritivos e gere orçamentos de engenharia em segundos. Integração direta e fluxos de trabalho alinhados ao canteiro.
-              </p>
-              <div className="h-48 rounded-xl bg-gradient-to-r from-black to-[#111] border border-white/5 relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay"></div>
-                {/* Mock UI lines */}
-                <div className="p-6 space-y-4">
-                  <div className="h-4 w-1/3 bg-white/10 rounded-full"></div>
-                  <div className="h-4 w-2/3 bg-white/5 rounded-full"></div>
-                  <div className="flex gap-4 pt-4">
-                    <div className="h-20 w-32 bg-indigo-500/20 rounded-lg border border-indigo-500/30"></div>
-                    <div className="h-20 w-32 bg-white/5 rounded-lg border border-white/10"></div>
+            {/* Bento Box 1: Engineering (span 2) */}
+            <div className="lg:col-span-2 bg-gradient-to-br from-[#161616] to-[#0a0a0a] border border-white/5 rounded-3xl overflow-hidden hover:border-indigo-500/50 transition-all duration-500 group relative shadow-2xl shadow-black">
+              <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none mix-blend-screen"></div>
+              <div className="p-10 relative z-10 w-full h-full flex flex-col justify-between">
+                <div>
+                  <div className="bg-indigo-500/20 w-16 h-16 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(79,70,229,0.2)] border border-indigo-500/30 backdrop-blur-md">
+                    <Building className="w-8 h-8 text-indigo-400 drop-shadow-md" />
+                  </div>
+                  <h3 className="text-3xl md:text-4xl font-bold mb-6 text-white drop-shadow-lg">Engenharia, BIM e Obras</h3>
+                  <div className="space-y-3 text-slate-300 drop-shadow text-lg">
+                    <div className="flex items-center gap-3"><div className="w-2 h-2 rounded-full bg-indigo-400 shadow-[0_0_10px_rgba(129,140,248,0.8)]"></div> Integração SINAPI (Orçamentos)</div>
+                    <div className="flex items-center gap-3"><div className="w-2 h-2 rounded-full bg-indigo-400 shadow-[0_0_10px_rgba(129,140,248,0.8)]"></div> Visualizador BIM 3D (IfcOpenShell)</div>
+                    <div className="flex items-center gap-3"><div className="w-2 h-2 rounded-full bg-indigo-400 shadow-[0_0_10px_rgba(129,140,248,0.8)]"></div> Integração MS Project (Cronograma)</div>
+                    <div className="flex items-center gap-3"><div className="w-2 h-2 rounded-full bg-indigo-400 shadow-[0_0_10px_rgba(129,140,248,0.8)]"></div> Autodesk Platform Services (APS)</div>
+                    <div className="flex items-center gap-3"><div className="w-2 h-2 rounded-full bg-indigo-400 shadow-[0_0_10px_rgba(129,140,248,0.8)]"></div> Detecção de Conflitos (BIM Clash)</div>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            {/* Bento Box 2 */}
-            <div className="bg-gradient-to-br from-[#161616] to-[#0a0a0a] border border-white/5 rounded-3xl p-10 hover:border-purple-500/30 transition-colors group">
-              <div className="bg-purple-500/10 w-16 h-16 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
-                <BarChart className="w-8 h-8 text-purple-400" />
-              </div>
-              <h3 className="text-2xl font-bold mb-4 text-white">Suíte Contábil</h3>
-              <p className="text-slate-400 leading-relaxed">
-                Integração nativa para notas, contratos e conciliações em todas as pontas da empresa.
-              </p>
-            </div>
-
-            {/* Bento Box 3 */}
-            <div className="bg-gradient-to-br from-[#161616] to-[#0a0a0a] border border-white/5 rounded-3xl p-10 hover:border-blue-500/30 transition-colors group">
-              <div className="bg-blue-500/10 w-16 h-16 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
-                <BrainCircuit className="w-8 h-8 text-blue-400" />
-              </div>
-              <h3 className="text-2xl font-bold mb-4 text-white">Agentes & APIs</h3>
-              <p className="text-slate-400 leading-relaxed">
-                Da automação de marketing ao atendimento. Utilize a API MCP para criar conectores poderosos.
-              </p>
-            </div>
-
-            {/* Bento Box 4 */}
-            <div className="lg:col-span-2 bg-gradient-to-br from-[#161616] to-[#0a0a0a] border border-white/5 rounded-3xl p-10 hover:border-white/20 transition-colors group flex flex-col md:flex-row items-center gap-10">
-              <div className="flex-1">
-                <div className="bg-white/5 w-16 h-16 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
-                  <Layers className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-3xl font-bold mb-4 text-white">Fluxos Inteligentes</h3>
-                <p className="text-lg text-slate-400 leading-relaxed mb-8">
-                  Salve qualquer fluxo de trabalho complexo como um aplicativo repetível. Perfeito para escalar a produção do seu escritório.
-                </p>
-              </div>
-              <div className="w-full md:w-64 h-64 rounded-2xl bg-black border border-white/10 relative flex items-center justify-center overflow-hidden">
-                <div className="w-32 h-32 bg-indigo-500/20 rounded-full blur-[40px] absolute"></div>
-                <div className="relative z-10 flex flex-col gap-3 items-center">
-                  <div className="w-12 h-12 bg-white rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.3)]"></div>
-                  <ArrowRight className="text-white/30 rotate-90" />
-                  <div className="w-16 h-12 bg-indigo-500 rounded-xl shadow-[0_0_20px_rgba(79,70,229,0.3)]"></div>
+                
+                <div className="mt-10 relative rounded-xl overflow-hidden border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] group-hover:shadow-[0_30px_60px_rgba(79,70,229,0.3)] transition-all duration-700 transform group-hover:-translate-y-2 group-hover:scale-[1.02]">
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent z-10 opacity-60"></div>
+                  <img src="/assets/vsl/vsl_engineering_bim.png" alt="Engineering and BIM Dashboard" className="w-full h-auto max-h-[300px] object-cover object-top opacity-90 group-hover:opacity-100 transition-opacity" />
                 </div>
               </div>
             </div>
+
+            {/* Bento Box 2: Accounting (span 1) */}
+            <div className="lg:col-span-1 bg-gradient-to-br from-[#161616] to-[#0a0a0a] border border-white/5 rounded-3xl overflow-hidden hover:border-purple-500/50 transition-all duration-500 group relative shadow-xl shadow-black flex flex-col">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 blur-[80px] rounded-full pointer-events-none group-hover:bg-purple-500/20 transition-colors"></div>
+              <div className="p-8 flex flex-col relative z-10 flex-1">
+                <div className="bg-purple-500/20 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(168,85,247,0.2)] border border-purple-500/30 backdrop-blur-md">
+                  <BarChart className="w-7 h-7 text-purple-400 drop-shadow-md" />
+                </div>
+                <h3 className="text-2xl font-bold mb-4 text-white drop-shadow-lg">Suíte Contábil</h3>
+                <div className="space-y-3 text-slate-300 text-sm mb-6 flex-1 drop-shadow">
+                  <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.8)]"></div> Controle Financeiro Corporativo</div>
+                  <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.8)]"></div> Módulo Contábil CRC</div>
+                  <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.8)]"></div> Gateways de Pagamento (Stripe)</div>
+                  <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.8)]"></div> Emissão de Notas e Ordens de Serviço</div>
+                </div>
+                <div className="mt-auto relative rounded-xl overflow-hidden border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)] group-hover:shadow-[0_20px_40px_rgba(168,85,247,0.3)] transition-all duration-700 transform group-hover:scale-105">
+                  <img src="/assets/vsl/vsl_accounting_dashboard.png" alt="Accounting Dashboard" className="w-full h-40 object-cover object-top opacity-90 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </div>
+            </div>
+
+            {/* Bento Box 3: ArchVis (span 1) */}
+            <div className="lg:col-span-1 bg-gradient-to-br from-[#161616] to-[#0a0a0a] border border-white/5 rounded-3xl overflow-hidden hover:border-emerald-500/50 transition-all duration-500 group relative shadow-xl shadow-black flex flex-col">
+              <div className="absolute top-0 left-0 w-64 h-64 bg-emerald-500/10 blur-[80px] rounded-full pointer-events-none group-hover:bg-emerald-500/20 transition-colors"></div>
+              <div className="p-8 flex flex-col relative z-10 flex-1">
+                <div className="bg-emerald-500/20 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(16,185,129,0.2)] border border-emerald-500/30 backdrop-blur-md">
+                  <ImageIcon className="w-7 h-7 text-emerald-400 drop-shadow-md" />
+                </div>
+                <h3 className="text-2xl font-bold mb-4 text-white drop-shadow-lg">ArchVis & Video</h3>
+                <div className="space-y-3 text-slate-300 text-sm mb-6 flex-1 drop-shadow">
+                  <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"></div> Renderização Arquitetura IA (FAL/Flux)</div>
+                  <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"></div> Edição de Vídeo (DirectCut/Node Board)</div>
+                  <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"></div> Geração de Avatares e Voz (ElevenLabs)</div>
+                </div>
+                <div className="mt-auto relative rounded-xl overflow-hidden border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)] group-hover:shadow-[0_20px_40px_rgba(16,185,129,0.3)] transition-all duration-700 transform group-hover:scale-105">
+                  <img src="/assets/vsl/vsl_archvis_directcut.png" alt="ArchVis" className="w-full h-40 object-cover object-top opacity-90 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </div>
+            </div>
+
+            {/* Bento Box 4: Agents (span 1) */}
+            <div className="lg:col-span-1 bg-gradient-to-br from-[#161616] to-[#0a0a0a] border border-white/5 rounded-3xl overflow-hidden hover:border-blue-500/50 transition-all duration-500 group relative shadow-xl shadow-black flex flex-col">
+              <div className="absolute bottom-0 right-0 w-64 h-64 bg-blue-500/10 blur-[80px] rounded-full pointer-events-none group-hover:bg-blue-500/20 transition-colors"></div>
+              <div className="p-8 flex flex-col relative z-10 flex-1">
+                <div className="bg-blue-500/20 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(59,130,246,0.2)] border border-blue-500/30 backdrop-blur-md">
+                  <BrainCircuit className="w-7 h-7 text-blue-400 drop-shadow-md" />
+                </div>
+                <h3 className="text-2xl font-bold mb-4 text-white drop-shadow-lg">Agentes & APIs</h3>
+                <div className="space-y-3 text-slate-300 text-sm mb-6 flex-1 drop-shadow">
+                  <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)]"></div> 13 Agentes Cognitivos (ACIP)</div>
+                  <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)]"></div> Pesquisa Profunda (Deep Research)</div>
+                  <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)]"></div> Biblioteca de Prompts (12 categorias)</div>
+                  <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)]"></div> Gemini TTS e Modelos Nativos</div>
+                </div>
+                <div className="mt-auto relative rounded-xl overflow-hidden border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)] group-hover:shadow-[0_20px_40px_rgba(59,130,246,0.3)] transition-all duration-700 transform group-hover:scale-105">
+                  <img src="/assets/vsl/vsl_cognitive_agents.png" alt="Cognitive Agents" className="w-full h-40 object-cover object-top opacity-90 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </div>
+            </div>
+
+            {/* Bento Box 5: RDO (span 1) */}
+            <div className="lg:col-span-1 bg-gradient-to-br from-[#161616] to-[#0a0a0a] border border-white/5 rounded-3xl overflow-hidden hover:border-amber-500/50 transition-all duration-500 group relative shadow-xl shadow-black flex flex-col">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 blur-[80px] rounded-full pointer-events-none group-hover:bg-amber-500/20 transition-colors"></div>
+              <div className="p-8 flex flex-col relative z-10 flex-1">
+                <div className="bg-amber-500/20 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(245,158,11,0.2)] border border-amber-500/30 backdrop-blur-md">
+                  <ShieldCheck className="w-7 h-7 text-amber-400 drop-shadow-md" />
+                </div>
+                <h3 className="text-2xl font-bold mb-4 text-white drop-shadow-lg">RDO & Operações</h3>
+                <div className="space-y-3 text-slate-300 text-sm mb-6 flex-1 drop-shadow">
+                  <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]"></div> Diário de Obras (RDO Hybrid Sync)</div>
+                  <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]"></div> Controle de Ponto (Time Tracker)</div>
+                  <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]"></div> Gestão de Qualidade e NCIs</div>
+                  <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]"></div> Conformidade de Segurança (NRs/CREA)</div>
+                </div>
+                <div className="mt-auto relative rounded-xl overflow-hidden border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)] group-hover:shadow-[0_20px_40px_rgba(245,158,11,0.3)] transition-all duration-700 transform group-hover:scale-105">
+                  <img src="/assets/vsl/vsl_rdo_fieldops.png" alt="RDO" className="w-full h-40 object-cover object-top opacity-90 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </div>
+            </div>
+
+            {/* Bento Box 6: CRM (span 1) */}
+            <div className="lg:col-span-1 bg-gradient-to-br from-[#161616] to-[#0a0a0a] border border-white/5 rounded-3xl overflow-hidden hover:border-rose-500/50 transition-all duration-500 group relative shadow-xl shadow-black flex flex-col">
+              <div className="absolute bottom-0 right-0 w-64 h-64 bg-rose-500/10 blur-[80px] rounded-full pointer-events-none group-hover:bg-rose-500/20 transition-colors"></div>
+              <div className="p-8 flex flex-col relative z-10 flex-1">
+                <div className="bg-rose-500/20 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(244,63,94,0.2)] border border-rose-500/30 backdrop-blur-md">
+                  <Users className="w-7 h-7 text-rose-400 drop-shadow-md" />
+                </div>
+                <h3 className="text-2xl font-bold mb-4 text-white drop-shadow-lg">CRM & Vendas</h3>
+                <div className="space-y-3 text-slate-300 text-sm mb-6 flex-1 drop-shadow">
+                  <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.8)]"></div> Pipeline de Vendas (5 estágios Kanban)</div>
+                  <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.8)]"></div> Automação de Campanhas de Marketing</div>
+                  <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.8)]"></div> Radar de Concorrentes e Market Intel</div>
+                  <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.8)]"></div> Funis de Landing Pages (VSL)</div>
+                </div>
+                <div className="mt-auto relative rounded-xl overflow-hidden border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)] group-hover:shadow-[0_20px_40px_rgba(244,63,94,0.3)] transition-all duration-700 transform group-hover:scale-105">
+                  <img src="/assets/vsl/vsl_crm_sales.png" alt="CRM" className="w-full h-40 object-cover object-top opacity-90 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </div>
+            </div>
+
+            {/* Bento Box 7: Smart Workflows (span 2) */}
+            <div className="lg:col-span-2 bg-gradient-to-br from-[#161616] to-[#0a0a0a] border border-white/5 rounded-3xl overflow-hidden hover:border-white/20 transition-all duration-500 group relative shadow-2xl shadow-black flex flex-col md:flex-row items-center gap-6">
+              <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none mix-blend-screen"></div>
+              
+              <div className="flex-1 p-10 pb-0 md:pb-10 relative z-10">
+                <div className="bg-white/10 w-16 h-16 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(255,255,255,0.1)] border border-white/20 backdrop-blur-md">
+                  <Layers className="w-8 h-8 text-white drop-shadow-md" />
+                </div>
+                <h3 className="text-3xl md:text-4xl font-bold mb-6 text-white drop-shadow-lg">Workflows Inteligentes</h3>
+                <div className="space-y-4 text-lg text-slate-300 drop-shadow max-w-lg mb-8 md:mb-0">
+                  <div className="flex items-center gap-3"><div className="w-2 h-2 rounded-full bg-white/70 shadow-[0_0_10px_rgba(255,255,255,0.8)]"></div> Gestão de Tarefas (Workflow Tasks)</div>
+                  <div className="flex items-center gap-3"><div className="w-2 h-2 rounded-full bg-white/70 shadow-[0_0_10px_rgba(255,255,255,0.8)]"></div> Dashboard de Custos de IA (AI Cost)</div>
+                  <div className="flex items-center gap-3"><div className="w-2 h-2 rounded-full bg-white/70 shadow-[0_0_10px_rgba(255,255,255,0.8)]"></div> Filas de Geração em Massa</div>
+                  <div className="flex items-center gap-3"><div className="w-2 h-2 rounded-full bg-white/70 shadow-[0_0_10px_rgba(255,255,255,0.8)]"></div> Pipeline de Pacotes de Projetos</div>
+                </div>
+              </div>
+
+              <div className="w-full md:w-[45%] h-full relative z-10 flex items-center justify-end">
+                 <div className="relative w-full md:w-[120%] h-64 md:h-80 md:rounded-l-2xl md:-mr-2 md:group-hover:-translate-x-2 overflow-hidden border-t border-l border-white/10 shadow-[-20px_0_40px_rgba(0,0,0,0.8)] group-hover:shadow-[-30px_0_50px_rgba(255,255,255,0.1)] transition-all duration-700 transform group-hover:scale-[1.02]">
+                   <img src="/assets/vsl/vsl_smart_workflows.png" alt="Smart Workflows" className="w-full h-full object-cover object-left opacity-90 group-hover:opacity-100 transition-opacity" />
+                 </div>
+              </div>
+            </div>
+
+            {/* Bento Box 8: Digital Twin (span 3 - Full Width Bottom) */}
+            <div className="lg:col-span-3 bg-gradient-to-br from-[#161616] to-[#0a0a0a] border border-white/5 rounded-3xl overflow-hidden hover:border-cyan-500/50 transition-all duration-500 group relative shadow-2xl shadow-black flex flex-col md:flex-row items-center gap-6">
+              <div className="absolute inset-0 bg-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none mix-blend-screen"></div>
+              
+              <div className="w-full md:w-[45%] h-full relative z-10 flex items-center justify-start">
+                 <div className="relative w-full md:w-[120%] h-64 md:h-[400px] md:rounded-r-3xl md:-ml-2 md:group-hover:translate-x-2 overflow-hidden border-y border-r border-white/10 shadow-[20px_0_40px_rgba(0,0,0,0.8)] group-hover:shadow-[30px_0_50px_rgba(6,182,212,0.15)] transition-all duration-700 transform group-hover:scale-[1.02]">
+                   <img src="/assets/vsl/vsl_digital_twin.png" alt="Digital Twin" className="w-full h-full object-cover object-right opacity-90 group-hover:opacity-100 transition-opacity" />
+                 </div>
+              </div>
+
+              <div className="flex-1 p-10 pt-0 md:pt-10 relative z-10 md:text-right flex flex-col md:items-end md:pr-16">
+                <div className="bg-cyan-500/20 w-20 h-20 rounded-3xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform shadow-[0_0_30px_rgba(6,182,212,0.3)] border border-cyan-500/30 backdrop-blur-md">
+                  <Zap className="w-10 h-10 text-cyan-400 drop-shadow-md" />
+                </div>
+                <h3 className="text-4xl md:text-6xl font-black mb-8 text-white drop-shadow-xl tracking-tight">Gêmeo Digital & IoT</h3>
+                <div className="space-y-4 text-xl text-slate-300 drop-shadow-md max-w-2xl flex flex-col md:items-end w-full">
+                  <div className="flex items-center gap-3 w-full justify-start md:justify-end"><div className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.9)] hidden md:block"></div> <span className="flex-1 md:flex-none">Sensores IoT em Tempo Real (6 métricas)</span> <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.9)] md:hidden"></div></div>
+                  <div className="flex items-center gap-3 w-full justify-start md:justify-end"><div className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.9)] hidden md:block"></div> <span className="flex-1 md:flex-none">Analytics Preditivo para Indústria</span> <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.9)] md:hidden"></div></div>
+                  <div className="flex items-center gap-3 w-full justify-start md:justify-end"><div className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.9)] hidden md:block"></div> <span className="flex-1 md:flex-none">Integração com Supply Chain e Logística</span> <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.9)] md:hidden"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Massive Feature Wall */}
+      <section className="py-24 bg-black relative overflow-hidden border-t border-white/5">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[500px] bg-indigo-600/10 blur-[120px] pointer-events-none rounded-[100%]"></div>
+        <div className="max-w-[1400px] mx-auto px-6 relative z-10">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-6 text-white">
+              Poder na Escala Máxima. <br className="hidden md:block"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Mais de 85 módulos.</span>
+            </h2>
+            <p className="text-xl text-slate-400 max-w-3xl mx-auto">
+              Nenhuma outra plataforma chega perto do que construímos. Nossa arquitetura modular entrega funcionalidades nativas desenhadas especificamente para quem constrói o mundo físico e digital.
+            </p>
+          </div>
+
+          {/* Matrix Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            {[
+              "Exportação PDF Avançada", "Visualizador IFC Nativo", "Cálculo e Integração SINAPI", "Webhooks Stripe Financeiros",
+              "Checkout B2B Customizado", "Node Board e Edição de Vídeo", "Clash Detection em Tempo Real", "13 Agentes Cognitivos ACIP",
+              "Sintetizador de Voz Gemini TTS", "RDO - Diário de Obras Híbrido", "Time Tracker e Ponto de Campo", "Gestão de NCI (Não Conformidades)",
+              "Auditoria de Segurança NR-18", "Integração Bidirecional MS Project", "Analytics Preditivo de Materiais", "Monitoramento via Sensores IoT",
+              "Automação e Gestão de Tarefas", "Processamento de Filas em Massa", "Avatares Falantes (ElevenLabs)", "Pipeline Kanban de Vendas B2B",
+              "Radar de Mercado e Concorrência", "Automação CRM e E-mails", "Integração de APIs Abertas", "Painéis de Custos de Inteligência Artificial",
+              "Dashboards Personalizados BI", "Suíte Contábil Especializada", "Controle Financeiro Multi-Empresa", "Geração de VSL e Copys com IA",
+              "Segurança e Conformidade de Dados", "Fluxos de Trabalho Repetíveis"
+            ].map((feature, i) => (
+              <div key={i} className="bg-[#0f0f0f] border border-white/5 rounded-xl p-4 flex items-center gap-3 hover:bg-[#161616] hover:border-indigo-500/50 transition-colors group shadow-lg">
+                <div className="w-2 h-2 rounded-full bg-indigo-500/30 group-hover:bg-cyan-400 group-hover:shadow-[0_0_10px_rgba(34,211,238,0.8)] transition-all"></div>
+                <span className="text-sm font-semibold text-slate-400 group-hover:text-white transition-colors">{feature}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>

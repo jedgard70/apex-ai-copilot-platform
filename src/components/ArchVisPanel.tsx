@@ -674,8 +674,40 @@ function ArchVisDashboard({ onOpenEditor, galleryItems }: { onOpenEditor?: () =>
 
   return (
     <div style={{ flex: 1, padding: 24, overflowY: 'auto', color: T.onSurface }}>
-      <h2 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 6px', letterSpacing: '-0.01em' }}>ArchVis Dashboard</h2>
-      <p style={{ fontSize: 13, color: T.onSurfaceVariant, marginBottom: 20 }}>Overview of your rendering activity, styles, and available AI models.</p>
+      {/* Premium Hero Header (Mirror Effect from VSL) */}
+      <div style={{
+        position: 'relative', overflow: 'hidden', padding: '32px 24px', borderRadius: '12px', marginBottom: '24px',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+        border: `1px solid ${T.outlineVariant}`, boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+      }}>
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
+          backgroundImage: 'url(/assets/vsl/vsl_archvis_directcut.png), linear-gradient(135deg, #0b1326 0%, #171f33 100%)',
+          backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.4,
+          filter: 'blur(2px) brightness(0.8)'
+        }} />
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1,
+          background: `linear-gradient(to right, ${T.bg}f2 0%, ${T.bg}66 100%)`
+        }} />
+        
+        <div style={{ position: 'relative', zIndex: 2 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <span style={{ background: `${T.primary}33`, color: T.primary, padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Layers size={14} /> ArchVis & DirectCut Studio
+            </span>
+            <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: 10, background: 'rgba(16, 185, 129, 0.2)', color: '#34d399', fontWeight: 700, letterSpacing: '0.05em', border: '1px solid rgba(16, 185, 129, 0.3)' }}>ATIVO</span>
+          </div>
+          <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#ffffff', margin: '0 0 8px 0', letterSpacing: '-0.02em', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>Renderização e Edição Cinematográfica</h2>
+          <p style={{ fontSize: '13px', color: T.onSurfaceVariant, maxWidth: '600px', lineHeight: 1.5 }}>
+            Overview of your rendering activity, styles, and available AI models.
+          </p>
+        </div>
+
+        <div style={{ position: 'relative', zIndex: 2, display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0, background: 'rgba(11, 19, 38, 0.6)', padding: '8px', borderRadius: '8px', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.05)' }}>
+          {onOpenEditor && <button onClick={onOpenEditor} style={{ background: T.primaryContainer, color: T.onPrimaryContainer, border: 'none', padding: '8px 16px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, transition: 'all 0.2s' }}><Plus size={14} /> New Render</button>}
+        </div>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12, marginBottom: 24 }}>
         {[
