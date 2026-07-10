@@ -44,7 +44,7 @@ export function UserProfileModal({ isOpen, onClose, currentUserEmail, currentUse
     const isOwner = ['jedgard70@gmail.com','owner@apexglobalai.co','edgard@apexglobalai.co'].includes(currentUserEmail?.toLowerCase() || '') || currentUserRole === 'owner' || currentUserRole === 'owner_admin'
     return {
       ...DEFAULT_PROFILE,
-      email: currentUserEmail || DEFAULT_PROFILE.email,
+      email: isOwner ? 'jedgard70@gmail.com' : (currentUserEmail || DEFAULT_PROFILE.email),
       fullName: isOwner ? 'Dr. Edgard (Platform Owner)' : 'Assinante Apex Pro',
       role: isOwner ? 'owner_admin' : 'cliente_pro',
       subscriptionPlan: isOwner ? 'Plano Enterprise Owner (Ilimitado)' : 'Assinatura Apex AI Pro',
@@ -59,7 +59,7 @@ export function UserProfileModal({ isOpen, onClose, currentUserEmail, currentUse
       const isOwnerCheck = ['jedgard70@gmail.com','owner@apexglobalai.co','edgard@apexglobalai.co'].includes(currentUserEmail.toLowerCase()) || currentUserRole === 'owner' || currentUserRole === 'owner_admin'
       setProfile(prev => ({
         ...prev,
-        email: currentUserEmail,
+        email: isOwnerCheck ? 'jedgard70@gmail.com' : currentUserEmail,
         role: isOwnerCheck ? 'owner_admin' : 'cliente_pro',
         subscriptionPlan: isOwnerCheck ? 'Plano Enterprise Owner (Ilimitado)' : 'Assinatura Apex AI Pro'
       }))
