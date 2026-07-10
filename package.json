@@ -127,6 +127,7 @@
       "api/**/*",
       "server/**/*",
       "local-worker/**/*",
+      "runtime/**/*",
       "server.mjs",
       "electron-main.cjs",
       "package.json",
