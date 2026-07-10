@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Plus, RefreshCw, X, MapPin, Calendar, DollarSign, Users, Trash2, Plane, ShieldCheck, CreditCard, Award, CheckCircle2 } from 'lucide-react'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 
 type Flight = { id: string; airline: string; type: string; price: number; miles: number; duration: string; stops: number; tags: string[]; paymentMethod?: string; bookingDate?: string; bookingReference?: string }
 type Insurance = { id: string; provider: string; coverage: string; price: number; tags: string[]; policyNumber?: string; bookingDate?: string }
@@ -151,18 +152,18 @@ export function TripPlannerPanel({ onClear }: { onClear: () => void }) {
   }
 
   return (
-    <section style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', height: '100%', overflow: 'auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <span style={{ color: '#8b5cf6', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}><MapPin size={14} style={{ display: 'inline' }} /> Trip Planner & Booking</span>
-          <h2 style={{ margin: '4px 0', fontSize: '16px' }}>Vendas e Planejamento de Viagens</h2>
-        </div>
+    <PremiumPanelLayout 
+      title="Trip Planner & Booking" 
+      subtitle="Ações e configurações operacionais"
+      headerActions={
         <div style={{ display: 'flex', gap: '8px' }}>
           <button onClick={() => setShowForm(!showForm)} className="ghost-action" style={{ background: '#f5f3ff', color: '#7c3aed' }}><Plus size={15} /> {showForm ? 'Cancelar' : 'Nova Viagem'}</button>
           <button onClick={fetchTrips} disabled={loading} className="ghost-action"><RefreshCw size={15} className={loading ? 'spin-icon' : ''} /></button>
           <button className="ghost-action" onClick={onClear}><X size={16} /></button>
         </div>
-      </div>
+      }
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
 
       {message && <div className="business-alert"><span>{message}</span></div>}
 
@@ -370,7 +371,8 @@ export function TripPlannerPanel({ onClear }: { onClear: () => void }) {
       )}
 
       <style>{`@keyframes spin { to { transform: rotate(360deg); } } .spin-icon { animation: spin 1s linear infinite; }`}</style>
-    </section>
+      </div>
+    </PremiumPanelLayout>
   )
 }
 

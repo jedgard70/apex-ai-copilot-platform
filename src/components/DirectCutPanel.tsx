@@ -5,6 +5,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 import {
   AlertTriangle, CheckCircle, ChevronDown, ChevronRight,
   Download, ExternalLink, Film, Folder, GripVertical,
@@ -936,26 +937,16 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
   const calculatedTimecode = `${hh}:${mm}:${ss}:${ff}`
 
   return (
-    <div style={{
-      width: '100%', height: '100%',
-      background: D.bg, display: 'flex', flexDirection: 'column',
-      fontFamily: "'Inter', sans-serif", color: D.onSurface, overflow: 'hidden',
-    }}>
-      {/* ── Top App Bar ─────────────────────────────────────────── */}
-      <header style={{
-        height: 48, background: D.surfaceContainerLowest, borderBottom: `1px solid ${D.outlineVariant}`,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 16px', flexShrink: 0, zIndex: 10,
-      }}>
-        {/* Left */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <button onClick={onClear} style={{ background: 'none', border: 'none', cursor: 'pointer', color: D.onSurfaceVariant, display: 'flex', alignItems: 'center', gap: 4, fontSize: 11 }}>
-              ← Fechar
-            </button>
-            <div style={{ width: 1, height: 16, background: D.outlineVariant }} />
-            <span style={{ fontSize: 13, fontWeight: 700, color: D.onSurface, letterSpacing: '-0.03em' }}>DIRECTOR'S CUT</span>
-          </div>
+    <PremiumPanelLayout title="Director's Cut Studio" subtitle="Configurações e monitoramento" onClose={onClear}>
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+        <header style={{
+          height: 48, background: D.surfaceContainerLowest, borderBottom: `1px solid ${D.outlineVariant}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 16px', flexShrink: 0, zIndex: 10,
+        }}>
+          {/* Left */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+
           <nav style={{ display: 'flex', gap: 12 }}>
             {[
               { id: 'storyboard', label: 'Storyboard' },
@@ -1111,6 +1102,7 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
         ::-webkit-scrollbar-thumb { background: ${D.outlineVariant}; border-radius: 2px; }
         ::-webkit-scrollbar-track { background: transparent; }
       `}</style>
-    </div>
+      </div>
+    </PremiumPanelLayout>
   )
 }

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Archive, Clipboard, Download, FileCode2, PackageOpen, X } from 'lucide-react'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 import {
   buildSkillExportRequest,
   exportDomains,
@@ -118,16 +119,15 @@ export function SkillExportPanel({ openSignal, onClose }: SkillExportPanelProps)
   }
 
   return (
-    <section className="skill-export-panel" aria-label="Skill Export Factory">
-      <div className="skill-export-head">
-        <div>
-          <span>Portable knowledge factory</span>
-          <h2>Skill Export Panel</h2>
-        </div>
+    <PremiumPanelLayout 
+      title="Skill Export Panel" 
+      subtitle="Ações e configurações operacionais"
+      headerActions={
         <button type="button" onClick={() => { setOpen(false); onClose() }} aria-label="Close skill export">
           <X size={16} />
         </button>
-      </div>
+      }
+    >
 
       <label className="skill-export-field">
         <span>Platform</span>
@@ -210,6 +210,6 @@ export function SkillExportPanel({ openSignal, onClose }: SkillExportPanelProps)
           )}
         </div>
       )}
-    </section>
+    </PremiumPanelLayout>
   )
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { X, Play, Activity, AlertCircle, CheckCircle, Clock, RefreshCw, Loader2, Users, Brain, Zap, Shield, BarChart3, Target, GitBranch, LogOut } from 'lucide-react'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 
 type Agent = { id: string; name: string; role: string; icon: string; description: string; capabilities: string[]; status: string; coordinationModel: string; lastRun: string | null; tasks: number; successRate: number; recentLog: any[] }
 type CoordModel = { id: string; name: string; description: string }
@@ -68,25 +69,20 @@ export function CognitiveAgentsPanel({ onClear }: { onClear: () => void }) {
   const roleColors: Record<string, string> = { Engenharia: '#3b82f6', Arquitetura: '#8b5cf6', Planejamento: '#f59e0b', Operação: '#10b981', 'Inteligência': '#ec4899', Comercial: '#f97316', Financeiro: '#22c55e', 'Jurídico': '#ef4444', Infraestrutura: '#06b6d4', Estratégia: '#6366f1', 'Núcleo Central': '#a855f7' }
 
   return (
-    <section style={{ padding: '12px', height: '100%', overflow: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <span style={{ color: '#a855f7', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            <Brain size={14} style={{ display: 'inline' }} /> Agentes Cognitivos ACIP
-          </span>
-          <h2 style={{ margin: '4px 0', fontSize: '16px' }}>{agents.length} Agentes Especializados</h2>
-          <p style={{ fontSize: '11px', color: '#6b7280', margin: 0 }}>
-            {status ? `${status.activeAgents} ativos · ${status.averageSuccessRate}% sucesso · ${status.totalTasksExecuted} tarefas` : 'Carregando...'}
-          </p>
-        </div>
+    <PremiumPanelLayout
+      title="Agentes Cognitivos ACIP"
+      subtitle={status ? `${agents.length} Agentes Especializados · ${status.activeAgents} ativos · ${status.averageSuccessRate}% sucesso · ${status.totalTasksExecuted} tarefas` : `${agents.length} Agentes Especializados · Carregando...`}
+      icon={<Brain size={14} />}
+      headerActions={
         <div style={{ display: 'flex', gap: '4px' }}>
           <button onClick={load} disabled={loading} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }}>
             <RefreshCw size={15} className={loading ? 'spin-icon' : ''} />
           </button>
           <button className="ghost-action" onClick={onClear}><X size={16} /></button>
         </div>
-      </div>
-
+      }
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', height: '100%' }}>
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '2px', borderBottom: '1px solid #1f2937' }}>
         {([{ id: 'agents', label: '🤖 Agentes', icon: Users }, { id: 'coordination', label: '🔄 Coordenação', icon: GitBranch }, { id: 'log', label: '📋 Log', icon: Activity }, { id: 'status', label: '📊 Status', icon: BarChart3 }] as const).map(t => (
@@ -242,7 +238,8 @@ export function CognitiveAgentsPanel({ onClear }: { onClear: () => void }) {
       )}
 
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}.spin-icon{animation:spin 1s linear infinite}`}</style>
-    </section>
+      </div>
+    </PremiumPanelLayout>
   )
 }
 

@@ -3,6 +3,7 @@ import { Clipboard, Download, FileJson, PackageCheck, Save, X, FileArchive } fro
 import JSZip from 'jszip'
 import { ProjectWorkspace } from '../lib/projectWorkspace'
 import { ProjectPackagePlan } from '../lib/projectPackageKnowledge'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 
 type ProjectPackagePanelProps = {
   project: ProjectWorkspace
@@ -156,18 +157,16 @@ export function ProjectPackagePanel({ project, goal, conversationContext, onSave
   }
 
   return (
-    <section className="contracts-studio" aria-label="Project package pipeline">
-      <div className="contracts-heading">
-        <div>
-          <span>Project Package Pipeline</span>
-          <h2>Complete delivery bundle from the current project workspace</h2>
-          <p>Builds a real package plan from briefing, files and saved studio outputs already present in Apex.</p>
-        </div>
+    <PremiumPanelLayout
+      title="Complete delivery bundle"
+      subtitle="Builds a real package plan from briefing, files and saved studio outputs already present in Apex."
+      headerActions={
         <button className="ghost-action" type="button" onClick={onClear} aria-label="Close Project Package Pipeline">
           <X size={16} />
         </button>
-      </div>
-
+      }
+    >
+      <div className="contracts-studio" style={{ flex: 1, padding: 0, background: 'transparent' }}>
       <div className="contracts-layout">
         <aside className="contracts-controls">
           <div className="contracts-card">
@@ -243,6 +242,7 @@ export function ProjectPackagePanel({ project, goal, conversationContext, onSave
           )}
         </div>
       </div>
-    </section>
+      </div>
+    </PremiumPanelLayout>
   )
 }

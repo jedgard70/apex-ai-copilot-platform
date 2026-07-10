@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import type { ApsPlan } from '../lib/apsKnowledge'
 import { APS_ACCEPT, APS_FORMAT_LABELS, pollInterval } from '../lib/apsKnowledge'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 
 // ── Autodesk Viewer SDK (loaded once via CDN) ─────────────────────────────────
 
@@ -247,21 +248,11 @@ export function ApsPanel({ source, onClear }: ApsPanelProps) {
   const fileLabel = file ? `${file.name}${APS_FORMAT_LABELS[fileExt] ? ` (${APS_FORMAT_LABELS[fileExt]})` : ''}` : ''
 
   return (
-    <section className="business-studio contracts-studio">
-      <div className="contracts-heading">
-        <div>
-          <span><Zap size={16} /> Autodesk Platform Services</span>
-          <h2>APS Model Derivative — Upload, Tradução e Viewer 3D/2D</h2>
-          <p>Faça upload de RVT, IFC, DWG, FBX, DGN e 30+ formatos. A Apex AI executa o pipeline completo.</p>
-        </div>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
-          {onClear && (
-            <button className="ghost-action" type="button" onClick={onClear} aria-label="Fechar APS">
-              <X size={16} />
-            </button>
-          )}
-        </div>
-      </div>
+    <PremiumPanelLayout
+      title="Autodesk Platform Services"
+      subtitle="APS Model Derivative — Upload, Tradução e Viewer 3D/2D. RVT, IFC, DWG, FBX, DGN, etc."
+      headerActions={onClear ? <button className="ghost-action" type="button" onClick={onClear} aria-label="Fechar APS" style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}><X size={16} /></button> : undefined}
+    >
 
       {plan && (
         <div className="contracts-card">
@@ -362,6 +353,6 @@ export function ApsPanel({ source, onClear }: ApsPanelProps) {
           </p>
         </div>
       )}
-    </section>
+    </PremiumPanelLayout>
   )
 }

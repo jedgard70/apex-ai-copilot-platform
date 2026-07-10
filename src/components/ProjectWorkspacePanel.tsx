@@ -1,6 +1,7 @@
 import { ChangeEvent, useEffect, useRef, useState } from 'react'
-import { Download, FolderOpen, Import, Plus, Save, Trash2 } from 'lucide-react'
+import { Download, FolderOpen, Import, Plus, Save, Trash2, X } from 'lucide-react'
 import { projectProfileToDraft, ProjectProfileDraft, ProjectWorkspace } from '../lib/projectWorkspace'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 
 type ProjectSummary = {
   files: number
@@ -104,7 +105,17 @@ export function ProjectWorkspacePanel({
   }
 
   return (
-    <section className="project-workspace-panel" aria-label="Project Workspace">
+    <PremiumPanelLayout
+      title="Project Workspace"
+      subtitle={project.name}
+      headerActions={
+        <>
+          <button type="button" onClick={onNewProject} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer' }}><Plus size={15} /> New</button>
+          <button className="ghost-action" onClick={onClear}><X size={16} /></button>
+        </>
+      }
+    >
+      <div className="project-workspace-panel" style={{ padding: 0, background: 'transparent' }}>
       <button className="project-workspace-toggle" type="button" onClick={() => setOpen(value => !value)}>
         <FolderOpen size={17} />
         <span>{project.name}</span>
@@ -113,13 +124,6 @@ export function ProjectWorkspacePanel({
 
       {open && (
         <div className="project-workspace-body">
-          <div className="project-workspace-head">
-            <div>
-              <span>Project Workspace</span>
-              <strong>{project.name}</strong>
-            </div>
-            <button type="button" onClick={onNewProject}><Plus size={15} /> New</button>
-          </div>
 
           <label className="project-field">
             <span>Current project name</span>
@@ -296,6 +300,7 @@ export function ProjectWorkspacePanel({
           </p>
         </div>
       )}
-    </section>
+      </div>
+    </PremiumPanelLayout>
   )
 }

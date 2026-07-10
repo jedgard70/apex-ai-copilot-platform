@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AlertTriangle, Brain, Check, FileText, ShieldCheck, X } from 'lucide-react'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 import {
   buildProjectMemoryUpdate,
   classifySkillUpdateStorageLayer,
@@ -161,16 +162,15 @@ export function SkillUpdatePanel({
   }
 
   return (
-    <section className="skill-update-panel" aria-label="Skill Update Panel">
-      <div className="skill-update-head">
-        <div>
-          <span>Owner approval required</span>
-          <h2>Skill Update Panel</h2>
-        </div>
+    <PremiumPanelLayout 
+      title="Skill Update Panel" 
+      subtitle="Ações e configurações operacionais"
+      headerActions={
         <button type="button" onClick={() => { setOpen(false); onClose() }} aria-label="Close skill update">
           <X size={16} />
         </button>
-      </div>
+      }
+    >
 
       {!source && (
         <div className="skill-update-empty">
@@ -264,7 +264,7 @@ export function SkillUpdatePanel({
           <small>Saved to: {applyResult.storageTargets.join(' · ')}</small>
         </div>
       )}
-    </section>
+    </PremiumPanelLayout>
   )
 }
 

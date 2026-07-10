@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getBrowserSupabaseClient } from '../lib/supabaseClient'
 import { X, RefreshCw, TrendingUp, UserPlus, ChevronRight, DollarSign, Target, Users, BarChart3, Filter, Sparkles, MessageSquare } from 'lucide-react'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 
 const STAGE_COLORS: Record<string, string> = {
   prospeccao: '#6b7280', qualificacao: '#3b82f6', proposta: '#f59e0b',
@@ -88,29 +89,15 @@ export function CrmPipelinePanel({ onClear, onSendToMarketing }: { onClear: () =
   }
 
   return (
-    <section style={{ padding: '12px', height: '100%', overflow: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', background: S.bg }}>
-
-      {/* Header - Stitch style */}
-      <div style={{ ...cardStyle, borderRadius: 12, padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-            <span className="material-symbols-outlined" style={{ color: S.accent, fontSize: 18 }}>group</span>
-            <span style={{ color: S.accent, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>CRM Pipeline</span>
-          </div>
-          <h2 style={{ margin: '2px 0', fontSize: 18, fontWeight: 600, color: S.text }}>Pipeline de Vendas</h2>
-          <p style={{ fontSize: 11, color: S.textDim, margin: 0 }}>{kpis?.totalLeads || 0} leads · R$ {((kpis?.vglTotal || 0) / 1000).toFixed(0)}K VGL</p>
-        </div>
+    <PremiumPanelLayout
+      title="Pipeline de Vendas"
+      subtitle={`${kpis?.totalLeads || 0} leads · R$ ${((kpis?.vglTotal || 0) / 1000).toFixed(0)}K VGL`}
+      icon={<span className="material-symbols-outlined" style={{ color: S.accent, fontSize: 18 }}>group</span>}
+      headerActions={
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           <button onClick={() => setShowForm(!showForm)}
             style={{ padding: '6px 14px', borderRadius: 8, background: S.accent, color: '#fff', border: 'none', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
             <UserPlus size={12} /> Novo Lead
-          </button>
-          <button onClick={load} disabled={loading}
-            style={{ width: 30, height: 30, borderRadius: 6, background: 'rgba(255,255,255,0.05)', border: `1px solid ${S.border}`, color: S.textDim, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <RefreshCw size={13} className={loading ? 'spin-icon' : ''} />
-          </button>
-          <button onClick={onClear} style={{ width: 30, height: 30, borderRadius: 6, background: 'rgba(255,255,255,0.05)', border: `1px solid ${S.border}`, color: S.textDim, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <X size={13} />
           </button>
           <button onClick={async () => {
             if (!confirm('Deseja que a Inteligência Artificial da Apex analise todos os seus Leads Mornos e Frios e crie uma campanha de E-mail Marketing agressiva de conversão?')) return;
@@ -126,8 +113,17 @@ export function CrmPipelinePanel({ onClear, onSendToMarketing }: { onClear: () =
             style={{ padding: '6px 14px', borderRadius: 8, background: '#f59e0b', color: '#fff', border: 'none', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
             🎯 Criar Campanha IA ({leads.length})
           </button>
+          <button onClick={load} disabled={loading}
+            style={{ width: 30, height: 30, borderRadius: 6, background: 'rgba(255,255,255,0.05)', border: `1px solid ${S.border}`, color: S.textDim, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <RefreshCw size={13} className={loading ? 'spin-icon' : ''} />
+          </button>
+          <button onClick={onClear} style={{ width: 30, height: 30, borderRadius: 6, background: 'rgba(255,255,255,0.05)', border: `1px solid ${S.border}`, color: S.textDim, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <X size={13} />
+          </button>
         </div>
-      </div>
+      }
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', height: '100%', background: S.bg, padding: '12px' }}>
 
       {/* KPI Cards - Stitch bento style */}
       {kpis && (
@@ -298,7 +294,8 @@ export function CrmPipelinePanel({ onClear, onSendToMarketing }: { onClear: () =
       </div>
 
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}.spin-icon{animation:spin 1s linear infinite}`}</style>
-    </section>
+      </div>
+    </PremiumPanelLayout>
   )
 }
 

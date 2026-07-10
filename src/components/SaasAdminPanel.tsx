@@ -1,5 +1,6 @@
 import { Shield, Users, X, UserPlus, Trash, RefreshCw } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 import { apexRoles, ApexRoleId } from '../lib/authModel'
 import {
   clientWorkspaceTemplate,
@@ -109,15 +110,11 @@ export function SaasAdminPanel({ goal, onClear }: SaasAdminPanelProps) {
   }
 
   return (
-    <section className="business-studio contracts-studio" style={{ overflowY: 'auto' }}>
-      <div className="contracts-head">
-        <div>
-          <span><Shield size={16} /> SaaS Admin Layer</span>
-          <h2>Gerenciamento de Usuários (Real-time RBAC)</h2>
-          <p>Convite, alteração de cargos e restrição de rotas da plataforma.</p>
-        </div>
-        <button onClick={onClear} aria-label="Close SaaS Admin"><X size={18} /></button>
-      </div>
+    <PremiumPanelLayout 
+      title="SaaS Admin Layer" 
+      subtitle="Ações e configurações operacionais"
+      headerActions={<button onClick={onClear} aria-label="Close SaaS Admin"><X size={18} /></button>}
+    >
 
       {errorMsg && (
         <div className="business-alert" style={{ background: '#5a1111', color: '#ffb5b5', borderColor: '#821a1a' }}>
@@ -219,6 +216,6 @@ export function SaasAdminPanel({ goal, onClear }: SaasAdminPanelProps) {
         </div>
       </div>
 
-    </section>
+    </PremiumPanelLayout>
   )
 }

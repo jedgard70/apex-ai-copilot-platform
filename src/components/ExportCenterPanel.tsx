@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Clipboard, Download, FileArchive, FileJson, PackageCheck, X } from 'lucide-react'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 import { ProjectWorkspace } from '../lib/projectWorkspace'
 import {
   ExportFormat,
@@ -63,18 +64,7 @@ export function ExportCenterPanel({ project, onRecordExport, onClear }: ExportCe
   }
 
   return (
-    <section className="contracts-studio export-center-studio" aria-label="Export Center">
-      <div className="contracts-heading">
-        <div>
-          <span>Export Center</span>
-          <h2>Package project outputs safely</h2>
-          <p>Exports only data already present in the local Project Workspace. Secrets are redacted and no fake files are generated.</p>
-        </div>
-        <button className="ghost-action" type="button" onClick={onClear} aria-label="Close Export Center">
-          <X size={16} />
-        </button>
-      </div>
-
+    <PremiumPanelLayout title="Package project outputs safely" subtitle="Configurações e monitoramento" onClose={onClear}>
       <div className="contracts-layout">
         <aside className="contracts-controls">
           <div className="contracts-card">
@@ -197,7 +187,7 @@ export function ExportCenterPanel({ project, onRecordExport, onClear }: ExportCe
           )}
         </div>
       </div>
-    </section>
+    </PremiumPanelLayout>
   )
 }
 

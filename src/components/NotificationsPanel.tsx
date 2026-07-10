@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Bell, Clipboard, Download, Plus, Save, X, RefreshCw } from 'lucide-react'
 import { AlertRecord, AlertSeverity, AlertStatus, AlertType, NotificationsPlan, alertTypes } from '../lib/notificationsKnowledge'
-
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 type NotificationsPanelProps = {
   goal: string
   conversationContext: string[]
@@ -112,16 +112,7 @@ export function NotificationsPanel({ goal, conversationContext, onSaveToProject,
   }
 
   return (
-    <section className="contracts-studio" aria-label="Notifications Alerts Studio">
-      <div className="contracts-heading">
-        <div>
-          <span><Bell size={16} /> Notifications / Alerts</span>
-          <h2>Central de Alarmes Integrada</h2>
-          <p>Conectado ao painel executivo (Supabase Real-time).</p>
-        </div>
-        <button className="ghost-action" type="button" onClick={onClear} aria-label="Close Notifications"><X size={16} /></button>
-      </div>
-
+    <PremiumPanelLayout title="Central de Alarmes Integrada" subtitle="Configurações e monitoramento" onClose={onClear}>
       <div className="contracts-layout">
         <aside className="contracts-controls">
           <div className="contracts-card">
@@ -170,6 +161,6 @@ export function NotificationsPanel({ goal, conversationContext, onSaveToProject,
           </div>
         </div>
       </div>
-    </section>
+    </PremiumPanelLayout>
   )
 }

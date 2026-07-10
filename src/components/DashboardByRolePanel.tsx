@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { X, RefreshCw, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Activity, Users, FileText, BarChart3, Target } from 'lucide-react'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 
 const ROLE_META: Record<string, { label: string; color: string }> = {
   'diretor-executivo': { label: 'Diretor Executivo', color: '#a855f7' },
@@ -42,23 +43,20 @@ export function DashboardByRolePanel({ onClear }: { onClear: () => void }) {
   const meta = ROLE_META[selectedRole] || { label: 'Dashboard', color: '#6b7280' }
 
   return (
-    <section style={{ padding: '12px', height: '100%', overflow: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <span style={{ color: meta.color, fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            <BarChart3 size={14} style={{ display: 'inline' }} /> Dashboard Executivo ACIP
-          </span>
-          <h2 style={{ margin: '4px 0', fontSize: '16px' }}>{dashboard?.icon || '📊'} {meta.label}</h2>
-          <p style={{ fontSize: '11px', color: '#6b7280', margin: 0 }}>Visão personalizada para seu perfil</p>
-        </div>
+    <PremiumPanelLayout
+      title={`${dashboard?.icon || '📊'} ${meta.label}`}
+      subtitle="Visão personalizada para seu perfil"
+      icon={<BarChart3 size={14} style={{ display: 'inline', color: meta.color }} />}
+      headerActions={
         <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
           <button onClick={loadDashboard} disabled={loading} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }}>
             <RefreshCw size={15} className={loading ? 'spin-icon' : ''} />
           </button>
           <button className="ghost-action" onClick={onClear}><X size={16} /></button>
         </div>
-      </div>
-
+      }
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', height: '100%' }}>
       {/* Role selector */}
       <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', borderBottom: '1px solid #1f2937', paddingBottom: '8px' }}>
         {roles.map((r: any) => (
@@ -209,7 +207,8 @@ export function DashboardByRolePanel({ onClear }: { onClear: () => void }) {
       )}
 
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}.spin-icon{animation:spin 1s linear infinite}`}</style>
-    </section>
+      </div>
+    </PremiumPanelLayout>
   )
 }
 

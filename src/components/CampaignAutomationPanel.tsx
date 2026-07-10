@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Calendar, Clipboard, Clock, Download, Hash, Instagram, Save, Send, Sparkles, X } from 'lucide-react'
 import { CampaignAutomationPlan, CampaignChannel, CampaignFormat, CampaignGoal, createCampaignAutomationPlan } from '../lib/campaignAutomationKnowledge'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 
 type SocialPlatform = {
   platform: string
@@ -139,16 +140,14 @@ export function CampaignAutomationPanel({ goal, conversationContext, onSaveToPro
   }
 
   return (
-    <section className="contracts-studio">
-      <div className="contracts-heading">
-        <div>
-          <span><Sparkles size={16} /> Campaign Automation</span>
-          <h2>Campaign and VSL conversion pack</h2>
-          <p>Generate social ads, CTAs, storyboard and video-sales landing structure inside Apex.</p>
-        </div>
+    <PremiumPanelLayout
+      title="Campaign Automation"
+      subtitle="Campaign and VSL conversion pack"
+      icon={<Sparkles size={16} />}
+      headerActions={
         <button className="ghost-action" onClick={onClear}><X size={16} /></button>
-      </div>
-
+      }
+    >
       <div className="contracts-layout">
         <aside className="contracts-controls">
           <div className="contracts-card">
@@ -398,7 +397,7 @@ export function CampaignAutomationPanel({ goal, conversationContext, onSaveToPro
           )}
         </div>
       </div>
-    </section>
+    </PremiumPanelLayout>
   )
 }
 

@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { Clipboard, Download, Mic, Save, Sparkles, UploadCloud, UserSquare2, X } from 'lucide-react'
 import { AvatarVoicePlan, AvatarVoiceUseCase, createAvatarVoicePlan } from '../lib/avatarVoiceKnowledge'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 
 type Props = {
   goal: string
@@ -92,16 +93,11 @@ export function AvatarVoicePanel({ goal, conversationContext, onSaveToProject, o
   }
 
   return (
-    <section className="contracts-studio">
-      <div className="contracts-heading">
-        <div>
-          <span><UserSquare2 size={16} /> Avatar / Voice Pipeline</span>
-          <h2>Consent-gated media presenter workflow</h2>
-          <p>Prepare owner avatar, voice, script and campaign/demonstration package for app and web.</p>
-        </div>
-        <button className="ghost-action" onClick={onClear}><X size={16} /></button>
-      </div>
-
+    <PremiumPanelLayout
+      title="Avatar / Voice Pipeline"
+      subtitle="Consent-gated media presenter workflow. Prepare owner avatar, voice, script and campaign/demonstration package for app and web."
+      headerActions={<button className="ghost-action" onClick={onClear} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}><X size={16} /></button>}
+    >
       <div className="contracts-layout">
         <aside className="contracts-controls">
           <div className="contracts-card">
@@ -170,7 +166,7 @@ export function AvatarVoicePanel({ goal, conversationContext, onSaveToProject, o
           )}
         </div>
       </div>
-    </section>
+    </PremiumPanelLayout>
   )
 }
 

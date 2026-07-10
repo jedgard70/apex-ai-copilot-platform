@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { X, RefreshCw, AlertTriangle, CheckCircle, Clock, Activity, FileText, Plus, Filter } from 'lucide-react'
+import { X, RefreshCw, AlertTriangle, FileText, Plus, Filter } from 'lucide-react'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 
 const SEV_COLORS: Record<string, string> = { alta: '#ef4444', media: '#f59e0b', baixa: '#3b82f6' }
 
@@ -48,21 +49,19 @@ export function QualidadeNCIsPanel({ onClear }: { onClear: () => void }) {
     } catch { /* */ }
   }
 
-  return (<section style={{ padding: '12px', height: '100%', overflow: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <span style={{ color: '#22c55e', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            <Activity size={14} style={{ display: 'inline' }} /> Qualidade / NCIs
-          </span>
-          <h2 style={{ margin: '4px 0', fontSize: '16px' }}>Não-Conformidades e Checklists</h2>
-          <p style={{ fontSize: '11px', color: '#6b7280', margin: 0 }}>{kpis?.totalNCIs || 0} NCIs · {kpis?.totalChecklists || 0} checklists · {kpis?.conformidadeGeral || 0}% conforme</p>
-        </div>
-        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-          <button onClick={() => setShowForm(!showForm)} style={{ padding: '4px 10px', borderRadius: '6px', background: '#22c55e', color: '#fff', border: 'none', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}><Plus size={12} /> Nova NCI</button>
-          <button onClick={load} disabled={loading} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }}><RefreshCw size={15} className={loading ? 'spin-icon' : ''} /></button>
+  return (
+    <PremiumPanelLayout
+      title="Registro de NCIs"
+      subtitle="Não Conformidades Internas e Auditorias"
+      headerActions={
+        <>
+          <button onClick={() => setShowForm(!showForm)} className="ghost-action" style={{ border: '1px solid #374151' }}><Plus size={14} /> Nova NCI</button>
+          <button onClick={load} disabled={loading} className="ghost-action"><RefreshCw size={15} className={loading ? 'spin-icon' : ''} /></button>
           <button className="ghost-action" onClick={onClear}><X size={16} /></button>
-        </div>
-      </div>
+        </>
+      }
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
 
       {/* KPIs */}
       {kpis && <div style={{ display: 'grid', gap: '6px', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))' }}>
@@ -150,9 +149,13 @@ export function QualidadeNCIsPanel({ onClear }: { onClear: () => void }) {
           </div>
         ))}
         {checklists.length === 0 && <div style={{ textAlign: 'center', padding: 32, color: '#6b7280' }}>Nenhum checklist encontrado.</div>}
-      </div>}
+        </div>
+      }
+
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}.spin-icon{animation:spin 1s linear infinite}`}</style>
-    </section>)
+      </div>
+    </PremiumPanelLayout>
+  )
 }
 
 function MiniStat({ label, value, color }: { label: string; value: string | number; color: string }) {

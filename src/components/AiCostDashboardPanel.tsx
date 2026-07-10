@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Activity, Clipboard, Download, Plus, Save, X, RefreshCw } from 'lucide-react'
 import { AiCostPlan, AiCostRecord, AiCostSourceConfidence, aiCostModules } from '../lib/aiCostKnowledge'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 
 type AiCostDashboardPanelProps = {
   goal: string
@@ -85,16 +86,11 @@ export function AiCostDashboardPanel({ goal, conversationContext, onSaveToProjec
   }
 
   return (
-    <section className="contracts-studio" aria-label="AI Cost Dashboard">
-      <div className="contracts-heading">
-        <div>
-          <span><Activity size={16} /> AI Cost / Observability</span>
-          <h2>Consumo Real (Supabase Backend)</h2>
-          <p>Valores extraídos das rotas interceptadas do Gemini no servidor (engine.mjs).</p>
-        </div>
-        <button className="ghost-action" type="button" onClick={onClear} aria-label="Close AI Cost Dashboard"><X size={16} /></button>
-      </div>
-
+    <PremiumPanelLayout
+      title="AI Cost / Observability"
+      subtitle="Consumo Real (Supabase Backend) - Valores extraídos das rotas interceptadas."
+      headerActions={<button className="ghost-action" type="button" onClick={onClear} aria-label="Close AI Cost Dashboard" style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}><X size={16} /></button>}
+    >
       <div className="contracts-layout">
         <aside className="contracts-controls">
           <div className="contracts-card">
@@ -149,7 +145,7 @@ export function AiCostDashboardPanel({ goal, conversationContext, onSaveToProjec
           </div>
         </div>
       </div>
-    </section>
+    </PremiumPanelLayout>
   )
 }
 

@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { Bot, FileText, Layers3, X, Activity, Play, Clock, CheckCircle } from 'lucide-react'
 import { ApexAgent, apexAgents } from '../lib/apexAgents'
 
+import { PremiumPanelLayout } from './PremiumPanelLayout'
+
 type AgentsPanelProps = {
   onClear: () => void
   onOpenStudio?: (studio: string) => void
@@ -186,15 +188,11 @@ export function AgentsPanel({ onClear, onOpenStudio }: AgentsPanelProps) {
   }
 
   return (
-    <section className="agents-studio contracts-studio">
-      <div className="contracts-head">
-        <div>
-          <span><Bot size={16} /> Cognitive Agents</span>
-          <h2>8-agent intelligence layer</h2>
-          <p>Agent coverage is honest: planned/partial agents are not marked done until their underlying studios and evidence pipelines exist.</p>
-        </div>
-        <button onClick={onClear} aria-label="Close agents panel"><X size={18} /></button>
-      </div>
+    <PremiumPanelLayout
+      title="Cognitive Agents"
+      subtitle="Gerenciamento do módulo"
+      headerActions={<button onClick={onClear} aria-label="Close agents panel" style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}><X size={18} /></button>}
+    >
 
       <div className="business-alert">
         <strong>Local-first CP11C implemented</strong>
@@ -354,6 +352,6 @@ export function AgentsPanel({ onClear, onOpenStudio }: AgentsPanelProps) {
           </article>
         ))}
       </div>
-    </section>
+    </PremiumPanelLayout>
   )
 }

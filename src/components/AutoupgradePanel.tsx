@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Clipboard, Download, Play, RefreshCw, Save, ShieldCheck, Sparkles, X } from 'lucide-react'
 import { AutoupgradePlan, AutoupgradeRecommendation, createAutoupgradePlan } from '../lib/autoupgradeKnowledge'
 import { ProjectWorkspace } from '../lib/projectWorkspace'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 
 type Props = {
   goal: string
@@ -86,16 +87,11 @@ export function AutoupgradePanel({ goal, conversationContext, project, runtimeSu
   }, [])
 
   return (
-    <section className="contracts-studio">
-      <div className="contracts-heading">
-        <div>
-          <span><Sparkles size={16} /> Autoupgrade Center</span>
-          <h2>Safe self-improvement queue</h2>
-          <p>{plan.postureSummary}</p>
-        </div>
-        <button className="ghost-action" onClick={onClear}><X size={16} /></button>
-      </div>
-
+    <PremiumPanelLayout
+      title="Autoupgrade Center"
+      subtitle={plan.postureSummary || "Safe self-improvement queue"}
+      headerActions={<button className="ghost-action" onClick={onClear} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}><X size={16} /></button>}
+    >
       <div className="contracts-layout">
         <aside className="contracts-controls">
           <div className="contracts-card">
@@ -167,6 +163,6 @@ export function AutoupgradePanel({ goal, conversationContext, project, runtimeSu
           ))}
         </div>
       </div>
-    </section>
+    </PremiumPanelLayout>
   )
 }

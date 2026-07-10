@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 
 interface TerminalLine {
   type: 'input' | 'output' | 'error' | 'info'
@@ -160,42 +161,21 @@ export function TerminalPanel({ onClose, embedded = false }: { onClose?: () => v
   }
 
   return (
-    <div style={{
-      position: embedded ? 'relative' : 'fixed',
-      bottom: embedded ? undefined : 0,
-      left: embedded ? undefined : 0,
-      right: embedded ? undefined : 0,
-      height: embedded ? '100%' : '350px',
-      backgroundColor: '#0d1117',
-      borderTop: '1px solid #30363d',
-      zIndex: embedded ? 1 : 9999,
-      display: 'flex',
-      flexDirection: 'column',
-      fontFamily: "'Consolas', 'Menlo', monospace",
-    }}>
-      {/* Header */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '6px 14px',
-        backgroundColor: '#161b22',
-        borderBottom: '1px solid #30363d',
-        color: '#8b949e',
-        fontSize: '12px',
-        flexShrink: 0,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ color: '#3fb950', fontSize: '10px' }}>●</span>
-          <span style={{ color: '#e6edf3', fontWeight: 600 }}>Apex Terminal</span>
-          <span style={{ color: '#484f58', fontSize: '11px' }}>{cwd}</span>
-        </div>
+    <PremiumPanelLayout 
+      title="Apex Terminal" 
+      subtitle="Ações e configurações operacionais"
+      headerActions={
         <button
           onClick={onClose}
-          style={{ background: 'transparent', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: '16px', padding: '0 4px', lineHeight: 1 }}
+          style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '16px' }}
           title="Fechar terminal"
         >×</button>
-      </div>
+      }
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, fontFamily: "'Consolas', 'Menlo', monospace", backgroundColor: '#0d1117' }}>
+        <div style={{ padding: '6px 14px', backgroundColor: '#161b22', borderBottom: '1px solid #30363d', color: '#8b949e', fontSize: '12px' }}>
+          <span style={{ color: '#484f58' }}>{cwd}</span>
+        </div>
 
       {/* Output area */}
       <div
@@ -263,6 +243,7 @@ export function TerminalPanel({ onClose, embedded = false }: { onClose?: () => v
           ▶ Run
         </button>
       </div>
-    </div>
+      </div>
+    </PremiumPanelLayout>
   )
 }

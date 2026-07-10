@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { exportContractDocx } from '../lib/contractsDocxExport'
 import { exportContractPdf } from '../lib/contractsPdfExport'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 import {
   AlertTriangle,
   CheckCircle2,
@@ -215,18 +216,15 @@ export function ContractsPanel({ source, goal, conversationContext, onSendToBudg
   }
 
   return (
-    <section className="contracts-studio" aria-label="Contracts Permits Studio">
-      <div className="contracts-heading">
-        <div>
-          <span>Contracts / Permits Studio</span>
-          <h2>Contracts, permits and compliance workspace</h2>
-          <p>{legalDisclaimer}</p>
-        </div>
+    <PremiumPanelLayout
+      title="Contracts / Permits Studio"
+      subtitle={`Contracts, permits and compliance workspace. ${legalDisclaimer}`}
+      headerActions={
         <button className="ghost-action" type="button" onClick={onClear} aria-label="Close Contracts Studio">
           <X size={16} />
         </button>
-      </div>
-
+      }
+    >
       <div className="contracts-layout">
         <aside className="contracts-controls">
           <div className="contracts-card">
@@ -510,7 +508,7 @@ export function ContractsPanel({ source, goal, conversationContext, onSendToBudg
           </div>
         </div>
       </div>
-    </section>
+    </PremiumPanelLayout>
   )
 }
 

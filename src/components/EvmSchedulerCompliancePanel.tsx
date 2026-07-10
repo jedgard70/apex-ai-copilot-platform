@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Activity, AlertTriangle, CalendarDays, Clipboard, Download, RefreshCw, ShieldCheck, X } from 'lucide-react'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 import {
   createEvmSchedulerCompliancePlan,
   EvmInputs,
@@ -77,16 +78,7 @@ export function EvmSchedulerCompliancePanel({
   }
 
   return (
-    <section className="evm-studio contracts-studio">
-      <div className="contracts-head">
-        <div>
-          <span><Activity size={16} /> CP11C Controls Agents</span>
-          <h2>EVM + Scheduler + NR Compliance</h2>
-          <p>Local analysis only. No fake real-time data, no fake official compliance approval and no fake safety certification.</p>
-        </div>
-        <button onClick={onClear} aria-label="Close EVM Scheduler NR panel"><X size={18} /></button>
-      </div>
-
+    <PremiumPanelLayout title="EVM + Scheduler + NR Compliance" subtitle="Configurações e monitoramento" onClose={onClear}>
       <div className="business-alert">
         <strong>Evidence rule</strong>
         <span>CONFIRMED requires user/project data. ESTIMATED is inferred. UNKNOWN remains missing. NR compliance is GENERAL_GUIDANCE or NEEDS_SAFETY_REVIEW until qualified review.</span>
@@ -254,6 +246,6 @@ export function EvmSchedulerCompliancePanel({
           </div>
         </div>
       </div>
-    </section>
+    </PremiumPanelLayout>
   )
 }

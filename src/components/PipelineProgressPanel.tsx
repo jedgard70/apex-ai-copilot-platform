@@ -3,6 +3,7 @@ import {
   Activity, AlertCircle, CheckCircle, Clock, Cpu, ExternalLink, Image,
   Loader2, Megaphone, Minimize2, Maximize2, X, RefreshCw, FileText, Video,
 } from 'lucide-react'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -122,34 +123,19 @@ export function PipelineProgressPanel({ onClear }: Props) {
   }, [brief.active, brief.queued, brief.errors])
 
   return (
-    <section style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', height: '100%', overflow: 'auto' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
-          <Cpu size={16} color={hasActivity ? '#3b82f6' : '#6b7280'} />
-          <div style={{ minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#9ca3af' }}>
-                Pipeline Status
-              </span>
-              {hasActivity && (
-                <span style={{
-                  display: 'inline-block', width: 8, height: 8, borderRadius: '50%',
-                  backgroundColor: brief.errors > 0 ? '#ef4444' : '#3b82f6',
-                  animation: brief.active > 0 ? 'pulse 1.5s infinite' : 'none',
-                }} />
-              )}
-            </div>
-            <span style={{ fontSize: '11px', color: '#6b7280' }}>
-              {brief.active > 0 && `${brief.active} em execução`}
-              {brief.active > 0 && brief.queued > 0 && ' | '}
-              {brief.queued > 0 && `${brief.queued} na fila`}
-              {!hasActivity && 'Nenhuma tarefa ativa'}
-              {hasActivity && (brief.active > 0 || brief.queued > 0) && ` | ${brief.done24h} concluídas (24h)`}
-            </span>
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0 }}>
+    <PremiumPanelLayout
+      title="Pipeline Status"
+      subtitle={
+        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {brief.active > 0 && `${brief.active} em execução`}
+          {brief.active > 0 && brief.queued > 0 && ' | '}
+          {brief.queued > 0 && `${brief.queued} na fila`}
+          {!hasActivity && 'Nenhuma tarefa ativa'}
+          {hasActivity && (brief.active > 0 || brief.queued > 0) && ` | ${brief.done24h} concluídas (24h)`}
+        </span>
+      }
+      headerActions={
+        <>
           <button
             onClick={() => { setShowRecent(!showRecent); if (!showRecent) fetchRecent() }}
             className="ghost-action"
@@ -162,8 +148,10 @@ export function PipelineProgressPanel({ onClear }: Props) {
             {expanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
           </button>
           <button className="ghost-action" onClick={onClear}><X size={16} /></button>
-        </div>
-      </div>
+        </>
+      }
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
 
       {/* Badge row */}
       {brief.done24h > 0 && (
@@ -219,7 +207,8 @@ export function PipelineProgressPanel({ onClear }: Props) {
         .pipeline-progress-fill.done { background: #10b981; }
         .pipeline-progress-fill.error { background: #ef4444; }
       `}</style>
-    </section>
+      </div>
+    </PremiumPanelLayout>
   )
 }
 

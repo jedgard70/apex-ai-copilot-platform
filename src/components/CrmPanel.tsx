@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { BusinessPlan, createBusinessPlan, pipelineStages, serviceCatalogDefaults } from '../lib/crmFinanceKnowledge'
 import { localDemoModeNotice } from '../lib/saasBusinessModel'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 
 type CrmPanelProps = {
   goal: string
@@ -57,27 +58,11 @@ export function CrmPanel({ goal, conversationContext, onSaveToProject, onActivat
   }
 
   return (
-    <div className="p-6">
-      {onClear && (
-        <div className="flex justify-end mb-4">
-          <button
-            type="button"
-            onClick={onClear}
-            className="text-[#c6c6ce] hover:text-[#e2e2e2] transition-colors"
-            aria-label="Close CRM Panel"
-          >
-            <span className="material-symbols-outlined text-[20px]">close</span>
-          </button>
-        </div>
-      )}
-
-      {/* Header */}
-      <div className="flex justify-between items-end mb-8">
-        <div>
-          <h1 className="font-headline-md text-[24px] text-[#e2e2e2] mb-1">CRM Command Center</h1>
-          <p className="text-[#c6c6ce] font-body-md text-sm">Real-time intelligence and relationship management.</p>
-        </div>
-        <div className="flex gap-3">
+    <PremiumPanelLayout
+      title="CRM Command Center"
+      subtitle="Real-time intelligence and relationship management."
+      headerActions={
+        <div className="flex gap-3 items-center">
           <button
             onClick={generatePlan}
             disabled={loading}
@@ -93,9 +78,20 @@ export function CrmPanel({ goal, conversationContext, onSaveToProject, onActivat
             <span className="material-symbols-outlined text-sm">save</span>
             Save
           </button>
+          {onClear && (
+            <button
+              type="button"
+              onClick={onClear}
+              className="text-[#c6c6ce] hover:text-[#e2e2e2] transition-colors ml-4"
+              aria-label="Close CRM Panel"
+            >
+              <span className="material-symbols-outlined text-[20px]">close</span>
+            </button>
+          )}
         </div>
-      </div>
-
+      }
+    >
+      <div className="flex flex-col gap-6">
       {message && (
         <div className="mb-6 px-4 py-3 rounded-xl text-sm text-[#c6c6ce]" style={{ background: 'rgba(22, 33, 62, 0.7)', border: '1px solid rgba(255,255,255,0.1)' }}>
           <strong className="text-[#6C47FF]">Status: </strong>
@@ -336,6 +332,7 @@ export function CrmPanel({ goal, conversationContext, onSaveToProject, onActivat
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </PremiumPanelLayout>
   )
 }

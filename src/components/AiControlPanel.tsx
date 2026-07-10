@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getBrowserSupabaseClient } from '../lib/supabaseClient'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 import {
   Brain,
   Save,
@@ -133,8 +134,9 @@ export function AiControlPanel() {
   }
 
   return (
-    <div className="flex h-full w-full bg-[#121214] text-gray-200">
-      {/* Sidebar de Personas */}
+    <PremiumPanelLayout title="Ai Control" subtitle="Gerenciamento do módulo">
+      <div className="flex h-full w-full text-gray-200">
+        {/* Sidebar de Personas */}
       <div className="w-64 border-r border-white/10 p-4 flex flex-col gap-4 bg-white/5 backdrop-blur-xl">
         <div className="flex items-center gap-2 mb-2">
           <Brain className="w-5 h-5 text-indigo-400" />
@@ -253,5 +255,6 @@ export function AiControlPanel() {
         )}
       </div>
     </div>
+    </PremiumPanelLayout>
   )
 }

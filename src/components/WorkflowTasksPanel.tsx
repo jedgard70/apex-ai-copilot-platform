@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { X, RefreshCw, CheckCircle, Clock, AlertTriangle, Plus, User, Calendar } from 'lucide-react'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 const PRIO_COLORS: Record<string,string> = { alta:'#ef4444', media:'#f59e0b', baixa:'#3b82f6' }
 export function WorkflowTasksPanel({ onClear }: { onClear: () => void }) {
   const [tasks, setTasks] = useState<any[]>([]); const [kpis, setKpis] = useState<any>(null); const [loading, setLoading] = useState(false)
@@ -18,20 +19,20 @@ export function WorkflowTasksPanel({ onClear }: { onClear: () => void }) {
   async function createTask() { if (!form.titulo) return; setLoading(true); try { await fetch('/api/workflow/tasks',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...form, horasEstimadas:Number(form.horasEstimadas)}) }); setShowForm(false); setForm({ titulo:'', descricao:'', projeto:'', assignee:'', prioridade:'media', dataVencimento:'', categoria:'geral', horasEstimadas:'' }); await load() } catch {} finally { setLoading(false) } }
   async function updateStatus(id:string, status:string) { try { await fetch(`/api/workflow/tasks/${id}/status`,{ method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status}) }); await load() } catch {} }
   const isAtrasada = (t:any) => t.status !== 'concluida' && t.dataVencimento && t.dataVencimento < new Date().toISOString().slice(0,10)
-
-  return (<section style={{ padding:'12px', height:'100%', overflow:'auto', display:'flex', flexDirection:'column', gap:'8px' }}>
-    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-      <div>
-        <span style={{ color:'#3b82f6', fontSize:'11px', fontWeight:'bold', textTransform:'uppercase', letterSpacing:'0.05em' }}><Clock size={14} style={{ display:'inline' }} /> Workflow Tasks</span>
-        <h2 style={{ margin:'4px 0', fontSize:'16px' }}>Tarefas Operacionais</h2>
+  return (
+    <PremiumPanelLayout 
+      title="Workflow Tasks" 
+      subtitle="Ações e configurações operacionais"
+      headerActions={
+        <div style={{ display:'flex', gap:'4px', alignItems:'center' }}>
+          <button onClick={()=>setShowForm(!showForm)} style={{ padding:'4px 10px', borderRadius:'6px', background:'#3b82f6', color:'#fff', border:'none', fontSize:'11px', fontWeight:600, cursor:'pointer' }}><Plus size={12} /> Nova Tarefa</button>
+          <button onClick={load} disabled={loading} style={{ background:'none', border:'none', color:'#6b7280', cursor:'pointer' }}><RefreshCw size={15} className={loading ? 'spin-icon' : ''} /></button>
+          <button className="ghost-action" onClick={onClear}><X size={16} /></button>
+        </div>
+      }
+    >
+      <div style={{ display:'flex', flexDirection:'column', gap:'8px', flex: 1 }}>
         <p style={{ fontSize:'11px', color:'#6b7280', margin:0 }}>{kpis?.total||0} tarefas · {kpis?.atrasadas||0} atrasadas · {kpis?.pendentes||0} pendentes</p>
-      </div>
-      <div style={{ display:'flex', gap:'4px', alignItems:'center' }}>
-        <button onClick={()=>setShowForm(!showForm)} style={{ padding:'4px 10px', borderRadius:'6px', background:'#3b82f6', color:'#fff', border:'none', fontSize:'11px', fontWeight:600, cursor:'pointer' }}><Plus size={12} /> Nova Tarefa</button>
-        <button onClick={load} disabled={loading} style={{ background:'none', border:'none', color:'#6b7280', cursor:'pointer' }}><RefreshCw size={15} className={loading ? 'spin-icon' : ''} /></button>
-        <button className="ghost-action" onClick={onClear}><X size={16} /></button>
-      </div>
-    </div>
     {kpis && <div style={{ display:'grid', gap:'6px', gridTemplateColumns:'repeat(auto-fill, minmax(100px, 1fr))' }}>
       <MiniStat label="Total" value={kpis.total} color="#6b7280" />
       <MiniStat label="Atrasadas" value={kpis.atrasadas} color="#ef4444" />
@@ -77,7 +78,9 @@ export function WorkflowTasksPanel({ onClear }: { onClear: () => void }) {
       {tasks.length===0 && <div style={{ textAlign:'center', padding:32, color:'#6b7280' }}>Nenhuma tarefa encontrada.</div>}
     </div>
     <style>{`@keyframes spin{to{transform:rotate(360deg)}}.spin-icon{animation:spin 1s linear infinite}`}</style>
-  </section>)
+      </div>
+    </PremiumPanelLayout>
+  )
 }
 function MiniStat({label,value,color}:{label:string;value:string|number;color:string}){return(<div style={{padding:'8px 10px',background:'#111827',borderRadius:'6px',border:`1px solid ${color}22`}}><div style={{fontSize:'9px',color:'#6b7280'}}>{label}</div><div style={{fontSize:'16px',fontWeight:700,color}}>{value}</div></div>)}
 function FilterChip({active,onClick,label}:{active:boolean;onClick:()=>void;label:string}){return<button onClick={onClick} style={{padding:'3px 10px',borderRadius:'999px',fontSize:'10px',fontWeight:600,border:'none',cursor:'pointer',background:active?'#3b82f6':'#1f2937',color:active?'#fff':'#9ca3af'}}>{label}</button>}

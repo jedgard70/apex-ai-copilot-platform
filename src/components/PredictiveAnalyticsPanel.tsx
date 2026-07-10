@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { X, RefreshCw, AlertTriangle, TrendingDown, Zap, TrendingUp, Shield, BarChart3, Lightbulb } from 'lucide-react'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 
 export function PredictiveAnalyticsPanel({ onClear }: { onClear: () => void }) {
   const [report, setReport] = useState<any>(null); const [loading, setLoading] = useState(false)
@@ -7,17 +8,18 @@ export function PredictiveAnalyticsPanel({ onClear }: { onClear: () => void }) {
   useEffect(()=>{load()},[])
   const scoreColor = report?.scoreGeral >= 70 ? '#22c55e' : report?.scoreGeral >= 50 ? '#f59e0b' : '#ef4444'
 
-  return (<section style={{padding:'12px',height:'100%',overflow:'auto',display:'flex',flexDirection:'column',gap:'8px'}}>
-    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-      <div><span style={{color:'#a855f7',fontSize:'11px',fontWeight:'bold',textTransform:'uppercase',letterSpacing:'0.05em'}}><TrendingDown size={14} style={{display:'inline'}} /> Predictive Analytics</span>
-        <h2 style={{margin:'4px 0',fontSize:'16px'}}>Inteligência Preditiva</h2>
-        <p style={{fontSize:'11px',color:'#6b7280',margin:0}}>Atrasos, riscos financeiros, gargalos e retrabalho</p>
-      </div>
-      <div style={{display:'flex',gap:'4px'}}>
-        <button onClick={load} disabled={loading} style={{background:'none',border:'none',color:'#6b7280',cursor:'pointer'}}><RefreshCw size={15} className={loading?'spin-icon':''} /></button>
-        <button className="ghost-action" onClick={onClear}><X size={16} /></button>
-      </div>
-    </div>
+  return (
+    <PremiumPanelLayout
+      title="Inteligência Preditiva"
+      subtitle="Atrasos, riscos financeiros, gargalos e retrabalho"
+      headerActions={
+        <>
+          <button onClick={load} disabled={loading} style={{background:'none',border:'none',color:'#6b7280',cursor:'pointer'}}><RefreshCw size={15} className={loading?'spin-icon':''} /></button>
+          <button className="ghost-action" onClick={onClear}><X size={16} /></button>
+        </>
+      }
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
 
     {report && <><div style={{display:'flex',alignItems:'center',gap:'12px',padding:'16px',background:'#111827',borderRadius:'8px',border:`1px solid ${scoreColor}33`}}>
       <div style={{width:64,height:64,borderRadius:'50%',border:`4px solid ${scoreColor}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'24px',fontWeight:700,color:scoreColor}}>{report.scoreGeral}</div>
@@ -66,5 +68,7 @@ export function PredictiveAnalyticsPanel({ onClear }: { onClear: () => void }) {
     </div>}
     </>}
     <style>{`@keyframes spin{to{transform:rotate(360deg)}}.spin-icon{animation:spin 1s linear infinite}`}</style>
-  </section>)
+      </div>
+    </PremiumPanelLayout>
+  )
 }

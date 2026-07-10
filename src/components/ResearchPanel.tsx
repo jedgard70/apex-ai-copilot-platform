@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Clipboard, Download, FileJson, Globe, Save, Search, X } from 'lucide-react'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 import { ResearchFinding, ResearchPlan, ResearchType, researchTypes, sourceConfidenceOptions } from '../lib/researchKnowledge'
 import { liveSourceConnectedMessage, noLiveSourceWarning, SourceConfidence, sourceConfidenceLabel } from '../lib/sourceConfidence'
 
@@ -100,15 +101,11 @@ export function ResearchPanel({ goal, conversationContext, onSaveToProject, onCl
   const sourceStatusText = plan?.providerStatus === 'web-search-live' ? liveSourceConnectedMessage : noLiveSourceWarning
 
   return (
-    <section className="research-studio" aria-label="Research Market Intelligence Studio">
-      <div className="research-heading">
-        <div>
-          <span>Research / Market Intelligence Studio</span>
-          <h2>Source-aware research workspace</h2>
-          <p>{sourceStatusText}</p>
-        </div>
-        <button className="ghost-action" type="button" onClick={onClear} aria-label="Close Research Studio"><X size={16} /></button>
-      </div>
+    <PremiumPanelLayout 
+      title="Research / Market Intelligence Studio" 
+      subtitle="Ações e configurações operacionais"
+      headerActions={<button className="ghost-action" type="button" onClick={onClear} aria-label="Close Research Studio"><X size={16} /></button>}
+    >
 
       <div className="research-layout">
         <aside className="research-controls">
@@ -231,6 +228,6 @@ export function ResearchPanel({ goal, conversationContext, onSaveToProject, onCl
           </div>
         </div>
       </div>
-    </section>
+    </PremiumPanelLayout>
   )
 }

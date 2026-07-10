@@ -1,6 +1,7 @@
 import { CheckCircle2, Clipboard, Play, RefreshCw, ShieldCheck, Terminal, XCircle } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import type { CopilotExecutionCommand, CopilotExecutionResult } from '../lib/copilotExecutionModel'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 
 type CopilotExecutionPanelProps = {
   initialRuns?: CopilotExecutionResult[]
@@ -162,20 +163,19 @@ export function CopilotExecutionPanel({ initialRuns = [], onRunComplete, onClear
   }
 
   return (
-    <section className={`copilot-execution-panel business-studio ${embedded ? 'embedded' : ''}`} aria-label="Apex Copilot Local Execution v0" style={embedded ? { position: 'relative', margin: 0, height: '100%', maxHeight: 'none', borderRadius: 0, border: 'none', boxShadow: 'none' } : {}}>
-      <div className="copilot-execution-head">
-        <div>
-          <span><ShieldCheck size={15} /> Apex Copilot Local Execution v0</span>
-          <h2>Copilot Execution</h2>
-          <p>Platform Maintenance · Build & Repo Checks</p>
-        </div>
-        {!embedded && (
+    <PremiumPanelLayout
+      title="Copilot Execution"
+      subtitle="Apex Copilot Local Execution v0. Platform Maintenance · Build & Repo Checks"
+      icon={<ShieldCheck size={15} />}
+      headerActions={
+        !embedded && (
           <button onClick={onClear} aria-label="Close Copilot Execution">
             <XCircle size={18} />
           </button>
-        )}
-      </div>
-
+        )
+      }
+    >
+      <div className={`copilot-execution-panel business-studio ${embedded ? 'embedded' : ''}`} style={embedded ? { position: 'relative', margin: 0, height: '100%', maxHeight: 'none', borderRadius: 0, border: 'none', boxShadow: 'none', background: 'transparent' } : { background: 'transparent' }}>
       <div className="execution-guardrail">
         <Terminal size={18} />
         <span>Registered commands run through controlled execution. Raw shell, when available, remains restricted by environment and guardrails.</span>
@@ -198,6 +198,7 @@ export function CopilotExecutionPanel({ initialRuns = [], onRunComplete, onClear
           </article>
         ))}
       </div>
-    </section>
+      </div>
+    </PremiumPanelLayout>
   )
 }

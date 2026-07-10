@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { DollarSign, TrendingUp, TrendingDown, RefreshCw, X, Search, BarChart3, Bot, Settings, AlertTriangle, ShieldCheck, PlayCircle, StopCircle } from 'lucide-react';
+import { PremiumPanelLayout } from './PremiumPanelLayout';
 
 type Quote = {
   symbol: string;
@@ -102,19 +103,15 @@ export function StockMarketPanel({ onClear }: { onClear: () => void }) {
   }, []);
 
   return (
-    <section className="flex flex-col h-full bg-[#0a0f1c] text-white">
-      {/* Header */}
-      <div className="flex justify-between items-center p-4 border-b border-[#1e293b] bg-[#0f172a]">
-        <div>
-          <span className="text-[#38bdf8] text-[11px] font-bold uppercase tracking-wider flex items-center gap-2">
-            <Bot size={14} /> Apex Algo Trader (Live)
-          </span>
-          <h2 className="text-lg font-bold mt-1">Terminal XP/Binance Pro</h2>
-        </div>
+    <PremiumPanelLayout 
+      title="Terminal XP/Binance Pro" 
+      subtitle="Ações e configurações operacionais"
+      headerActions={
         <button className="text-slate-400 hover:text-white transition-colors" onClick={onClear}>
           <X size={20} />
         </button>
-      </div>
+      }
+    >
 
       {/* Tabs */}
       <div className="flex border-b border-[#1e293b] bg-[#0f172a]">
@@ -210,6 +207,6 @@ export function StockMarketPanel({ onClear }: { onClear: () => void }) {
           </div>
         )}
       </div>
-    </section>
+    </PremiumPanelLayout>
   );
 }

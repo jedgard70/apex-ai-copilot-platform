@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import Editor from '@monaco-editor/react'
 import { Play, Save } from 'lucide-react'
 import { IntakeFile } from '../lib/fileIntake'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 
 export function CodeEditorPanel({ 
   onRunFile, 
@@ -56,8 +57,11 @@ export function CodeEditorPanel({
   }
 
   return (
-     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: '#1e1e1e' }}>
-       <div style={{ display: 'flex', gap: '8px', padding: '8px', borderBottom: '1px solid #333' }}>
+    <PremiumPanelLayout
+      title="Code Editor"
+      subtitle="Controle de módulo avançado"
+      headerActions={
+        <div style={{ display: 'flex', gap: '8px' }}>
          <button onClick={handleRun} disabled={!activeFile} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: activeFile ? '#22c55e' : '#444', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: activeFile ? 'pointer' : 'not-allowed' }}>
            <Play size={14} /> Run no Terminal
          </button>
@@ -65,7 +69,9 @@ export function CodeEditorPanel({
            <Save size={14} /> Salvar no Disco
          </button>
          {activeFile && <span style={{ color: '#aaa', fontSize: '12px', alignSelf: 'center', marginLeft: 'auto' }}>{activeFile.file.name}</span>}
-       </div>
+        </div>
+      }
+    >
        <div style={{ flex: 1, overflow: 'hidden' }}>
          <Editor
            height="100%"
@@ -76,6 +82,6 @@ export function CodeEditorPanel({
            options={{ minimap: { enabled: true }, fontSize: 14 }}
          />
        </div>
-     </div>
+    </PremiumPanelLayout>
   )
 }

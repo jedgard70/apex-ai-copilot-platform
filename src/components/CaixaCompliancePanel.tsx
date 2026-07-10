@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { CheckCircle, AlertTriangle, FileText, UploadCloud, FileCheck2, Building, RefreshCw, Layers } from 'lucide-react'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 
 type ComplianceItem = {
   id: string
@@ -34,15 +35,11 @@ export function CaixaCompliancePanel() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-[#0b1326] text-[#e2e8f0] p-4 overflow-y-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-semibold text-[#60a5fa] flex items-center gap-2">
-            <Building size={24} />
-            Módulo Caixa Econômica (MCMV)
-          </h1>
-          <p className="text-sm text-gray-400 mt-1">Validação automatizada de projetos via "Checklist Obras Financiadas".</p>
-        </div>
+    <PremiumPanelLayout
+      title="Módulo Caixa Econômica (MCMV)"
+      subtitle="Validação automatizada de projetos via Checklist Obras Financiadas."
+      icon={<Building size={24} />}
+      headerActions={
         <button 
           onClick={runCaixaScan} 
           disabled={loading}
@@ -51,8 +48,8 @@ export function CaixaCompliancePanel() {
           {loading ? <RefreshCw className="animate-spin" size={16} /> : <FileCheck2 size={16} />}
           {loading ? 'Analisando Modelo BIM...' : 'Rodar Scan Caixa (MCMV)'}
         </button>
-      </div>
-
+      }
+    >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div className="bg-[#171f33] p-4 rounded-xl border border-white/5">
           <h2 className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
@@ -111,6 +108,6 @@ export function CaixaCompliancePanel() {
           ))}
         </div>
       </div>
-    </div>
+    </PremiumPanelLayout>
   )
 }

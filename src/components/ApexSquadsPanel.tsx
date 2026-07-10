@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 
 export function ApexSquadsPanel() {
   const [squads, setSquads] = useState<any[]>([])
@@ -122,11 +123,11 @@ export function ApexSquadsPanel() {
   )
 
   return (
-    <div className="p-6 bg-slate-900 text-slate-100 min-h-full">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-2">Apex Squads (Multi-Agent)</h2>
-        <p className="text-slate-400">Orquestre equipes de IA especializadas para automatizar tarefas complexas de ponta a ponta.</p>
-      </div>
+    <PremiumPanelLayout
+      title="Apex Squads (Multi-Agent)"
+      subtitle="Orquestre equipes de IA especializadas para automatizar tarefas complexas de ponta a ponta."
+    >
+    <div className="text-slate-100 min-h-full">
 
       <div className="bg-slate-800 p-6 rounded-lg mb-8 border border-slate-700">
         <h3 className="text-xl font-semibold mb-4">Criar Novo Squad (Customizado)</h3>
@@ -172,5 +173,6 @@ export function ApexSquadsPanel() {
         )}
       </div>
     </div>
+    </PremiumPanelLayout>
   )
 }

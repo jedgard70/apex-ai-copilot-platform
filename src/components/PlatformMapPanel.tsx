@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { createPlatformMapSections } from '../lib/platformMapKnowledge'
 import { getManualSections } from '../lib/platformManualData'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -393,23 +394,13 @@ export function PlatformMapPanel({ onClear }: Props) {
   const [tab, setTab] = useState<Tab>('map')
 
   return (
-    <section className="contracts-studio" aria-label="Platform Map">
-      <div className="contracts-heading">
-        <div>
-          <span>
-            {tab === 'map' ? <><Compass size={16} /> Platform Map</> : tab === 'status' ? <><Activity size={16} /> Status ao Vivo</> : <><BookOpen size={16} /> Manual do Usuário</>}
-          </span>
-          <h2>{tab === 'map' ? 'Manual interativo da plataforma' : tab === 'status' ? 'Provedores e chaves de API' : '📖 Manual do Usuário'}</h2>
-          <p>
-            {tab === 'map'
-              ? 'Mapa navegável de todas as funcionalidades — comando, status e entrega de cada módulo.'
-              : tab === 'status'
-                ? 'Status real de cada provedor pago. Indica quando precisa recarregar créditos.'
-                : 'Tudo que a Apex AI faz, explicado em linguagem simples. Clientes pagantes podem usar tudo.'}
-          </p>
-        </div>
-        <button className="ghost-action" onClick={onClear}><X size={16} /></button>
-      </div>
+    <PremiumPanelLayout
+      title={tab === 'map' ? 'Platform Map' : tab === 'status' ? 'Status ao Vivo' : 'Manual do Usuário'}
+      subtitle={tab === 'map' ? 'Mapa navegável de todas as funcionalidades.' : tab === 'status' ? 'Status real de cada provedor pago.' : 'Tudo que a Apex AI faz.'}
+      headerActions={<button className="ghost-action" onClick={onClear}><X size={16} /></button>}
+    >
+      <div className="contracts-studio" style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 0, background: 'transparent' }}>
+
 
       {/* Tab switcher */}
       <div style={{ display: 'flex', gap: 4, padding: '0 20px 12px', borderBottom: '1px solid rgba(255,255,255,0.07)', marginBottom: 4 }}>
@@ -433,6 +424,7 @@ export function PlatformMapPanel({ onClear }: Props) {
       {tab === 'manual' ? <ManualTab /> : tab === 'map' ? <MapTab onClear={onClear} /> : <StatusTab />}
 
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
-    </section>
+      </div>
+    </PremiumPanelLayout>
   )
 }

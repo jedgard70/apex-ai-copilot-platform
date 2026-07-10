@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Building2, Clipboard, Download, Save, X } from 'lucide-react'
 import { createMultiTenantPlan, MultiTenantPlan } from '../lib/multiTenantKnowledge'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 
 type Props = { goal: string; conversationContext: string[]; onSaveToProject?: (plan: MultiTenantPlan) => void; onClear: () => void }
 
@@ -20,8 +21,7 @@ export function MultiTenantPanel({ goal, conversationContext, onSaveToProject, o
     setMessage(data.plan?.providerStatus || 'connected')
   }
   return (
-    <section className="contracts-studio">
-      <div className="contracts-heading"><div><span><Building2 size={16}/> Multi-tenant readiness</span><h2>Tenant architecture planner</h2><p>No fake Supabase tenant isolation. Multi-tenant ready.</p></div><button className="ghost-action" onClick={onClear}><X size={16}/></button></div>
+    <PremiumPanelLayout title="Tenant architecture planner" subtitle="Configurações e monitoramento" onClose={onClear}>
       <div className="contracts-layout">
         <aside className="contracts-controls"><div className="contracts-card"><strong>Status</strong><p>{plan.providerStatus}</p><button className="contracts-primary" onClick={refresh}>Generate tenant plan</button>{message && <p className="contracts-message">{message}</p>}</div><Actions plan={plan} onSaveToProject={onSaveToProject}/></aside>
         <div className="contracts-main">
@@ -29,7 +29,7 @@ export function MultiTenantPanel({ goal, conversationContext, onSaveToProject, o
           <Grid title="Project isolation plan" items={plan.projectIsolationPlan}/><Grid title="RLS readiness checklist" items={plan.rlsReadinessChecklist}/><Grid title="Tenant risk checklist" items={plan.tenantRiskChecklist}/>
         </div>
       </div>
-    </section>
+    </PremiumPanelLayout>
   )
 }
 

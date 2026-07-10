@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Cpu, Shield, FileText, Plus, RefreshCw, X } from 'lucide-react'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 
 export function NRCompliancePanel({ onClear }: { onClear: () => void }) {
   const [projects, setProjects] = useState<any[]>([])
@@ -37,18 +38,18 @@ export function NRCompliancePanel({ onClear }: { onClear: () => void }) {
   }
 
   return (
-    <section style={{ padding: '16px', height: '100%', overflow: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <span style={{ color: '#f59e0b', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase' }}><Shield size={14} style={{ display: 'inline' }} /> NR Compliance</span>
-          <h2 style={{ margin: '4px 0', fontSize: '16px' }}>Documentação CREA / OE</h2>
-        </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
+    <PremiumPanelLayout
+      title="NR Compliance"
+      subtitle="Documentação CREA / OE"
+      headerActions={
+        <>
           <button onClick={() => setShowForm(!showForm)}><Plus size={15} /> Novo Projeto</button>
           <button onClick={fetchProjects} disabled={loading}><RefreshCw size={15} className={loading ? 'spin-icon' : ''} /></button>
           <button className="ghost-action" onClick={onClear}><X size={16} /></button>
-        </div>
-      </div>
+        </>
+      }
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
       {showForm && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', padding: '12px', background: '#fffbeb', borderRadius: '8px', border: '1px solid #fde68a' }}>
@@ -95,7 +96,8 @@ export function NRCompliancePanel({ onClear }: { onClear: () => void }) {
         </div>
       ))}
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}.spin-icon{animation:spin 1s linear infinite}`}</style>
-    </section>
+      </div>
+    </PremiumPanelLayout>
   )
 }
 const inp = { padding: '8px 10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '12px', outline: 'none' }

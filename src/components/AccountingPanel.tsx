@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { X, Calculator, FileText, Plus, Building2, User, LayoutDashboard, Settings, LogOut, Lock, CheckCircle, AlertTriangle } from 'lucide-react'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 
 const inp = { padding: '8px 10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '12px', outline: 'none', width: '100%' }
 const btnStyle = { padding: '8px', background: '#059669', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }
@@ -92,6 +93,11 @@ function AccountingERP({ user, onLogout, onClear }: { user: any, onLogout: () =>
   const [view, setView] = useState<'dashboard' | 'pj' | 'pf'>('dashboard')
   
   return (
+    <PremiumPanelLayout
+      title="Accounting Panel"
+      subtitle="Gerenciamento do módulo"
+      headerActions={<button className="ghost-action" onClick={onClear} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}><X size={20} /></button>}
+    >
     <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
       {/* Sidebar */}
       <div style={{ width: '220px', background: '#111827', color: '#fff', display: 'flex', flexDirection: 'column' }}>
@@ -126,13 +132,7 @@ function AccountingERP({ user, onLogout, onClear }: { user: any, onLogout: () =>
       </div>
       
       {/* Main Content */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f3f4f6', overflow: 'hidden' }}>
-        <div style={{ height: '56px', background: '#fff', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', flexShrink: 0 }}>
-          <h2 style={{ fontSize: '18px', margin: 0, color: '#111827', fontWeight: 600 }}>
-            {view === 'dashboard' ? 'Visão Geral' : view === 'pj' ? 'Gestão Fiscal PJ' : 'Gestão Fiscal PF'}
-          </h2>
-          <button className="ghost-action" onClick={onClear}><X size={20} color="#6b7280" /></button>
-        </div>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'transparent', overflow: 'hidden' }}>
         <div style={{ flex: 1, overflow: 'auto', padding: '20px' }}>
           {view === 'dashboard' && <ERPDashboard user={user} />}
           {view === 'pj' && <PJTab user={user} />}
@@ -146,9 +146,10 @@ function AccountingERP({ user, onLogout, onClear }: { user: any, onLogout: () =>
         .hover-bg-red:hover { background: rgba(239,68,68,0.1); }
         .stat-card { background: #fff; border-radius: 10px; padding: 20px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1); }
         .ghost-action { background: transparent; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center; justifyContent: center; border-radius: 4px; }
-        .ghost-action:hover { background: #f3f4f6; }
+        .ghost-action:hover { background: rgba(255, 255, 255, 0.1); }
       `}</style>
     </div>
+    </PremiumPanelLayout>
   )
 }
 

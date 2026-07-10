@@ -1,5 +1,6 @@
 import { KeyRound, UserCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 import { apexRoles, getAuthProviderStatus, permissionGroups } from '../lib/authModel'
 import { loadSupabaseAccountState, SupabaseAccountState } from '../lib/supabaseAuthBootstrap'
 
@@ -18,15 +19,13 @@ export function UserAccountPanel({ onClear }: UserAccountPanelProps) {
   }, [])
 
   return (
-    <section className="studio-panel account-panel">
-      <div className="studio-panel-header">
-        <div>
-          <span className="eyebrow">Account model</span>
-          <h2>User Account</h2>
-          <p>Profile, tenant, role and permissions placeholder for the future Supabase session.</p>
-        </div>
-        {onClear && <button className="ghost-button" onClick={onClear}>Close</button>}
-      </div>
+    <PremiumPanelLayout 
+      title="User Account" 
+      subtitle="Ações e configurações operacionais"
+      headerActions={
+        onClear && <button className="ghost-button" onClick={onClear}>Close</button>
+      }
+    >
 
       <div className="status-strip warning">
         <KeyRound size={16} />
@@ -68,6 +67,6 @@ export function UserAccountPanel({ onClear }: UserAccountPanelProps) {
         </div>
         <small>{permissionGroups.length} permission groups planned.</small>
       </div>
-    </section>
+    </PremiumPanelLayout>
   )
 }

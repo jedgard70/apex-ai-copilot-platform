@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Clipboard, Download, PackageSearch, Plus, Save, Send, X, TrendingUp, Users, AlertTriangle, CheckCircle, Truck, DollarSign, Clock } from 'lucide-react'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 import {
   ProcurementItem,
   SupplierRecord,
@@ -148,15 +149,11 @@ export function SupplyChainPanel({ goal, conversationContext, onSaveToProject, o
   }
 
   return (
-    <section className="contracts-studio" aria-label="Supply Chain Studio">
-      <div className="contracts-heading" style={{ borderBottom: `1px solid ${D.outlineVariant}`, paddingBottom: 16, marginBottom: 16 }}>
-        <div>
-          <span style={{ color: D.primary, display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600, fontSize: 13, marginBottom: 8 }}><PackageSearch size={18} /> Supply Chain / Suppliers Studio</span>
-          <h2 style={{ fontSize: 20, margin: 0 }}>Gestão de Cotações e Suprimentos</h2>
-          <p style={{ margin: '4px 0 0', opacity: 0.7, fontSize: 13 }}>Painel completo para acompanhamento logístico, gestão de fornecedores e controle de custos de suprimentos.</p>
-        </div>
-        <button className="ghost-action" type="button" onClick={onClear} aria-label="Close Supply Chain Studio" style={{ background: D.surfaceContainerHighest, border: `1px solid ${D.outlineVariant}`, borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={16} /></button>
-      </div>
+    <PremiumPanelLayout 
+      title="Gestão de Cotações e Suprimentos" 
+      subtitle="Ações e configurações operacionais"
+      headerActions={<button className="ghost-action" type="button" onClick={onClear} aria-label="Close Supply Chain Studio" style={{ background: D.surfaceContainerHighest, border: `1px solid ${D.outlineVariant}`, borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={16} /></button>}
+    >
 
       <div className="contracts-layout">
         <aside className="contracts-controls" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -319,7 +316,7 @@ export function SupplyChainPanel({ goal, conversationContext, onSaveToProject, o
           </div>
         </div>
       </div>
-    </section>
+    </PremiumPanelLayout>
   )
 }
 

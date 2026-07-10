@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { X, Search, BookOpen, Download, Sparkles, Palette, Camera, Home, FileText, Building2, Compass, Image, Layers } from 'lucide-react'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 
 const MODULE_ICONS: Record<string, any> = {
   archvis: Palette,
@@ -58,18 +59,12 @@ export function ProfessionalPromptPanel({ onClear, initialModule, onSelectPrompt
     : categories
 
   return (
-    <section style={{ padding: '12px', height: '100%', overflow: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <span style={{ color: '#8b5cf6', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            <BookOpen size={14} style={{ display: 'inline' }} /> Biblioteca de Prompts
-          </span>
-          <h2 style={{ margin: '4px 0', fontSize: '16px' }}>Skills & Presets Profissionais</h2>
-          <p style={{ fontSize: '11px', color: '#6b7280', margin: 0 }}>{categories.length} categorias · {categories.reduce((s, c) => s + (c.items || 0), 0)}+ presets</p>
-        </div>
-        <button className="ghost-action" onClick={onClear}><X size={16} /></button>
-      </div>
+    <PremiumPanelLayout
+      title="Skills & Presets Profissionais"
+      subtitle={`${categories.length} categorias · ${categories.reduce((s, c) => s + (c.items || 0), 0)}+ presets`}
+      headerActions={<button className="ghost-action" onClick={onClear}><X size={16} /></button>}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
 
       {/* Search */}
       <div style={{ display: 'flex', gap: '6px', alignItems: 'center', background: '#1f2937', borderRadius: '8px', padding: '6px 10px' }}>
@@ -202,6 +197,7 @@ export function ProfessionalPromptPanel({ onClear, initialModule, onSelectPrompt
           <p style={{ margin: 0 }}>Nenhuma categoria encontrada</p>
         </div>
       )}
-    </section>
+      </div>
+    </PremiumPanelLayout>
   )
 }

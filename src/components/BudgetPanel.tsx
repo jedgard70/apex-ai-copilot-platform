@@ -1,5 +1,6 @@
 import { useRef, useMemo, useState } from 'react'
 import { exportBudgetXlsx, parseSinapiFile, applySinapiPrices } from '../lib/budgetXlsx'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 import {
   Calculator,
   CheckCircle2,
@@ -301,18 +302,15 @@ export function BudgetPanel({
   }
 
   return (
-    <section className="budget-studio" aria-label="Budget Quantity Studio">
-      <div className="budget-heading">
-        <div>
-          <span>Budget / Quantity Studio</span>
-          <h2>Preliminary estimate workspace</h2>
-          <p>No fake precision. Every quantity and price shows confidence and source.</p>
-        </div>
+    <PremiumPanelLayout
+      title="Budget / Quantity Studio"
+      subtitle="Preliminary estimate workspace"
+      headerActions={
         <button className="ghost-action" type="button" onClick={onClear} aria-label="Close Budget Studio">
           <X size={16} />
         </button>
-      </div>
-
+      }
+    >
       <div className="budget-layout">
         <aside className="budget-controls">
           <div className="budget-card">
@@ -630,7 +628,7 @@ export function BudgetPanel({
           </div>
         </div>
       </div>
-    </section>
+    </PremiumPanelLayout>
   )
 }
 

@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { attemptProfileBootstrap, loadSupabaseAccountState, SupabaseAccountState } from '../lib/supabaseAuthBootstrap'
 import { getBrowserSupabaseClient, getSupabaseProviderStatus } from '../lib/supabaseClient'
+import { PremiumPanelLayout } from './PremiumPanelLayout'
 
 type AuthPanelProps = {
   onClear?: () => void
@@ -125,19 +126,22 @@ export function AuthPanel({ onClear, onAuthStateChange, contextMetadata }: AuthP
   }
 
   return (
-    <div className="w-full max-w-[440px] bg-[#0d1c2d] border border-[#273647] p-10 shadow-2xl relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-[2px] bg-[#00f0ff]"></div>
-
-      {onClear && (
+    <PremiumPanelLayout
+      title={mode === 'login' ? 'Platform Access' : 'Create Account'}
+      subtitle={mode === 'login' ? 'Secure authentication for Engineering & AI Operations' : 'Register to access the platform'}
+      headerActions={onClear ? (
         <button
           type="button"
           onClick={onClear}
-          className="absolute top-4 right-4 text-[#849495] hover:text-[#d4e4fa] transition-colors z-10"
+          className="text-[#849495] hover:text-[#d4e4fa] transition-colors z-10"
           aria-label="Close authentication panel"
+          style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}
         >
           <span className="material-symbols-outlined text-[20px]">close</span>
         </button>
-      )}
+      ) : undefined}
+    >
+      <div className="w-full max-w-[440px] relative overflow-hidden" style={{ margin: '0 auto' }}>
 
       <div className="flex justify-between items-center mb-6">
         <div className="flex gap-1">
@@ -174,16 +178,8 @@ export function AuthPanel({ onClear, onAuthStateChange, contextMetadata }: AuthP
         </div>
       </div>
 
-      <div className="flex flex-col items-center mb-10">
-        <img src={logoSrc} alt="Apex Global AI Logo" className="w-16 h-16 mb-6 object-contain" />
-        <h1 className="font-headline-lg text-headline-lg text-[#d4e4fa] tracking-tighter">
-          {mode === 'login' ? 'Platform Access' : 'Create Account'}
-        </h1>
-        <p className="font-body-md text-[#b9cacb] text-center mt-2 opacity-80">
-          {mode === 'login'
-            ? 'Secure authentication for Engineering & AI Operations'
-            : 'Register to access the platform'}
-        </p>
+      <div className="flex flex-col items-center mb-6">
+        <img src={logoSrc} alt="Apex Global AI Logo" className="w-16 h-16 object-contain" />
       </div>
 
       <form onSubmit={submit} className="space-y-6">
@@ -321,5 +317,6 @@ export function AuthPanel({ onClear, onAuthStateChange, contextMetadata }: AuthP
         </p>
       </div>
     </div>
+    </PremiumPanelLayout>
   )
 }
