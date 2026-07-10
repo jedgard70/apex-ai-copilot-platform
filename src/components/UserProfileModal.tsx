@@ -37,11 +37,20 @@ const DEFAULT_PROFILE: UserProfileData = {
 
 export function UserProfileModal({ isOpen, onClose, currentUserEmail, currentUserRole, onSave }: UserProfileModalProps) {
   const [profile, setProfile] = useState<UserProfileData>(() => {
+    const isOwner = ['jedgard70@gmail.com', 'owner@apexglobalai.co'].includes(currentUserEmail?.toLowerCase() || '') || currentUserRole === 'owner' || currentUserRole === 'owner_admin'
+    
     const saved = localStorage.getItem('apex_user_profile_data')
     if (saved) {
-      try { return JSON.parse(saved) } catch (_) {}
+      try { 
+        const parsed = JSON.parse(saved)
+        // Força a atualização do email se for o Owner
+        if (parsed.role === 'owner_admin' || isOwner) {
+          parsed.email = 'jedgard70@gmail.com'
+        }
+        return parsed 
+      } catch (_) {}
     }
-    const isOwner = ['jedgard70@gmail.com'].includes(currentUserEmail?.toLowerCase() || '') || currentUserRole === 'owner' || currentUserRole === 'owner_admin'
+    
     return {
       ...DEFAULT_PROFILE,
       email: isOwner ? 'jedgard70@gmail.com' : (currentUserEmail || DEFAULT_PROFILE.email),
@@ -182,8 +191,8 @@ export function UserProfileModal({ isOpen, onClose, currentUserEmail, currentUse
                 <input
                   type="email"
                   value={profile.email}
-                  disabled
-                  className="w-full px-3 py-2 bg-slate-950/50 border border-slate-800/80 rounded-lg text-sm text-slate-400 cursor-not-allowed"
+                  onChange={e => setProfile(prev => ({ ...prev, email: e.target.value }))}
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-purple-500"
                 />
               </div>
 
