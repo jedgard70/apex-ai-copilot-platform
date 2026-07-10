@@ -465,7 +465,7 @@ export function PublicVslLandingPage() {
         </div>
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between pt-8 border-t border-slate-800 text-sm text-slate-500">
           <span>Copyright © 2026 {config.brand}. Todos os direitos reservados.</span>
-          <span>{config.support}</span>
+          <span>Suporte: contato@apexglobalai.com</span>
         </div>
       </footer>
     </div>
