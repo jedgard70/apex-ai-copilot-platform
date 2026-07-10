@@ -237,21 +237,35 @@ export function generatePFReport(personId) {
 // ─── Integração com Extensão (Redesim / DBE) ─────────────────────────────────
 
 export function getAutomationData() {
-  // Retorna os dados da primeira empresa cadastrada (ou mock) para preenchimento via Chrome Extension
-  const companies = listCompanies()
-  if (companies.length > 0) {
-    const c = companies[0]
-    return {
-      cnpj: c.cnpj,
-      razaoSocial: c.companyName,
-      naturezaJuridica: '206-2',
-      cnae: c.cnae,
-    }
-  }
   return {
-    cnpj: '00.000.000/0001-00',
-    razaoSocial: 'Empresa Teste Automação Ltda',
-    naturezaJuridica: '206-2',
-    cnae: '6204-0/00',
+    "processo_id": "PR-2024-0001",
+    "natureza_juridica": "206-2",
+    "enquadramento": "EPP",
+    "empresa": {
+      "razao_social_1": "MD GLOBAL LTDA",
+      "razao_social_2": "",
+      "nome_fantasia": "MD Global",
+      "capital_social": 500000.00,
+      "cnae_principal": "4120-4/00",
+      "cnaes_secundarios": ["4330-4/04", "7112-0/00", "4930-2/02", "9602-5/02"],
+      "objeto_social": "Prestação de serviços de construção, reforma, acabamento e pintura de edifícios comerciais, industriais e residenciais, serviços de engenharia civil, transporte rodoviário de cargas, estética e cuidados com a beleza."
+    },
+    "endereco": {
+      "cep": "16375-280",
+      "logradouro": "Rua Verano",
+      "numero": "S/N",
+      "complemento": "",
+      "bairro": "Centro",
+      "municipio": "Promissão",
+      "uf": "SP"
+    },
+    "socios": [
+      {
+        "nome": "Maria Eduarda",
+        "qualificacao": "Sócio-Administrador",
+        "cpf": "000.000.000-00",
+        "participacao": 100
+      }
+    ]
   }
 }

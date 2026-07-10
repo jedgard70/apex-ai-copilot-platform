@@ -10,4 +10,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .catch(err => sendResponse({ success: false, error: err.message }));
     return true; // async response
   }
+  
+  if (request.action === 'SEND_WEBHOOK') {
+    fetch('http://localhost:5173/api/legalizacao/update-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request.payload)
+    })
+    .then(res => res.json())
+    .then(data => sendResponse({ success: true, data }))
+    .catch(err => sendResponse({ success: false, error: err.message }));
+    return true;
+  }
 });

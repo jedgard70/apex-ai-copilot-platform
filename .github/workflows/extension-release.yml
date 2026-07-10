@@ -1,0 +1,34 @@
+name: Extension Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'extensions/redesim-automation/**'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Create ZIP archive
+        run: |
+          cd extensions/redesim-automation
+          zip -r ../../redesim-automation-extension.zip *
+          cd ../..
+
+      - name: Generate timestamp tag
+        id: tag_gen
+        run: echo "TAG_NAME=v$(date +'%Y.%m.%d-%H%M%S')" >> $GITHUB_ENV
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.TAG_NAME }}
+          name: Release ${{ env.TAG_NAME }}
+          files: redesim-automation-extension.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

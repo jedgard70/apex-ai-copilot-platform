@@ -27,3 +27,23 @@ document.getElementById('btn-sync').addEventListener('click', () => {
     }
   });
 });
+
+document.getElementById('btn-webhook').addEventListener('click', () => {
+  const status = document.getElementById('status-text');
+  status.textContent = 'Enviando Webhook para Apex AI...';
+  
+  chrome.runtime.sendMessage({ 
+    action: 'SEND_WEBHOOK',
+    payload: {
+      processo_id: 'PR-2024-0001',
+      dbe_recibo: 'REC-' + Math.floor(Math.random() * 1000000),
+      dbe_identificacao: 'ID-' + Math.floor(Math.random() * 1000000)
+    }
+  }, (response) => {
+    if (response && response.success) {
+      status.textContent = 'Webhook enviado! Status atualizado.';
+    } else {
+      status.textContent = 'Erro ao enviar webhook.';
+    }
+  });
+});
