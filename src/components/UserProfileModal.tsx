@@ -41,7 +41,7 @@ export function UserProfileModal({ isOpen, onClose, currentUserEmail, currentUse
     if (saved) {
       try { return JSON.parse(saved) } catch (_) {}
     }
-    const isOwner = ['jedgard70@gmail.com'].includes(currentUserEmail?.toLowerCase() || '') || currentUserRole === 'owner' || currentUserRole === 'owner_admin'
+    const isOwner = ['jedgard70@gmail.com','owner@apexglobalai.co','edgard@apexglobalai.co'].includes(currentUserEmail?.toLowerCase() || '') || currentUserRole === 'owner' || currentUserRole === 'owner_admin'
     return {
       ...DEFAULT_PROFILE,
       email: isOwner ? 'jedgard70@gmail.com' : (currentUserEmail || DEFAULT_PROFILE.email),
@@ -52,11 +52,11 @@ export function UserProfileModal({ isOpen, onClose, currentUserEmail, currentUse
   })
 
   const [savedSuccess, setSavedSuccess] = useState(false)
-  const isOwner = profile.role === 'owner_admin' || ['jedgard70@gmail.com'].includes(currentUserEmail?.toLowerCase() || '') || currentUserRole === 'owner' || currentUserRole === 'owner_admin'
+  const isOwner = profile.role === 'owner_admin' || ['jedgard70@gmail.com','owner@apexglobalai.co','edgard@apexglobalai.co'].includes(currentUserEmail?.toLowerCase() || '') || currentUserRole === 'owner' || currentUserRole === 'owner_admin'
 
   useEffect(() => {
     if (currentUserEmail) {
-      const isOwnerCheck = ['jedgard70@gmail.com'].includes(currentUserEmail.toLowerCase()) || currentUserRole === 'owner' || currentUserRole === 'owner_admin'
+      const isOwnerCheck = ['jedgard70@gmail.com','owner@apexglobalai.co','edgard@apexglobalai.co'].includes(currentUserEmail.toLowerCase()) || currentUserRole === 'owner' || currentUserRole === 'owner_admin'
       setProfile(prev => ({
         ...prev,
         email: isOwnerCheck ? 'jedgard70@gmail.com' : currentUserEmail,
