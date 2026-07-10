@@ -171,9 +171,9 @@ export function isExplicitPanelOpenRequest(text: string) {
     return hasPanelWord || hasKnownLayer
   }
 
-  // Production verbs (renderizar, fazer, criar, etc.) + keyword = intenção clara de usar o estúdio
-  if (hasProductionVerb && hasKnownLayer) return true
-
+  // Production verbs (renderizar, fazer, criar, etc.) should be sent to the AI agent to actually execute via tools.
+  // We no longer intercept them as explicit panel open requests.
+  
   return false
 }
 

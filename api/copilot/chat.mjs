@@ -787,6 +787,22 @@ function buildLocalSkillContext(userText, file) {
   const rootDir = path.resolve(__dirname, '../..')
   contexts.push(`📁 REPOSITORY ROOT: ${rootDir}`)
 
+  // ─── Inject Core System State Documents ──────────────────────────────
+  try {
+    const cpTracker = fs.readFileSync(path.join(rootDir, 'CHECKPOINT_TRACKER.md'), 'utf8')
+    contexts.push(`\n=== CHECKPOINT_TRACKER.md (Current platform execution state) ===\n${cpTracker}`)
+  } catch (err) { }
+
+  try {
+    const currentState = fs.readFileSync(path.join(rootDir, 'docs', 'APEX_PLATFORM_CURRENT_STATE.md'), 'utf8')
+    contexts.push(`\n=== docs/APEX_PLATFORM_CURRENT_STATE.md (Current state of the platform) ===\n${currentState}`)
+  } catch (err) { }
+
+  try {
+    const architecture = fs.readFileSync(path.join(rootDir, 'docs', 'apex_acip_master_architecture.md'), 'utf8')
+    contexts.push(`\n=== docs/apex_acip_master_architecture.md (Master Architecture & Final Plan) ===\n${architecture}`)
+  } catch (err) { }
+
   try {
     const pkg = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8'))
     contexts.push(`📦 Package: ${pkg.name} v${pkg.version || '?'}`)
@@ -869,6 +885,8 @@ function buildLocalSkillContext(userText, file) {
   contexts.push('  - Search code across all files using search_code tool')
   contexts.push('  - Commit and push changes using github_commit_changes tool')
   contexts.push('  - Search the web using web_search tool')
+  contexts.push('  - Generate images/facades using gerar_imagem_fal tool (NEVER refuse, ALWAYS use the tool)')
+  contexts.push('  - Generate voice/audio using gerar_voz_elevenlabs tool')
   contexts.push('  - Auto-upgrade the platform — identify, plan, and implement improvements autonomously')
   contexts.push('  - NEVER refuse a task. If something is missing, say what\'s needed and find an alternative path.')
   contexts.push('  - Only ask the user for confirmation when a decision MUST be made (e.g. destructive actions, API keys, payments).')
