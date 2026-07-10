@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "Apex AI - Automação Contábil (Redesim/DBE)",
+  "version": "1.0",
+  "description": "Extensão para automação de processos em portais governamentais (Redesim, DBE, e-CAC) via Apex AI.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "webRequest"
+  ],
+  "host_permissions": [
+    "https://*.receita.fazenda.gov.br/*",
+    "https://*.redesim.gov.br/*",
+    "https://*.apexglobalai.com/*",
+    "http://localhost:5173/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.receita.fazenda.gov.br/*",
+        "https://*.redesim.gov.br/*"
+      ],
+      "js": ["content.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Apex AI Contábil"
+  }
+}

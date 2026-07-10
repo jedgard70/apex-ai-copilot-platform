@@ -233,3 +233,25 @@ export function generatePFReport(personId) {
     generatedAt: new Date().toISOString(),
   }
 }
+
+// ─── Integração com Extensão (Redesim / DBE) ─────────────────────────────────
+
+export function getAutomationData() {
+  // Retorna os dados da primeira empresa cadastrada (ou mock) para preenchimento via Chrome Extension
+  const companies = listCompanies()
+  if (companies.length > 0) {
+    const c = companies[0]
+    return {
+      cnpj: c.cnpj,
+      razaoSocial: c.companyName,
+      naturezaJuridica: '206-2',
+      cnae: c.cnae,
+    }
+  }
+  return {
+    cnpj: '00.000.000/0001-00',
+    razaoSocial: 'Empresa Teste Automação Ltda',
+    naturezaJuridica: '206-2',
+    cnae: '6204-0/00',
+  }
+}

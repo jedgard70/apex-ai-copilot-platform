@@ -56,6 +56,9 @@ export default async function handler(req, res) {
     if (path === '/api/accounting/obrigacoes-pf' && req.method === 'GET') {
       return res.status(200).json({ providerStatus: 'connected', obrigacoes: mod.listObrigacoesPF() })
     }
+    if (path === '/api/accounting/automation-data' && req.method === 'GET') {
+      return res.status(200).json(mod.getAutomationData())
+    }
 
     return res.status(404).json({ error: 'Not found' })
   } catch (err) {
