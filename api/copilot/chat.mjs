@@ -36,6 +36,7 @@ async function getInteractionsProvider() {
   return mod.generateWithInteractions
 }
 import { buildCodeToolDefinitions, executeCodeToolCall, CODE_TOOL_NAMES } from '../../server/agent/codeTools.mjs'
+import { buildGithubToolDefinitions, executeGithubToolCall, GITHUB_TOOL_NAMES } from '../../server/agent/githubTools.mjs'
 import { runLocalWorkerAction } from '../../server/agent/localWorkerClient.mjs'
 import { classifyImageGenRequest, buildImagePrompt, generateImage, buildImageResultReply } from '../../server/agent/imageGenerationConnector.mjs'
 import { classifyVideoGenRequest, generateVideo, buildVideoResultReply } from '../../server/agent/videoGenerationConnector.mjs'
@@ -1126,9 +1127,10 @@ function buildLiveAgentToolDefinitions() {
           },
           required: ['url']
         }
-      }
+      },
     },
     ...buildCodeToolDefinitions(),
+    ...buildGithubToolDefinitions(),
   ]
 }
 
@@ -1670,6 +1672,12 @@ async function executeLiveAgentToolCall(toolCall) {
   if (CODE_TOOL_NAMES.has(name)) {
     const repoRoot = path.resolve(__dirname, '../../')
     return await executeCodeToolCall(toolCall, repoRoot)
+  }
+
+  // GitHub tools
+  if (GITHUB_TOOL_NAMES.has(name)) {
+    const repoRoot = path.resolve(__dirname, '../../')
+    return await executeGithubToolCall(toolCall, repoRoot)
   }
 
   if (name !== 'run_local_command') {
