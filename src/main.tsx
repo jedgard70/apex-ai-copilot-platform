@@ -3113,11 +3113,11 @@ function App() {
     }
     setMessages(prev => [...prev, userMessage])
     if (isSupabaseConfigured) {
-      getBrowserSupabaseClient().client?.from('chat_history').insert({
+      Promise.resolve(getBrowserSupabaseClient().client?.from('chat_history').insert({
         session_id: activeConversationId,
         role: 'user',
         content: userMessage.text
-      }).catch((err: any) => console.error('[Apex H5] Error saving user message:', err))
+      })).catch((err: any) => console.error('[Apex H5] Error saving user message:', err))
     }
     // ── Local fallback BEFORE API call ──
     const localFallback = buildProductFallbackAnswer(userText, identityContext)
@@ -3269,11 +3269,11 @@ function App() {
           : null
         setMessages(prev => [...prev, { id: id(), role: 'assistant', text: reply, toolCards, confirmation }])
         if (isSupabaseConfigured) {
-          getBrowserSupabaseClient().client?.from('chat_history').insert({
+          Promise.resolve(getBrowserSupabaseClient().client?.from('chat_history').insert({
             session_id: activeConversationId,
             role: 'assistant',
             content: reply
-          }).catch((err: any) => console.error('[Apex H5] Error saving assistant message:', err))
+          })).catch((err: any) => console.error('[Apex H5] Error saving assistant message:', err))
         }
       }
     } catch (error) {

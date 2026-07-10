@@ -1668,16 +1668,37 @@ async function executeLiveAgentToolCall(toolCall) {
     }
   }
 
-  // Real code/filesystem/command tools (read/list/search/write/edit/run).
-  if (CODE_TOOL_NAMES.has(name)) {
-    const repoRoot = path.resolve(__dirname, '../../')
-    return await executeCodeToolCall(toolCall, repoRoot)
-  }
+  const hasLocalWorker = Boolean(
+    (process.env.LOCAL_WORKER_URL || process.env.Local_Worker_URL)
+    && (process.env.LOCAL_WORKER_TOKEN || process.env.Local_Worker_TOKEN)
+  )
 
-  // GitHub tools
-  if (GITHUB_TOOL_NAMES.has(name)) {
-    const repoRoot = path.resolve(__dirname, '../../')
-    return await executeGithubToolCall(toolCall, repoRoot)
+  // Real code/filesystem/command tools (read/list/search/write/edit/run) and GitHub tools
+  if (CODE_TOOL_NAMES.has(name) || GITHUB_TOOL_NAMES.has(name)) {
+    if (hasLocalWorker) {
+      const rawCmd = `node scripts/execute-tool.mjs '${JSON.stringify(toolCall).replace(/'/g, "'\\''")}'`
+      const result = await runLocalWorkerAction('project.raw_shell', { confirmed: true, params: { command: rawCmd } })
+      if (result.ok && result.stdout) {
+        try {
+          const match = result.stdout.match(/___TOOL_RESULT___:(.*)/s)
+          if (match && match[1]) {
+            return JSON.parse(match[1].trim())
+          }
+          return { error: 'Failed to find tool output marker in local worker stdout.', rawStdout: result.stdout }
+        } catch(e) {
+          return { error: 'Failed to parse tool output from local worker.', rawStdout: result.stdout }
+        }
+      } else {
+        return { error: result.reason || 'Local worker action failed' }
+      }
+    } else {
+      const repoRoot = path.resolve(__dirname, '../../')
+      if (CODE_TOOL_NAMES.has(name)) {
+        return await executeCodeToolCall(toolCall, repoRoot)
+      } else {
+        return await executeGithubToolCall(toolCall, repoRoot)
+      }
+    }
   }
 
   if (name !== 'run_local_command') {
@@ -1693,11 +1714,6 @@ async function executeLiveAgentToolCall(toolCall) {
 
   const commandId = String(args.commandId || '')
   const reason = String(args.reason || '').slice(0, 500)
-
-  const hasLocalWorker = Boolean(
-    (process.env.LOCAL_WORKER_URL || process.env.Local_Worker_URL)
-    && (process.env.LOCAL_WORKER_TOKEN || process.env.Local_Worker_TOKEN)
-  )
   if (hasLocalWorker) {
     let action = ''
     let params = {}
