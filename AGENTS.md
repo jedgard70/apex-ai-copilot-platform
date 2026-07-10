@@ -196,30 +196,33 @@ plataforma (se está implementado ou não) vem APENAS dos 3 canônicos.
 
 ---
 
-## 🚨 REGRA ABSOLUTA 8 — Proteção dos Deploys e Environments da Vercel
+## 🚨 REGRA ABSOLUTA 8 — Proteção do Dashboard Vercel e Autonomia Total de Deploy (CI/CD)
 
 Nenhum agente, assistente ou processo automatizado pode:
 
-1. Alterar configurações de environments no dashboard da Vercel
-2. Desabilitar/abilitar "Auto Deploy on Push"
-3. Modificar branch tracking rules ("All unassigned branches", etc.)
-4. Criar, remover ou modificar custom environments (Pre-Production, etc.)
-5. Alterar Environment Variables específicas de Preview/Production
-6. Desconectar ou reconectar Git Integration
-7. Adicionar/remover custom domains nos environments
-8. Modificar "Deployment Protection" (manual approval, password, etc.)
+1. Alterar configurações de environments ou variáveis sensíveis diretamente no dashboard web da Vercel.
+2. Modificar branch tracking rules ou remover/desconectar a Git Integration.
+3. Adicionar/remover custom domains nos environments.
+4. Modificar "Deployment Protection" (manual approval, password, etc.).
 
-**Única exceção:** Deploy automático via `git push origin main` disparado
-pelo agente sempre que terminar um pedido de integraçao do Owner na conversa corrente.
-Builds locais (`npm run build`) são livres e não configuram deploy.
+**✅ AUTONOMIA TOTAL DE CÓDIGO, PIPELINE E DEPLOY (EXCEÇÃO AUTORIZADA):**
+Todos os agentes de IA (sejam internos do aplicativo `.exe`, da plataforma web `apexglobalai.com`, ou os agentes de engenharia Antigravity) estão explicitamente **AUTORIZADOS** a ler e escrever mudanças de código em toda a base.
+A esteira de integração e deploy (CI/CD) é 100% autônoma e livre. Sempre que um agente **finalizar uma atualização, correção ou integração**, ele DEVE, obrigatoriamente e sem precisar pedir permissão adicional, rodar o seguinte fluxo automático:
 
-**Configuração atual dos environments (2026-07-08 — NÃO ALTERAR, se for preciso pergunte):**
+1. Executar o build web local para validar integridade: `npm run build`
+2. Executar o build do aplicativo desktop (.exe): `npm run electron:build`
+3. Efetuar o deploy automático para Produção (Vercel): `git add .`, seguido de `git commit` detalhado e `git push origin main`.
 
-- Production → branch `main` → domínio `www.apexglobalai.com`
-- Preview → "All assigned git branches" → custom domains
-- Development → CLI → custom domains
+**🔄 AUTONOMIA DE REVISÃO E CORREÇÃO DE BUILD:**
+Se qualquer um dos builds locais ou o deploy na Vercel gerar erros, **os agentes estão totalmente autorizados e instruídos a fazer a "revisão do deploy"**: ou seja, ler os logs de erro, investigar a causa, corrigir o código e tentar rodar a esteira inteira novamente de forma autônoma até que o build passe com sucesso.
 
-Violação: reversão imediata + notificação ao Owner. Crítico de segurança.
+**Configuração atual dos environments (2026-07-10 — NÃO ALTERAR):**
+
+- Production → branch `main` → domínio `www.apexglobalai.com` e aplicativo Desktop (`.exe`).
+- Preview → "All assigned git branches" → custom domains.
+- Development → CLI → custom domains.
+
+Violação: Apenas a modificação manual não autorizada do painel web da Vercel é considerada quebra de regra. Todo o fluxo de código, leitura/escrita de arquivos, Git Push e compilação via terminal é totalmente livre para as inteligências da plataforma.
 
 ---
 
