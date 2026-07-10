@@ -224,8 +224,6 @@ export function PublicVslLandingPage() {
                     Conhecer módulo <ArrowRight className="w-4 h-4" />
                   </a>
                 </div>
-              )}>
-                </div>
               )}
               {activeTab === 'Agentes & APIs' && (
                 <div className="animate-in fade-in duration-500">
