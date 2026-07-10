@@ -2794,7 +2794,7 @@ async function handleChat(req, res) {
   }
 }
 
-async function handleOperatorPreview(req, res) {
+export async function handleOperatorPreview(req, res) {
   try {
     const body = await readJson(req)
     const identityContext = normalizeChatIdentityContext(body.identityContext)
@@ -3572,7 +3572,7 @@ async function handleBimPlan(req, res) {
   }
 }
 
-async function handleBimTourPlan(req, res) {
+export async function handleBimTourPlan(req, res) {
   try {
     const body = await readJson(req)
     const modelMetadata = body.modelMetadata || {}
@@ -3667,7 +3667,7 @@ function fieldEvidenceFromSource(source, hasManualText) {
   return 'UNKNOWN'
 }
 
-async function handleFieldOpsPlan(req, res) {
+export async function handleFieldOpsPlan(req, res) {
   try {
     const body = await readJson(req)
     const context = body.context || {}
@@ -4131,7 +4131,7 @@ function createBusinessPlanPayload({ goal = '', focus = 'all', currency = 'USD' 
   }
 }
 
-async function handleBusinessPlan(req, res) {
+export async function handleBusinessPlan(req, res) {
   try {
     const body = await readJson(req)
     const plan = createBusinessPlanPayload({
@@ -4239,7 +4239,7 @@ function permitPackageForRegion(region, evidenceLevel, jurisdictionLabel) {
   ]
 }
 
-async function handleContractsPlan(req, res) {
+export async function handleContractsPlan(req, res) {
   try {
     const body = await readJson(req)
     const context = body.context || {}
@@ -4661,7 +4661,7 @@ function buildResearchPendingVerification({ researchType, region, sinapiIntent, 
   return items
 }
 
-async function handleResearchPlan(req, res) {
+export async function handleResearchPlan(req, res) {
   try {
     const body = await readJson(req)
     const researchType = String(body.researchType || 'Market research')
@@ -5191,7 +5191,7 @@ function createControlsPlan(goal = '', evmInputs = {}) {
 
 let serverBackgroundTasks = JSON.parse(JSON.stringify(defaultTasks))
 
-async function handleBackgroundTask(req, res) {
+export async function handleBackgroundTask(req, res) {
   try {
     const body = await readJson(req)
     const { action, taskId } = body
@@ -5235,7 +5235,7 @@ async function handleBackgroundTask(req, res) {
   }
 }
 
-async function handleEvmSchedulerCompliance(req, res) {
+export async function handleEvmSchedulerCompliance(req, res) {
   try {
     const body = await readJson(req)
     const plan = createControlsPlan(String(body.goal || ''), body.evmInputs || {})
@@ -5306,7 +5306,7 @@ async function handleDigitalTwinPlan(req, res) {
   }
 }
 
-async function handleKnowledgePlan(req, res) {
+export async function handleKnowledgePlan(req, res) {
   try {
     const body = await readJson(req)
     const goal = String(body.goal || '')
@@ -5380,7 +5380,7 @@ async function handleDashboardStatus(req, res) {
   }
 }
 
-async function handleRuntimeStatus(_req, res) {
+export async function handleRuntimeStatus(_req, res) {
   const runtimeUrl = String(process.env.LOCAL_WORKER_URL || '').trim() || 'http://localhost:1337/health'
   try {
     const response = await fetch(runtimeUrl, {
@@ -5587,7 +5587,7 @@ function createAutoupgradePlan(goal = '', projectSummary = null, runtimeSummary 
     ].join('\n'),
   }
 }
-async function handleAutoupgradePlan(req, res) {
+export async function handleAutoupgradePlan(req, res) {
   try {
     const body = await readJson(req);
     const external = await fetchExternalUpgradeSignals();
@@ -5668,7 +5668,7 @@ function createAvatarVoicePlan(goal = '', useCase = 'internal-demo', brandNotes 
     ].join('\n'),
   }
 }
-async function handleAvatarVoicePlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createAvatarVoicePlan(String(body.goal || ''), String(body.useCase || 'internal-demo'), String(body.brandNotes || ''), body.assetSummary || null, body.consentConfirmed === true) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' }) } }
+export async function handleAvatarVoicePlan(req, res) { try { const body = await readJson(req); return json(res, 200, { plan: createAvatarVoicePlan(String(body.goal || ''), String(body.useCase || 'internal-demo'), String(body.brandNotes || ''), body.assetSummary || null, body.consentConfirmed === true) }) } catch (error) { return json(res, error.status || 500, { error: scrubProviderError(error.message || error), providerStatus: 'connected' }) } }
 
 function createCampaignAutomationPlan(goal = '', campaignGoal = 'lead-generation', channel = 'instagram-facebook', format = 'social-pack', audience = '', offer = '') {
   const resolvedAudience = String(audience || '').trim() || 'Prospective architecture / construction clients'
@@ -5863,7 +5863,7 @@ function createAuthPlan() {
   }
 }
 
-async function handleAuthPlan(req, res) {
+export async function handleAuthPlan(req, res) {
   try {
     await readJson(req).catch(() => ({}))
     return json(res, 200, createAuthPlan())
@@ -6069,7 +6069,7 @@ function exportToCsv(payload) {
   return rows.join('\n')
 }
 
-async function handleExportPackage(req, res) {
+export async function handleExportPackage(req, res) {
   try {
     const body = await readJson(req)
     const project = body.project || {}
@@ -6126,7 +6126,7 @@ async function handleExportPackage(req, res) {
   }
 }
 
-async function handleAnalyzeSkillUpdate(req, res) {
+export async function handleAnalyzeSkillUpdate(req, res) {
   try {
     const body = await readJson(req)
     const file = body.file || {}
@@ -6290,7 +6290,7 @@ async function handleApplySkillUpdate(req, res) {
   }
 }
 
-async function handleExportSkillPack(req, res) {
+export async function handleExportSkillPack(req, res) {
   try {
     const body = await readJson(req)
     const runtime = loadRuntimeKnowledge()
@@ -7278,19 +7278,21 @@ const server = http.createServer(async (req, res) => {
 
 const port = Number(process.env.PORT || 4177)
 console.log('REACHED PORT DEFINITION:', port);
-setInterval(() => { }, 10000);
-server.listen(port, () => {
-  console.log(`Apex AI Copilot platform listening on http://127.0.0.1:${port}`)
-  attachTerminal(server)
-  // Start auto-fix monitor (local only) - disabled by default to prevent blocking the event loop
-  if (process.env.AUTO_FIX_ENABLED === '1') {
-    import('./server/service/autoFix.mjs').then(mod => {
-      const stop = mod.startAutoFixMonitor(45000)
-      console.log('[auto-fix] Monitor ativo a cada 45s')
-      process.on('SIGINT', () => { stop(); process.exit() })
-      process.on('SIGTERM', () => { stop(); process.exit() })
-    }).catch(err => {
-      console.error('[auto-fix] Falha ao iniciar monitor:', err.message)
-    })
-  }
-})
+if (!process.env.VERCEL) {
+  setInterval(() => { }, 10000);
+  server.listen(port, () => {
+    console.log(`Apex AI Copilot platform listening on http://127.0.0.1:${port}`)
+    attachTerminal(server)
+    // Start auto-fix monitor (local only) - disabled by default to prevent blocking the event loop
+    if (process.env.AUTO_FIX_ENABLED === '1') {
+      import('./server/service/autoFix.mjs').then(mod => {
+        const stop = mod.startAutoFixMonitor(45000)
+        console.log('[auto-fix] Monitor ativo a cada 45s')
+        process.on('SIGINT', () => { stop(); process.exit() })
+        process.on('SIGTERM', () => { stop(); process.exit() })
+      }).catch(err => {
+        console.error('[auto-fix] Falha ao iniciar monitor:', err.message)
+      })
+    }
+  })
+}
