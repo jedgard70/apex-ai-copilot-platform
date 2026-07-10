@@ -12,6 +12,7 @@
     { "source": "/api/copilot/operator-execute", "destination": "/api/copilot/operator?action=execute" },
     { "source": "/api/copilot/execution/commands", "destination": "/api/copilot/execution?action=commands" },
     { "source": "/api/copilot/execution/run", "destination": "/api/copilot/execution?action=run" },
+    { "source": "/api/copilot/:path*", "destination": "/api/copilot/router.mjs" },
     { "source": "/api/mcp/:path*", "destination": "/api/copilot/mcp.mjs" },
     { "source": "/api/mcp", "destination": "/api/copilot/mcp.mjs" },
     { "source": "/api/prompts/:path*", "destination": "/api/prompts/index.mjs" },
