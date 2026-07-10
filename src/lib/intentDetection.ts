@@ -51,32 +51,7 @@ export function isSkillExportFactoryAlias(text: string) {
 }
 
 export function buildOperationalSkillResponse(text: string) {
-  const pt = prefersPortuguese(text)
-  if (isWindowsCareIntent(text)) {
-    return pt
-      ? 'Windows Care / Windows Repair acionado! Vou começar pelo diagnóstico completo: versao/uptime do Windows, CPU/RAM/disco, processos, inicializacao, tarefas agendadas, Defender e persistências.'
-      : 'Windows Care / Windows Repair activated! Starting full diagnostics: Windows version/uptime, CPU/RAM/disk, processes, startup, scheduled tasks, Defender and persistence.'
-  }
-  if (isRevitOperationalIntent(text)) {
-    return pt
-      ? 'Revit Customization acionado! Posso preparar templates, parametros, view templates, schedules, pyRevit bundles, plugins C#/.addin, estrategia MCP/conector e fluxo IFC/GLB para Apex.'
-      : 'Revit Customization activated! I can prepare templates, parameters, view templates, schedules, pyRevit bundles, C#/.addin plugins, MCP/connector strategy and IFC/GLB handoff to Apex.'
-  }
-  if (isCodeSkillIntent(text)) {
-    return ''
-  }
-  const connectorStatusAnswer = buildConnectorStatusFallback(text)
-  if (connectorStatusAnswer) return connectorStatusAnswer
-  if (isPlatformEngineeringIntent(text)) {
-    return pt
-      ? 'Platform Engineering acionado! Posso preparar status da plataforma, escopo, plano de branch/PR, checklist GitHub/Vercel/Supabase, diagnostico de build e revisao de seguranca.'
-      : 'Platform Engineering activated! I can prepare platform status, scope, branch/PR plan, GitHub/Vercel/Supabase checklist, build diagnosis and security review.'
-  }
-  if (isCheckpointContinuationIntent(text)) {
-    return pt
-      ? 'Checkpoint manager acionado! Vou preparar continuidade, escopo, validacoes e checklist de PR.'
-      : 'Checkpoint manager ready! I will prepare continuity, scope, validations and PR checklist.'
-  }
+  // Removed mechanical restrictions. Let it flow to the real AI.
   return ''
 }
 
@@ -246,22 +221,7 @@ export function buildProductFallbackAnswer(userText: string, identity: ChatIdent
   const panelName = isPanelContextMessage(userText)
   if (panelName) return buildPanelContextReply(panelName)
 
-  // H5.1F: multi-line messages are handled by the backend conversational router.
-  // Only apply local fallbacks for single-line messages to prevent interception.
-  const nonEmptyLines = userText.trim().split(/\n/).filter(l => l.trim()).length; const trimmed = userText.trim(); if (nonEmptyLines === 1 && trimmed.length < 300) {
-
-    // Greetings — respond as personal assistant
-    if (/^(ola|olá|oi|oie|hello|hey|hei|salve|eai|e aí|opa|bom dia|boa tarde|boa noite|bom dia tudo bem|blz|beleza|tudo bem|howdy|hi)\b/i.test(trimmed)) {
-      return 'Olá! 😊 Como posso te ajudar hoje? Posso analisar documentos, imagens, plantas, criar orçamentos, contratos, campanhas de marketing, fazer pesquisas e muito mais. É só me falar o que precisa!'
-    }
-    const aiIdentityAnswer = buildAIIdentityAnswer(userText)
-    if (aiIdentityAnswer) return aiIdentityAnswer
-
-    const identityAnswer = buildIdentityAnswer(userText, identity)
-    if (identityAnswer) return identityAnswer
-    const operationalAnswer = buildOperationalSkillResponse(userText)
-    if (operationalAnswer) return operationalAnswer
-  }
+  // Remove mechanical restrictions. Let it flow to the real AI.
   return ''
 }
 

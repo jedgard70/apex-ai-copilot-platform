@@ -61,7 +61,7 @@ export function CodeEditorPanel({
          <button onClick={handleRun} disabled={!activeFile} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: activeFile ? '#22c55e' : '#444', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: activeFile ? 'pointer' : 'not-allowed' }}>
            <Play size={14} /> Run no Terminal
          </button>
-         <button onClick={handleSave} disabled={!activeFile || !hasNativeHandle} title={!hasNativeHandle ? 'Disponível apenas para arquivos conectados via "Pasta Local"' : 'Salvar direto no seu HD'} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: activeFile && hasNativeHandle ? '#3b82f6' : '#444', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: activeFile && hasNativeHandle ? 'pointer' : 'not-allowed' }}>
+         <button onClick={handleSave} disabled={!activeFile} title="Salvar direto no seu HD" style={{ display: 'flex', alignItems: 'center', gap: '4px', background: activeFile ? '#3b82f6' : '#444', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: activeFile ? 'pointer' : 'not-allowed' }}>
            <Save size={14} /> Salvar no Disco
          </button>
          {activeFile && <span style={{ color: '#aaa', fontSize: '12px', alignSelf: 'center', marginLeft: 'auto' }}>{activeFile.file.name}</span>}

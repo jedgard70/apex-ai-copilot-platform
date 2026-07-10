@@ -447,54 +447,7 @@ function isConnectorOrApiQuestionText(text = '') {
 }
 
 function buildChatFallbackReply(userText, identity, file = null, locale = '') {
-  const aiIdentityReply = buildAIIdentityReply(userText, locale)
-  if (aiIdentityReply) return aiIdentityReply
-
-  const identityReply = buildIdentityReply(userText, identity)
-  if (identityReply) return identityReply
-  const pt = prefersPortugueseText(userText, locale)
-  if (isGreetingText(userText)) {
-    return pt
-      ? 'Olá! 😊 Como posso ajudar no seu projeto hoje? Posso analisar plantas e documentos, gerar imagens e vídeos, revisar contratos, preparar orçamentos, criar campanhas de marketing, ou fazer pesquisas. É só me dizer o que precisa!'
-      : 'Hello! 😊 How can I help with your project today? I can analyze plans and documents, generate images and videos, review contracts, prepare budgets, create marketing campaigns, or do research. Just tell me what you need!'
-  }
-  if (file && file.extractedText && isCapabilitiesQuestionText(userText)) {
-    return pt
-      ? 'Com este arquivo ativo, posso resumir, extrair pontos, responder perguntas, transformar em briefing/relatório e partir para uma ação prática sem enrolar.'
-      : 'With this file active, I can summarize, extract points, answer questions, turn it into a briefing/report, and move straight into a practical action.'
-  }
-  if (isCapabilitiesQuestionText(userText)) {
-    return pt
-      ? 'Eu trabalho em dois modos: conversa técnica e execução controlada. Posso analisar e alterar código, rodar validações, preparar commit/deploy, revisar BIM/Revit, gerar imagens, organizar vistos, marketing, contratos, orçamento e operações de obra. Quando algo muda arquivo, modelo BIM, banco ou produção, eu executo pela rota autorizada e deixo evidência; quando faltar conector, digo exatamente o que falta e sigo pelo melhor caminho disponível.'
-      : 'I can solve real tasks across code, documents, BIM/3D, data, and operations. If something depends on a missing connector/credential, I state it clearly and continue with what can be done now without faking capability.'
-  }
-  if (isConversationHistoryQuestionText(userText)) {
-    return pt
-      ? 'Sim. Nesta conversa você cobrou que a Apex pare de responder mecanicamente, use o histórico, consiga atuar no código sob sua autorização, deixe de depender só de Gemini, remova dependência pública de motor local legado, opere Revit/BIM quando configurado, trate vistos/IR-5/PIP, Hotmart, auto-fix, auto-upgrade, assistente pessoal, trip planner e agora expanda a API Apex AI 2.0 com API keys, escopos, usage e aprovação curta para escrita. Vou responder e executar a partir desse contexto, sem pedir para você repetir.'
-      : 'Yes. I am carrying the current conversation context and will act from it instead of asking you to repeat the task.'
-  }
-  if (isCodeExecutionQuestionText(userText)) {
-    return pt
-      ? 'Sim, posso trabalhar no código. Para leitura e validacao, executo direto. Para escrita, commit, push, deploy e acoes no repositorio, verifico sua intencao e executo com seguranca. O runtime do site consegue executar comandos locais quando o servidor esta ativo.'
-      : 'Yes, I can work on code. I run read/validation directly. For writes, commits, pushes, and deploy, I verify your intent and execute safely.'
-  }
-
-  if (isContactQuestionText(userText)) {
-    return pt
-      ? 'Posso ajudar a preparar a consulta. Envie nome, email, telefone, cidade, tipo de projeto e o que precisa: BIM, 3D, contrato, alvará, proposta, financeiro, marketing ou operação de campo.'
-      : 'I can help prepare the consultation. Send name, email, phone, city, project type and what you need: BIM, 3D, contract, permit, proposal, finance, marketing or field operations.'
-  }
-  if (isVisaQuestionText(userText)) {
-    return pt
-      ? 'Vistos são autorizações para entrar, permanecer, estudar, trabalhar ou investir em outro país. Em geral, o caminho depende do país, objetivo da viagem, duração, vínculos financeiros/profissionais e documentos de suporte. Posso te ajudar a comparar tipos de visto, montar checklist de documentos, preparar carta/declaração, organizar um cronograma e revisar riscos antes do envio. Para orientar melhor, me diga o país de destino e o objetivo: turismo, estudo, trabalho, negócios, investimento ou residência.'
-      : 'Visas are authorizations to enter, stay, study, work, or invest in another country. The right path depends on destination country, purpose, duration, financial/professional ties, and supporting documents. I can compare visa types, build a document checklist, draft letters, organize a timeline, and review risks before submission. Tell me the destination country and purpose: tourism, study, work, business, investment, or residency.'
-  }
-  if (isUploadQuestionText(userText)) {
-    if (file && file.extractionStatus === 'ready' && String(file.extractedText || '').trim().length >= 20 && /\b(resuma|resumir|resuma o pdf|resuma este pdf|resuma esse pdf|esuma|analise|analise o pdf|explique|o que tem neste documento|o que diz|pontos principais|sumarize|analise o arquivo|resuma o arquivo|analise este arquivo|resuma este arquivo|explique o arquivo|explique este arquivo)\b/i.test(userText || '')) {
-      return buildLocalDocSummary(file.name, file.pageCount || 0, file.extractedText || '', file.kind)
-    }
-    return 'Pode enviar arquivo, PDF, imagem, planta ou screenshot pelo botão de anexar. Eu uso o arquivo como contexto e continuo com a ação em vez de parar para explicar o processo.'
-  }
+  // Remove mechanical restrictions: route all conversational inputs to the live AI model.
   return ''
 }
 

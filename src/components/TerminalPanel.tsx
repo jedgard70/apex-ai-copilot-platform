@@ -70,6 +70,17 @@ export function TerminalPanel({ onClose, embedded = false }: { onClose?: () => v
       }
 
       if (!response || !response.ok) {
+        try {
+          response = await fetch('/api/copilot/terminal/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ command: trimmed, cwd }),
+            signal: AbortSignal.timeout(60000),
+          })
+        } catch { /* ignore and fallback */ }
+      }
+
+      if (!response || !response.ok) {
         // Fallback: use platform's /api/copilot/chat to interpret the command
         response = await fetch('/api/copilot/chat', {
           method: 'POST',

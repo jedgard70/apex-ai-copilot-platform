@@ -1855,7 +1855,6 @@ function buildLiveAgentToolDefinitions() {
       },
     },
     ...buildCodeToolDefinitions(),
-    ...buildGithubToolDefinitions(),
   ]
 }
 
@@ -2924,7 +2923,7 @@ async function handleFsList(req, res) {
   try {
     const cwd = process.cwd()
     const readDirRecursive = (dir, base = '', depth = 0) => {
-      if (depth > 3) return [] // Limit depth to prevent hangs
+      if (depth > 20) return [] // Limit depth to prevent hangs
       let results = []
       const entries = fs.readdirSync(dir, { withFileTypes: true })
       for (const entry of entries) {
@@ -2956,6 +2955,42 @@ async function handleFsRead(req, res) {
     if (!fs.existsSync(fullPath)) return json(res, 404, { ok: false, error: 'file not found' })
     const content = fs.readFileSync(fullPath, 'utf8')
     return json(res, 200, { ok: true, content })
+  } catch (error) {
+    return json(res, 500, { ok: false, error: error.message })
+  }
+}
+
+async function handleFsWrite(req, res) {
+  try {
+    const body = await readJson(req)
+    const targetPath = body.path
+    const content = body.content
+    if (!targetPath || typeof content !== 'string') return json(res, 400, { ok: false, error: 'path and content are required' })
+    const fullPath = path.join(process.cwd(), targetPath)
+    if (!fullPath.startsWith(process.cwd())) return json(res, 403, { ok: false, error: 'access denied' })
+    fs.writeFileSync(fullPath, content, 'utf8')
+    return json(res, 200, { ok: true })
+  } catch (error) {
+    return json(res, 500, { ok: false, error: error.message })
+  }
+}
+
+async function handleTerminalRun(req, res) {
+  try {
+    const body = await readJson(req)
+    const { command, cwd } = body
+    if (!command) return json(res, 400, { ok: false, error: 'command required' })
+    
+    import('child_process').then(({ exec }) => {
+      exec(command, { cwd: cwd || process.cwd(), shell: true }, (error, stdout, stderr) => {
+        return json(res, 200, {
+          stdout: stdout || '',
+          stderr: stderr || '',
+          exitCode: error ? error.code : 0,
+          cwd: cwd || process.cwd()
+        })
+      })
+    })
   } catch (error) {
     return json(res, 500, { ok: false, error: error.message })
   }
@@ -6576,6 +6611,14 @@ const server = http.createServer(async (req, res) => {
     }
     if (requestUrl.pathname === '/api/copilot/fs/read' && req.method === 'GET') {
       handleFsRead(req, res)
+      return
+    }
+    if (requestUrl.pathname === '/api/copilot/fs/write' && req.method === 'POST') {
+      handleFsWrite(req, res)
+      return
+    }
+    if (requestUrl.pathname === '/api/copilot/terminal/run' && req.method === 'POST') {
+      handleTerminalRun(req, res)
       return
     }
     if (req.url === '/api/webhooks/hotmart' && req.method === 'POST') {

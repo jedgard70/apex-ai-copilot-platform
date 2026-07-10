@@ -264,9 +264,15 @@ export async function chatWithFallback(params) {
 
           if (tools && toolRound === 0) {
             const declarations = []
+            const seenNames = new Set()
             for (const tool of tools) {
               const fn = tool.function || tool
               if (!fn.name) continue
+              if (seenNames.has(fn.name)) {
+                console.warn('[chatWithFallback] Skipping duplicate tool: ' + fn.name)
+                continue
+              }
+              seenNames.add(fn.name)
               let params = fn.parameters || { type: 'object', properties: {} }
               const stripProps = (obj) => {
                 if (Array.isArray(obj)) obj.forEach(stripProps)

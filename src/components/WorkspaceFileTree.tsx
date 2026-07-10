@@ -7,7 +7,7 @@ type FileNode = {
   isDir: boolean
 }
 
-export function WorkspaceFileTree() {
+export function WorkspaceFileTree({ onFileSelect }: { onFileSelect?: (path: string, name: string) => void }) {
   const [files, setFiles] = useState<FileNode[]>([])
   const [error, setError] = useState('')
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['']))
@@ -63,13 +63,19 @@ export function WorkspaceFileTree() {
               gap: '6px',
               paddingTop: '4px',
               paddingBottom: '4px',
-              cursor: node.isDir ? 'pointer' : 'default',
+              cursor: 'pointer',
               color: node.isDir ? '#e2e8f0' : '#94a3b8',
               fontSize: '13px',
               userSelect: 'none',
               opacity: node.isDir ? 1 : 0.8,
             }}
-            onClick={() => node.isDir && toggleFolder(node.path)}
+            onClick={() => {
+              if (node.isDir) {
+                toggleFolder(node.path)
+              } else if (onFileSelect) {
+                onFileSelect(node.path, node.name)
+              }
+            }}
           >
             {node.isDir ? (
               isExpanded ? <ChevronDown size={14} color="#64748b" /> : <ChevronRight size={14} color="#64748b" />

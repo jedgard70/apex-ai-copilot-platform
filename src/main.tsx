@@ -986,8 +986,8 @@ function prefersPortuguese(text: string) {
 function buildCopilotFailureMessage(userText: string) {
   const pt = prefersPortuguese(userText) || true
   return pt
-    ? 'Pode repetir de outro jeito? Estou online e pronto pra ajudar — me diga o que quer fazer: analisar planta, gerar imagem, orçamento, contrato, pesquisa ou qualquer outra tarefa.'
-    : 'Could you rephrase that? I am online and ready to help — just tell me what you need: analyze a plan, generate an image, budget, contract, research, or any other task.'
+    ? 'Houve uma falha na conexão com o servidor ou a API de inteligência artificial. Por favor, aguarde um momento e tente novamente.'
+    : 'There was a connection failure with the server or the AI API. Please wait a moment and try again.'
 }
 
 function isIdentityQuestion(text: string) {

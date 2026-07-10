@@ -364,14 +364,14 @@ async function checkOllama() {
 // ─── Apex Engine (seu proprio motor de IA) ────────────────────────────────
 async function checkApexEngine() {
   try {
-    const res = await safeFetch('http://127.0.0.1:8888/health', { method: 'GET' }, 3000)
+    const res = await safeFetch('http://127.0.0.1:1337/health', { method: 'GET' }, 3000)
     if (res.ok) {
       const data = await res.json().catch(() => ({}))
-      return { id: 'apex-engine', name: 'Apex Engine (Motor próprio)', status: 'ok', message: `Rodando na porta 8888.`, }
+      return { id: 'apex-engine', name: 'Apex Engine (Motor próprio)', status: 'ok', message: `Rodando na porta 1337.`, }
     }
-    return { id: 'apex-engine', name: 'Apex Engine (Motor próprio)', status: 'unconfigured', message: 'Motor local em standby (porta 8888 livre).' }
+    return { id: 'apex-engine', name: 'Apex Engine (Motor próprio)', status: 'unconfigured', message: 'Motor local em standby (porta 1337 livre).' }
   } catch {
-    return { id: 'apex-engine', name: 'Apex Engine (Motor próprio)', status: 'unconfigured', message: 'Motor local em standby (porta 8888 livre).' }
+    return { id: 'apex-engine', name: 'Apex Engine (Motor próprio)', status: 'unconfigured', message: 'Motor local em standby (porta 1337 livre).' }
   }
 }
 
