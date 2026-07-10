@@ -10,6 +10,13 @@ export default async function handler(req, res) {
     const path = req.url?.split('?')[0] || ''
     const mod = await import('../../server/service/accounting.mjs')
 
+    // ── Autenticação ──
+    if (path === '/api/accounting/auth' && req.method === 'POST') {
+      const auth = mod.authenticateUser(body.email, body.password)
+      if (!auth) return res.status(401).json({ error: 'Credenciais inválidas' })
+      return res.status(200).json({ providerStatus: 'connected', ...auth })
+    }
+
     // ── PJ ──
     if (path === '/api/accounting/create' && req.method === 'POST') {
       return res.status(200).json({ providerStatus: 'connected', company: mod.createCompany(body) })

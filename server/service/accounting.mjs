@@ -9,6 +9,22 @@
 const COMPANIES = new Map()
 const PERSONS = new Map()
 
+// ─── Autenticação do Módulo (ERP) ──────────────────────────────────────────
+
+const USERS = new Map([
+  ['maria.eduarda@email.com', { id: 'usr-maria', name: 'Maria Eduarda', role: 'client', password: '123' }],
+  ['admin@apex.com', { id: 'usr-admin', name: 'Contador Admin', role: 'admin', password: 'admin' }]
+])
+
+export function authenticateUser(email, password) {
+  const user = USERS.get(email)
+  if (user && user.password === password) {
+    const { password: _, ...userWithoutPassword } = user
+    return { token: `fake-jwt-token-${user.id}-${Date.now()}`, user: userWithoutPassword }
+  }
+  return null
+}
+
 // ─── Empresa (PJ) ────────────────────────────────────────────────────────────
 
 export function createCompany(data) {
