@@ -74,7 +74,7 @@ function buildNodeChildEnv(extra = {}) {
     const envPath = path.join(getAppRoot(), ".env.local");
     if (fs.existsSync(envPath)) {
       const content = fs.readFileSync(envPath, "utf8");
-      content.split("\n").forEach(line => {
+      content.split(/\r?\n/).forEach(line => {
         const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
         if (match) {
           const key = match[1];
@@ -253,9 +253,9 @@ app.whenReady().then(async () => {
       PORT: String(APP_PORT),
       NODE_ENV: "production",
       // Motor proprio Apex
-      APEX_OWN_ENGINE_URL: "http://127.0.0.1:8888",
-      APEX_API_URL: "http://127.0.0.1:8888",
-      APEX_RUNTIME_ENABLED: "false",
+      APEX_OWN_ENGINE_URL: "http://127.0.0.1:1337",
+      APEX_API_URL: "http://127.0.0.1:1337",
+      APEX_RUNTIME_ENABLED: "true",
       LOCAL_WORKER_URL: "http://127.0.0.1:8787",
     },
     stdio: ["ignore", "pipe", "pipe"],

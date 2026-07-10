@@ -1635,7 +1635,9 @@ function App() {
   const [showPromptLibrary, setShowPromptLibrary] = useState(false)
   const [activePromptLibraryModule, setActivePromptLibraryModule] = useState<string | undefined>(undefined)
   const [selectedModel, setSelectedModel] = useState<string>(() => {
-    return localStorage.getItem('apex_selected_model') || composeModelValue('gemini', 'gemini-3.5-flash')
+    const isDesktopApp = window.location.hostname === '127.0.0.1' && window.location.port === '3333'
+    const defaultModel = isDesktopApp ? composeModelValue('apex-local', 'apex-ai') : composeModelValue('gemini', 'gemini-3.5-flash')
+    return localStorage.getItem('apex_selected_model') || defaultModel
   })
   const [availableModels, setAvailableModels] = useState<ModelOption[]>([])
   const [modelProvider, setModelProvider] = useState<string>('')
