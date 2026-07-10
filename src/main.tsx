@@ -152,6 +152,7 @@ import { isSupplyChainIntent, SupplyChainPlan } from './lib/supplyChainKnowledge
 import './lib/observability'
 import './design-tokens.css'
 import './styles.css'
+import './theme-dark-premium.css'
 
 type H5ToolCard = {
   id: string

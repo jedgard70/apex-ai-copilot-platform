@@ -1,0 +1,142 @@
+/* 
+  APEX AI - PREMIUM DARK MODE OVERRIDE 
+  Automatically injected 100% UI/UX Modernization
+*/
+
+:root {
+  --app-bg: #0b1326;
+  --surface: #141c30;
+  --surface-bright: #1f293f;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --text-primary: #dbe2fd;
+  --text-secondary: #8d90a0;
+  --brand-accent: #2563eb;
+  --brand-gradient: linear-gradient(135deg, #2563eb, #a731d7);
+}
+
+body {
+  background: var(--app-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+.app {
+  background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.15) 0%, var(--app-bg) 50%) !important;
+}
+
+/* App Shell Components */
+.topbar {
+  background: rgba(11, 19, 38, 0.6) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+}
+
+.brand strong {
+  color: #ffffff !important;
+}
+
+.brand span {
+  color: var(--text-secondary) !important;
+}
+
+/* Chat & Workspace */
+.chat-shell {
+  background: rgba(20, 28, 48, 0.6) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid var(--border-subtle) !important;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5) !important;
+}
+
+.chat-header {
+  border-bottom: 1px solid var(--border-subtle) !important;
+}
+
+.chat-header h1 {
+  color: #ffffff !important;
+}
+
+.chat-header p {
+  color: var(--text-secondary) !important;
+}
+
+/* Sidebar */
+.chat-sidebar {
+  background: var(--surface) !important;
+  border-right: 1px solid var(--border-subtle) !important;
+}
+
+.chat-sidebar h2 {
+  color: #ffffff !important;
+}
+
+/* Input Area (Composer) */
+.composer {
+  background: rgba(11, 19, 38, 0.8) !important;
+  backdrop-filter: blur(12px) !important;
+  border-top: 1px solid var(--border-subtle) !important;
+}
+
+.composer textarea {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  padding: 12px 16px !important;
+}
+
+.composer textarea:focus {
+  border-color: var(--brand-accent) !important;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
+}
+
+/* Right Panel (Studios) */
+.right-panel {
+  background: var(--surface) !important;
+  border-left: 1px solid var(--border-subtle) !important;
+}
+
+.panel-header h2 {
+  color: #ffffff !important;
+}
+
+.panel-copy {
+  color: var(--text-secondary) !important;
+}
+
+/* Action Buttons */
+.upload-button,
+.send-button,
+.primary-button {
+  background: var(--brand-gradient) !important;
+  border: none !important;
+  color: #ffffff !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.upload-button:hover,
+.send-button:hover,
+.primary-button:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4) !important;
+}
+
+/* Bubbles */
+.message.assistant .bubble {
+  background: var(--surface-bright) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-subtle) !important;
+}
+
+.message.user .bubble {
+  background: var(--brand-accent) !important;
+  color: #ffffff !important;
+}
+
+/* Scrollbars Overrides */
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+}
