@@ -8,7 +8,7 @@
 
 import { spawn } from 'node:child_process'
 
-const TIMEOUT_MS = 8000
+const TIMEOUT_MS = 15000
 const DIRECT_TIMEOUT_MS = 120000
 const MAX_OUTPUT = 10000
 
