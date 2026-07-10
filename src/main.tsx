@@ -3192,7 +3192,9 @@ function App() {
       let response: Response | null = null
       for (let attempt = 1; attempt <= 2; attempt += 1) {
         try {
-          const candidate = await fetch('/api/copilot/chat', {
+          // Attempt 1: Local relative endpoint. Attempt 2: Fallback directly to the live production AI backend.
+          const endpoint = attempt === 1 ? '/api/copilot/chat' : 'https://www.apexglobalai.com/api/copilot/chat'
+          const candidate = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: requestBody,
@@ -3298,10 +3300,9 @@ function App() {
       if (fallbackText) {
         setMessages(prev => [...prev, { id: id(), role: 'assistant', text: fallbackText }])
       } else {
-        // Tenta novamente com o que tem — não mostra erro genérico
         const retryText = prefersPortuguese(userText)
-          ? 'Pode repetir? Nao peguei totalmente. Quer tentar de outro jeito ou so falar o que precisa?'
-          : 'Could you repeat that? I did not fully catch it. Want to try a different way or just tell me what you need?'
+          ? 'Houve uma falha na conexão de rede e não consegui alcançar o servidor principal nem a nuvem. Por favor, verifique sua internet e tente novamente.'
+          : 'There was a network connection failure and I could not reach the main server or the cloud. Please check your internet connection and try again.'
         setMessages(prev => [...prev, { id: id(), role: 'assistant', text: retryText }])
       }
     } finally {
