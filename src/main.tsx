@@ -118,6 +118,7 @@ import {
 import { syncProjectLocalToRemote } from './lib/projectPersistenceAdapter'
 import { SupabaseAccountState, attemptProfileBootstrap, loadSupabaseAccountState } from './lib/supabaseAuthBootstrap'
 import { getBrowserSupabaseClient, getSupabaseProviderStatus } from './lib/supabaseClient'
+import { AccountsPortal } from './components/AccountsPortal'
 import { syncFieldOpsPlanRemote } from './lib/fieldOpsPersistence'
 import { isSkillUpdateIntent, isTrustedGlobalSkillSource, ProjectMemoryUpdate, SkillUpdateApplyResult } from './lib/skillUpdateEngine'
 import { isSkillExportIntent } from './lib/skillExportFactory'
@@ -1272,6 +1273,7 @@ function App() {
   const pathname = useMemo(() => window.location.pathname, [])
   const isPublicVslRoute = useMemo(() => /^(\/(vsl|oferta|apresentacao|landing\/vsl|campaign\/vsl))\/?$/i.test(pathname), [pathname])
   const isPremiumSalesRoute = useMemo(() => /^(\/(premium|assinar|checkout))\/?$/i.test(pathname), [pathname])
+  const isAccountsRoute = useMemo(() => /^\/accounts\/?$/i.test(pathname), [pathname])
   const isMobile = useIsMobile()
   const fileInput = useRef<HTMLInputElement | null>(null)
   const composerTextarea = useRef<HTMLTextAreaElement | null>(null)
@@ -4140,6 +4142,10 @@ function App() {
   }
 
   // Client users see a simplified view
+  if (isAccountsRoute) {
+    return <AccountsPortal email={accountState?.user?.email || accountState?.profile?.email} />
+  }
+
   if (isSignedIn && !isInternalUser) {
     return (
       <div style={{ background: '#0f172a', minHeight: '100vh' }}>
