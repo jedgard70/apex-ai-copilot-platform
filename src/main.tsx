@@ -1968,7 +1968,7 @@ function App() {
   const isInternalUser = isOwnerUser || (accountState?.role && !accountState.role.startsWith('cliente_')) || accountState?.role === 'Internal Team' || accountState?.role === 'Finance' || accountState?.role === 'Sales' || accountState?.user?.email?.includes('apexglobal') || accountState?.user?.email === 'jedgard70@gmail.com'
 
   // ═══ OWNER EMAILS (protegido pela Regra Absoluta 5) ═══
-  const OWNER_EMAILS = ['jedgard70@gmail.com', 'owner@apexglobalai.co', 'edgard@apexglobalai.co']
+  const OWNER_EMAILS = ['jedgard70@gmail.com']
   const currentRole = (() => {
     if (!accountState?.user) return 'owner';
     if (OWNER_EMAILS.includes(accountState?.user?.email?.toLowerCase() || '')) return 'owner';
