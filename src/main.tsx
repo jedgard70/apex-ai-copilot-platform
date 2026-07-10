@@ -72,6 +72,7 @@ import { SkillUpdatePanel } from './components/SkillUpdatePanel'
 import { SupplyChainPanel } from './components/SupplyChainPanel'
 import { PlatformMapPanel } from './components/PlatformMapPanel'
 import { PublicVslLandingPage } from './components/PublicVslLandingPage'
+import { CheckoutPortal } from './components/CheckoutPortal'
 import { UserAccountPanel } from './components/UserAccountPanel'
 import AppLayout from './components/AppLayout'
 import { ClientDashboard } from './components/ClientDashboard'
@@ -4115,7 +4116,9 @@ function App() {
     return <PublicVslLandingPage />
   }
 
-
+  if (isPremiumSalesRoute) {
+    return <CheckoutPortal />
+  }
 
   if ((!isSignedIn || authLoading) && !isLocalDemoOwner) {
     // If signed in but bootstrap is blocked, show a helpful message instead of white screen

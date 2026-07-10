@@ -131,17 +131,48 @@ export function PublicVslLandingPage() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
-          {[
-            'CTA persistente abaixo do player',
-            'Preservação automática de UTM no botão',
-            'Compatível com Hotmart, Stripe, WhatsApp e booking',
-            'Rodapé legal e estrutura para prova/oferta',
-          ].map(item => (
-            <div key={item} style={{ border: '1px solid rgba(255,255,255,0.09)', background: 'rgba(255,255,255,0.03)', borderRadius: 16, padding: 16 }}>
-              {item}
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 32 }}>
+          <h2 style={{ fontSize: 28, marginBottom: 24, textAlign: 'center' }}>Ecossistema de Serviços Apex AI</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
+            {/* Serviço: Contabilidade */}
+            <div style={{ border: '1px solid rgba(59,130,246,0.3)', background: 'rgba(15,23,42,0.6)', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 22, color: '#60a5fa' }}>Contabilidade Integrada</h3>
+                <p style={{ margin: '8px 0 0', color: 'rgba(255,255,255,0.7)', fontSize: 15, lineHeight: 1.5 }}>
+                  Automação fiscal REDESIM, emissão e captura de NFs, legalização de CNPJ e integração contínua na plataforma web + extensão.
+                </p>
+              </div>
+              <a href="/checkout?service=accounts" style={{ marginTop: 'auto', background: '#3b82f6', color: '#fff', textDecoration: 'none', padding: '12px', borderRadius: 8, textAlign: 'center', fontWeight: 600 }}>
+                Assinar Contabilidade
+              </a>
             </div>
-          ))}
+
+            {/* Serviço: Marketing */}
+            <div style={{ border: '1px solid rgba(255,255,255,0.09)', background: 'rgba(255,255,255,0.03)', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 22 }}>Marketing & SEO</h3>
+                <p style={{ margin: '8px 0 0', color: 'rgba(255,255,255,0.7)', fontSize: 15, lineHeight: 1.5 }}>
+                  Agentes geradores de campanhas completas, VSL dinâmico e copy adaptada ao seu funil de vendas.
+                </p>
+              </div>
+              <a href="/premium" style={{ marginTop: 'auto', background: 'rgba(255,255,255,0.1)', color: '#fff', textDecoration: 'none', padding: '12px', borderRadius: 8, textAlign: 'center', fontWeight: 600 }}>
+                Em breve
+              </a>
+            </div>
+
+            {/* Serviço: Engenharia */}
+            <div style={{ border: '1px solid rgba(255,255,255,0.09)', background: 'rgba(255,255,255,0.03)', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 22 }}>Engenharia Civil</h3>
+                <p style={{ margin: '8px 0 0', color: 'rgba(255,255,255,0.7)', fontSize: 15, lineHeight: 1.5 }}>
+                  Integração Revit, gestão de canteiro de obras, relatórios fotográficos de medição e automação de orçamentos.
+                </p>
+              </div>
+              <a href="/premium" style={{ marginTop: 'auto', background: 'rgba(255,255,255,0.1)', color: '#fff', textDecoration: 'none', padding: '12px', borderRadius: 8, textAlign: 'center', fontWeight: 600 }}>
+                Em breve
+              </a>
+            </div>
+          </div>
         </div>
       </section>
       <footer style={{ borderTop: '1px solid rgba(255,255,255,0.08)', padding: '20px 16px 32px', color: 'rgba(255,255,255,0.65)' }}>
