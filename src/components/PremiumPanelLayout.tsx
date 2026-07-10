@@ -1,13 +1,14 @@
 import React from 'react';
 
 type PremiumPanelLayoutProps = {
-  title: string;
-  subtitle: string;
+  title: React.ReactNode;
+  subtitle: React.ReactNode;
   icon?: React.ReactNode;
   imageAsset?: string;
   headerActions?: React.ReactNode;
   children: React.ReactNode;
   activeStatus?: string;
+  onClose?: () => void;
 };
 
 const T = {
