@@ -1307,6 +1307,9 @@ function App() {
     else if (activeView === 'contracts') { closeOtherPanels('contracts'); setContractsOutput({ goal: 'Gestão de Contratos', conversationContext: [] }) }
     else if (activeView === 'research') { closeOtherPanels('research'); setResearchOutput({ goal: 'Pesquisa Mercadológica', conversationContext: [] }) }
     else if (activeView === 'settings' || activeView === 'profile' || activeView === 'user-profile') { setIsUserProfileOpen(true) }
+    else if (['navigator', 'governance', 'training', 'deployment', 'docs', 'caixa_mcmv', 'aicontrol', 'code-editor', 'saasadmin'].includes(activeView)) {
+      closeOtherPanels('none')
+    }
     // Inject panel context into chat so AI knows what's happening
     const panelLabels: Record<string, string> = {
       navigator: 'Platform Navigator', governance: 'Governance Hub', training: 'Model Training',

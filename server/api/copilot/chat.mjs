@@ -8,7 +8,7 @@ import { collectProductionOperatorStatus } from '../../agent/productionStatus.mj
 import { classifyToolExecutionRequest, routeToolExecution, routeH6ActionRequest } from '../../agent/toolExecutionRouter.mjs'
 import { runApexOperatorProductionSafe } from '../../agent/apexOperatorRuntime.mjs'
 import { isConfirmationSignal, isCancelSignal, hasPendingAction } from '../../agent/confirmationStateMachine.mjs'
-import { verifyOwnerAdmin } from '../../lib/auth.mjs'
+import { verifyOwnerAdmin } from '../../../lib/auth.mjs'
 let _interactionsModels = null
 let _isInteractionModel = null
 let _interactionsPromise = null
@@ -308,7 +308,7 @@ const H5_ACTION_TOOLS = new Set([
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-const runtimeKnowledgePath = path.resolve(__dirname, '../../src/lib/runtimeKnowledge.json')
+const runtimeKnowledgePath = path.resolve(__dirname, '../../../src/lib/runtimeKnowledge.json')
 
 function loadRuntimeKnowledge() {
   return JSON.parse(fs.readFileSync(runtimeKnowledgePath, 'utf8'))
@@ -322,7 +322,7 @@ function loadApexMemory() {
   // Cache de 60s para não ler disco em cada request
   if (_apexMemory && now - _apexMemoryLoadedAt < 60000) return _apexMemory
   try {
-    const memPath = path.resolve(__dirname, '../../training_data/apex_memory.json')
+    const memPath = path.resolve(__dirname, '../../../training_data/apex_memory.json')
     if (fs.existsSync(memPath)) {
       _apexMemory = JSON.parse(fs.readFileSync(memPath, 'utf8'))
       _apexMemoryLoadedAt = now
