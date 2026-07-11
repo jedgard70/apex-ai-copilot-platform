@@ -36,7 +36,7 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    exclude: ['web-ifc', 'hls.js', 'zustand'],
+    exclude: ['web-ifc', 'hls.js'],
   },
   worker: {
     format: 'es',
