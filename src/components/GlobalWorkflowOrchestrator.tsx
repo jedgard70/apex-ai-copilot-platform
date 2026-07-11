@@ -16,7 +16,8 @@ import {
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { Play, Plus, Trash2, Cpu } from 'lucide-react'
-import { uid } from 'radash'
+
+const uid = () => Date.now().toString(36) + Math.random().toString(36).substr(2)
 
 const D = {
   bg: '#131313',
@@ -166,7 +167,7 @@ export function GlobalWorkflowOrchestrator() {
             style={{ background: D.bg }}
           >
             <Background color={D.outlineVariant} gap={16} />
-            <Controls style={{ button: { background: D.surfaceContainerHigh, border: `1px solid ${D.outlineVariant}`, color: D.onSurface } }} />
+            <Controls style={{ background: D.surfaceContainerHigh, border: `1px solid ${D.outlineVariant}`, color: D.onSurface }} />
           </ReactFlow>
         </div>
 
