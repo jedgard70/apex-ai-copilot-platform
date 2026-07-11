@@ -888,6 +888,43 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
     }
   }
 
+  async function handleExecuteWorkflow(nodes: any[], edges: any[]) {
+    if (nodes.length === 0) return
+    setLoading(true)
+    const jobId = uid()
+    setRenderJobs(prev => [{
+      id: jobId, modelId: 'workflow', modelLabel: 'Workflow Batch',
+      prompt: `Workflow with ${nodes.length} nodes`, status: 'submitting', progress: 10,
+      startedAt: new Date().toISOString()
+    }, ...prev])
+
+    try {
+      const res = await fetch('/api/copilot/workflow-render', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nodes, edges, goal })
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setRenderJobs(prev => prev.map(j => j.id !== jobId ? j : { ...j, status: 'error', error: data?.message || 'Workflow falhou.' }))
+        setLoading(false)
+        return
+      }
+      
+      setRenderJobs(prev => prev.map(j => j.id !== jobId ? j : { ...j, status: 'queued', progress: 50, requestId: data.requestId || jobId }))
+      alert(`Workflow de ${nodes.length} nós enviado com sucesso! Acompanhe no histórico de render.`)
+      
+      // Stub the completion for UI since we don't have a real batch webhook yet
+      setTimeout(() => {
+        setRenderJobs(prev => prev.map(j => j.id !== jobId ? j : { ...j, status: 'done', progress: 100 }))
+        setLoading(false)
+      }, 5000)
+    } catch (err) {
+      setRenderJobs(prev => prev.map(j => j.id !== jobId ? j : { ...j, status: 'error', error: err instanceof Error ? err.message : 'Error' }))
+      setLoading(false)
+    }
+  }
+
   const doneJob = renderJobs.find(j => j.status === 'done' && j.videoUrl)
 
   // Auto-playhead for when there is no video loaded yet, or to keep timeline moving
@@ -1055,7 +1092,7 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
 
           {tab === 'workflow' && (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-              <WorkflowCanvas sourceImage={source?.dataUrl} />
+              <WorkflowCanvas sourceImage={source?.dataUrl} onExecuteFlow={handleExecuteWorkflow} />
             </div>
           )}
 

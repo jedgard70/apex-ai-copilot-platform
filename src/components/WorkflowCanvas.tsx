@@ -101,7 +101,7 @@ const nodeTypes = {
 
 // ─── Workflow Canvas ─────────────────────────────────────────────────────────
 
-export function WorkflowCanvas({ sourceImage }: { sourceImage?: string }) {
+export function WorkflowCanvas({ sourceImage, onExecuteFlow }: { sourceImage?: string; onExecuteFlow?: (nodes: Node[], edges: Edge[]) => void }) {
   const [nodes, setNodes] = useState<Node[]>([])
   const [edges, setEdges] = useState<Edge[]>([])
 
@@ -164,8 +164,12 @@ export function WorkflowCanvas({ sourceImage }: { sourceImage?: string }) {
   }
 
   const handleExecute = () => {
-    console.log('Execute graph:', { nodes, edges })
-    alert('Gráfico enviado para execução! (Workflow salvo no console)')
+    if (onExecuteFlow) {
+      onExecuteFlow(nodes, edges)
+    } else {
+      console.log('Execute graph:', { nodes, edges })
+      alert('Gráfico enviado para execução! (Workflow salvo no console)')
+    }
   }
 
   return (

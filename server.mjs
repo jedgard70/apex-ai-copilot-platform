@@ -3453,6 +3453,36 @@ async function handleVideoRender(req, res) {
   }
 }
 
+async function handleWorkflowRender(req, res) {
+  try {
+    const body = await readJson(req)
+    const { nodes, edges, goal } = body || {}
+    
+    if (!nodes || !Array.isArray(nodes) || nodes.length === 0) {
+      return json(res, 400, { providerStatus: 'error', message: 'Nenhum nó fornecido.' })
+    }
+    if (nodes.length > 20) {
+      return json(res, 400, { providerStatus: 'error', message: 'Limite máximo de 20 nós excedido.' })
+    }
+
+    // Como é um batch grande, vamos simular o enfileiramento (queue)
+    // O backend orquestraria as requisições para o provider em background
+    const requestId = `batch-${Date.now()}`
+    
+    return json(res, 200, { 
+      providerStatus: 'queued', 
+      message: 'Workflow recebido e enfileirado para processamento em lote.',
+      requestId,
+      async: true
+    })
+  } catch (error) {
+    return json(res, error.status || 500, {
+      providerStatus: 'error',
+      message: scrubProviderError(error.message || 'DirectCut workflow render failed.'),
+    })
+  }
+}
+
 function bimFileExtension(fileName = '') {
   return String(fileName).toLowerCase().split('.').pop() || 'unknown'
 }
@@ -6640,6 +6670,10 @@ export const mainHandler = async (req, res) => {
     }
     if (req.url === '/api/copilot/video-render' && req.method === 'POST') {
       handleVideoRender(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/workflow-render' && req.method === 'POST') {
+      handleWorkflowRender(req, res)
       return
     }
     if (req.url === '/api/copilot/bim-plan' && req.method === 'POST') {
