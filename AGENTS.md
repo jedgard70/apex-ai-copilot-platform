@@ -83,11 +83,17 @@ Proibido EXPRESSAMENTE usar comandos como `vercel env add`, `vercel env rm`,
 NENHUMA env var da Vercel pode ser alterada sem o Owner dizer "autorizado",
 "pode mexer", "sincroniza" ou "corrige" para aquela ação específica, se for preciso pergunte ou peça autorizaçao.
 
-⚠️ EXCEÇÃO REGISTRADA: na sessão de 2026-06-24, o Owner autorizou
+⚠️ EXCEÇÃO REGISTRADA 1: na sessão de 2026-06-24, o Owner autorizou
 explicitamente a sincronização das seguintes variáveis no Vercel:
 
 - LOCAL_WORKER_URL (correção de casing)
 - ALLOW_RAW_SHELL_IN_ANY_ENV (adição)
+
+⚠️ EXCEÇÃO REGISTRADA 2: na sessão atual (2026-07-11), o Owner autorizou
+exclusivamente o agente principal Antigravity a injetar, modificar ou 
+sincronizar variáveis de ambiente no Vercel (como VERCEL_SUPPORT_LARGE_FUNCTIONS) 
+para correções de build e deploy. Nenhum outro agente, skill ou 
+processo automatizado possui essa permissão.
 
 Proteção estendida também a:
 
