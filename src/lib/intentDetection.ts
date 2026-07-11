@@ -75,8 +75,8 @@ export function prefersPortuguese(text: string) {
 export function buildCopilotFailureMessage(userText: string) {
   const pt = prefersPortuguese(userText) || true
   return pt
-    ? 'Pode repetir de outro jeito? Estou online e pronto pra ajudar — me diga o que quer fazer: analisar planta, gerar imagem, orçamento, contrato, pesquisa ou qualquer outra tarefa.'
-    : 'Could you rephrase that? I am online and ready to help — just tell me what you need: analyze a plan, generate an image, budget, contract, research, or any other task.'
+    ? 'Desculpe, ocorreu um erro de conexão ao tentar processar sua solicitação.'
+    : 'Sorry, a connection error occurred while trying to process your request.'
 }
 
 export function isIdentityQuestion(text: string) {

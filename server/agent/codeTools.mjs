@@ -181,7 +181,7 @@ export function buildCodeToolDefinitions() {
     type: 'function',
     function: {
       name: 'mcp_local_execute',
-      description: 'MCP Proxy: Execute a shell command or git command ON THE USER\\'S LOCAL COMPUTER. Use this to do local operations (git push/pull, file edits on the local machine) when the website AI is asked to change the project.',
+      description: "MCP Proxy: Execute a shell command or git command ON THE USER'S LOCAL COMPUTER. Use this to do local operations (git push/pull, file edits on the local machine) when the website AI is asked to change the project.",
       parameters: {
         type: 'object',
         additionalProperties: false,

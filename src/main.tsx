@@ -990,8 +990,8 @@ function prefersPortuguese(text: string) {
 function buildCopilotFailureMessage(userText: string) {
   const pt = prefersPortuguese(userText) || true
   return pt
-    ? 'Houve uma falha na conexão com o servidor ou a API de inteligência artificial. Por favor, aguarde um momento e tente novamente.'
-    : 'There was a connection failure with the server or the AI API. Please wait a moment and try again.'
+    ? 'Desculpe, ocorreu um erro de conexão ao tentar processar sua solicitação.'
+    : 'Sorry, a connection error occurred while trying to process your request.'
 }
 
 function isIdentityQuestion(text: string) {
@@ -1949,7 +1949,7 @@ function App() {
   }), [activeProject, archVisOutput, archVisRevisionConstraints.length, bim3DOutput, directCutOutput, executionRuns.length, messages.length])
 
   // --- Local Demo Auth Definitions ---
-  const localDemoAuthAllowed = true
+  const localDemoAuthAllowed = false
   const buildLocalDemoOwnerState = (): SupabaseAccountState => ({
     providerStatus: 'supabase-not-configured',
     sessionStatus: 'signed-in',
@@ -3306,8 +3306,8 @@ function App() {
         setMessages(prev => [...prev, { id: id(), role: 'assistant', text: fallbackText }])
       } else {
         const retryText = prefersPortuguese(userText)
-          ? 'Houve uma falha na conexão de rede e não consegui alcançar o servidor principal nem a nuvem. Por favor, verifique sua internet e tente novamente.'
-          : 'There was a network connection failure and I could not reach the main server or the cloud. Please check your internet connection and try again.'
+          ? 'Desculpe, ocorreu uma falha de conexão na tentativa de alcançar o servidor. Por favor, tente novamente.'
+          : 'Sorry, a connection error occurred while trying to reach the server. Please try again.'
         setMessages(prev => [...prev, { id: id(), role: 'assistant', text: retryText }])
       }
     } finally {

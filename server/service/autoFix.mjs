@@ -170,48 +170,6 @@ export async function detectProblems() {
     }
   } catch {}
 
-  // 8. Vercel deployment status (Cloud Deploy Monitoring)
-  try {
-    const vercelOutput = execSync('npx vercel ls 2>&1 || true', {
-      cwd: ROOT, encoding: 'utf-8', timeout: 30000,
-    })
-    
-    // Check if the most recent deploy failed
-    const lines = vercelOutput.split('\n');
-    
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      if (line.includes('https://') && (line.includes('● Error') || line.includes('● Canceled') || line.includes('● Failed'))) {
-        // If it's one of the first few deployments (recent)
-        if (i < 10) {
-          const urlMatch = line.match(/https:\/\/[a-zA-Z0-9-]+\.vercel\.app/);
-          if (urlMatch) {
-            const url = urlMatch[0];
-            const stateFile = resolve(ROOT, '.vercel_last_error');
-            let lastErrorUrl = '';
-            if (existsSync(stateFile)) {
-              lastErrorUrl = readFileSync(stateFile, 'utf8').trim();
-            }
-            
-            if (lastErrorUrl !== url) {
-              problems.push({
-                type: 'vercel-deploy-error',
-                severity: 'critical',
-                files: [],
-                detail: `Falha no deploy da Vercel detectada: ${url}`,
-                autoFixable: true,
-                url: url
-              });
-            }
-          }
-        }
-        break;
-      } else if (line.includes('https://') && line.includes('● Ready')) {
-        break; // Latest is successful
-      }
-    }
-  } catch (err) {}
-
   return problems
 }
 
@@ -293,28 +251,6 @@ export async function autoFixProblems(problems) {
             failed.push({ ...problem, reason: `Falha ao commitar: ${e.message?.slice(0, 100)}` })
           }
           break
-        }
-
-        case 'vercel-deploy-error': {
-          try {
-            // 1. Mark this URL as seen
-            const stateFile = resolve(ROOT, '.vercel_last_error');
-            writeFileSync(stateFile, problem.url, 'utf8');
-            
-            // 2. Fetch logs and alert agents
-            console.log(`[auto-fix] Coletando logs da Vercel para ${problem.url}...`);
-            try {
-               const inspect = execSync(`npx vercel inspect ${problem.url} 2>&1`, { cwd: ROOT, encoding: 'utf-8', timeout: 30000 });
-               writeFileSync(resolve(ROOT, 'VERCEL_DEPLOY_ERROR.md'), `# Vercel Deploy Error\n\nURL: ${problem.url}\n\n\`\`\`\n${inspect}\n\`\`\`\n\nAgentes Antigravity: Por favor, leiam este log, consertem o código e façam o git push novamente.`, 'utf8');
-               fixed.push({ ...problem, resolution: 'Logs extraídos e salvos em VERCEL_DEPLOY_ERROR.md para atuação dos agentes' });
-            } catch (e) {
-               writeFileSync(resolve(ROOT, 'VERCEL_DEPLOY_ERROR.md'), `# Vercel Deploy Error\n\nURL: ${problem.url}\n\nNão foi possível puxar os logs via CLI. Acesse o painel da Vercel.`, 'utf8');
-               fixed.push({ ...problem, resolution: 'Erro salvo em VERCEL_DEPLOY_ERROR.md' });
-            }
-          } catch (e) {
-            failed.push({ ...problem, reason: `Falha ao processar erro da Vercel: ${e.message}` });
-          }
-          break;
         }
 
         default:
