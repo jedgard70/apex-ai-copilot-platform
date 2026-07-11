@@ -307,7 +307,8 @@ type ModelOption = {
 type ManualModelProvider = 'all' | 'gemini' | 'gemini-interactions' | 'fal' | 'elevenlabs'
 
 const APEX_OWN_MODELS = [
-  { id: 'apex-ai', name: 'Apex AI 2.0 (Motor Principal)' }
+  { id: 'apex-ai', name: 'Apex AI 2.0 (Motor Principal)' },
+  { id: 'apex-ai-omniscience', name: 'Apex AI Livre (Onisciente/Local)' }
 ]
 
 const DIRECT_GEMINI_MODELS = [
@@ -3201,7 +3202,11 @@ function App() {
       for (let attempt = 1; attempt <= 2; attempt += 1) {
         try {
           // Attempt 1: Local relative endpoint. Attempt 2: Fallback directly to the live production AI backend.
-          const endpoint = attempt === 1 ? '/api/copilot/chat' : 'https://www.apexglobalai.com/api/copilot/chat'
+          let endpoint = attempt === 1 ? '/api/copilot/chat' : 'https://www.apexglobalai.com/api/copilot/chat'
+          
+          if (selectedModel?.includes('apex-ai-omniscience')) {
+            endpoint = 'http://127.0.0.1:8787/api/omniscience/chat'
+          }
           const candidate = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

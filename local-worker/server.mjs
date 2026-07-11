@@ -16,6 +16,7 @@ import { readFile, access, readdir, stat } from 'node:fs/promises'
 import { constants as fsConstants, createReadStream } from 'node:fs'
 import { join, dirname, resolve } from 'node:path'
 import { homedir, platform } from 'node:os'
+import { handleOmniscienceChat } from './omniscience.mjs'
 // ─── Load .env at startup (no external deps) ──────────────────────────────────
 import { fileURLToPath } from 'node:url'
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -1237,6 +1238,22 @@ async function handleRequest(req, res) {
       allowedActions: [...ALLOWED_ACTION_IDS],
       secretsExposed: false,
     })
+  }
+
+  // ── POST /api/omniscience/chat ──────────────────────────────────────────────
+  if (req.method === 'POST' && path === '/api/omniscience/chat') {
+    const auth = checkAuth(req)
+    if (!auth.ok) return sendJson(res, auth.status, { ok: false, reason: auth.reason })
+    try {
+      const body = await readBody(req)
+      const prompt = body.message || body.prompt
+      if (!prompt) return sendJson(res, 400, { ok: false, reason: 'Missing prompt/message' })
+      const answer = await handleOmniscienceChat(prompt)
+      return sendJson(res, 200, { ok: true, reply: answer })
+    } catch (err) {
+      console.error('[Omniscience] Error:', err)
+      return sendJson(res, 500, { ok: false, reason: err.message })
+    }
   }
 
   // ──────────────── FILA DE RENDERIZAÇÃO NATIVA ─────────────────────────────

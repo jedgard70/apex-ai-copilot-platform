@@ -40,6 +40,7 @@
     "@genkit-ai/googleai": "^1.28.0",
     "@google/genai": "^2.9.0",
     "@google/generative-ai": "^0.24.1",
+    "@huggingface/transformers": "^4.2.0",
     "@modelcontextprotocol/sdk": "^1.26.0",
     "@monaco-editor/react": "^4.7.0",
     "@react-three/drei": "^10.7.7",
