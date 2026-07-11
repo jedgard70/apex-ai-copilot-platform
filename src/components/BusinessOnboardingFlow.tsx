@@ -1,243 +1,213 @@
 import React, { useState, useEffect } from 'react';
 import { SplitAuthScreen } from './SplitAuthScreen';
 import { SupabaseAccountState } from '../lib/supabaseAuthBootstrap';
+import {
+  BrainCircuit, LayoutGrid, Box, Building, BarChart, CheckCircle2, ArrowRight,
+  Database, LineChart, Globe, Zap, Network, ShieldCheck
+} from 'lucide-react';
 
 type FlowStep = 'vsl' | 'auth';
 
-type ServiceOption = {
-  id: string;
-  title: string;
-  videoUrl?: string;
-};
-
-const SERVICES: ServiceOption[] = [
-  { id: 'stock_market_analytics', title: 'STOCK MARKET ANALYTICS' },
-  { id: 'autotrader_bot', title: 'AUTOTRADER BOT' },
-  { id: 'accounting_and_contabilidade_crc', title: 'ACCOUNTING & CONTABILIDADE (CRC)' },
-  { id: 'contracts_studio_rascunho_jurídico', title: 'CONTRACTS STUDIO (Rascunho Jurídico)' },
-  { id: 'permits_and_offshore', title: 'PERMITS & OFFSHORE' },
-  { id: 'crm_and_pipeline_de_vendas', title: 'CRM & PIPELINE DE VENDAS' },
-  { id: 'bim_3d_studio_webgl___ifcopenshell', title: 'BIM 3D STUDIO (WebGL / IfcOpenShell)' },
-  { id: 'bim_clash_detection', title: 'BIM CLASH DETECTION' },
-  { id: 'ms_project_parser', title: 'MS PROJECT PARSER' },
-  { id: 'budget_and_quantity_studio_sinapi', title: 'BUDGET & QUANTITY STUDIO (SINAPI)' },
-  { id: 'project_package_pipeline', title: 'PROJECT PACKAGE PIPELINE' },
-  { id: 'field_ops_studio', title: 'FIELD OPS STUDIO' },
-  { id: 'rdo_diário_de_obras_digital', title: 'RDO (Diário de Obras Digital)' },
-  { id: 'qualidade_e_ncis', title: 'QUALIDADE E NCIs' },
-  { id: 'nr_compliance', title: 'NR COMPLIANCE' },
-  { id: 'supply_chain_studio', title: 'SUPPLY CHAIN STUDIO' },
-  { id: 'digital_twin_ops', title: 'DIGITAL TWIN OPs' },
-  { id: 'iot_telemetry', title: 'IoT TELEMETRY' },
-  { id: 'predictive_analytics', title: 'PREDICTIVE ANALYTICS' },
-  { id: 'workflow_and_tasks_gantt', title: 'WORKFLOW & TASKS (Gantt)' },
-  { id: 'folha_de_pagamento_automatizada', title: 'FOLHA DE PAGAMENTO AUTOMATIZADA' },
-  { id: 'trip_planner', title: 'TRIP PLANNER' },
-  { id: 'vsl_landing_page', title: 'VSL LANDING PAGE' },
-  { id: 'stripe_checkout', title: 'STRIPE CHECKOUT' },
-  { id: 'stripe_webhooks', title: 'STRIPE WEBHOOKS' },
-  { id: 'campaign_automation_studio', title: 'CAMPAIGN AUTOMATION STUDIO' },
-  { id: 'hotmart_webhook', title: 'HOTMART WEBHOOK' },
-  { id: 'directors_cut_studio', title: 'DIRECTOR\'S CUT STUDIO' },
-  { id: 'avatar_pipeline', title: 'AVATAR PIPELINE' },
-  { id: 'voice_tts_pipeline_elevenlabs', title: 'VOICE TTS PIPELINE (ElevenLabs)' },
-  { id: 'directors_cut_refine', title: 'DIRECTOR\'S CUT REFINE' },
-  { id: 'chat_principal_apex_ai', title: 'CHAT PRINCIPAL (Apex AI)' },
-  { id: 'cognitive_agents_hub', title: 'COGNITIVE AGENTS HUB' },
-  { id: 'agent_planner', title: 'AGENT PLANNER' },
-  { id: 'agent_executor', title: 'AGENT EXECUTOR' },
-  { id: 'agent_verifier', title: 'AGENT VERIFIER' },
-  { id: 'tool_registry', title: 'TOOL REGISTRY' },
-  { id: 'apex_memory_memória_de_longo_prazo', title: 'APEX MEMORY (Memória de Longo Prazo)' },
-  { id: 'personal_assistant_logic', title: 'PERSONAL ASSISTANT LOGIC' },
-  { id: 'teach_api', title: 'TEACH API' },
-  { id: 'train_gemma_motor_de_re-treino', title: 'TRAIN GEMMA (Motor de Re-treino)' },
-  { id: 'self_upgrade', title: 'SELF UPGRADE' },
-  { id: 'deep_research_studio', title: 'DEEP RESEARCH STUDIO' },
-  { id: 'trend_scout_agent_radar_24_7', title: 'TREND SCOUT AGENT (Radar 24/7)' },
-  { id: 'apex_reasoning_core', title: 'APEX REASONING CORE' },
-  { id: 'provider_router', title: 'PROVIDER ROUTER' },
-  { id: 'provider_status_and_analytics', title: 'PROVIDER STATUS & ANALYTICS' },
-  { id: 'whatsapp_bot_webhook', title: 'WHATSAPP BOT WEBHOOK' },
-  { id: 'whatsapp_cli_tool', title: 'WHATSAPP CLI TOOL' },
-  { id: 'google_auth', title: 'GOOGLE AUTH' },
-  { id: 'google_calendar_bot', title: 'GOOGLE CALENDAR BOT' },
-  { id: 'google_workspace_cli', title: 'GOOGLE WORKSPACE CLI' },
-  { id: 'gemini_agents_orchestrator', title: 'GEMINI AGENTS ORCHESTRATOR' },
-  { id: 'firebase_connector', title: 'FIREBASE CONNECTOR' },
-  { id: 'github_tools', title: 'GITHUB TOOLS' },
-  { id: 'fal_model_registry', title: 'FAL MODEL REGISTRY' },
-  { id: 'authkey_connector', title: 'AUTHKEY CONNECTOR' },
-  { id: 'domain_knowledge_connector', title: 'DOMAIN KNOWLEDGE CONNECTOR' },
-  { id: 'local_worker_client', title: 'LOCAL WORKER CLIENT' },
-  { id: 'embeddings_engine', title: 'EMBEDDINGS ENGINE' },
-  { id: 'background_tasks_connector', title: 'BACKGROUND TASKS CONNECTOR' },
-  { id: 'brain_module_agente_autônomo', title: 'BRAIN MODULE (Agente Autônomo)' },
-  { id: 'code_tools_and_validator', title: 'CODE TOOLS & VALIDATOR' },
-  { id: 'confirmation_state_machine', title: 'CONFIRMATION STATE MACHINE' },
-  { id: 'controlled_executor', title: 'CONTROLLED EXECUTOR' },
-  { id: 'delegation_generator', title: 'DELEGATION GENERATOR' },
-  { id: 'execution_policy_and_policy_engine', title: 'EXECUTION POLICY & POLICY ENGINE' },
-  { id: 'local_worker_electron', title: 'LOCAL WORKER (Electron)' },
-  { id: 'offline_gateway', title: 'OFFLINE GATEWAY' },
-  { id: 'mcp_server_model_context_protocol', title: 'MCP SERVER (Model Context Protocol)' },
-  { id: 'runtime_próprio_llama-server_ollama', title: 'RUNTIME PRÓPRIO (llama-server/Ollama)' },
-  { id: 'apex_engine_proxy', title: 'APEX ENGINE PROXY' },
-  { id: 'apex_runtime_engine', title: 'APEX RUNTIME ENGINE' },
-  { id: 'inference_server', title: 'INFERENCE SERVER' },
-  { id: 'soberania_tecnológica_offline_gguf', title: 'SOBERANIA TECNOLÓGICA (OFFLINE GGUF)' },
-  { id: 'dashboard___home', title: 'DASHBOARD / HOME' },
-  { id: 'owner_console', title: 'OWNER CONSOLE' },
-  { id: 'platform_map___manual_interativo', title: 'PLATFORM MAP / MANUAL INTERATIVO' },
-  { id: 'project_workspace', title: 'PROJECT WORKSPACE' },
-  { id: 'auth_server', title: 'AUTH SERVER' },
-  { id: 'multi-tenant_rls_supabase', title: 'MULTI-TENANT RLS (Supabase)' },
-  { id: 'pwa_progressive_web_app', title: 'PWA (Progressive Web App)' },
-  { id: 'auto-update_ota', title: 'AUTO-UPDATE (OTA)' },
-  { id: 'platform_status_telemetria', title: 'PLATFORM STATUS (Telemetria)' },
-  { id: 'code_executor_terminal_web', title: 'CODE EXECUTOR (Terminal Web)' },
-  { id: 'rate_limit_monitor', title: 'RATE LIMIT MONITOR' },
-  { id: 'security_audit', title: 'SECURITY AUDIT' },
+const PILLARS = [
+  {
+    id: 'intelligence_core',
+    title: 'Intelligence Core Dashboard',
+    desc: 'Núcleo cognitivo central, onde dados, agentes e decisões se conectam.',
+    icon: <Database className="w-6 h-6 text-cyan-400" />,
+    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'bim_intelligence',
+    title: 'BIM Intelligence Layer',
+    desc: 'Coordenação BIM e detecção automatizada de conflitos (Clash Detection).',
+    icon: <Box className="w-6 h-6 text-indigo-400" />,
+    image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'visual_intelligence',
+    title: 'Visual Intelligence Layer',
+    desc: 'Geração visual com IA para renderizações cinemáticas e premium.',
+    icon: <LayoutGrid className="w-6 h-6 text-fuchsia-400" />,
+    image: 'https://images.unsplash.com/photo-1600607687920-4e2a09c15468?auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'predictive_analytics',
+    title: 'Predictive Analytics',
+    desc: 'Antecipação de atrasos, riscos financeiros e gargalos operacionais.',
+    icon: <LineChart className="w-6 h-6 text-emerald-400" />,
+    image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'autonomous_decision',
+    title: 'Autonomous Decision',
+    desc: 'Sistema de alertas e recomendações automatizadas para apoio rápido.',
+    icon: <BrainCircuit className="w-6 h-6 text-rose-400" />,
+    image: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'digital_twin',
+    title: 'Digital Twin Layer',
+    desc: 'Modelo vivo integrando dados reais, IoT e evolução física.',
+    icon: <Globe className="w-6 h-6 text-blue-400" />,
+    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'financial_intelligence',
+    title: 'Financial Intelligence',
+    desc: 'Valuation, Curva S, fluxo de caixa e análise de viabilidade.',
+    icon: <BarChart className="w-6 h-6 text-amber-400" />,
+    image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&q=80'
+  },
+  {
+    id: 'hyperautomation',
+    title: 'Hyperautomation Layer',
+    desc: 'Automação invisível de workflows, e-mails, WhatsApp e integrações.',
+    icon: <Zap className="w-6 h-6 text-yellow-400" />,
+    image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80'
+  }
 ];
 
 export function BusinessOnboardingFlow({ onComplete }: { onComplete: (state: SupabaseAccountState) => void }) {
   const [step, setStep] = useState<FlowStep>('vsl');
-  const [selectedService, setSelectedService] = useState<string | null>(null);
-  const [hoveredService, setHoveredService] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
 
-  const handleSelectService = (id: string) => {
-    setSelectedService(id);
-    setStep('auth');
-  };
-
   const handleStartGeneral = () => {
-    setSelectedService('general_access');
     setStep('auth');
   };
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex overflow-hidden bg-[#0a0508] text-white font-sans transition-opacity duration-1000"
+      className="fixed inset-0 z-50 flex overflow-y-auto overflow-x-hidden bg-[#020617] text-white font-sans transition-opacity duration-1000 scrollbar-hide"
       style={{ opacity: isVisible ? 1 : 0 }}
     >
-      {/* Background with dynamic subtle gradients */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#1a0b12] via-[#0a0508] to-[#0d142b] opacity-80" />
-        <div 
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full blur-[120px] transition-all duration-700"
-          style={{
-            background: hoveredService === 'cinematic_3d' ? 'rgba(220, 38, 38, 0.15)' : 
-                        hoveredService === 'ai_copilots' ? 'rgba(59, 130, 246, 0.15)' :
-                        hoveredService === 'bim_planning' ? 'rgba(16, 185, 129, 0.15)' :
-                        'rgba(159, 18, 57, 0.1)'
-          }}
-        />
-        {/* Abstract shape/image placeholder simulating the model in the reference */}
-        <div className="absolute inset-0 opacity-30 mix-blend-overlay" style={{
-          backgroundImage: 'radial-gradient(circle at 50% 40%, rgba(255,255,255,0.1) 0%, transparent 60%)'
-        }} />
+      {/* Dynamic Backgrounds (Dark Navy / Cyan gradient mesh) */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#081b3d] via-[#020617] to-black opacity-90" />
+        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-cyan-900/20 blur-[150px]" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-indigo-900/20 blur-[150px]" />
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5 mix-blend-overlay"></div>
       </div>
 
       {step === 'vsl' && (
-        <div className="relative z-10 w-full h-full flex flex-col md:flex-row items-center justify-between px-8 md:px-24">
-          
-          {/* Header/Logo */}
-          <div className="absolute top-8 left-8 md:left-24 flex items-center gap-12">
+        <div className="relative z-10 w-full min-h-screen flex flex-col">
+          {/* Top Navigation */}
+          <nav className="w-full px-8 md:px-16 py-6 flex justify-between items-center border-b border-white/5 bg-slate-950/40 backdrop-blur-xl sticky top-0 z-50">
             <div className="flex items-center gap-3 font-extrabold text-xl tracking-tight">
-              <img src="/apex-global-logo.png" alt="Apex AI Logo" className="w-8 h-8 object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
-              <span>Apex AI</span>
+              <img src="/apex-global-logo.png" alt="Apex AI Logo" className="w-8 h-8 object-contain drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]" />
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-cyan-200">Apex AI</span>
             </div>
-            <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-white/70">
-              <a href="#" className="hover:text-white transition-colors">Suite Criativa</a>
-              <a href="#" className="hover:text-white transition-colors">Recursos</a>
-              <a href="#" className="hover:text-white transition-colors">Empresa</a>
-            </nav>
-          </div>
+            <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-300">
+              <a href="#suite" className="hover:text-cyan-400 transition-colors">Plataforma</a>
+              <a href="#pillars" className="hover:text-cyan-400 transition-colors">8 Pilares</a>
+              <a href="#enterprise" className="hover:text-cyan-400 transition-colors">Enterprise</a>
+            </div>
+            <div className="flex items-center gap-4">
+              <button onClick={handleStartGeneral} className="text-sm font-semibold text-slate-300 hover:text-white transition-colors">
+                Login
+              </button>
+              <button onClick={handleStartGeneral} className="bg-gradient-to-r from-cyan-600 to-blue-600 text-white text-sm font-bold px-6 py-2.5 rounded-full hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] transition-all transform hover:scale-105 border border-cyan-400/30">
+                Acessar Plataforma
+              </button>
+            </div>
+          </nav>
 
-          {/* Right Header actions */}
-          <div className="absolute top-8 right-8 md:right-24 flex items-center gap-4">
-            <button onClick={handleStartGeneral} className="text-sm font-semibold text-white/70 hover:text-white transition-colors">
-              Conecte-se
-            </button>
-            <button onClick={handleStartGeneral} className="bg-white text-black text-sm font-bold px-4 py-2 rounded hover:bg-gray-200 transition-colors">
-              Inscrever-se
-            </button>
-          </div>
-
-          {/* Left Content: Headline & CTA */}
-          <div className="flex-1 max-w-2xl mt-24 md:mt-0 animate-[fadeInLeft_1s_ease-out]">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-semibold text-white/80 mb-6 backdrop-blur-md cursor-pointer hover:bg-white/10 transition-colors">
-              <span className="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]"></span>
-              Plataforma de IA número 1 <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+          {/* Hero Section */}
+          <main className="flex-1 flex flex-col items-center justify-center text-center px-6 py-24 md:py-32">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-950/30 border border-cyan-500/30 text-xs font-semibold text-cyan-300 mb-8 backdrop-blur-md shadow-[0_0_20px_rgba(34,211,238,0.1)]">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+              Apex AI 2.0 — O Ecossistema Cognitivo
             </div>
             
-            <h1 className="text-5xl md:text-[64px] leading-[1.05] font-extrabold mb-6 tracking-tight">
-              A plataforma de inteligência para direcionar seus melhores trabalhos.
+            <h1 className="text-5xl md:text-7xl lg:text-[84px] font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-200 to-slate-500 mb-8 leading-[1.05] max-w-5xl">
+              A Sala de Controle Inteligente da <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Construção Moderna.</span>
             </h1>
             
-            <p className="text-lg md:text-xl text-white/70 mb-10 leading-relaxed max-w-xl">
-              Todos os modelos de IA para engenharia, arquitetura e gestão. Fluxos de trabalho inteligentes para controle e colaboração profissionais. Produção alinhada à sua marca em qualquer escala.
+            <p className="text-lg md:text-2xl text-slate-400 mb-12 max-w-3xl leading-relaxed font-medium">
+              Da concepção à execução. Da obra ao investimento. Do BIM à decisão executiva. Orquestre 13 agentes especializados em paralelo.
             </p>
             
-            <div className="flex flex-wrap items-center gap-4">
-              <button 
-                onClick={handleStartGeneral}
-                className="bg-white text-black font-bold text-base px-8 py-4 rounded hover:bg-gray-200 transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(255,255,255,0.2)]"
-              >
-                Comece a criar
-              </button>
-              <button className="flex items-center gap-2 bg-transparent border border-white/20 text-white font-bold text-base px-8 py-4 rounded hover:bg-white/5 transition-all">
-                <span className="material-symbols-outlined text-[20px]">play_arrow</span>
-                Por que Apex AI?
-              </button>
-            </div>
-          </div>
+            <button 
+              onClick={handleStartGeneral}
+              className="group relative flex items-center justify-center gap-3 bg-white text-slate-950 font-bold text-lg px-10 py-5 rounded-full hover:scale-105 transition-all shadow-[0_0_40px_rgba(255,255,255,0.2)] overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <span className="relative z-10">Comece a Criar</span>
+              <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform" />
+            </button>
 
-          {/* Right Content: Services List */}
-          <div className="flex-1 w-full md:w-auto mt-16 md:mt-0 flex flex-col md:items-end justify-center animate-[fadeInRight_1s_ease-out_0.2s_both]">
-            <div className="flex flex-col gap-2 md:text-right w-full max-w-md max-h-[70vh] overflow-y-auto scrollbar-hide pb-20 pointer-events-auto" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
-              {SERVICES.map((srv, idx) => (
+            {/* Cinematic Hero Image/Mockup placeholder */}
+            <div className="mt-20 w-full max-w-[1200px] aspect-video relative rounded-3xl overflow-hidden border border-white/10 shadow-[0_20px_80px_rgba(8,145,178,0.15)] group ring-1 ring-white/5 backdrop-blur-sm">
+               <img 
+                 src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80" 
+                 alt="Apex AI Dashboard App" 
+                 className="w-full h-full object-cover opacity-60 mix-blend-luminosity group-hover:opacity-100 group-hover:mix-blend-normal transition-all duration-1000"
+               />
+               <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent"></div>
+               <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-4 backdrop-blur-md bg-black/40 px-6 py-3 rounded-full border border-white/10">
+                 {['ArchVis', 'Director’s Cut', 'BIM Clash Detection', 'Digital Twin'].map(tag => (
+                   <span key={tag} className="flex items-center gap-2 text-sm font-medium text-slate-300">
+                     <CheckCircle2 className="w-4 h-4 text-cyan-400" /> {tag}
+                   </span>
+                 ))}
+               </div>
+            </div>
+          </main>
+
+          {/* The 8 Pillars Section */}
+          <section id="pillars" className="w-full max-w-[1400px] mx-auto px-6 py-32">
+            <div className="text-center mb-20">
+              <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-6">As 8 Camadas de Inteligência</h2>
+              <p className="text-xl text-slate-400 max-w-2xl mx-auto">
+                Transforme projetos em apresentações premium, decisões executivas e controle operacional de alto nível.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {PILLARS.map((pillar, idx) => (
                 <div 
-                  key={srv.id}
-                  onMouseEnter={() => setHoveredService(srv.id)}
-                  onMouseLeave={() => setHoveredService(null)}
-                  onClick={() => handleSelectService(srv.id)}
-                  className={`group relative py-3 md:py-4 px-4 cursor-pointer transition-all duration-300 flex items-center justify-between md:justify-end gap-4 rounded-lg md:rounded-none md:rounded-l-lg
-                    ${hoveredService === srv.id ? 'bg-white/5 backdrop-blur-sm' : 'hover:bg-white/5'}
-                  `}
+                  key={pillar.id}
+                  className="group relative flex flex-col h-[400px] rounded-3xl overflow-hidden bg-slate-900/50 border border-white/10 hover:border-cyan-500/50 transition-all duration-500 hover:-translate-y-2 shadow-xl hover:shadow-[0_20px_40px_rgba(8,145,178,0.15)]"
                 >
-                  {hoveredService === srv.id && (
-                    <span className="material-symbols-outlined text-rose-500 md:hidden animate-[fadeIn_0.2s]">play_arrow</span>
-                  )}
-                  <span className={`text-xl md:text-3xl font-bold tracking-tight transition-all duration-300
-                    ${hoveredService === srv.id ? 'text-white translate-x-2 md:-translate-x-4' : 'text-white/40'}
-                  `}>
-                    {srv.title}
-                  </span>
-                  {hoveredService === srv.id && (
-                    <span className="material-symbols-outlined text-rose-500 hidden md:block animate-[fadeIn_0.2s]">play_arrow</span>
-                  )}
+                  <div className="absolute inset-0 overflow-hidden">
+                    <img 
+                      src={pillar.image} 
+                      alt={pillar.title}
+                      className="w-full h-full object-cover opacity-40 group-hover:opacity-60 group-hover:scale-110 transition-all duration-700 mix-blend-overlay"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-[#020617]/80 to-transparent"></div>
+                  </div>
+                  
+                  <div className="relative z-10 flex flex-col justify-end h-full p-8">
+                    <div className="w-12 h-12 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(255,255,255,0.05)]">
+                      {pillar.icon}
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-3 tracking-tight group-hover:text-cyan-300 transition-colors">
+                      {pillar.title}
+                    </h3>
+                    <p className="text-slate-400 text-sm leading-relaxed">
+                      {pillar.desc}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
-          </div>
+          </section>
 
-          {/* Footer tags */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-6 opacity-60">
-            <p className="text-xs font-semibold tracking-wider">Com a confiança das maiores construtoras — engenheiros, arquitetos e estúdios.</p>
-            {/* Logos placeholder */}
-            <div className="flex items-center gap-8 opacity-50">
-              <div className="h-4 w-16 bg-white/20 rounded"></div>
-              <div className="h-4 w-16 bg-white/20 rounded"></div>
-              <div className="h-4 w-16 bg-white/20 rounded"></div>
-              <div className="h-4 w-16 bg-white/20 rounded"></div>
-            </div>
-          </div>
+          {/* Final CTA */}
+          <section className="w-full px-6 py-32 text-center relative border-t border-white/5 bg-slate-950/30 backdrop-blur-xl">
+             <h2 className="text-4xl md:text-5xl font-black mb-8">Pronto para assumir o controle?</h2>
+             <p className="text-xl text-slate-400 max-w-2xl mx-auto mb-10">Junte-se a escritórios, engenheiros e construtoras operando no mais alto nível de inteligência e automação.</p>
+             <button 
+               onClick={handleStartGeneral}
+               className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-lg px-12 py-5 rounded-full hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] transition-all transform hover:scale-105 border border-cyan-400/50"
+             >
+               Acessar Plataforma Agora
+             </button>
+          </section>
         </div>
       )}
 
@@ -245,28 +215,8 @@ export function BusinessOnboardingFlow({ onComplete }: { onComplete: (state: Sup
         <SplitAuthScreen 
           onComplete={onComplete}
           onBack={() => setStep('vsl')}
-          contextMetadata={selectedService && selectedService !== 'general_access' ? { selected_service: selectedService } : undefined}
         />
       )}
-
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes fadeInLeft {
-          from { opacity: 0; transform: translateX(-30px); }
-          to { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes fadeInRight {
-          from { opacity: 0; transform: translateX(30px); }
-          to { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
   );
 }
