@@ -35,3 +35,5 @@ runtime/models/
 # Sensitive project docs with API keys
 Gemini geral.txt
 *.txt.bak
+runtime/omniscience.db.json
+scripts/update_vercel_env.ps1

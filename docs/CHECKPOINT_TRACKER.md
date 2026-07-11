@@ -446,3 +446,11 @@ verbal expl√≠cita.
 3. **Supply Chain Studio (M√≥dulo 16):** ‚úÖ Funcional Real. Painel completo log√≠stico operacionalizado.
 4. **Director's Cut Studio (M√≥dulo 29):** ‚úÖ Funcional Real. Interface multi-track funcional finalizada.
 5. **Soberania Tecnol√≥gica (O Endgame):** ‚úÖ Funcional Real. Wizard CLI (`setup:soberania`) orquestrando exporta√ß√£o Supabase, treinamento no Colab (Vertex AI) e implanta√ß√£o offline via motor C++ nativo (Llama-server). Capacidade offline garantida 100% propriet√°ria.
+
+## HIST”RICO DE AUDITORIA E ATUALIZA«’ES RECENTES
+
+### Checkpoint 166 (2026-07-11)
+- **Supabase Keys**: Novas chaves (\sb_publishable_...\ e \sb_secret_...\) injetadas com sucesso no \.env.local\.
+- **Vercel Sync**: Owner atualizou manualmente e autorizou documentaÁ„o de que as chaves da Vercel de produÁ„o est„o em sincronia com o Supabase local.
+- **Dep**: Instalado pacote oficial \@supabase/server\ no \package.json\ para facilitar roteamento SR/Edge Functions.
+- **UX Analytics**: Verificada an·lise de performance de interface (interaction delay/render timing de 250ms no bot„o do chat).

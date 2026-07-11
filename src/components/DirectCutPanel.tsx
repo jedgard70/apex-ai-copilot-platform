@@ -15,7 +15,7 @@ import {
   Video, Volume2, X, ZoomIn, ZoomOut,
 } from 'lucide-react'
 import { IntakeFile } from '../lib/fileIntake'
-
+import { WorkflowCanvas } from './WorkflowCanvas'
 // ─── Design Tokens (Director's Cut system) ───────────────────────────────────
 
 const D = {
@@ -43,7 +43,7 @@ const D = {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type DCTab = 'storyboard' | '3d-workspace' | 'library' | 'review'
+type DCTab = 'storyboard' | 'workflow' | '3d-workspace' | 'library' | 'review'
 type StylePreset = 'hyper-real' | 'cyberpunk' | 'cinematic' | 'architectural' | 'documentary'
 type TrackType = 'frames' | 'video' | 'audio'
 
@@ -950,6 +950,7 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
           <nav style={{ display: 'flex', gap: 12 }}>
             {[
               { id: 'storyboard', label: 'Storyboard' },
+              { id: 'workflow', label: 'Node Flow' },
               { id: '3d-workspace', label: '3D Workspace' },
               { id: 'library', label: 'Library' },
             ].map(item => (
@@ -1050,6 +1051,12 @@ export function DirectCutPanel({ source, goal, conversationContext, initialConfi
                 onTogglePlay={togglePlay}
               />
             </>
+          )}
+
+          {tab === 'workflow' && (
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+              <WorkflowCanvas sourceImage={source?.dataUrl} />
+            </div>
           )}
 
           {tab === '3d-workspace' && (

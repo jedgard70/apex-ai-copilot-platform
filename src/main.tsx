@@ -1330,7 +1330,7 @@ function App() {
     setToolConfirmState(prev => ({ ...prev, [msgId]: action }))
   }
   const initialProject = useMemo(() => loadActiveProject() || createProject('Apex Project'), [])
-  const initialAppState = initialProject.appState || {}
+  const initialAppState: Record<string, any> = {} // Desabilitado restore automático de painéis (pedido do Owner)
   const restoredFile = initialProject.activeFileId
     ? recordToIntakeFile(initialProject.files.find(file => file.id === initialProject.activeFileId))
     : undefined

@@ -1,8 +1,10 @@
 -- Enable pgvector extension
 create extension if not exists vector;
 
--- Add embedding column to public.knowledge_items (using 1536 dimension by default)
+-- Add embedding, content and tags columns to public.knowledge_items
 alter table public.knowledge_items add column if not exists embedding vector(1536);
+alter table public.knowledge_items add column if not exists content text;
+alter table public.knowledge_items add column if not exists tags text[];
 
 -- Create semantic match search function using cosine distance
 create or replace function public.match_knowledge_items (

@@ -543,7 +543,7 @@ function loadDynamicSkills() {
   if (cachedDynamicSkills) return cachedDynamicSkills
 
   const skills = []
-  for (const dir of [path.join(root, 'docs'), path.join(root, 'skills')]) {
+  for (const dir of [path.join(root, 'docs'), path.join(root, 'skills'), path.join(root, '.agents', 'skills')]) {
     for (const filepath of scanSkillMarkdown(dir)) {
       try {
         const file = path.basename(filepath)
