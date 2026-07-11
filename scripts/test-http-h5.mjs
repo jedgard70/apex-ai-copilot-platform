@@ -5,7 +5,7 @@ function assertIncludes(text, fragments) {
   for (const f of fragments) assert.ok(n.includes(f), 'expected "' + f + '"\n\n' + text)
 }
 
-import handler from '../api/copilot/chat.mjs'
+import handler from '../server/api/copilot/chat.mjs'
 
 const multiInputHttp = ['arrume meu computador','abra o revit','verifique o modelo revit','faça deploy','aplique migration','verifique github e vercel'].join('\n')
 let body = null

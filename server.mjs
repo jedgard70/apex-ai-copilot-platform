@@ -6531,28 +6531,28 @@ export const mainHandler = async (req, res) => {
       return
     }
     if (req.url === '/api/copilot/key-restriction' && req.method === 'GET') {
-      const keyRestrictionHandler = await import('./api/copilot/key-restriction.mjs').then(m => m.default)
+      const keyRestrictionHandler = await import('./server/api/copilot/key-restriction.mjs').then(m => m.default)
       keyRestrictionHandler(req, res)
       return
     }
     if (req.url === '/api/copilot/rate-limit' && req.method === 'GET') {
-      const rateLimitHandler = await import('./api/copilot/rate-limit.mjs').then(m => m.default)
+      const rateLimitHandler = await import('./server/api/copilot/rate-limit.mjs').then(m => m.default)
       rateLimitHandler(req, res)
       return
     }
     if (req.url === '/api/copilot/security-audit' && req.method === 'GET') {
-      const auditHandler = await import('./api/copilot/security-audit.mjs').then(m => m.default)
+      const auditHandler = await import('./server/api/copilot/security-audit.mjs').then(m => m.default)
       auditHandler(req, res)
       return
     }
     if (req.url === '/api/copilot/key-lifecycle' && (req.method === 'GET' || req.method === 'POST')) {
-      const lifecycleHandler = await import('./api/copilot/key-lifecycle.mjs').then(m => m.default)
+      const lifecycleHandler = await import('./server/api/copilot/key-lifecycle.mjs').then(m => m.default)
       lifecycleHandler(req, res)
       return
     }
     const requestUrl = new URL(req.url, 'http://127.0.0.1')
     if (requestUrl.pathname === '/api/copilot/training-webhook' && (req.method === 'GET' || req.method === 'POST')) {
-      const webhookHandler = await import('./api/copilot/training-webhook.mjs').then(m => m.default)
+      const webhookHandler = await import('./server/api/copilot/training-webhook.mjs').then(m => m.default)
       return webhookHandler(req, res)
     }
 
@@ -6561,12 +6561,12 @@ export const mainHandler = async (req, res) => {
       return
     }
     if ((req.url === '/api/copilot/learn-url' || req.url.startsWith('/api/copilot/learn-url?')) && (req.method === 'GET' || req.method === 'POST')) {
-      const learnUrlHandler = await import('./api/copilot/learn-url.mjs').then(m => m.default)
+      const learnUrlHandler = await import('./server/api/copilot/learn-url.mjs').then(m => m.default)
       learnUrlHandler(req, res)
       return
     }
     if ((req.url === '/api/copilot/deep-research' || req.url.startsWith('/api/copilot/deep-research?')) && (req.method === 'GET' || req.method === 'POST')) {
-      const researchHandler = await import('./api/copilot/deep-research.mjs').then(m => m.default)
+      const researchHandler = await import('./server/api/copilot/deep-research.mjs').then(m => m.default)
       researchHandler(req, res)
       return
     }
@@ -6596,12 +6596,12 @@ export const mainHandler = async (req, res) => {
       return
     }
     if (requestUrl.pathname.startsWith('/api/copilot/squads')) {
-      const squadsHandler = await import('./api/copilot/squads.mjs').then(m => m.default)
+      const squadsHandler = await import('./server/api/copilot/squads.mjs').then(m => m.default)
       squadsHandler(req, res)
       return
     }
     if (requestUrl.pathname.startsWith('/api/mcp')) {
-      const mcpHandler = await import('./api/copilot/mcp.mjs').then(m => m.default)
+      const mcpHandler = await import('./server/api/copilot/mcp.mjs').then(m => m.default)
       mcpHandler(req, res)
       return
     }
@@ -6928,31 +6928,31 @@ export const mainHandler = async (req, res) => {
       return
     }
     if (req.url === '/api/copilot/provider-status' && req.method === 'GET') {
-      const { default: handler } = await import('./api/copilot/provider-status.mjs')
+      const { default: handler } = await import('./server/api/copilot/provider-status.mjs')
       handler(req, res)
       return
     }
 
     if (req.url === '/api/copilot/connector-status' && (req.method === 'GET' || req.method === 'POST')) {
-      const { default: handler } = await import('./api/copilot/connector-status.mjs')
+      const { default: handler } = await import('./server/api/copilot/connector-status.mjs')
       handler(req, res)
       return
     }
 
     if (req.url === '/api/copilot/upload-to-gcs' && (req.method === 'GET' || req.method === 'POST')) {
-      const { default: handler } = await import('./api/copilot/upload-to-gcs.mjs')
+      const { default: handler } = await import('./server/api/copilot/upload-to-gcs.mjs')
       handler(req, res)
       return
     }
 
     if (req.url === '/api/copilot/train-gemma' && (req.method === 'GET' || req.method === 'POST')) {
-      const { default: handler } = await import('./api/copilot/train-gemma.mjs')
+      const { default: handler } = await import('./server/api/copilot/train-gemma.mjs')
       handler(req, res)
       return
     }
 
     if (req.url === '/api/copilot/colab-webhook' && req.method === 'POST') {
-      const { default: handler } = await import('./api/copilot/colab-webhook.mjs')
+      const { default: handler } = await import('./server/api/copilot/colab-webhook.mjs')
       handler(req, res)
       return
     }
@@ -7004,9 +7004,29 @@ export const mainHandler = async (req, res) => {
 
     // ─── Deploy Model (Hugging Face Inference) ─────────────────────────
     if (req.url === '/api/copilot/deploy-model' && (req.method === 'GET' || req.method === 'POST')) {
-      const { default: handler } = await import('./api/copilot/deploy-model.mjs')
+      const { default: handler } = await import('./server/api/copilot/deploy-model.mjs')
       handler(req, res)
       return
+    }
+
+    // ─── Catch-All para rotas de copilot (/api/copilot/*) ────────────────
+    if (req.url && req.url.startsWith('/api/copilot/')) {
+      const endpoint = req.url.split('?')[0].replace('/api/copilot/', '')
+      try {
+        const { default: handler } = await import(`./server/api/copilot/${endpoint}.mjs`)
+        handler(req, res)
+        return
+      } catch (err) {
+        if (err.code === 'ERR_MODULE_NOT_FOUND') {
+          // Deixa prosseguir ou retorna 404 (já que é copilot catch-all)
+          // Mas como há rotas fora de server/api/copilot, se falhar, deixaremos passar (ou retorna 404)
+        } else {
+          console.error(`[Copilot Router] Erro em ${endpoint}:`, err)
+          res.writeHead(500, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ error: `Internal Server Error in ${endpoint}`, detail: err.message }))
+          return
+        }
+      }
     }
 
     if (req.url === '/api/service/order' && req.method === 'POST') {

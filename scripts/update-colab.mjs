@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, '..')
-const NB_PATH = path.join(ROOT, 'notebooks', 'apex_ai_finetune_gemma2_apex_v2.ipynb')
+const NB_PATH = path.join(ROOT, 'notebooks', 'apex_master_finetune_colab.ipynb')
 
 if (!fs.existsSync(NB_PATH)) {
     console.error('Notebook nao encontrado:', NB_PATH)

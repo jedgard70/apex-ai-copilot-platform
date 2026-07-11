@@ -156,7 +156,10 @@ function createWindow(initialPath = "/") {
     autoHideMenuBar: true,
     show: true,
     center: true,
-    webPreferences: { nodeIntegration: false, contextIsolation: true },
+    webPreferences: { 
+      nodeIntegration: true, 
+      contextIsolation: false 
+    },
   });
 
   mainWindow.focus();

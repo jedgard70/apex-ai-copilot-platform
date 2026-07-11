@@ -215,7 +215,7 @@ assertIncludes(multiRouteDirect.finalReply, ['h5.1b'])
 console.log('GREEN H5.1B version marker present in multi-tool finalReply.')
 
 // H5.0D — simulate exact HTTP handler payload (api/copilot/chat.mjs)
-import chatHandler from '../api/copilot/chat.mjs'
+import chatHandler from '../server/api/copilot/chat.mjs'
 const multiInputHttp = [
   'arrume meu computador',
   'abra o revit',

@@ -1,7 +1,7 @@
 import '../server/env.mjs'
 import assert from 'node:assert/strict'
-import handler from '../api/copilot/video-plan.mjs'
-import renderHandler from '../api/copilot/video-render.mjs'
+import handler from '../server/api/copilot/video-plan.mjs'
+import renderHandler from '../server/api/copilot/video-render.mjs'
 
 const requestBody = {
   goal: 'Validate DirectCut pipeline readiness',

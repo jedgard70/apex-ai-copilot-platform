@@ -144,7 +144,7 @@ console.log('GREEN H7.0 evidence reply includes H7.0 marker, output, and securit
 
 // ─── 10. Chat handler confirmation field ──────────────────────────────────────
 
-import chatHandler from '../api/copilot/chat.mjs'
+import chatHandler from '../server/api/copilot/chat.mjs'
 
 let httpBody = null
 const mockReq = {

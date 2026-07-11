@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { runApexOperatorProductionSafe } from '../server/agent/apexOperatorRuntime.mjs'
 import { collectProductionOperatorStatus } from '../server/agent/productionStatus.mjs'
 import { routeProductionConversation } from '../server/agent/productionConversationRouter.mjs'
-import chatHandler from '../api/copilot/chat.mjs'
+import chatHandler from '../server/api/copilot/chat.mjs'
 
 const productionStatus = collectProductionOperatorStatus()
 

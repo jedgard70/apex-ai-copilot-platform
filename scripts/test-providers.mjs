@@ -15,7 +15,7 @@ for (const line of lines) {
   if (!process.env[k]) process.env[k] = v.replace(/^["']|["']$/g, '');
 }
 
-const mod = await import('../api/copilot/provider-status.mjs');
+const mod = await import('../server/api/copilot/provider-status.mjs');
 const req = { method: 'GET', headers: {} };
 const res = {
   _status: null,
