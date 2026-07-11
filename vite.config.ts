@@ -63,11 +63,9 @@ export default defineConfig({
             if (id.includes('pdfjs-dist') || id.includes('pdf.worker')) return 'pdfjs'
             if (id.includes('xlsx')) return 'xlsx'
             if (id.includes('three') || id.includes('@react-three')) return 'three-vendor'
-            if (id.includes('lucide-react')) return 'lucide'
-            if (id.includes(path.sep + 'react' + path.sep) || id.includes('/react/')) return 'react-vendor'
-            if (id.includes(path.sep + 'react-dom' + path.sep) || id.includes('/react-dom/')) return 'react-vendor'
             if (id.includes('@supabase') || id.includes('supabase')) return 'supabase-vendor'
             if (id.includes('docx')) return 'docx'
+            
             // Fallback: split other node_modules by package name to avoid one huge vendor chunk
             const nm = id.split('node_modules' + path.sep)[1] || id.split('node_modules/')[1] || ''
             const pkg = (nm.split(path.sep)[0] || nm.split('/')[0] || '').replace('@','').replace(/[\/]/g,'-')
