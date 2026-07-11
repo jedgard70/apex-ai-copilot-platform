@@ -24,6 +24,7 @@ const sidebarItems = [
   { icon: 'school', label: 'Training', id: 'training' },
   { icon: 'menu_book', label: 'Documentation', id: 'docs' },
   { icon: 'smart_toy', label: 'Cérebro IA', id: 'aicontrol' },
+  { icon: 'account_tree', label: 'Workflows', id: 'global-workflow' },
   { icon: 'code', label: 'Code Editor', id: 'code-editor' },
 ]
 
@@ -80,7 +81,7 @@ const roleSidebarMap: Record<string, string[]> = {
   owner_admin: [
     'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',
     'research', 'crm', 'finance', 'governance', 'marketing', 'archvis',
-    'directcut', 'owner', 'saasadmin', 'deployment', 'navigator', 'training', 'docs', 'aicontrol', 'caixa_mcmv', 'code-editor'
+    'directcut', 'owner', 'saasadmin', 'deployment', 'navigator', 'training', 'docs', 'aicontrol', 'caixa_mcmv', 'code-editor', 'global-workflow'
   ],
   internal_team: [
     'dashboard', 'chat', 'bim', 'fieldops', 'budget', 'contracts',

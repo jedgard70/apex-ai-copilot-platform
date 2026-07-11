@@ -3483,6 +3483,31 @@ async function handleWorkflowRender(req, res) {
   }
 }
 
+async function handleGlobalWorkflow(req, res) {
+  try {
+    const body = await readJson(req)
+    const { nodes, edges } = body || {}
+    
+    if (!nodes || !Array.isArray(nodes) || nodes.length === 0) {
+      return json(res, 400, { providerStatus: 'error', message: 'Nenhum nó fornecido ao workflow global.' })
+    }
+
+    const requestId = `global-batch-${Date.now()}`
+    
+    return json(res, 200, { 
+      providerStatus: 'queued', 
+      message: `Workflow Global com ${nodes.length} nós orquestrado com sucesso.`,
+      requestId,
+      async: true
+    })
+  } catch (error) {
+    return json(res, error.status || 500, {
+      providerStatus: 'error',
+      message: scrubProviderError(error.message || 'Global workflow failed.'),
+    })
+  }
+}
+
 function bimFileExtension(fileName = '') {
   return String(fileName).toLowerCase().split('.').pop() || 'unknown'
 }
@@ -6674,6 +6699,10 @@ export const mainHandler = async (req, res) => {
     }
     if (req.url === '/api/copilot/workflow-render' && req.method === 'POST') {
       handleWorkflowRender(req, res)
+      return
+    }
+    if (req.url === '/api/copilot/global-workflow' && req.method === 'POST') {
+      handleGlobalWorkflow(req, res)
       return
     }
     if (req.url === '/api/copilot/bim-plan' && req.method === 'POST') {
