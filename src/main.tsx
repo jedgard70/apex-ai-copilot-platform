@@ -875,7 +875,7 @@ function renderMessageText(text: string): React.ReactNode {
       while ((m = combined.exec(s)) !== null) {
         if (m.index > last) parts.push(s.slice(last, m.index))
         if (m[0].startsWith('**')) parts.push(<strong key={m.index}>{m[2]}</strong>)
-        else if (m[0].startsWith('`')) parts.push(<code key={m.index} style={{ background: '#f1f5f9', borderRadius: '3px', padding: '1px 4px', fontSize: '11px', fontFamily: 'monospace' }}>{m[3]}</code>)
+        else if (m[0].startsWith('`')) parts.push(<code key={m.index} style={{ background: 'rgba(0,0,0,0.25)', color: '#38bdf8', borderRadius: '3px', padding: '2px 5px', fontSize: '12px', fontFamily: 'monospace', border: '1px solid rgba(255,255,255,0.1)' }}>{m[3]}</code>)
         else if (m[0].startsWith('!')) parts.push(renderImage(m.index, m[5], m[4] || 'img'))
         last = m.index + m[0].length
       }
@@ -1274,6 +1274,7 @@ export type ChatConversation = {
 }
 
 function App() {
+  const isDesktopEnvironment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || navigator.userAgent.toLowerCase().includes('electron') || window.location.protocol === 'file:';
   const pathname = useMemo(() => window.location.pathname, [])
   const isPublicVslRoute = useMemo(() => /^(\/(vsl|oferta|apresentacao|landing\/vsl|campaign\/vsl))\/?$/i.test(pathname), [pathname])
   const isPremiumSalesRoute = useMemo(() => /^(\/(premium|assinar|checkout))\/?$/i.test(pathname), [pathname])
@@ -4073,7 +4074,7 @@ function App() {
           <RefreshCw size={15} /> {uiLanguage === 'EN' ? 'Autoupgrade' : 'Autoupgrade'}
         </button>
       )}
-      {isSignedIn && (
+      {isSignedIn && isDesktopEnvironment && (
         <button className="secondary-action owner-console-button" type="button" onClick={() => setShowTerminal(prev => !prev)}>
           <Terminal size={15} /> {uiLanguage === 'EN' ? 'Terminal' : 'Terminal'}
         </button>
@@ -5173,7 +5174,7 @@ function App() {
         )}
 
         {/* AI Execution & Terminal Panel — visible only when chat is the main view on desktop */}
-        {activeView === 'chat' && !hasOperationalPanel && !isMobile && isOwnerUser && (
+        {activeView === 'chat' && !hasOperationalPanel && !isMobile && isOwnerUser && isDesktopEnvironment && (
         <section className="execution-shell" style={{ flex: '1 1 40%', display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, minWidth: 0, borderLeft: '1px solid rgba(150, 164, 195, 0.15)', background: '#0a0f1c' }}>
           <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'row', borderBottom: '1px solid rgba(150, 164, 195, 0.15)' }}>
             <div style={{ flex: '0 0 35%', borderRight: '1px solid rgba(150, 164, 195, 0.15)' }}>
