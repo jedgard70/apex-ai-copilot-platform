@@ -1,4 +1,3 @@
-import { LlamaChatSession, LlamaContext, LlamaModel } from 'node-llama-cpp';
 import { GGUF_PATHS, ensureGgufModelsExist } from '../lib/gguf-downloader.mjs';
 import fs from 'fs/promises';
 
@@ -36,6 +35,8 @@ async function getOrLoadModel(modelId) {
   }
 
   console.log(`[Apex AI Copilot] Loading Local GGUF Model: ${modelId} from ${modelPath}...`);
+  // Import dynamically so Vercel doesn't bundle the 800MB binaries
+  const { LlamaModel, LlamaContext } = await import('node' + '-llama-cpp');
   localModel = new LlamaModel({
     modelPath: modelPath,
     gpuLayers: 99
@@ -50,6 +51,9 @@ async function getOrLoadModel(modelId) {
 export async function chatWithLocalGguf(messages, systemPrompt, modelId = 'gemma-12b', temperature = 0.7, maxTokens = 900) {
   try {
     const { context } = await getOrLoadModel(modelId);
+    
+    // Import dynamically so Vercel doesn't bundle the 800MB binaries
+    const { LlamaChatSession } = await import('node' + '-llama-cpp');
 
     const session = new LlamaChatSession({
       context: context,
