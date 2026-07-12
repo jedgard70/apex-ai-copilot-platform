@@ -4,10 +4,12 @@ import path from 'path';
 const MODELS_DIR = 'C:\\ApexAI\\Models';
 const MAIN_MODEL = 'gemma-4-12B-it-QAT-Q4_0.gguf';
 const VISION_MODEL = 'mmproj-gemma-4-12B-it-QAT-BF16.gguf';
+const APEX_CUSTOM_MODEL = 'Apex-AI.gguf';
 
 export const GGUF_PATHS = {
-  main: path.join(MODELS_DIR, MAIN_MODEL),
-  vision: path.join(MODELS_DIR, VISION_MODEL)
+  gemma: path.join(MODELS_DIR, MAIN_MODEL),
+  vision: path.join(MODELS_DIR, VISION_MODEL),
+  apexCustom: path.join(MODELS_DIR, APEX_CUSTOM_MODEL)
 };
 
 /**
@@ -21,12 +23,13 @@ export async function ensureGgufModelsExist() {
     // 1. Garante que o diretório base existe
     await fs.mkdir(MODELS_DIR, { recursive: true });
 
-    // 2. Verifica a existência de ambos
-    const mainExists = await fs.access(GGUF_PATHS.main).then(() => true).catch(() => false);
+    // 2. Verifica a existência dos arquivos
+    const gemmaExists = await fs.access(GGUF_PATHS.gemma).then(() => true).catch(() => false);
     const visionExists = await fs.access(GGUF_PATHS.vision).then(() => true).catch(() => false);
+    const apexCustomExists = await fs.access(GGUF_PATHS.apexCustom).then(() => true).catch(() => false);
 
-    if (mainExists && visionExists) {
-      console.log('✅ [Apex AI Copilot] Local GGUF models are ready and verified.');
+    if ((gemmaExists && visionExists) || apexCustomExists) {
+      console.log(`✅ [Apex AI Copilot] Local GGUF models verified. Gemma: ${gemmaExists}, ApexCustom: ${apexCustomExists}`);
       return true;
     }
 
