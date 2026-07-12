@@ -1,14 +1,13 @@
-import { useRouter } from 'next/router'
+import React, { useState, useRef, useEffect } from 'react'
 import {
   useEffect,
   useMemo,
-  useRef,
-  useState,
   type ClipboardEvent as ReactClipboardEvent,
   type PointerEvent as ReactPointerEvent,
 } from 'react'
 import { Sparkles } from 'lucide-react'
-import { getSupabase } from '../lib/supabase'
+import { supabase } from '../lib/supabaseClient'
+
 
 type Screen = 'manual' | 'supervisor' | 'status'
 type Attachment = { id: string; name: string; type: string; size: number; dataUrl?: string; preview?: string }
@@ -335,10 +334,6 @@ export default function ApexCopilot({ embedded = false }: { embedded?: boolean }
   }, [panelSize.height, panelSize.width, viewport.h, viewport.w, fullscreen])
 
   useEffect(() => {
-    const sb = getSupabase()
-    if (!sb) return
-    const supabase = sb
-
     let active = true
 
     async function refreshServerContext(token: string, fallbackEmail?: string | null) {
@@ -393,9 +388,7 @@ export default function ApexCopilot({ embedded = false }: { embedded?: boolean }
       await refreshServerContext(token, email)
     }
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
       const token = getValidSessionToken(session)
       const email = session?.user?.email || null
       setAuthToken(token)

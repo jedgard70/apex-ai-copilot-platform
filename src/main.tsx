@@ -4250,7 +4250,7 @@ function App() {
       case 'code-editor': 
         return (
           <CodeEditorPanel 
-            activeFile={activeFile}
+            activeFile={activeFile ? { name: activeFile.file.name, content: activeFile.extractedText || '', path: activeFile.file.name } : undefined}
             hasNativeHandle={activeFile ? localFileHandles.has(activeFile.file.name) : false}
             onChangeContent={(content) => {
               setActiveFile(prev => prev ? { ...prev, extractedText: content } : prev)
@@ -5215,7 +5215,7 @@ function App() {
             </div>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
               <CodeEditorPanel 
-                activeFile={activeFile}
+                activeFile={activeFile ? { name: activeFile.file.name, content: activeFile.extractedText || '', path: activeFile.file.name } : undefined}
                 hasNativeHandle={activeFile ? localFileHandles.has(activeFile.file.name) : false}
                 onChangeContent={(content) => {
                   setActiveFile(prev => prev ? { ...prev, extractedText: content } : prev)

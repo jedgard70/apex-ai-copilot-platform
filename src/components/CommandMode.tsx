@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import Head from './Head' // Mock ou remove
+
 // import { useRouter } from 'next/router'
 import { CodeEditorPanel, IDEFile } from '../components/CodeEditorPanel'
 import { TerminalPanel } from '../components/TerminalPanel'
