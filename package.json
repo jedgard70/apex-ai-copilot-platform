@@ -161,13 +161,13 @@
   "description": "Clean rebuild of the Apex AI Copilot platform.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jedgard70/apex-ai-copilot-platform.git"
+    "url": "git+https://github.com/Apex-Global-LLC/apex-ai-copilot-platform.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/jedgard70/apex-ai-copilot-platform/issues"
+    "url": "https://github.com/Apex-Global-LLC/apex-ai-copilot-platform/issues"
   },
-  "homepage": "https://github.com/jedgard70/apex-ai-copilot-platform#readme"
+  "homepage": "https://github.com/Apex-Global-LLC/apex-ai-copilot-platform#readme"
 }

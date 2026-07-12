@@ -1,90 +1,72 @@
-# Apex AI Copilot Platform
+# Plataforma Apex AI Copilot
 
-Clean rebuild of the Apex AI Copilot platform.
+Reconstrução completa da plataforma Apex AI Copilot, o sistema operacional da construção inteligente.
 
-Principles:
+## Princípios da Arquitetura:
 
-- Chat is the platform.
-- Apex AI Copilot is the central agent.
-- Modules are tools called by the Copilot.
-- Universal upload accepts any file.
-- Images show preview and use a vision-ready path.
-- No dashboard/cards as the primary intelligence.
-- Tools are registered but secondary.
+- O chat é a plataforma principal de interação.
+- O Apex AI Copilot é o agente central de orquestração.
+- Os 67 módulos operacionais (como Budget, BIM 3D, Contracts, RDO, DirectCut, Digital Twin) são ferramentas acionadas autonomamente pelo Copiloto.
+- Sem painéis/cartões como principal fonte de informação. As ferramentas são ativadas na interface conforme o contexto da conversa.
+- Inteligência Multimodal: Integração nativa com Gemini (Interactions API / `@google/genai`), FAL.ai (imagens/vídeo), e ElevenLabs (Áudio/Avatar).
+- Ambiente Unificado: Funciona via Web (Vercel), Desktop App (Electron Windows) e Mobile PWA (Service Worker v2 offline).
 
-Source reference:
+**Referência Canônica e Status da Plataforma:**
+A fonte de verdade operacional (atualmente com 67 capabilities LIVE e verificadas) encontra-se nos seguintes arquivos:
+- `docs/APEX_PLATFORM_CURRENT_STATE.md`
+- `CHECKPOINT_TRACKER.md`
+- `docs/apex_acip_master_architecture.md`
 
-- `D:\AI-constr\apex-ai-copilot-production-brain`
+## Motores de IA e Provedores
 
-## Deploy and CI hygiene
+A plataforma evoluiu além de dependências antigas (como Ollama), consolidando a inteligência primária na stack avançada do Google Gemini e em um motor local próprio:
 
-- The repository now uses GitHub Actions to run build and test validation before deployment.
-- Vercel production deploys should be considered safe only when the CI status checks for `main` are green.
-- For commit verification, use signed commits (GPG/SSH) when possible; this avoids deployment cancellations tied to unverified commits.
+- **Gemini (Primário)**: Modelos avançados (`gemini-3.5-flash`, `gemini-3.1-pro-preview`, etc.) consumidos via API oficial.
+- **Gemini Interactions (Agentes Avançados)**: Suporte aos modelos de agente inteligente `deep-research`, `antigravity-preview` e `veo-3.1`.
+- **Apex Runtime (Local/Offline)**: Motor secundário proprietário servindo modelos GGUF (`apex-ai-2.0`, `gemma-2b-it-gguf`, `phi-3-mini-gguf`) localmente, totalmente isolado e compatível com o OpenAI spec (porta 1337).
+- **Ecossistema Gráfico e Voz**: Integrados diretamente via FAL.ai para gerações pesadas de IA e ElevenLabs para vozes neurais hiper-realistas.
 
-## Local Runtime
+## Implantação, CI/CD e Autonomia de Deploy
 
-Create `.env.local` locally:
+- A esteira de integração e deploy (CI/CD) possui total autonomia para os agentes da plataforma (Engine Antigravity). Os agentes podem ler, reescrever e compilar códigos localmente para garantir o funcionamento.
+- O GitHub Actions executa a validação de testes E2E antes da Vercel assumir a implantação na branch `main`.
+- Nenhum agente ou IA está autorizado a alterar os ambientes no dashboard web da Vercel ou modificar as **Variáveis de Ambiente** (`.env.local`) sem permissão expressa e verbal do Owner.
+
+## Tempo de Execução Local
+
+Configuração base para rodar o projeto `.env.local` (apenas variáveis estruturais listadas, credenciais não versionadas):
 
 ```env
-
 VITE_SENTRY_DSN=
 SENTRY_DSN=
 VITE_SENTRY_ENVIRONMENT=development
 SENTRY_ENVIRONMENT=development
 VITE_SENTRY_TRACES_SAMPLE_RATE=0.2
 SENTRY_TRACES_SAMPLE_RATE=0.2
+APEX_RUNTIME_ENABLED=true
 ```
 
-Run:
+**Para iniciar o servidor web (Frontend Vite + Backend Node integrados):**
 
 ```bash
-npm run build
-npm start
+npm run dev
 ```
 
-## Observability and E2E
-
-- **Vercel Analytics / Speed Insights** are mounted in the frontend runtime.
-- **Sentry frontend** uses `VITE_SENTRY_DSN`.
-- **Sentry backend** uses `SENTRY_DSN`.
-- **Server runtime** now loads local env configuration before boot, so model/provider keys in `.env.local` are available to `server.mjs`.
-- **Platform Status** now reports whether Sentry frontend/backend are configured and whether the runtime is running on Vercel.
-- **Platform Status** also reports Gemini model paths are actually configured.
-- **Model picker** supports manual advanced provider/model entry for Gateway and Gemini paths.
-- **Local Apex model selection** shows the user-facing Apex local option in the picker and stores it as `apex-local|apex-ai`. That stored value maps to the Ollama model name `apex-ai`, served from `APEX_LOCAL_URL` (default `http://localhost:11434`).
-- **Provisioning the local Apex model** requires creating the Ollama model first. This repository includes the base Ollama definition at `./Modelfile.apex`:
+**Para compilar e gerar o aplicativo nativo para Windows (Electron):**
 
 ```bash
-ollama create apex-ai -f ./Modelfile.apex
-ollama serve
+npm run electron:build
 ```
+*(O App Desktop roda com `electron-main.cjs`, levantando o servidor interno Node sem depender de nenhum navegador local, conectando local workers perfeitamente.)*
 
-- **Field Operations / RDO** now saves to the local Project Workspace and, when Supabase session + tenant bootstrap are ready, syncs the report into `rdos`, `rdo_activities`, `field_issues`, `punch_items`, `field_photos`, `safety_checklists`, `quality_checklists` and `corrective_actions`.
-- **Campaign Automation** now includes a VSL / video-sales landing blueprint with CTA destination, urgency bar, player behavior and tracking checklist.
-- **Public VSL route** is available at `/vsl` (also `/oferta` and `/apresentacao`) with configurable `headline`, `subheadline`, `video`, `cta`, `ctaLabel`, `terms`, `privacy`, `brand` and `support` query parameters.
-- **Online campaign endpoint** is available at `/api/copilot/campaign-plan` for the shared web runtime.
-- **Playwright smoke tests** are green and now run with a stable split:
+**Para compilar e rodar testes estruturais E2E no Playwright (sem travar processos Node):**
 
 ```bash
 npm run test:e2e
 ```
 
-- `npm run test:e2e` now builds first, then starts only the shared Node runtime for Playwright, avoiding the previous combined build/webServer hang on Windows.
+## Segurança e Sincronização de Dados
 
-Open:
-
-`http://127.0.0.1:4177`
-
-`npm run dev` also builds and starts the local API-backed server. Use `npm run dev:ui` only for UI-only Vite development.
-
-## Platform Documentation
-
-The platform documentation and target objective details are located in the `docs/` directory.
-
-Operational status source of truth for phases/modules/connectors:
-
-- `CHECKPOINT_TRACKER.md`
-- `docs/APEX_PLATFORM_CURRENT_STATE.md`
-
-The Apex AI Copilot runtime and platform-map/manual flows should treat these files as the canonical operational summary when answering platform-status and capability questions.
+A plataforma utiliza um ecossistema escalável focado em multitenancy rigoroso (múltiplos projetos/clientes isolados):
+- **Supabase**: Controle central de autenticação e banco de dados relacional poderoso via PostgreSQL + Row Level Security (RLS).
+- Sincronização híbrida avançada: Módulos como o **Field Operations / RDO** salvam dados e mídias pesadas na API de projeto, sincronizando relatórios completos para a cloud com sucesso logo que o Bootstrap de Sessão de locatário (Tenant) termina o handshake.
