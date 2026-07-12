@@ -6,6 +6,8 @@
  * NUNCA mostra erro para o usuario final.
  */
 
+import { chatWithLocalGguf } from './localGgufProvider.mjs'
+
 const MODEL_CACHE = new Map()
 const CACHE_TTL = 5 * 60 * 1000 // 5 min
 
@@ -206,7 +208,15 @@ export async function chatWithFallback(params) {
       try {
         console.log(`[chatWithFallback] Trying ${provider.name} with model ${model}...`);
         let response
-        if (provider.nativeGemini) {
+        if (provider.name === "apex-runtime") {
+          const systemMessages = (messages || []).filter(m => m.role === 'system');
+          const systemPrompt = systemMessages.length > 0 ? systemMessages.map(m => typeof m.content === 'string' ? m.content : '').join('\n') : '';
+          const localResponse = await chatWithLocalGguf(messages, systemPrompt, toolRound > 0 ? 0.45 : temperature, toolRound > 0 ? 1500 : maxTokens);
+          if (localResponse.ok) {
+            return { ok: true, data: localResponse.data, model, provider: provider.name, providerLabel: provider.label, usedFallback: triedModelSet.size > 1 }
+          }
+          throw new Error(localResponse.error || "Local GGUF Failed");
+        } else if (provider.nativeGemini) {
           // API nativa Gemini: X-goog-api-key + /models/{model}:generateContent
           function toGeminiParts(content) {
             if (typeof content === 'string') return [{ text: content || '' }]
