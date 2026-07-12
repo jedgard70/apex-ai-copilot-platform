@@ -344,7 +344,7 @@ o endpoint `generateContent` para modelos compatíveis:
    - Conector: `server/providers/interactionsConnector.mjs`
    - Header obrigatório: `X-goog-api-key` (nunca `Authorization: Bearer`)
 
-2. **Google Maps Platform** — API Key: `CHAVE_OCULTADA_EM_ENV_LOCAL`
+2. **Google Maps Platform** — API Key: `[CHAVE_OCULTADA_EM_ENV_LOCAL]`
    - Componente UI: `src/components/MapPlacePicker.tsx`
    - Tool invocável pela IA via `functionDeclarations` no chat
 
