@@ -6410,6 +6410,65 @@ export const mainHandler = async (req, res) => {
       handleOwnerCodeExecutorPlan(req, res)
       return
     }
+
+    if (req.url === '/api/copilot/fs/list' && req.method === 'GET') {
+      try {
+        const rootPath = path.resolve('.')
+        const listDir = (dir) => {
+          let results = []
+          const files = fs.readdirSync(dir)
+          for (const file of files) {
+            if (file === 'node_modules' || file === '.git' || file === '.next' || file === 'dist' || file === 'dist_electron') continue
+            const fullPath = path.join(dir, file)
+            const stat = fs.statSync(fullPath)
+            if (stat.isDirectory()) {
+              results.push({ name: file, path: fullPath.replace(rootPath, '').replace(/\\/g, '/'), type: 'directory', children: listDir(fullPath) })
+            } else {
+              results.push({ name: file, path: fullPath.replace(rootPath, '').replace(/\\/g, '/'), type: 'file' })
+            }
+          }
+          return results
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ files: listDir(rootPath) }))
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: err.message }))
+      }
+      return
+    }
+
+    if (req.url.startsWith('/api/copilot/fs/read') && req.method === 'GET') {
+      try {
+        const urlParams = new URL(req.url, `http://${req.headers.host || 'localhost'}`)
+        const filePathParam = urlParams.searchParams.get('path')
+        if (!filePathParam) throw new Error('Path required')
+        const fullPath = path.join(path.resolve('.'), filePathParam)
+        const content = fs.readFileSync(fullPath, 'utf8')
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ content }))
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: err.message }))
+      }
+      return
+    }
+
+    if (req.url === '/api/copilot/fs/save' && req.method === 'POST') {
+      try {
+        const body = await readJson(req)
+        const { path: filePathParam, content } = body
+        if (!filePathParam) throw new Error('Path required')
+        const fullPath = path.join(path.resolve('.'), filePathParam)
+        fs.writeFileSync(fullPath, content, 'utf8')
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ success: true }))
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: err.message }))
+      }
+      return
+    }
     if (req.url.startsWith('/api/copilot/reminders') && req.method === 'GET') {
       const emailMatch = req.url.match(/email=([^&]+)/)
       const email = emailMatch ? decodeURIComponent(emailMatch[1]) : ''

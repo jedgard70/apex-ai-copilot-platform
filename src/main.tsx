@@ -48,6 +48,7 @@ import { CrmPanel } from './components/CrmPanel'
 import { DigitalTwinPanel } from './components/DigitalTwinPanel'
 import { DirectCutInitialConfig, DirectCutPanel } from './components/DirectCutPanel'
 import { EvmSchedulerCompliancePanel } from './components/EvmSchedulerCompliancePanel'
+import { CommandMode } from './components/CommandMode'
 import { CaixaCompliancePanel } from './components/CaixaCompliancePanel'
 import { ExportCenterPanel } from './components/ExportCenterPanel'
 import { FinancePanel } from './components/FinancePanel'
@@ -4336,6 +4337,10 @@ function App() {
     } catch (err) {
       console.error(err)
     }
+  }
+
+  if (activeView === 'command-mode') {
+    return <CommandMode onClose={() => setActiveView('dashboard')} />
   }
 
   return (

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import Editor from '@monaco-editor/react'
 import { Play, Save } from 'lucide-react'
-import { IntakeFile } from '../lib/fileIntake'
-import { PremiumPanelLayout } from './PremiumPanelLayout'
+export type IDEFile = { name: string, path?: string, extractedText?: string, content?: string }
 
 export function CodeEditorPanel({ 
   onRunFile, 
@@ -12,7 +11,7 @@ export function CodeEditorPanel({
   onChangeContent
 }: { 
   onRunFile: (fileName: string) => void,
-  activeFile?: IntakeFile,
+  activeFile?: IDEFile,
   hasNativeHandle: boolean,
   onSaveNativeFile: (content: string) => void,
   onChangeContent: (content: string) => void
@@ -21,7 +20,7 @@ export function CodeEditorPanel({
 
   useEffect(() => {
     if (activeFile) {
-      setContent(activeFile.extractedText || '')
+      setContent(activeFile.content || activeFile.extractedText || '')
     } else {
       setContent('// Selecione um arquivo para editar ou crie um novo.')
     }
@@ -35,7 +34,7 @@ export function CodeEditorPanel({
 
   function handleRun() {
      if (activeFile) {
-       onRunFile(activeFile.file.name)
+       onRunFile(activeFile.name)
      }
   }
 
@@ -47,7 +46,7 @@ export function CodeEditorPanel({
 
   function getLanguage() {
       if (!activeFile) return 'javascript'
-      const name = activeFile.file.name.toLowerCase()
+      const name = activeFile.name.toLowerCase()
       if (name.endsWith('.ts') || name.endsWith('.tsx')) return 'typescript'
       if (name.endsWith('.html')) return 'html'
       if (name.endsWith('.css')) return 'css'
@@ -57,21 +56,21 @@ export function CodeEditorPanel({
   }
 
   return (
-    <PremiumPanelLayout
-      title="Code Editor"
-      subtitle="Controle de módulo avançado"
-      headerActions={
-        <div style={{ display: 'flex', gap: '8px' }}>
-         <button onClick={handleRun} disabled={!activeFile} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: activeFile ? '#22c55e' : '#444', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: activeFile ? 'pointer' : 'not-allowed' }}>
-           <Play size={14} /> Run no Terminal
-         </button>
-         <button onClick={handleSave} disabled={!activeFile} title="Salvar direto no seu HD" style={{ display: 'flex', alignItems: 'center', gap: '4px', background: activeFile ? '#3b82f6' : '#444', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: activeFile ? 'pointer' : 'not-allowed' }}>
-           <Save size={14} /> Salvar no Disco
-         </button>
-         {activeFile && <span style={{ color: '#aaa', fontSize: '12px', alignSelf: 'center', marginLeft: 'auto' }}>{activeFile.file.name}</span>}
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#1e1e1e' }}>
+      <div style={{ display: 'flex', alignItems: 'center', padding: '8px 12px', background: '#252526', borderBottom: '1px solid #333' }}>
+        <div style={{ color: '#ccc', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span>Code Editor</span>
         </div>
-      }
-    >
+        <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
+         <button onClick={handleRun} disabled={!activeFile} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: activeFile ? '#22c55e' : '#444', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: activeFile ? 'pointer' : 'not-allowed', fontSize: 12 }}>
+           <Play size={12} /> Run no Terminal
+         </button>
+         <button onClick={handleSave} disabled={!activeFile} title="Salvar direto no seu HD" style={{ display: 'flex', alignItems: 'center', gap: '4px', background: activeFile ? '#3b82f6' : '#444', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: activeFile ? 'pointer' : 'not-allowed', fontSize: 12 }}>
+           <Save size={12} /> Salvar no Disco
+         </button>
+         {activeFile && <span style={{ color: '#aaa', fontSize: '12px', alignSelf: 'center', marginLeft: '8px' }}>{activeFile.name}</span>}
+        </div>
+      </div>
        <div style={{ flex: 1, overflow: 'hidden' }}>
          <Editor
            height="100%"
@@ -82,6 +81,6 @@ export function CodeEditorPanel({
            options={{ minimap: { enabled: true }, fontSize: 14 }}
          />
        </div>
-    </PremiumPanelLayout>
+    </div>
   )
 }
