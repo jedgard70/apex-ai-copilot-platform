@@ -227,7 +227,9 @@ export function getExecutionCapabilityMatrix() {
     label: tool.label,
     provider: tool.provider,
     executionClass: tool.executionClass,
-    status: tool.configured ? 'available' : 'unavailable',
+    status: tool.executionClass === EXECUTION_CLASSES.BLOCKED
+      ? 'blocked'
+      : tool.configured ? 'available' : 'unavailable',
     missing: tool.missing,
     mutates: tool.mutates,
   }))

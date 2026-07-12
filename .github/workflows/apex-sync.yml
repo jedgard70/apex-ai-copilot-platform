@@ -54,6 +54,9 @@ jobs:
           set -o pipefail
           npm run test 2>&1 | tee action_error.log || node scripts/ci-auto-fix.mjs "npm run test" action_error.log
 
+      - name: Tests
+        run: npm run test
+
       - name: Validate H5
         run: |
           set -o pipefail
@@ -68,6 +71,14 @@ jobs:
         run: |
           set -o pipefail
           npm run validate:directcut-pipeline 2>&1 | tee action_error.log || node scripts/ci-auto-fix.mjs "npm run validate:directcut-pipeline" action_error.log
+        env:
+          DIRECTCUT_ENABLE_FULL: "true"
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          FAL_KEY: ${{ secrets.FAL_KEY }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+
+      - name: Validate DirectCut pipeline
+        run: npm run validate:directcut-pipeline
         env:
           DIRECTCUT_ENABLE_FULL: "true"
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}

@@ -287,6 +287,9 @@ function buildCapabilityDetail(item) {
   if (item.executionClass === EXECUTION_CLASSES.OPERATIONAL_CONNECTED) {
     return `   Classe: ${item.executionClass}. Status: ${item.configured ? 'operational' : 'unavailable'}. Operação conectada disponível; alterações no modelo exigem confirmação explícita.`
   }
+  if (item.executionClass === EXECUTION_CLASSES.OPERATIONAL_CONNECTED) {
+    return `   Classe: ${item.executionClass}. Status: ${item.configured ? 'operational' : 'unavailable'}. Operação conectada disponível; alterações no modelo exigem confirmação explícita. Faltando: ${missing}.`
+  }
   if (item.executionClass === EXECUTION_CLASSES.EXTERNAL_DESKTOP_REQUIRES_LOCAL_WORKER) {
     return `   Classe: ${item.executionClass}. Status: ${item.configured ? 'available' : 'unavailable'}.`
   }

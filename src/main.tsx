@@ -136,7 +136,7 @@ import { FieldOpsPlan, FieldRdoContext } from './lib/fieldOpsKnowledge'
 import { ProjectPackagePlan } from './lib/projectPackageKnowledge'
 import { GenerationHistoryEntry } from './lib/generationHistory'
 import { ResearchPlan } from './lib/researchKnowledge'
-import { selectTool, tools } from './lib/toolRegistry'
+import { selectTool } from './lib/toolRegistry'
 import { isAgentIntent } from './lib/apexAgents'
 import { AiCostPlan, isAiCostIntent } from './lib/aiCostKnowledge'
 import { AutoupgradePlan, isAutoupgradeIntent } from './lib/autoupgradeKnowledge'
@@ -719,6 +719,25 @@ function isDebugEnabled() {
   }
 }
 
+function isLocalDemoAuthAllowed() {
+  return import.meta.env.VITE_APEX_ALLOW_LOCAL_DEMO_AUTH === 'true'
+}
+
+function buildLocalDemoOwnerState(): SupabaseAccountState {
+  return {
+    providerStatus: 'supabase-not-configured',
+    sessionStatus: 'signed-in',
+    user: { id: 'local-demo-user', email: 'owner@apexglobalai.co' },
+    profile: { id: 'local-demo-user', email: 'owner@apexglobalai.co', full_name: 'Owner Admin (Local)' },
+    tenant: { id: 'local-demo-tenant', name: 'Apex Local Workspace' },
+    role: 'owner_admin',
+    permissions: ['*'],
+    persistenceMode: 'localStorage',
+    bootstrapStatus: 'ready',
+    message: 'Local demo mode enabled by VITE_APEX_ALLOW_LOCAL_DEMO_AUTH.',
+  }
+}
+
 function loadClientMemory(): ClientMemory {
   try {
     const parsed = JSON.parse(localStorage.getItem('apex_copilot_client_memory') || '{}') as ClientMemory
@@ -958,6 +977,12 @@ function buildOperationalSkillResponse(text: string) {
   }
   if (isCodeSkillIntent(text)) {
     return ''
+  }
+  // Assistente pessoal — intercepta comandos de execução que iriam para API
+  if (/\b(executar|execute|rodar|roda|run|commit|push|git|deploy|migration|rollback|roll.?back|npm run|npm install|yarn|pnpm|migrate|database.*migrate|prisma.*migrate)\b/i.test(text)) {
+    return pt
+      ? 'Entendi! Parece que você quer executar uma operação. Como assistente pessoal, posso ajudar com:\n\n• **Análise** — revisar código, documentos, plantas\n• **Geração** — criar imagens, vídeos, orçamentos, contratos\n• **Pesquisa** — buscar informações, analisar mercado\n• **Documentação** — preparar relatórios, memoriais, propostas\n\nPara executar comandos no sistema (git, deploy, build), use o **Owner Console → Copilot Execution** com as permissões adequadas.\n\nMe diga o que precisa e vou preparar do melhor jeito! ✨'
+      : 'I understand you want to execute something. As a personal assistant, I can help with:\n\n• **Analysis** — review code, documents, blueprints\n• **Generation** — create images, videos, budgets, contracts\n• **Research** — find information, analyze markets\n• **Documentation** — prepare reports, proposals, memos\n\nTo run system commands (git, deploy, build), use **Owner Console → Copilot Execution** with proper permissions.\n\nTell me what you need and I will help! ✨'
   }
   const connectorStatusAnswer = buildConnectorStatusFallback(text)
   if (connectorStatusAnswer) return connectorStatusAnswer

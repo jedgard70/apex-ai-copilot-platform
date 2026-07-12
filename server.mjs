@@ -231,7 +231,7 @@ const copilotExecutionCommands = [
     args: [],
     acceptsRawCommand: true,
     risk: 'high',
-    requiresApproval: false,
+    requiresApproval: true,
     timeoutMs: 60000,
     source: 'raw-shell',
   },
@@ -600,25 +600,25 @@ function classifySkillUpdate(file, text) {
   if (/(password|api[_-]?key|secret|token|service[_-]?role|private key|BEGIN RSA PRIVATE KEY)/i.test(text)) {
     return { category: 'obsolete-unsafe-ignore', targetDomain: 'security-review', riskLevel: 'high' }
   }
-  if (/(deprecated|obsolete|superseded|não usar|nao usar|ignore this|old version)/i.test(lower)) {
+  if (/(deprecated|obsolete|superseded|nÃ£o usar|nao usar|ignore this|old version)/i.test(lower)) {
     return { category: 'obsolete-unsafe-ignore', targetDomain: 'historical-reference', riskLevel: 'medium' }
   }
   if (/(archvis|render|planta humanizada|humanized floor plan|facade|interior|prompt negativo|negative prompt)/i.test(lower)) {
     return { category: 'archvis-skill', targetDomain: 'archvis', riskLevel: 'low' }
   }
-  if (/(directcut|video|vídeo|roteiro|shot list|storyboard|reels|cinematic)/i.test(lower)) {
+  if (/(directcut|video|vÃ­deo|roteiro|shot list|storyboard|reels|cinematic)/i.test(lower)) {
     return { category: 'directcut-skill', targetDomain: 'directcut', riskLevel: 'low' }
   }
-  if (/(revit|dynamo|pyrevit|shared parameter|par[aâ]metro compartilhado|family|fam[ií]lia|view template|schedule|add-in|addin|ribbon|ifc export|glb export)/i.test(lower)) {
+  if (/(revit|dynamo|pyrevit|shared parameter|par[aÃ¢]metro compartilhado|family|fam[iÃ­]lia|view template|schedule|add-in|addin|ribbon|ifc export|glb export)/i.test(lower)) {
     return { category: 'revit-skill', targetDomain: 'revit-customization', riskLevel: 'low' }
   }
-  if (/(windows|powershell|diagn[oó]stico|diagnostic|cleanup|limpeza|quarantine|quarentena|startup|inicializa[cç][aã]o|malware|performance|pc lento|computador lento)/i.test(lower)) {
+  if (/(windows|powershell|diagn[oÃ³]stico|diagnostic|cleanup|limpeza|quarantine|quarentena|startup|inicializa[cÃ§][aÃ£]o|malware|performance|pc lento|computador lento)/i.test(lower)) {
     return { category: 'windows-coding-skill', targetDomain: 'windows-care-coding', riskLevel: 'medium' }
   }
   if (/(bim|ifc|revit|rvt|dwg|dxf|skp|clash|viewer|3d)/i.test(lower)) {
     return { category: 'bim-3d-skill', targetDomain: 'bim-3d', riskLevel: 'low' }
   }
-  if (/(rdo|di[aá]rio de obra|relat[oó]rio de obra|field operations|jobsite|punch list|checklist de qualidade|checklist de seguran[cç]a|foto de obra|daily report)/i.test(lower)) {
+  if (/(rdo|di[aÃ¡]rio de obra|relat[oÃ³]rio de obra|field operations|jobsite|punch list|checklist de qualidade|checklist de seguran[cÃ§]a|foto de obra|daily report)/i.test(lower)) {
     return { category: 'field-operations-skill', targetDomain: 'field-operations-rdo', riskLevel: 'low' }
   }
   if (/(sql|data|analytics|dashboard|metric|csv|query)/i.test(lower)) {
@@ -627,13 +627,13 @@ function classifySkillUpdate(file, text) {
   if (/(marketing|sales|crm|proposal|proposta|venda|copy|landing)/i.test(lower)) {
     return { category: 'business-marketing', targetDomain: 'business-marketing', riskLevel: 'low' }
   }
-  if (/(negotiation|negociação|negociacao|humanizer|humanizar texto|writing|copywriting)/i.test(lower)) {
+  if (/(negotiation|negociaÃ§Ã£o|negociacao|humanizer|humanizar texto|writing|copywriting)/i.test(lower)) {
     return { category: 'writing-negotiation', targetDomain: 'writing-negotiation', riskLevel: 'low' }
   }
   if (['py', 'js', 'ts', 'tsx'].includes(ext) || /(react|typescript|javascript|python|component|api route|server)/i.test(lower)) {
     return { category: 'code-platform-pattern', targetDomain: 'platform-code', riskLevel: 'medium' }
   }
-  if (/(system prompt|prompt template|template|instruções|instrucoes|instructions)/i.test(lower)) {
+  if (/(system prompt|prompt template|template|instruÃ§Ãµes|instrucoes|instructions)/i.test(lower)) {
     return { category: 'prompt-template', targetDomain: 'prompt-systems', riskLevel: 'low' }
   }
   if (/(rule|regra|always|never|nunca|sempre|policy|hard rule)/i.test(lower)) {
@@ -1061,6 +1061,9 @@ async function handleExecutionRun(req, res) {
       if (!isPathInsideAuthorizedRepo(executionCwd)) {
         return json(res, 403, { error: 'Raw shell cwd must stay inside the authorized local repo.', cwd: executionCwd, providerStatus: 'error' })
       }
+      if (!isPathInsideAuthorizedRepo(executionCwd)) {
+        return json(res, 403, { error: 'Raw shell cwd must stay inside the authorized local repo.', cwd: executionCwd, providerStatus: 'blocked' })
+      }
       if (!fs.existsSync(executionCwd) || !fs.statSync(executionCwd).isDirectory()) {
         return json(res, 400, { error: 'Requested cwd does not exist or is not a directory.', cwd: executionCwd, providerStatus: 'error' })
       }
@@ -1137,25 +1140,25 @@ function buildLocalSkillContext(userText, file) {
   if (/(ifc|rvt|dwg|dxf|skp|bim|cad|3d|viewer|clash)/.test(text)) {
     contexts.push('BIM/CAD: Apex-internal first. Never tell the user to leave the platform as the main solution. IFC/GLB/GLTF/OBJ/STL/FBX must open in Apex BIM / 3D Studio. RVT/DWG/DXF/SKP must open an Apex internal conversion/import workflow. For findings, do not say I think/probably/parece/talvez/pode conter/might/may contain. Separate claims into CONFIRMED, ASSUMPTION and UNKNOWN. Do not say use Revit/ArchiCAD/Solibri/Twinmotion/Blender unless Apex has opened the internal studio/import flow, identified a specific limitation, generated a report and produced correction instructions, or unless the user explicitly asks how to do it outside Apex. If parser/viewer fails, show the real error and offer internal next steps: retry viewer, convert to GLB/IFC, prepare import package, extract metadata if available, create technical review plan.')
   }
-  if (/(revit|dynamo|pyrevit|add-?in|plugin|c#|csharp|ribbon|shared parameter|shared parameters|par[aâ]metro|par[aâ]metros compartilhados|view template|template bim|fam[ií]lia|families|ifc export|exportar ifc|glb|manifest|externalcommand|iexternalcommand|iexternalapplication|sheets|pranchas|schedules|quantitativos|qa\/qc|model checking)/.test(text)) {
+  if (/(revit|dynamo|pyrevit|add-?in|plugin|c#|csharp|ribbon|shared parameter|shared parameters|par[aÃ¢]metro|par[aÃ¢]metros compartilhados|view template|template bim|fam[iÃ­]lia|families|ifc export|exportar ifc|glb|manifest|externalcommand|iexternalcommand|iexternalapplication|sheets|pranchas|schedules|quantitativos|qa\/qc|model checking)/.test(text)) {
     contexts.push('Revit customization: answer as a Revit/BIM automation consultant. Distinguish manual Revit setup, Dynamo automation, pyRevit scripts and full C# Revit API add-ins. Cover project setup, templates, families, shared/project parameters, view templates, filters, schedules, sheets/title blocks, BIM standards, IFC/GLB export workflows, model checks, QA/QC, preflight checks and Apex AI Copilot integration. Generate code when requested, show where files go, include .addin manifest/ribbon button structure for C# plugins, and warn that code must be tested inside the matching Revit version. Do not pretend a plugin/script was installed or tested.')
   }
-  if (/(eua|usa|united states|mercado americano|american market|europa|europe|european market|mercado europeu|offshore|d[oó]lar|euro|clientes internacionais|international clients|permit set|permit sets|portfolio americano|linkedin em ingl[eê]s|linkedin|prospec[cç][aã]o|outreach|bim em d[oó]lar|revit em d[oó]lar|opera[cç][aã]o remota|remote operation|residential construction docs|construction documentation)/.test(text)) {
+  if (/(eua|usa|united states|mercado americano|american market|europa|europe|european market|mercado europeu|offshore|d[oÃ³]lar|euro|clientes internacionais|international clients|permit set|permit sets|portfolio americano|linkedin em ingl[eÃª]s|linkedin|prospec[cÃ§][aÃ£]o|outreach|bim em d[oÃ³]lar|revit em d[oÃ³]lar|opera[cÃ§][aÃ£]o remota|remote operation|residential construction docs|construction documentation)/.test(text)) {
     contexts.push('International Market Strategy from Venda EUA Edgard PDF: the fastest entry path is not "architect in the US". Prioritize BIM Specialist, Revit Modeler, Permit Set Designer, Residential Construction Documentation Specialist and offshore BIM/CAD production partner positioning. High-value US/EU paths are permit sets, residential construction docs, Revit modeling, BIM coordination, estimating, technical documentation automation and AI-powered project delivery. Lower priority: render-only, Instagram-only and aesthetics-only positioning. Use Agency -> Platform -> SaaS: sell premium offshore technical production first, automate internally, then productize into AI BIM Operations Platform. For product strategy, do not build the whole enterprise platform first; start with BIM upload, AI issue analysis, permit checklist, issue tracking, executive reports, document intelligence and workflow approvals. Produce actionable business outputs: 90-day roadmap, LinkedIn headline/about, portfolio plan, outreach scripts, service menu, proposal copy and offshore production workflow. Connect Research, Contracts/Permits, BIM/3D, Revit, Budget, DirectCut and Marketing when useful. Do not invent current market data, code requirements, competitor facts or prices without source verification.')
   }
-  if (/(github|repo|repository|branch|pr\b|pull request|supabase|sql|vercel|deploy|deployment|backend|frontend|database|schema|rls|policy|policies|security|seguran[cç]a|vulnerab|refactor|module|m[oó]dulo|code review|auditoria t[eé]cnica|build error|deploy error|secrets?|dependency|depend[eê]ncia|cors|auth|migra[cç][aã]o|migration)/.test(text)) {
+  if (/(github|repo|repository|branch|pr\b|pull request|supabase|sql|vercel|deploy|deployment|backend|frontend|database|schema|rls|policy|policies|security|seguran[cÃ§]a|vulnerab|refactor|module|m[oÃ³]dulo|code review|auditoria t[eÃ©]cnica|build error|deploy error|secrets?|dependency|depend[eÃª]ncia|cors|auth|migra[cÃ§][aÃ£]o|migration)/.test(text)) {
     contexts.push('Platform Engineering / DevOps: act as a senior platform engineer. Review repository structure, frontend, backend, database/schema, Supabase SQL/RLS, Vercel deploy config, build/deploy errors, branch/PR plans, dependency risk and security. Always separate CONFIRMED, ASSUMPTION and NEEDS VERIFICATION. Do not claim GitHub/Vercel/Supabase access or success unless connector/URL/content/local clone/command output proves it. Do not expose secrets. Do not modify production config without explicit instruction. For Supabase, prefer migration-safe SQL and warn about RLS exposure. For Vercel, check env vars, build command, output dir, framework preset and runtime compatibility. For security, flag exposed keys, unsafe localStorage secrets, missing auth/RLS, open CORS, insecure uploads, unsanitized file parsing, dependency risk and broad admin/service-role usage.')
   }
-  if (/(venda|cliente|crm|proposal|proposta|business|marketing|or[cç]amento|budget)/.test(text)) {
+  if (/(venda|cliente|crm|proposal|proposta|business|marketing|or[cÃ§]amento|budget)/.test(text)) {
     contexts.push('Business/sales: produce positioning, client pitch, proposal outline, buyer profile, value proposition, recommended visuals and next commercial action directly.')
   }
-  if (/(code|c[oó]digo|react|typescript|mcp|api|server|platform)/.test(text)) {
+  if (/(code|c[oÃ³]digo|react|typescript|mcp|api|server|platform)/.test(text)) {
     contexts.push('Coding/platform: prefer small scoped changes, keep secrets server-side, separate protocol/validation/execution/evaluation, and produce code directly when requested.')
   }
   if (/(write|escreva|texto|copy|document|doc|humaniz)/.test(text)) {
     contexts.push('Writing: produce the requested artifact directly, match user language/tone and avoid generic boilerplate unless asked.')
   }
-  if (/(docsedgard|reintegrada|skill integrada|skill real|skills importadas|invent[aá]rio de skills|manifesto de skill)/.test(text)) {
+  if (/(docsedgard|reintegrada|skill integrada|skill real|skills importadas|invent[aÃ¡]rio de skills|manifesto de skill)/.test(text)) {
     contexts.push('Docsedgard Integrated Skill: use local runtime command `docsedgard_skill` for operational actions. Available actions: `summary` (totals and top folders), `search:<termo>` (find artifacts by topic/path), and `sync-manifest` (regenerate skill/DOCSEDGARD_SKILL_REINTEGRADA.md from D:\\AI Jedgard\\skill).')
   }
   if (/(negocia|counteroffer|proposta comercial|deal)/.test(text)) {
@@ -1164,22 +1167,22 @@ function buildLocalSkillContext(userText, file) {
   if (/(data|dados|sql|planilha|xlsx|csv|analytics|metric)/.test(text)) {
     contexts.push('Data: do not invent data values; state missing data clearly; produce analysis structure, SQL, spreadsheet logic or metric reasoning.')
   }
-  if (/(rdo|di[aá]rio de obra|relat[oó]rio de obra|andamento da obra|progresso da obra|checklist de qualidade|checklist de seguran[cç]a|equipe de obra|materiais entregues|pend[eê]ncia de obra|punch list|foto de obra|field operations|daily report|jobsite|site report|quality checklist|safety checklist|field photo)/.test(text)) {
+  if (/(rdo|di[aÃ¡]rio de obra|relat[oÃ³]rio de obra|andamento da obra|progresso da obra|checklist de qualidade|checklist de seguran[cÃ§]a|equipe de obra|materiais entregues|pend[eÃª]ncia de obra|punch list|foto de obra|field operations|daily report|jobsite|site report|quality checklist|safety checklist|field photo)/.test(text)) {
     contexts.push('Field Operations / RDO: produce daily reports, progress summaries, crew/material logs, safety/quality checklists, punch lists and client reports. Do not claim field verification unless supported by photo or user field data. User notes are USER_REPORTED. Visible photo items can be PHOTO_CONFIRMED. Unknown items remain UNKNOWN. Do not fake weather or inspection approval.')
   }
-  if (/(crm|lead|cliente|client|vendas|sales|proposta comercial|financeiro|finance|fatura|invoice|pagamento|payment|plano saas|usu[aá]rio|permiss[oõ]es|dashboard admin|dashboard cliente|pipeline|follow-up|cobran[cç]a|contabilidade|contador|documentos cont[aá]beis|relat[oó]rio cont[aá]bil|imposto|nota fiscal|receita|despesa|contas a pagar|contas a receber|accounting|accountant|tax)/.test(text)) {
-    contexts.push('SaaS / CRM / Finance: local-first business layer only. No fake auth, no fake database persistence, no fake payment confirmation, no fake invoice sent, no fake tax filing. Always label Local demo mode — auth/database not connected yet. Client users must not access admin/internal data in the real model. Finance/accounting prepares records, ledgers, reports and accountant handoff packages with USER_ENTERED, SYSTEM_GENERATED, IMPORTED_DOCUMENT, UNKNOWN or NEEDS_ACCOUNTANT_REVIEW evidence.')
+  if (/(crm|lead|cliente|client|vendas|sales|proposta comercial|financeiro|finance|fatura|invoice|pagamento|payment|plano saas|usu[aÃ¡]rio|permiss[oÃµ]es|dashboard admin|dashboard cliente|pipeline|follow-up|cobran[cÃ§]a|contabilidade|contador|documentos cont[aÃ¡]beis|relat[oÃ³]rio cont[aÃ¡]bil|imposto|nota fiscal|receita|despesa|contas a pagar|contas a receber|accounting|accountant|tax)/.test(text)) {
+    contexts.push('SaaS / CRM / Finance: local-first business layer only. No fake auth, no fake database persistence, no fake payment confirmation, no fake invoice sent, no fake tax filing. Always label Local demo mode â€” auth/database not connected yet. Client users must not access admin/internal data in the real model. Finance/accounting prepares records, ledgers, reports and accountant handoff packages with USER_ENTERED, SYSTEM_GENERATED, IMPORTED_DOCUMENT, UNKNOWN or NEEDS_ACCOUNTANT_REVIEW evidence.')
   }
   if (/(agentes|8 agentes|cognitive agents|maestro|bim manager|evm|nr compliance|cost controller|doc manager|scheduler|quality qa|agente cognitivo|agentes cognitivos)/.test(text)) {
     contexts.push('Cognitive Agents: expose the 8-agent Apex layer with honest status. Maestro AI orchestrates studios; BIM Manager connects BIM/3D; EVM Analyst has local-first CP11C support for CPI/SPI/EAC/VAC/TCPI/PV/EV/AC; NR Compliance has local-first CP11C support for NR-6/NR-10/NR-18/NR-33/NR-35; Cost Controller connects Budget/Finance/EVM/SINAPI source confidence; Doc Manager connects Project Workspace/Export Center/docs; Scheduler has local-first CP11C Gantt/milestones/critical path planning; Quality QA connects FieldOps/NR/punch list/NCIs/PBQP-H/ISO awareness. Do not fake external connectors or official completion.')
   }
-  if (/(evm|cpi|spi|eac|vac|tcpi|planned value|earned value|actual cost|cronograma|gantt|caminho cr[ií]tico|atraso|lookahead|cronograma f[ií]sico-financeiro|nr-18|nr-35|nr-10|nr-6|nr-33|seguran[cç]a do trabalho|compliance nr)/.test(text)) {
+  if (/(evm|cpi|spi|eac|vac|tcpi|planned value|earned value|actual cost|cronograma|gantt|caminho cr[iÃ­]tico|atraso|lookahead|cronograma f[iÃ­]sico-financeiro|nr-18|nr-35|nr-10|nr-6|nr-33|seguran[cÃ§]a do trabalho|compliance nr)/.test(text)) {
     contexts.push('CP11C EVM/Scheduler/NR: run local analysis only. Calculate CPI=EV/AC, SPI=EV/PV, CV=EV-AC, SV=EV-PV, EAC/ETC/VAC/TCPI only when inputs exist. Missing PV/EV/AC/BAC stays UNKNOWN. Scheduler is local Gantt/milestone/lookahead planning only, no MS Project integration. NR compliance is GENERAL_GUIDANCE or NEEDS_SAFETY_REVIEW; no official compliance approval or safety certification.')
   }
-  if (/(fornecedor|fornecedores|supply chain|cotação|cotacao|rfq|compra|material|materiais|subcontratado|procurement|supplier)/.test(text)) {
+  if (/(fornecedor|fornecedores|supply chain|cotaÃ§Ã£o|cotacao|rfq|compra|material|materiais|subcontratado|procurement|supplier)/.test(text)) {
     contexts.push('CP11E Supply Chain: local supplier registry, procurement items, RFQs and comparisons only. Do not fake ERP, supplier price, availability or verification. Label data USER_ENTERED, PLACEHOLDER or NEEDS_VERIFICATION.')
   }
-  if (/(alerta|notificação|notificacao|prazo|lembrete|pendência|pendencia|vencimento|atraso crítico|atraso critico|deadline|notification)/.test(text)) {
+  if (/(alerta|notificaÃ§Ã£o|notificacao|prazo|lembrete|pendÃªncia|pendencia|vencimento|atraso crÃ­tico|atraso critico|deadline|notification)/.test(text)) {
     contexts.push('CP11E Notifications: local alerts only. No push, email, SMS or calendar connector is connected unless explicitly verified. Label Local alert only - notification connector not connected yet.')
   }
   if (/(custo de ia|gasto com ia|tokens|observabilidade|ai cost|billing|usage dashboard)/.test(text)) {
@@ -1231,7 +1234,7 @@ function detectLanguage(userText, conversation, preferredLanguage = '') {
   const englishSwitchPattern = /\b(answer in english|speak english|in english|english please)\b/i
   if (englishSwitchPattern.test(userText)) return 'English'
   const isPtLocale = /^pt\b/i.test(String(preferredLanguage || ''))
-  const hasPtKeywords = /\b(o que|vc|você|voce|sabe|fazer|fa[cç]a|crie|criar|gere|gerar|liste|lista|habilidades|capacidades|para mim|me ajude|ajude|planta|projeto|quero|posso|opcoes|opções|mostre|portugu[eê]s|render|or[cç]amento|an[uú]ncio|cliente|contrato|programar|componente|c[oó]digo|traduza|traduzir|quem|sou|verifique|verificar|auditar|auditoria|revisar|revisao|codigo|arquivos|erro|erros|teste|testar|rodar|executar|deploy|branch|main|github|vercel|supabase|sim|nao|não|olá|oi|ola|bom dia|boa tarde|boa noite)\b/i.test(latestUserText) || /[ãõçáéíóú]/i.test(latestUserText)
+  const hasPtKeywords = /\b(o que|vc|vocÃª|voce|sabe|fazer|fa[cÃ§]a|crie|criar|gere|gerar|liste|lista|habilidades|capacidades|para mim|me ajude|ajude|planta|projeto|quero|posso|opcoes|opÃ§Ãµes|mostre|portugu[eÃª]s|render|or[cÃ§]amento|an[uÃº]ncio|cliente|contrato|programar|componente|c[oÃ³]digo|traduza|traduzir|quem|sou|verifique|verificar|auditar|auditoria|revisar|revisao|codigo|arquivos|erro|erros|teste|testar|rodar|executar|deploy|branch|main|github|vercel|supabase|sim|nao|nÃ£o|olÃ¡|oi|ola|bom dia|boa tarde|boa noite)\b/i.test(latestUserText) || /[Ã£ÃµÃ§Ã¡Ã©Ã­Ã³Ãº]/i.test(latestUserText)
   if (isPtLocale || hasPtKeywords) return 'Portuguese'
   return 'English'
 }
@@ -1240,14 +1243,14 @@ function detectIntent(userText) {
   const normalized = String(userText || '').toLowerCase()
   return {
     isHiddenUpload: /^user uploaded this file\./i.test(String(userText || '').trim()),
-    asksForList: /\b(liste|lista|listar|me mostre uma lista|quais op[cç][oõ]es|op[cç][oõ]es|list|show me a list|what options)\b/i.test(normalized),
-    asksCapabilities: /\b(o que (vc|você|voce) sabe fazer|o que (vc|você|voce) sabe|o que pode fazer|liste todas as suas habilidades|suas habilidades|suas capacidades|o que você consegue fazer|o que voce consegue fazer|what can you do|what do you know how to do|your abilities|your capabilities)\b/i.test(normalized),
-    asksExecution: /\b(criar|crie|gera|gerar|gere|montar|monte|preparar|prepare|fazer|fa[cç]a|escreva|me ajude a escrever|ajude a escrever|produza|create|generate|write|help me write|prepare|build|make)\b/i.test(normalized),
+    asksForList: /\b(liste|lista|listar|me mostre uma lista|quais op[cÃ§][oÃµ]es|op[cÃ§][oÃµ]es|list|show me a list|what options)\b/i.test(normalized),
+    asksCapabilities: /\b(o que (vc|vocÃª|voce) sabe fazer|o que (vc|vocÃª|voce) sabe|o que pode fazer|liste todas as suas habilidades|suas habilidades|suas capacidades|o que vocÃª consegue fazer|o que voce consegue fazer|what can you do|what do you know how to do|your abilities|your capabilities)\b/i.test(normalized),
+    asksExecution: /\b(criar|crie|gera|gerar|gere|montar|monte|preparar|prepare|fazer|fa[cÃ§]a|escreva|me ajude a escrever|ajude a escrever|produza|create|generate|write|help me write|prepare|build|make)\b/i.test(normalized),
     asksRenderPrompt: /\b(prompt de render|render prompt|prompt.*render|renderiza|renderizar)\b/i.test(normalized),
-    asksSalesOutput: /\b(vender|venda|sell|sales|comercial|cliente|apresenta[cç][aã]o|presentation)\b/i.test(normalized),
+    asksSalesOutput: /\b(vender|venda|sell|sales|comercial|cliente|apresenta[cÃ§][aÃ£]o|presentation)\b/i.test(normalized),
     asksContractDraft: /\b(contrato simples|contrato|contract draft|simple contract|agreement)\b/i.test(normalized),
-    asksTranslation: /\b(traduza|traduzir|translate|translate this|to english|para ingl[eê]s|para portugu[eê]s)\b/i.test(normalized),
-    asksCodeOutput: /\b(componente react|react component|c[oó]digo|codigo|code|programar|typescript|javascript|jsx|tsx)\b/i.test(normalized),
+    asksTranslation: /\b(traduza|traduzir|translate|translate this|to english|para ingl[eÃª]s|para portugu[eÃª]s)\b/i.test(normalized),
+    asksCodeOutput: /\b(componente react|react component|c[oÃ³]digo|codigo|code|programar|typescript|javascript|jsx|tsx)\b/i.test(normalized),
   }
 }
 
@@ -1379,7 +1382,7 @@ function buildIntentInstruction(userText, file, conversation, preferredLanguage)
   if (language === 'Portuguese' && intent.asksExecution && intent.asksRenderPrompt && file) {
     instructions.push(
       'Required behavior for Portuguese render-prompt request with image/plan context:',
-      'Start with: "Claro. Aqui está um prompt de render pronto para usar:"',
+      'Start with: "Claro. Aqui estÃ¡ um prompt de render pronto para usar:"',
       'Then write a complete production-grade render prompt immediately, grounded in the visible plan/project context.',
       'Use a copy-ready "Prompt principal:" block, not only a list of attributes.',
       'The render prompt must include project type, view type, architecture style, materials, lighting, landscaping, furniture/interior cues, camera angle, image quality, and photorealism details.',
@@ -1387,7 +1390,7 @@ function buildIntentInstruction(userText, file, conversation, preferredLanguage)
       'Include a negative prompt section that removes low quality, distorted geometry, wrong proportions, extra rooms, bad lighting, blurry textures, warped furniture, unreadable plan elements, people if not requested, and unrealistic materials.',
       'Include optional variants for facade, interior, humanized floor plan, and aerial sales image.',
       'Keep it usable for Midjourney/SDXL/DALL-E style image generation without overexplaining the process.',
-      'End with one short optional adaptation line, such as: "Também posso adaptar esse prompt para fachada, interior, planta humanizada ou vídeo."',
+      'End with one short optional adaptation line, such as: "TambÃ©m posso adaptar esse prompt para fachada, interior, planta humanizada ou vÃ­deo."',
       'Do not answer with "Para gerar um prompt..." or explain how prompt creation works.',
     )
   }
@@ -1429,7 +1432,7 @@ function buildIntentInstruction(userText, file, conversation, preferredLanguage)
 }
 
 function isIdentityQuestionText(text) {
-  return /\b(vc sabe quem sou eu|você sabe quem sou eu|voce sabe quem sou eu|quem sou eu|do you know who i am|who am i)\b/i.test(String(text || '').trim())
+  return /\b(vc sabe quem sou eu|vocÃª sabe quem sou eu|voce sabe quem sou eu|quem sou eu|do you know who i am|who am i)\b/i.test(String(text || '').trim())
 }
 
 function normalizeChatIdentityContext(value) {
@@ -1553,9 +1556,9 @@ function hasIdentityContext(identity) {
 function buildIdentityReply(userText, identity) {
   if (!isIdentityQuestionText(userText)) return ''
   if (!identity.email && !identity.role && !identity.workspaceName && !identity.persistenceMode && !identity.tenantId && !identity.profileName) {
-    return 'Ainda não tenho dados de sessão disponíveis nesta requisição. Não vou inventar nome, email, role ou workspace sem contexto real.'
+    return 'Ainda nÃ£o tenho dados de sessÃ£o disponÃ­veis nesta requisiÃ§Ã£o. NÃ£o vou inventar nome, email, role ou workspace sem contexto real.'
   }
-  const ownerLine = identity.isOwnerAdmin ? ' Você está marcado como owner_admin.' : ''
+  const ownerLine = identity.isOwnerAdmin ? ' VocÃª estÃ¡ marcado como owner_admin.' : ''
   const missing = []
   if (!identity.profileName) missing.push('nome completo/perfil')
   if (!identity.email) missing.push('email')
@@ -1563,8 +1566,8 @@ function buildIdentityReply(userText, identity) {
   if (!identity.workspaceName) missing.push('workspace')
   if (!identity.persistenceMode) missing.push('persistence')
   if (!identity.tenantId) missing.push('tenant/workspace id')
-  const missingLine = missing.length ? ` Dados não disponíveis na sessão: ${missing.join(', ')}.` : ''
-  return `Sim. Você está logado como ${identity.email || 'email não disponível'}, com role ${identity.role || 'não disponível'}, no workspace ${identity.workspaceName || 'não disponível'}, usando persistence ${identity.persistenceMode || 'não disponível'}.${ownerLine}${missingLine} Ainda não vou inventar dados além do que está disponível na sessão.`
+  const missingLine = missing.length ? ` Dados nÃ£o disponÃ­veis na sessÃ£o: ${missing.join(', ')}.` : ''
+  return `Sim. VocÃª estÃ¡ logado como ${identity.email || 'email nÃ£o disponÃ­vel'}, com role ${identity.role || 'nÃ£o disponÃ­vel'}, no workspace ${identity.workspaceName || 'nÃ£o disponÃ­vel'}, usando persistence ${identity.persistenceMode || 'nÃ£o disponÃ­vel'}.${ownerLine}${missingLine} Ainda nÃ£o vou inventar dados alÃ©m do que estÃ¡ disponÃ­vel na sessÃ£o.`
 }
 
 function prefersPortugueseText(text = '', locale = '') {
@@ -1586,6 +1589,10 @@ function isContactQuestionText(text = '') {
 function isVisaQuestionText(text = '') {
   const norm = text.trim().toLowerCase()
   return /\b(visto|visa|imigra|eb2|eb1)\b/i.test(norm)
+}
+
+function isVisaQuestionText(text = '') {
+  return /\b(visto|vistos|visa|imigracao|imigraÃ§Ã£o|consulado|turismo|trabalho|estudo)\b/i.test(text.trim())
 }
 
 function isUploadQuestionText(text = '') {
@@ -2192,7 +2199,7 @@ function isLiveAgentOperationalPreflightNeeded(text) {
   const value = String(text || '').toLowerCase().trim()
   if (!value) return false
 
-  return /\b(pr[oó]ximo|proximo|agora|status|plataforma|checkpoint|continua|continuar|seguir|sugere|sugest[aã]o|o que fazer|o que fazemos|tudo certo|ficou certo|pode seguir|fa[cç]a|execute|executa|ok|valida|validar|fechar|finalizar|commitar|commit)\b/i.test(value)
+  return /\b(pr[oÃ³]ximo|proximo|agora|status|plataforma|checkpoint|continua|continuar|seguir|sugere|sugest[aÃ£]o|o que fazer|o que fazemos|tudo certo|ficou certo|pode seguir|fa[cÃ§]a|execute|executa|ok|valida|validar|fechar|finalizar|commitar|commit)\b/i.test(value)
 }
 
 async function buildLiveAgentPreflightContext(userText) {
@@ -2201,7 +2208,7 @@ async function buildLiveAgentPreflightContext(userText) {
   const commandIds = ['git_status', 'git_diff_stat', 'check_server']
   const lower = String(userText || '').toLowerCase()
 
-  if (/\b(build|tudo certo|ficou certo|fechar|finalizar|checkpoint|valida|validar|pode seguir|execute|fa[cç]a|ok)\b/i.test(lower)) {
+  if (/\b(build|tudo certo|ficou certo|fechar|finalizar|checkpoint|valida|validar|pode seguir|execute|fa[cÃ§]a|ok)\b/i.test(lower)) {
     commandIds.push('build')
   }
 
@@ -2594,7 +2601,7 @@ async function handleChat(req, res) {
       'For IFC, GLB, GLTF, OBJ, STL and FBX: answer with what can be viewed, analyzed or reported from the file WITHOUT opening a panel. Use execute_terminal_command to process files when possible.',
       'For RVT, DWG, DXF and SKP: explain that the format needs internal conversion before web visualization, WITHOUT opening a panel.',
       'Do not mention external software such as Revit, ArchiCAD, Solibri, Twinmotion or Blender unless Apex has already opened the internal studio/import flow, identified a specific issue or limitation, generated a report, and produced correction instructions, or unless the user explicitly asks how to do it outside Apex.',
-      'Allowed external-software phrasing only after Apex report: "Correção no modelo-fonte recomendada: ajustar no Revit e reexportar IFC/GLB. Relatório Apex anexado."',
+      'Allowed external-software phrasing only after Apex report: "CorreÃ§Ã£o no modelo-fonte recomendada: ajustar no Revit e reexportar IFC/GLB. RelatÃ³rio Apex anexado."',
       'If a BIM/parser/viewer fails, do not fake a viewer. Show the real limitation and offer internal next steps: retry viewer, convert to GLB/IFC, prepare import package, extract metadata if possible, or create technical review plan.',
       'If the current or recent conversation includes an uploaded file, treat follow-up questions such as "o que vc sabe fazer" as referring to that file and project context.',
       'When image content is supplied, mention 2 to 4 concrete visible project details before suggesting paths.',
@@ -2609,6 +2616,19 @@ async function handleChat(req, res) {
       '',
       'APPROVAL FLOW: After the client reviews the result and says they want it:',
       '  1. Ask for final confirmation: "Confirma que este resultado está aprovado?"',
+      '  2. If they confirm, call approve_service_order with the order ID',
+      '  3. Send the final delivery URL if available',
+      '  4. Thank the client and ask if they need anything else',
+      '',
+      'COMMERCIAL FLOW: When the client asks about price, hiring, or wants to close a service:',
+      '  1. Confirm the service details with the client',
+      '  2. Ask if they want unique service or monthly subscription',
+      '  3. Call create_service_order to generate order + payment link',
+      '  4. Send the payment link to the client',
+      '  5. After payment, the service is automatically released',
+      '',
+      'APPROVAL FLOW: After the client reviews the result and says they want it:',
+      '  1. Ask for final confirmation: "Confirma que este resultado estÃ¡ aprovado?"',
       '  2. If they confirm, call approve_service_order with the order ID',
       '  3. Send the final delivery URL if available',
       '  4. Thank the client and ask if they need anything else',
@@ -2761,7 +2781,7 @@ async function handleChat(req, res) {
         }
       }
 
-      // Exceeded max rounds — return the last assistant content if any.
+      // Exceeded max rounds â€” return the last assistant content if any.
       return chatJson(res, 200, {
         finalReply: sanitizeAssistantReply(currentAssistant.content) || 'Atingi o limite de etapas de ferramentas nesta resposta. Posso continuar se você confirmar.',
         mode: 'live-agent-tool-calling-maxed',
@@ -2850,7 +2870,7 @@ async function handleToolExecute(req, res) {
       executionClasses: [],
       tools: [],
       executions: [],
-      finalReply: 'YELLOW - camada H5 de execução por ferramentas falhou com segurança. Nenhuma mutação foi executada e nenhum segredo foi exposto.',
+      finalReply: 'YELLOW - camada H5 de execuÃ§Ã£o por ferramentas falhou com seguranÃ§a. Nenhuma mutaÃ§Ã£o foi executada e nenhum segredo foi exposto.',
       error: scrubProviderError(error.message || error),
     })
   }
@@ -3505,8 +3525,8 @@ async function handleBimPlan(req, res) {
       animationCameraPath,
       exportRecommendations,
       message: mode === 'viewer'
-        ? 'Abri o BIM / 3D Studio ao lado. Vou visualizar, analisar e gerar relatório técnico dentro da Apex.'
-        : 'Abri o fluxo de importação 3D da Apex. Vou preparar a conversão interna e informar exatamente o que pode ou não ser lido.',
+        ? 'Abri o BIM / 3D Studio ao lado. Vou visualizar, analisar e gerar relatÃ³rio tÃ©cnico dentro da Apex.'
+        : 'Abri o fluxo de importaÃ§Ã£o 3D da Apex. Vou preparar a conversÃ£o interna e informar exatamente o que pode ou nÃ£o ser lido.',
     })
   } catch (error) {
     return json(res, error.status || 500, {
@@ -3984,8 +4004,8 @@ function businessCurrency(value) {
 
 function createBusinessPlanPayload({ goal = '', focus = 'all', currency = 'USD' }) {
   const safeCurrency = businessCurrency(currency)
-  const localNotice = 'Local demo mode — auth/database not connected yet'
-  const paymentNotice = 'Payment connector not connected yet — no real payment was processed or confirmed.'
+  const localNotice = 'Local demo mode â€” auth/database not connected yet'
+  const paymentNotice = 'Payment connector not connected yet â€” no real payment was processed or confirmed.'
   const accountingNotice = 'NEEDS_ACCOUNTANT_REVIEW: Apex prepares documents and reports for accountant review. It does not file taxes or confirm accounting compliance.'
   const pipelineStages = ['New Lead', 'Qualified', 'Discovery', 'Proposal Sent', 'Negotiation', 'Won', 'Lost', 'On Hold']
   const saasPlans = [
@@ -4067,7 +4087,7 @@ function createBusinessPlanPayload({ goal = '', focus = 'all', currency = 'USD' 
       accounting,
     },
     saasPlans,
-    adminDashboard: { usersCount: 3, clientsCount: 1, projectsCount: 1, leadsCount: 0, proposalsCount: 0, revenuePlaceholder: 'Revenue not connected — use Finance Studio with user-entered data only.', usageSummary: ['Local Project Workspace is active.', 'Auth/database/payment connectors are not connected.', 'Client data boundaries are modeled but not enforced by a backend yet.'], moduleUsage: ['Apex Copilot', 'ArchVis', 'DirectCut', 'BIM/3D', 'Budget', 'Contracts', 'FieldOps', 'CRM', 'Finance'], openTasks: ['Connect real auth before production client access.', 'Connect database/RLS before multi-client persistence.', 'Connect payment provider before invoices can be sent/paid.'] },
+    adminDashboard: { usersCount: 3, clientsCount: 1, projectsCount: 1, leadsCount: 0, proposalsCount: 0, revenuePlaceholder: 'Revenue not connected â€” use Finance Studio with user-entered data only.', usageSummary: ['Local Project Workspace is active.', 'Auth/database/payment connectors are not connected.', 'Client data boundaries are modeled but not enforced by a backend yet.'], moduleUsage: ['Apex Copilot', 'ArchVis', 'DirectCut', 'BIM/3D', 'Budget', 'Contracts', 'FieldOps', 'CRM', 'Finance'], openTasks: ['Connect real auth before production client access.', 'Connect database/RLS before multi-client persistence.', 'Connect payment provider before invoices can be sent/paid.'] },
     clientDashboard: { activeProjects: 1, uploadedFiles: 0, generatedOutputs: 0, proposals: 0, invoices: 0, messages: 0, projectStatus: 'New', nextActions: ['Upload project files', 'Confirm scope', 'Review proposal package'] },
     recommendations: [focus === 'finance-accounting' ? 'Prepare accountant handoff package, but keep tax/compliance fields as NEEDS_ACCOUNTANT_REVIEW.' : 'Use local-first scaffolding until auth/database/payment connector is approved.', 'Do not expose admin/internal data to Client role in the future production model.', 'Use Export Center to package only real local project data.'],
     warnings: [localNotice, paymentNotice, accountingNotice, 'No fake login, fake database persistence, fake invoice sent status or fake payment confirmation.'],
@@ -4160,11 +4180,11 @@ function permitPackageForRegion(region, evidenceLevel, jurisdictionLabel) {
   }
   if (region === 'Brazil') {
     return [
-      permitPackageDoc('br-aprovacao', 'Pacote de aprovação municipal / alvará', 'required documents', 'architect/engineer-provided', evidenceLevel, `Checklist geral; confirmar na prefeitura/local authority. ${verifyNote}`),
-      permitPackageDoc('br-art-rrt', 'ART/RRT / responsabilidade técnica', 'required documents', 'architect/engineer-provided', evidenceLevel, `Confirmar responsável técnico e exigência local. ${verifyNote}`),
-      permitPackageDoc('br-projeto', 'Projeto arquitetônico e complementares', 'required documents', 'architect/engineer-provided', evidenceLevel, `Confirmar escopo de pranchas exigidas. ${verifyNote}`),
-      permitPackageDoc('br-bombeiros', 'Checklist Corpo de Bombeiros / fire safety', 'unknown until jurisdiction verified', 'architect/engineer-provided', 'NEEDS_LOCAL_AUTHORITY', `Pode depender de uso, área e estado. ${verifyNote}`),
-      permitPackageDoc('br-habite-se', 'Habite-se / certificado de conclusão', 'required documents', 'authority-provided', evidenceLevel, `Checklist geral de fechamento. ${verifyNote}`),
+      permitPackageDoc('br-aprovacao', 'Pacote de aprovaÃ§Ã£o municipal / alvarÃ¡', 'required documents', 'architect/engineer-provided', evidenceLevel, `Checklist geral; confirmar na prefeitura/local authority. ${verifyNote}`),
+      permitPackageDoc('br-art-rrt', 'ART/RRT / responsabilidade tÃ©cnica', 'required documents', 'architect/engineer-provided', evidenceLevel, `Confirmar responsÃ¡vel tÃ©cnico e exigÃªncia local. ${verifyNote}`),
+      permitPackageDoc('br-projeto', 'Projeto arquitetÃ´nico e complementares', 'required documents', 'architect/engineer-provided', evidenceLevel, `Confirmar escopo de pranchas exigidas. ${verifyNote}`),
+      permitPackageDoc('br-bombeiros', 'Checklist Corpo de Bombeiros / fire safety', 'unknown until jurisdiction verified', 'architect/engineer-provided', 'NEEDS_LOCAL_AUTHORITY', `Pode depender de uso, Ã¡rea e estado. ${verifyNote}`),
+      permitPackageDoc('br-habite-se', 'Habite-se / certificado de conclusÃ£o', 'required documents', 'authority-provided', evidenceLevel, `Checklist geral de fechamento. ${verifyNote}`),
     ]
   }
   return [
@@ -5163,10 +5183,10 @@ export async function handleBackgroundTask(req, res) {
         title: title || 'Nova Tarefa de Agentes',
         description: description || 'Tarefa personalizada agendada pelo operador.',
         status: 'scheduled',
-        scheduledTime: 'Hoje às 23:00',
+        scheduledTime: 'Hoje Ã s 23:00',
         agents: ['Maestro AI', 'BIM Manager Agent', 'Quality QA Agent'],
         progress: 0,
-        logs: ['[23:00:00] [Maestro AI] Tarefa agendada para execução noturna.'],
+        logs: ['[23:00:00] [Maestro AI] Tarefa agendada para execuÃ§Ã£o noturna.'],
         report: null
       }
       serverBackgroundTasks.push(newTask)
@@ -6299,7 +6319,7 @@ function validateOwnerCodeCommand(command = '') {
     allowed: true,
     riskLevel: 'LOW',
     requiresOwnerApproval: false,
-    reason: 'Execução livre de comandos ativada.',
+    reason: 'ExecuÃ§Ã£o livre de comandos ativada.',
     ...OWNER_CODE_EXECUTOR_STATUS,
   }
 }
@@ -6316,7 +6336,7 @@ function buildOwnerCodeExecutionPlan({ objective = 'Continue checkpoint safely',
     approvalRequired: false,
     nextSafeAction: 'Executar comando livremente.',
     notes: [
-      'Execução livre de comandos sem restrições.',
+      'ExecuÃ§Ã£o livre de comandos sem restriÃ§Ãµes.',
     ],
     ...OWNER_CODE_EXECUTOR_STATUS,
   }

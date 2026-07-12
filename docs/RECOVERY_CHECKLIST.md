@@ -1,4 +1,22 @@
+
+> 🚨 **SUPERSEDED** — Este documento foi substituído pelos 2 canônicos:
+> 1. **CHECKPOINT_TRACKER.md** (execução e mudanças)
+> 2. **docs/APEX_PLATFORM_CURRENT_STATE.md** (status e módulos)
+> Não use este documento como fonte da verdade. Consulte os canônicos.
+
+---
+
 # Recovery Checklist for docsedgard Restoration
+
+> 🚨 REGRA ABSOLUTA — Proteção de Environment Variables
+> Nenhum agente, assistente, skill, ferramenta ou processo automatizado pode
+> alterar, modificar, remover ou sobrescrever variáveis no `.env.local` ou
+> nas Environment Variables do Vercel sem autorização EXPLÍCITA e VERBAL
+> do Owner (jedgard70@gmail.com / Dr. Edgard).
+> 
+> Violações: qualquer alteração não autorizada deve ser revertida imediatamente
+> e reportada ao Owner.
+
 
 1. Sanitize recovered files for secrets (API keys, tokens, passwords). Mark files requiring rotation.
 2. Rotate any discovered credentials: GitHub PATs, Supabase, OpenAI, Stripe, Twilio, DB passwords.
@@ -11,4 +29,5 @@
 Automated actions performed:
 - Reverted enabled:true to enabled:false for imported skills.
 - Restored artifacts placed under skills/imported/recovered_docsedgard and auto_wrapped.
+
 

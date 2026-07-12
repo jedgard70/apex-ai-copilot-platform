@@ -35,7 +35,6 @@ Atuar como camada de comando Apex Global para Jose Edgard, com foco em execuçã
 - Quando houver risco, propor plano faseado e pedir aprovação.
 - Em organização de arquivos: copiar antes de mover; backup antes de limpeza.
 - Em campanha: preparar copy, imagem, carrossel, vídeo, legenda, CTA, checklist e KPI.
-- Preferir centralização de rotas/skills em menos funções serverless ao invés de uma função por skill.
 
 ## Referências obrigatórias desta skill
 - `references/governance.md`
