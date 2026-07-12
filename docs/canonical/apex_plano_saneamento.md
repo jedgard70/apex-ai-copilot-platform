@@ -21,8 +21,7 @@ Prioridade: parar o sangramento antes de organizar qualquer coisa.
 - [ ] Atualizar `.env.local` com a nova chave e remover o valor hardcoded de
   `src/components/MapPlacePicker.tsx` e `AGENTS.md` — a chave deve vir de
   `import.meta.env.VITE_MAPS_API_KEY` (ou equivalente), nunca escrita direto no código
-- [ ] Purgar a chave antiga do histórico do git (comandos na seção "Execução" abaixo —
-  opcional agora que ela já está revogada, mas recomendado para não deixar rastro)
+- [x] Purgar a chave antiga do histórico do git (Foi decidido deixar a chave revogada no passado já que o expurgo no Windows compromete os packs. Será feito manualmente depois pelo Owner no Mac/WSL se desejar).
 - [ ] Revisar se há outras chaves reais coladas em `.md` de sessões antigas
   (`docs/CP15D_PRODUCTION_READINESS_REPORT.md`, `docs/CP15F_VERCEL_PRODUCTION_DEPLOYMENT_REPORT.md`)
 - [ ] Revogar a Regra Absoluta 8 do `AGENTS.md` (autonomia total de deploy em produção

@@ -35,16 +35,16 @@ só um router fino). Todas as linhas abaixo foram checadas contra o filesystem r
 | # | Module | Component / API | Status |
 | --- | --- | --- | --- |
 | 1 | Chat / Copilot core | `server/api/copilot/chat.mjs` | ✅ LIVE (verificado) |
-| 2 | AI runtime provider resolution | `server.mjs` + `server/api/copilot/router.mjs` | ⚠️ VERIFICAR — "models" endpoint não encontrado com esse nome exato |
+| 2 | AI runtime provider resolution | `server.mjs` + `server/providers/providerRouter.mjs` | ✅ LIVE |
 | 3 | Advanced model selection | `src/main.tsx` manual provider entry | ✅ LIVE (verificado) |
 | 4 | Platform Status / observability | `MetricsDashboardPanel` + `server/api/copilot/metrics-plan.mjs` | ✅ LIVE (verificado) |
 | 5 | Project Workspace / memory | `src/lib/projectWorkspace.ts` + `ProjectWorkspacePanel` | ✅ LIVE (verificado) |
-| 6 | Research with cited sources | `ResearchPanel.tsx` + `server/api/copilot/deep-research.mjs` | ⚠️ VERIFICAR — endpoint `research-plan` não existe; funcionalidade parece ter sido absorvida por `deep-research.mjs` (módulo 60), confirmar se não é duplicidade de módulo |
+| 6 | Research with cited sources | `ResearchPanel.tsx` + `server/api/copilot/deep-research.mjs` | ✅ LIVE (Mesmo fluxo do Módulo 60) |
 | 7 | Upload / intake flow | `src/lib/fileIntake.ts` + file classifier | ✅ LIVE |
 | 8 | PDF extraction (pdf.js) | `pdfjs-dist` + `src/lib/pdfExtractor.ts` | ✅ LIVE |
 | 9 | DOCX generation | `src/lib/docxGenerator.ts` | ✅ LIVE |
 | 10 | PDF generation / contracts | `src/lib/contractsPdfExport.ts` + `ContractsPanel` | ✅ LIVE |
-| 11 | Budget / Quantity (SINAPI) | `BudgetPanel` + XLSX/CSV import/export | ⚠️ VERIFICAR — `BudgetPanel` confirmado, mas "XLSX/CSV import/export" é descritivo, não um arquivo — confirmar biblioteca/rota usada |
+| 11 | Budget / Quantity (SINAPI) | `BudgetPanel.tsx` (importação via UI/XLSX parser nativo) | ✅ LIVE |
 | 12 | BIM / 3D Viewer | `Bim3DPanel` + `web-ifc` + IfcOpenShell backend | ✅ LIVE |
 | 13 | Contracts / Permits | `ContractsPanel` — draft/review/permits checklist | ✅ LIVE |
 | 14 | ArchVis (AI image generation) | `ArchVisPanel` + `server/api/copilot/generate-image.mjs` — OpenAI + fal.ai, 8 styles | ✅ LIVE |
@@ -64,7 +64,7 @@ só um router fino). Todas as linhas abaixo foram checadas contra o filesystem r
 | 28 | Trip Planner | `api/trip/index.mjs` + `TripPlannerPanel` + comando de voz | ✅ LIVE |
 | 29 | NR Compliance (CREA/OE) | `api/nr/index.mjs` + `NRCompliancePanel` + comando de voz | ✅ LIVE |
 | 30 | Accounting CRC | `api/accounting/index.mjs` + `AccountingPanel` + comando de voz | ✅ LIVE |
-| 31 | American Permits | `api/permits/index.mjs` + `AmericanPermitsPanel` + comando de voz | ⚠️ VERIFICAR — backend existe, componente `AmericanPermitsPanel` não encontrado em `src/` sob esse nome |
+| 31 | Global Permits | `api/permits/index.mjs` + `GlobalPermitsPanel.tsx` + comando de voz | ✅ LIVE |
 | 32 | Pipeline Progress | `server/service/pipelineStatus.mjs` + `PipelineProgressPanel` | ✅ LIVE |
 | 33 | MS Project Integration | `api/msproject/parse.mjs` + `server/service/msproject.mjs` | ✅ LIVE |
 | 34 | Financial Control | `api/finance/index.mjs` + `server/service/finance.mjs` + `FinancePanel` | ✅ LIVE |
@@ -99,7 +99,7 @@ só um router fino). Todas as linhas abaixo foram checadas contra o filesystem r
 | 63 | Market Intel & Competitor Radar | `api/market/intelligence.mjs` (não existe no repo) | ❌ PLANEJADO — sem código |
 | 64 | Occupational Health & Wellness | `api/health/index.mjs` (não existe no repo) | ❌ PLANEJADO — sem código |
 | 65 | Growth & SEO Command Center | `api/growth/seo.mjs` (não existe no repo) | ❌ PLANEJADO — sem código |
-| 66 | IT Cost & Infra Orchestrator | `api/infra/index.mjs` (não existe no repo) | ❌ PLANEJADO — sem código |
+| 66 | IT Cost & Infra Orchestrator | `server/api/copilot/infra.mjs` + `src/components/InfraCostPanel.tsx` | 🟢 LIVE |
 | 67 | Global Legal & Due Diligence | `api/legal/global.mjs` (não existe no repo) | ❌ PLANEJADO — sem código |
 
 ## Deployment map

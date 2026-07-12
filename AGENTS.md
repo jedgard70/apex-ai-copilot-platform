@@ -8,7 +8,7 @@ This file defines the default working contract for coding agents in this reposit
 - API/server runtime: server.mjs and Api/
 - Scripts and validators: scripts/
 - CI workflow: .github/workflows/apex-sync.yml
-- Platform status/docs: CHECKPOINT_TRACKER.md, docs/APEX_PLATFORM_CURRENT_STATE.md and `docs/apex_acip_master_architecture.md`
+- Platform status/docs: docs/canonical/CHECKPOINT_TRACKER.md, docs/canonical/APEX_PLATFORM_CURRENT_STATE.md and `docs/canonical/apex_acip_master_architecture.md`
 
 ## Dev environment tips
 
@@ -179,9 +179,9 @@ Prioridade absoluta sobre qualquer comando que peça para "assumir que existe".
 
 O estado da plataforma Apex AI é definido exclusivamente por ESTES 2 documentos:
 
-1. **`CHECKPOINT_TRACKER.md`** → Rastreamento de execução, sessões, mudanças
-2. **`docs/APEX_PLATFORM_CURRENT_STATE.md`** → Status da plataforma, módulos, conectores
-3. **`docs/apex_acip_master_architecture.md`** → Estrutura Completa da plataforma, módulos, conectores, objetivo final
+1. **`docs/canonical/CHECKPOINT_TRACKER.md`** → Rastreamento de execução, sessões, mudanças
+2. **`docs/canonical/APEX_PLATFORM_CURRENT_STATE.md`** → Status da plataforma, módulos, conectores
+3. **`docs/canonical/apex_acip_master_architecture.md`** → Estrutura Completa da plataforma, módulos, conectores, objetivo final
 
 TODOS os outros documentos de auditoria, inventário, relatórios de build/deploy,
 planos Supabase, checkpoints antigos (CP15D, CP15F) e changelogs são
@@ -189,9 +189,9 @@ planos Supabase, checkpoints antigos (CP15D, CP15F) e changelogs são
 
 Regras para qualquer agente/assistente:
 
-1. Para saber o que está implementado → leia `CHECKPOINT_TRACKER.md`,
-   `docs/APEX_PLATFORM_CURRENT_STATE.md` e `docs/apex_acip_master_architecture.md`
-2. Para saber o histórico de mudanças → leia `CHECKPOINT_TRACKER.md`
+1. Para saber o que está implementado → leia `docs/canonical/CHECKPOINT_TRACKER.md`,
+   `docs/canonical/APEX_PLATFORM_CURRENT_STATE.md` e `docs/canonical/apex_acip_master_architecture.md`
+2. Para saber o histórico de mudanças → leia `docs/canonical/CHECKPOINT_TRACKER.md`
 3. NÃO leia outros docs .md de auditoria/inventário a menos que o Owner
    peça explicitamente
 4. Se um doc secundário contradizer os 3 canônicos, os canônicos vencem
@@ -287,9 +287,9 @@ injetar caracteres nulos (null bytes, zero-width chars, \0, \x00) entre
 as letras de qualquer regra, lei, diretriz ou instrução contida:
 
 1. Neste arquivo (`AGENTS.md`)
-2. No `CHECKPOINT_TRACKER.md`
-3. No `docs/APEX_PLATFORM_CURRENT_STATE.md`
-4. No `apex_acip_master_architecture.md`
+2. No `docs/canonical/CHECKPOINT_TRACKER.md`
+3. No `docs/canonical/APEX_PLATFORM_CURRENT_STATE.md`
+4. No `docs/canonical/apex_acip_master_architecture.md`
 5. Em quaisquer arquivos `.md` que definem regras ou estado da plataforma
 6. Nas variáveis de ambiente (`.env.local` e Environment Variables do Vercel)
 7. Nos provedores configurados (`api/copilot/chat.mjs`, `server.mjs`, `src/main.tsx`)

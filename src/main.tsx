@@ -39,6 +39,7 @@ import { AuthPanel } from './components/AuthPanel'
 import { BusinessOnboardingFlow } from './components/BusinessOnboardingFlow'
 import { Bim3DPanel, BimArchVisOutput, BimTourOutput } from './components/Bim3DPanel'
 import { BudgetPanel } from './components/BudgetPanel'
+import { InfraCostPanel } from './components/InfraCostPanel'
 import { CampaignAutomationPanel } from './components/CampaignAutomationPanel'
 import { PipelineProgressPanel } from './components/PipelineProgressPanel'
 import { ContractsPanel } from './components/ContractsPanel'
@@ -4190,6 +4191,7 @@ function App() {
       case 'governance': return <GovernanceHubPage />;
       case 'training': return <ModelTrainingPage />;
       case 'deployment': return <DeploymentFlowPage />;
+      case 'infra': return <InfraCostPanel />;
       case 'docs': return <TechnicalDocumentationPage />;
       case 'caixa_mcmv': return <CaixaCompliancePanel />;
       case 'marketing': return <MarketingAnalyticsPage onNewCampaign={() => setCampaignAutomationOutput({ goal: 'Nova campanha', conversationContext: [] })} />;
