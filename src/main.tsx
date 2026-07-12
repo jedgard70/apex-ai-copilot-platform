@@ -2559,7 +2559,7 @@ function App() {
     const shouldOpenCopilotExecution = explicitPanelOpen && isCopilotExecutionIntent(routingText)
     const shouldOpenAgents = explicitPanelOpen && isAgentIntent(routingText)
     const shouldOpenRenderEngine = explicitPanelOpen && isRenderEngineIntent(routingText)
-    const shouldOpenBim3D = explicitPanelOpen && ((attachment?.kind === 'bim-cad') || explicitPanelOpen) && isBim3DIntent(routingText, attachment)
+    const shouldOpenBim3D = (explicitPanelOpen || attachment?.kind === 'bim-cad') && isBim3DIntent(routingText, attachment)
     const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
     const shouldTreatAsConversation = clean && isOperationalGovernancePrompt(clean)
     const shouldOpenSkillExport = explicitPanelOpen && clean && !shouldTreatAsConversation && (isSkillExportIntent(clean) || isSkillExportFactoryAlias(clean))
