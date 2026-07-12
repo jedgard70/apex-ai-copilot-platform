@@ -230,7 +230,10 @@ async function executeLocalWorkerHealth() {
     const timer = setTimeout(() => controller.abort(), 5000)
     const response = await fetch(`${workerUrl}/health`, {
       method: 'GET',
-      headers: { Authorization: `Bearer ${workerToken}` },
+      headers: {
+        Authorization: `Bearer ${workerToken}`,
+        'bypass-tunnel-reminder': '1',
+      },
       signal: controller.signal,
     }).finally(() => clearTimeout(timer))
 

@@ -29,38 +29,6 @@ async function ensureInteractionsLoaded() {
   })()
   return _interactionsPromise
 }
-async function getInteractionsProvider() {
-  await ensureInteractionsLoaded()
-  const mod = await import('../../server/providers/gemini-interactions.mjs')
-  return mod.generateWithInteractions
-}
-import { buildCodeToolDefinitions, executeCodeToolCall, CODE_TOOL_NAMES } from '../../server/agent/codeTools.mjs'
-import { runLocalWorkerAction } from '../../server/agent/localWorkerClient.mjs'
-import { classifyImageGenRequest, buildImagePrompt, generateImage, buildImageResultReply } from '../../server/agent/imageGenerationConnector.mjs'
-import { classifyVideoGenRequest, generateVideo, buildVideoResultReply } from '../../server/agent/videoGenerationConnector.mjs'
-import { sendAuthkeySms, sendAuthkeyOtp, buildAuthkeyResultReply } from '../../server/agent/authkeyConnector.mjs'
-import { keyRestrictionMiddleware, validateOrigin } from '../../server/middleware/keyRestriction.mjs'
-import { recordAuditEvent } from '../../server/service/securityAudit.mjs'
-
-// Dynamic import — safe fallback if server/ not bundled in Vercel serverless
-let _recordCall = null
-async function _getRecordCall() {
-  if (_recordCall) return _recordCall
-  try {
-    const mod = await import('../../server/service/providerAnalytics.mjs')
-    _recordCall = mod.recordCall
-    return _recordCall
-  } catch {
-    _recordCall = () => { } // silent noop
-    return _recordCall
-  }
-}
-function recordCallSafe(...args) {
-  Promise.resolve().then(async () => {
-    try { const fn = await _getRecordCall(); fn(...args) } catch { }
-  }).catch(() => { })
-}
-
 if (process.env.Local_Worker_URL && !process.env.LOCAL_WORKER_URL) {
   process.env.LOCAL_WORKER_URL = process.env.Local_Worker_URL
 }
@@ -382,6 +350,23 @@ function isGreetingText(text = '') {
   return shortResponseRegex.test(cleaned)
 }
 
+function isQuantitativoRequestText(text = '') {
+  const value = String(text || '').toLowerCase()
+  return /\b(quantitativo|orcamento|orçamento|lista de compras|piso|degrau|rejunte|clipe|cunha|revestimento|porcelanato|banheiro|lavanderia|balc[aã]o|churrasqueira|forno a lenha|fog[aã]o a lenha|m2|m²|metro quadrado|metro quadrados|area|área)\b/.test(value)
+}
+
+function buildQuantitativoInstructionText() {
+  return [
+    'Quantitativo rule: answer in a natural, live and human tone. Never force a rigid fixed template.',
+    'When user asks orçamento/quantitativo, deliver practical numbers with transparent assumptions and direct calculation logic.',
+    'You may organize content in short sections if useful, but avoid mechanical mandatory numbering.',
+    'Cover these points naturally in the flow: premissas, cálculo por ambiente/elemento, tabelas numéricas quando fizer sentido, rejunte em kg, clipes/cunhas e lista final de compras consolidada.',
+    'Defaults quando faltar dado: perda 10%, piso/degrau junta 3mm espessura 10mm, parede junta 2mm espessura 8mm, clipe 4 un/m², cunha 1:1.',
+    'Se houver porta/vão, mostrar explicitamente o desconto antes/depois.',
+    'Do not give generic text; provide useful numbers and clear purchase guidance.',
+  ].join('\n')
+}
+
 function shouldForceLiveAgentToolUse(text = '') {
   const value = String(text || '')
     .normalize('NFD')
@@ -683,6 +668,9 @@ function buildIntentInstruction(userText, file, conversation, preferredLanguage)
       '3. Make it ready to copy.',
       '4. Do not offer a blank template.',
     )
+  }
+  if (isQuantitativoRequestText(userText)) {
+    instructions.push(buildQuantitativoInstructionText())
   }
   if (intent.asksRenderPrompt && file) {
     instructions.push(
@@ -2227,6 +2215,14 @@ export default async function handler(req, res) {
       // Fallback para Gemini se local-worker falhar
       modelProvider = 'gemini'
       model = 'gemini-2.5-flash'
+    }
+
+    // Apex model lock: enabled by default to keep Apex AI (ApexAI2.0 behavior baseline) as the primary runtime model.
+    // Set APEX_MODEL_LOCK=false only when you intentionally need external model routing.
+    const apexModelLock = String(process.env.APEX_MODEL_LOCK || 'true').toLowerCase() !== 'false'
+    if (apexModelLock) {
+      modelProvider = 'apex-local'
+      model = 'apex-ai'
     }
 
     if (!modelProvider && String(selectedModel.raw || '').trim().toLowerCase() === 'apex-local') {

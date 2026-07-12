@@ -5,9 +5,6 @@
 // nas Environment Variables do Vercel sem autorização EXPLÍCITA e VERBAL
 // do Owner (jedgard70@gmail.com / Dr. Edgard).
 // VIOLAÇÕES: qualquer alteração não autorizada deve ser revertida imediatamente
-// e reportada ao Owner.
-// ═══════════════════════════════════════════════════════════════════════════════
-
 import './server/env.mjs'
 import http from 'node:http'
 import fs from 'node:fs'
@@ -269,64 +266,9 @@ const copilotExecutionCommands = [
     source: 'allowlist',
   },
   {
-    id: 'git_diff_name_only',
-    label: 'Git changed names',
-    description: 'List changed file paths only.',
-    executable: 'git',
-    args: ['diff', '--name-only'],
-    risk: 'low',
-    requiresApproval: false,
-    timeoutMs: 15000,
-    source: 'allowlist',
-  },
-  {
-    id: 'build',
-    label: 'Build',
-    description: 'Run the local Vite production build.',
-    executable: process.platform === 'win32' ? 'npm.cmd' : 'npm',
-    args: ['run', 'build'],
-    risk: 'medium',
-    requiresApproval: false,
-    timeoutMs: 120000,
-    source: 'allowlist',
-  },
-  {
-    id: 'validate_supabase_sql',
-    label: 'Validate Supabase SQL',
-    description: 'Run the local read-only Supabase SQL validation script.',
-    executable: process.platform === 'win32' ? 'npm.cmd' : 'npm',
-    args: ['run', 'validate:supabase-sql'],
-    risk: 'medium',
-    requiresApproval: false,
-    timeoutMs: 60000,
-    source: 'allowlist',
-  },
-  {
-    id: 'validate_vercel_live',
-    label: 'Vercel: Check live deployments',
-    description: 'Queries the live Vercel API for deployment logs, URLs, and states.',
-    executable: 'node',
-    args: ['scripts/validate-vercel.mjs'],
-    risk: 'medium',
-    requiresApproval: false,
-    timeoutMs: 30000,
-    source: 'allowlist',
-  },
-  {
-    id: 'validate_supabase_live',
-    label: 'Supabase: Check live database',
-    description: 'Queries the live Supabase project database connection, schema info, and tables.',
-    executable: 'node',
-    args: ['scripts/validate-supabase-live.mjs'],
-    risk: 'medium',
-    requiresApproval: false,
-    timeoutMs: 30000,
-    source: 'allowlist',
-  },
-  {
     id: 'validate_owner_workspace_live',
-    label: 'Supabase: Check owner workspace',
-    description: 'Verifies the configured owner email has auth user, profile, active tenant and owner_admin membership.',
+    label: 'Validate owner workspace live',
+    description: 'Validate the owner workspace live runtime flow.',
     executable: 'node',
     args: ['scripts/validate-owner-workspace-live.mjs'],
     risk: 'medium',
@@ -1428,6 +1370,9 @@ function buildIntentInstruction(userText, file, conversation, preferredLanguage)
       'Do not ask a question before this list.',
     )
   }
+  if (isQuantitativoRequestText(userText)) {
+    instructions.push(buildQuantitativoInstructionText())
+  }
   return instructions.join('\n')
 }
 
@@ -1604,6 +1549,23 @@ function isGreetingText(text = '') {
   const norm = text.trim().toLowerCase()
   if (!norm) return false
   return /^(ola|olá|oi|oii|oie|hello|hi|hey|bom dia|boa tarde|boa noite|tudo bem|tudo bom)(\s|!|\?|,|\.)*$/i.test(norm)
+}
+
+function isQuantitativoRequestText(text = '') {
+  const value = String(text || '').toLowerCase()
+  return /\b(quantitativo|orcamento|orçamento|lista de compras|piso|degrau|rejunte|clipe|cunha|revestimento|porcelanato|banheiro|lavanderia|balc[aã]o|churrasqueira|forno a lenha|fog[aã]o a lenha|m2|m²|metro quadrado|metro quadrados|area|área)\b/.test(value)
+}
+
+function buildQuantitativoInstructionText() {
+  return [
+    'Quantitativo rule: answer in a natural, live and human tone. Never force a rigid fixed template.',
+    'When user asks orçamento/quantitativo, deliver practical numbers with transparent assumptions and direct calculation logic.',
+    'You may organize content in short sections if useful, but avoid mechanical mandatory numbering.',
+    'Cover these points naturally in the flow: premissas, cálculo por ambiente/elemento, tabelas numéricas quando fizer sentido, rejunte em kg, clipes/cunhas e lista final de compras consolidada.',
+    'Defaults quando faltar dado: perda 10%, piso/degrau junta 3mm espessura 10mm, parede junta 2mm espessura 8mm, clipe 4 un/m², cunha 1:1.',
+    'Se houver porta/vão, mostrar explicitamente o desconto antes/depois.',
+    'Do not give generic text; provide useful numbers and clear purchase guidance.',
+  ].join('\n')
 }
 
 function isAIIdentityQuestionText(text = '') {
@@ -2412,6 +2374,14 @@ async function handleChat(req, res) {
     const selectedModel = splitModelValue(selectedModelRaw)
     let modelProvider = selectedModel.provider
     let resolvedModelId = selectedModel.modelId
+
+    // Apex model lock: enabled by default to keep Apex AI (ApexAI2.0 behavior baseline) as the primary runtime model.
+    // Set APEX_MODEL_LOCK=false only when you intentionally need external model routing.
+    const apexModelLock = String(process.env.APEX_MODEL_LOCK || 'true').toLowerCase() !== 'false'
+    if (apexModelLock) {
+      modelProvider = 'apex-local'
+      resolvedModelId = 'apex-ai'
+    }
 
     if (!modelProvider && String(selectedModel.raw || '').trim().toLowerCase() === 'apex-local') {
       modelProvider = 'apex-local'

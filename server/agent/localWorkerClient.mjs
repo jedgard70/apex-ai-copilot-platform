@@ -225,6 +225,7 @@ async function fetchWorker(path, method, body = null) {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
+        'bypass-tunnel-reminder': '1',
       },
       signal: controller.signal,
     }

@@ -34,7 +34,10 @@ export default async function handler(req, res) {
     }
 
     if (path === '/api/autofix/status' && req.method === 'GET') {
-      const status = await mod.getAutoFixStatus()
+      const queryRaw = req.url?.split('?')[1] || ''
+      const query = new URLSearchParams(queryRaw)
+      const deep = ['1', 'true', 'yes'].includes(String(query.get('deep') || '').toLowerCase())
+      const status = await mod.getAutoFixStatus({ deep })
       return res.status(200).json({ providerStatus: 'connected', ...status })
     }
 

@@ -473,9 +473,11 @@ function resolveModelSelection(selectedValue: string, models: ModelOption[]) {
     return current.raw
   }
 
-  const providerPriority = ['gemini', 'fal', 'elevenlabs']
+  const providerPriority = ['apex-local', 'gemini', 'fal', 'elevenlabs']
   const bestMatch = [...rawMatches].sort((left, right) => {
-    return providerPriority.indexOf(left.provider) - providerPriority.indexOf(right.provider)
+    const leftRank = providerPriority.indexOf(left.provider)
+    const rightRank = providerPriority.indexOf(right.provider)
+    return (leftRank === -1 ? 999 : leftRank) - (rightRank === -1 ? 999 : rightRank)
   })[0]
   return bestMatch?.id || current.raw
 }

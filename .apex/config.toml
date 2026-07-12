@@ -1,0 +1,12 @@
+[entry]
+name = "Apex AI 2.0"
+worker_port = 8787
+runtime_port = 8789
+tunnel_subdomain = "apex-copilot-jedgard"
+preview_domain = "apex-ai-copilot-platform.vercel.app"
+production_domains = ["www.apexglobalai.com", "apexglobalai.com"]
+
+[mcp_servers.apex_ai_2_0]
+type = "http"
+url = "http://127.0.0.1:8787"
+
