@@ -224,7 +224,7 @@ app.whenReady().then(async () => {
     error(msg) { log(`[Updater:Error] ${msg}`); },
     debug(msg) { log(`[Updater:Debug] ${msg}`); }
   };
-  autoUpdater.checkForUpdatesAndNotify();
+  autoUpdater.checkForUpdatesAndNotify().catch(err => log(`[Updater:Error] Ignored check error: ${err.message}`));
   autoUpdater.on('update-available', () => log('[Updater] Atualizacao disponivel.'));
   autoUpdater.on('update-downloaded', () => {
     log('[Updater] Atualizacao baixada. Instalando em breve...');
@@ -253,6 +253,7 @@ app.whenReady().then(async () => {
     windowsHide: true,
     env: {
       ...buildNodeChildEnv(),
+      ELECTRON_RUN_AS_NODE: "1",
       PORT: String(APP_PORT),
       NODE_ENV: "production",
       // Motor proprio Apex
