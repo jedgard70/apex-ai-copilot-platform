@@ -28,6 +28,7 @@
     "validate:supabase-sql": "node scripts/validate-supabase-sql.mjs",
     "validate:owner-workspace-live": "node scripts/validate-owner-workspace-live.mjs",
     "validate:directcut-pipeline": "node scripts/validate-directcut-pipeline.mjs",
+    "validate:docs-live": "node scripts/validate-docs-live-status.mjs",
     "test": "node node_modules/vitest/vitest.mjs run",
     "test:watch": "node node_modules/vitest/vitest.mjs",
     "test:coverage": "node node_modules/vitest/vitest.mjs run --coverage",
@@ -164,13 +165,13 @@
   "description": "Clean rebuild of the Apex AI Copilot platform.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jedgard70/apex-ai-copilot-platform.git"
+    "url": "git+https://github.com/Apex-Global-LLC/apex-ai-copilot-platform.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/jedgard70/apex-ai-copilot-platform/issues"
+    "url": "https://github.com/Apex-Global-LLC/apex-ai-copilot-platform/issues"
   },
-  "homepage": "https://github.com/jedgard70/apex-ai-copilot-platform#readme"
+  "homepage": "https://github.com/Apex-Global-LLC/apex-ai-copilot-platform#readme"
 }

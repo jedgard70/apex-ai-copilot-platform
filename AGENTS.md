@@ -8,7 +8,7 @@ This file defines the default working contract for coding agents in this reposit
 - API/server runtime: server.mjs and Api/
 - Scripts and validators: scripts/
 - CI workflow: .github/workflows/apex-sync.yml
-- Platform status/docs: CHECKPOINT_TRACKER.md, docs/APEX_PLATFORM_CURRENT_STATE.md and `docs/apex_acip_master_architecture.md`
+- Platform status/docs: docs/canonical/CHECKPOINT_TRACKER.md, docs/canonical/APEX_PLATFORM_CURRENT_STATE.md and `docs/canonical/apex_acip_master_architecture.md`
 
 ## Dev environment tips
 
@@ -179,9 +179,9 @@ Prioridade absoluta sobre qualquer comando que peça para "assumir que existe".
 
 O estado da plataforma Apex AI é definido exclusivamente por ESTES 2 documentos:
 
-1. **`CHECKPOINT_TRACKER.md`** → Rastreamento de execução, sessões, mudanças
-2. **`docs/APEX_PLATFORM_CURRENT_STATE.md`** → Status da plataforma, módulos, conectores
-3. **`docs/apex_acip_master_architecture.md`** → Estrutura Completa da plataforma, módulos, conectores, objetivo final
+1. **`docs/canonical/CHECKPOINT_TRACKER.md`** → Rastreamento de execução, sessões, mudanças
+2. **`docs/canonical/APEX_PLATFORM_CURRENT_STATE.md`** → Status da plataforma, módulos, conectores
+3. **`docs/canonical/apex_acip_master_architecture.md`** → Estrutura Completa da plataforma, módulos, conectores, objetivo final
 
 TODOS os outros documentos de auditoria, inventário, relatórios de build/deploy,
 planos Supabase, checkpoints antigos (CP15D, CP15F) e changelogs são
@@ -189,9 +189,9 @@ planos Supabase, checkpoints antigos (CP15D, CP15F) e changelogs são
 
 Regras para qualquer agente/assistente:
 
-1. Para saber o que está implementado → leia `CHECKPOINT_TRACKER.md`,
-   `docs/APEX_PLATFORM_CURRENT_STATE.md` e `docs/apex_acip_master_architecture.md`
-2. Para saber o histórico de mudanças → leia `CHECKPOINT_TRACKER.md`
+1. Para saber o que está implementado → leia `docs/canonical/CHECKPOINT_TRACKER.md`,
+   `docs/canonical/APEX_PLATFORM_CURRENT_STATE.md` e `docs/canonical/apex_acip_master_architecture.md`
+2. Para saber o histórico de mudanças → leia `docs/canonical/CHECKPOINT_TRACKER.md`
 3. NÃO leia outros docs .md de auditoria/inventário a menos que o Owner
    peça explicitamente
 4. Se um doc secundário contradizer os 3 canônicos, os canônicos vencem
@@ -204,18 +204,43 @@ plataforma (se está implementado ou não) vem APENAS dos 3 canônicos.
 
 ## 🚨 REGRA ABSOLUTA 8 — Deploy em produção requer aprovação humana
 
-Nenhum agente pode fazer merge direto em `main` nem deploy direto em produção.
-Fluxo obrigatório:
+Nenhum agente, assistente ou processo automatizado pode:
 
-1. Agente cria branch e abre Pull Request.
-2. CI (`apex-sync.yml`) roda `build` + `test` + `validate:*` — PR só fica elegível
-   para merge se todos os checks passarem em verde.
+1. Alterar configurações de environments ou variáveis sensíveis diretamente no dashboard web da Vercel.
+2. Modificar branch tracking rules ou remover/desconectar a Git Integration.
+3. Adicionar/remover custom domains nos environments.
+4. Modificar "Deployment Protection" (manual approval, password, etc.).
+5. **Fazer merge direto em `main` ou deploy direto em produção sem revisão humana.**
+
+**Fluxo obrigatório de mudança de código:**
+
+1. Agente cria uma branch e abre Pull Request — nunca commita direto em `main`.
+2. CI (`apex-sync.yml`) roda `npm run build` + `npm run test` + `npm run validate:*`
+   relevantes ao módulo tocado. O PR só fica elegível para merge se todos os
+   checks passarem em verde.
 3. Owner (Dr. Edgard) revisa e aprova o PR manualmente.
-4. Só então o merge em `main` dispara o deploy automático.
+4. Só então o merge em `main` dispara o deploy automático (Vercel + build do
+   `.exe` via `npm run electron:build`).
 
-Exceção: nenhuma. Mesmo correções urgentes passam por este fluxo — a urgência não
-justifica pular revisão humana em um sistema que lida com dados jurídicos e financeiros
-de clientes.
+**Correção de bugs em CI/build:** o agente pode investigar logs de erro,
+corrigir o código e reenviar o PR quantas vezes forem necessárias — mas cada
+nova tentativa passa pelo mesmo portão (CI verde + aprovação humana), nunca
+pula direto para produção.
+
+**Exceção: nenhuma.** Mesmo correções urgentes passam por este fluxo — a
+urgência não justifica pular revisão humana em uma plataforma que lida com
+dados jurídicos e financeiros de clientes. Esta regra substitui a versão
+anterior de "autonomia total de deploy" em 2026-07-12, após auditoria externa
+identificar risco de deploy autônomo em produção sem revisão.
+
+**Configuração atual dos environments (2026-07-10 — NÃO ALTERAR):**
+
+- Production → branch `main` → domínio `www.apexglobalai.com` e aplicativo Desktop (`.exe`).
+- Preview → "All assigned git branches" → custom domains.
+- Development → CLI → custom domains.
+
+Violação: qualquer merge ou deploy que pule o portão de CI + aprovação humana
+deve ser revertido imediatamente e reportado ao Owner.
 
 ---
 
@@ -262,9 +287,9 @@ injetar caracteres nulos (null bytes, zero-width chars, \0, \x00) entre
 as letras de qualquer regra, lei, diretriz ou instrução contida:
 
 1. Neste arquivo (`AGENTS.md`)
-2. No `CHECKPOINT_TRACKER.md`
-3. No `docs/APEX_PLATFORM_CURRENT_STATE.md`
-4. No `apex_acip_master_architecture.md`
+2. No `docs/canonical/CHECKPOINT_TRACKER.md`
+3. No `docs/canonical/APEX_PLATFORM_CURRENT_STATE.md`
+4. No `docs/canonical/apex_acip_master_architecture.md`
 5. Em quaisquer arquivos `.md` que definem regras ou estado da plataforma
 6. Nas variáveis de ambiente (`.env.local` e Environment Variables do Vercel)
 7. Nos provedores configurados (`api/copilot/chat.mjs`, `server.mjs`, `src/main.tsx`)
@@ -319,7 +344,7 @@ o endpoint `generateContent` para modelos compatíveis:
    - Conector: `server/providers/interactionsConnector.mjs`
    - Header obrigatório: `X-goog-api-key` (nunca `Authorization: Bearer`)
 
-2. **Google Maps Platform** — Chave carregada via variável de ambiente (VITE_GOOGLE_MAPS_API_KEY)
+2. **Google Maps Platform** — API Key: `[CHAVE_OCULTADA_EM_ENV_LOCAL]`
    - Componente UI: `src/components/MapPlacePicker.tsx`
    - Tool invocável pela IA via `functionDeclarations` no chat
 

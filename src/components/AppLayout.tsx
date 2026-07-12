@@ -25,6 +25,7 @@ const sidebarItems = [
   { icon: 'menu_book', label: 'Documentation', id: 'docs' },
   { icon: 'smart_toy', label: 'Cérebro IA', id: 'aicontrol' },
   { icon: 'account_tree', label: 'Workflows', id: 'global-workflow' },
+  { icon: 'query_stats', label: 'Infra & Costs', id: 'infra' },
   { icon: 'code', label: 'Code Editor', id: 'code-editor' },
 ]
 

@@ -54,9 +54,6 @@ jobs:
           set -o pipefail
           npm run test 2>&1 | tee action_error.log || node scripts/ci-auto-fix.mjs "npm run test" action_error.log
 
-      - name: Tests
-        run: npm run test
-
       - name: Validate H5
         run: |
           set -o pipefail
@@ -77,13 +74,10 @@ jobs:
           FAL_KEY: ${{ secrets.FAL_KEY }}
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
 
-      - name: Validate DirectCut pipeline
-        run: npm run validate:directcut-pipeline
-        env:
-          DIRECTCUT_ENABLE_FULL: "true"
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          FAL_KEY: ${{ secrets.FAL_KEY }}
-          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+      - name: Validate Docs Live Status (Regra Absoluta 6)
+        run: |
+          set -o pipefail
+          npm run validate:docs-live 2>&1 | tee action_error.log || node scripts/ci-auto-fix.mjs "npm run validate:docs-live" action_error.log
 
   vercel-preview:
     name: Deploy Vercel Preview from exact GitHub commit

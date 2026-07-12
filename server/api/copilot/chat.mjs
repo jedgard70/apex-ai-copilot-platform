@@ -1,4 +1,5 @@
 import '../../env.mjs'
+import { logUsage } from '../../service/costOrchestrator.mjs'
 import { generateText } from 'ai'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -2013,7 +2014,23 @@ async function callGemmaApexVertex(messages, overrideConfig) {
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Apex-Internal')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Apex-Internal, x-apex-identity')
+
+  const identity = JSON.parse(req.headers['x-apex-identity'] || '{}')
+
+  // Intercept json responses to log AI API cost
+  const originalJson = res.json;
+  if (typeof originalJson === 'function') {
+    res.json = function(body) {
+      if (body && body.usage && body.model && identity.tenantId) {
+        logUsage(identity.tenantId, 'gemini', body.model, {
+          promptTokens: body.usage.prompt_tokens || body.usage.promptTokenCount || 0,
+          completionTokens: body.usage.completion_tokens || body.usage.candidatesTokenCount || 0
+        });
+      }
+      return originalJson.call(this, body);
+    };
+  }
 
   if (req.method === 'OPTIONS') {
     return res.writeHead(200).end()
