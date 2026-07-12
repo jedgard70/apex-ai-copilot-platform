@@ -1,12 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react'
-import {
-  useEffect,
-  useMemo,
-  type ClipboardEvent as ReactClipboardEvent,
-  type PointerEvent as ReactPointerEvent,
-} from 'react'
+import React, { useState, useRef, useEffect, useMemo, type ClipboardEvent as ReactClipboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
 import { Sparkles } from 'lucide-react'
-import { supabase } from '../lib/supabaseClient'
+import { getBrowserSupabaseClient } from '../lib/supabaseClient'
 
 
 type Screen = 'manual' | 'supervisor' | 'status'
@@ -140,7 +134,10 @@ function getValidSessionToken(session: any): string | null {
 }
 
 export default function ApexCopilot({ embedded = false }: { embedded?: boolean }) {
-  const router = useRouter()
+  const router = {
+    pathname: typeof window !== 'undefined' ? window.location.pathname : '/',
+    push: (url: string) => { if (typeof window !== 'undefined') window.location.href = url }
+  }
   const [open, setOpen] = useState(false)
   const [minimized, setMinimized] = useState(false)
   const [fullscreen, setFullscreen] = useState(false)
@@ -334,6 +331,10 @@ export default function ApexCopilot({ embedded = false }: { embedded?: boolean }
   }, [panelSize.height, panelSize.width, viewport.h, viewport.w, fullscreen])
 
   useEffect(() => {
+    const sb = getBrowserSupabaseClient().client
+    if (!sb) return
+    const supabase = sb
+
     let active = true
 
     async function refreshServerContext(token: string, fallbackEmail?: string | null) {
