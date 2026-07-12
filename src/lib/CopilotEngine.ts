@@ -121,8 +121,16 @@ export function isCopilotExecutionIntent(text: string) {
   return explicitlyOpensPanel && namesExecutionPanel
 }
 
+export function isRenderEngineIntent(text: string) {
+  const lower = text.toLowerCase()
+  const hasVerb = /\b(abrir|open|show|visualizar|ver|exibir|mostrar|acessar|go to|view|gerar|gere|crie|criar|renderizar|renderize|humanizar|humanize|quero|preciso|faça|faca|prepare)\b/i.test(lower)
+  const hasKeyword = /\b(render engine|render|planta humanizada|fachada|interior|imagem|área gourmet|area gourmet|prompt de render|render engine studio)\b/i.test(lower)
+  return hasVerb && hasKeyword
+}
+
 export function suggestLayerOpenDecision(text: string, attachment?: IntakeFile): PendingLayerDecision | null {
   if (!text.trim()) return null
+  if (isRenderEngineIntent(text)) return { label: 'Render Engine Studio', openCommand: 'abrir render engine studio', goal: text }
   if (isDirectCutIntent(text)) return { label: 'DirectCut Studio', openCommand: 'abrir directcut studio', goal: text }
   if (isProjectPackageIntent(text)) return { label: 'Project Package Pipeline', openCommand: 'abrir project package pipeline', goal: text }
   if (isGenerationHistoryIntent(text)) return { label: 'Generation Queue / History', openCommand: 'abrir generation history panel', goal: text }

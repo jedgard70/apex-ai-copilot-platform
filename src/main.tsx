@@ -1,5 +1,5 @@
 import { loadChatConversationsFromSupabase, saveMessageToSupabase } from './lib/chatHistoryService';
-import { isRevisionIntent, revisionChatLabel, isArchVisIntent, isDirectCutIntent, isDirectVideoNoPanelIntent, isBudgetIntent, isProjectPackageIntent, isGenerationHistoryIntent, isContractsIntent, isResearchIntent, isFieldOpsIntent, isBusinessLayerIntent, isAuthIntent, isCopilotExecutionIntent, suggestLayerOpenDecision, isExplicitPanelOpenRequest, isOwnerConsoleIntent, isStockIntent, isTripIntent, isPipelineIntent, isNRIntent, isAccountingIntent, isPromptLibraryIntent, getPromptLibraryModule, isPermitsIntent, isCheckpointContinuationIntent, isApexSquadsIntent } from './lib/CopilotEngine';
+import { isRevisionIntent, revisionChatLabel, isArchVisIntent, isDirectCutIntent, isDirectVideoNoPanelIntent, isBudgetIntent, isProjectPackageIntent, isGenerationHistoryIntent, isContractsIntent, isResearchIntent, isFieldOpsIntent, isBusinessLayerIntent, isAuthIntent, isCopilotExecutionIntent, suggestLayerOpenDecision, isExplicitPanelOpenRequest, isOwnerConsoleIntent, isStockIntent, isTripIntent, isPipelineIntent, isNRIntent, isAccountingIntent, isPromptLibraryIntent, getPromptLibraryModule, isPermitsIntent, isCheckpointContinuationIntent, isApexSquadsIntent, isRenderEngineIntent } from './lib/CopilotEngine';
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Analytics } from '@vercel/analytics/react'
@@ -100,6 +100,7 @@ import { NRCompliancePanel } from './components/NRCompliancePanel'
 import { AccountingPanel } from './components/AccountingPanel'
 import { RuntimeStatusIndicator } from './components/RuntimeStatusIndicator'
 import { AiThinkingSteps, ThinkingStep } from './components/AiThinkingSteps'
+import { RenderEngineStudio } from './components/RenderEngineStudio'
 
 import { classifyFile, formatSize, IntakeFile, isVisionReady, readFileAsDataUrl, compressImageAsDataUrl, readImageDimensions } from './lib/fileIntake'
 import { extractPdfText } from './lib/pdfExtractor'
@@ -1310,7 +1311,7 @@ function App() {
     else if (activeView === 'contracts') { closeOtherPanels('contracts'); setContractsOutput({ goal: 'Gestão de Contratos', conversationContext: [] }) }
     else if (activeView === 'research') { closeOtherPanels('research'); setResearchOutput({ goal: 'Pesquisa Mercadológica', conversationContext: [] }) }
     else if (activeView === 'settings' || activeView === 'profile' || activeView === 'user-profile') { setIsUserProfileOpen(true) }
-    else if (['navigator', 'governance', 'training', 'deployment', 'docs', 'caixa_mcmv', 'aicontrol', 'code-editor', 'saasadmin'].includes(activeView)) {
+    else if (['navigator', 'governance', 'training', 'deployment', 'docs', 'caixa_mcmv', 'aicontrol', 'code-editor', 'saasadmin', 'render-engine'].includes(activeView)) {
       closeOtherPanels('none')
     }
     // Inject panel context into chat so AI knows what's happening
@@ -2557,6 +2558,7 @@ function App() {
     const shouldOpenCampaignAutomation = explicitPanelOpen && isCampaignAutomationIntent(routingText)
     const shouldOpenCopilotExecution = explicitPanelOpen && isCopilotExecutionIntent(routingText)
     const shouldOpenAgents = explicitPanelOpen && isAgentIntent(routingText)
+    const shouldOpenRenderEngine = explicitPanelOpen && isRenderEngineIntent(routingText)
     const shouldOpenBim3D = explicitPanelOpen && ((attachment?.kind === 'bim-cad') || explicitPanelOpen) && isBim3DIntent(routingText, attachment)
     const shouldLockRevision = clean && archVisOutput && attachment?.kind === 'image' && isRevisionIntent(clean)
     const shouldTreatAsConversation = clean && isOperationalGovernancePrompt(clean)
@@ -2654,6 +2656,13 @@ function App() {
             : 'Envie um TXT, MD, JSON, PDF, PY, JS, TS, TSX ou ZIP primeiro. Eu analiso e mostro o preview antes de alterar memória ou skill.',
         },
       ])
+      setInput('')
+      return
+    }
+    if (shouldOpenRenderEngine) {
+      closeOtherPanels('none')
+      setActiveView('render-engine')
+      setMessages(prev => [...prev, userMessage, { id: id(), role: 'assistant', text: 'Abri o Apex Render Engine Studio ao lado.' }])
       setInput('')
       return
     }
@@ -4182,6 +4191,7 @@ function App() {
       case 'docs': return <TechnicalDocumentationPage />;
       case 'caixa_mcmv': return <CaixaCompliancePanel />;
       case 'marketing': return <MarketingAnalyticsPage onNewCampaign={() => setCampaignAutomationOutput({ goal: 'Nova campanha', conversationContext: [] })} />;
+      case 'render-engine': return <RenderEngineStudio />;
       case 'archvis': return (
         <ArchVisPanel
           source={archVisOutput?.source || undefined}

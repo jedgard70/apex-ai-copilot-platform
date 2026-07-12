@@ -48,3 +48,5 @@ server/service-account.json
 .env.local.full
 .env*.local
 .env.vercel.sync
+
+.agents
