@@ -36,6 +36,7 @@ import {
   isInteractionModel,
 } from './server/providers/gemini-interactions.mjs'
 import { chatWithFallback, getProviderChain } from './server/providers/providerRouter.mjs'
+import { initLocalGgufModel } from './server/providers/localGgufProvider.mjs'
 import * as supplyChainService from './server/service/supplyChain.mjs'
 import * as aiCostService from './server/service/aiCost.mjs'
 import * as multiTenantService from './server/service/multiTenant.mjs'
@@ -7316,6 +7317,11 @@ if (!process.env.VERCEL) {
   server.listen(port, () => {
     console.log(`Apex AI Copilot platform listening on http://127.0.0.1:${port}`)
     attachTerminal(server)
+    
+    // Boot local GGUF model in background
+    if (process.env.APEX_RUNTIME_ENABLED === 'true') {
+      initLocalGgufModel().catch(err => console.error('[GGUF] failed to boot:', err));
+    }
     // Start auto-fix monitor (local only) - disabled by default to prevent blocking the event loop
     if (process.env.AUTO_FIX_ENABLED === '1') {
       import('./server/service/autoFix.mjs').then(mod => {
