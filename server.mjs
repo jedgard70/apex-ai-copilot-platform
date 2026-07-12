@@ -3017,7 +3017,8 @@ async function handleGenerateImage(req, res) {
     const preserveLabels = body.preserveLabels !== false
     const noInventedAreas = body.noInventedAreas !== false
 
-    if (!geminiKey && falKey) {
+    // Priorizar FAL.ai (Flux) para imagens arquitetônicas
+    if (falKey) {
       const isImageToImage = mode === 'preserve-layout' || mode === 'image-to-image'
       const endpoint = isImageToImage ? 'fal-ai/flux/dev/image-to-image' : 'fal-ai/flux/schnell'
       const falPayload = { prompt, num_inference_steps: isImageToImage ? 28 : 4 }
@@ -3055,197 +3056,85 @@ async function handleGenerateImage(req, res) {
         return json(res, 200, { providerStatus: 'error', message: `FAL: ${falErr.message || falErr}` })
       }
     }
-    // FAL or Gemini Image generation
-    const sourceImage = parseDataUrl(body.sourceImageDataUrl)
-    const referenceMode = String(body.referenceMode || 'original')
-    const revisionConstraints = Array.isArray(body.revisionConstraints)
-      ? body.revisionConstraints.map(item => String(item).slice(0, 600)).filter(Boolean).slice(0, 20)
-      : []
-    const outputType = String(body.outputType || (mode === 'preserve-layout' ? 'humanized-floor-plan' : 'creative-concept'))
-    const promptStyle = String(body.promptStyle || 'humanized-floor-plan')
-    const cameraPreset = String(body.cameraPreset || 'auto')
-    const strength = Math.max(30, Math.min(100, Number(body.strength || 85)))
-    const outputCount = Math.max(1, Math.min(4, Number(body.outputCount || 1)))
-    const maxSourceBytes = Number(process.env.IMAGE_SOURCE_MAX_BYTES || 8 * 1024 * 1024)
-    const model = process.env.IMAGE_MODEL || 'imagen-4.0'
-    const size = process.env.IMAGE_SIZE || '1024x1024'
-    const quality = process.env.IMAGE_QUALITY || 'medium'
-    const requiresSourceImage = mode === 'preserve-layout' || mode === 'image-edit-plan' || mode === 'image-variation-plan'
 
-    if (!prompt) {
-      return json(res, 400, {
-        providerStatus: 'connected',
-        message: 'real connector not available yet: prompt is required.',
-      })
+    // Fallback para Gemini Imagen se FAL_KEY não estiver disponível
+    if (geminiKey) {
+      if (!prompt) {
+        return json(res, 400, { providerStatus: 'connected', message: 'Prompt is required.' })
+      }
+      
+      const geminiApiBase = process.env.GEMINI_API_BASE || 'https://generativelanguage.googleapis.com/v1beta'
+      
+      // Construir o payload nativo para o modelo Gemini Imagen (ex: imagen-3.0-generate-001)
+      const payload = {
+        instances: [{ prompt: prompt.slice(0, 480) }],
+        parameters: {
+          sampleCount: 1,
+          personGeneration: "ALLOW_ADULT",
+          aspectRatio: "1:1"
+        }
+      }
+
+      try {
+        const response = await fetch(`${geminiApiBase}/models/imagen-3.0-generate-001:predict`, {
+          method: 'POST',
+          headers: {
+            'X-goog-api-key': geminiKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        })
+
+        if (!response.ok) {
+          const errText = await response.text().catch(() => '')
+          return json(res, response.status, {
+            providerStatus: 'connected',
+            message: scrubProviderError(`Gemini Image request failed with HTTP ${response.status}: ${errText.slice(0, 200)}`),
+          })
+        }
+
+        const data = await response.json()
+        const predictions = data.predictions || []
+        
+        const images = predictions.map(pred => ({
+          image: pred.bytesBase64Encoded ? `data:${pred.mimeType};base64,${pred.bytesBase64Encoded}` : undefined,
+          imageUrl: null,
+          revisedPrompt: prompt
+        })).filter(item => item.image)
+
+        if (images.length === 0) {
+          return json(res, 502, {
+            providerStatus: 'connected',
+            message: 'Image connector returned no valid image payload.',
+          })
+        }
+
+        return json(res, 200, {
+          providerStatus: 'connected',
+          message: 'Image generated via Gemini Imagen.',
+          image: images[0].image,
+          imageUrl: null,
+          images,
+          revisedPrompt: prompt,
+          model: 'imagen-3.0-generate-001',
+          mode,
+        })
+      } catch (error) {
+        return json(res, 500, {
+          providerStatus: 'connected',
+          message: scrubProviderError(error.message || 'Gemini connector error'),
+        })
+      }
     }
 
-    if (sourceImage && sourceImage.buffer.length > maxSourceBytes) {
-      return json(res, 413, {
-        providerStatus: 'connected',
-        message: `Source image is too large for this connector. Limit: ${Math.round(maxSourceBytes / 1024 / 1024)}MB.`,
-      })
-    }
-
-    if (requiresSourceImage && !sourceImage) {
-      return json(res, 400, {
-        providerStatus: 'connected',
-        message: 'A source image is required for layout-preserving ArchVis generation. Upload or paste the plan first.',
-      })
-    }
-
-    const fidelityRules = mode === 'preserve-layout'
-      ? [
-        'STRICT FIDELITY MODE:',
-        'Use the uploaded image as the strict reference/base image.',
-        'Transform this exact uploaded architectural floor plan into a high-quality humanized floor plan visualization.',
-        outputType === 'humanized-floor-plan' ? 'Keep strict top-down orthographic view. Do not convert into eye-level, side-view, room perspective, facade, or 3D interior camera. This is a floor plan humanization, not a perspective render.' : '',
-        'Preserve the original geometry, walls, room positions, labels where possible, pool location, garage location, road/access, lot shape, proportions and top-down camera.',
-        'Do not redesign the plan.',
-        'Do not add/remove rooms.',
-        'Do not change layout.',
-        'Do not crop important parts.',
-        'Do not create a perspective 3D house, exterior facade, or random architecture.',
-        preserveLabels ? 'Preserve labels where possible and avoid misspelled labels.' : '',
-        'Only improve materials, floor textures, furniture, landscaping, shadows, water, lighting and presentation quality.',
-        'The output should look like a humanized/rendered version of the same uploaded top-down floor plan.',
-      ].filter(Boolean).join('\n')
-      : 'Creative variation mode: use the uploaded plan as source context, but allow more visual interpretation while keeping the project recognizable.'
-
-    const outputTypeRules = {
-      'humanized-floor-plan': 'Output type: Humanized floor plan / Top-down. Force top-down orthographic floor plan humanization. No side camera, no eye-level view, no 3D perspective room render, no facade/interior camera.',
-      '3d-perspective': 'Output type: 3D perspective render. Perspective is allowed because the user explicitly requested 3D/perspective.',
-      'facade-render': 'Output type: Facade render. Exterior facade camera is allowed.',
-      'interior-render': 'Output type: Interior render. Interior camera is allowed.',
-      'creative-concept': 'Output type: Creative concept. Redesign may be imaginative and must not be presented as faithful plan.',
-    }
-
-    const autoFloorPlanConstraints = outputType === 'humanized-floor-plan'
-      ? [
-        'Preserve 1 bathroom and 1 laundry/service room, do not create two bathrooms.',
-        'Keep grass/green area only where it appears in the original plan.',
-        'Do not extend grass beyond the original left strip/half.',
-        'Keep all walls, openings and layout positions.',
-      ]
-      : []
-
-    const boundaryRules = mode === 'preserve-layout' && (lockBoundaries || noInventedAreas)
-      ? [
-        'STRICT BOUNDARY LOCK:',
-        lockBoundaries ? 'Preserve exact lot boundary.' : '',
-        lockBoundaries ? 'Preserve exact building footprint.' : '',
-        lockBoundaries ? 'Preserve exact exterior/service areas.' : '',
-        noInventedAreas ? 'Do not extend garden/landscaping beyond the original garden/patio areas.' : '',
-        noInventedAreas ? 'Do not create garden behind sauna, lavanderia, suite, pool, garage, or any area where it is not shown in the source image.' : '',
-        noInventedAreas ? 'Do not fill blank/white/technical areas with invented landscaping.' : '',
-        noInventedAreas ? 'Do not infer missing spaces outside the drawing.' : '',
-        noInventedAreas ? 'Do not complete or continue any area beyond what is visible.' : '',
-        noInventedAreas ? 'Treat unknown/blank areas as unchanged neutral surfaces.' : '',
-        noInventedAreas ? 'Only enhance existing zones already present in the source image.' : '',
-        noInventedAreas ? 'If an area is unclear, keep it neutral rather than inventing details.' : '',
-        noInventedAreas ? 'No garden continuation, invented garden, extra landscaping, added patio, added deck, extended vegetation, filled blank area, new exterior area, invented service yard, changed backyard, added outdoor strip, or random plants outside original garden.' : '',
-      ].filter(Boolean).join('\n')
-      : ''
-
-    const safePrompt = [
-      prompt.slice(0, 8000),
-      '',
-      autoFloorPlanConstraints.length || revisionConstraints.length
-        ? ['User correction constraints from previous failed outputs:', ...[...autoFloorPlanConstraints, ...revisionConstraints].map((constraint, index) => `${index + 1}. ${constraint}`)].join('\n')
-        : '',
-      '',
-      outputTypeRules[outputType] || outputTypeRules['creative-concept'],
-      fidelityRules,
-      buildArchVisServerStylePrompt(promptStyle),
-      boundaryRules,
-      cameraPreset && cameraPreset !== 'auto' ? `Selected camera/movement preset: ${cameraPreset}.` : '',
-      negativePrompt ? `Negative prompt: ${[
-        negativePrompt.slice(0, 2000),
-        outputType === 'humanized-floor-plan'
-          ? 'eye-level view, side view, perspective room render, facade, interior photograph, camera inside room, 3D walkthrough, changed viewpoint'
-          : '',
-      ].filter(Boolean).join(', ')}` : '',
-      '',
-      'Apex ArchVis production intent: generate a polished, client-ready architectural visualization. Preserve the uploaded project logic where a source image is supplied. Do not add fake labels or unreadable text.',
-      `Reference mode: ${referenceMode}.`,
-      `Fidelity strength requested: ${strength}%.`,
-      file?.name ? `Source file name: ${String(file.name).slice(0, 180)}` : '',
-    ].filter(Boolean).join('\n')
-
-    let response
-    if (sourceImage && requiresSourceImage) {
-      const form = new FormData()
-      form.append('model', model)
-      form.append('prompt', safePrompt)
-      form.append('size', size)
-      form.append('quality', quality)
-      form.append('n', String(outputCount))
-      form.append('image', new Blob([sourceImage.buffer], { type: sourceImage.mimeType }), file?.name || 'source-image.png')
-      response = await fetch(`${apiBase}/images/edits`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: form,
-      })
-    } else {
-      response = await fetch(`${apiBase}/images/generations`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model,
-          prompt: safePrompt,
-          size,
-          quality,
-          n: outputCount,
-        }),
-      })
-    }
-
-    const data = await response.json().catch(() => ({}))
-    if (!response.ok) {
-      return json(res, response.status, {
-        providerStatus: 'connected',
-        message: scrubProviderError(data?.error?.message || `Image request failed with HTTP ${response.status}.`),
-        warning: sourceImage
-          ? 'The provider could not complete a layout-preserving image edit. No unrelated text-to-image fallback was used.'
-          : undefined,
-      })
-    }
-
-    const images = Array.isArray(data?.data)
-      ? data.data.map(item => ({
-        image: item?.b64_json ? `data:image/png;base64,${item.b64_json}` : undefined,
-        imageUrl: item?.url,
-        revisedPrompt: item?.revised_prompt,
-      })).filter(item => item.image || item.imageUrl)
-      : []
-    const image = data?.data?.[0] || {}
-    const b64 = image.b64_json
-    const url = image.url
-    if (!b64 && !url) {
-      return json(res, 502, {
-        providerStatus: 'connected',
-        message: 'Image connector returned no image payload.',
-      })
-    }
-
-    return json(res, 200, {
-      providerStatus: 'connected',
-      message: 'Image generated via AI provider.',
-      image: b64 ? `data:image/png;base64,${b64}` : undefined,
-      imageUrl: url,
-      images,
-      revisedPrompt: image.revised_prompt,
-      model: data?.model || model,
-      mode,
+    return json(res, 500, {
+      providerStatus: 'not-connected',
+      message: 'No image provider available',
     })
   } catch (error) {
     return json(res, error.status || 500, {
       providerStatus: 'connected',
-      message: scrubProviderError(error.message || 'real connector not available yet'),
+      message: scrubProviderError(error.message || 'Image connector error'),
     })
   }
 }
