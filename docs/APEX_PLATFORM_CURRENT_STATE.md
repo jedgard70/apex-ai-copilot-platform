@@ -24,6 +24,7 @@ The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.m
 - Deploy hygiene: **GREEN** — CI workflow now validates builds/tests before deployment
 - PWA/Mobile: **GREEN** — App instalável no celular (Android/iOS), layout responsivo completo, Service Worker v2 offline
 - **AGENTIC CAPABILITIES**: **GREEN** — Field Ops Time Tracker (Payroll) & Personal Brain (Reminders/Lists) implemented with real-time polling and multi-tenant isolation.
+- **SKILLS INVENTORY**: **GREEN** — Catálogo mestre com 1.848 agentes (skills) indexado em `docs/APEX_SKILLS_CATALOG.md`.
 
 ## Complete module map (67 capabilities — 67 DONE, 0 PROTOTYPES)
 

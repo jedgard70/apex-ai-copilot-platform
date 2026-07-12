@@ -804,6 +804,16 @@ function buildLocalSkillContext(userText, file) {
   } catch (err) { }
 
   try {
+    const architecture2 = fs.readFileSync(path.join(rootDir, 'docs', 'apex_acip_master_architecture2.md'), 'utf8')
+    contexts.push(`\n=== docs/apex_acip_master_architecture2.md (Master Architecture Vol 2 - Module Agents) ===\n${architecture2}`)
+  } catch (err) { }
+
+  try {
+    const skillsCatalog = fs.readFileSync(path.join(rootDir, 'docs', 'APEX_SKILLS_CATALOG.md'), 'utf8')
+    contexts.push(`\n=== docs/APEX_SKILLS_CATALOG.md (Unallocated Skills/Agents Catalog) ===\n${skillsCatalog}`)
+  } catch (err) { }
+
+  try {
     const pkg = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8'))
     contexts.push(`📦 Package: ${pkg.name} v${pkg.version || '?'}`)
     const deps = pkg.dependencies ? Object.keys(pkg.dependencies).length : 0

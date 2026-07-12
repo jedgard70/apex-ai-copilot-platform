@@ -1,0 +1,3 @@
+display_name: Apex AI Copilot
+short_description: Production brain for the Apex AI Copilot construction intelligence platform.
+default_prompt: Build or audit the Apex AI Copilot platform using the production knowledge base, with chat-first behavior and honest file/viewer capabilities.
