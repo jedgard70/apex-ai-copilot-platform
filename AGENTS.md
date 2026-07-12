@@ -202,33 +202,20 @@ plataforma (se está implementado ou não) vem APENAS dos 3 canônicos.
 
 ---
 
-## 🚨 REGRA ABSOLUTA 8 — Proteção do Dashboard Vercel e Autonomia Total de Deploy (CI/CD)
+## 🚨 REGRA ABSOLUTA 8 — Deploy em produção requer aprovação humana
 
-Nenhum agente, assistente ou processo automatizado pode:
+Nenhum agente pode fazer merge direto em `main` nem deploy direto em produção.
+Fluxo obrigatório:
 
-1. Alterar configurações de environments ou variáveis sensíveis diretamente no dashboard web da Vercel.
-2. Modificar branch tracking rules ou remover/desconectar a Git Integration.
-3. Adicionar/remover custom domains nos environments.
-4. Modificar "Deployment Protection" (manual approval, password, etc.).
+1. Agente cria branch e abre Pull Request.
+2. CI (`apex-sync.yml`) roda `build` + `test` + `validate:*` — PR só fica elegível
+   para merge se todos os checks passarem em verde.
+3. Owner (Dr. Edgard) revisa e aprova o PR manualmente.
+4. Só então o merge em `main` dispara o deploy automático.
 
-**✅ AUTONOMIA TOTAL DE CÓDIGO, PIPELINE E DEPLOY (EXCEÇÃO AUTORIZADA):**
-Todos os agentes de IA (sejam internos do aplicativo `.exe`, da plataforma web `apexglobalai.com`, ou os agentes de engenharia Antigravity) estão explicitamente **AUTORIZADOS** a ler e escrever mudanças de código em toda a base.
-A esteira de integração e deploy (CI/CD) é 100% autônoma e livre. Sempre que um agente **finalizar uma atualização, correção ou integração**, ele DEVE, obrigatoriamente e sem precisar pedir permissão adicional, rodar o seguinte fluxo automático:
-
-1. Executar o build web local para validar integridade: `npm run build`
-2. Executar o build do aplicativo desktop (.exe): `npm run electron:build`
-3. Efetuar o deploy automático para Produção (Vercel): `git add .`, seguido de `git commit` detalhado e `git push origin main`.
-
-**🔄 AUTONOMIA DE REVISÃO E CORREÇÃO DE BUILD:**
-Se qualquer um dos builds locais ou o deploy na Vercel gerar erros, **os agentes estão totalmente autorizados e instruídos a fazer a "revisão do deploy"**: ou seja, ler os logs de erro, investigar a causa, corrigir o código e tentar rodar a esteira inteira novamente de forma autônoma até que o build passe com sucesso.
-
-**Configuração atual dos environments (2026-07-10 — NÃO ALTERAR):**
-
-- Production → branch `main` → domínio `www.apexglobalai.com` e aplicativo Desktop (`.exe`).
-- Preview → "All assigned git branches" → custom domains.
-- Development → CLI → custom domains.
-
-Violação: Apenas a modificação manual não autorizada do painel web da Vercel é considerada quebra de regra. Todo o fluxo de código, leitura/escrita de arquivos, Git Push e compilação via terminal é totalmente livre para as inteligências da plataforma.
+Exceção: nenhuma. Mesmo correções urgentes passam por este fluxo — a urgência não
+justifica pular revisão humana em um sistema que lida com dados jurídicos e financeiros
+de clientes.
 
 ---
 
@@ -332,7 +319,7 @@ o endpoint `generateContent` para modelos compatíveis:
    - Conector: `server/providers/interactionsConnector.mjs`
    - Header obrigatório: `X-goog-api-key` (nunca `Authorization: Bearer`)
 
-2. **Google Maps Platform** — API Key: `CHAVE_OCULTADA_EM_ENV_LOCAL`
+2. **Google Maps Platform** — Chave carregada via variável de ambiente (VITE_GOOGLE_MAPS_API_KEY)
    - Componente UI: `src/components/MapPlacePicker.tsx`
    - Tool invocável pela IA via `functionDeclarations` no chat
 

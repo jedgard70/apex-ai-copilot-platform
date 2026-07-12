@@ -6,7 +6,7 @@
 
 import React, { useEffect, useRef, useState } from 'react'
 
-const MAPS_API_KEY = 'CHAVE_OCULTADA_EM_ENV_LOCAL'
+const MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
 
 interface PlaceResult {
   name: string

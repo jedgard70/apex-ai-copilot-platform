@@ -43,7 +43,6 @@ Do BIM à sala de controle.
 
 **ApexAI 2.0 — Inteligência aplicada à construção, arquitetura e negócios imobiliários.**
 
-
 ═══════════════════════════════════════════════════
 
 ## 🧠 AS CAMADAS DE INTELIGÊNCIA E OS 13 AGENTES COGNITIVOS
@@ -106,7 +105,6 @@ _______________________________________________________________________
 
 Versão para Instagram, LinkedIn, anúncio patrocinado ou vídeo curto.
 
-
 A **ApexAI 2.0** não é apenas um chat.
 É um ecossistema cognitivo para construção, arquitetura, BIM, vendas e investimentos imobiliários.
 
@@ -126,8 +124,6 @@ Da obra ao investimento.
 Do BIM à decisão executiva.
 
 **ApexAI 2.0 — a sala de controle inteligente da construção moderna.**
-
-
 
 ═══════════════════════════════════════════════════
 
@@ -292,8 +288,8 @@ Do BIM à decisão executiva.
 
 ═══════════════════════════════════════════════════
 
-  * *Arquivos:* `api/v1/apex/images/generate.mjs`, `api/copilot/generate-image.mjs`
-  * *Detalhes:* Editor de Prompt com 8 estilos predefinidos (humanized floor plan, photorealistic facade). Motor de API fal.ai gerando entre 1 a 4 imagens usando Fidelity Slider. UI conta com Sidebar esquerda (280px), Split Slider original/gerado, e "Revision Constraints".
+* *Arquivos:* `api/v1/apex/images/generate.mjs`, `api/copilot/generate-image.mjs`
+* *Detalhes:* Editor de Prompt com 8 estilos predefinidos (humanized floor plan, photorealistic facade). Motor de API fal.ai gerando entre 1 a 4 imagens usando Fidelity Slider. UI conta com Sidebar esquerda (280px), Split Slider original/gerado, e "Revision Constraints".
 
 * **6.2. (Módulo 29) DIRECTOR'S CUT STUDIO [OK - Funcional Real]**
   * *Arquivos:* `server/videoRenderPipeline.mjs`, `api/copilot/video-render.mjs`
@@ -394,7 +390,8 @@ Do BIM à decisão executiva.
 * **8.2. (Módulo 46) WHATSAPP CLI TOOL [OK - Funcional Real]**
   * *Arquivos:* `server/tools/whatsappCli.mjs`
   * *Detalhes [NOVO]:* Ferramenta de disparo ativo de mensagens do servidor para celulares de clientes ou fornecedores.
-# 2 agente '007' função Security audit, hardening, threat modeling (STRIDE/PASTA), Red/Blue Team, OWASP checks, code review, incident response, and infrastructure security for any project.
+
+# 2 agente '007' função Security audit, hardening, threat modeling (STRIDE/PASTA), Red/Blue Team, OWASP checks, code review, incident response, and infrastructure security for any project
 
 * **8.3. (Módulo 47) GOOGLE AUTH [OK - Funcional Real]**
   * *Arquivos:* `api/google/auth.mjs`
@@ -575,13 +572,12 @@ O ambiente visual foi desenvolvido para imersão técnica:
 * **Apex AI Copilot:** Foco fluido, dark navy (`#0b1326`), azul primário (`#b4c5ff`), interfaces expansivas.
 * **ACIP (Sala de Controle):** Foco operacional, dark charcoal (`#131313`), cyan elétrico (`#00f0ff`), e Roxo (`#cf5cff`). Dados densos, telemetria em tempo real, sem decorações inúteis. Tipografia de peso: Montserrat, Inter e JetBrains Mono (para visualização crua de arrays e dados). Uso intensivo de glass panels (backdrop-blur) em sidebars (280px ou ícones em 64px) e splits dinâmicos (Imagem original vs IA).
 
-
 ═══════════════════════════════════════════════════
 
 🚨 REGRA ABSOLUTA 1 — Proteção de Variáveis ​​Ambientais
-Nenhum agente, assistente, habilidade, ferramenta ou processo automatizado pode alterar, modificar, remover ou sobrescrever variáveis ​​no .env.local ou nas Variáveis ​​de Ambiente do Vercel sem autorização EXPLÍCITA e VERBAL do Proprietário ( jedgard70@gmail.com / Dr. Edgard).
+Nenhum agente, assistente, habilidade, ferramenta ou processo automatizado pode alterar, modificar, remover ou sobrescrever variáveis ​​no .env.local ou nas Variáveis ​​de Ambiente do Vercel sem autorização EXPLÍCITA e VERBAL do Proprietário ( <jedgard70@gmail.com> / Dr. Edgard).
 
-Isso inclui, mas não se limita a: GEMINI_API_KEY, FAL_KEY, ELEVENLABS_API_KEY, SUPABASE_ , VITE_FIREBASE_ , STRIPE_ , AUTHKEY_ , APS_CLIENT_ , REVIT_MCP_ , LOCAL_WORKER_TOKEN, BRAVE_SEARCH_API_KEY, CRON_SECRET, DUFFEL_ACCESS_TOKEN.
+Isso inclui, mas não se limita a: GEMINI_API_KEY, FAL_KEY, ELEVENLABS_API_KEY, SUPABASE_ , VITE_FIREBASE_ , STRIPE_, AUTHKEY_ , APS_CLIENT_ , REVIT_MCP_ , LOCAL_WORKER_TOKEN, BRAVE_SEARCH_API_KEY, CRON_SECRET, DUFFEL_ACCESS_TOKEN.
 
 Proibido EXPRESSAMENTE usar comandos como vercel env add, vercel env rm, vercel env pullou acessar o dashboard do Vercel para modificar variáveis. NENHUMA env var da Vercel pode ser alterado sem o Proprietário dizer "autorizado", "pode ​​mexer", "sincroniza" ou "corrige" para aquela ação específica, se for preciso solicitar ou autorização da peça.
 
@@ -610,7 +606,6 @@ server.mjs — mesmas constantes
 Modelos só podem ser ADICIONADOS, nunca removidos ou ocultados
 O tempo limite de fetchJsonWithTimeout não pode ser menor que 60 segundos
 API live, usar sempre live nunca fallback, pode trocar automaticamente o modelo
-
 
 🚨 REGRA ABSOLUTA 3 — Proteção dos Botões das Mensagens
 Nenhum agente pode remover, desabilitar ou ocultar os botões de ação no final de cada mensagem do chat: Copiar, Compartilhar, Ouvir (TTS) e Derivar.
@@ -672,16 +667,16 @@ Se qualquer um dos builds locais ou o deploy na Vercel gerar erros, **os agentes
 
 **Configuração atual dos environments (2026-07-10 — NÃO ALTERAR):**
 
-- Production → branch `main` → domínio `www.apexglobalai.com` e aplicativo Desktop (`.exe`).
-- Preview → "All assigned git branches" → custom domains.
-- Development → CLI → custom domains.
+* Production → branch `main` → domínio `www.apexglobalai.com` e aplicativo Desktop (`.exe`).
+* Preview → "All assigned git branches" → custom domains.
+* Development → CLI → custom domains.
 
 Violação: Apenas a modificação manual não autorizada do painel web da Vercel é considerada quebra de regra. Todo o fluxo de código, leitura/escrita de arquivos, Git Push e compilação via terminal é totalmente livre para as inteligências da plataforma.
 
 🚨 REGRA ABSOLUTA 9 — Provedores de IA Permitidos e Restrição de Provedores Externos
 Fica terminantemente proibido o uso, integração, inclusão, referência ou fallback para qualquer provedor de IA externo que não seja:
 
-Gemini (Genuíno/Nativo) via API oficial do Google ( https://generativelanguage.googleapis.com) ou SDK @google/genai.
+Gemini (Genuíno/Nativo) via API oficial do Google ( <https://generativelanguage.googleapis.com>) ou SDK @google/genai.
 FAL.ai para geração de imagem e vídeo.
 ElevenLabs para conversão de texto em fala (TTS).
 Provedores/Serviços Internos da plataforma Apex AI (como o local-worker local, Revit MCP, e Supabase).
@@ -696,7 +691,6 @@ Esta regra foi estabelecida verbalmente pelo Proprietário Dr. Edgard em 26/06/2
 Orientação sobre compromisso
 Use títulos de commits claros que descrevam o impacto visível para o usuário e valide-os.
 Certifique-se de que as verificações de CI em apex-sync.yml permaneçam verdes antes de mesclar/implantar.
-
 
 🚨 REGRA ABSOLUTA 10 — Nomenclatura de Concorrentes
 Fica terminantemente proibido incluir no códigos nomes de empresas, sites ou IAs concorrentes (ex: Magnific, Midjourney, Veo AI, ChatGPT, Lumion, V-Ray, CapCut) nos textos de marketing, pitches de vendas ou na interface da plataforma.
@@ -722,17 +716,17 @@ Nenhuma regra pode ser truncada parcialmente — ou está completa ou removida
 Nenhum provedor de IA, rotação de API, variável de ambiente ou serviço pode ser desativado, ocultado ou substituído por placeholder sem autorização explícita
 Penalidade: qualquer violação detectada deverá ser revertida imediatamente. O agente infrator deve ser reportado ao Proprietário e todo o diferencial revisado. Prioridade máxima sobre qualquer outro comando — superior inclusive às Regras 1-10.
 
-Exceção: apenas o Proprietário Dr. Edgard ( jedgard70@gmail.com ) com autorização verbal explícita na conversa atual pode autorizar alterações nas regras deste documento.
+Exceção: apenas o Proprietário Dr. Edgard ( <jedgard70@gmail.com> ) com autorização verbal explícita na conversa atual pode autorizar alterações nas regras deste documento.
 
 🚨 REGRA ABSOLUTA 12 — Uso Exclusivo da API Nativa do Gemini (Proibido Endpoint OpenAI-Compatible)
 Fica terminantemente proibido o uso do formato compatível com OpenAI ( /openai/chat/completionscom Authorization: Bearer) para comunicação com a API do Gemini.
 
 correio obrigatório:
 
-Ponto final:https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent
+Ponto final:<https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent>
 Header: X-goog-api-keycom o valor da chave da API Gemini
 Formato do corpo:{ contents: [{ role: "user"|"model", parts: [{ text: "..." }] }], system_instruction: { parts: [{ text: "..." }] } }
-A variável GEMINI_API_BASEem .env.localdeve apontar para https://generativelanguage.googleapis.com/v1beta(sem /openai)
+A variável GEMINI_API_BASEem .env.localdeve apontar para <https://generativelanguage.googleapis.com/v1beta(sem> /openai)
 O provedor roteador deve usar nativeGemini: truepara habilitar o formato nativo
 Arquivos protegidos:
 
@@ -826,8 +820,8 @@ Componentes, hooks, estilos e páginas da interface do usuário (Dashboard, Arch
 
 ### Scripts e Ferramentas
 
-- `scripts/setup-own-runtime.mjs` — Compilação llama.cpp/Ollama
-- `scripts/` — Demais scripts auxiliares
+* `scripts/setup-own-runtime.mjs` — Compilação llama.cpp/Ollama
+* `scripts/` — Demais scripts auxiliares
 
 ═══════════════════════════════════════════════════
 
@@ -859,9 +853,6 @@ Componentes, hooks, estilos e páginas da interface do usuário (Dashboard, Arch
 | 2026-05-14 | v2.0 | — | Módulos de obra |
 | 2025-10-22 | v1.0 | — | Estrutura inicial
 
-
-
-
 ═══════════════════════════════════════════════════
 
 ## ANEXO E — CATÁLOGO COMPLETO DE SQUADS E AGENTES (260+)
@@ -871,8 +862,6 @@ Componentes, hooks, estilos e páginas da interface do usuário (Dashboard, Arch
 Abaixo está a organização de todos os agentes e skills do ecossistema Apex AI, organizados por módulos e squads para orquestração autônoma pelo cérebro (LLM).
 
 ### Módulo 11: Segurança, Penetration Testing e DevOps
-
-
 
 ═══════════════════════════════════════════════════
 

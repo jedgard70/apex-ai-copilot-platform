@@ -160,22 +160,13 @@ export function TerminalPanel({ onClose, embedded = false }: { onClose?: () => v
     }
   }
 
-  return (
-    <PremiumPanelLayout 
-      title="Apex Terminal" 
-      subtitle="Ações e configurações operacionais"
-      headerActions={
-        <button
-          onClick={onClose}
-          style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '16px' }}
-          title="Fechar terminal"
-        >×</button>
-      }
-    >
-      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, fontFamily: "'Consolas', 'Menlo', monospace", backgroundColor: '#0d1117' }}>
-        <div style={{ padding: '6px 14px', backgroundColor: '#161b22', borderBottom: '1px solid #30363d', color: '#8b949e', fontSize: '12px' }}>
-          <span style={{ color: '#484f58' }}>{cwd}</span>
-        </div>
+  const terminalContent = (
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, height: '100%', fontFamily: "'Consolas', 'Menlo', monospace", backgroundColor: '#0d1117' }}>
+        {!embedded && (
+          <div style={{ padding: '6px 14px', backgroundColor: '#161b22', borderBottom: '1px solid #30363d', color: '#8b949e', fontSize: '12px' }}>
+            <span style={{ color: '#484f58' }}>{cwd}</span>
+          </div>
+        )}
 
       {/* Output area */}
       <div
@@ -244,6 +235,25 @@ export function TerminalPanel({ onClose, embedded = false }: { onClose?: () => v
         </button>
       </div>
       </div>
+  )
+
+  if (embedded) {
+    return terminalContent
+  }
+
+  return (
+    <PremiumPanelLayout 
+      title="Apex Terminal" 
+      subtitle="Ações e configurações operacionais"
+      headerActions={
+        <button
+          onClick={onClose}
+          style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '16px' }}
+          title="Fechar terminal"
+        >×</button>
+      }
+    >
+      {terminalContent}
     </PremiumPanelLayout>
   )
 }
