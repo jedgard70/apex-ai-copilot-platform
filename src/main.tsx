@@ -311,7 +311,8 @@ type ManualModelProvider = 'all' | 'gemini' | 'gemini-interactions' | 'fal' | 'e
 
 const APEX_OWN_MODELS = [
   { id: 'apex-ai', name: 'Apex AI 2.0 (Motor Principal)' },
-  { id: 'apex-ai-omniscience', name: 'Apex AI Livre (Onisciente/Local)' }
+  { id: 'apex-ai-omniscience', name: 'Apex AI Livre (Onisciente/Local)' },
+  { id: 'apex-ai-custom', name: 'Apex Runtime (Cérebro Local GGUF)' }
 ]
 
 const DIRECT_GEMINI_MODELS = [
