@@ -218,7 +218,19 @@ export default function ArchVisPanel({ source, output, onClear, onSendToDirectCu
               </div>
 
               <div className="flex flex-col gap-2 mt-5">
-                <label className="text-xs font-medium text-[#afb9cb]">Prompt de Renderização</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-medium text-[#afb9cb]">Prompt de Renderização</label>
+                  <select 
+                    onChange={e => e.target.value && setPrompt(e.target.value)}
+                    className="bg-[#0b1326] border border-[#2d3449] text-[10px] text-[#afb9cb] p-1 rounded outline-none w-32"
+                  >
+                    <option value="">Ideias de Prompt...</option>
+                    <option value="Edifício residencial de luxo com fachada de vidro, iluminação noturna dramática, render hiper-realista, 8k, octane render.">Residencial Luxo Noturno</option>
+                    <option value="Living room moderno, tons terrosos, madeira ripada, iluminação natural, vista para a floresta, Unreal Engine 5.">Living Moderno Diurno</option>
+                    <option value="Planta humanizada de apartamento 3 quartos, vista superior, texturas realistas, mobiliário moderno, 4k.">Planta Humanizada 3Q</option>
+                    <option value="Projeto corporativo, fachada em aço escovado e vidro, cinematográfico, golden hour, reflexos detalhados.">Corporativo Golden Hour</option>
+                  </select>
+                </div>
                 <textarea 
                   value={prompt}
                   onChange={e => setPrompt(e.target.value)}

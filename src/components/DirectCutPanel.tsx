@@ -14,6 +14,31 @@ type DirectCutPanelProps = {
 export default function DirectCutPanel({ source, goal, conversationContext, initialConfig, onRecordGeneration, onClear }: DirectCutPanelProps) {
   const [activeTab, setActiveTab] = useState<'board' | 'timeline'>('board')
   
+  const [scriptText, setScriptText] = useState('Bem-vindo ao novo empreendimento de luxo no coração da cidade. Fachadas de vidro e design imponente.')
+  const [isRewriting, setIsRewriting] = useState(false)
+
+  const handleRewriteScript = async () => {
+    setIsRewriting(true)
+    try {
+      const response = await fetch('/api/copilot/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: `Reescreva este roteiro de vídeo para que fique mais atraente, cinematográfico e persuasivo para venda de imóveis de luxo: "${scriptText}"` }],
+          modelId: 'gemini-3.5-pro'
+        })
+      })
+      const data = await response.json()
+      if (data && data.text) {
+        setScriptText(data.text)
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setIsRewriting(false)
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-50 bg-[#0b1326] flex flex-col text-[#dae2fd] overflow-hidden font-sans">
       
@@ -69,12 +94,29 @@ export default function DirectCutPanel({ source, goal, conversationContext, init
             <span className="material-symbols-outlined text-[#8d90a0] text-[16px] cursor-pointer hover:text-white">more_vert</span>
           </div>
           <div className="p-4 flex flex-col gap-3">
+            <select 
+              onChange={e => e.target.value && setScriptText(e.target.value)}
+              className="bg-[#0b1326] border border-[#2d3449] text-[10px] text-[#afb9cb] p-1.5 rounded outline-none w-full"
+            >
+              <option value="">Ideias de Roteiro (Templates)...</option>
+              <option value="Descubra o novo padrão de luxo. (Pausa) Este é o Residencial Aurora. (Corte rápido) Acabamentos premium e vista definitiva.">Cinematic Trailer Curto</option>
+              <option value="Bem-vindos ao apartamento decorado. Notem a integração perfeita entre living e varanda gourmet.">Walkthrough Imobiliário</option>
+              <option value="Construção inteligente. Sustentabilidade. Eficiência. Acompanhe a evolução da nossa obra em tempo real.">Acompanhamento de Obra</option>
+              <option value="Sua nova vida começa aqui. (Música inspiradora sobe) Aproveite as condições especiais de lançamento.">Campanha Vendas</option>
+            </select>
             <textarea 
+              value={scriptText}
+              onChange={(e) => setScriptText(e.target.value)}
               className="w-full h-24 bg-[#0b1326] border border-[#2d3449] rounded-lg p-2 text-xs text-[#dae2fd] resize-none focus:border-blue-500 focus:outline-none"
-              defaultValue="Bem-vindo ao novo empreendimento de luxo no coração da cidade. Fachadas de vidro e design imponente."
+              placeholder="Digite seu roteiro..."
             />
-            <button className="w-full py-2 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-xs font-medium hover:bg-blue-500/20 transition-colors">
-              Reescrever com Apex IA
+            <button 
+              onClick={handleRewriteScript}
+              disabled={isRewriting}
+              className="w-full py-2 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-xs font-medium hover:bg-blue-500/20 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {isRewriting ? <span className="material-symbols-outlined animate-spin text-[16px]">sync</span> : <span className="material-symbols-outlined text-[16px]">auto_awesome</span>}
+              {isRewriting ? 'Reescrevendo...' : 'Reescrever com Apex IA'}
             </button>
           </div>
           {/* Node Output Port */}
