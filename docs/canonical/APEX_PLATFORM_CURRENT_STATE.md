@@ -13,7 +13,7 @@ The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.m
 
 ## Executive status
 
-- Platform core: **YELLOW** — 62 de 67 capacidades com código confirmado (60 diretas + 2 com path de doc desatualizado), 5 planejadas sem código ainda
+- Platform core: **YELLOW** — 63 de 67 capacidades com código confirmado (61 diretas + 2 com path de doc desatualizado), 4 planejadas sem código ainda
 - Build/typecheck: **GREEN**
 - Tests: **GREEN** (114 passed)
 - Local app: **GREEN** (`server.mjs` + Electron `.exe`)
@@ -26,7 +26,7 @@ The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.m
 - **AGENTIC CAPABILITIES**: **GREEN** — Field Ops Time Tracker (Payroll) & Personal Brain (Reminders/Lists) implemented with real-time polling and multi-tenant isolation.
 - **SKILLS INVENTORY**: **GREEN** — Catálogo mestre com 1.848 agentes (skills) indexado em `docs/APEX_SKILLS_CATALOG.md`.
 
-## Complete module map (67 capacidades documentadas — 62 verificadas, 5 planejadas)
+## Complete module map (67 capacidades documentadas — 63 verificadas, 4 planejadas)
 
 Paths corrigidos em 2026-07-12: o prefixo real dos endpoints de copilot é
 `server/api/copilot/*.mjs`, não `server/api/copilot/*.mjs` (a pasta `api/` na raiz é
@@ -39,12 +39,12 @@ só um router fino). Todas as linhas abaixo foram checadas contra o filesystem r
 | 3 | Advanced model selection | `src/main.tsx` manual provider entry | ✅ LIVE (verificado) |
 | 4 | Platform Status / observability | `MetricsDashboardPanel` + `server/api/copilot/metrics-plan.mjs` | ✅ LIVE (verificado) |
 | 5 | Project Workspace / memory | `src/lib/projectWorkspace.ts` + `ProjectWorkspacePanel` | ✅ LIVE (verificado) |
-| 6 | Research with cited sources | `ResearchPanel.tsx` + `server/api/copilot/deep-research.mjs` | ✅ LIVE (Mesmo fluxo do Módulo 60) |
+| 6 | Research with cited sources | `src/components/ResearchPanel.tsx` + `server/api/copilot/deep-research.mjs` | ✅ LIVE (Mesmo fluxo do Módulo 60) |
 | 7 | Upload / intake flow | `src/lib/fileIntake.ts` + file classifier | ✅ LIVE |
 | 8 | PDF extraction (pdf.js) | `pdfjs-dist` + `src/lib/pdfExtractor.ts` | ✅ LIVE |
 | 9 | DOCX generation | `src/lib/docxGenerator.ts` | ✅ LIVE |
 | 10 | PDF generation / contracts | `src/lib/contractsPdfExport.ts` + `ContractsPanel` | ✅ LIVE |
-| 11 | Budget / Quantity (SINAPI) | `BudgetPanel.tsx` (importação via UI/XLSX parser nativo) | ✅ LIVE |
+| 11 | Budget / Quantity (SINAPI) | `src/components/BudgetPanel.tsx` (importação via UI/XLSX parser nativo) | ✅ LIVE |
 | 12 | BIM / 3D Viewer | `Bim3DPanel` + `web-ifc` + IfcOpenShell backend | ✅ LIVE |
 | 13 | Contracts / Permits | `ContractsPanel` — draft/review/permits checklist | ✅ LIVE |
 | 14 | ArchVis (AI image generation) | `ArchVisPanel` + `server/api/copilot/generate-image.mjs` — OpenAI + fal.ai, 8 styles | ✅ LIVE |
@@ -64,7 +64,7 @@ só um router fino). Todas as linhas abaixo foram checadas contra o filesystem r
 | 28 | Trip Planner | `api/trip/index.mjs` + `TripPlannerPanel` + comando de voz | ✅ LIVE |
 | 29 | NR Compliance (CREA/OE) | `api/nr/index.mjs` + `NRCompliancePanel` + comando de voz | ✅ LIVE |
 | 30 | Accounting CRC | `api/accounting/index.mjs` + `AccountingPanel` + comando de voz | ✅ LIVE |
-| 31 | Global Permits | `api/permits/index.mjs` + `GlobalPermitsPanel.tsx` + comando de voz | ✅ LIVE |
+| 31 | Global Permits | `api/permits/index.mjs` + `src/components/GlobalPermitsPanel.tsx` + comando de voz | ✅ LIVE |
 | 32 | Pipeline Progress | `server/service/pipelineStatus.mjs` + `PipelineProgressPanel` | ✅ LIVE |
 | 33 | MS Project Integration | `api/msproject/parse.mjs` + `server/service/msproject.mjs` | ✅ LIVE |
 | 34 | Financial Control | `api/finance/index.mjs` + `server/service/finance.mjs` + `FinancePanel` | ✅ LIVE |
@@ -72,7 +72,7 @@ só um router fino). Todas as linhas abaixo foram checadas contra o filesystem r
 | 36 | Auto-Fix Engine | `api/autofix/index.mjs` + `server/service/autoFix.mjs` | ✅ LIVE |
 | 37 | Service Order / Invoice | `server/service/serviceOrder.mjs` + `server/service/invoice.mjs` | ✅ LIVE |
 | 38 | CRM / Client Management | `server/service/crm.mjs` + `CrmPanel` | ✅ LIVE |
-| 39 | Supply Chain | `server/service/supplyChain.mjs` + `SupplyChainPanel` | ✅ LIVE |
+| 39 | Supply Chain | `server/service/supplyChain.mjs` (removido) | ❌ PLANEJADO — sem código |
 | 40 | AI Cost Dashboard | `server/service/aiCost.mjs` + `AiCostDashboardPanel` | ✅ LIVE |
 | 41 | Knowledge Base | `server/service/knowledgeBase.mjs` + `KnowledgeBasePanel` | ✅ LIVE |
 | 42 | Digital Twin | `server/service/digitalTwin.mjs` + `DigitalTwinPanel` | ✅ LIVE |
@@ -84,7 +84,7 @@ só um router fino). Todas as linhas abaixo foram checadas contra o filesystem r
 | 48 | ACIP: Qualidade / NCIs | `server/service/qualidadeNCIs.mjs` + `QualidadeNCIsPanel` | ✅ LIVE (ACIP) |
 | 49 | ACIP: Workflow Tasks | `server/service/workflowTasks.mjs` + `WorkflowTasksPanel` | ✅ LIVE (ACIP) |
 | 50 | ACIP: Predictive Analytics | `server/service/predictiveAnalytics.mjs` + `PredictiveAnalyticsPanel` | ✅ LIVE (ACIP) |
-| 51 | ACIP: Digital Twin IoT | `server/service/digitalTwinIoT.mjs` + 6 sensores | ✅ LIVE (ACIP) |
+| 51 | ACIP: Digital Twin IoT | `server/service/digitalTwinIoT.mjs` (removido) | ❌ PLANEJADO — sem código |
 | 52 | ACIP: Enterprise Integrations | 15 conectores (Revit, SAP, n8n, LangGraph...) | ✅ LIVE (ACIP) |
 | 53 | 🔒 API Key Restriction (IP/Origin) | `server/middleware/keyRestriction.mjs` + `server/api/copilot/key-restriction` | ✅ LIVE |
 | 54 | 🔒 Rate Limit Monitor + Alerts | `server/service/rateLimitMonitor.mjs` + `server/api/copilot/rate-limit` | ✅ LIVE |
@@ -99,8 +99,8 @@ só um router fino). Todas as linhas abaixo foram checadas contra o filesystem r
 | 63 | Market Intel & Competitor Radar | `api/market/intelligence.mjs` (não existe no repo) | ❌ PLANEJADO — sem código |
 | 64 | Occupational Health & Wellness | `api/health/index.mjs` (não existe no repo) | ❌ PLANEJADO — sem código |
 | 65 | Growth & SEO Command Center | `api/growth/seo.mjs` (não existe no repo) | ❌ PLANEJADO — sem código |
-| 66 | IT Cost & Infra Orchestrator | `server/api/copilot/infra.mjs` + `src/components/InfraCostPanel.tsx` | 🟢 LIVE |
-| 67 | Global Legal & Due Diligence | `api/legal/global.mjs` (não existe no repo) | ❌ PLANEJADO — sem código |
+| 66 | IT Cost & Infra Orchestrator | `server/api/copilot/infra.mjs` + `server/service/infraCost.mjs` + `InfraCostPanel` | 🟢 LIVE |
+| 67 | Global Legal & Due Diligence | `server/api/copilot/legal.mjs` | 🟢 LIVE (Código e UI implementados na src) |
 
 ## Deployment map
 
