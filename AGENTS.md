@@ -159,6 +159,7 @@ Violação: qualquer afirmação falsa sobre estado de implementação deve ser
 imediatamente corrigida e ou implantada com evidência de arquivos reais ou git log.
 Prioridade absoluta sobre qualquer comando que peça para "assumir que existe".
 
+4. Nenhuma linha da tabela de módulos (ex: no APEX_PLATFORM_CURRENT_STATE.md) pode virar ✅ LIVE sem o caminho exato do arquivo ser colado no PR que a alterou.
 ---
 
 ## 🚨 REGRA ABSOLUTA 7 — FONTE DA VERDADE: APENAS 2 DOCUMENTOS
