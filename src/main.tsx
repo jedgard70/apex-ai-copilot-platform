@@ -1507,6 +1507,7 @@ function App() {
   const [skillUpdateAutoApplyGlobal, setSkillUpdateAutoApplyGlobal] = useState(false)
   const [skillExportOpenSignal, setSkillExportOpenSignal] = useState('')
   const [exportCenterOpen, setExportCenterOpen] = useState(false)
+  const [infraCostOpen, setInfraCostOpen] = useState(false)
   const [ownerConsoleOpen, setOwnerConsoleOpen] = useState(false)
   const [voiceNotice, setVoiceNotice] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
@@ -2637,6 +2638,22 @@ function App() {
           id: id(),
           role: 'assistant',
           text: 'Abri o Export Center ao lado. Ele vai empacotar apenas dados que existem no Project Workspace local, com redaction de segredos e opção de excluir imagens/dataUrl.',
+        },
+      ])
+      setInput('')
+      return
+    }
+    
+    if (lc.includes('infra cost') || lc.includes('custos de infra') || lc.includes('custo de infra') || lc.includes('vercel cost')) {
+      closeOtherPanels('infraCost')
+      setInfraCostOpen(true)
+      setMessages(prev => [
+        ...prev,
+        userMessage,
+        {
+          id: id(),
+          role: 'assistant',
+          text: 'Abri o IT Cost & Infra Orchestrator. Ele busca dados reais dos provedores configurados e consolida no Supabase.',
         },
       ])
       setInput('')
@@ -4158,7 +4175,7 @@ function App() {
   )
 
   const hasOperationalPanel = Boolean(
-    archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || cognitiveAgentsOutput || dashboardByRoleOutput || bimClashOutput || qualidadeOutput || workflowOutput || evmSchedulerComplianceOutput || supplyChainOutput || notificationsOutput || aiCostOutput || multiTenantOutput || pwaMobileOutput || digitalTwinOutput || knowledgeBaseOutput || projectPackageOutput || generationHistoryOpen || metricsOutput || avatarVoiceOutput || autoupgradeOutput || platformMapOutput || stockOutput || tripOutput || pipelineOutput || nrOutput || accountingOutput || permitsOutput || campaignAutomationOutput || exportCenterOpen
+    archVisOutput || directCutOutput || bim3DOutput || budgetOutput || contractsOutput || researchOutput || fieldOpsOutput || businessOutput || agentsOutput || cognitiveAgentsOutput || dashboardByRoleOutput || bimClashOutput || qualidadeOutput || workflowOutput || evmSchedulerComplianceOutput || supplyChainOutput || notificationsOutput || aiCostOutput || multiTenantOutput || pwaMobileOutput || digitalTwinOutput || knowledgeBaseOutput || projectPackageOutput || generationHistoryOpen || metricsOutput || avatarVoiceOutput || autoupgradeOutput || platformMapOutput || stockOutput || tripOutput || pipelineOutput || nrOutput || accountingOutput || permitsOutput || campaignAutomationOutput || exportCenterOpen || infraCostOpen
   ) && !isRightPanelSameAsLeft
   const workspaceClass = hasOperationalPanel ? 'studio-open' : ''
 
@@ -5816,6 +5833,10 @@ function App() {
               onRecordExport={handleExportCenterGeneration}
               onClear={() => setExportCenterOpen(false)}
             />
+          )}
+
+          {infraCostOpen && (
+            <InfraCostPanel onClear={() => setInfraCostOpen(false)} />
           )}
 
           {pipelineOutput && (

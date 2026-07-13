@@ -99,7 +99,7 @@ só um router fino). Todas as linhas abaixo foram checadas contra o filesystem r
 | 63 | Market Intel & Competitor Radar | `api/market/intelligence.mjs` (não existe no repo) | ❌ PLANEJADO — sem código |
 | 64 | Occupational Health & Wellness | `api/health/index.mjs` (não existe no repo) | ❌ PLANEJADO — sem código |
 | 65 | Growth & SEO Command Center | `api/growth/seo.mjs` (não existe no repo) | ❌ PLANEJADO — sem código |
-| 66 | IT Cost & Infra Orchestrator | `api/infra/index.mjs` (não existe no repo) | ❌ PLANEJADO — sem código |
+| 66 | IT Cost & Infra Orchestrator | `server/api/copilot/infra.mjs` + `server/service/infraCost.mjs` + `InfraCostPanel` | 🟢 LIVE |
 | 67 | Global Legal & Due Diligence | `api/legal/global.mjs` (não existe no repo) | ❌ PLANEJADO — sem código |
 
 ## Deployment map

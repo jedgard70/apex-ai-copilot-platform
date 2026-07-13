@@ -106,13 +106,23 @@ async function runAutoFix() {
       
       // Auto-commit and push
       try {
-        console.log("📦 Fazendo commit e push do reparo...")
+        console.log("📦 Fazendo commit e push do reparo em nova branch...")
         execSync(`git config --global user.name "Apex AI Auto-Fixer"`)
         execSync(`git config --global user.email "bot@apexglobalai.com"`)
+        
+        const branchName = `fix/auto-heal-${Date.now()}`
+        execSync(`git checkout -b ${branchName}`)
         execSync(`git add .`)
-        execSync(`git commit -m "fix(auto-heal): correcao autonoma de falha de CI" -m "${suggestion.reason}"`)
-        execSync(`git push origin HEAD`)
-        console.log("🚀 Reparo enviado para produção!")
+        execSync(`git commit -m "fix(auto-heal): correcao autonoma de falha de CI" -m "${suggestion.reason.replace(/"/g, '\\"')}"`)
+        execSync(`git push -u origin ${branchName}`)
+        
+        try {
+          execSync(`gh pr create --title "Auto-Heal: Correção Autônoma de CI" --body "Reparo automático.\\n\\nMotivo: ${suggestion.reason.replace(/"/g, '\\"')}" --base main --head ${branchName}`)
+          console.log("🚀 Pull Request de reparo criado com sucesso!")
+        } catch (prErr) {
+          console.log("⚠️ Branch criada, mas falha ao abrir PR automaticamente via 'gh':", prErr.message)
+        }
+        
         process.exit(0)
       } catch (gitErr) {
         console.error("Erro ao fazer commit/push do reparo:", gitErr.message)
