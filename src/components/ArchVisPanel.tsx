@@ -225,11 +225,25 @@ export default function ArchVisPanel({ source, output, revisionConstraints, onCl
                     className="bg-[#0b1326] border border-[#2d3449] text-[10px] text-[#afb9cb] p-1 rounded outline-none w-32"
                   >
                     <option value="">Ideias de Prompt...</option>
-                    <option value="Edifício residencial de luxo com fachada de vidro, iluminação noturna dramática, render hiper-realista, 8k, octane render.">Residencial Luxo Noturno</option>
-                    <option value="Living room moderno, tons terrosos, madeira ripada, iluminação natural, vista para a floresta, Unreal Engine 5.">Living Moderno Diurno</option>
-                    <option value="Planta humanizada de apartamento 3 quartos, vista superior, texturas realistas, mobiliário moderno, 4k.">Planta Humanizada 3Q</option>
-                    <option value="Projeto corporativo, fachada em aço escovado e vidro, cinematográfico, golden hour, reflexos detalhados.">Corporativo Golden Hour</option>
-                  </select>
+                    <optgroup label="Exteriores & Fachadas">
+                      <option value="Edifício residencial de luxo com fachada de vidro, iluminação noturna dramática, render hiper-realista, 8k, octane render.">Residencial Luxo Noturno</option>
+                      <option value="Minimalist residence, clean volumes, warm concrete, glass, wood, refined landscape and photorealistic facade.">Residência Minimalista</option>
+                      <option value="Urban building, contemporary street presence, facade rhythm, glazing, balconies, sidewalk context and city lighting.">Edifício Urbano</option>
+                      <option value="Rural guesthouse, natural materials, quiet landscape, warm exterior lighting, human scale and hospitality atmosphere.">Guesthouse Rural</option>
+                      <option value="Brutalist/futuristic architecture, monolithic concrete, dramatic geometry, precise light, cinematic realism.">Brutalismo Futurista</option>
+                      <option value="Sustainable house, passive design, green roof, solar cues, native landscaping, natural ventilation and low-impact materials.">Casa Sustentável (Green Roof)</option>
+                      <option value="Coastal/beach house, light materials, ocean breeze atmosphere, decks, sand-toned palette, vegetation and relaxed luxury.">Casa de Praia/Costeira</option>
+                      <option value="Projeto corporativo, fachada em aço escovado e vidro, cinematográfico, golden hour, reflexos detalhados.">Corporativo Golden Hour</option>
+                    </optgroup>
+                    <optgroup label="Interiores & Detalhes">
+                      <option value="Living room moderno, tons terrosos, madeira ripada, iluminação natural, vista para a floresta, Unreal Engine 5.">Living Moderno Diurno</option>
+                      <option value="Polished concrete, porcelain, dark matte walls, metal, leather, teak/freijo wood, LED linear lighting 4000-6500K.">Interior Futurista (Checklist)</option>
+                    </optgroup>
+                    <optgroup label="Especiais & Plantas">
+                      <option value="Planta humanizada de apartamento 3 quartos, vista superior, texturas realistas, mobiliário moderno, 4k.">Planta Humanizada 3Q</option>
+                      <option value="Strict image-to-image transformation. Preserve layout, walls, openings, pool location, garage location. High realism, clean architectural presentation, client-ready humanized plan.">Humanização Exata (Preservar Layout)</option>
+                      <option value="Masterplan overlay, GIS/neon linework, topographic hologram, BIM/MEP comparison, wireframe/hologram architecture.">Render Técnico / BIM / Topográfico</option>
+                    </optgroup>                  </select>
                 </div>
                 <textarea 
                   value={prompt}
