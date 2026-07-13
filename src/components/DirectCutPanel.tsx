@@ -16,6 +16,13 @@ export default function DirectCutPanel({ source, goal, conversationContext, init
   
   const [scriptText, setScriptText] = useState('Bem-vindo ao novo empreendimento de luxo no coração da cidade. Fachadas de vidro e design imponente.')
   const [isRewriting, setIsRewriting] = useState(false)
+  const [selectedVoice, setSelectedVoice] = useState('JBFqnCBcs611MxpwweFS') // Marcus
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false)
+  const [audioUrl, setAudioUrl] = useState('')
+  
+  const [isGeneratingVideo, setIsGeneratingVideo] = useState(false)
+  const [videoUrl, setVideoUrl] = useState('')
+
 
   const handleRewriteScript = async () => {
     setIsRewriting(true)
@@ -38,6 +45,60 @@ export default function DirectCutPanel({ source, goal, conversationContext, init
       setIsRewriting(false)
     }
   }
+
+  const handleGenerateAudio = async () => {
+    setIsGeneratingAudio(true)
+    setAudioUrl('')
+    try {
+      const response = await fetch('/api/copilot/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: scriptText,
+          provider: 'elevenlabs',
+          voice: selectedVoice,
+          projectId: conversationContext?.project_id,
+          tenantId: conversationContext?.tenant_id
+        })
+      })
+      const data = await response.json()
+      if (data.ok && (data.mediaUrl || data.audio)) {
+        setAudioUrl(data.mediaUrl || `data:${data.mimeType || 'audio/mpeg'};base64,${data.audio}`)
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setIsGeneratingAudio(false)
+    }
+  }
+
+  const handleGenerateVideo = async () => {
+    setIsGeneratingVideo(true)
+    setVideoUrl('')
+    try {
+      const response = await fetch('/api/copilot/video-render', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: scriptText,
+          model: 'fal-ai/kling-video/v1.6/standard/text-to-video',
+          duration: '5s',
+          aspectRatio: '16:9',
+          projectId: conversationContext?.project_id,
+          tenantId: conversationContext?.tenant_id
+        })
+      })
+      const data = await response.json()
+      if (data.providerStatus === 'connected' && data.videoUrl) {
+        setVideoUrl(data.videoUrl)
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setIsGeneratingVideo(false)
+    }
+  }
+
 
   return (
     <div className="fixed inset-0 z-50 bg-[#0b1326] flex flex-col text-[#dae2fd] overflow-hidden font-sans">
@@ -149,15 +210,40 @@ export default function DirectCutPanel({ source, goal, conversationContext, init
           <div className="p-4 flex flex-col gap-3">
             <div className="flex flex-col gap-1">
               <label className="text-[10px] text-[#afb9cb] font-semibold uppercase">Voz Selecionada</label>
-              <select className="bg-[#0b1326] border border-[#2d3449] text-xs text-white p-2 rounded-lg outline-none">
-                <option>Marcus (Profundo, Comercial)</option>
-                <option>Sarah (Suave, Real Estate)</option>
+              <select 
+                value={selectedVoice}
+                onChange={e => setSelectedVoice(e.target.value)}
+                className="bg-[#0b1326] border border-[#2d3449] text-xs text-white p-2 rounded-lg outline-none"
+              >
+                <option value="JBFqnCBcs611MxpwweFS">Marcus (Profundo, Comercial)</option>
+                <option value="EXAVITQu4vr4xnSDxMaL">Sarah (Suave, Real Estate)</option>
               </select>
             </div>
-            <div className="h-10 bg-[#0b1326] rounded-lg border border-[#2d3449] flex items-center justify-center gap-2 text-[#8d90a0]">
-              <span className="material-symbols-outlined text-[16px]">graphic_eq</span>
-              <span className="text-xs">Gerando áudio...</span>
-            </div>
+            {audioUrl ? (
+              <div className="h-10 bg-[#0b1326] rounded-lg border border-green-500/50 flex items-center justify-between px-3 text-green-400">
+                <span className="material-symbols-outlined text-[16px]">play_circle</span>
+                <span className="text-xs">Áudio Gerado</span>
+                <audio src={audioUrl} controls className="hidden" id="directcut-audio-preview" />
+                <button 
+                  onClick={() => {
+                    const el = document.getElementById('directcut-audio-preview') as HTMLAudioElement
+                    if (el) el.play()
+                  }} 
+                  className="hover:text-white"
+                >
+                  <span className="material-symbols-outlined text-[16px]">volume_up</span>
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={handleGenerateAudio}
+                disabled={isGeneratingAudio}
+                className="h-10 bg-[#0b1326] rounded-lg border border-[#2d3449] hover:bg-green-500/10 hover:border-green-500/30 flex items-center justify-center gap-2 text-[#8d90a0] hover:text-green-400 transition-colors disabled:opacity-50"
+              >
+                {isGeneratingAudio ? <span className="material-symbols-outlined animate-spin text-[16px]">sync</span> : <span className="material-symbols-outlined text-[16px]">graphic_eq</span>}
+                <span className="text-xs">{isGeneratingAudio ? 'Gerando áudio...' : 'Gerar Voiceover'}</span>
+              </button>
+            )}
           </div>
           {/* Node Output Port */}
           <div className="absolute right-[-6px] top-[30px] w-3 h-3 bg-green-500 rounded-full border-2 border-[#131b2e] shadow-[0_0_10px_rgba(34,197,94,0.8)]"></div>
@@ -174,17 +260,30 @@ export default function DirectCutPanel({ source, goal, conversationContext, init
           </div>
           <div className="p-4 flex flex-col gap-3">
             <div className="grid grid-cols-2 gap-2">
-              <div className="aspect-video bg-[#0b1326] rounded-lg border border-[#2d3449] flex items-center justify-center relative overflow-hidden group">
-                <span className="material-symbols-outlined text-[#434655]">image</span>
-                <div className="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center text-xs text-white cursor-pointer">Cena 1</div>
-              </div>
-              <div className="aspect-video bg-[#0b1326] rounded-lg border border-[#2d3449] flex items-center justify-center relative overflow-hidden group">
-                <span className="material-symbols-outlined text-[#434655]">image</span>
-                <div className="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center text-xs text-white cursor-pointer">Cena 2</div>
-              </div>
+              {videoUrl ? (
+                <div className="col-span-2 aspect-video bg-[#0b1326] rounded-lg border border-purple-500/50 flex items-center justify-center relative overflow-hidden group">
+                  <video src={videoUrl} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+                </div>
+              ) : (
+                <>
+                  <div className="aspect-video bg-[#0b1326] rounded-lg border border-[#2d3449] flex items-center justify-center relative overflow-hidden group">
+                    <span className="material-symbols-outlined text-[#434655]">image</span>
+                    <div className="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center text-xs text-white cursor-pointer">Vazio</div>
+                  </div>
+                  <div className="aspect-video bg-[#0b1326] rounded-lg border border-[#2d3449] flex items-center justify-center relative overflow-hidden group">
+                    <span className="material-symbols-outlined text-[#434655]">image</span>
+                    <div className="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center text-xs text-white cursor-pointer">Vazio</div>
+                  </div>
+                </>
+              )}
             </div>
-            <button className="w-full py-2 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-lg text-xs font-medium hover:bg-purple-500/20 transition-colors flex justify-center items-center gap-1">
-              <span className="material-symbols-outlined text-[16px]">add</span> Adicionar Cena
+            <button 
+              onClick={handleGenerateVideo}
+              disabled={isGeneratingVideo}
+              className="w-full py-2 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-lg text-xs font-medium hover:bg-purple-500/20 transition-colors flex justify-center items-center gap-1 disabled:opacity-50"
+            >
+              {isGeneratingVideo ? <span className="material-symbols-outlined animate-spin text-[16px]">sync</span> : <span className="material-symbols-outlined text-[16px]">add</span>}
+              {isGeneratingVideo ? 'Gerando cena...' : 'Adicionar Cena (FAL)'}
             </button>
           </div>
           {/* Node Output Port */}

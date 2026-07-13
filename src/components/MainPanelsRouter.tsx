@@ -22,6 +22,8 @@ import { CodeEditorPanel } from './CodeEditorPanel'
 import GlobalPermitsPanel from './GlobalPermitsPanel'
 import { OwnerPage } from './OwnerPage'
 import { GlobalWorkflowOrchestrator } from './GlobalWorkflowOrchestrator'
+import { N8nPanel } from './N8nPanel'
+import { IaIntegrationsPanel } from './IaIntegrationsPanel'
 
 const EmptyPanel = () => (
   <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
@@ -144,6 +146,10 @@ export function MainPanelsRouter(props: MainPanelsRouterProps) {
     }
     case 'global-workflow':
       return <GlobalWorkflowOrchestrator />
+    case 'n8n':
+      return <N8nPanel />
+    case 'ia-integrations':
+      return <IaIntegrationsPanel />
     case 'code-editor': {
       const isOwner = props.currentRole === 'owner' || props.currentRole === 'owner_admin'
       if (!isOwner) return <OwnerOnlyPanel />

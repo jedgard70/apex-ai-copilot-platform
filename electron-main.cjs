@@ -123,8 +123,13 @@ function isEngineReady() {
 
 // Inicia o motor de IA proprio da Apex
 function startApexEngine(appRoot) {
-  const localExe = path.join(appRoot, "runtime", "apex-runtime.exe");
-  const modelPath = path.join(appRoot, "runtime", "models", "apex-ai.gguf");
+  let runtimeDir = path.join(appRoot, "runtime");
+  if (app.isPackaged && appRoot.endsWith(".asar")) {
+    runtimeDir = path.join(process.resourcesPath, "app.asar.unpacked", "runtime");
+  }
+
+  const localExe = path.join(runtimeDir, "apex-runtime.exe");
+  const modelPath = path.join(runtimeDir, "models", "apex-ai.gguf");
   
   if (!fs.existsSync(localExe) || fs.statSync(localExe).size < 1024) {
     log("[Apex] apex-runtime.exe não encontrado ou é um placeholder. O motor local não será iniciado.");
@@ -137,7 +142,7 @@ function startApexEngine(appRoot) {
 
   log("[Apex] Iniciando motor de IA próprio do diretório runtime/...");
   const proc = spawn(localExe, ["-m", modelPath, "-c", "2048", "--port", "1337", "-ngl", "33"], {
-    cwd: path.join(appRoot, "runtime"),
+    cwd: runtimeDir,
     windowsHide: true,
     stdio: "pipe",
     env: buildNodeChildEnv(),
@@ -249,7 +254,7 @@ app.whenReady().then(async () => {
   }
 
   serverProcess = spawn(process.execPath, [serverScript], {
-    cwd: appRoot,
+    cwd: app.isPackaged ? path.dirname(process.execPath) : appRoot,
     windowsHide: true,
     env: {
       ...buildNodeChildEnv(),
