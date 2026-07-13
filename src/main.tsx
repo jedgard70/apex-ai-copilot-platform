@@ -4457,7 +4457,9 @@ function App() {
                 Fechar
               </button>
             </div>
-            {renderPanelContent(activeView)}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
+              {renderPanelContent(activeView)}
+            </div>
           </section>
           )}
           {/* Chat — 30% when panel open, 100% when chat-only mode, support mobile */}

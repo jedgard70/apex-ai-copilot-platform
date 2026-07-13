@@ -1534,11 +1534,7 @@ function isContactQuestionText(text = '') {
 
 function isVisaQuestionText(text = '') {
   const norm = text.trim().toLowerCase()
-  return /\b(visto|visa|imigra|eb2|eb1)\b/i.test(norm)
-}
-
-function isVisaQuestionText(text = '') {
-  return /\b(visto|vistos|visa|imigracao|imigraÃ§Ã£o|consulado|turismo|trabalho|estudo)\b/i.test(text.trim())
+  return /\b(visto|vistos|visa|imigra|imigracao|imigração|consulado|turismo|trabalho|estudo|eb2|eb1)\b/i.test(norm)
 }
 
 function isUploadQuestionText(text = '') {
