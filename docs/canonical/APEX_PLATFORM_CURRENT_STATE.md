@@ -13,7 +13,7 @@ The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.m
 
 ## Executive status
 
-- Platform core: **YELLOW** — 62 de 67 capacidades com código confirmado (60 diretas + 2 com path de doc desatualizado), 5 planejadas sem código ainda
+- Platform core: **YELLOW** — 63 de 67 capacidades com código confirmado (61 diretas + 2 com path de doc desatualizado), 4 planejadas sem código ainda
 - Build/typecheck: **GREEN**
 - Tests: **GREEN** (114 passed)
 - Local app: **GREEN** (`server.mjs` + Electron `.exe`)
@@ -26,7 +26,7 @@ The platform is considered operational and documented. Use `CHECKPOINT_TRACKER.m
 - **AGENTIC CAPABILITIES**: **GREEN** — Field Ops Time Tracker (Payroll) & Personal Brain (Reminders/Lists) implemented with real-time polling and multi-tenant isolation.
 - **SKILLS INVENTORY**: **GREEN** — Catálogo mestre com 1.848 agentes (skills) indexado em `docs/APEX_SKILLS_CATALOG.md`.
 
-## Complete module map (67 capacidades documentadas — 62 verificadas, 5 planejadas)
+## Complete module map (67 capacidades documentadas — 63 verificadas, 4 planejadas)
 
 Paths corrigidos em 2026-07-12: o prefixo real dos endpoints de copilot é
 `server/api/copilot/*.mjs`, não `server/api/copilot/*.mjs` (a pasta `api/` na raiz é
@@ -100,7 +100,7 @@ só um router fino). Todas as linhas abaixo foram checadas contra o filesystem r
 | 64 | Occupational Health & Wellness | `api/health/index.mjs` (não existe no repo) | ❌ PLANEJADO — sem código |
 | 65 | Growth & SEO Command Center | `api/growth/seo.mjs` (não existe no repo) | ❌ PLANEJADO — sem código |
 | 66 | IT Cost & Infra Orchestrator | `server/api/copilot/infra.mjs` + `server/service/infraCost.mjs` + `InfraCostPanel` | 🟢 LIVE |
-| 67 | Global Legal & Due Diligence | `api/legal/global.mjs` (não existe no repo) | ❌ PLANEJADO — sem código |
+| 67 | Global Legal & Due Diligence | `server/api/copilot/legal.mjs` | 🟢 LIVE (Código e UI implementados na src) |
 
 ## Deployment map
 
