@@ -13,11 +13,11 @@ This file defines the default working contract for coding agents in this reposit
 ## Dev environment tips
 
 - Install dependencies with
-pm install.
+`npm install`.
 - Use
-pm run dev for local runtime (Build + node server.mjs).
+`npm run dev` for local runtime (Build + node server.mjs).
 - Use
-pm run dev:ui only for UI-only Vite iteration.
+`npm run dev:ui` only for UI-only Vite iteration.
 - Keep secrets in .env.local (never commit .env* files).
 - Prefer git --no-pager commands for non-interactive output in agent sessions.
 
@@ -25,31 +25,17 @@ pm run dev:ui only for UI-only Vite iteration.
 
 # Main quality gates
 
--
+- `npm run build`
+- `npm run test`
+- `npm run validate:cp15x-h5`
+- `npm run validate:cp15x-h44`
+- `npm run validate:directcut-pipeline`
 
-pm run build
-  -
+- If your change touches Supabase contracts, run:
+  - `npm run validate:supabase-sql`
 
-pm run test
-  -
-
-pm run validate:cp15x-h5
-  -
-
-pm run validate:cp15x-h44
-  -
-
-pm run validate:directcut-pipeline
-
-- If your change touches Supabase contracts, run
-  -
-
-pm run validate:supabase-sql
-
-- If your change touches owner workspace/auth bootstrap, run
-  -
-
-pm run validate:owner-workspace-live
+- If your change touches owner workspace/auth bootstrap, run:
+  - `npm run validate:owner-workspace-live`
 
 ## DirectCut and platform behavior rules
 
