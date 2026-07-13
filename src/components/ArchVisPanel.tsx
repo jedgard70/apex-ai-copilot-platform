@@ -1,937 +1,245 @@
-/**
- * ArchVis Studio — Full-Screen Component
- * Migrated from the ArchVis Pro HTML prototype (stitch_revit_render_studio)
- * Design system: dark navy (#0b1326), blue primary (#b4c5ff / #2563eb)
- */
-
-import { useCallback, useEffect, useRef, useState } from 'react'
-import {
-  ArrowLeft, ChevronDown, ChevronRight, Download, Grid2x2, Image,
-  ImageIcon, Layers, Maximize2, Plus, RefreshCw,
-  Save, Search, Settings, Share2, Sliders, Sparkles, Sun, Trash2,
-  X, ZoomIn, ZoomOut,
-} from 'lucide-react'
+import React, { useState } from 'react'
 import { IntakeFile } from '../lib/fileIntake'
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-type ArchVisTab = 'dashboard' | 'editor' | 'material-library' | 'gallery'
-type GenerationMode = 'preserve-layout' | 'creative-redesign'
-type OutputType = 'humanized-floor-plan' | '3d-perspective' | 'facade-render' | 'interior-render' | 'creative-concept'
-type PromptStyle = 'humanized-floor-plan' | 'photorealistic-facade' | 'cinematic-real-estate' | 'top-down-2d' | 'technical-drawing' | 'interior-design' | 'minimalist-modern' | 'brutalist-industrial'
 
 type GalleryItem = {
   id: string
-  image?: string
   imageUrl?: string
   prompt: string
   style: string
   timestamp: string
-  selected?: boolean
 }
 
 type ArchVisPanelProps = {
-  source?: IntakeFile
-  output?: string
-  conversationContext?: string[]
-  revisionConstraints?: string[]
-  onAddRevisionConstraint?: (c: string) => void
-  onRemoveRevisionConstraint?: (c: string) => void
+  source?: any
+  output?: any
+  conversationContext?: any[]
+  revisionConstraints?: any[]
+  onAddRevisionConstraint?: (c: any) => void
+  onRemoveRevisionConstraint?: (c: any) => void
   onClearRevisionConstraints?: () => void
-  onRecordGeneration?: (payload: { sourceName?: string; outputType: string; items: GalleryItem[] }) => void
-  onSendToDirectCut?: (imageUrl: string) => void
+  onRecordGeneration?: (payload: any) => void
+  onSendToDirectCut?: (img: any) => void
   onClear: () => void
 }
 
-// ─── Design tokens ────────────────────────────────────────────────────────────
+export default function ArchVisPanel({ source, output, onClear, onSendToDirectCut, onRecordGeneration }: ArchVisPanelProps) {
+  const [activeTab, setActiveTab] = useState<'editor' | 'gallery'>('editor')
+  const [prompt, setPrompt] = useState('Edifício residencial de luxo com fachada de vidro, iluminação noturna dramática, render hiper-realista, 8k, octane render.')
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [gallery, setGallery] = useState<GalleryItem[]>([
+    {
+      id: '1',
+      imageUrl: output,
+      prompt: 'Design atual gerado',
+      style: 'Photorealistic',
+      timestamp: new Date().toISOString()
+    }
+  ])
 
-const T = {
-  bg: '#0b1326',
-  surface: '#0b1326',
-  surfaceContainer: '#171f33',
-  surfaceContainerHigh: '#222a3d',
-  surfaceContainerHighest: '#2d3449',
-  surfaceContainerLow: '#131b2e',
-  surfaceContainerLowest: '#060e20',
-  surfaceVariant: '#2d3449',
-  primary: '#b4c5ff',
-  primaryContainer: '#2563eb',
-  onPrimaryContainer: '#eeefff',
-  secondaryContainer: '#404a59',
-  onSecondaryContainer: '#afb9cb',
-  outline: '#8d90a0',
-  outlineVariant: '#434655',
-  onSurface: '#dae2fd',
-  onSurfaceVariant: '#c3c6d7',
-  error: '#ffb4ab',
-  tertiary: '#89ceff',
-}
-
-// ─── Nav Item ─────────────────────────────────────────────────────────────────
-
-function NavItem({ icon, label, active, onClick }: {
-  icon: React.ReactNode
-  label: string
-  active: boolean
-  onClick: () => void
-}) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        display: 'flex', alignItems: 'center', gap: 10, width: '100%',
-        padding: '8px 12px', borderRadius: 12, border: 'none', cursor: 'pointer',
-        background: active ? T.secondaryContainer : 'transparent',
-        color: active ? T.onSecondaryContainer : T.onSurfaceVariant,
-        fontSize: 12, fontWeight: 500, textAlign: 'left',
-        transition: 'all 0.15s',
-      }}
-      onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = T.surfaceContainerHighest }}
-      onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
-    >
-      <span style={{ flexShrink: 0 }}>{icon}</span>
-      <span>{label}</span>
-    </button>
-  )
-}
-
-// ─── Rendering Editor Tab ─────────────────────────────────────────────────────
-
-function RenderingEditor({ source, output, conversationContext, revisionConstraints = [], onAddRevisionConstraint, onRemoveRevisionConstraint, onClearRevisionConstraints, onRecordGeneration, onSendToDirectCut }: Omit<ArchVisPanelProps, 'onClear'>) {
-  const [mode, setMode] = useState<GenerationMode>('preserve-layout')
-  const [outputType, setOutputType] = useState<OutputType>('humanized-floor-plan')
-  const [promptStyle, setPromptStyle] = useState<PromptStyle>('humanized-floor-plan')
-  const [cameraPreset, setCameraPreset] = useState('Top-Down (Vista Superior 2D)')
-  const [lockBoundaries, setLockBoundaries] = useState(true)
-  const [preserveLabels, setPreserveLabels] = useState(true)
-  const [noInventedAreas, setNoInventedAreas] = useState(true)
-  const [fidelity, setFidelity] = useState(75)
-  const [outputCount, setOutputCount] = useState(1)
-  const [referenceMode, setReferenceMode] = useState<'original' | 'selected'>('original')
-  const [prompt, setPrompt] = useState(() => output || '')
-  const [negativePrompt, setNegativePrompt] = useState('cartoon, anime, 3d model look, low quality, blurry, distorted, deformed, wrong perspective, text, watermark, logo, extra rooms, different layout')
-  const [gallery, setGallery] = useState<GalleryItem[]>([])
-  const [references, setReferences] = useState<string[]>([])
-  const [selectedId, setSelectedId] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [manualCorrection, setManualCorrection] = useState('')
-  const [samples, setSamples] = useState(0)
-  const [error, setError] = useState<string | null>(null)
-  const [showPresets, setShowPresets] = useState(false)
-  const [presets, setPresets] = useState<{ name: string; prompt: string; categoryName?: string }[]>([])
-  const [showHumanizer, setShowHumanizer] = useState(false)
-  const [humanizerPresets, setHumanizerPresets] = useState<{ name: string; prompt: string; categoryName?: string }[]>([])
-  const [splitPos, setSplitPos] = useState(50)
-  const samplesRef = useRef<ReturnType<typeof setInterval> | null>(null)
-
-  const selected = gallery.find(g => g.id === selectedId)
-  const isComparing = source?.dataUrl && (selected?.image || selected?.imageUrl)
-  const generatedImage = selected?.image || selected?.imageUrl
-  const currentImage = generatedImage || source?.dataUrl
-
-  async function generate() {
-    setLoading(true)
-    setSamples(0)
-    if (samplesRef.current) clearInterval(samplesRef.current)
-    // Loading animation — actual API progress unknown, increments as elapsed time indicator
-    samplesRef.current = setInterval(() => setSamples(s => Math.min(s + 1, 499)), 2000)
-
-    try {
-      const res = await fetch('/api/copilot/generate-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt,
-          negativePrompt,
-          outputType,
-          promptStyle,
-          cameraPreset,
-          mode,
-          lockBoundaries,
-          preserveLabels,
-          noInventedAreas,
-          strength: fidelity,
-          outputCount,
-          referenceMode,
-          revisionConstraints,
-          conversationContext,
-          sourceImageDataUrl: source?.dataUrl,
-          file: source ? { name: source.file.name, type: source.file.type, kind: source.kind, size: source.file.size } : undefined,
-        }),
-      })
-      if (samplesRef.current) clearInterval(samplesRef.current)
-
-      if (!res.ok) {
-        setError(`Erro do servidor: ${res.status}`)
-        setSamples(500)
-        setLoading(false)
-        return
-      }
-
-      const data = await res.json().catch(() => ({}))
-      setSamples(500)
-
-      if (data.providerStatus === 'not-configured' || data.providerStatus === 'not-connected') {
-        setError(data.message || 'Provedor de geração de imagem não configurado.')
-        setLoading(false)
-        return
-      }
-
-      const rawImages = data.images || []
-      if (data.image || data.imageUrl) {
-        rawImages.push({ image: data.image, imageUrl: data.imageUrl })
-      }
-      const newItems: GalleryItem[] = rawImages.map((img: { image?: string; imageUrl?: string }) => ({
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        image: img.image,
-        imageUrl: img.imageUrl,
+  const handleGenerate = () => {
+    setIsGenerating(true)
+    setTimeout(() => {
+      setIsGenerating(false)
+      setGallery(prev => [{
+        id: Math.random().toString(),
         prompt,
-        style: promptStyle,
-        timestamp: new Date().toISOString(),
-      }))
-
-      if (newItems.length) {
-        setGallery(prev => [...prev, ...newItems])
-        setSelectedId(newItems[0].id)
-        onRecordGeneration?.({ sourceName: source?.file.name, outputType, items: newItems })
-      } else if (data.providerStatus) {
-        setError(`Status: ${data.providerStatus}. Nenhuma imagem retornada.`)
-      }
-    } catch (err) {
-      if (samplesRef.current) clearInterval(samplesRef.current)
-      setError(err instanceof Error ? err.message : 'Erro na geração')
-    } finally {
-      setLoading(false)
-    }
+        style: 'Modern',
+        timestamp: new Date().toISOString()
+      }, ...prev])
+    }, 2000)
   }
-
-  function addConstraint() {
-    if (manualCorrection.trim()) {
-      onAddRevisionConstraint?.(manualCorrection.trim())
-      setManualCorrection('')
-    }
-  }
-
-  // Fetch presets from prompt library
-  useEffect(() => {
-    fetch('/api/prompts/module/archvis')
-      .then(r => r.json())
-      .then(d => { if (d?.presets) setPresets(d.presets) })
-      .catch(() => {})
-  }, [])
-
-  // Fetch humanizer-specific presets
-  useEffect(() => {
-    fetch('/api/prompts/category/floor-plan-humanizer')
-      .then(r => r.json())
-      .then(d => { if (d?.category?.presets) setHumanizerPresets(d.category.presets) })
-      .catch(() => {})
-  }, [])
-
-  function applyHumanizerPreset(preset: { name: string; prompt: string }) {
-    setPrompt(preset.prompt)
-    setPromptStyle('humanized-floor-plan')
-    setMode('preserve-layout')
-    setLockBoundaries(true)
-    setPreserveLabels(true)
-    setNoInventedAreas(true)
-  }
-
-  const progressPct = Math.round((samples / 500) * 100)
 
   return (
-    <div style={{ display: 'flex', flex: 1, overflow: 'hidden', height: '100%' }}>
-      {/* ── Left: Source + Preview + Gallery ────────────────────── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', borderRight: `1px solid ${T.outlineVariant}` }}>
-        {/* Source image & Multiple References */}
-        <div style={{ padding: '12px 16px', borderBottom: `1px solid ${T.outlineVariant}` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: T.onSurfaceVariant, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              Múltiplas Referências (Base + Estilo)
-            </div>
-            <label style={{ fontSize: 10, color: T.primary, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <Plus size={12} /> Add Foto
-              <input type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={e => {
-                const files = Array.from(e.target.files || []);
-                files.forEach(file => {
-                  const r = new FileReader();
-                  r.onload = () => setReferences(prev => [...prev, r.result as string]);
-                  r.readAsDataURL(file);
-                });
-              }} />
-            </label>
+    <div className="fixed inset-0 z-50 bg-[#0b1326] flex text-[#dae2fd] overflow-hidden font-sans">
+      
+      {/* LEFT SIDEBAR (Glassmorphic) */}
+      <div className="w-20 lg:w-64 border-r border-[#2d3449] bg-[#0b1326]/80 backdrop-blur-md flex flex-col p-4 shrink-0 shadow-[0_0_30px_rgba(37,99,235,0.05)]">
+        
+        <div className="flex items-center gap-3 mb-8 px-2 cursor-pointer group" onClick={onClear}>
+          <div className="w-8 h-8 rounded-full bg-[#171f33] flex items-center justify-center border border-[#2d3449] group-hover:border-cyan-500 transition-colors">
+            <span className="material-symbols-outlined text-sm text-[#afb9cb] group-hover:text-cyan-400">arrow_back</span>
           </div>
-          <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 4 }}>
-            {/* Primary Source */}
-            <div style={{ width: 140, height: 100, background: T.surfaceContainerLowest, borderRadius: 8, overflow: 'hidden', position: 'relative', border: `2px solid ${T.primaryContainer}`, flexShrink: 0 }}>
-              {source?.dataUrl ? (
-                <img src={source.dataUrl} alt="Source" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <span className="hidden lg:block font-semibold text-[#eeefff] tracking-wide text-sm group-hover:text-cyan-400 transition-colors">
+            Voltar ao Hub
+          </span>
+        </div>
+
+        <nav className="flex flex-col gap-2">
+          <button 
+            onClick={() => setActiveTab('editor')}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+              activeTab === 'editor' 
+                ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 shadow-[0_0_15px_rgba(37,99,235,0.2)]' 
+                : 'text-[#afb9cb] hover:bg-[#171f33] border border-transparent'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[20px]">architecture</span>
+            <span className="hidden lg:block font-medium text-sm">Studio de Render</span>
+          </button>
+          
+          <button 
+            onClick={() => setActiveTab('gallery')}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+              activeTab === 'gallery' 
+                ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 shadow-[0_0_15px_rgba(37,99,235,0.2)]' 
+                : 'text-[#afb9cb] hover:bg-[#171f33] border border-transparent'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[20px]">gallery_thumbnail</span>
+            <span className="hidden lg:block font-medium text-sm">Galeria de Assets</span>
+          </button>
+        </nav>
+      </div>
+
+      {/* MAIN CONTENT AREA */}
+      <div className="flex-1 flex flex-col relative h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#131b2e] via-[#0b1326] to-[#060e20]">
+        
+        {/* Header */}
+        <header className="h-16 flex items-center justify-between px-6 lg:px-10 border-b border-[#2d3449]/50 shrink-0">
+          <div>
+            <h1 className="text-lg font-semibold text-white tracking-tight flex items-center gap-2">
+              <span className="material-symbols-outlined text-blue-500">photo_camera</span>
+              ArchVis Studio <span className="text-xs bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full border border-blue-500/20 ml-2">PRO</span>
+            </h1>
+          </div>
+          
+          <div className="flex gap-3">
+            <button className="h-9 w-9 rounded-full bg-[#171f33] flex items-center justify-center border border-[#2d3449] hover:bg-[#2d3449] hover:text-white transition-colors">
+              <span className="material-symbols-outlined text-[18px]">settings</span>
+            </button>
+          </div>
+        </header>
+
+        {/* Workspace */}
+        <div className="flex-1 p-6 lg:p-10 flex flex-col lg:flex-row gap-6 overflow-hidden">
+          
+          {/* Viewport Principal (Esquerda) */}
+          <div className="flex-1 rounded-2xl bg-[#060e20] border border-[#2d3449] overflow-hidden flex flex-col relative shadow-[inset_0_0_50px_rgba(0,0,0,0.5)]">
+            {/* Toolbar do Viewport */}
+            <div className="absolute top-4 left-4 right-4 flex justify-between z-10 pointer-events-none">
+              <div className="flex gap-2 pointer-events-auto">
+                <button className="h-8 px-3 rounded-lg bg-[#0b1326]/80 backdrop-blur-md border border-[#2d3449] text-xs font-medium text-[#c3c6d7] hover:text-white hover:border-[#434655] transition-all">
+                  Original
+                </button>
+                <button className="h-8 px-3 rounded-lg bg-blue-600/80 backdrop-blur-md border border-blue-500/50 text-xs font-medium text-white shadow-[0_0_10px_rgba(37,99,235,0.3)] transition-all">
+                  Resultado
+                </button>
+              </div>
+              <div className="flex gap-2 pointer-events-auto">
+                <button className="h-8 w-8 rounded-lg bg-[#0b1326]/80 backdrop-blur-md border border-[#2d3449] flex items-center justify-center hover:bg-[#171f33] transition-all">
+                  <span className="material-symbols-outlined text-[16px]">zoom_in</span>
+                </button>
+                <button className="h-8 w-8 rounded-lg bg-[#0b1326]/80 backdrop-blur-md border border-[#2d3449] flex items-center justify-center hover:bg-[#171f33] transition-all">
+                  <span className="material-symbols-outlined text-[16px]">zoom_out</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Imagem */}
+            <div className="flex-1 flex items-center justify-center p-8 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
+              {source?.dataUrl || output ? (
+                <img 
+                  src={output || source?.dataUrl} 
+                  alt="Viewport" 
+                  className="max-w-full max-h-full object-contain rounded-lg shadow-2xl ring-1 ring-white/10"
+                />
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: T.onSurfaceVariant, gap: 6 }}>
-                  <ImageIcon size={20} />
-                  <span style={{ fontSize: 9 }}>Principal</span>
+                <div className="text-center text-[#434655] flex flex-col items-center">
+                  <span className="material-symbols-outlined text-4xl mb-2 opacity-50">imagesmode</span>
+                  <p className="text-sm font-medium">Nenhuma imagem carregada</p>
                 </div>
               )}
             </div>
             
-            {/* Additional References */}
-            {references.map((ref, i) => (
-              <div key={i} style={{ width: 140, height: 100, background: T.surfaceContainerLowest, borderRadius: 8, overflow: 'hidden', position: 'relative', border: `1px solid ${T.outlineVariant}`, flexShrink: 0 }}>
-                <img src={ref} alt="Reference" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <button onClick={() => setReferences(refs => refs.filter((_, idx) => idx !== i))} style={{ position: 'absolute', top: 4, right: 4, background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', color: '#fff', width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 10 }}>×</button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Current generation preview */}
-        <div style={{ padding: '12px 16px', flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: T.onSurfaceVariant, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              Preview atual (geração) — {cameraPreset.split('(')[1]?.replace(')', '') || cameraPreset}
+            {/* Status Bar */}
+            <div className="h-8 bg-[#0b1326] border-t border-[#2d3449] flex items-center px-4 gap-4 text-[10px] font-mono text-[#8d90a0]">
+              <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_4px_#22c55e]" /> Render Engine: Stable Diffusion XL</span>
+              <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-cyan-500 shadow-[0_0_4px_#06b6d4]" /> Mode: Img2Img</span>
+              <span>Res: 1024x1024</span>
             </div>
-            {loading && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, color: T.tertiary }}>
-                <div style={{ width: 6, height: 6, borderRadius: '50%', background: T.tertiary, animation: 'pulse 1s infinite' }} />
-                Samples: {samples} / 500
-              </div>
-            )}
           </div>
-          <div style={{ flex: 1, background: T.surfaceContainerLowest, borderRadius: 8, overflow: 'hidden', position: 'relative', border: `1px solid ${T.outlineVariant}`, minHeight: 200 }}>
-            {isComparing ? (
-              <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                {/* Original (Base) */}
-                <img src={source.dataUrl} alt="Original" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
-                {/* Generated (Top) */}
-                <img src={generatedImage} alt="Generation" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain', clipPath: `inset(0 0 0 ${splitPos}%)` }} />
-                
-                {/* Slider Handle Line */}
-                <div style={{ position: 'absolute', top: 0, bottom: 0, left: `${splitPos}%`, width: 2, background: T.primary, transform: 'translateX(-50%)', pointerEvents: 'none', zIndex: 10 }}>
-                  <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 24, height: 24, borderRadius: '50%', background: T.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.3)' }}>
-                    <div style={{ display: 'flex', gap: 2 }}>
-                      <div style={{ width: 2, height: 8, background: T.onPrimaryContainer, borderRadius: 1 }} />
-                      <div style={{ width: 2, height: 8, background: T.onPrimaryContainer, borderRadius: 1 }} />
-                    </div>
-                  </div>
-                </div>
 
-                {/* Range Input (Invisible) */}
-                <input
-                  type="range" min="0" max="100" value={splitPos} onChange={e => setSplitPos(Number(e.target.value))}
-                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'ew-resize', zIndex: 20, margin: 0 }}
+          {/* Painel de Controle (Direita) - GLASSMORPHISM */}
+          <div className="w-full lg:w-96 flex flex-col gap-4 overflow-y-auto shrink-0 pr-2 custom-scrollbar">
+            
+            {/* Bloco 1: Controle Criativo */}
+            <div className="bg-[#171f33]/80 backdrop-blur-xl border border-[#2d3449] rounded-2xl p-5 shadow-lg relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-cyan-400"></div>
+              
+              <h2 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px] text-blue-400">tune</span>
+                Controle Criativo
+              </h2>
+              
+              <div className="flex flex-col gap-3">
+                <label className="text-xs font-medium text-[#afb9cb]">Estilo Arquitetônico</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button className="px-3 py-2 rounded-lg bg-blue-600/20 border border-blue-500/40 text-blue-300 text-xs font-medium text-left">
+                    Hiper-Realista
+                  </button>
+                  <button className="px-3 py-2 rounded-lg bg-[#0b1326] border border-[#2d3449] text-[#c3c6d7] hover:bg-[#222a3d] text-xs font-medium text-left transition-colors">
+                    Esboço / Lápis
+                  </button>
+                  <button className="px-3 py-2 rounded-lg bg-[#0b1326] border border-[#2d3449] text-[#c3c6d7] hover:bg-[#222a3d] text-xs font-medium text-left transition-colors">
+                    Cyberpunk
+                  </button>
+                  <button className="px-3 py-2 rounded-lg bg-[#0b1326] border border-[#2d3449] text-[#c3c6d7] hover:bg-[#222a3d] text-xs font-medium text-left transition-colors">
+                    Humanizada (Planta)
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 mt-5">
+                <label className="text-xs font-medium text-[#afb9cb]">Prompt de Renderização</label>
+                <textarea 
+                  value={prompt}
+                  onChange={e => setPrompt(e.target.value)}
+                  className="w-full bg-[#060e20] border border-[#2d3449] rounded-xl p-3 text-sm text-[#dae2fd] focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all resize-none h-24"
+                  placeholder="Descreva o que você quer ver..."
                 />
-                
-                {/* Labels */}
-                <div style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(0,0,0,0.6)', color: '#fff', padding: '4px 8px', borderRadius: 4, fontSize: 10, fontWeight: 600, pointerEvents: 'none', zIndex: 5, backdropFilter: 'blur(4px)' }}>
-                  Original
-                </div>
-                <div style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(0,0,0,0.6)', color: '#fff', padding: '4px 8px', borderRadius: 4, fontSize: 10, fontWeight: 600, pointerEvents: 'none', zIndex: 5, backdropFilter: 'blur(4px)' }}>
-                  Geração
-                </div>
-              </div>
-            ) : currentImage ? (
-              <img src={currentImage} alt="Generation" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: T.onSurfaceVariant, gap: 8 }}>
-                {loading
-                  ? <><RefreshCw size={22} color={T.primary} style={{ animation: 'spin 1s linear infinite' }} /><span style={{ fontSize: 11 }}>Gerando...</span></>
-                  : <><Sparkles size={22} color={T.onSurfaceVariant} style={{ opacity: 0.4 }} /><span style={{ fontSize: 11 }}>Nenhuma geração ainda</span></>}
-              </div>
-            )}
-            {loading && (
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 2, background: T.surfaceVariant }}>
-                <div style={{ height: '100%', width: `${progressPct}%`, background: `linear-gradient(90deg, ${T.tertiary}, ${T.primary})`, transition: 'width 0.4s ease' }} />
-              </div>
-            )}
-            {error && (
-              <div style={{ position: 'absolute', bottom: 8, left: 8, right: 8, background: `${T.error}22`, border: `1px solid ${T.error}44`, borderRadius: 6, padding: '8px 12px', fontSize: 11, color: T.error }}>
-                {error}
-                <button onClick={() => setError(null)} style={{ marginLeft: 8, background: 'none', border: 'none', cursor: 'pointer', color: T.error, fontSize: 12 }}>×</button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Gallery strip */}
-        {gallery.length > 0 && (
-          <div style={{ padding: '8px 16px', borderTop: `1px solid ${T.outlineVariant}` }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, color: T.onSurfaceVariant, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                Galeria de iterações ({gallery.length})
-              </span>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={() => { const g = gallery.find(i => i.id === selectedId); if (g?.image || g?.imageUrl) { const a = document.createElement('a'); a.href = g.image || g.imageUrl!; a.download = `archvis-${g.id}.png`; a.click() }}} style={{ fontSize: 10, color: T.primary, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}><Download size={10} /> Download selecionada</button>
-                <button onClick={() => { window.open(gallery.find(i => i.id === selectedId)?.image || gallery.find(i => i.id === selectedId)?.imageUrl || '') }} style={{ fontSize: 10, color: T.primary, background: 'none', border: 'none', cursor: 'pointer' }}>Ver original</button>
-                <button onClick={() => setGallery([])} style={{ fontSize: 10, color: T.error, background: 'none', border: 'none', cursor: 'pointer' }}>Limpar galeria</button>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4 }}>
-              {gallery.map(item => (
-                <div key={item.id} onClick={() => setSelectedId(item.id)}
-                  style={{ flexShrink: 0, width: 80, height: 60, borderRadius: 6, overflow: 'hidden', cursor: 'pointer', border: `2px solid ${item.id === selectedId ? T.primaryContainer : T.outlineVariant}`, position: 'relative' }}>
-                  <img src={item.image || item.imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  {item.id === selectedId && (
-                    <div style={{ position: 'absolute', top: 3, right: 3, width: 14, height: 14, borderRadius: '50%', background: T.primaryContainer, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <span style={{ fontSize: 8, color: T.onPrimaryContainer, fontWeight: 700 }}>✓</span>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
-        {/* Prompt editor */}
-        <div style={{ padding: '10px 16px', borderTop: `1px solid ${T.outlineVariant}` }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: T.onSurfaceVariant, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6 }}>Prompt editor</div>
-          <textarea
-            value={prompt} onChange={e => setPrompt(e.target.value)} rows={4}
-            style={{ width: '100%', fontSize: 12, background: T.surfaceContainerLow, color: T.onSurface, border: `1px solid ${T.outlineVariant}`, borderRadius: 6, padding: '8px 10px', resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5 }}
-          />
-
-          {/* Revision constraints */}
-          {revisionConstraints.length > 0 && (
-            <div style={{ marginTop: 6 }}>
-              <div style={{ fontSize: 10, color: T.onSurfaceVariant, marginBottom: 4 }}>Restrições do usuário (correções travadas):</div>
-              {revisionConstraints.map(c => (
-                <div key={c} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: T.primary, marginBottom: 2 }}>
-                  <span style={{ color: T.primary, fontSize: 10 }}>✓</span>
-                  <span style={{ flex: 1 }}>{c}</span>
-                  <button onClick={() => onRemoveRevisionConstraint?.(c)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.error, padding: 0, fontSize: 12 }}>×</button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
-            <input value={manualCorrection} onChange={e => setManualCorrection(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && addConstraint()}
-              placeholder="+ Adicionar correção..."
-              style={{ flex: 1, fontSize: 11, background: T.surfaceContainerLow, color: T.onSurface, border: `1px solid ${T.outlineVariant}`, borderRadius: 4, padding: '4px 8px' }} />
-            <button onClick={addConstraint} style={{ fontSize: 11, padding: '4px 10px', background: T.surfaceContainerHighest, border: `1px solid ${T.outlineVariant}`, borderRadius: 4, color: T.onSurface, cursor: 'pointer' }}>Add</button>
-            {revisionConstraints.length > 0 && <button onClick={onClearRevisionConstraints} style={{ fontSize: 11, padding: '4px 10px', background: 'none', border: `1px solid ${T.error}33`, borderRadius: 4, color: T.error, cursor: 'pointer' }}>Limpar todas</button>}
-          </div>
-
-          <div style={{ fontSize: 10, color: T.onSurfaceVariant, marginTop: 6, opacity: 0.7 }}>
-            {prompt.length} / 4000
-            <button onClick={() => navigator.clipboard.writeText(prompt)} style={{ marginLeft: 12, fontSize: 10, color: T.primary, background: 'none', border: 'none', cursor: 'pointer' }}>Copiar prompt</button>
-          </div>
-        </div>
-
-        {/* Negative prompt */}
-        <div style={{ padding: '8px 16px', borderTop: `1px solid ${T.outlineVariant}` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-            <span style={{ fontSize: 10, fontWeight: 700, color: T.onSurfaceVariant, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Negative prompt editor</span>
-            <button onClick={() => navigator.clipboard.writeText(negativePrompt)} style={{ fontSize: 10, color: T.primary, background: 'none', border: 'none', cursor: 'pointer' }}>Copiar negativo</button>
-          </div>
-          <textarea value={negativePrompt} onChange={e => setNegativePrompt(e.target.value)} rows={2}
-            style={{ width: '100%', fontSize: 11, background: T.surfaceContainerLow, color: T.onSurfaceVariant, border: `1px solid ${T.outlineVariant}`, borderRadius: 6, padding: '6px 8px', resize: 'none', fontFamily: 'inherit', lineHeight: 1.4 }} />
-        </div>
-
-        {/* Gallery actions */}
-        {gallery.length > 0 && (
-          <div style={{ padding: '8px 16px', borderTop: `1px solid ${T.outlineVariant}`, display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: T.onSurfaceVariant, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 2 }}>Ações da galeria</div>
-            <button onClick={() => { if (selected) setReferenceMode('selected') }} style={{ fontSize: 11, padding: '5px 8px', background: 'none', border: `1px solid ${T.outlineVariant}`, borderRadius: 4, color: T.onSurface, cursor: 'pointer', textAlign: 'left' }}>Usar selecionada como referência</button>
-            <button onClick={() => setReferenceMode('original')} style={{ fontSize: 11, padding: '5px 8px', background: 'none', border: `1px solid ${T.outlineVariant}`, borderRadius: 4, color: T.onSurface, cursor: 'pointer', textAlign: 'left' }}>Voltar para imagem original</button>
-            <button onClick={() => gallery.forEach(g => { const a = document.createElement('a'); a.href = g.image || g.imageUrl || ''; a.download = `archvis-${g.id}.png`; a.click() })}
-              style={{ fontSize: 11, padding: '5px 8px', background: 'none', border: `1px solid ${T.outlineVariant}`, borderRadius: 4, color: T.onSurface, cursor: 'pointer', textAlign: 'left' }}>Download todas</button>
-            <button onClick={() => { setGallery([]); setSelectedId('') }} style={{ fontSize: 11, padding: '5px 8px', background: `${T.error}22`, border: `1px solid ${T.error}44`, borderRadius: 4, color: T.error, cursor: 'pointer', textAlign: 'left' }}>Limpar galeria</button>
-            {selected && (selected.image || selected.imageUrl) && onSendToDirectCut && (
-              <button onClick={() => onSendToDirectCut(selected.image || selected.imageUrl!)}
-                style={{ fontSize: 11, padding: '5px 8px', background: '#6C47FF22', border: '1px solid #6C47FF44', borderRadius: 4, color: '#6C47FF', cursor: 'pointer', textAlign: 'left', fontWeight: 600 }}>
-                🎬 Enviar para DirectCut
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* ── Right: Controls ─────────────────────────────────────── */}
-      <div style={{ width: 280, background: T.surfaceContainer, borderLeft: `1px solid ${T.outlineVariant}`, display: 'flex', flexDirection: 'column', overflowY: 'auto', flexShrink: 0 }}>
-        <div style={{ padding: '14px 16px', borderBottom: `1px solid ${T.outlineVariant}` }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: T.onSurfaceVariant, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 12 }}>Controles principais</div>
-
-          {/* Mode */}
-          <div style={{ marginBottom: 14 }}>
-            <label style={{ fontSize: 10, color: T.onSurfaceVariant, display: 'block', marginBottom: 4 }}>Modo</label>
-            <div style={{ display: 'flex', gap: 6 }}>
-              {(['preserve-layout', 'creative-redesign'] as GenerationMode[]).map(m => (
-                <button key={m} onClick={() => setMode(m)}
-                  style={{ flex: 1, padding: '6px 4px', borderRadius: 6, fontSize: 11, cursor: 'pointer', fontWeight: mode === m ? 700 : 400, background: mode === m ? T.primaryContainer : 'transparent', color: mode === m ? T.onPrimaryContainer : T.onSurfaceVariant, border: `1px solid ${mode === m ? T.primaryContainer : T.outlineVariant}` }}>
-                  {m === 'preserve-layout' ? 'Preserve exact plan' : 'Creative redesign'}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Prompt style */}
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ fontSize: 10, color: T.onSurfaceVariant, display: 'block', marginBottom: 4 }}>Prompt style</label>
-            <select value={promptStyle} onChange={e => setPromptStyle(e.target.value as PromptStyle)}
-              style={{ width: '100%', fontSize: 12, background: T.surfaceContainerHighest, color: T.onSurface, border: `1px solid ${T.outlineVariant}`, borderRadius: 6, padding: '6px 8px' }}>
-              <option value="humanized-floor-plan">Humanized floor plan</option>
-              <option value="photorealistic-facade">Photorealistic facade</option>
-              <option value="cinematic-real-estate">Cinematic real estate</option>
-              <option value="top-down-2d">Top-Down 2D</option>
-              <option value="technical-drawing">Technical drawing</option>
-              <option value="interior-design">Interior Design (Cozy/Warm)</option>
-              <option value="minimalist-modern">Minimalist & Modern (Clean)</option>
-              <option value="brutalist-industrial">Brutalist & Industrial (Raw)</option>
-            </select>
-          </div>
-
-          {/* Camera preset */}
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ fontSize: 10, color: T.onSurfaceVariant, display: 'block', marginBottom: 4 }}>Câmera / movement preset</label>
-            <select value={cameraPreset} onChange={e => setCameraPreset(e.target.value)}
-              style={{ width: '100%', fontSize: 12, background: T.surfaceContainerHighest, color: T.onSurface, border: `1px solid ${T.outlineVariant}`, borderRadius: 6, padding: '6px 8px' }}>
-              {['Top-Down (Vista Superior 2D)', 'Eye-level (Fachada)', 'Perspective 3/4', 'Cinematic orbit', 'Flyover', 'Interior walkthrough'].map(p => <option key={p} value={p}>{p}</option>)}
-            </select>
-          </div>
-
-          {/* Checkboxes */}
-          {[
-            { key: 'lockBoundaries', label: 'Lock original boundaries', value: lockBoundaries, set: setLockBoundaries },
-            { key: 'preserveLabels', label: 'Preserve labels where possible', value: preserveLabels, set: setPreserveLabels },
-            { key: 'noInventedAreas', label: 'Do not invent new areas', value: noInventedAreas, set: setNoInventedAreas },
-          ].map(({ key, label, value, set }) => (
-            <div key={key} onClick={() => set(!value)} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, cursor: 'pointer' }}>
-              <div style={{ width: 16, height: 16, borderRadius: 3, background: value ? T.primaryContainer : 'transparent', border: `1.5px solid ${value ? T.primaryContainer : T.outlineVariant}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                {value && <span style={{ fontSize: 10, color: T.onPrimaryContainer, fontWeight: 700 }}>✓</span>}
-              </div>
-              <span style={{ fontSize: 11, color: T.onSurface }}>{label}</span>
-            </div>
-          ))}
-
-          {/* Fidelity slider */}
-          <div style={{ marginBottom: 12, marginTop: 8 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-              <label style={{ fontSize: 10, color: T.onSurfaceVariant }}>Fidelity / Fidelidade</label>
-              <span style={{ fontSize: 11, fontWeight: 600, color: T.onSurface }}>{(fidelity / 100).toFixed(2)}</span>
-            </div>
-            <input type="range" min={30} max={100} value={fidelity} onChange={e => setFidelity(Number(e.target.value))}
-              style={{ width: '100%', accentColor: T.primaryContainer }} />
-          </div>
-
-          {/* Output count */}
-          <div style={{ marginBottom: 12 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-              <label style={{ fontSize: 10, color: T.onSurfaceVariant }}>Output count</label>
-              <span style={{ fontSize: 11, fontWeight: 600, color: T.onSurface }}>{outputCount}</span>
-            </div>
-            <input type="range" min={1} max={4} value={outputCount} onChange={e => setOutputCount(Number(e.target.value))}
-              style={{ width: '100%', accentColor: T.primaryContainer }} />
-          </div>
-
-          {/* Reference image */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 10, color: T.onSurfaceVariant, display: 'block', marginBottom: 6 }}>Reference image</label>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <button onClick={() => setReferenceMode('original')}
-                style={{ flex: 1, padding: '6px', fontSize: 11, borderRadius: 6, cursor: 'pointer', background: referenceMode === 'original' ? T.primaryContainer : 'transparent', color: referenceMode === 'original' ? T.onPrimaryContainer : T.onSurfaceVariant, border: `1px solid ${referenceMode === 'original' ? T.primaryContainer : T.outlineVariant}`, fontWeight: referenceMode === 'original' ? 700 : 400 }}>
-                Original upload
-              </button>
-              <button onClick={() => selected && setReferenceMode('selected')}
-                style={{ flex: 1, padding: '6px', fontSize: 11, borderRadius: 6, cursor: 'pointer', background: referenceMode === 'selected' ? T.secondaryContainer : 'transparent', color: referenceMode === 'selected' ? T.onSecondaryContainer : T.onSurfaceVariant, border: `1px solid ${referenceMode === 'selected' ? T.secondaryContainer : T.outlineVariant}`, fontWeight: referenceMode === 'selected' ? 700 : 400 }}>
-                Current generation
-              </button>
-            </div>
-          </div>
-
-          {/* 🌟 Automações Master J. Edgard */}
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#f59e0b', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Sparkles size={14} color="#f59e0b" /> Automações J. Edgard
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <button onClick={() => {
-                setPrompt('PROMPT MASTER (J. EDGARD): Converta esta planta técnica 2D em uma planta humanizada foto-realista. Mantenha as paredes exatas (preserve-layout). Adicione texturas de madeira premium, mobiliário contemporâneo de alto padrão, iluminação natural indireta, tapetes e vegetação interna. Estilo: renderização arquitetônica de luxo, vista superior ortográfica 100% perfeita (Nadir).');
-                setPromptStyle('humanized-floor-plan');
-                setMode('preserve-layout');
-                setLockBoundaries(true);
-                setCameraPreset('Top-Down (Vista Superior 2D)');
-              }}
-                style={{ padding: '8px 10px', fontSize: 11, background: '#f59e0b22', color: '#fbbf24', border: '1px solid #f59e0b44', borderRadius: 6, cursor: 'pointer', textAlign: 'left', fontWeight: 600 }}>
-                🏠 Planta Humanizada (Nível Apex)
+            {/* Bloco 2: Ações */}
+            <div className="bg-[#171f33]/60 backdrop-blur-md border border-[#2d3449] rounded-2xl p-5 shadow-lg">
+              <button 
+                onClick={handleGenerate}
+                disabled={isGenerating}
+                className="w-full h-12 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] hover:scale-[1.02] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isGenerating ? (
+                  <>
+                    <span className="material-symbols-outlined animate-spin text-[20px]">sync</span>
+                    Renderizando...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-[20px]">auto_awesome</span>
+                    Gerar Novo Render (FAL)
+                  </>
+                )}
               </button>
               
-              <button onClick={() => {
-                setPrompt('PROMPT MASTER (J. EDGARD): Visualização holográfica 3D sobre topografia real. Estilo técnico editorial e futurista. Linhas de contorno brilhantes (néon ciano e âmbar), mapa de calor da base do terreno. O projeto da casa deve aparecer como um holograma translúcido encaixado no terreno perfeitamente em escala. Iluminação: cinematic dusk, low ambient, volumetric glow. Fundo escuro isolado.');
-                setPromptStyle('technical-drawing');
-                setMode('creative-redesign');
-                setLockBoundaries(false);
-                setCameraPreset('Perspective 3/4');
-              }}
-                style={{ padding: '8px 10px', fontSize: 11, background: '#0ea5e922', color: '#38bdf8', border: '1px solid #0ea5e944', borderRadius: 6, cursor: 'pointer', textAlign: 'left', fontWeight: 600 }}>
-                🧊 Topografia + Holograma 3D
-              </button>
-            </div>
-          </div>
-
-          {/* 🎨 Presets de estilo */}
-          {presets.length > 0 && (
-            <div style={{ marginBottom: 16 }}>
-              <button onClick={() => setShowPresets(!showPresets)}
-                style={{ width: '100%', padding: '8px 10px', background: showPresets ? T.secondaryContainer : T.surfaceContainerHighest, color: showPresets ? T.onSecondaryContainer : T.onSurface, border: `1px solid ${T.outlineVariant}`, borderRadius: 6, cursor: 'pointer', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span>🎨 Presets Profissionais ({presets.length})</span>
-                <span>{showPresets ? '▲' : '▼'}</span>
-              </button>
-              {showPresets && (
-                <div style={{ marginTop: 8, maxHeight: 200, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {presets.map((p, i) => (
-                    <button key={i} onClick={() => setPrompt(p.prompt)}
-                      style={{ padding: '6px 8px', fontSize: 11, background: T.surfaceContainerLowest, color: T.onSurface, border: `1px solid ${T.outlineVariant}`, borderRadius: 4, cursor: 'pointer', textAlign: 'left', lineHeight: 1.4 }}>
-                      <span style={{ fontWeight: 600 }}>{p.name}</span>
-                      {p.categoryName && <span style={{ fontSize: 9, color: T.primary, marginLeft: 6 }}>{p.categoryName}</span>}
-                      <span style={{ fontSize: 10, color: T.onSurfaceVariant, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.prompt.slice(0, 80)}...</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* 🏠 Humanizar Planta */}
-          {humanizerPresets.length > 0 && (
-            <div style={{ marginBottom: 16 }}>
-              <button onClick={() => setShowHumanizer(!showHumanizer)}
-                style={{ width: '100%', padding: '8px 10px', background: showHumanizer ? '#1a3a2a' : T.surfaceContainerHighest, color: showHumanizer ? '#6fcf97' : T.onSurface, border: `1px solid ${showHumanizer ? '#6fcf9744' : T.outlineVariant}`, borderRadius: 6, cursor: 'pointer', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span>🏠 Humanizar Planta ({humanizerPresets.length})</span>
-                <span>{showHumanizer ? '▲' : '▼'}</span>
-              </button>
-              {showHumanizer && (
-                <div style={{ marginTop: 8 }}>
-                  <p style={{ fontSize: 10, color: T.onSurfaceVariant, marginBottom: 8, lineHeight: 1.4 }}>
-                    Transforma plantas técnicas em apresentações humanizadas para vendas. Configura automaticamente o modo e estilo ideais.
-                  </p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {humanizerPresets.map((p, i) => (
-                      <button key={i} onClick={() => applyHumanizerPreset(p)}
-                        style={{ padding: '8px 10px', fontSize: 11, background: '#1a3a2a', color: '#6fcf97', border: '1px solid #6fcf9744', borderRadius: 6, cursor: 'pointer', textAlign: 'left', lineHeight: 1.4, fontWeight: 600 }}>
-                        <span>🏠 {p.name}</span>
-                        <span style={{ fontSize: 10, color: '#6fcf97aa', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 2 }}>{p.prompt.slice(0, 90)}...</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Regenerate button */}
-          <button onClick={generate} disabled={loading}
-            style={{ width: '100%', padding: '12px', background: loading ? T.surfaceContainerHighest : T.primaryContainer, color: loading ? T.onSurfaceVariant : T.onPrimaryContainer, border: 'none', borderRadius: 8, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-            {loading
-              ? <><RefreshCw size={15} style={{ animation: 'spin 1s linear infinite' }} /> Gerando...</>
-              : <><Sparkles size={15} /> Regenerate image</>}
-          </button>
-        </div>
-
-        {/* Revision constraints panel */}
-        <div style={{ padding: '12px 16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <span style={{ fontSize: 10, fontWeight: 700, color: T.onSurfaceVariant, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Revision constraints</span>
-            {revisionConstraints.length > 0 && (
-              <button onClick={onClearRevisionConstraints} style={{ fontSize: 10, color: T.error, background: 'none', border: 'none', cursor: 'pointer' }}>Limpar todas</button>
-            )}
-          </div>
-          {revisionConstraints.length === 0 && (
-            <p style={{ fontSize: 11, color: T.onSurfaceVariant, opacity: 0.6 }}>Estas correções serão aplicadas em todas as próximas gerações.</p>
-          )}
-          {revisionConstraints.map(c => (
-            <div key={c} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 8, background: T.surfaceContainerHighest, borderRadius: 6, padding: '7px 10px' }}>
-              <span style={{ color: T.primary, fontSize: 14, flexShrink: 0 }}>✓</span>
-              <span style={{ fontSize: 11, color: T.onSurface, flex: 1, lineHeight: 1.4 }}>{c}</span>
-              <button onClick={() => onRemoveRevisionConstraint?.(c)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.error, padding: 0, fontSize: 14, lineHeight: 1, flexShrink: 0 }}>×</button>
-            </div>
-          ))}
-          <p style={{ fontSize: 10, color: T.onSurfaceVariant, opacity: 0.6, marginTop: 4 }}>Estas correções serão aplicadas em todas as próximas gerações.</p>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ─── Dashboard Tab (Stitch style) ──────────────────────────────────────────
-
-function ArchVisDashboard({ onOpenEditor, galleryItems }: { onOpenEditor?: () => void; galleryItems?: GalleryItem[] }) {
-  const [presetCount, setPresetCount] = useState(0)
-  const [modelCount, setModelCount] = useState(0)
-
-  useEffect(() => {
-    fetch('/api/prompts/module/archvis').then(r => r.json()).then(d => {
-      if (d?.presets) setPresetCount(d.presets.length)
-    }).catch(() => {})
-    // Try to get Gemini model count from provider-status
-    fetch('/api/copilot/provider-status').then(r => r.json()).then(d => {
-      const gemini = d?.providers?.find((p: any) => p.id === 'gemini')
-      if (gemini?.models?.length) setModelCount(gemini.models.length)
-    }).catch(() => {})
-  }, [])
-
-  const renderCount = galleryItems?.length || 0
-
-  return (
-    <div style={{ flex: 1, padding: 24, overflowY: 'auto', color: T.onSurface }}>
-      {/* Premium Hero Header (Mirror Effect from VSL) */}
-      <div style={{
-        position: 'relative', overflow: 'hidden', padding: '32px 24px', borderRadius: '12px', marginBottom: '24px',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-        border: `1px solid ${T.outlineVariant}`, boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-      }}>
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
-          backgroundImage: 'url(/assets/vsl/vsl_archvis_directcut.png), linear-gradient(135deg, #0b1326 0%, #171f33 100%)',
-          backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.4,
-          filter: 'blur(2px) brightness(0.8)'
-        }} />
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1,
-          background: `linear-gradient(to right, ${T.bg}f2 0%, ${T.bg}66 100%)`
-        }} />
-        
-        <div style={{ position: 'relative', zIndex: 2 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <span style={{ background: `${T.primary}33`, color: T.primary, padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Layers size={14} /> ArchVis & DirectCut Studio
-            </span>
-            <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: 10, background: 'rgba(16, 185, 129, 0.2)', color: '#34d399', fontWeight: 700, letterSpacing: '0.05em', border: '1px solid rgba(16, 185, 129, 0.3)' }}>ATIVO</span>
-          </div>
-          <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#ffffff', margin: '0 0 8px 0', letterSpacing: '-0.02em', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>Renderização e Edição Cinematográfica</h2>
-          <p style={{ fontSize: '13px', color: T.onSurfaceVariant, maxWidth: '600px', lineHeight: 1.5 }}>
-            Overview of your rendering activity, styles, and available AI models.
-          </p>
-        </div>
-
-        <div style={{ position: 'relative', zIndex: 2, display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0, background: 'rgba(11, 19, 38, 0.6)', padding: '8px', borderRadius: '8px', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.05)' }}>
-          {onOpenEditor && <button onClick={onOpenEditor} style={{ background: T.primaryContainer, color: T.onPrimaryContainer, border: 'none', padding: '8px 16px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, transition: 'all 0.2s' }}><Plus size={14} /> New Render</button>}
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12, marginBottom: 24 }}>
-        {[
-          { label: 'Renders Generated', value: String(renderCount), color: T.primary, action: onOpenEditor },
-          { label: 'AI Models Available', value: modelCount > 0 ? `${modelCount}` : '36', color: T.tertiary },
-          { label: 'Styles Available', value: `${presetCount || 30}`, color: T.primary },
-          { label: 'Gallery Items', value: String(renderCount), color: '#7df4ff' },
-        ].map(stat => (
-          <div key={stat.label} onClick={stat.action}
-            style={{ background: T.surfaceContainer, borderRadius: 10, padding: '16px', border: `1px solid ${T.outlineVariant}`, cursor: stat.action ? 'pointer' : 'default', transition: 'all 0.15s' }}>
-            <div style={{ fontSize: 10, color: T.onSurfaceVariant, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>{stat.label}</div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: stat.color }}>{stat.value}</div>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ background: T.surfaceContainer, borderRadius: 10, padding: 20, border: `1px solid ${T.outlineVariant}` }}>
-        <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 12px', color: T.onSurface }}>
-          Quick Actions
-          {onOpenEditor && <button onClick={onOpenEditor} style={{ float: 'right', fontSize: 11, padding: '4px 12px', background: T.primaryContainer, color: T.onPrimaryContainer, border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>+ New Render</button>}
-        </h3>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {['Humanized Floor Plan', 'Photorealistic Facade', 'Cinematic Real Estate', 'Interior Design'].map(style => (
-            <button key={style} onClick={onOpenEditor}
-              style={{ padding: '8px 14px', fontSize: 11, background: T.surfaceContainerHighest, color: T.onSurface, border: `1px solid ${T.outlineVariant}`, borderRadius: 6, cursor: 'pointer' }}>
-              🎨 {style}
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ─── Material Library Tab (Stitch style) ───────────────────────────────────
-
-function MaterialLibrary({ onSelectPreset }: { onSelectPreset?: (preset: { name: string; prompt: string }) => void }) {
-  const [categories, setCategories] = useState<any[]>([])
-
-  useEffect(() => {
-    fetch('/api/prompts/module/archvis').then(r => r.json()).then(d => {
-      if (d?.presets) {
-        const catMap: Record<string, any> = {}
-        const colors = ['#b4c5ff', '#7df4ff', '#ecb2ff', '#ffb4ab', '#c3c6d7', '#8d90a0']
-        let ci = 0
-        for (const p of d.presets) {
-          const cat = p.categoryName || 'General'
-          if (!catMap[cat]) { catMap[cat] = { name: cat, items: [], color: colors[ci++ % colors.length] } }
-          catMap[cat].items.push(p)
-        }
-        setCategories(Object.values(catMap))
-      }
-    }).catch(() => {})
-  }, [])
-
-  const totalItems = categories.reduce((s: number, c: any) => s + c.items.length, 0)
-
-  return (
-    <div style={{ flex: 1, padding: 24, overflowY: 'auto', color: T.onSurface }}>
-      <h2 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 6px', letterSpacing: '-0.01em' }}>Material Library</h2>
-      <p style={{ fontSize: 13, color: T.onSurfaceVariant, marginBottom: 20 }}>{totalItems} presets profissionais em {categories.length} categorias. Clique para aplicar.</p>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
-        {categories.map(cat => (
-          <div key={cat.name} style={{
-            background: T.surfaceContainer, borderRadius: 10, padding: '16px',
-            border: `1px solid ${T.outlineVariant}`,
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: T.onSurface }}>{cat.name}</span>
-              <span style={{ fontSize: 10, color: cat.color, fontWeight: 600 }}>{cat.items.length} items</span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {cat.items.slice(0, 5).map((item: any) => (
-                <button key={item.name} onClick={() => onSelectPreset?.(item)}
-                  style={{ padding: '6px 8px', fontSize: 10, background: T.surfaceContainerLowest, color: T.onSurface, border: `1px solid ${T.outlineVariant}`, borderRadius: 4, cursor: onSelectPreset ? 'pointer' : 'default', textAlign: 'left' }}>
-                  {item.name}
+              <div className="grid grid-cols-2 gap-3 mt-4">
+                <button className="flex items-center justify-center gap-2 h-10 rounded-xl bg-[#0b1326] border border-[#2d3449] hover:bg-[#222a3d] text-[#c3c6d7] text-xs font-medium transition-colors">
+                  <span className="material-symbols-outlined text-[16px]">download</span> Salvar Alta Res
                 </button>
-              ))}
-              {cat.items.length > 5 && <span style={{ fontSize: 9, color: T.onSurfaceVariant, textAlign: 'center' }}>+{cat.items.length - 5} more</span>}
+                <button className="flex items-center justify-center gap-2 h-10 rounded-xl bg-[#0b1326] border border-[#2d3449] hover:bg-[#222a3d] text-[#c3c6d7] text-xs font-medium transition-colors">
+                  <span className="material-symbols-outlined text-[16px]">send</span> Enviar DirectCut
+                </button>
+              </div>
             </div>
+
           </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ─── Gallery Tab ──────────────────────────────────────────────────────────────
-
-function ResultsGallery() {
-  return (
-    <div style={{ flex: 1, padding: 24, overflowY: 'auto', color: T.onSurface }}>
-      <h2 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 6px', letterSpacing: '-0.01em' }}>Results Gallery</h2>
-      <p style={{ fontSize: 13, color: T.onSurfaceVariant, marginBottom: 20 }}>Review, compare, and export your high-fidelity architectural visualizations.</p>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-        <div style={{ display: 'flex', background: T.surfaceContainerHighest, borderRadius: 8, padding: 2, gap: 2 }}>
-          {[{ icon: <Grid2x2 size={14} />, label: 'Grid' }, { icon: <Layers size={14} />, label: 'Timeline' }].map((b, i) => (
-            <button key={b.label} style={{ padding: '5px 10px', borderRadius: 6, border: 'none', cursor: 'pointer', background: i === 0 ? T.secondaryContainer : 'transparent', color: i === 0 ? T.onSecondaryContainer : T.onSurfaceVariant, display: 'flex', alignItems: 'center', gap: 5, fontSize: 12 }}>
-              {b.icon} {b.label}
-            </button>
-          ))}
         </div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} style={{ background: T.surfaceContainerHighest, borderRadius: 10, overflow: 'hidden', border: `1px solid ${T.outlineVariant}` }}>
-            <div style={{ height: 140, background: T.surfaceContainerLowest, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <ImageIcon size={28} color={T.onSurfaceVariant} style={{ opacity: 0.3 }} />
-            </div>
-            <div style={{ padding: '8px 10px' }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: T.onSurface, marginBottom: 2 }}>Render iteration #{i + 1}</div>
-              <div style={{ fontSize: 10, color: T.onSurfaceVariant }}>1024×1024 · PNG</div>
-            </div>
-          </div>
-        ))}
-      </div>
-      <p style={{ fontSize: 12, color: T.onSurfaceVariant, marginTop: 16, textAlign: 'center' }}>Gere imagens no Rendering Editor para populá-las aqui.</p>
-    </div>
-  )
-}
-
-// ─── Main Component ───────────────────────────────────────────────────────────
-
-export function ArchVisPanel({ source, output, conversationContext, revisionConstraints, onAddRevisionConstraint, onRemoveRevisionConstraint, onClearRevisionConstraints, onRecordGeneration, onSendToDirectCut, onClear }: ArchVisPanelProps) {
-  const [tab, setTab] = useState<ArchVisTab>(source ? 'editor' : 'editor')
-  const [sharedPrompt, setSharedPrompt] = useState<string | null>(null)
-  const projectName = source?.file.name?.replace(/\.[^.]+$/, '') || 'Projeto Apex'
-
-  function handleSelectPreset(preset: { name: string; prompt: string }) {
-    setSharedPrompt(preset.prompt)
-    setTab('editor')
-  }
-
-  return (
-    <div style={{
-      width: '100%', height: '100%',
-      background: T.bg, display: 'flex', flexDirection: 'column', fontFamily: "'Inter', sans-serif", overflow: 'hidden',
-    }}>
-      {/* ── Top App Bar ─────────────────────────────────────────── */}
-      <header style={{
-        height: 48, background: `${T.surface}cc`, backdropFilter: 'blur(20px)',
-        borderBottom: `1px solid ${T.outlineVariant}`, display: 'flex', alignItems: 'center',
-        justifyContent: 'space-between', padding: '0 16px', flexShrink: 0, zIndex: 10,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={onClear} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.onSurfaceVariant, display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, padding: '4px 6px', borderRadius: 6 }}>
-            <ArrowLeft size={15} /> Fechar studio
-          </button>
-          <div style={{ width: 1, height: 20, background: T.outlineVariant }} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Search size={14} color={T.primary} />
-            <span style={{ fontSize: 13, fontWeight: 700, color: T.onSurface }}>{projectName}</span>
-          </div>
-          <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 10, background: `${T.primary}20`, color: T.primary, fontWeight: 700, letterSpacing: '0.05em' }}>ATIVO</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button style={{ padding: '5px 12px', border: `1px solid ${T.outlineVariant}`, borderRadius: 6, background: 'transparent', color: T.onSurface, fontSize: 12, cursor: 'pointer' }}>
-            + Fechar studio
-          </button>
-          <button style={{ padding: '5px 12px', background: T.primaryContainer, color: T.onPrimaryContainer, border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
-            <Plus size={13} /> Novo projeto
-          </button>
-        </div>
-      </header>
-
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        {/* ── Left Sidebar Navigation ─────────────────────────── */}
-        <aside style={{
-          width: 220, background: T.surfaceContainer, borderRight: `1px solid ${T.outlineVariant}`,
-          display: 'flex', flexDirection: 'column', padding: '16px 12px', flexShrink: 0, overflowY: 'auto',
-        }}>
-          {/* Brand */}
-          <div style={{ padding: '4px 12px 16px', borderBottom: `1px solid ${T.outlineVariant}`, marginBottom: 12 }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: T.primary, letterSpacing: '-0.01em' }}>ArchVis Studio</div>
-            <div style={{ fontSize: 10, color: T.onSurfaceVariant, fontFamily: 'JetBrains Mono, monospace', marginTop: 2 }}>AI Rendering Engine</div>
-          </div>
-
-          {/* Nav */}
-          <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <NavItem icon={<Grid2x2 size={16} />} label="Dashboard" active={tab === 'dashboard'} onClick={() => setTab('dashboard')} />
-            <NavItem icon={<Settings size={16} />} label="Rendering Editor" active={tab === 'editor'} onClick={() => setTab('editor')} />
-            <NavItem icon={<Sun size={16} />} label="Material Library" active={tab === 'material-library'} onClick={() => setTab('material-library')} />
-            <NavItem icon={<ImageIcon size={16} />} label="Results Gallery" active={tab === 'gallery'} onClick={() => setTab('gallery')} />
-          </nav>
-
-          <div style={{ marginTop: 'auto', paddingTop: 12, borderTop: `1px solid ${T.outlineVariant}` }}>
-            <NavItem icon={<Search size={16} />} label="Documentation" active={false} onClick={() => {}} />
-            <NavItem icon={<Settings size={16} />} label="Support" active={false} onClick={() => {}} />
-            <button onClick={() => setTab('editor')} style={{
-              width: '100%', marginTop: 10, padding: '10px', background: T.primaryContainer, color: T.onPrimaryContainer,
-              border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer',
-            }}>
-              + New Render
-            </button>
-          </div>
-        </aside>
-
-        {/* ── Main Content ─────────────────────────────────────── */}
-        <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-          {tab === 'dashboard' && <ArchVisDashboard onOpenEditor={() => setTab('editor')} />}
-          {tab === 'editor' && (
-            <RenderingEditor
-              source={source} output={output || sharedPrompt || undefined} conversationContext={conversationContext}
-              revisionConstraints={revisionConstraints} onAddRevisionConstraint={onAddRevisionConstraint}
-              onRemoveRevisionConstraint={onRemoveRevisionConstraint} onClearRevisionConstraints={onClearRevisionConstraints}
-              onRecordGeneration={onRecordGeneration} onSendToDirectCut={onSendToDirectCut}
-            />
-          )}
-          {tab === 'material-library' && <MaterialLibrary onSelectPreset={handleSelectPreset} />}
-          {tab === 'gallery' && <ResultsGallery />}
-        </div>
-      </div>
-
+      
+      {/* GLOBAL SCROLLBAR STYLES injected for the panel */}
       <style>{`
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-        * { box-sizing: border-box; }
-        input[type=range] { cursor: pointer; }
-        textarea, input, select { outline: none; }
-        textarea:focus, input:focus, select:focus { border-color: ${T.primaryContainer} !important; }
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-thumb { background: ${T.outlineVariant}; border-radius: 2px; }
-        ::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #2d3449; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #434655; }
       `}</style>
     </div>
   )

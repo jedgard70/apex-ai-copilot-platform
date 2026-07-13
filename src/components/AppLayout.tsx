@@ -1,6 +1,7 @@
 import { ReactNode, useState } from 'react'
 import { useIsMobile, useIsTablet } from '../lib/useIsMobile'
 import { PwaInstallBanner, IosInstallBanner, PwaInstallButton } from './PwaInstallBanner'
+import { CreateNewHub } from './CreateNewHub'
 
 const sidebarItems = [
   { icon: 'dashboard', label: 'Dashboard', id: 'dashboard' },
@@ -141,6 +142,7 @@ export default function AppLayout({
   const [ledTooltip, setLedTooltip] = useState<string | null>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const [isHubOpen, setIsHubOpen] = useState(false)
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
 
@@ -197,6 +199,15 @@ export default function AppLayout({
               <span className="font-jetbrains-mono text-[9px] text-secondary-fixed font-medium">{projectStatus}</span>
             </div>
           )}
+
+          {/* NOVO: Botão Criar Novo (Hub Premium) */}
+          <button 
+            onClick={() => setIsHubOpen(true)}
+            className="ml-4 flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-full font-semibold text-sm hover:shadow-[0_0_15px_rgba(6,182,212,0.6)] hover:scale-105 transition-all"
+          >
+            <span className="material-symbols-outlined text-[18px]">add_circle</span>
+            Criar novo
+          </button>
         </div>
 
         {/* RIGHT SIDE */}
@@ -439,6 +450,9 @@ export default function AppLayout({
           <PwaInstallButton />
         </>
       )}
+
+      {/* ── MODAL CRIAR NOVO (HUB) ── */}
+      <CreateNewHub isOpen={isHubOpen} onClose={() => setIsHubOpen(false)} onSelectTool={handleNav} />
     </div>
   )
 }

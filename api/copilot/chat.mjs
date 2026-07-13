@@ -8,6 +8,8 @@ import { collectProductionOperatorStatus } from '../../server/agent/productionSt
 import { classifyToolExecutionRequest, routeToolExecution, routeH6ActionRequest } from '../../server/agent/toolExecutionRouter.mjs'
 import { runApexOperatorProductionSafe } from '../../server/agent/apexOperatorRuntime.mjs'
 import { isConfirmationSignal, isCancelSignal, hasPendingAction } from '../../server/agent/confirmationStateMachine.mjs'
+import { CODE_TOOL_NAMES, getCodeToolDefinitions, executeCodeToolCall } from '../../server/lib/agenticTools.mjs'
+
 let _interactionsModels = null
 let _isInteractionModel = null
 let _interactionsPromise = null
@@ -993,6 +995,7 @@ function buildProviderStatusContext() {
 
 function buildLiveAgentToolDefinitions() {
   return [
+    ...getCodeToolDefinitions(),
     {
       type: 'function',
       function: {
