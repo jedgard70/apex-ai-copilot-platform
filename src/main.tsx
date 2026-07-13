@@ -52,7 +52,6 @@ import { EvmSchedulerCompliancePanel } from './components/EvmSchedulerCompliance
 import { CommandMode } from './components/CommandMode'
 import { CaixaCompliancePanel } from './components/CaixaCompliancePanel'
 import { ExportCenterPanel } from './components/ExportCenterPanel'
-import { InfraCostPanel } from './components/InfraCostPanel'
 import { GlobalLegalPanel } from './components/GlobalLegalPanel'
 import { FinancePanel } from './components/FinancePanel'
 import { FieldOpsPanel } from './components/FieldOpsPanel'
@@ -2649,7 +2648,8 @@ function App() {
       return
     }
     
-    if (lc.includes('legal') || lc.includes('due diligence') || lc.includes('contratos globais')) {
+    const lcText = text.toLowerCase()
+    if (lcText.includes('legal') || lcText.includes('due diligence') || lcText.includes('contratos globais')) {
       closeOtherPanels('globalLegal')
       setGlobalLegalOpen(true)
       setMessages(prev => [
@@ -2665,7 +2665,7 @@ function App() {
       return
     }
     
-    if (lc.includes('infra cost') || lc.includes('custos de infra') || lc.includes('custo de infra') || lc.includes('vercel cost')) {
+    if (lcText.includes('infra cost') || lcText.includes('custos de infra') || lcText.includes('custo de infra') || lcText.includes('vercel cost')) {
       closeOtherPanels('infraCost')
       setInfraCostOpen(true)
       setMessages(prev => [
@@ -5857,7 +5857,7 @@ function App() {
           )}
 
           {infraCostOpen && (
-            <InfraCostPanel onClear={() => setInfraCostOpen(false)} />
+            <InfraCostPanel />
           )}
 
           {globalLegalOpen && (

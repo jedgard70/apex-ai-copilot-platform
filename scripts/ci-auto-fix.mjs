@@ -107,13 +107,12 @@ async function runAutoFix() {
       // Auto-commit and push
       try {
         console.log("📦 Fazendo commit e push do reparo em nova branch...")
-        execSync(`git config --global user.name "Apex AI Auto-Fixer"`)
-        execSync(`git config --global user.email "bot@apexglobalai.com"`)
         
         const branchName = `fix/auto-heal-${Date.now()}`
         execSync(`git checkout -b ${branchName}`)
         execSync(`git add .`)
-        execSync(`git commit -m "fix(auto-heal): correcao autonoma de falha de CI" -m "${suggestion.reason.replace(/"/g, '\\"')}"`)
+        const gitEnv = { ...process.env, GIT_AUTHOR_NAME: 'Apex AI Auto-Fixer', GIT_AUTHOR_EMAIL: 'bot@apexglobalai.com', GIT_COMMITTER_NAME: 'Apex AI Auto-Fixer', GIT_COMMITTER_EMAIL: 'bot@apexglobalai.com' }
+        execSync(`git commit -m "fix(auto-heal): correcao autonoma de falha de CI" -m "${suggestion.reason.replace(/"/g, '\\"')}"`, { env: gitEnv })
         execSync(`git push -u origin ${branchName}`)
         
         try {

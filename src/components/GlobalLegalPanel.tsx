@@ -61,8 +61,8 @@ export function GlobalLegalPanel({ onClear }: GlobalLegalPanelProps) {
     <PremiumPanelLayout
       icon={<Scale className="w-5 h-5 text-indigo-400" />}
       title="Global Legal & Due Diligence"
+      subtitle="Gerenciamento de contratos"
       onClose={onClear}
-      gradient="from-indigo-500/20 to-purple-500/10"
     >
       <div className="flex flex-col gap-4 text-sm text-slate-300">
         <div className="flex items-center justify-between">
