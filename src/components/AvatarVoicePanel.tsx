@@ -182,10 +182,22 @@ export function AvatarVoicePanel({ goal, conversationContext, onSaveToProject, o
           
           {plan ? (
             <div className="flex-1 flex flex-col overflow-y-auto custom-scrollbar">
-              <h2 className="text-xl font-bold text-white mb-6">Plano de Geração: {plan.identity.personaName}</h2>
+              <h2 className="text-xl font-bold text-white mb-6">Plano de Voz e Avatar</h2>
               <div className="bg-[#171f33] border border-[#2d3449] rounded-xl p-5 mb-4">
-                <h3 className="text-sm font-semibold text-cyan-400 mb-2">Roteiro Gerado</h3>
-                <p className="text-sm text-[#dae2fd] whitespace-pre-wrap">{plan.script.fullScript}</p>
+                <h3 className="text-sm font-semibold text-cyan-400 mb-2">Resumo</h3>
+                <p className="text-sm text-[#dae2fd] whitespace-pre-wrap">{plan.summary}</p>
+              </div>
+              <div className="bg-[#171f33] border border-[#2d3449] rounded-xl p-5 mb-4">
+                <h3 className="text-sm font-semibold text-cyan-400 mb-2">Diretrizes de Identidade</h3>
+                <ul className="list-disc list-inside text-sm text-[#dae2fd] whitespace-pre-wrap">
+                  {plan.identityGuidelines.map((g, i) => <li key={i}>{g}</li>)}
+                </ul>
+              </div>
+              <div className="bg-[#171f33] border border-[#2d3449] rounded-xl p-5 mb-4">
+                <h3 className="text-sm font-semibold text-cyan-400 mb-2">Roteiro Sugerido</h3>
+                <ul className="list-disc list-inside text-sm text-[#dae2fd] whitespace-pre-wrap">
+                  {plan.scriptOutline.map((s, i) => <li key={i}>{s}</li>)}
+                </ul>
               </div>
               <div className="flex gap-3">
                 <button onClick={() => copy(plan.report)} className="flex-1 h-10 bg-[#0b1326] border border-[#2d3449] hover:bg-[#222a3d] rounded-xl flex items-center justify-center gap-2 text-xs text-[#c3c6d7]">

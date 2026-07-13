@@ -22,7 +22,7 @@ type ArchVisPanelProps = {
   onClear: () => void
 }
 
-export default function ArchVisPanel({ source, output, onClear, onSendToDirectCut, onRecordGeneration }: ArchVisPanelProps) {
+export default function ArchVisPanel({ source, output, revisionConstraints, onClear, onSendToDirectCut, onRecordGeneration }: ArchVisPanelProps) {
   const [activeTab, setActiveTab] = useState<'editor' | 'gallery'>('editor')
   const [prompt, setPrompt] = useState('Edifício residencial de luxo com fachada de vidro, iluminação noturna dramática, render hiper-realista, 8k, octane render.')
   const [isGenerating, setIsGenerating] = useState(false)
