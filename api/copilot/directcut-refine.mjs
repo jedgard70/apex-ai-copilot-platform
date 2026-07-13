@@ -12,16 +12,6 @@ function scrubError(value) {
     .slice(0, 800)
 }
 
-async function callOpenAI(apiKey, apiBase, model, messages) {
-  const resp = await fetch(`${apiBase}/chat/completions`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model, messages, max_tokens: 600, temperature: 0.7 }),
-  })
-  const data = await resp.json().catch(() => ({}))
-  if (!resp.ok) throw new Error(scrubError(data?.error?.message || `HTTP ${resp.status}`))
-  return data?.choices?.[0]?.message?.content || ''
-}
 
 async function callGemini(apiKey, model, prompt) {
   const resp = await fetch(
@@ -107,8 +97,7 @@ export default async function handler(req, res) {
   let rawText = ''
 
   try {
-
-  }  if (geminiKey) {
+    if (geminiKey) {
     rawText = await callGemini(geminiKey, geminiModel, `${systemPrompt}\n\n${userPrompt}`)
   } else {
     return sendJson(res, 200, {

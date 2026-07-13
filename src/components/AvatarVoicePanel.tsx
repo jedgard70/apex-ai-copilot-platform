@@ -48,6 +48,8 @@ export function AvatarVoicePanel({ goal, conversationContext, onSaveToProject, o
   const [plan, setPlan] = useState<AvatarVoicePlan | null>(null)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [audioUrl, setAudioUrl] = useState('')
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false)
 
   const assetSummary = useMemo(() => ({
     photos: assets.filter(item => item.kind === 'photo').length,
@@ -89,6 +91,34 @@ export function AvatarVoicePanel({ goal, conversationContext, onSaveToProject, o
       setMessage(error instanceof Error ? error.message : 'Avatar/voice planner failed.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleTestAudio() {
+    if (!plan || !plan.scriptOutline.length) return
+    setIsGeneratingAudio(true)
+    setAudioUrl('')
+    try {
+      const response = await fetch('/api/copilot/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: plan.scriptOutline.join(' '),
+          provider: 'elevenlabs',
+          voice: 'JBFqnCBcs611MxpwweFS' // default Marcus
+        })
+      })
+      const data = await response.json()
+      if (data.ok && data.audio) {
+        setAudioUrl(`data:${data.mimeType || 'audio/mpeg'};base64,${data.audio}`)
+      } else {
+        setMessage(data.error || 'Erro ao gerar áudio.')
+      }
+    } catch (e) {
+      console.error(e)
+      setMessage('Erro na comunicação com a API TTS.')
+    } finally {
+      setIsGeneratingAudio(false)
     }
   }
 
@@ -198,6 +228,23 @@ export function AvatarVoicePanel({ goal, conversationContext, onSaveToProject, o
                 <ul className="list-disc list-inside text-sm text-[#dae2fd] whitespace-pre-wrap">
                   {plan.scriptOutline.map((s, i) => <li key={i}>{s}</li>)}
                 </ul>
+              </div>
+              <div className="flex gap-3 mb-4">
+                {audioUrl ? (
+                  <div className="flex-1 h-10 bg-[#0b1326] border border-cyan-500/50 rounded-xl flex items-center justify-between px-4 text-cyan-400">
+                    <span className="material-symbols-outlined text-[16px]">play_circle</span>
+                    <span className="text-xs">Áudio Gerado</span>
+                    <audio src={audioUrl} controls className="hidden" id="avatar-audio-preview" />
+                    <button onClick={() => { const el = document.getElementById('avatar-audio-preview') as HTMLAudioElement; if (el) el.play(); }} className="hover:text-white">
+                      <span className="material-symbols-outlined text-[16px]">volume_up</span>
+                    </button>
+                  </div>
+                ) : (
+                  <button onClick={handleTestAudio} disabled={isGeneratingAudio} className="flex-1 h-10 bg-cyan-900/20 border border-cyan-500/30 hover:bg-cyan-900/40 rounded-xl flex items-center justify-center gap-2 text-xs text-cyan-400 disabled:opacity-50">
+                    {isGeneratingAudio ? <span className="material-symbols-outlined animate-spin text-[16px]">sync</span> : <span className="material-symbols-outlined text-[16px]">graphic_eq</span>}
+                    {isGeneratingAudio ? 'Gerando...' : 'Testar Áudio (ElevenLabs)'}
+                  </button>
+                )}
               </div>
               <div className="flex gap-3">
                 <button onClick={() => copy(plan.report)} className="flex-1 h-10 bg-[#0b1326] border border-[#2d3449] hover:bg-[#222a3d] rounded-xl flex items-center justify-center gap-2 text-xs text-[#c3c6d7]">

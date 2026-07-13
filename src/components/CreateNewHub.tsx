@@ -43,10 +43,11 @@ export const CreateNewHub: React.FC<{ isOpen: boolean; onClose: () => void; onSe
       { title: 'Project Workspace', subtitle: 'Gestão de pastas e arquivos de obra', icon: '📁', navId: 'fieldops' }
     ],
     'Fluxos': [
-      { title: 'Automação n8n', subtitle: 'Integrações e workflows empresariais', icon: '⚙️', navId: 'global-workflow' }
+      { title: 'Automação n8n', subtitle: 'Integrações e workflows empresariais', icon: '⚙️', navId: 'n8n' }
     ],
     'Conexões': [
-      { title: 'SAP & CRM', subtitle: 'Integração de dados externos', icon: '🔗', navId: 'crm' }
+      { title: 'SAP & CRM', subtitle: 'Integração de dados externos', icon: '🔗', navId: 'crm' },
+      { title: 'IA Integrations', subtitle: 'Conexões com Provedores e Modelos', icon: '🤖', navId: 'ia-integrations' }
     ]
   };
 

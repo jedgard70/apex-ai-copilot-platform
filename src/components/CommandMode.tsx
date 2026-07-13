@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 // import { useRouter } from 'next/router'
 import { CodeEditorPanel, IDEFile } from '../components/CodeEditorPanel'
 import { TerminalPanel } from '../components/TerminalPanel'
-import { WorkspaceFileTree } from '../components/WorkspaceFileTree'
+
 import ApexCopilot from '../components/ApexCopilot'
 import { FileCode, Search, GitBranch, Settings, LogOut, Code, Play } from 'lucide-react'
 
@@ -144,17 +144,6 @@ export function CommandMode({ onClose }: { onClose: () => void }) {
            </div>
         </div>
 
-        {/* Sidebar - Explorer */}
-        {showExplorer && (
-          <div style={{ width: '250px', backgroundColor: '#252526', borderRight: '1px solid #1e1e1e', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <div style={{ padding: '10px 20px', fontSize: '11px', textTransform: 'uppercase', color: '#cccccc', letterSpacing: '0.5px' }}>
-              Explorer
-            </div>
-            <div style={{ flex: 1, overflowY: 'auto' }}>
-               <WorkspaceFileTree onFileSelect={handleFileSelect} />
-            </div>
-          </div>
-        )}
 
         {/* Main Editor + Terminal */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }} onClick={() => setActiveMenu(null)}>
