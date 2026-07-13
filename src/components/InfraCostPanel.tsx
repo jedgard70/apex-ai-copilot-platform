@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Server, Activity, Database, CloudLightning, DollarSign, ActivitySquare } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
 
 export function InfraCostPanel() {
-  const { session } = useAuth();
+  const session = { tenant_id: 'demo-tenant', role: 'admin' };
   const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
