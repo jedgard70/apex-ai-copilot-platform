@@ -1,4 +1,5 @@
 import { generateSpeech, isGeminiTtsAvailable } from '../../agent/geminiTtsConnector.mjs'
+import { logUsage } from '../../service/costOrchestrator.mjs'
 
 function sendJson(res, status, body) {
   res.writeHead(status, { 'Content-Type': 'application/json' }).end(JSON.stringify(body))
@@ -19,6 +20,9 @@ export default async function handler(req, res) {
     const body = typeof req.body === 'object' ? req.body : JSON.parse(req.body || '{}')
     const text = String(body.text || '').trim()
     if (!text) return sendJson(res, 400, { ok: false, error: 'text is required' })
+
+    const identity = JSON.parse(req.headers['x-apex-identity'] || '{}')
+    const tenantId = identity.tenantId || 'demo-tenant'
 
     const customVoiceId = body.voiceId || body.voice
     const isElevenLabs = String(body.model || '').includes('elevenlabs') || (customVoiceId && process.env.ELEVENLABS_API_KEY)
@@ -42,6 +46,9 @@ export default async function handler(req, res) {
       if (response.ok) {
         const arrayBuffer = await response.arrayBuffer()
         const buffer = Buffer.from(arrayBuffer)
+        
+        logUsage(tenantId, 'elevenlabs', 'eleven_multilingual_v2', { characters: text.length }).catch(console.error)
+
         return sendJson(res, 200, {
           ok: true,
           audio: buffer.toString('base64'),
@@ -53,6 +60,10 @@ export default async function handler(req, res) {
 
     const result = await generateSpeech(text, { model: body.model, voice: customVoiceId })
     if (!result.ok) return sendJson(res, 502, result)
+
+    // Gemini doesn't charge for simple text TTS yet in the same way, or we could track tokens. 
+    // We'll track it using gemini.
+    logUsage(tenantId, 'gemini', 'gemini-tts', { characters: text.length }).catch(console.error)
 
     return sendJson(res, 200, {
       ok: true,

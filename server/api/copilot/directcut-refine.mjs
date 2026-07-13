@@ -1,6 +1,8 @@
 // DirectCut Node Refinement — refine a single scene node with AI
 // Used by the Node Board to improve individual scenes without regenerating the full plan
 
+import { logUsage } from '../../service/costOrchestrator.mjs'
+
 function sendJson(res, status, body) {
   res.writeHead(status, { 'Content-Type': 'application/json' }).end(JSON.stringify(body))
 }
@@ -99,39 +101,46 @@ export default async function handler(req, res) {
   const duration = String(body.duration || '15s')
   const aspectRatio = String(body.aspectRatio || '16:9')
 
-  const geminiModel = 'gemini-3.5-flash'
+  const geminiModel = 'gemini-1.5-flash'
+  const geminiKey = process.env.GEMINI_API_KEY
 
   const userPrompt = buildUserPrompt(scene, camera, style, goal, videoMode, duration, aspectRatio)
   const systemPrompt = buildSystemPrompt()
 
   let rawText = ''
+  
+  const identity = JSON.parse(req.headers['x-apex-identity'] || '{}')
+  const tenantId = identity.tenantId || 'demo-tenant'
 
   try {
+    if (geminiKey) {
+      rawText = await callGemini(geminiKey, geminiModel, `${systemPrompt}\n\n${userPrompt}`)
+      
+      // We estimate input tokens based on prompt length, assuming ~4 chars per token.
+      const estimatedTokens = Math.ceil((systemPrompt.length + userPrompt.length + rawText.length) / 4)
+      logUsage(tenantId, 'gemini', geminiModel, { promptTokens: estimatedTokens, completionTokens: 0 }).catch(console.error)
+    } else {
+      return sendJson(res, 200, {
+        refinedScene: scene,
+        suggestedCamera: camera,
+        suggestedStyle: style,
+        aiNote: 'No AI provider configured. Add GEMINI_API_KEY to enable node refinement.',
+      })
+    }
 
-  }  if (geminiKey) {
-    rawText = await callGemini(geminiKey, geminiModel, `${systemPrompt}\n\n${userPrompt}`)
-  } else {
+    const result = parseRefineResponse(rawText)
     return sendJson(res, 200, {
+      refinedScene: result.refinedScene || scene,
+      suggestedCamera: result.suggestedCamera || camera,
+      suggestedStyle: result.suggestedStyle || style,
+      aiNote: result.aiNote || '',
+    })
+  } catch (error) {
+    return sendJson(res, 500, {
       refinedScene: scene,
       suggestedCamera: camera,
       suggestedStyle: style,
-      aiNote: 'No AI provider configured. Add GEMINI_API_KEY to enable node refinement.',
+      aiNote: `Refinement error: ${scrubError(error.message)}`,
     })
   }
-
-  const result = parseRefineResponse(rawText)
-  return sendJson(res, 200, {
-    refinedScene: result.refinedScene || scene,
-    suggestedCamera: result.suggestedCamera || camera,
-    suggestedStyle: result.suggestedStyle || style,
-    aiNote: result.aiNote || '',
-  })
-} catch (error) {
-  return sendJson(res, 500, {
-    refinedScene: scene,
-    suggestedCamera: camera,
-    suggestedStyle: style,
-    aiNote: `Refinement error: ${scrubError(error.message)}`,
-  })
-}
 }
