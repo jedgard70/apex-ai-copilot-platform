@@ -190,43 +190,16 @@ plataforma (se está implementado ou não) vem APENAS dos 3 canônicos.
 
 ## 🚨 REGRA ABSOLUTA 8 — Deploy em produção requer aprovação humana
 
-Nenhum agente, assistente ou processo automatizado pode:
+Nenhum agente pode fazer merge direto em `main` nem deploy direto em produção.
+Fluxo obrigatório:
 
-1. Alterar configurações de environments ou variáveis sensíveis diretamente no dashboard web da Vercel.
-2. Modificar branch tracking rules ou remover/desconectar a Git Integration.
-3. Adicionar/remover custom domains nos environments.
-4. Modificar "Deployment Protection" (manual approval, password, etc.).
-5. **Fazer merge direto em `main` ou deploy direto em produção sem revisão humana.**
-
-**Fluxo obrigatório de mudança de código:**
-
-1. Agente cria uma branch e abre Pull Request — nunca commita direto em `main`.
-2. CI (`apex-sync.yml`) roda `npm run build` + `npm run test` + `npm run validate:*`
-   relevantes ao módulo tocado. O PR só fica elegível para merge se todos os
-   checks passarem em verde.
+1. Agente cria branch e abre Pull Request.
+2. CI (`apex-sync.yml`) roda `build` + `test` + `validate:*` — PR só fica elegível
+   para merge se todos os checks passarem em verde.
 3. Owner (Dr. Edgard) revisa e aprova o PR manualmente.
-4. Só então o merge em `main` dispara o deploy automático (Vercel + build do
-   `.exe` via `npm run electron:build`).
+4. Só então o merge em `main` dispara o deploy automático.
 
-**Correção de bugs em CI/build:** o agente pode investigar logs de erro,
-corrigir o código e reenviar o PR quantas vezes forem necessárias — mas cada
-nova tentativa passa pelo mesmo portão (CI verde + aprovação humana), nunca
-pula direto para produção.
-
-**Exceção: nenhuma.** Mesmo correções urgentes passam por este fluxo — a
-urgência não justifica pular revisão humana em uma plataforma que lida com
-dados jurídicos e financeiros de clientes. Esta regra substitui a versão
-anterior de "autonomia total de deploy" em 2026-07-12, após auditoria externa
-identificar risco de deploy autônomo em produção sem revisão.
-
-**Configuração atual dos environments (2026-07-10 — NÃO ALTERAR):**
-
-- Production → branch `main` → domínio `www.apexglobalai.com` e aplicativo Desktop (`.exe`).
-- Preview → "All assigned git branches" → custom domains.
-- Development → CLI → custom domains.
-
-Violação: qualquer merge ou deploy que pule o portão de CI + aprovação humana
-deve ser revertido imediatamente e reportado ao Owner.
+Exceção: nenhuma. Mesmo correções urgentes passam por este fluxo.
 
 ---
 
