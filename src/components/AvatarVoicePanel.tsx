@@ -166,35 +166,53 @@ export function AvatarVoicePanel({ goal, conversationContext, onSaveToProject, o
             {!assets.length && <p>No media loaded yet.</p>}
             {!!assets.length && <ul>{assets.map(asset => <li key={asset.id}>{asset.kind} · {asset.name}</li>)}</ul>}
           </div>
+          <button 
+            onClick={generatePlan} 
+            disabled={loading}
+            className="w-full h-12 bg-gradient-to-r from-cyan-600 to-blue-500 hover:from-cyan-500 hover:to-blue-400 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {loading ? <span className="material-symbols-outlined animate-spin text-[20px]">sync</span> : <span className="material-symbols-outlined text-[20px]">auto_awesome</span>}
+            {loading ? 'Preparando...' : 'Gerar Voz e Roteiro'}
+          </button>
+        </div>
 
-          {plan && (
-            <>
-              <div className="contracts-card">
-                <strong>Summary</strong>
-                <p>{plan.summary}</p>
+        {/* Viewport Principal (Direita) */}
+        <div className="flex-1 bg-[#060e20] border border-[#2d3449] rounded-2xl overflow-hidden relative shadow-[inset_0_0_50px_rgba(0,0,0,0.5)] flex flex-col p-6">
+          {message && <div className="p-4 mb-4 bg-cyan-900/30 border border-cyan-500/30 text-cyan-400 text-sm rounded-xl">{message}</div>}
+          
+          {plan ? (
+            <div className="flex-1 flex flex-col overflow-y-auto custom-scrollbar">
+              <h2 className="text-xl font-bold text-white mb-6">Plano de Geração: {plan.identity.personaName}</h2>
+              <div className="bg-[#171f33] border border-[#2d3449] rounded-xl p-5 mb-4">
+                <h3 className="text-sm font-semibold text-cyan-400 mb-2">Roteiro Gerado</h3>
+                <p className="text-sm text-[#dae2fd] whitespace-pre-wrap">{plan.script.fullScript}</p>
               </div>
-              <Grid title="Identity guidelines" items={plan.identityGuidelines} />
-              <Grid title="Asset checklist" items={plan.assetChecklist} />
-              <Grid title="Script outline" items={plan.scriptOutline} />
-              <Grid title="Production steps" items={plan.productionSteps} />
-              <Grid title="Delivery pack" items={plan.deliveryPack} />
-              <Grid title="Safety rules" items={plan.safetyRules} />
-            </>
+              <div className="flex gap-3">
+                <button onClick={() => copy(plan.report)} className="flex-1 h-10 bg-[#0b1326] border border-[#2d3449] hover:bg-[#222a3d] rounded-xl flex items-center justify-center gap-2 text-xs text-[#c3c6d7]">
+                  <span className="material-symbols-outlined text-[16px]">content_copy</span> Copiar Relatório
+                </button>
+                <button onClick={() => onSaveToProject?.(plan)} className="flex-1 h-10 bg-cyan-600/20 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-600/30 rounded-xl flex items-center justify-center gap-2 text-xs">
+                  <span className="material-symbols-outlined text-[16px]">save</span> Salvar no Projeto
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center text-[#434655]">
+              <span className="material-symbols-outlined text-6xl mb-4 opacity-50">record_voice_over</span>
+              <p className="text-sm font-medium">Nenhum avatar ou voz gerado ainda.</p>
+              <p className="text-xs mt-2 max-w-sm text-center">Faça upload de suas amostras de voz, escolha o tom e clique em Gerar para integrar com o ElevenLabs.</p>
+            </div>
           )}
         </div>
-      </div>
-    </PremiumPanelLayout>
-  )
-}
 
-function Grid({ title, items }: { title: string; items: string[] }) {
-  return (
-    <div className="contracts-card">
-      <div className="contracts-section-head">
-        <strong>{title}</strong>
-        <span>{items.length}</span>
       </div>
-      <ul>{items.map(item => <li key={item}>{item}</li>)}</ul>
+
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #2d3449; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #434655; }
+      `}</style>
     </div>
   )
 }
