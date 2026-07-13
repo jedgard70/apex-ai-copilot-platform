@@ -34,7 +34,7 @@ import {
 } from './server/providers/gemini-interactions.mjs'
 import { chatWithFallback, getProviderChain } from './server/providers/providerRouter.mjs'
 import { initLocalGgufModel } from './server/providers/localGgufProvider.mjs'
-import * as supplyChainService from './server/service/supplyChain.mjs'
+
 import * as aiCostService from './server/service/aiCost.mjs'
 import * as multiTenantService from './server/service/multiTenant.mjs'
 import * as pwaMobileService from './server/service/pwaMobile.mjs'
@@ -5154,10 +5154,10 @@ export async function handleBackgroundTask(req, res) {
         title: title || 'Nova Tarefa de Agentes',
         description: description || 'Tarefa personalizada agendada pelo operador.',
         status: 'scheduled',
-        scheduledTime: 'Hoje Ã s 23:00',
+        scheduledTime: 'Hoje às 23:00',
         agents: ['Maestro AI', 'BIM Manager Agent', 'Quality QA Agent'],
         progress: 0,
-        logs: ['[23:00:00] [Maestro AI] Tarefa agendada para execuÃ§Ã£o noturna.'],
+        logs: ['[23:00:00] [Maestro AI] Tarefa agendada para execução noturna.'],
         report: null
       }
       serverBackgroundTasks.push(newTask)
@@ -5924,12 +5924,7 @@ function exportPickSections(project, scope, selectedSections, includeChat) {
       exports: byType('evm-scheduler-nr-compliance'),
       activeState: appState.evmSchedulerComplianceOutput || null,
     } : undefined,
-    supplychain: should('supply-chain') || should('supplychain') ? {
-      suppliers: project.suppliers || [],
-      procurementItems: project.procurementItems || [],
-      exports: byType('supply-chain'),
-      activeState: appState.supplyChainOutput || null,
-    } : undefined,
+
     notifications: should('notifications') || should('alerts') ? {
       alerts: project.alerts || [],
       exports: byType('notifications'),
@@ -6696,10 +6691,7 @@ export const mainHandler = async (req, res) => {
       handleBackgroundTask(req, res)
       return
     }
-    if (req.url === '/api/copilot/supply-chain-plan' && req.method === 'POST') {
-      handleSupplyChainPlan(req, res)
-      return
-    }
+
     if (req.url === '/api/copilot/notifications-plan' && req.method === 'POST') {
       handleNotificationsPlan(req, res)
       return
