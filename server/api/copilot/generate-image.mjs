@@ -1,6 +1,8 @@
 // ArchVis real image generation endpoint
 // Provider priority: 1) fal.ai flux → 2) Gemini → 3) not-configured message
 
+import { logUsage } from '../../service/costOrchestrator.mjs'
+
 function sendJson(res, status, body) {
   res.writeHead(status, { 'Content-Type': 'application/json' }).end(JSON.stringify(body))
 }
@@ -290,17 +292,26 @@ export default async function handler(req, res) {
       autoFloorPlanConstraints, revisionConstraints, cameraPreset, referenceMode, strength, file,
     })
 
+    const identity = JSON.parse(req.headers['x-apex-identity'] || '{}')
+    const tenantId = identity.tenantId || 'demo-tenant'
     const size = process.env.FAL_IMAGE_SIZE || '1024x1024'
 
     // Primary provider: fal.ai
     if (falKey) {
       try {
         const result = await generateWithFal({ falKey, safePrompt, sourceImage, outputCount, mode, size })
+        if (result && result.images) {
+          const modelName = (mode === 'preserve-layout' && sourceImage) ? 'fal-ai/flux/dev/image-to-image' : 'fal-ai/flux/schnell'
+          logUsage(tenantId, 'fal', modelName, { units: result.images.length }).catch(console.error)
+        }
         return sendJson(res, 200, result)
       } catch (falError) {
         console.error('FAL failed, triggering fallback to Gemini Interactions:', falError.message)
         if (process.env.GEMINI_API_KEY) {
           const fallbackResult = await generateWithGeminiInteractions({ safePrompt, outputCount })
+          if (fallbackResult && fallbackResult.images) {
+            logUsage(tenantId, 'gemini', 'imagen-3.0-generate-002', { units: fallbackResult.images.length }).catch(console.error)
+          }
           return sendJson(res, 200, fallbackResult)
         } else {
           throw falError // No gemini key, throw original error

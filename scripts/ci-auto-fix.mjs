@@ -122,10 +122,12 @@ async function runAutoFix() {
           console.log("⚠️ Branch criada, mas falha ao abrir PR automaticamente via 'gh':", prErr.message)
         }
         
-        process.exit(0)
+        // Exit 1 so that the original failing CI pipeline is marked as failed, 
+        // even though a PR has been opened to fix it. This prevents merging broken code.
+        process.exit(1)
       } catch (gitErr) {
         console.error("Erro ao fazer commit/push do reparo:", gitErr.message)
-        process.exit(0) // Saímos com 0 pois o erro técnico foi resolvido
+        process.exit(1) // Saímos com 1 para não mascarar a falha original
       }
     } catch (testErr) {
       console.log("❌ Teste falhou novamente após o reparo.")

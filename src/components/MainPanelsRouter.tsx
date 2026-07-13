@@ -10,6 +10,7 @@ import { MarketingAnalyticsPage } from './MarketingAnalyticsPage'
 import ArchVisPanel from './ArchVisPanel'
 import DirectCutPanel from './DirectCutPanel'
 import Bim3DPanel from './Bim3DPanel'
+import { AvatarVoicePanel } from './AvatarVoicePanel'
 import { FieldOpsPanel } from './FieldOpsPanel'
 import { BudgetPanel } from './BudgetPanel'
 import { ContractsPanel } from './ContractsPanel'
@@ -100,6 +101,13 @@ export function MainPanelsRouter(props: MainPanelsRouterProps) {
         initialConfig={props.directCutOutput?.initialConfig}
         onRecordGeneration={props.handleDirectCutGeneration}
         onClear={() => props.setDirectCutOutput(null)}
+      />
+    );
+    case 'avatarvoice': return (
+      <AvatarVoicePanel
+        goal="Planejamento de Áudio"
+        conversationContext={[]}
+        onClear={() => props.setActiveView('dashboard')}
       />
     );
     case 'bim': return props.bim3DOutput ? (

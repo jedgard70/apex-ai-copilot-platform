@@ -22,7 +22,7 @@ type ArchVisPanelProps = {
   onClear: () => void
 }
 
-export default function ArchVisPanel({ source, output, onClear, onSendToDirectCut, onRecordGeneration }: ArchVisPanelProps) {
+export default function ArchVisPanel({ source, output, revisionConstraints, onClear, onSendToDirectCut, onRecordGeneration }: ArchVisPanelProps) {
   const [activeTab, setActiveTab] = useState<'editor' | 'gallery'>('editor')
   const [prompt, setPrompt] = useState('Edifício residencial de luxo com fachada de vidro, iluminação noturna dramática, render hiper-realista, 8k, octane render.')
   const [isGenerating, setIsGenerating] = useState(false)
@@ -36,17 +36,45 @@ export default function ArchVisPanel({ source, output, onClear, onSendToDirectCu
     }
   ])
 
-  const handleGenerate = () => {
+  const [style, setStyle] = useState('photorealistic-facade')
+
+  const handleGenerate = async () => {
+    if (!prompt.trim()) return
     setIsGenerating(true)
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/copilot/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt,
+          promptStyle: style,
+          referenceMode: source ? 'img2img' : 'text2img',
+          file: source,
+          autoFloorPlanConstraints: [],
+          revisionConstraints: revisionConstraints || []
+        })
+      })
+      
+      const result = await response.json()
+      if (response.ok && result.imageUrl) {
+        setGallery(prev => [{
+          id: Math.random().toString(),
+          imageUrl: result.imageUrl,
+          prompt,
+          style,
+          timestamp: new Date().toISOString()
+        }, ...prev])
+        if (onRecordGeneration) {
+          onRecordGeneration({ item: { id: Date.now().toString(), output: result.imageUrl } })
+        }
+      } else {
+        console.error('Generation failed:', result)
+      }
+    } catch (err) {
+      console.error('Network error during generation:', err)
+    } finally {
       setIsGenerating(false)
-      setGallery(prev => [{
-        id: Math.random().toString(),
-        prompt,
-        style: 'Modern',
-        timestamp: new Date().toISOString()
-      }, ...prev])
-    }, 2000)
+    }
   }
 
   return (
@@ -137,9 +165,9 @@ export default function ArchVisPanel({ source, output, onClear, onSendToDirectCu
 
             {/* Imagem */}
             <div className="flex-1 flex items-center justify-center p-8 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
-              {source?.dataUrl || output ? (
+              {gallery[0]?.imageUrl || output || source?.dataUrl ? (
                 <img 
-                  src={output || source?.dataUrl} 
+                  src={gallery[0]?.imageUrl || output || source?.dataUrl} 
                   alt="Viewport" 
                   className="max-w-full max-h-full object-contain rounded-lg shadow-2xl ring-1 ring-white/10"
                 />
@@ -174,23 +202,35 @@ export default function ArchVisPanel({ source, output, onClear, onSendToDirectCu
               <div className="flex flex-col gap-3">
                 <label className="text-xs font-medium text-[#afb9cb]">Estilo Arquitetônico</label>
                 <div className="grid grid-cols-2 gap-2">
-                  <button className="px-3 py-2 rounded-lg bg-blue-600/20 border border-blue-500/40 text-blue-300 text-xs font-medium text-left">
+                  <button onClick={() => setStyle('photorealistic-facade')} className={`px-3 py-2 rounded-lg ${style === 'photorealistic-facade' ? 'bg-blue-600/20 border border-blue-500/40 text-blue-300' : 'bg-[#0b1326] border border-[#2d3449] text-[#c3c6d7] hover:bg-[#222a3d]'} text-xs font-medium text-left transition-colors`}>
                     Hiper-Realista
                   </button>
-                  <button className="px-3 py-2 rounded-lg bg-[#0b1326] border border-[#2d3449] text-[#c3c6d7] hover:bg-[#222a3d] text-xs font-medium text-left transition-colors">
-                    Esboço / Lápis
+                  <button onClick={() => setStyle('technical-bim-mep')} className={`px-3 py-2 rounded-lg ${style === 'technical-bim-mep' ? 'bg-blue-600/20 border border-blue-500/40 text-blue-300' : 'bg-[#0b1326] border border-[#2d3449] text-[#c3c6d7] hover:bg-[#222a3d]'} text-xs font-medium text-left transition-colors`}>
+                    Técnico / BIM
                   </button>
-                  <button className="px-3 py-2 rounded-lg bg-[#0b1326] border border-[#2d3449] text-[#c3c6d7] hover:bg-[#222a3d] text-xs font-medium text-left transition-colors">
-                    Cyberpunk
+                  <button onClick={() => setStyle('cinematic-real-estate')} className={`px-3 py-2 rounded-lg ${style === 'cinematic-real-estate' ? 'bg-blue-600/20 border border-blue-500/40 text-blue-300' : 'bg-[#0b1326] border border-[#2d3449] text-[#c3c6d7] hover:bg-[#222a3d]'} text-xs font-medium text-left transition-colors`}>
+                    Cinematic
                   </button>
-                  <button className="px-3 py-2 rounded-lg bg-[#0b1326] border border-[#2d3449] text-[#c3c6d7] hover:bg-[#222a3d] text-xs font-medium text-left transition-colors">
+                  <button onClick={() => setStyle('humanized-floor-plan')} className={`px-3 py-2 rounded-lg ${style === 'humanized-floor-plan' ? 'bg-blue-600/20 border border-blue-500/40 text-blue-300' : 'bg-[#0b1326] border border-[#2d3449] text-[#c3c6d7] hover:bg-[#222a3d]'} text-xs font-medium text-left transition-colors`}>
                     Humanizada (Planta)
                   </button>
                 </div>
               </div>
 
               <div className="flex flex-col gap-2 mt-5">
-                <label className="text-xs font-medium text-[#afb9cb]">Prompt de Renderização</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-medium text-[#afb9cb]">Prompt de Renderização</label>
+                  <select 
+                    onChange={e => e.target.value && setPrompt(e.target.value)}
+                    className="bg-[#0b1326] border border-[#2d3449] text-[10px] text-[#afb9cb] p-1 rounded outline-none w-32"
+                  >
+                    <option value="">Ideias de Prompt...</option>
+                    <option value="Edifício residencial de luxo com fachada de vidro, iluminação noturna dramática, render hiper-realista, 8k, octane render.">Residencial Luxo Noturno</option>
+                    <option value="Living room moderno, tons terrosos, madeira ripada, iluminação natural, vista para a floresta, Unreal Engine 5.">Living Moderno Diurno</option>
+                    <option value="Planta humanizada de apartamento 3 quartos, vista superior, texturas realistas, mobiliário moderno, 4k.">Planta Humanizada 3Q</option>
+                    <option value="Projeto corporativo, fachada em aço escovado e vidro, cinematográfico, golden hour, reflexos detalhados.">Corporativo Golden Hour</option>
+                  </select>
+                </div>
                 <textarea 
                   value={prompt}
                   onChange={e => setPrompt(e.target.value)}
@@ -224,7 +264,14 @@ export default function ArchVisPanel({ source, output, onClear, onSendToDirectCu
                 <button className="flex items-center justify-center gap-2 h-10 rounded-xl bg-[#0b1326] border border-[#2d3449] hover:bg-[#222a3d] text-[#c3c6d7] text-xs font-medium transition-colors">
                   <span className="material-symbols-outlined text-[16px]">download</span> Salvar Alta Res
                 </button>
-                <button className="flex items-center justify-center gap-2 h-10 rounded-xl bg-[#0b1326] border border-[#2d3449] hover:bg-[#222a3d] text-[#c3c6d7] text-xs font-medium transition-colors">
+                <button 
+                  onClick={() => {
+                    const imgToSend = gallery[0]?.imageUrl || output || source?.dataUrl
+                    if (imgToSend && onSendToDirectCut) {
+                      onSendToDirectCut(imgToSend)
+                    }
+                  }}
+                  className="flex items-center justify-center gap-2 h-10 rounded-xl bg-[#0b1326] border border-[#2d3449] hover:bg-[#222a3d] text-[#c3c6d7] text-xs font-medium transition-colors">
                   <span className="material-symbols-outlined text-[16px]">send</span> Enviar DirectCut
                 </button>
               </div>

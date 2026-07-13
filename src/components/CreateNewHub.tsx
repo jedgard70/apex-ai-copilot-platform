@@ -37,7 +37,7 @@ export const CreateNewHub: React.FC<{ isOpen: boolean; onClose: () => void; onSe
       { title: 'DirectCut', subtitle: 'Gerador de Vídeos Baseado em Nodes', icon: '🎥', navId: 'directcut' }
     ],
     'Áudio': [
-      { title: 'ElevenLabs Voice', subtitle: 'Clonagem e Síntese de Voz Text-to-Speech', icon: '🎙️', navId: 'chat' }
+      { title: 'ElevenLabs Voice', subtitle: 'Clonagem e Síntese de Voz Text-to-Speech', icon: '🎙️', navId: 'avatarvoice' }
     ],
     'Espaços': [
       { title: 'Project Workspace', subtitle: 'Gestão de pastas e arquivos de obra', icon: '📁', navId: 'fieldops' }

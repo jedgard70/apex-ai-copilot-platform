@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { getTenantInfraCosts } from '../../service/infraOrchestrator.mjs';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -20,56 +20,20 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Tenant ID is required for infrastructure metrics.' });
   }
 
-  const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    return res.status(500).json({
-      error: 'Supabase credentials not configured.',
-      demo_mode: true,
-      metrics: {
-        total_usd: 0.05,
-        providers: { gemini: { usd: 0.05, tokens: 450 } }
-      }
-    });
-  }
-
-  const supabase = createClient(supabaseUrl, supabaseKey);
-
   try {
-    // Only return data for the requested tenant
-    const { data, error } = await supabase
-      .from('tenant_ai_costs')
-      .select('provider, model, cost_usd, tokens_used, duration_secs')
-      .eq('tenant_id', tenantId);
-
-    if (error) {
-      throw error;
-    }
-
-    let totalUsd = 0;
-    const providers = {};
-
-    for (const row of data || []) {
-      totalUsd += Number(row.cost_usd || 0);
-      
-      if (!providers[row.provider]) {
-        providers[row.provider] = { usd: 0, tokens: 0, calls: 0 };
-      }
-      
-      providers[row.provider].usd += Number(row.cost_usd || 0);
-      providers[row.provider].tokens += Number(row.tokens_used || 0);
-      providers[row.provider].calls += 1;
-    }
+    const data = await getTenantInfraCosts(tenantId);
 
     return res.status(200).json({
       metrics: {
-        total_usd: totalUsd,
-        providers
+        total_usd: data.grandTotalUsd,
+        ai_usd: data.totalAiUsd,
+        infra_usd: data.totalInfraUsd,
+        providers: data.aiProviders,
+        infra_details: data.infraMetrics
       }
     });
   } catch (err) {
     console.error('Error fetching infra metrics:', err);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    return res.status(500).json({ error: 'Internal Server Error', message: err.message });
   }
 }
