@@ -19,7 +19,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Install dependencies
         run: npm install
@@ -34,5 +34,5 @@ jobs:
         with:
           name: windows-executable
           path: |
-            dist/*.exe
-            dist/*.zip
+            dist_electron/*.exe
+            dist_electron/*.zip
