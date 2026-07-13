@@ -41,6 +41,10 @@ lines.forEach((line, index) => {
 
         // Handle modules and dependencies that are not local files (e.g., pdfjs-dist)
         // Also skip web routes that start with '/'
+        // Skip build output directories
+        if (fileToCheck.startsWith('dist_electron/') || fileToCheck.startsWith('dist/')) {
+            continue;
+        }
         if (!fileToCheck.includes('.') && !fileToCheck.includes('/')) {
           continue;
         }
