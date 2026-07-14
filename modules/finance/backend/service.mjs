@@ -1,115 +1,103 @@
 /**
- * server/service/finance.mjs
+ * modules/finance/backend/service.mjs
  *
  * Financial Control service — receitas, despesas, MRR, P&L, contabilidade.
- * Dados reais armazenados em memória (Map), prontos para migrar ao Supabase.
- *
- * Evidence levels:
- *   USER_ENTERED       → lançamento manual do usuário
- *   SYSTEM_GENERATED   → gerado automaticamente (service order, invoice)
- *   IMPORTED_DOCUMENT  → importado de planilha/XML
- *   UNKNOWN            → sem origem confirmada
- *   NEEDS_ACCOUNTANT_REVIEW → precisa validação contábil
+ * Dados reais armazenados 100% no Supabase.
  */
 
 import { randomUUID } from 'node:crypto'
+import { createClient } from '@supabase/supabase-js'
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+let supabaseClient = null
+let IS_SUPABASE = false
 
-/** @typedef {'USER_ENTERED'|'SYSTEM_GENERATED'|'IMPORTED_DOCUMENT'|'UNKNOWN'|'NEEDS_ACCOUNTANT_REVIEW'} EvidenceLevel */
+function initSupabase() {
+  if (supabaseClient) return true
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (supabaseUrl && supabaseKey) {
+    try {
+      supabaseClient = createClient(supabaseUrl, supabaseKey)
+      IS_SUPABASE = true
+      return true
+    } catch (e) {
+      console.warn('[finance] Error init Supabase:', e.message)
+    }
+  }
+  return false
+}
 
-/** @typedef {'BRL'|'USD'|'EUR'} Currency */
+// ─── Helpers to read from Supabase ──────────────────────────────────────────
 
-/**
- * @typedef {Object} ExpenseEntry
- * @property {string}  id
- * @property {string}  description
- * @property {string}  category      - e.g. 'Software', 'Marketing', 'Freelancer', 'Tax', 'Office'
- * @property {number}  amount
- * @property {Currency} currency
- * @property {string}  date          - ISO date
- * @property {string}  [supplier]
- * @property {string}  [project]
- * @property {string}  [taxCategory]
- * @property {string}  [costCenter]
- * @property {string}  [notes]
- * @property {EvidenceLevel} evidence
- * @property {string}  createdAt
- */
-
-/**
- * @typedef {Object} RevenueEntry
- * @property {string}  id
- * @property {string}  description
- * @property {string}  source        - 'service_order' | 'subscription' | 'manual' | 'imported'
- * @property {number}  amount
- * @property {Currency} currency
- * @property {string}  date          - ISO date
- * @property {string}  [clientName]
- * @property {string}  [orderId]
- * @property {string}  [invoiceId]
- * @property {string}  status        - 'pending' | 'paid' | 'overdue' | 'cancelled'
- * @property {EvidenceLevel} evidence
- * @property {string}  createdAt
- */
-
-/**
- * @typedef {Object} FinancialSummary
- * @property {number} totalRevenue
- * @property {number} totalExpenses
- * @property {number} netProfit
- * @property {number} pendingRevenue
- * @property {number} overdueRevenue
- * @property {number} mrr           - Monthly Recurring Revenue
- * @property {number} arr           - Annual Recurring Revenue
- * @property {number} expenseRatio  - % dos custos sobre receita
- * @property {number} revenueCount
- * @property {number} expenseCount
- * @property {string} period
- */
-
-// ─── In-memory store ─────────────────────────────────────────────────────────
-
-import fs from 'fs'
-import path from 'path'
-
-const DB_DIR = path.join(process.cwd(), '.system_generated')
-const EXPENSES_FILE = path.join(DB_DIR, 'expenses.json')
-const REVENUES_FILE = path.join(DB_DIR, 'revenues.json')
-
-let EXPENSES = new Map()
-let REVENUES = new Map()
-
-function loadDB() {
+async function getSupabaseExpenses() {
+  if (!initSupabase()) return []
   try {
-    if (fs.existsSync(EXPENSES_FILE)) {
-      const data = JSON.parse(fs.readFileSync(EXPENSES_FILE, 'utf-8'))
-      EXPENSES = new Map(data)
+    const { data, error } = await supabaseClient.from('finance_expenses').select('*')
+    if (error && error.code === '42P01') {
+      const { data: genericData } = await supabaseClient.from('sync_queue_items').select('*').eq('operation', 'FINANCE_EXPENSE')
+      return genericData ? genericData.map(g => ({ id: g.id, ...g.payload })) : []
     }
-    if (fs.existsSync(REVENUES_FILE)) {
-      const data = JSON.parse(fs.readFileSync(REVENUES_FILE, 'utf-8'))
-      REVENUES = new Map(data)
-    }
-  } catch (err) {
-    console.error('[finance] Error loading DB:', err)
+    return data || []
+  } catch (e) {
+    return []
   }
 }
 
-function saveDB() {
+async function saveSupabaseExpense(expense) {
+  if (!initSupabase()) return null
   try {
-    fs.mkdirSync(DB_DIR, { recursive: true })
-    fs.writeFileSync(EXPENSES_FILE, JSON.stringify([...EXPENSES]))
-    fs.writeFileSync(REVENUES_FILE, JSON.stringify([...REVENUES]))
-  } catch (err) {
-    console.error('[finance] Error saving DB:', err)
+    const { error } = await supabaseClient.from('finance_expenses').upsert([expense])
+    if (error && error.code === '42P01') {
+      await supabaseClient.from('sync_queue_items').upsert([{ id: expense.id, operation: 'FINANCE_EXPENSE', payload: expense }])
+    }
+  } catch (e) {}
+}
+
+async function deleteSupabaseExpense(id) {
+  if (!initSupabase()) return false
+  const { error } = await supabaseClient.from('finance_expenses').delete().eq('id', id)
+  if (error && error.code === '42P01') {
+    await supabaseClient.from('sync_queue_items').delete().eq('id', id).eq('operation', 'FINANCE_EXPENSE')
+  }
+  return true
+}
+
+async function getSupabaseRevenues() {
+  if (!initSupabase()) return []
+  try {
+    const { data, error } = await supabaseClient.from('finance_revenue').select('*')
+    if (error && error.code === '42P01') {
+      const { data: genericData } = await supabaseClient.from('sync_queue_items').select('*').eq('operation', 'FINANCE_REVENUE')
+      return genericData ? genericData.map(g => ({ id: g.id, ...g.payload })) : []
+    }
+    return data || []
+  } catch (e) {
+    return []
   }
 }
 
-loadDB()
+async function saveSupabaseRevenue(revenue) {
+  if (!initSupabase()) return null
+  try {
+    const { error } = await supabaseClient.from('finance_revenue').upsert([revenue])
+    if (error && error.code === '42P01') {
+      await supabaseClient.from('sync_queue_items').upsert([{ id: revenue.id, operation: 'FINANCE_REVENUE', payload: revenue }])
+    }
+  } catch (e) {}
+}
+
+async function deleteSupabaseRevenue(id) {
+  if (!initSupabase()) return false
+  const { error } = await supabaseClient.from('finance_revenue').delete().eq('id', id)
+  if (error && error.code === '42P01') {
+    await supabaseClient.from('sync_queue_items').delete().eq('id', id).eq('operation', 'FINANCE_REVENUE')
+  }
+  return true
+}
 
 // ─── Expenses CRUD ──────────────────────────────────────────────────────────
 
-export function createExpense(entry) {
+export async function createExpense(entry) {
   const id = randomUUID()
   const expense = {
     id,
@@ -126,30 +114,29 @@ export function createExpense(entry) {
     evidence: entry.evidence || 'USER_ENTERED',
     createdAt: new Date().toISOString(),
   }
-  EXPENSES.set(id, expense)
-  saveDB()
+  await saveSupabaseExpense(expense)
   return expense
 }
 
-export function getExpense(id) { return EXPENSES.get(id) || null }
+export async function getExpense(id) {
+  const all = await getSupabaseExpenses()
+  return all.find(e => e.id === id) || null
+}
 
-export function updateExpense(id, updates) {
-  const existing = EXPENSES.get(id)
+export async function updateExpense(id, updates) {
+  const existing = await getExpense(id)
   if (!existing) return null
   const updated = { ...existing, ...updates, id: existing.id, createdAt: existing.createdAt, updatedAt: new Date().toISOString() }
-  EXPENSES.set(id, updated)
-  saveDB()
+  await saveSupabaseExpense(updated)
   return updated
 }
 
-export function deleteExpense(id) { 
-  const res = EXPENSES.delete(id);
-  if(res) saveDB();
-  return res;
+export async function deleteExpense(id) {
+  return await deleteSupabaseExpense(id)
 }
 
-export function listExpenses(filters = {}) {
-  let items = Array.from(EXPENSES.values())
+export async function listExpenses(filters = {}) {
+  let items = await getSupabaseExpenses()
   if (filters.category) items = items.filter(e => e.category === filters.category)
   if (filters.startDate) items = items.filter(e => e.date >= filters.startDate)
   if (filters.endDate) items = items.filter(e => e.date <= filters.endDate)
@@ -160,7 +147,7 @@ export function listExpenses(filters = {}) {
 
 // ─── Revenue (manual, além das service orders) ──────────────────────────────
 
-export function createRevenue(entry) {
+export async function createRevenue(entry) {
   const id = randomUUID()
   const revenue = {
     id,
@@ -176,30 +163,29 @@ export function createRevenue(entry) {
     evidence: entry.evidence || 'USER_ENTERED',
     createdAt: new Date().toISOString(),
   }
-  REVENUES.set(id, revenue)
-  saveDB()
+  await saveSupabaseRevenue(revenue)
   return revenue
 }
 
-export function getRevenue(id) { return REVENUES.get(id) || null }
+export async function getRevenue(id) {
+  const all = await getSupabaseRevenues()
+  return all.find(r => r.id === id) || null
+}
 
-export function updateRevenue(id, updates) {
-  const existing = REVENUES.get(id)
+export async function updateRevenue(id, updates) {
+  const existing = await getRevenue(id)
   if (!existing) return null
   const updated = { ...existing, ...updates, id: existing.id, createdAt: existing.createdAt, updatedAt: new Date().toISOString() }
-  REVENUES.set(id, updated)
-  saveDB()
+  await saveSupabaseRevenue(updated)
   return updated
 }
 
-export function deleteRevenue(id) {
-  const res = REVENUES.delete(id);
-  if(res) saveDB();
-  return res;
+export async function deleteRevenue(id) {
+  return await deleteSupabaseRevenue(id)
 }
 
-export function listRevenues(filters = {}) {
-  let items = Array.from(REVENUES.values())
+export async function listRevenues(filters = {}) {
+  let items = await getSupabaseRevenues()
   if (filters.status) items = items.filter(r => r.status === filters.status)
   if (filters.source) items = items.filter(r => r.source === filters.source)
   if (filters.startDate) items = items.filter(r => r.date >= filters.startDate)
@@ -210,9 +196,9 @@ export function listRevenues(filters = {}) {
 
 // ─── Financial Summary ──────────────────────────────────────────────────────
 
-export function computeFinancialSummary(period = 'all') {
-  const allRevenues = listRevenues()
-  const allExpenses = listExpenses()
+export async function computeFinancialSummary(period = 'all') {
+  const allRevenues = await listRevenues()
+  const allExpenses = await listExpenses()
 
   const now = new Date()
   let startDate = '1900-01-01'
@@ -285,13 +271,9 @@ export const EXPENSE_CATEGORIES = [
 
 // ─── Sync from service orders (auto-import) ─────────────────────────────────
 
-/**
- * Auto-import paid service orders as revenue.
- * Called after Stripe webhook confirms payment.
- */
-export function importServiceOrderAsRevenue(order) {
+export async function importServiceOrderAsRevenue(order) {
   if (!order || !order.amount) return null
-  return createRevenue({
+  return await createRevenue({
     description: `${order.serviceName} — ${order.clientName}`,
     source: 'service_order',
     amount: order.amount,
@@ -306,7 +288,7 @@ export function importServiceOrderAsRevenue(order) {
 
 // ─── Get monthly breakdown for charts ───────────────────────────────────────
 
-export function getMonthlyBreakdown(months = 6) {
+export async function getMonthlyBreakdown(months = 6) {
   const result = []
   const now = new Date()
   for (let i = months - 1; i >= 0; i--) {
@@ -315,8 +297,8 @@ export function getMonthlyBreakdown(months = 6) {
     const startDate = d.toISOString().slice(0, 10)
     const endDate = new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().slice(0, 10)
 
-    const monthRevenues = listRevenues({ startDate, endDate })
-    const monthExpenses = listExpenses({ startDate, endDate })
+    const monthRevenues = await listRevenues({ startDate, endDate })
+    const monthExpenses = await listExpenses({ startDate, endDate })
 
     result.push({
       month: monthStr,

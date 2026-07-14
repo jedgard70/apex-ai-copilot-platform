@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { IntakeFile } from '../lib/fileIntake'
 
 type GalleryItem = {
@@ -37,6 +37,26 @@ export default function ArchVisPanel({ source, output, revisionConstraints, onCl
   ])
 
   const [style, setStyle] = useState('photorealistic-facade')
+
+  type Preset = { name: string; prompt: string; categoryName: string; categoryId: string }
+  const [promptPresets, setPromptPresets] = useState<Preset[]>([])
+
+  useEffect(() => {
+    fetch('/api/prompts/module/archvis')
+      .then(res => res.json())
+      .then(data => {
+        if (data.presets) {
+          setPromptPresets(data.presets)
+        }
+      })
+      .catch(console.error)
+  }, [])
+
+  const groupedPresets = promptPresets.reduce((acc, preset) => {
+    if (!acc[preset.categoryName]) acc[preset.categoryName] = []
+    acc[preset.categoryName].push(preset)
+    return acc
+  }, {} as Record<string, Preset[]>)
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return
@@ -225,6 +245,13 @@ export default function ArchVisPanel({ source, output, revisionConstraints, onCl
                     className="bg-[#0b1326] border border-[#2d3449] text-[10px] text-[#afb9cb] p-1 rounded outline-none w-32"
                   >
                     <option value="">Ideias de Prompt...</option>
+                    {Object.entries(groupedPresets).map(([categoryName, presets]) => (
+                      <optgroup key={categoryName} label={categoryName}>
+                        {presets.map(p => (
+                          <option key={p.name} value={p.prompt}>{p.name}</option>
+                        ))}
+                      </optgroup>
+                    ))}
                     <optgroup label="Exteriores & Fachadas">
                       <option value="Edifício residencial de luxo com fachada de vidro, iluminação noturna dramática, render hiper-realista, 8k, octane render.">Residencial Luxo Noturno</option>
                       <option value="Minimalist residence, clean volumes, warm concrete, glass, wood, refined landscape and photorealistic facade.">Residência Minimalista</option>

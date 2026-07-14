@@ -2169,9 +2169,9 @@ export default async function handler(req, res) {
       ? 'apex-local|apex-ai'
       : hasLocalWorker
         ? 'local-worker|apex-ai'
-      : (envDefaultModel && !envDefaultModel.toLowerCase().startsWith('apex-local')
-        ? `gemini|${envDefaultModel}`
-        : 'gemini|gemini-2.5-flash')
+        : (envDefaultModel && !envDefaultModel.toLowerCase().startsWith('apex-local')
+          ? `gemini|${envDefaultModel}`
+          : 'gemini|gemini-2.5-flash')
     const selectedModelRaw = body.model || body.selectedModel || safeDefaultModel
     const selectedModel = splitModelValue ? splitModelValue(selectedModelRaw) : { provider: null, modelId: selectedModelRaw, raw: selectedModelRaw }
     let modelProvider = selectedModel.provider || ''
@@ -2362,13 +2362,21 @@ export default async function handler(req, res) {
         } catch (_) { /* local-worker unavailable */ }
       }
 
-      // Motor Apex indisponivel neste runtime: continue conversacional sem expor detalhes internos.
-      const offlineMsg = buildChatFallbackReply(userMessage, identityContext, body.file || null, locale)
-      return sendJson(res, 200, {
-        finalReply: offlineMsg,
-        reply: offlineMsg,
+      const attemptedEngines = apexEngineUrls
+        .map((url) => String(url || '').replace(/^https?:\/\//i, '').split('/')[0])
+        .filter(Boolean)
+
+      return sendJson(res, 503, {
+        error: 'APEX_OWN_ENGINE_UNAVAILABLE',
+        message: 'Motor proprio Apex indisponivel no runtime atual. Nenhuma inferencia local foi executada.',
+        finalReply: '',
+        reply: '',
         mode: 'apex-local-unavailable',
         provider: 'apex-local',
+        diagnostics: {
+          attemptedEngines,
+          lockEnabled: apexModelLock,
+        },
         productionStatus,
       })
     }
@@ -2406,10 +2414,13 @@ export default async function handler(req, res) {
         }
       }
       recordCallSafe({ provider: 'gemini-interactions', model, latencyMs: Date.now() - t0, success: false, errorMsg: 'interactions unavailable' })
-      return sendJson(res, 200, {
-        finalReply: buildChatFallbackReply(userMessage, identityContext, body.file || null),
-        reply: buildChatFallbackReply(userMessage, identityContext, body.file || null),
-        mode: 'local-fallback',
+      return sendJson(res, 503, {
+        error: 'APEX_OWN_ENGINE_UNAVAILABLE',
+        message: 'Provider interactions indisponivel no runtime atual.',
+        finalReply: '',
+        reply: '',
+        mode: 'apex-runtime-unavailable',
+        provider: 'gemini-interactions',
         productionStatus,
       })
     }
@@ -2431,10 +2442,13 @@ export default async function handler(req, res) {
 
     const apiKey = resolvedApiKey
     if (!apiKey && !isFirebase) {
-      return sendJson(res, 200, {
-        finalReply: buildChatFallbackReply(userMessage, identityContext, body.file || null),
-        reply: buildChatFallbackReply(userMessage, identityContext, body.file || null),
-        mode: 'local-fallback',
+      return sendJson(res, 503, {
+        error: 'APEX_OWN_ENGINE_UNAVAILABLE',
+        message: 'Nenhuma credencial valida de inferencia foi encontrada no runtime atual.',
+        finalReply: '',
+        reply: '',
+        mode: 'apex-runtime-unavailable',
+        provider: 'apex-runtime',
         productionStatus,
       })
     }
@@ -2644,11 +2658,13 @@ STYLE & FORMATTING:
     }
 
     if (!provider) {
-
-      return sendJson(res, 200, {
-        finalReply: buildChatFallbackReply(userMessage, identityContext, file),
-        reply: buildChatFallbackReply(userMessage, identityContext, file),
-        mode: 'local-fallback',
+      return sendJson(res, 503, {
+        error: 'APEX_OWN_ENGINE_UNAVAILABLE',
+        message: 'Nenhum provider de chat foi selecionado no runtime atual.',
+        finalReply: '',
+        reply: '',
+        mode: 'apex-runtime-unavailable',
+        provider: 'apex-runtime',
         confirmation: null,
         productionStatus,
       })
@@ -2709,11 +2725,13 @@ STYLE & FORMATTING:
           }
         }
       } catch (_) { /* all fallbacks exhausted, continue to local fallback */ }
-      const fallbackText = buildChatFallbackReply(userMessage, identityContext, file)
-      return sendJson(res, 200, {
-        finalReply: fallbackText,
-        reply: fallbackText,
-        mode: 'local-fallback',
+      return sendJson(res, 503, {
+        error: 'APEX_OWN_ENGINE_UNAVAILABLE',
+        message: 'Todos os provedores de inferencia estao indisponiveis no runtime atual.',
+        finalReply: '',
+        reply: '',
+        mode: 'apex-runtime-unavailable',
+        provider: 'apex-runtime',
         confirmation: null,
         productionStatus,
       })
@@ -2776,10 +2794,13 @@ STYLE & FORMATTING:
           if (fallbackResult.ok) {
             nextData = fallbackResult.data
           } else {
-            return sendJson(res, 200, {
-              finalReply: buildChatFallbackReply(userMessage, identityContext, file),
-              reply: buildChatFallbackReply(userMessage, identityContext, file),
-              mode: 'local-fallback-after-tool',
+            return sendJson(res, 503, {
+              error: 'APEX_OWN_ENGINE_UNAVAILABLE',
+              message: 'Todos os provedores de inferencia estao indisponiveis apos tentativa de ferramentas.',
+              finalReply: '',
+              reply: '',
+              mode: 'apex-runtime-unavailable-after-tool',
+              provider: 'apex-runtime',
               confirmation: null,
               productionStatus,
             })

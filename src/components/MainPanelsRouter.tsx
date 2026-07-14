@@ -13,13 +13,14 @@ import Bim3DPanel from './Bim3DPanel'
 import { AvatarVoicePanel } from './AvatarVoicePanel'
 import { FieldOpsPanel } from './FieldOpsPanel'
 import { BudgetPanel } from './BudgetPanel'
-import { ContractsPanel } from './ContractsPanel'
+import { ContractsPermitsPanel } from '../../modules/legal/frontend/ContractsPermitsPanel'
 import { ResearchPanel } from './ResearchPanel'
-import { CrmPipelinePanel } from './CrmPipelinePanel'
-import { FinancePanel } from './FinancePanel'
+import { CrmPipelinePanel } from '../../modules/crm/frontend/CrmPipelinePanel'
+import { FinancePanel } from '../../modules/finance/frontend/FinancePanel'
 import { AiControlPanel } from './AiControlPanel'
 import { CodeEditorPanel } from './CodeEditorPanel'
-import GlobalPermitsPanel from './GlobalPermitsPanel'
+import VisasCitizenshipPanel from '../../modules/legal/frontend/VisasCitizenshipPanel'
+import { LegalGeneralPanel } from '../../modules/legal/frontend/LegalGeneralPanel'
 import { OwnerPage } from './OwnerPage'
 import { GlobalWorkflowOrchestrator } from './GlobalWorkflowOrchestrator'
 import { N8nPanel } from './N8nPanel'
@@ -136,7 +137,8 @@ export function MainPanelsRouter(props: MainPanelsRouterProps) {
     ) : null;
     case 'fieldops': return <FieldOpsPanel goal="" conversationContext={[]} onClear={() => {}} />;
     case 'budget': return <BudgetPanel goal="" conversationContext={[]} onClear={() => {}} />;
-    case 'contracts': return <ContractsPanel goal="" conversationContext={[]} onClear={() => {}} />;
+    case 'contracts': return <ContractsPermitsPanel goal="" conversationContext={[]} onClear={() => {}} />;
+    case 'legal_general': return <LegalGeneralPanel />;
     case 'research': return <ResearchPanel goal="" conversationContext={[]} onClear={() => {}} />;
     case 'crm': return <CrmPipelinePanel onClear={() => {}} />;
     case 'finance': return <FinancePanel goal="" conversationContext={[]} onClear={() => {}} />;
@@ -199,8 +201,8 @@ export function MainPanelsRouter(props: MainPanelsRouterProps) {
         onChangeContent={() => {}} 
       />
     }
-    case 'permits':
-      return <GlobalPermitsPanel />
+    case 'legal':
+      return <VisasCitizenshipPanel />
     case 'owner':
     case 'dashboard':
       return <OwnerPage onNavigate={props.setActiveView} onOpenChat={() => {}} />

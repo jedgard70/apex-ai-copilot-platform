@@ -253,12 +253,11 @@ app.whenReady().then(async () => {
     return;
   }
 
-  serverProcess = spawn(process.execPath, [serverScript], {
+  const { fork } = require("child_process");
+  serverProcess = fork(serverScript, [], {
     cwd: app.isPackaged ? path.dirname(process.execPath) : appRoot,
-    windowsHide: true,
     env: {
       ...buildNodeChildEnv(),
-      ELECTRON_RUN_AS_NODE: "1",
       PORT: String(APP_PORT),
       NODE_ENV: "production",
       // Motor proprio Apex
@@ -267,7 +266,7 @@ app.whenReady().then(async () => {
       APEX_RUNTIME_ENABLED: "true",
       LOCAL_WORKER_URL: "http://127.0.0.1:8787",
     },
-    stdio: ["ignore", "pipe", "pipe"],
+    stdio: ["ignore", "pipe", "pipe", "ipc"],
   });
   serverProcess.stdout.on("data", d => { const m = d.toString().trim(); if (m) log(`[server] ${m.slice(0, 500)}`); });
   serverProcess.stderr.on("data", d => { const m = d.toString().trim(); if (m) log(`[server:error] ${m.slice(0, 800)}`); });

@@ -448,8 +448,36 @@ function isConnectorOrApiQuestionText(text = '') {
 }
 
 function buildChatFallbackReply(userText, identity, file = null, locale = '') {
-  // Remove mechanical restrictions: route all conversational inputs to the live AI model.
-  return ''
+  if (isGreetingText(userText)) {
+    const who = identity?.workspaceName || 'Apex Platform'
+    return `Olá! Sou o Apex AI Copilot, já conectado ao workspace \"${who}\". Posso te ajudar com arquitetura, código, integrações (BIM/Revit/APS/Supabase), planejamento e automações. O que você precisa agora?`
+  }
+
+  const idReply = buildIdentityReplyText(userText, identity)
+  if (idReply) return idReply
+
+  if (isConversationHistoryQuestionText(userText)) {
+    return 'Eu mantenho contexto da conversa ativa nesta sessão e uso as mensagens recentes para responder com continuidade. Se quiser, posso recapitular os últimos pontos e próximos passos agora.'
+  }
+
+  if (isCodeExecutionQuestionText(userText)) {
+    return 'Consigo orientar e gerar soluções de código com padrão de produção para o repositório, mas só executo mudanças/deploy de forma explícita quando autorizado no fluxo operacional. Se você quiser, eu já preparo o patch exato para aplicar.'
+  }
+
+  if (isConnectorOrApiQuestionText(userText)) {
+    return 'Posso operar integrações e APIs da plataforma Apex (Gemini, FAL, ElevenLabs, Revit/APS, Supabase etc.) com foco em execução real e status transparente. Me diga o módulo/rota desejado e eu te devolvo o plano + chamada pronta.'
+  }
+
+  if (isVisaQuestionText(userText)) {
+    return 'Posso te apoiar com vistos para os EUA (B1/B2, F1, J1, H1B, L1, O1, EB, IR/CR, K e ajustes), incluindo elegibilidade, documentos, DS-160, taxas e preparação para entrevista. Se você me disser seu objetivo e perfil, monto um plano objetivo em etapas.'
+  }
+
+  if (file) {
+    const name = file.name || 'arquivo'
+    return `Recebi o arquivo \"${name}\". Posso resumir, extrair pontos críticos, montar checklist de ação e transformar em resposta executiva. Se quiser, também estruturo em formato jurídico/técnico conforme o tipo do documento.`
+  }
+
+  return 'Estou pronto para continuar em modo operacional Apex. Posso te entregar resposta direta, plano executável ou patch de código, conforme seu objetivo.'
 }
 
 function buildLocalDocSummary(fileName, pageCount, extractedText, fileKind) {
@@ -1219,7 +1247,7 @@ function toGeminiParts(content) {
 function convertToGeminiContent(messages) {
   const contents = []
   const systemParts = []
-  
+
   if (!Array.isArray(messages)) return { systemText: '', contents }
 
   for (const msg of messages) {
@@ -1307,7 +1335,7 @@ async function callGeminiNative(requestPayload, overrideConfig) {
   if (modelName.startsWith('gemini-1.5')) {
     modelName = modelName.includes('pro') ? 'gemini-2.5-pro' : 'gemini-2.5-flash'
   }
-  
+
   const isLegacyUrl = rawApiBase && (rawApiBase.includes('/models/') || rawApiBase.includes(':generateContent'))
   const apiBase = isLegacyUrl ? 'https://generativelanguage.googleapis.com/v1beta' : rawApiBase
   const geminiBase = apiBase.includes('/openai') ? 'https://generativelanguage.googleapis.com/v1beta' : apiBase
@@ -1362,7 +1390,7 @@ async function callGeminiNative(requestPayload, overrideConfig) {
       if (primaryResponse.ok && responseData?.candidates?.length > 0) {
         const candidate = responseData.candidates[0]
         const parts = candidate?.content?.parts || []
-        
+
         const replyText = parts.filter(p => p.text).map(p => p.text).join('') || ''
         const functionCalls = parts.filter(p => p.functionCall).map(p => ({
           id: `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -1667,7 +1695,7 @@ async function executeLiveAgentToolCall(toolCall) {
             return JSON.parse(match[1].trim())
           }
           return { error: 'Failed to find tool output marker in local worker stdout.', rawStdout: result.stdout }
-        } catch(e) {
+        } catch (e) {
           return { error: 'Failed to parse tool output from local worker.', rawStdout: result.stdout }
         }
       } else {
@@ -2021,7 +2049,7 @@ export default async function handler(req, res) {
   // Intercept json responses to log AI API cost
   const originalJson = res.json;
   if (typeof originalJson === 'function') {
-    res.json = function(body) {
+    res.json = function (body) {
       if (body && body.usage && body.model && identity.tenantId) {
         logUsage(identity.tenantId, 'gemini', body.model, {
           promptTokens: body.usage.prompt_tokens || body.usage.promptTokenCount || 0,
@@ -2654,13 +2682,22 @@ Você é a Apex AI, o cérebro operacional da plataforma apexglobalai.com. NÃO 
         } catch (_) { /* multi-provider fallback também esgotado */ }
       }
 
-      // Nenhum motor disponivel: resposta conversacional amigavel
-      const offlineMsg = buildChatFallbackReply(userMessage, identityContext, body.file || null, locale)
-      return sendJson(res, 200, {
-        finalReply: offlineMsg,
-        reply: offlineMsg,
+      // Nenhum motor disponivel: indisponibilidade real do motor local (não mascarar com 200)
+      const attemptedEngines = apexEngineUrls
+        .map((url) => String(url || '').replace(/^https?:\/\//i, '').split('/')[0])
+        .filter(Boolean)
+
+      return sendJson(res, 503, {
+        error: 'APEX_OWN_ENGINE_UNAVAILABLE',
+        message: 'Motor proprio Apex indisponivel no runtime atual. Nenhuma inferencia local foi executada.',
+        finalReply: '',
+        reply: '',
         mode: 'apex-local-unavailable',
         provider: 'apex-local',
+        diagnostics: {
+          attemptedEngines,
+          lockEnabled: apexModelLock,
+        },
         productionStatus,
       })
     }
@@ -2698,10 +2735,13 @@ Você é a Apex AI, o cérebro operacional da plataforma apexglobalai.com. NÃO 
         }
       }
       recordCallSafe({ provider: 'gemini-interactions', model, latencyMs: Date.now() - t0, success: false, errorMsg: 'interactions unavailable' })
-      return sendJson(res, 200, {
-        finalReply: buildChatFallbackReply(userMessage, identityContext, body.file || null),
-        reply: buildChatFallbackReply(userMessage, identityContext, body.file || null),
-        mode: 'local-fallback',
+      return sendJson(res, 503, {
+        error: 'APEX_OWN_ENGINE_UNAVAILABLE',
+        message: 'Provider interactions indisponivel no runtime atual.',
+        finalReply: '',
+        reply: '',
+        mode: 'apex-runtime-unavailable',
+        provider: 'gemini-interactions',
         productionStatus,
       })
     }
@@ -2723,10 +2763,13 @@ Você é a Apex AI, o cérebro operacional da plataforma apexglobalai.com. NÃO 
 
     const apiKey = resolvedApiKey
     if (!apiKey && !isFirebase) {
-      return sendJson(res, 200, {
-        finalReply: buildChatFallbackReply(userMessage, identityContext, body.file || null),
-        reply: buildChatFallbackReply(userMessage, identityContext, body.file || null),
-        mode: 'local-fallback',
+      return sendJson(res, 503, {
+        error: 'APEX_OWN_ENGINE_UNAVAILABLE',
+        message: 'Nenhuma credencial valida de inferencia foi encontrada no runtime atual.',
+        finalReply: '',
+        reply: '',
+        mode: 'apex-runtime-unavailable',
+        provider: 'apex-runtime',
         productionStatus,
       })
     }
@@ -2936,11 +2979,13 @@ STYLE & FORMATTING:
     }
 
     if (!provider) {
-
-      return sendJson(res, 200, {
-        finalReply: buildChatFallbackReply(userMessage, identityContext, file),
-        reply: buildChatFallbackReply(userMessage, identityContext, file),
-        mode: 'local-fallback',
+      return sendJson(res, 503, {
+        error: 'APEX_OWN_ENGINE_UNAVAILABLE',
+        message: 'Nenhum provider de chat foi selecionado no runtime atual.',
+        finalReply: '',
+        reply: '',
+        mode: 'apex-runtime-unavailable',
+        provider: 'apex-runtime',
         confirmation: null,
         productionStatus,
       })
@@ -2988,7 +3033,7 @@ STYLE & FORMATTING:
           const fbAssistant = fbData?.choices?.[0]?.message || {}
           const hasToolCalls = fbAssistant.tool_calls && fbAssistant.tool_calls.length > 0
           const fbReply = fbAssistant.content || fbAssistant.reasoning_content || ''
-          
+
           if (fbReply && !hasToolCalls) {
             return sendJson(res, 200, {
               finalReply: fbReply,
@@ -3008,13 +3053,15 @@ STYLE & FORMATTING:
           }
         }
       } catch (_) { /* all fallbacks exhausted, continue to local fallback */ }
-      
+
       if (!response.ok) {
-        const fallbackText = buildChatFallbackReply(userMessage, identityContext, file)
-        return sendJson(res, 200, {
-          finalReply: fallbackText,
-          reply: fallbackText,
-          mode: 'local-fallback',
+        return sendJson(res, 503, {
+          error: 'APEX_OWN_ENGINE_UNAVAILABLE',
+          message: 'Todos os provedores de inferencia estao indisponiveis no runtime atual.',
+          finalReply: '',
+          reply: '',
+          mode: 'apex-runtime-unavailable',
+          provider: 'apex-runtime',
           confirmation: null,
           productionStatus,
         })
@@ -3078,10 +3125,13 @@ STYLE & FORMATTING:
           if (fallbackResult.ok) {
             nextData = fallbackResult.data
           } else {
-            return sendJson(res, 200, {
-              finalReply: buildChatFallbackReply(userMessage, identityContext, file),
-              reply: buildChatFallbackReply(userMessage, identityContext, file),
-              mode: 'local-fallback-after-tool',
+            return sendJson(res, 503, {
+              error: 'APEX_OWN_ENGINE_UNAVAILABLE',
+              message: 'Todos os provedores de inferencia estao indisponiveis apos tentativa de ferramentas.',
+              finalReply: '',
+              reply: '',
+              mode: 'apex-runtime-unavailable-after-tool',
+              provider: 'apex-runtime',
               confirmation: null,
               productionStatus,
             })

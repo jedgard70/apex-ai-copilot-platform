@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { BusinessPlan, createBusinessPlan, pipelineStages, serviceCatalogDefaults } from '../lib/crmFinanceKnowledge'
-import { localDemoModeNotice } from '../lib/saasBusinessModel'
-import { PremiumPanelLayout } from './PremiumPanelLayout'
+import { BusinessPlan, createBusinessPlan, pipelineStages, serviceCatalogDefaults } from '../../../src/lib/crmFinanceKnowledge'
+import { localDemoModeNotice } from '../../../src/lib/saasBusinessModel'
+import { PremiumPanelLayout } from '../../../src/components/PremiumPanelLayout'
 
 type CrmPanelProps = {
   goal: string

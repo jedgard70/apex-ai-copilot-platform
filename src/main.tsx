@@ -43,10 +43,10 @@ import { BudgetPanel } from './components/BudgetPanel'
 import { InfraCostPanel } from './components/InfraCostPanel'
 import { CampaignAutomationPanel } from './components/CampaignAutomationPanel'
 import { PipelineProgressPanel } from './components/PipelineProgressPanel'
-import { ContractsPanel } from './components/ContractsPanel'
+import { ContractsPermitsPanel } from '../modules/legal/frontend/ContractsPermitsPanel'
 import { CopilotExecutionPanel } from './components/CopilotExecutionPanel'
 import { WorkspaceFileTree } from './components/WorkspaceFileTree'
-import { CrmPanel } from './components/CrmPanel'
+import { CrmPanel } from '../modules/crm/frontend/CrmPanel'
 import { DigitalTwinPanel } from './components/DigitalTwinPanel'
 import DirectCutPanel, { DirectCutInitialConfig } from './components/DirectCutPanel'
 import { EvmSchedulerCompliancePanel } from './components/EvmSchedulerCompliancePanel'
@@ -54,7 +54,7 @@ import { CommandMode } from './components/CommandMode'
 import { CaixaCompliancePanel } from './components/CaixaCompliancePanel'
 import { ExportCenterPanel } from './components/ExportCenterPanel'
 import { GlobalLegalPanel } from './components/GlobalLegalPanel'
-import { FinancePanel } from './components/FinancePanel'
+import { FinancePanel } from '../modules/finance/frontend/FinancePanel'
 import { FieldOpsPanel } from './components/FieldOpsPanel'
 import { TerminalPanel } from './components/TerminalPanel'
 import { CodeEditorPanel } from './components/CodeEditorPanel'
@@ -83,8 +83,8 @@ import AppLayout from './components/AppLayout'
 import { ClientDashboard } from './components/ClientDashboard'
 
 import { DashboardByRolePanel } from './components/DashboardByRolePanel'
-import { CrmPipelinePanel } from './components/CrmPipelinePanel'
-import GlobalPermitsPanel from './components/GlobalPermitsPanel'
+import { CrmPipelinePanel } from '../modules/crm/frontend/CrmPipelinePanel'
+import VisasCitizenshipPanel from '../modules/legal/frontend/VisasCitizenshipPanel'
 import { BimClashPanel } from './components/BimClashPanel'
 import { QualidadeNCIsPanel } from './components/QualidadeNCIsPanel'
 import { WorkflowTasksPanel } from './components/WorkflowTasksPanel'
@@ -101,7 +101,7 @@ import { TechnicalDocumentationPage } from './components/TechnicalDocumentationP
 import { StockMarketPanel } from './components/StockMarketPanel'
 import { TripPlannerPanel } from './components/TripPlannerPanel'
 import { NRCompliancePanel } from './components/NRCompliancePanel'
-import { AccountingPanel } from './components/AccountingPanel'
+import { AccountingPanel } from '../modules/accounting/frontend/AccountingPanel'
 import { RuntimeStatusIndicator } from './components/RuntimeStatusIndicator'
 import { AiThinkingSteps, ThinkingStep } from './components/AiThinkingSteps'
 import { RenderEngineStudio } from './components/RenderEngineStudio'
@@ -125,7 +125,7 @@ import {
 import { syncProjectLocalToRemote } from './lib/projectPersistenceAdapter'
 import { SupabaseAccountState, attemptProfileBootstrap, loadSupabaseAccountState } from './lib/supabaseAuthBootstrap'
 import { getBrowserSupabaseClient, getSupabaseProviderStatus } from './lib/supabaseClient'
-import { AccountsPortal } from './components/AccountsPortal'
+import { AccountsPortal } from '../modules/accounting/frontend/AccountsPortal'
 import { syncFieldOpsPlanRemote } from './lib/fieldOpsPersistence'
 import { isSkillUpdateIntent, isTrustedGlobalSkillSource, ProjectMemoryUpdate, SkillUpdateApplyResult } from './lib/skillUpdateEngine'
 import { isSkillExportIntent } from './lib/skillExportFactory'
@@ -4310,7 +4310,7 @@ function App() {
       ) : null;
       case 'fieldops': return <FieldOpsPanel goal="" conversationContext={[]} onClear={() => {}} />;
       case 'budget': return <BudgetPanel goal="" conversationContext={[]} onClear={() => {}} />;
-      case 'contracts': return <ContractsPanel goal="" conversationContext={[]} onClear={() => {}} />;
+      case 'contracts': return <ContractsPermitsPanel goal="" conversationContext={[]} onClear={() => {}} />;
       case 'research': return <ResearchPanel goal="" conversationContext={[]} onClear={() => {}} />;
       case 'crm': return <CrmPipelinePanel onClear={() => {}} />;
       case 'finance': return <FinancePanel goal="" conversationContext={[]} onClear={() => {}} />;
@@ -5425,7 +5425,7 @@ function App() {
           )}
 
           {contractsOutput && (
-            <ContractsPanel
+            <ContractsPermitsPanel
               source={contractsOutput.source}
               goal={contractsOutput.goal}
               conversationContext={contractsOutput.conversationContext}
@@ -5790,7 +5790,7 @@ function App() {
               >
                 <X size={20} />
               </button>
-              <GlobalPermitsPanel initialRegion={typeof permitsOutput === 'object' ? permitsOutput.region : undefined} initialType={typeof permitsOutput === 'object' ? permitsOutput.type : undefined} />
+              <VisasCitizenshipPanel initialRegion={typeof permitsOutput === 'object' ? permitsOutput.region : undefined} initialType={typeof permitsOutput === 'object' ? permitsOutput.type : undefined} />
             </div>
           )}
 

@@ -90,14 +90,11 @@ export function OwnerPage({ onNavigate, onOpenChat }: OwnerPageProps) {
     },
     {
       id: 'legal',
-      title: 'Jurídico & Corporate Global',
-      icon: 'gavel',
+      title: 'Legal, Visas & Compliance',
       items: [
-        { label: 'Brasil (Corporate, Imigration, Cidadania, Permits, Contratos, Fiscal)', view: 'legal_br' },
-        { label: 'Estados Unidos (Corporate, Imigration, Cidadania, Permits, Contratos, Fiscal)', view: 'legal_us' },
-        { label: 'Europa (Corporate, Imigration, Cidadania, Permits, Contratos, Fiscal)', view: 'legal_eu' },
-        { label: 'Offshore & Nômades (Estônia, Panamá, Uruguai)', view: 'legal_off' },
-        { label: 'General Contracts e Jurídico Geral BR', view: 'contracts_gen' },
+        { label: 'Jurídico Geral (Auditoria, Compliance, Litígios)', view: 'legal_general' },
+        { label: 'Contratos e Permits de Construção', view: 'contracts' },
+        { label: 'Vistos e Cidadanias (Global Mobility)', view: 'legal' }
       ]
     },
     {

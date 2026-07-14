@@ -1,12 +1,5 @@
 {
-  "claudeCode.useTerminal": true,
-  "claude-code.useTerminal": true,
   "chat.agent.maxRequests": 100,
-  "opencodego.commitIncludeCommitDiff": true,
-  "opencodego.enableZenFreeModels": true,
-  "opencodego.temperature": 1.7,
-  "opencodego.top_p": 0,
-  "opencodego.visionProxyThinking": true,
   "terminal.integrated.env.windows": {
     "GEMINI_MODEL": "apex-local|apex-ai",
     "APEX_MODEL_LOCK": "true",

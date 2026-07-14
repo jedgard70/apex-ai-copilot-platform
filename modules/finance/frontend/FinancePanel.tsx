@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { DollarSign, RefreshCw, X, Plus, Trash2, Download, Copy } from 'lucide-react'
-import { localDemoModeNotice } from '../lib/saasBusinessModel'
+import { localDemoModeNotice } from '../../../src/lib/saasBusinessModel'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 

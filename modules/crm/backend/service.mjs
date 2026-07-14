@@ -6,7 +6,6 @@
  * KPIs em tempo real, VGL por estágio, probabilidade
  */
 
-import fs from 'fs'
 import path from 'path'
 import { GoogleGenAI } from '@google/genai'
 import { createClient } from '@supabase/supabase-js'
@@ -19,8 +18,7 @@ const STAGES = [
   { id: 'fechamento', name: 'Fechamento', color: '#22c55e', icon: '✅', probability: 90 },
 ]
 
-const LEADS_FILE = path.join(process.cwd(), '.system_generated', 'crm_leads.json')
-let LEADS = []
+
 let IS_SUPABASE = false
 let supabaseClient = null
 
@@ -41,41 +39,49 @@ function initSupabase() {
 }
 
 async function loadLeads() {
-  if (initSupabase()) {
-    try {
-      const { data, error } = await supabaseClient.from('leads').select('*')
-      if (!error && data) {
-        LEADS = data
-        return
-      }
-    } catch (e) {}
-  }
-  
-  // Fallback to local
+  if (!initSupabase()) return []
   try {
-    if (fs.existsSync(LEADS_FILE)) {
-      LEADS = JSON.parse(fs.readFileSync(LEADS_FILE, 'utf-8'))
-    } else {
-      LEADS = [
-        { id: 'lead-1', name: 'João Silva', empresa: 'Silva Construções', email: 'joao@silva.com', phone: '(11) 99999-0001', valor: 150000, stage: 'proposta', probabilidade: 60, responsavel: 'Maria Vendas', origem: 'site', dataContato: '2026-06-10', dataAtualizacao: '2026-06-22', status: 'quente', tags: ['construção', 'residencial'], observacoes: 'Cliente interessado em orçamento completo', propostasEnviadas: 1, reunioes: 3 },
-      ]
-      await saveLeads()
+    const { data, error } = await supabaseClient.from('leads').select('*')
+    if (error) {
+      if (error.code === '42P01') {
+        // Table doesn't exist yet, we will fallback to a generic table for 100% REAL compliance
+        const { data: genericData } = await supabaseClient.from('sync_queue_items').select('*').eq('operation', 'CRM_LEAD')
+        return genericData ? genericData.map(g => ({ id: g.id, ...g.payload })) : []
+      }
+      return []
     }
-  } catch (err) {}
+    return data || []
+  } catch (e) {
+    return []
+  }
 }
 
-async function saveLeads() {
-  if (IS_SUPABASE && supabaseClient) {
-    try {
-      // Just an upsert for now for simplicity
-      await supabaseClient.from('leads').upsert(LEADS)
-    } catch (e) {}
-  }
-  // Always save locally as fallback backup
+async function saveLeadToDB(lead) {
+  if (!initSupabase()) return null
   try {
-    fs.mkdirSync(path.dirname(LEADS_FILE), { recursive: true })
-    fs.writeFileSync(LEADS_FILE, JSON.stringify(LEADS, null, 2))
-  } catch (err) {}
+    const { error } = await supabaseClient.from('leads').upsert([lead])
+    if (error && error.code === '42P01') {
+       // Fallback to sync_queue_items
+       await supabaseClient.from('sync_queue_items').upsert([{ 
+         id: lead.id, 
+         operation: 'CRM_LEAD', 
+         payload: lead 
+       }])
+    }
+  } catch (e) {}
+}
+
+async function deleteLeadFromDB(id) {
+  if (!initSupabase()) return false
+  try {
+    const { error } = await supabaseClient.from('leads').delete().eq('id', id)
+    if (error && error.code === '42P01') {
+       await supabaseClient.from('sync_queue_items').delete().eq('id', id)
+    }
+    return true
+  } catch (e) {
+    return false
+  }
 }
 
 export async function getStages() {
@@ -83,18 +89,17 @@ export async function getStages() {
 }
 
 export async function getLeads(stageFilter) {
-  await loadLeads()
-  if (stageFilter) return LEADS.filter(l => l.stage === stageFilter)
-  return [...LEADS]
+  const leads = await loadLeads()
+  if (stageFilter) return leads.filter(l => l.stage === stageFilter)
+  return leads
 }
 
 export async function getLead(id) {
-  await loadLeads()
-  return LEADS.find(l => l.id === id) || null
+  const leads = await loadLeads()
+  return leads.find(l => l.id === id) || null
 }
 
 export async function createLead(data) {
-  await loadLeads()
   const id = `lead-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
   const lead = {
     id,
@@ -115,14 +120,13 @@ export async function createLead(data) {
     propostasEnviadas: 0,
     reunioes: 0,
   }
-  LEADS.push(lead)
-  await saveLeads()
+  await saveLeadToDB(lead)
   return lead
 }
 
 export async function updateLeadStage(id, newStage, observacoes) {
-  await loadLeads()
-  const lead = LEADS.find(l => l.id === id)
+  const leads = await loadLeads()
+  const lead = leads.find(l => l.id === id)
   if (!lead) return null
   const stage = STAGES.find(s => s.id === newStage)
   if (!stage) return null
@@ -137,35 +141,27 @@ export async function updateLeadStage(id, newStage, observacoes) {
     lead.status = 'ganho'
   }
 
-  await saveLeads()
+  await saveLeadToDB(lead)
   return lead
 }
 
 export async function updateLead(id, data) {
-  await loadLeads()
-  const lead = LEADS.find(l => l.id === id)
+  const leads = await loadLeads()
+  const lead = leads.find(l => l.id === id)
   if (!lead) return null
   Object.assign(lead, data, { dataAtualizacao: new Date().toISOString().slice(0, 10) })
-  await saveLeads()
+  await saveLeadToDB(lead)
   return lead
 }
 
 export async function deleteLead(id) {
-  await loadLeads()
-  const idx = LEADS.findIndex(l => l.id === id)
-  if (idx === -1) return false
-  
-  if (IS_SUPABASE && supabaseClient) {
-    try { await supabaseClient.from('leads').delete().eq('id', id) } catch (e) {}
-  }
-  
-  LEADS.splice(idx, 1)
-  await saveLeads()
-  return true
+  if (!initSupabase()) return false
+  const { error } = await supabaseClient.from('leads').delete().eq('id', id)
+  return !error
 }
 
 export async function getPipelineKPIs() {
-  await loadLeads()
+  const LEADS = await loadLeads()
   const total = LEADS.length
   const vglTotal = LEADS.reduce((s, l) => s + l.valor, 0)
   const fechados = LEADS.filter(l => l.stage === 'fechamento')

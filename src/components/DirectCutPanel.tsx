@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 export type DirectCutInitialConfig = any
 
@@ -23,6 +23,25 @@ export default function DirectCutPanel({ source, goal, conversationContext, init
   const [isGeneratingVideo, setIsGeneratingVideo] = useState(false)
   const [videoUrl, setVideoUrl] = useState('')
 
+  type Preset = { name: string; prompt: string; categoryName: string; categoryId: string }
+  const [promptPresets, setPromptPresets] = useState<Preset[]>([])
+
+  useEffect(() => {
+    fetch('/api/prompts/module/directcut')
+      .then(res => res.json())
+      .then(data => {
+        if (data.presets) {
+          setPromptPresets(data.presets)
+        }
+      })
+      .catch(console.error)
+  }, [])
+
+  const groupedPresets = promptPresets.reduce((acc, preset) => {
+    if (!acc[preset.categoryName]) acc[preset.categoryName] = []
+    acc[preset.categoryName].push(preset)
+    return acc
+  }, {} as Record<string, Preset[]>)
 
   const handleRewriteScript = async () => {
     setIsRewriting(true)
@@ -160,21 +179,32 @@ export default function DirectCutPanel({ source, goal, conversationContext, init
               className="bg-[#0b1326] border border-[#2d3449] text-[10px] text-[#afb9cb] p-1.5 rounded outline-none w-full"
             >
               <option value="">Ideias de Roteiro (Templates)...</option>
-              <optgroup label="Cinematic & Walkthrough">
-                <option value="Descubra o novo padrão de luxo. (Pausa) Este é o Residencial Aurora. (Corte rápido) Acabamentos premium e vista definitiva.">Cinematic Trailer Curto</option>
-                <option value="Bem-vindos ao apartamento decorado. Notem a integração perfeita entre living e varanda gourmet.">Walkthrough Imobiliário</option>
-                <option value="Construção inteligente. Sustentabilidade. Eficiência. Acompanhe a evolução da nossa obra em tempo real.">Acompanhamento de Obra</option>
-              </optgroup>
-              <optgroup label="Campanhas & Hooks (Marketing)">
-                <option value="Sua nova vida começa aqui. (Música inspiradora sobe) Aproveite as condições especiais de lançamento.">Campanha Vendas</option>
-                <option value="See how Apex-enabled architecture becomes a clear, client-ready presentation in minutes.">Hook: Client-Ready Presentation</option>
-                <option value="From concept to approval pack: a faster way to present your projects.">Hook: Faster Approval Pack</option>
-                <option value="Stop losing time on manual rendering. Discover the automated workflow for your architecture projects.">Hook: Automated Workflow</option>
-              </optgroup>
-              <optgroup label="VSL & Landing Pages">
-                <option value="[URGENCY] Oferta por tempo limitado. [HERO] Transforme a apresentação do seu escritório de arquitetura. [CTA] Agende uma demonstração hoje.">Estrutura VSL Básica</option>
-                <option value="[INTRO] Você está perdendo vendas por não encantar seus clientes? [PROVA SOCIAL] Veja como nossos parceiros aumentaram o VGV em 30%. [OFFER] Conheça o Apex Copilot.">VSL Lead Generation</option>
-              </optgroup>
+              {Object.entries(groupedPresets).map(([categoryName, presets]) => (
+                <optgroup key={categoryName} label={categoryName}>
+                  {presets.map((preset, idx) => (
+                    <option key={idx} value={preset.prompt}>{preset.name}</option>
+                  ))}
+                </optgroup>
+              ))}
+              {Object.keys(groupedPresets).length === 0 && (
+                <>
+                  <optgroup label="Cinematic & Walkthrough">
+                    <option value="Descubra o novo padrão de luxo. (Pausa) Este é o Residencial Aurora. (Corte rápido) Acabamentos premium e vista definitiva.">Cinematic Trailer Curto</option>
+                    <option value="Bem-vindos ao apartamento decorado. Notem a integração perfeita entre living e varanda gourmet.">Walkthrough Imobiliário</option>
+                    <option value="Construção inteligente. Sustentabilidade. Eficiência. Acompanhe a evolução da nossa obra em tempo real.">Acompanhamento de Obra</option>
+                  </optgroup>
+                  <optgroup label="Campanhas & Hooks (Marketing)">
+                    <option value="Sua nova vida começa aqui. (Música inspiradora sobe) Aproveite as condições especiais de lançamento.">Campanha Vendas</option>
+                    <option value="See how Apex-enabled architecture becomes a clear, client-ready presentation in minutes.">Hook: Client-Ready Presentation</option>
+                    <option value="From concept to approval pack: a faster way to present your projects.">Hook: Faster Approval Pack</option>
+                    <option value="Stop losing time on manual rendering. Discover the automated workflow for your architecture projects.">Hook: Automated Workflow</option>
+                  </optgroup>
+                  <optgroup label="VSL & Landing Pages">
+                    <option value="[URGENCY] Oferta por tempo limitado. [HERO] Transforme a apresentação do seu escritório de arquitetura. [CTA] Agende uma demonstração hoje.">Estrutura VSL Básica</option>
+                    <option value="[INTRO] Você está perdendo vendas por não encantar seus clientes? [PROVA SOCIAL] Veja como nossos parceiros aumentaram o VGV em 30%. [OFFER] Conheça o Apex Copilot.">VSL Lead Generation</option>
+                  </optgroup>
+                </>
+              )}
             </select>
             <textarea 
               value={scriptText}

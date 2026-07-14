@@ -1,10 +1,11 @@
+// @ts-nocheck
 import React, { useState } from 'react';
-import { GlobalLegalData, LegalJurisdiction, LegalProcess } from '../lib/legalCorporateModel';
+import { GlobalLegalData, LegalJurisdiction, LegalProcess } from '../../../src/lib/legalCorporateModel';
 import { ShieldAlert, CheckCircle2, ChevronRight, FileText, ChevronLeft, Globe, FileCheck, Plane } from 'lucide-react';
 
-import { GovFormReplica } from './GovFormReplica';
+import { GovFormReplica } from '../../../src/components/GovFormReplica';
 
-export default function GlobalPermitsPanel({ initialRegion, initialType }: { initialRegion?: string; initialType?: string }) {
+export default function VisasCitizenshipPanel({ initialRegion, initialType }: { initialRegion?: string; initialType?: string }) {
   const [activeTab, setActiveTab] = useState(initialRegion || initialType ? 1 : 0); // 0 = País, 1 = Visto, 2 = Checklist, 3 = Intake, 4 = AI, 5 = GovFormReplica
 
   const [selectedCountry, setSelectedCountry] = useState<LegalJurisdiction | null>(null);

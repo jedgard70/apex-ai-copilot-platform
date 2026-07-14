@@ -53,3 +53,10 @@ Use this skill when work involves the new Apex AI Copilot platform, Apex Global 
 ## Validation Standard
 
 Before claiming a module works, verify real runtime behavior: chat response, file preview, API response, model/viewer output, and build status. Build passing alone is not product validation.
+
+## Outage Semantics (Mandatory)
+
+- Never mask real provider or engine downtime as success.
+- When Apex own engine or the selected provider is unavailable, return HTTP `503` with machine-readable code `APEX_OWN_ENGINE_UNAVAILABLE`.
+- Do not return synthetic HTTP `200` responses for true outage paths.
+- Keep this behavior mirrored between `api/copilot/chat.mjs` and `server/api/copilot/chat.mjs`.

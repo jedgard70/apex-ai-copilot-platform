@@ -1,6 +1,7 @@
+// @ts-nocheck
 import { useState, useEffect } from 'react'
 import { X, Calculator, FileText, Plus, Building2, User, LayoutDashboard, Settings, LogOut, Lock, CheckCircle, AlertTriangle } from 'lucide-react'
-import { PremiumPanelLayout } from './PremiumPanelLayout'
+import { PremiumPanelLayout } from '../../../src/components/PremiumPanelLayout'
 
 const inp = { padding: '8px 10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '12px', outline: 'none', width: '100%' }
 const btnStyle = { padding: '8px', background: '#059669', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }

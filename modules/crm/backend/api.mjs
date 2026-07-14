@@ -19,7 +19,7 @@ export default async function handler(req, res) {
     const body = ['POST', 'PATCH'].includes(req.method) ? (typeof req.body === 'object' ? req.body : JSON.parse(req.body || '{}')) : {}
     const path = req.url?.split('?')[0] || ''
     const url = new URL(req.url, 'http://localhost')
-    const mod = await import('../../server/service/crmPipeline.mjs')
+    const mod = await import('./service.mjs')
 
     // GET /api/crm-pipeline/kpis
     if (path === '/api/crm-pipeline/kpis' && req.method === 'GET') {

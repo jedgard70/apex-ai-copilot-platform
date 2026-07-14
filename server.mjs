@@ -7082,7 +7082,7 @@ export const mainHandler = async (req, res) => {
 
     // ── Finance / Controle Financeiro ──────────────────────────────────────────
     if (req.url?.startsWith('/api/finance/') && ['GET', 'POST'].includes(req.method)) {
-      const { default: handler } = await import('./api/finance/index.mjs')
+      const { default: handler } = await import('./modules/finance/backend/api.mjs')
       handler(req, res)
       return
     }
@@ -7117,14 +7117,14 @@ export const mainHandler = async (req, res) => {
 
     // ── Accounting API ──────────────────────────────────────────────────────────
     if (req.url?.startsWith('/api/accounting/') && ['GET', 'POST'].includes(req.method)) {
-      const { default: handler } = await import('./api/accounting/index.mjs')
+      const { default: handler } = await import('./modules/accounting/backend/api.mjs')
       handler(req, res)
       return
     }
 
-    // ── American Permits API ────────────────────────────────────────────────────
+    // ── Legal/Permits API ────────────────────────────────────────────────────
     if (req.url?.startsWith('/api/permits/') && ['GET', 'POST'].includes(req.method)) {
-      const { default: handler } = await import('./api/permits/index.mjs')
+      const { default: handler } = await import('./modules/legal/backend/api.mjs')
       handler(req, res)
       return
     }
@@ -7194,7 +7194,7 @@ export const mainHandler = async (req, res) => {
 
     // ── CRM Pipeline API ───────────────────────────────────────────────────────────
     if (req.url?.startsWith('/api/crm-pipeline/') && ['GET', 'POST', 'PATCH', 'DELETE'].includes(req.method)) {
-      const { default: handler } = await import('./api/crm-pipeline/index.mjs')
+      const { default: handler } = await import('./modules/crm/backend/api.mjs')
       handler(req, res)
       return
     }

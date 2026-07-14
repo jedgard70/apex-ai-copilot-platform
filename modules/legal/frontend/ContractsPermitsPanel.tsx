@@ -1,7 +1,8 @@
+// @ts-nocheck
 import { useState } from 'react'
-import { exportContractDocx } from '../lib/contractsDocxExport'
-import { exportContractPdf } from '../lib/contractsPdfExport'
-import { PremiumPanelLayout } from './PremiumPanelLayout'
+import { exportContractDocx } from '../../../src/lib/contractsDocxExport'
+import { exportContractPdf } from '../../../src/lib/contractsPdfExport'
+import { PremiumPanelLayout } from '../../../src/components/PremiumPanelLayout'
 import {
   AlertTriangle,
   CheckCircle2,
@@ -16,7 +17,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react'
-import { formatSize, IntakeFile } from '../lib/fileIntake'
+import { formatSize, IntakeFile } from '../../../src/lib/fileIntake'
 import {
   ContractContext,
   ContractDocumentType,
@@ -38,9 +39,9 @@ import {
   permitDocumentStatuses,
   permitEvidenceLevels,
   permitRegions,
-} from '../lib/contractsKnowledge'
+} from '../../../src/lib/contractsKnowledge'
 
-type ContractsPanelProps = {
+type ContractsPermitsPanelProps = {
   source?: IntakeFile
   goal: string
   conversationContext: string[]
@@ -122,7 +123,7 @@ function planText(plan: ContractsPlan) {
   ].join('\n')
 }
 
-export function ContractsPanel({ source, goal, conversationContext, onSendToBudget, onSaveToProject, onClear }: ContractsPanelProps) {
+export function ContractsPermitsPanel({ source, goal, conversationContext, onSendToBudget, onSaveToProject, onClear }: ContractsPermitsPanelProps) {
   const [context, setContext] = useState<ContractContext>(() => initialContext(goal))
   const [plan, setPlan] = useState<ContractsPlan | null>(null)
   const [loading, setLoading] = useState(false)

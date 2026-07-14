@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { getBrowserSupabaseClient } from '../lib/supabaseClient'
+import { getBrowserSupabaseClient } from '../../../src/lib/supabaseClient'
 import { X, RefreshCw, TrendingUp, UserPlus, ChevronRight, DollarSign, Target, Users, BarChart3, Filter, Sparkles, MessageSquare } from 'lucide-react'
-import { PremiumPanelLayout } from './PremiumPanelLayout'
+import { PremiumPanelLayout } from '../../../src/components/PremiumPanelLayout'
 
 const STAGE_COLORS: Record<string, string> = {
   prospeccao: '#6b7280', qualificacao: '#3b82f6', proposta: '#f59e0b',

@@ -17,6 +17,10 @@
 		"gemini-api-docs-mcp": {
 			"type": "http",
 			"url": "https://gemini-api-docs-mcp.dev"
+		},
+		"supabase": {
+			"type": "http",
+			"url": "https://mcp.supabase.com/mcp?project_ref=csvtkvyauusvtmrkqtzl&features=docs,account,database,debugging,development,functions,branching,storage"
 		}
 	},
 	"inputs": [

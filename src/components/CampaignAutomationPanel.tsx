@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Calendar, Clipboard, Clock, Download, Hash, Instagram, Save, Send, Sparkles, X } from 'lucide-react'
 import { CampaignAutomationPlan, CampaignChannel, CampaignFormat, CampaignGoal, createCampaignAutomationPlan } from '../lib/campaignAutomationKnowledge'
 import { PremiumPanelLayout } from './PremiumPanelLayout'
@@ -57,6 +57,20 @@ export function CampaignAutomationPanel({ goal, conversationContext, onSaveToPro
   const [activeTab, setActiveTab] = useState<'campaign' | 'social'>('campaign')
   const [socialContent, setSocialContent] = useState<SocialContent | null>(null)
   const [socialLoading, setSocialLoading] = useState(false)
+
+  type Preset = { name: string; prompt: string; categoryName: string; categoryId: string }
+  const [promptPresets, setPromptPresets] = useState<Preset[]>([])
+
+  useEffect(() => {
+    fetch('/api/prompts/module/marketing')
+      .then(res => res.json())
+      .then(data => {
+        if (data.presets) {
+          setPromptPresets(data.presets)
+        }
+      })
+      .catch(console.error)
+  }, [])
 
   const applyPreset = (preset: 'custom' | 'apex_saas' | 'engineering' | 'ebook') => {
     setProductPreset(preset)
@@ -161,6 +175,17 @@ export function CampaignAutomationPanel({ goal, conversationContext, onSaveToPro
                 <option value="ebook">3. Hotmart Ebook (Ebook Apex)</option>
               </select>
             </label>
+            {promptPresets.length > 0 && (
+              <label>
+                <span>Marketing Strategy (Prompts)</span>
+                <select onChange={e => { if (e.target.value) setOffer(e.target.value) }}>
+                  <option value="">Selecione um template da biblioteca...</option>
+                  {promptPresets.map((p, idx) => (
+                    <option key={idx} value={p.prompt}>{p.name}</option>
+                  ))}
+                </select>
+              </label>
+            )}
             <label>
               <span>Goal</span>
               <select value={campaignGoal} onChange={event => setCampaignGoal(event.target.value as CampaignGoal)}>

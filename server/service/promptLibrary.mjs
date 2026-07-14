@@ -137,6 +137,13 @@ const CATEGORIES = [
     type: 'library',
     source: 'D:\\AI Jedgard\\skill\\ai-prompt-library\\',
     ref: 'skills/imported/ai-prompt-library/',
+    presets: [
+      { name: 'Otimização de Custos de Obra', prompt: 'Atue como um Engenheiro Sênior focado em Value Engineering. Revise esta lista de materiais e sugira 3 alternativas mais baratas, com a mesma performance técnica, incluindo prós e contras de cada uma.' },
+      { name: 'Análise de Viabilidade (Rápida)', prompt: 'Crie uma tabela de estimativa de viabilidade financeira para um empreendimento residencial de 30 unidades. Inclua colunas para: Custo Direto, Custo Indireto, Terreno, Marketing, Impostos, Lucro Esperado e VGV total estimado.' },
+      { name: 'Geração de Cronograma Macro', prompt: 'Elabore um cronograma macro de 12 meses para a construção de um galpão logístico de 5.000m². Divida em fases: Aprovações, Terraplenagem, Fundações, Estrutura, Fechamentos, Instalações, Acabamentos e Entrega.' },
+      { name: 'Revisão de Contrato de Empreitada', prompt: 'Revise este escopo de contrato de empreitada global e identifique possíveis brechas, riscos de aditivos futuros e cláusulas faltantes sobre prazo, multas e responsabilidade técnica.' },
+      { name: 'Onboarding de Equipe', prompt: 'Crie um roteiro de onboarding de segurança (Diálogo Diário de Segurança - DDS) de 5 minutos sobre trabalho em altura, focado em uso correto de EPIs e procedimentos emergenciais.' }
+    ]
   },
   {
     id: 'marketing-dispatcher',
@@ -146,6 +153,12 @@ const CATEGORIES = [
     type: 'tool',
     source: 'D:\\AI Jedgard\\skill\\marketing_dispatcher\\',
     ref: 'skills/imported/marketing_dispatcher/',
+    presets: [
+      { name: 'Lançamento de Imóvel Alto Padrão', prompt: 'Crie um cronograma de lançamento de 30 dias (Pré-lançamento, Lançamento, Escassez) para um edifício de alto padrão. O foco deve ser exclusividade, vista definitiva e tecnologia embarcada.' },
+      { name: 'Sequência de E-mails VSL', prompt: 'Escreva uma sequência de 4 e-mails para aquecimento de leads que baixaram um material sobre "Como investir em imóveis na planta". O último e-mail deve ter um forte Call-to-Action para agendar reunião.' },
+      { name: 'Roteiro de Reels (Hook, Body, CTA)', prompt: 'Gere 3 roteiros de Reels focados em mostrar "O lado escondido da construção civil que reduz custos". Use a estrutura: Hook (3s), Body com conteúdo denso (15s), e CTA para seguir a página (5s).' },
+      { name: 'Copy para Anúncio (Meta Ads)', prompt: 'Crie 2 variações de copy para Meta Ads vendendo serviços de arquitetura corporativa. A variação A deve focar no benefício emocional (ambiente que retém talentos), e a variação B no ROI financeiro (produtividade).' }
+    ]
   },
   {
     id: 'canvas-design',
@@ -155,6 +168,12 @@ const CATEGORIES = [
     type: 'templates',
     source: 'D:\\AI Jedgard\\skill\\canvas-design\\',
     ref: 'skills/imported/canvas-design/',
+    presets: [
+      { name: 'Proposta Comercial (PDF)', prompt: 'Template para proposta comercial de arquitetura: Capa minimalista, Índice, Apresentação do Escritório, Escopo do Projeto (Fases), Metodologia BIM, Cronograma Visual e Tabela de Investimento.' },
+      { name: 'Apresentação Executiva (Pitch)', prompt: 'Estrutura de Pitch Deck de 10 slides para investidores imobiliários: O Problema, A Solução (O Empreendimento), Diferenciais Competitivos, Análise de Concorrentes, VGV Estimado, ROI e Timeline.' },
+      { name: 'Relatório de Obra (Semanal)', prompt: 'Layout para Relatório de Obra Semanal (RDO Visual): Foto principal (status atual), Gráfico de evolução física vs financeira, Principais ocorrências, Histórico do clima e Próximos passos.' },
+      { name: 'Brand Book Básico', prompt: 'Guia de estilo de marca para construtora: Paleta de cores (CMYK e HEX), Tipografia (títulos e corpo), Variações de logo (fundo claro/escuro) e Exemplos de aplicação em tapumes e EPIs.' }
+    ]
   },
   {
     id: 'algorithmic-art',

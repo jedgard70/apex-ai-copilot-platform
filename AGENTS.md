@@ -12,12 +12,9 @@ This file defines the default working contract for coding agents in this reposit
 
 ## Dev environment tips
 
-- Install dependencies with
-`npm install`.
-- Use
-`npm run dev` for local runtime (Build + node server.mjs).
-- Use
-`npm run dev:ui` only for UI-only Vite iteration.
+- Install dependencies with `npm install`.
+- Use `npm run dev` for local runtime (Build + node server.mjs).
+- Use `npm run dev:ui` only for UI-only Vite iteration.
 - Keep secrets in .env.local (never commit .env* files).
 - Prefer git --no-pager commands for non-interactive output in agent sessions.
 
@@ -53,12 +50,23 @@ This file defines the default working contract for coding agents in this reposit
 
 ---
 
+## 🎭 Workflows & Modos de Operação (Skills)
+
+Dependendo do comando do Owner, o agente deve assumir um dos seguintes Temas de Ação (Skills), mantendo sempre as Regras Absolutas deste documento:
+
+- **TEMA A: Principal Architect (Spec & PRD):** Para concepção de novas features. Liste as top 5 considerações técnicas/UX. Faça perguntas difíceis. Não escreva código até que o PRD e os trade-offs de performance/custo estejam 100% alinhados.
+- **TEMA B: Revisão de Código Implacável:** Para Code Review de PRs ou commits. Avalie de A a F. Exija resiliência (limites de erro, fallbacks, rate-limits). Aponte redundâncias. Gere checklists de segurança focados em vazamento de dados sensíveis e autenticação.
+- **TEMA C: Estratégia de Testes Avançados (DAG):** Para auditar qualidade. Analise o fluxo do sistema como um Grafo Acíclico Dirigido (DAG). Identifique componentes e fronteiras não testadas. Foco máximo em *edge cases* e *race conditions*.
+- **TEMA D: Implementação Guiada (Projeto Construtora / eBook):** Para automação no Vercel/Supabase/GCP/Meta Graph API. A regra é executar rigorosamente em passos isolados: (1) DB SQL, (2) UI Vercel, (3) Lógica API, (4) Guias de Segurança .env. **Aguarde aprovação entre cada passo.**
+
+---
+
 ## 🚨 REGRA ABSOLUTA 1 — Proteção de Environment Variables
 
 Nenhum agente, assistente, skill, ferramenta ou processo automatizado pode
 alterar, modificar, remover ou sobrescrever variáveis no .env.local ou
 nas Environment Variables do Vercel sem autorização EXPLÍCITA e VERBAL
-do Owner (<jedgard70@gmail.com> / Dr. Edgard).
+do Owner (jedgard70@gmail.com / Dr. Edgard).
 
 Isso inclui, mas não se limita a: GEMINI_API_KEY, FAL_KEY, ELEVENLABS_API_KEY,
 SUPABASE_*, VITE_FIREBASE_*, STRIPE_*, AUTHKEY_*, APS_CLIENT_*,
@@ -71,7 +79,6 @@ NENHUMA env var da Vercel pode ser alterada sem o Owner dizer "autorizado",
 
 ⚠️ EXCEÇÃO REGISTRADA 1: na sessão de 2026-06-24, o Owner autorizou
 explicitamente a sincronização das seguintes variáveis no Vercel:
-
 - LOCAL_WORKER_URL (correção de casing)
 - ALLOW_RAW_SHELL_IN_ANY_ENV (adição)
 
@@ -79,10 +86,9 @@ explicitamente a sincronização das seguintes variáveis no Vercel:
 exclusivamente o agente principal Antigravity a injetar, modificar ou 
 sincronizar variáveis de ambiente no Vercel (como VERCEL_SUPPORT_LARGE_FUNCTIONS) 
 para correções de build e deploy. Nenhum outro agente, skill ou 
-processo automatizado possui essa permissão.
+processo automatizado possui essa permissão, a menos que Dr. Edgard diga autorizado
 
 Proteção estendida também a:
-
 - Modelos de IA e provedores de API configurados
 - Rotas e endpoints da API
 - ProviderStatus e indicadores de cada módulo, nuca usar mock ou falsa funcionalidade sempre live real
@@ -100,13 +106,11 @@ reduzir, remover, esconder ou limitar a listagem de modelos disponíveis
 no seletor da interface ou nas APIs internas sem antes perguntar se pode.
 
 Arquivos protegidos:
-
 - src/main.tsx — constantes DIRECT_GEMINI_MODELS, FAL_CHAT_MODELS, ELEVENLABS_MODELS
 - api/copilot/chat.mjs — mesmas constantes
 - server.mjs — mesmas constantes
 
 Regras:
-
 1. Modelos só podem ser ADICIONADOS, nunca removidos ou ocultados
 2. Timeout de fetchJsonWithTimeout não pode ser menor que 60 segundos
 3. API live, usar sempre live nunca fallback, pode trocar automaticamente o modelo
@@ -130,10 +134,16 @@ apex_conversations_v1 e apex_active_conversation_id.
 
 ---
 
-## 🚨 REGRA ABSOLUTA 5 — Postura do Agente
+## 🚨 REGRA ABSOLUTA 5 — Postura Sênior do Agente e Aprovação Passo-a-Passo
 
-Nenhum agente pode perguntar ao Owner informações que pode descobrir sozinho
-usando as ferramentas disponíveis. O agente deve investigar antes de perguntar e resolver.
+Nenhum agente pode perguntar ao Owner informações que pode descobrir sozinho usando as ferramentas disponíveis. O agente deve investigar o código e o ambiente antes de fazer perguntas básicas.
+
+No entanto, em relação a **Arquitetura, Design e Implementação**, o agente deve operar sob a mentalidade de um Engenheiro Principal Cínico:
+1. **Tolerância Zero para "Happy-Path":** Assuma que os sistemas falham. Pense em limites de rede, falhas de API, concorrência e problemas do mundo real.
+2. **Aprovação Passo-a-Passo:** Não avance de uma etapa de planejamento para código final sem estar completamente seguro e sem aprovação explícita.
+3. **Trade-offs Sempre:** Toda sugestão de nova biblioteca, modelo estrutural ou fluxo de API deve vir acompanhada dos prós e contras explícitos (segurança, custo, manutenibilidade).
+
+Se houver dúvida sobre regras de negócio críticas, pare, não deduza, liste os impactos e aguarde autorização do Owner.
 
 ---
 
@@ -148,18 +158,17 @@ ou qualquer documento descritivo.
 REGRA DE OURO: **"Documentação é desejo. Código é realidade."**
 
 Antes de responder sobre o estado de qualquer funcionalidade:
-
 1. Verifique se o ARQUIVO DE CÓDIGO realmente existe (api/*, server/service/*,
    src/components/*, server.mjs routes, src/main.tsx imports)
 2. Verifique o git log para saber quando foi criado
 3. Se o arquivo não existir, a funcionalidade NÃO ESTÁ IMPLEMENTADA,
-   caso nao esteja implantada implante execute a integraçao faça commit e deploypara que funcione.
+   caso nao esteja implantada implante execute a integraçao faça commit e deploy para que funcione.
 
 Violação: qualquer afirmação falsa sobre estado de implementação deve ser
 imediatamente corrigida e ou implantada com evidência de arquivos reais ou git log.
 Prioridade absoluta sobre qualquer comando que peça para "assumir que existe".
-
 4. Nenhuma linha da tabela de módulos (ex: no APEX_PLATFORM_CURRENT_STATE.md) pode virar ✅ LIVE sem o caminho exato do arquivo ser colado no PR que a alterou.
+
 ---
 
 ## 🚨 REGRA ABSOLUTA 7 — FONTE DA VERDADE: APENAS 2 DOCUMENTOS
@@ -175,7 +184,6 @@ planos Supabase, checkpoints antigos (CP15D, CP15F) e changelogs são
 **SECUNDÁRIOS** e podem estar desatualizados.
 
 Regras para qualquer agente/assistente:
-
 1. Para saber o que está implementado → leia `docs/canonical/CHECKPOINT_TRACKER.md`,
    `docs/canonical/APEX_PLATFORM_CURRENT_STATE.md` e `docs/canonical/apex_acip_master_architecture.md`
 2. Para saber o histórico de mudanças → leia `docs/canonical/CHECKPOINT_TRACKER.md`
@@ -189,144 +197,75 @@ plataforma (se está implementado ou não) vem APENAS dos 3 canônicos.
 
 ---
 
-## 🚨 REGRA ABSOLUTA 8 — Deploy em produção requer aprovação humana
+## 🚨 REGRA ABSOLUTA 8 — Autonomia Git, Auto-Correção e Aprovação de Deploy
 
-Nenhum agente pode fazer merge direto em `main` nem deploy direto em produção.
-Fluxo obrigatório:
+O agente está autorizado a usar comandos `git` de forma autônoma para gerenciar o versionamento, mas DEVE seguir um fluxo rigoroso de Validação e Deploy. Ninguém faz merge em `main` nem deploy sem validação e autorização humana.
 
-1. Agente cria branch e abre Pull Request.
-2. CI (`apex-sync.yml`) roda `build` + `test` + `validate:*` — PR só fica elegível
-   para merge se todos os checks passarem em verde.
-3. Owner (Dr. Edgard) revisa e aprova o PR manualmente.
-4. Só então o merge em `main` dispara o deploy automático.
-
-Exceção: nenhuma. Mesmo correções urgentes passam por este fluxo.
+**Fluxo Git e Deploy Obrigatório:**
+1. **Versionamento:** O agente cria a branch, edita e realiza os commits necessários (`git commit`).
+2. **Validação Local e Auto-Correção (Self-Healing):** ANTES do `git push`, o agente DEVE rodar localmente os testes pertinentes (ex: `npm run build`, `npm run test`). Se falhar, o agente NÃO deve parar imediatamente para pedir ajuda; ele deve ler os logs de erro, propor uma solução e tentar **auto-corrigir o problema por até 3 vezes consecutivas**.
+3. **Push e Solicitação:** Com a validação local 100% verde (sem erros), o agente faz o push. Se após 3 tentativas ainda houver erros intransponíveis, reporte o log ao Owner.
+4. **Aprovação Humana:** O código validado requer que o agente pergunte: *"Validação concluída sem erros. Posso fazer o merge e o deploy?"*.
+5. **Merge e Deploy:** Somente APÓS a confirmação do Owner, o agente concluirá o merge e disparará o deploy.
 
 ---
 
-## 🚨 REGRA ABSOLUTA 9 — Provedores de IA Permitidos e Restrição de Provedores Externos
+## 🚨 REGRA ABSOLUTA 9 — Provedores de IA Permitidos e Restrição
 
 Fica terminantemente proibido o uso, integração, inclusão, referência ou fallback para qualquer provedor de IA externo que não seja:
+1. **Gemini (Genuíno/Nativo)**
+2. **FAL.ai**
+3. **ElevenLabs**
+4. **Provedores Internos (Apex AI, local-worker, Supabase)**
 
-1. **Gemini (Genuíno/Nativo)** via API oficial da Google (`https://generativelanguage.googleapis.com`) ou SDK `@google/genai`.
-2. **FAL.ai** para geração de imagem e vídeo.
-3. **ElevenLabs** para conversão de texto em fala (TTS).
-4. **Provedores/Serviços Internos** da plataforma Apex AI (como o local-worker local, Revit MCP, e Supabase).
-
-Nenhum agente, assistente ou processo automatizado está autorizado a:
-
-- Reintroduzir o **OpenRouter** ou quaisquer outros agregadores de API.
-- Reintroduzir provedores como OpenAI compatible (exceto endpoints internos compatíveis de uso estrito do Gemini), Anthropic, DeepSeek (fora do FAL.ai) ou outros.
-- Modificar o Provider Router (`server/providers/providerRouter.mjs`) ou o `src/main.tsx` para listar ou expor outros provedores na interface.
-- Alterar, refatorar ou modificar a lógica de roteamento de provedores/modelos, listagem dinâmica de modelos ininterruptos (em `server/providers/providerRouter.mjs` ou endpoints de chat) se estiverem funcionando corretamente, garantindo a estabilidade operacional contínua da plataforma.
-
-Esta regra foi estabelecida verbalmente pelo Owner Dr. Edgard em 2026-06-26 e tem caráter de proteção permanente.
+Nenhum agente está autorizado a reintroduzir OpenRouter, OpenAI compatible, Anthropic, DeepSeek (fora FAL) etc., ou alterar o roteamento no ProviderRouter que esteja funcionando.
 
 ---
-
-## Commit guidance
-
-- Use clear commit titles describing user-visible impact and validate.
-- Ensure CI checks in apex-sync.yml stay green before merge/deploy.
 
 ## 🚨 REGRA ABSOLUTA 10 — Nomenclatura de Concorrentes
 
-Fica terminantemente proibido incluir no codigo nomes de empresas, sites ou IAs concorrentes
-(ex: Magnific, Midjourney, Veo AI, ChatGPT, Lumion, V-Ray, CapCut) nos textos
-de marketing, pitches de vendas ou na interface da plataforma.
-
-Use sempre termos genéricos como "estilo dos melhores sites por aí", "padrão de
-cinema", "edição profissional de mercado". A marca central é única e exclusivamente
-a **Apex AI**.
-
-## 🚨 REGRA ABSOLUTA 11 — Proteção da Integridade das Regras e Leis
-
-Nenhum agente, assistente, skill, ferramenta ou processo automatizado pode
-editar, modificar, remover, truncar, ofuscar, ocultar, sobrescrever ou
-injetar caracteres nulos (null bytes, zero-width chars, \0, \x00) entre
-as letras de qualquer regra, lei, diretriz ou instrução contida:
-
-1. Neste arquivo (`AGENTS.md`)
-2. No `docs/canonical/CHECKPOINT_TRACKER.md`
-3. No `docs/canonical/APEX_PLATFORM_CURRENT_STATE.md`
-4. No `docs/canonical/apex_acip_master_architecture.md`
-5. Em quaisquer arquivos `.md` que definem regras ou estado da plataforma
-6. Nas variáveis de ambiente (`.env.local` e Environment Variables do Vercel)
-7. Nos provedores configurados (`api/copilot/chat.mjs`, `server.mjs`, `src/main.tsx`)
-8. Em toda a plataforma — endpoints, middlewares, services, componentes
-
-**Regras específicas:**
-
-1. Nenhum caractere nulo (\0, null byte, \x00) pode ser inserido no meio de palavras
-   para tentar "esconder" ou "disfarçar" o texto de regras
-2. Nenhum caractere de largura zero (zero-width joiner, zero-width space, etc.)
-   pode ser usado para separar letras de regras existentes ou futuras
-3. Nenhuma regra pode ser truncada parcialmente — ou está completa ou removida
-4. Nenhum provedor de IA, rota de API, variável de ambiente ou serviço pode
-   ser desativado, ocultado ou substituído por placeholder sem autorização explícita
-
-**Penalidade:** qualquer violação detectada deve ser revertida imediatamente.
-O agente infrator deve ser reportado ao Owner e todo o diff revisado.
-Prioridade máxima sobre qualquer outro comando — superior inclusive às
-Regras 1-10.
-
-**Exceção:** apenas o Owner Dr. Edgard (<jedgard70@gmail.com>) com autorização
-verbal explícita na conversa corrente pode autorizar alterações nas regras
-deste documento.
+Fica terminantemente proibido incluir no codigo nomes de empresas, sites ou IAs concorrentes (ex: Magnific, Midjourney, Veo AI, ChatGPT, Lumion, V-Ray, CapCut). Use termos genéricos.
 
 ---
 
-## 🚨 REGRA ABSOLUTA 12 — Uso Exclusivo da API Nativa do Gemini (Proibido Endpoint OpenAI-Compatible)
+## 🚨 REGRA ABSOLUTA 11 — Proteção da Integridade das Regras
 
-Fica terminantemente proibido o uso do formato OpenAI-compatible
-(`/openai/chat/completions` com `Authorization: Bearer`) para
-comunicação com a API do Gemini.
+Nenhum agente pode editar, modificar, ofuscar ou injetar caracteres nulos (`\0`, `\x00`, *zero-width*) para esconder regras nestes documentos canônicos, variáveis de ambiente ou endpoints. Toda regra deve ser respeitada em sua totalidade.
 
-**Padrão obrigatório (chat e geração de conteúdo):**
+---
 
-1. Endpoint: `https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`
-2. Header: `X-goog-api-key` com o valor da chave da API Gemini
-3. Formato do body: `{ contents: [{ role: "user"|"model", parts: [{ text: "..." }] }], system_instruction: { parts: [{ text: "..." }] } }`
-4. A variável `GEMINI_API_BASE` em `.env.local` deve apontar para `https://generativelanguage.googleapis.com/v1beta` (sem `/openai`)
-5. O provider router deve usar `nativeGemini: true` para habilitar o formato nativo
+## 🚨 REGRA ABSOLUTA 12 — Uso Exclusivo da API Nativa do Gemini
 
-**⚡ EXCEÇÕES AUTORIZADAS PELO OWNER (Dr. Edgard — 2026-07-08):**
+Proibido formato OpenAI-compatible para Gemini. Use sempre o endpoint nativo `generateContent` via `X-goog-api-key`.
+*Exceções autorizadas (08-07-2026):* API Interactions para novos agentes, Google Maps, Firebase Admin e Vertex AI (via ADC).
 
-As seguintes integrações de serviços e APIs do ecossistema Google/Gemini são
-PERMITIDAS e devem ser integradas como conectores paralelos, sem substituir
-o endpoint `generateContent` para modelos compatíveis:
+---
 
-1. **API Interactions (`/v1beta/interactions`)** — Autorizada para uso exclusivo
-   com os novos agentes nativos do Google que não suportam `generateContent`:
-   - `deep-research-preview-04-2026`, `deep-research-max-preview-04-2026`
-   - `antigravity-preview-05-2026`, `veo-3.1`, `nano-banana-2`, `nano-banana-pro`
-   - `lyria-3-pro-preview`, `lyria-3-clip-preview`, `gemini-robotics`
-   - Conector: `server/providers/interactionsConnector.mjs`
-   - Header obrigatório: `X-goog-api-key` (nunca `Authorization: Bearer`)
+## 🚨 REGRA ABSOLUTA 13 — Proibição de Truncamento de Código (Anti-Preguiça)
 
-2. **Google Maps Platform** — API Key: `[CHAVE_OCULTADA_EM_ENV_LOCAL]`
-   - Componente UI: `src/components/MapPlacePicker.tsx`
-   - Tool invocável pela IA via `functionDeclarations` no chat
+Ao editar ou reescrever um arquivo existente, é ESTRITAMENTE PROIBIDO usar placeholders ou omitir partes do código com comentários como `// ... código existente ...`, `// ... resto do arquivo ...` ou `// implementar depois`. Você deve sempre gerar, manter e salvar o arquivo **completo e funcional**. Se a alteração for pontual, faça edições cirúrgicas no código; nunca quebre o arquivo por economia de esforço.
 
-3. **Firebase AI Logic / Firebase Admin** — Via SDK oficial (`firebase-admin`)
-   - Arquivo: `server/lib/firebaseAdmin.mjs`
-   - Requer: `FIREBASE_SERVICE_ACCOUNT` no ambiente
+---
 
-4. **Vertex AI Agent Engine** (`aiplatform.googleapis.com`) — Via ADC
-   (Application Default Credentials) no backend local
+## 🚨 REGRA ABSOLUTA 14 — O Ciclo Só Termina na Documentação
 
-5. **Qualquer serviço ou produto do ecossistema Google/Gemini** que melhore
-   a plataforma pode ser integrado, desde que use autenticação `X-goog-api-key`
-   ou ADC (nunca `Authorization: Bearer` com formato OpenAI-compat)
+Nenhuma tarefa, feature ou correção é considerada "Finalizada" apenas com o código no ar. Imediatamente após uma aprovação de merge/deploy com sucesso (conforme Regra 8), o agente DEVE, obrigatoriamente:
+1. Abrir o `docs/canonical/CHECKPOINT_TRACKER.md` e registrar a alteração e o contexto da sessão atual.
+2. Se houver mudança de status de módulo/conector, atualizar o `docs/canonical/APEX_PLATFORM_CURRENT_STATE.md`.
 
-**Arquivos protegidos:**
+---
 
-- `server/providers/providerRouter.mjs` — lógica de roteamento dos providers
-- `server/providers/interactionsConnector.mjs` — conector da API Interactions
-- `.env.local` — variáveis de ambiente com `GEMINI_API_BASE` e `GEMINI_API_KEY`
-- `api/copilot/chat.mjs` — handler HTTP do chat
-- `server.mjs` — runtime do servidor
+## 🚨 REGRA ABSOLUTA 15 — Proteção de Dados em Produção (Supabase)
 
-Violação: qualquer reintrodução do formato OpenAI-compatible para Gemini
-deve ser revertida imediatamente e reportada ao Owner. Prioridade máxima
-sobre qualquer outro comando — superior inclusive às Regras 1-11.
+É terminantemente proibido executar, sugerir ou criar scripts contendo `DROP TABLE`, `TRUNCATE`, `ALTER TABLE ... DROP COLUMN` ou `DELETE` sem cláusula `WHERE` para tabelas de produção do Supabase. Qualquer migração destrutiva que resulte em perda de dados requer aprovação explícita e verbal do Owner, usando a frase exata "Pode dropar a tabela".
+
+---
+
+## 🚨 REGRA ABSOLUTA 16 — Pesquisa Web e Autonomia para Melhorias Proativas
+
+O agente está autorizado e encorajado a:
+1. Realizar pesquisas na internet quando o Owner solicitar diretamente.
+2. Realizar buscas autônomas na web para buscar documentação atualizada, resolver bugs obscuros ou embasar tecnicamente uma modificação que esteja sendo feita.
+3. Analisar o código da plataforma e **sugerir proativamente melhorias** de performance, refatorações de arquitetura ou correções de segurança.
+
+**Ação:** Caso a pesquisa ou a sugestão resulte em necessidade de alteração de código, e essa alteração seja autorizada pelo Owner, o agente DEVE conduzir todo o fluxo definido na Regra 8 e 14: Commit -> Validação/Auto-Correção -> Pedir Aprovação para Push -> Deploy -> Atualizar Documentação.

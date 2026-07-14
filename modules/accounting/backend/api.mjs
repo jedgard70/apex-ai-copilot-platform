@@ -1,5 +1,5 @@
 /**
- * api/accounting/index.mjs — Contabilidade API (PJ + PF)
+ * api/accounting/index.mjs — Contabilidade API (PJ + PF) Real via Supabase
  */
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -9,28 +9,31 @@ export default async function handler(req, res) {
   try {
     const body = (req.method === 'POST') ? (typeof req.body === 'object' ? req.body : JSON.parse(req.body || '{}')) : {}
     const path = req.url?.split('?')[0] || ''
-    const mod = await import('../../server/service/accounting.mjs')
+    const mod = await import('./service.mjs')
 
     // ── Autenticação ──
     if (path === '/api/accounting/auth' && req.method === 'POST') {
-      const auth = mod.authenticateUser(body.email, body.password)
+      const auth = await mod.authenticateUser(body.email, body.password)
       if (!auth) return res.status(401).json({ error: 'Credenciais inválidas' })
       return res.status(200).json({ providerStatus: 'connected', ...auth })
     }
 
     // ── PJ ──
     if (path === '/api/accounting/create' && req.method === 'POST') {
-      return res.status(200).json({ providerStatus: 'connected', company: mod.createCompany(body) })
+      const company = await mod.createCompany(body)
+      return res.status(200).json({ providerStatus: 'connected', company })
     }
     if (path === '/api/accounting/list' && req.method === 'GET') {
-      return res.status(200).json({ providerStatus: 'connected', companies: mod.listCompanies() })
+      const companies = await mod.listCompanies()
+      return res.status(200).json({ providerStatus: 'connected', companies })
     }
     if (path === '/api/accounting/get' && req.method === 'POST') {
-      const c = mod.getCompany(body.id); if (!c) return res.status(404).json({ error: 'not found' })
+      const c = await mod.getCompany(body.id)
+      if (!c) return res.status(404).json({ error: 'not found' })
       return res.status(200).json({ providerStatus: 'connected', company: c })
     }
     if (path === '/api/accounting/report' && req.method === 'POST') {
-      const report = mod.generateFiscalReport(body.id, body.period)
+      const report = await mod.generateFiscalReport(body.id, body.period)
       if (!report) return res.status(404).json({ error: 'not found' })
       return res.status(200).json({ providerStatus: 'connected', report })
     }
@@ -40,17 +43,20 @@ export default async function handler(req, res) {
 
     // ── PF ──
     if (path === '/api/accounting/pf/create' && req.method === 'POST') {
-      return res.status(200).json({ providerStatus: 'connected', person: mod.createPerson(body) })
+      const person = await mod.createPerson(body)
+      return res.status(200).json({ providerStatus: 'connected', person })
     }
     if (path === '/api/accounting/pf/list' && req.method === 'GET') {
-      return res.status(200).json({ providerStatus: 'connected', persons: mod.listPersons() })
+      const persons = await mod.listPersons()
+      return res.status(200).json({ providerStatus: 'connected', persons })
     }
     if (path === '/api/accounting/pf/get' && req.method === 'POST') {
-      const p = mod.getPerson(body.id); if (!p) return res.status(404).json({ error: 'not found' })
+      const p = await mod.getPerson(body.id)
+      if (!p) return res.status(404).json({ error: 'not found' })
       return res.status(200).json({ providerStatus: 'connected', person: p })
     }
     if (path === '/api/accounting/pf/report' && req.method === 'POST') {
-      const report = mod.generatePFReport(body.id)
+      const report = await mod.generatePFReport(body.id)
       if (!report) return res.status(404).json({ error: 'not found' })
       return res.status(200).json({ providerStatus: 'connected', report })
     }
