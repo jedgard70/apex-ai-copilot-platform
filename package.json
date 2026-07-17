@@ -118,7 +118,7 @@
     "vitest": "^4.1.9"
   },
   "build": {
-    "compression": "normal",
+    "compression": "store",
     "appId": "com.apexglobalai.copilot",
     "productName": "Apex AI Copilot",
     "directories": {
