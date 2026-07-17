@@ -7,9 +7,13 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
-    // Use threads pool — avoids fork worker timeout on Windows + Node 24
-    pool: 'threads',
-    // Increase timeout for integration-style tests
+    // vmForks + singleFork: all tests run in one forked process via VM contexts
+    // This is the most stable pool on Windows + Node 24, avoids worker spawn timeouts
+    pool: 'vmForks',
+    vmForks: {
+      singleFork: true,
+    },
+    // Generous timeouts for integration-style tests
     testTimeout: 30000,
     hookTimeout: 30000,
     // Exclude heavy native/electron paths
