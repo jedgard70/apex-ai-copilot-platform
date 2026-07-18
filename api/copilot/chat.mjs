@@ -9,6 +9,7 @@ import { classifyToolExecutionRequest, routeToolExecution, routeH6ActionRequest 
 import { runApexOperatorProductionSafe } from '../../server/agent/apexOperatorRuntime.mjs'
 import { isConfirmationSignal, isCancelSignal, hasPendingAction } from '../../server/agent/confirmationStateMachine.mjs'
 import { CODE_TOOL_NAMES, getCodeToolDefinitions, executeCodeToolCall } from '../../server/lib/agenticTools.mjs'
+import { validateOrigin } from '../../server/middleware/keyRestriction.mjs'
 
 let _interactionsModels = null
 let _isInteractionModel = null
