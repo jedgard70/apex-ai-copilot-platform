@@ -104,23 +104,23 @@ jobs:
       - name: Pull Vercel Preview Environment
         run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
         env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: "team_L8P3qAd8YauLTCpxeALlvRzW"
+          VERCEL_PROJECT_ID: "prj_uVRjNyFprz8NyzVcb8NTdnALr1Xm"
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
       - name: Build Vercel Preview
         run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
         env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: "team_L8P3qAd8YauLTCpxeALlvRzW"
+          VERCEL_PROJECT_ID: "prj_uVRjNyFprz8NyzVcb8NTdnALr1Xm"
           VITE_APEX_BUILD_MARKER: github-${{ github.sha }}
           APEX_BUILD_MARKER: github-${{ github.sha }}
 
       - name: Deploy Vercel Preview
         run: vercel deploy --archive=tgz --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
         env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: "team_L8P3qAd8YauLTCpxeALlvRzW"
+          VERCEL_PROJECT_ID: "prj_uVRjNyFprz8NyzVcb8NTdnALr1Xm"
 
   supabase-production:
     name: Apply Supabase migrations on base branch only
@@ -175,15 +175,15 @@ jobs:
       - name: Pull Vercel Production Environment
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
         env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: "team_L8P3qAd8YauLTCpxeALlvRzW"
+          VERCEL_PROJECT_ID: "prj_uVRjNyFprz8NyzVcb8NTdnALr1Xm"
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
       - name: Build Vercel Production
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
         env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: "team_L8P3qAd8YauLTCpxeALlvRzW"
+          VERCEL_PROJECT_ID: "prj_uVRjNyFprz8NyzVcb8NTdnALr1Xm"
           DIRECTCUT_ENABLE_FULL: "true"
           VITE_APEX_BUILD_MARKER: github-${{ github.sha }}
           APEX_BUILD_MARKER: github-${{ github.sha }}
@@ -191,8 +191,8 @@ jobs:
       - name: Deploy Vercel Production
         run: vercel deploy --archive=tgz --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
         env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: "team_L8P3qAd8YauLTCpxeALlvRzW"
+          VERCEL_PROJECT_ID: "prj_uVRjNyFprz8NyzVcb8NTdnALr1Xm"
 
   electron-production:
     name: Build and Release Windows EXE
