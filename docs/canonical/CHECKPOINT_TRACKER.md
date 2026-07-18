@@ -462,3 +462,8 @@ verbal explícita.
   - UI de Gestão desenvolvida (\src/components/MarketingSalesPanel.tsx\) exigindo aprovação manual (draft -> scheduled).
   - Backend Cron implementado (\pi/social/publish.mjs\) e configurado no \ercel.json\.
   - Entregue o \guia_meta_env.md\ respeitando estritamente a REGRA ABSOLUTA 1.
+
+### Checkpoint 168 (2026-07-18)
+- Fixed ReferenceError in production caused by unimported validateOrigin in api/copilot/chat.mjs.
+- Verified fix via node execution locally.
+- Merged and pushed to trigger Vercel deployment.
