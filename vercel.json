@@ -35,6 +35,10 @@
     {
       "path": "/api/social/publish",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/process-squad-tasks",
+      "schedule": "* * * * *"
     }
   ]
 }
