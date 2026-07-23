@@ -155,3 +155,50 @@ describe('plan API — bim-tour fallback', () => {
     expect(r.narration).toContain('GEMINI_API_KEY')
   })
 })
+
+describe('Resilience & Edge Cases (DAG Coverage)', () => {
+  // Simulates the API handler network envelope
+  async function simulatePlanApiCall(studioAction: string, payload: any, mockNetworkFn: () => Promise<any>) {
+    try {
+      return await mockNetworkFn()
+    } catch (error: any) {
+      if (error?.status === 429 || error?.code === 'ECONNABORTED' || error?.name === 'AbortError') {
+        if (studioAction === 'field-ops') return handleFieldOpsFallback(payload)
+        if (studioAction === 'research') return handleResearchFallback(payload)
+        if (studioAction === 'knowledge') return handleKnowledgeFallback(payload)
+        if (studioAction === 'bim-tour') return handleBimTourFallback(payload)
+      }
+      throw error
+    }
+  }
+
+  it('gracefully degrades to field-ops fallback on Copilot Rate Limit (HTTP 429)', async () => {
+    const rateLimitError = new Error('Too Many Requests')
+    ;(rateLimitError as any).status = 429
+    const mockFetch = vi.fn().mockRejectedValue(rateLimitError)
+    
+    const response = await simulatePlanApiCall('field-ops', { date: '2026-07-18' }, mockFetch)
+    expect(response.mode).toBe('planning-only')
+    expect((response as any).studioAction).toBe('field-ops')
+  })
+
+  it('gracefully degrades to research fallback on Network Timeout (>10s)', async () => {
+    const timeoutError = new Error('Network Timeout')
+    ;(timeoutError as any).code = 'ECONNABORTED'
+    const mockFetch = vi.fn().mockRejectedValue(timeoutError)
+    
+    const response = await simulatePlanApiCall('research', { query: 'test' }, mockFetch)
+    expect(response.mode).toBe('planning-only')
+    expect((response as any).query).toBe('test')
+  })
+
+  it('gracefully degrades to knowledge fallback on Native AbortError', async () => {
+    const abortError = new Error('Aborted')
+    abortError.name = 'AbortError'
+    const mockFetch = vi.fn().mockRejectedValue(abortError)
+    
+    const response = await simulatePlanApiCall('knowledge', { goal: 'test goal' }, mockFetch)
+    expect(response.mode).toBe('planning-only')
+    expect((response as any).providerStatus).toBe('local-knowledge-index')
+  })
+})

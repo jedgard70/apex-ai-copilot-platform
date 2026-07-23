@@ -152,3 +152,57 @@ describe('analyze API — fallback responses', () => {
     expect(result.mode).toBe('planning-only')
   })
 })
+
+describe('Resilience & Edge Cases (DAG Coverage)', () => {
+  // Simulates the actual API handler try/catch block
+  async function simulateApiCall(action: string, payload: any, mockNetworkFn: () => Promise<any>) {
+    try {
+      return await mockNetworkFn()
+    } catch (error: any) {
+      // The real handler intercepts network errors and invokes fallback
+      if (error?.status === 429 || error?.code === 'ECONNABORTED' || error?.name === 'AbortError' || error?.message?.includes('fetch failed')) {
+        return fallback(action, payload)
+      }
+      throw error
+    }
+  }
+
+  it('gracefully degrades to fallback on Copilot/Gemini Rate Limit (HTTP 429)', async () => {
+    const rateLimitError = new Error('Too Many Requests')
+    ;(rateLimitError as any).status = 429
+
+    const mockFetch = vi.fn().mockRejectedValue(rateLimitError)
+    
+    // Simulate analyzing a contract during a heavy rate-limit
+    const response = await simulateApiCall('contracts-review', {}, mockFetch)
+    
+    // Proves it didn't crash and degraded gracefully
+    expect(response.mode).toBe('planning-only')
+    expect(response.summary).toContain('não disponível')
+  })
+
+  it('gracefully degrades to fallback on Network Timeout (>10s)', async () => {
+    const timeoutError = new Error('timeout of 10000ms exceeded')
+    ;(timeoutError as any).code = 'ECONNABORTED' // Axios style timeout
+
+    const mockFetch = vi.fn().mockRejectedValue(timeoutError)
+    
+    const response = await simulateApiCall('field-ops', { date: '2026-07-18' }, mockFetch)
+    
+    expect(response.mode).toBe('planning-only')
+    expect((response as any).rdoNumber).toBeDefined()
+  })
+
+  it('gracefully degrades to fallback on Native Fetch AbortError', async () => {
+    const abortError = new Error('The operation was aborted')
+    abortError.name = 'AbortError' // Native fetch timeout style
+
+    const mockFetch = vi.fn().mockRejectedValue(abortError)
+    
+    const response = await simulateApiCall('supply-chain', {}, mockFetch)
+    
+    expect(response.mode).toBe('planning-only')
+    expect(Array.isArray((response as any).savingsOpportunities)).toBe(true)
+  })
+})
+

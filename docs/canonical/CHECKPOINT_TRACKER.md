@@ -467,3 +467,12 @@ verbal explÃ­cita.
 - Fixed ReferenceError in production caused by unimported validateOrigin in api/copilot/chat.mjs.
 - Verified fix via node execution locally.
 - Merged and pushed to trigger Vercel deployment.
+
+### Checkpoint 169 (2026-07-23)
+- **BIM 3D Studio (M7)**: Refinamento completo da interface 3D com React Three Fiber (@react-three/fiber).
+  - Integrada iluminação realista, sombras e controles orbitais.
+  - Adicionado modo Raio-X (materiais semitransparentes e wireframe estrutural).
+  - Adicionada Vista Explodida (deslocamento Y interativo dos andares).
+  - Adicionada alternância de visibilidade por disciplina (Arquitetura, Estrutura e MEP).
+  - Validação de build tsc/vite verde e testes 100% aprovados.
+
