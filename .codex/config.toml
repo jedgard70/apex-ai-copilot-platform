@@ -1,3 +1,7 @@
+sandbox_mode = "danger-full-access"
 [mcp_servers.apex_ai_2_0]
 type = "http"
 url = "http://127.0.0.1:8787"
+
+[mcp_servers.gemini-api-docs-mcp]
+url = "https://gemini-api-docs-mcp.dev"
