@@ -14,7 +14,7 @@ export async function loadChatConversationsFromSupabase(userId: string): Promise
 
   const { data, error } = await client
     .from('chat_history')
-    .select('*')
+    .select('id,session_id,role,content,created_at')
     .eq('user_id', userId)
     .order('created_at', { ascending: true })
 
@@ -23,38 +23,33 @@ export async function loadChatConversationsFromSupabase(userId: string): Promise
     return []
   }
 
-  const grouped = new Map<string, any[]>()
+  const grouped = new Map<string, ChatConversation & { hasTitle: boolean }>()
   for (const row of data) {
-    if (!grouped.has(row.session_id)) {
-      grouped.set(row.session_id, [])
-    }
-    grouped.get(row.session_id)!.push(row)
-  }
-
-  const conversations: ChatConversation[] = []
-  for (const [sessionId, rows] of grouped.entries()) {
-    const messages = rows.map(r => ({
-      id: r.id,
-      role: r.role,
-      text: r.content
-    }))
-    
-    // Derive title from first user message
-    const firstUserMsg = rows.find(r => r.role === 'user')
-    let title = 'Nova conversa'
-    if (firstUserMsg && firstUserMsg.content) {
-      title = firstUserMsg.content.substring(0, 30) + (firstUserMsg.content.length > 30 ? '...' : '')
+    let conversation = grouped.get(row.session_id)
+    if (!conversation) {
+      conversation = {
+        id: row.session_id,
+        title: 'Nova conversa',
+        createdAt: row.created_at,
+        messages: [],
+        hasTitle: false
+      }
+      grouped.set(row.session_id, conversation)
     }
 
-    conversations.push({
-      id: sessionId,
-      title,
-      createdAt: rows[0].created_at,
-      messages
+    conversation.messages.push({
+      id: row.id,
+      role: row.role,
+      text: row.content
     })
+    if (!conversation.hasTitle && row.role === 'user' && row.content) {
+      conversation.title = row.content.substring(0, 30) + (row.content.length > 30 ? '...' : '')
+      conversation.hasTitle = true
+    }
   }
 
-  return conversations.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  const conversations = Array.from(grouped.values()).map(({ hasTitle, ...conversation }) => conversation)
+  return conversations.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 }
 
 export async function saveMessageToSupabase(userId: string, sessionId: string, message: Message) {

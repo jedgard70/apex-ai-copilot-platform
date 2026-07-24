@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { getBrowserSupabaseClient } from '../lib/supabaseClient'
 import { loadSupabaseAccountState } from '../lib/supabaseAuthBootstrap'
 
@@ -136,11 +136,11 @@ export function OwnerPage({ onNavigate, onOpenChat }: OwnerPageProps) {
         // Fetch AI Usage
         const { data: usageData } = await supabase
           .from('ai_usage_records')
-          .select('*')
+          .select('provider,success,duration_ms,tokens_in,tokens_out,cost_usd,model')
           .gte('created_at', oneDayAgo);
 
         if (usageData) {
-          const providerMap: Record<string, AnalyticsProvider> = {};
+          const providerMap: Record<string, AnalyticsProvider & { modelSet: Set<string> }> = {};
           let totalCalls = 0;
           let successfulCalls = 0;
           let totalLatency = 0;
@@ -149,7 +149,18 @@ export function OwnerPage({ onNavigate, onOpenChat }: OwnerPageProps) {
           for (const row of usageData) {
             const p = row.provider || 'unknown';
             if (!providerMap[p]) {
-              providerMap[p] = { provider: p, calls: 0, successRate: 0, avgLatencyMs: 0, totalTokensIn: 0, totalTokensOut: 0, estimatedCost: 0, modelCount: 0, models: [] };
+              providerMap[p] = {
+                provider: p,
+                calls: 0,
+                successRate: 0,
+                avgLatencyMs: 0,
+                totalTokensIn: 0,
+                totalTokensOut: 0,
+                estimatedCost: 0,
+                modelCount: 0,
+                models: [],
+                modelSet: new Set<string>()
+              };
             }
 
             providerMap[p].calls++;
@@ -170,17 +181,23 @@ export function OwnerPage({ onNavigate, onOpenChat }: OwnerPageProps) {
             if (row.tokens_out) providerMap[p].totalTokensOut += row.tokens_out;
             if (row.cost_usd) providerMap[p].estimatedCost! += row.cost_usd;
 
-            if (row.model && !providerMap[p].models!.includes(row.model)) {
-              providerMap[p].models!.push(row.model);
+            if (row.model) {
+              providerMap[p].modelSet.add(row.model);
             }
           }
 
           const providersList = Object.values(providerMap).map(p => {
+            const models = Array.from(p.modelSet);
             return {
-              ...p,
+              provider: p.provider,
+              calls: p.calls,
+              models,
+              totalTokensIn: p.totalTokensIn,
+              totalTokensOut: p.totalTokensOut,
+              estimatedCost: p.estimatedCost,
               successRate: p.calls > 0 ? Math.round((p.successRate / p.calls) * 100) : 0,
               avgLatencyMs: p.calls > 0 ? Math.round(p.avgLatencyMs / p.calls) : 0,
-              modelCount: p.models!.length
+              modelCount: models.length
             };
           });
 
@@ -206,13 +223,13 @@ export function OwnerPage({ onNavigate, onOpenChat }: OwnerPageProps) {
 
   useEffect(() => { refresh(); const t = setInterval(refresh, 60000); return () => clearInterval(t) }, [refresh])
 
-  const healthy = providers.filter(p => p.status === 'ok' || p.status === 'warning').length
-  const failing = providers.filter(p => p.status === 'error' || p.status === 'needs-topup')
-  const unconfigured = providers.filter(p => p.status === 'unconfigured')
-  const sortedProviders = [...providers].sort((a, b) => {
+  const healthy = useMemo(() => providers.filter(p => p.status === 'ok' || p.status === 'warning').length, [providers])
+  const failing = useMemo(() => providers.filter(p => p.status === 'error' || p.status === 'needs-topup'), [providers])
+  const unconfigured = useMemo(() => providers.filter(p => p.status === 'unconfigured'), [providers])
+  const sortedProviders = useMemo(() => {
     const order = ['error', 'needs-topup', 'unconfigured', 'warning', 'ok']
-    return order.indexOf(a.status) - order.indexOf(b.status)
-  })
+    return [...providers].sort((a, b) => order.indexOf(a.status) - order.indexOf(b.status))
+  }, [providers])
 
   if (loading) return <div className="h-full bg-[#0B1221] flex items-center justify-center text-[#c6c6ce]">Loading owner data...</div>
 

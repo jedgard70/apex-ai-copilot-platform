@@ -37,7 +37,10 @@ export default async function handleTenantUsers(req, res) {
 
   // Obter a lista de usuários
   if (req.method === 'GET') {
-    const { data, error } = await supabaseClient.from('tenant_users').select('*').order('created_at', { ascending: false })
+    const { data, error } = await supabaseClient
+      .from('tenant_users')
+      .select('id,email,role,status,created_at,auth_user_id')
+      .order('created_at', { ascending: false })
     if (error) return sendJson(res, 500, { error: error.message })
     return sendJson(res, 200, { users: data })
   }
@@ -72,7 +75,7 @@ export default async function handleTenantUsers(req, res) {
       email,
       role: role || 'viewer',
       status: 'active'
-    }).select().single()
+    }).select('id,email,role,status,created_at,auth_user_id').single()
 
     if (insertResult.error) {
       return sendJson(res, 500, { error: insertResult.error.message })
@@ -91,7 +94,12 @@ export default async function handleTenantUsers(req, res) {
     if (role) updates.role = role
     if (status) updates.status = status
 
-    const updateResult = await supabaseClient.from('tenant_users').update(updates).eq('id', id).select().single()
+    const updateResult = await supabaseClient
+      .from('tenant_users')
+      .update(updates)
+      .eq('id', id)
+      .select('id,email,role,status,created_at,auth_user_id')
+      .single()
     if (updateResult.error) {
       return sendJson(res, 500, { error: updateResult.error.message })
     }
