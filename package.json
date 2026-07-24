@@ -3,7 +3,7 @@
   "version": "0.1.3",
   "private": true,
   "type": "module",
-  "main": "electron-main.cjs",
+  "main": "apps/copilot-desktop/electron-main.cjs",
   "scripts": {
     "dev": "node scripts/dev-live.mjs",
     "dev:full": "node scripts/dev-full.mjs",
@@ -14,11 +14,11 @@
     "electron:dev": "node scripts/start-electron-dev.mjs",
     "electron:build": "npm run build && node node_modules/electron-builder/cli.js",
     "daemon": "node local-worker/server.mjs",
-    "engine": "node server/apex-engine-proxy.mjs",
+    "engine": "node services/copilot-api/server/apex-engine-proxy.mjs",
     "dev:ui": "node node_modules/vite/bin/vite.js --host 0.0.0.0",
     "build": "node node_modules/typescript/bin/tsc -b && node node_modules/vite/bin/vite.js build",
     "preview": "node node_modules/vite/bin/vite.js preview --host 0.0.0.0",
-    "start": "node server.mjs",
+    "start": "node services/copilot-api/server.mjs",
     "test:e2e": "npm run build && node node_modules/@playwright/test/cli.js test",
     "test:e2e:headed": "npm run build && node node_modules/@playwright/test/cli.js test --headed",
     "validate:cp15x-h43b": "node scripts/validate-cp15x-h43b.mjs",
@@ -136,17 +136,20 @@
       "!**/__tests__/**",
       "dist_electron/**/*",
       "dist/**/*",
-      "api/**/*",
-      "server/**/*",
+      "services/copilot-api/api/**/*",
+      "services/copilot-api/server/**/*",
       "local-worker/**/*",
       "runtime/**/*",
-      "server.mjs",
-      "electron-main.cjs",
+      "services/copilot-api/server.mjs",
+      "apps/copilot-desktop/electron-main.cjs",
       "package.json",
       ".env.local"
     ],
     "win": {
-      "target": ["nsis", "dir"]
+      "target": [
+        "nsis",
+        "dir"
+      ]
     },
     "nsis": {
       "oneClick": false,

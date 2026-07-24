@@ -3,6 +3,20 @@
     "gemini-api-docs-mcp": {
       "type": "http",
       "url": "https://gemini-api-docs-mcp.dev"
+    },
+    "huggingface": {
+      "type": "http",
+      "url": "https://huggingface.co/mcp",
+      "headers": {
+        "Authorization": "Bearer ${HUGGINGFACE_API_KEY}"
+      }
+    },
+    "higgsfield": {
+      "type": "http",
+      "url": "https://higgsfield.ai/mcp",
+      "headers": {
+        "Authorization": "Bearer ${HIGGSFIELD_API_KEY}"
+      }
     }
   }
 }

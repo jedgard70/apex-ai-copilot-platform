@@ -17,9 +17,9 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["src", "modules"],
+  "include": ["apps/copilot-web/src", "packages/modules"],
   "exclude": [
-    "src/__tests__",
+    "apps/copilot-web/src/__tests__",
     "**/*.test.ts",
     "**/*.test.tsx",
     "**/*.test.js",
