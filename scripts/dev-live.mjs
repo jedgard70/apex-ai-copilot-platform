@@ -21,7 +21,7 @@ worker.on('exit', code => {
 })
 
 // 2. Start Backend API Server
-const server = spawn('node', ['server.mjs'], { 
+const server = spawn('node', ['services/copilot-api/server.mjs'], { 
   cwd: root, 
   stdio: 'inherit',
   env: { ...process.env, NODE_ENV: 'development' }

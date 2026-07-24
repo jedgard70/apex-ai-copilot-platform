@@ -3,7 +3,6 @@
     "development"
   ],
   "hints": {
-<<<<<<< HEAD
     "compat-api/css": "off",
     "compat-api/html": [
       "default",
@@ -14,8 +13,5 @@
       }
     ],
     "meta-viewport": "off"
-=======
-    "compat-api/css": "off"
->>>>>>> origin/main
   }
 }
