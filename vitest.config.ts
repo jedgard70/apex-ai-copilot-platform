@@ -6,7 +6,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./src/test/setup.ts'],
+    setupFiles: ['./apps/copilot-web/src/test/setup.ts'],
     // vmForks + singleFork: all tests run in one forked process via VM contexts
     // This is the most stable pool on Windows + Node 24, avoids worker spawn timeouts
     pool: 'vmForks',
