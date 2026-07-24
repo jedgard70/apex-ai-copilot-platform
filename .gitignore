@@ -39,4 +39,7 @@ runtime/*.dll
 *.patch
 !CMakeLists.txt
 runtime/omniscience.db.json
-repo1-mirror/  
+repo1-mirror/
+force-commit.cjs
+service-account.json
+services/copilot-api/server/service-account.json
